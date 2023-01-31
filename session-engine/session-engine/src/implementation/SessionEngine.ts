@@ -20,7 +20,7 @@ import { Parameter } from './dto/Parameter'
 import { vec3 } from 'gl-matrix'
 import { Export } from './dto/Export'
 import { Output } from './dto/Output'
-import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
+import { convert, ISettingsV3_1, latestVersion, validate, versions } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (40)
@@ -71,6 +71,7 @@ export class SessionEngine implements ISessionEngine {
     private _sessionId?: string;
     private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
     private _viewerSettings?: object;
+    private _viewerSettingsVersion: string = latestVersion;
 
     #customizationProcess!: string;
     #parameterHistory: {
@@ -257,7 +258,7 @@ export class SessionEngine implements ISessionEngine {
                 throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
             }
 
-            const settings = <ISettingsV3_1>convert(config, '3.3');
+            const settings = <ISettingsV3_1>convert(config, latestVersion);
 
             const exportMappingUid: { [key: string]: string | undefined } = {};
             if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -633,6 +634,7 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
+            this._viewerSettingsVersion = this._responseDto.viewerSettingsVersion || latestVersion;
             this._settingsEngine.loadSettings(this._viewerSettings);
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
@@ -912,7 +914,7 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('configure', true);
         
         try {
-            validate(json, '3.3')
+            validate(json, <versions>this._viewerSettingsVersion)
         } catch (e) {
             const error = new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
             throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);

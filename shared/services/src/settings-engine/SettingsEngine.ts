@@ -1,4 +1,4 @@
-import { convert, validate, DefaultsV3_3 as Defaults, ISettingsV3_3 as ISettings, versions } from '@shapediver/viewer.settings';
+import { convert, validate, DefaultsV3_3 as Defaults, ISettingsV3_3 as ISettings, versions, latestVersion } from '@shapediver/viewer.settings';
 import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
@@ -20,7 +20,7 @@ export class SettingsEngine {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settings: ISettings = Defaults();
-    private _settings_version: versions = '3.3';
+    private _settings_version: versions = latestVersion;
 
     // #endregion Properties (8)
 
@@ -104,16 +104,16 @@ export class SettingsEngine {
                 try { 
                     validate(json, v as versions);             
                     this._settings_version = v as versions;       
-                    (<any>this._settings) = convert(json, '3.3');
+                    (<any>this._settings) = convert(json, latestVersion);
                     this.cleanSettings(this._settings);
                     return;
                 } catch (e) {}
             }
 
             try { 
-                validate(json, '3.3');             
-                this._settings_version = '3.3';       
-                (<any>this._settings) = convert(json, '3.3');
+                validate(json, latestVersion);             
+                this._settings_version = latestVersion;       
+                (<any>this._settings) = convert(json, latestVersion);
                 this.cleanSettings(this._settings);
                 return;
             } catch (e) {
@@ -121,14 +121,14 @@ export class SettingsEngine {
                 throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
-            this._settings_version = '3.3';       
+            this._settings_version = latestVersion;       
             (<any>this._settings) = Defaults();
             return;
         }
     }
 
     public reset() {
-        this._settings_version = '3.3';       
+        this._settings_version = latestVersion;       
         (<any>this._settings) = Defaults();
     }
 
