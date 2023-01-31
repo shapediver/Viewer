@@ -48,7 +48,7 @@
     "@types/dompurify": "^2.3.1",
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.0",
-    "axios": "^0.21.1",
+    "axios": "^1.2.6",
     "dompurify": "^2.3.3",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0",
