@@ -14,7 +14,7 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "test": "bash ../../scripts/other/test.sh"
+    "test": "bash ../../scripts/test.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
