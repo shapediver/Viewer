@@ -264,7 +264,7 @@ export class GeometryLoader implements ILoader {
         }
         if (!blnNormalsOk) {
             geometry.computeVertexNormals();
-            const computedNormalAttribute = geometry.getAttribute('normal');
+            const computedNormalAttribute = <THREE.BufferAttribute>geometry.getAttribute('normal');
 
             // store the computed normals in the attribute data
             primitive.attributes[attributeId] = new AttributeData(
@@ -450,7 +450,7 @@ export class GeometryLoader implements ILoader {
                 geometry.threeJsObject[this._renderingEngine.id] = skinnedMesh;
                 skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
 
-                if (bufferGeometry.attributes.skinWeight.normalized)
+                if ((<THREE.BufferAttribute>bufferGeometry.attributes.skinWeight).normalized)
                     skinnedMesh.normalizeSkinWeights();
 
                 obj.add(skinnedMesh);

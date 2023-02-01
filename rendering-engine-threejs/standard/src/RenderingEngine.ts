@@ -178,7 +178,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     visibility?: VISIBILITY_MODE,
   }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+    THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
 
     const prop = Object.assign({}, properties);
     const branding = Object.assign({}, prop.branding);
