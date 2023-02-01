@@ -158,7 +158,12 @@ export class LightEngine implements ILightEngine {
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
                 this._lightScenes[ls.id] = ls;
             }
-        } 
+        }  
+        // this can only be the case if the settings were completely empty, therefore we assign the new light scene
+        else if(JSON.stringify(settingsEngine.settingsJson) == JSON.stringify({})) {    
+            const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
+            this._lightScenes[ls.id] = ls;
+        }
 
         if(this._update) this._update();
     }
@@ -193,7 +198,7 @@ export class LightEngine implements ILightEngine {
         const lightScene = new LightScene(this._renderingEngine, {id: lightSceneId, name: properties.name});
         if (properties.standard === true) {
             lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 2.5, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
-            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 1, direction: vec3.fromValues(-.5774, -.5774, .5774), castShadow: false, name: 'directional1'}));
+            lightScene.addLight(new AmbientLight({color: '#ffffff', intensity: 0.3, name: 'ambient0'}));
         }
         this._lightScenes[lightSceneId] = lightScene;
         this._lightScene = lightScene;
