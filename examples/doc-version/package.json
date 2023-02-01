@@ -25,7 +25,9 @@
     "build": "bash ../../scripts/build.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
     "build-dev": "bash ../../scripts/build-dev.sh",
-    "build-prod": "bash ../../scripts/build-prod.sh"
+    "build-prod": "bash ../../scripts/build-prod.sh",
+    "pre-publish": "bash ../../scripts/pre-publish.sh",
+    "post-publish": "bash ../../scripts/post-publish.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
