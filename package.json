@@ -21,6 +21,8 @@
     "publish": "bash ./scripts/run_python.sh cli publish",
     "publish-no-tests": "ts-node ./scripts/publishing/publish-no-tests.ts",
     "pre-publish-global": "bash ./scripts/pre-publish-global.sh",
+    "pre-publish": "bash ./scripts/pre-publish.sh",
+    "post-publish": "bash ./scripts/post-publish.sh",
     "post-publish-global": "bash ./scripts/post-publish-global.sh",
     "deploy-example": "ts-node ./scripts/deploying/deploy-example.ts",
     "deploy-cdn": "ts-node ./scripts/deploying/deploy-cdn.ts",
