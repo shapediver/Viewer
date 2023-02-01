@@ -4,7 +4,7 @@ import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { ILoader } from '../interfaces/ILoader'
 import { RenderingEngine } from '../RenderingEngine'
-import nodeCluster from 'node:cluster';
+import { BUSY_MODE_DISPLAY } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export class HTMLElementAnchorLoader implements ILoader {
     // #region Properties (2)
@@ -62,6 +62,9 @@ export class HTMLElementAnchorLoader implements ILoader {
                 visible = node.visible && visible;
             }
 
+            if(this._renderingEngine.show === false)
+                visible = false;
+
             anchor.update({ anchor, htmlElement, page, container, client, scale: vec2.fromValues(scaleWidth, scaleHeight), hidden, visible });
         }
     }
@@ -73,6 +76,7 @@ export class HTMLElementAnchorLoader implements ILoader {
     public load(node: ITreeNode, anchor: HTMLElementAnchorData): void {
         const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
         if (!htmlElement) return;
+        if(this._renderingEngine.show === false) htmlElement.style.display = 'none';
         this._parentDiv.appendChild(htmlElement);
         this._htmlElements[anchor.id + '_' + anchor.version] = {
             node,
@@ -89,7 +93,7 @@ export class HTMLElementAnchorLoader implements ILoader {
     }
 
     public toggleBusyMode(toggle: boolean) {
-        if (toggle) {
+        if (toggle && this._renderingEngine.busyModeDisplay === BUSY_MODE_DISPLAY.BLUR) {
             if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
                 return;
             this._parentDiv.style.filter = 'blur(3px)';
