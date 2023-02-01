@@ -310,39 +310,44 @@ export class EnvironmentMapLoader implements ILoader {
 
     private async loadEnvironmentMap(name: string, url: string[], eventId: string) {
         return new Promise<void>(async (resolve, reject) => {
-            if(name.endsWith('.hdr')) {
-                const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadTexture(name);
-                const arrayBufferView = new Uint8Array( response.data );
-                const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
-                new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
-                    const map = this._pmremGenerator.fromEquirectangular(texture).texture;
-                    this._pmremGenerator.dispose();
-                    this._environmentMaps[name] = map;
-                    resolve();
-                },
-                () => {},
-                (error) =>  reject(error));
-            } else {
-                const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
-                url.forEach(u => promises.push(this._httpClient.loadTexture(u)));
-                const responses = await Promise.all(promises);
-
-                const urls = responses.map(response => {
-                    const arrayBufferView = new Uint8Array( response.data );
-                    const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
-                    return URL.createObjectURL(blob);
-                });
-                
-                new THREE.CubeTextureLoader().load(urls,
-                    (map: THREE.CubeTexture) => {
-                        map.encoding = THREE.sRGBEncoding;
-                        map.format = THREE.RGBAFormat;
-                        map.mapping = THREE.CubeReflectionMapping;
+            try {
+                if (name.endsWith('.hdr')) {
+                    const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadTexture(name);
+                    const arrayBufferView = new Uint8Array(response.data);
+                    const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
+                    new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
+                        const map = this._pmremGenerator.fromEquirectangular(texture).texture;
+                        this._pmremGenerator.dispose();
                         this._environmentMaps[name] = map;
                         resolve();
                     },
-                    () => {},
-                    (error) =>  reject(error));
+                        () => { },
+                        (error) => reject(error));
+                } else {
+                    const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
+                    url.forEach(u => promises.push(this._httpClient.loadTexture(u)));
+                    const responses = await Promise.all(promises);
+
+                    const urls = responses.map(response => {
+                        const arrayBufferView = new Uint8Array(response.data);
+                        const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
+                        return URL.createObjectURL(blob);
+                    });
+
+                    new THREE.CubeTextureLoader().load(urls,
+                        (map: THREE.CubeTexture) => {
+                            map.encoding = THREE.sRGBEncoding;
+                            map.format = THREE.RGBAFormat;
+                            map.mapping = THREE.CubeReflectionMapping;
+                            this._environmentMaps[name] = map;
+                            resolve();
+                        },
+                        () => { },
+                        (error) => reject(error));
+                }
+            } catch (e) {
+                this.notify(eventId, true);
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.loadEnvironmentMap`, e);
             }
         })
     }
