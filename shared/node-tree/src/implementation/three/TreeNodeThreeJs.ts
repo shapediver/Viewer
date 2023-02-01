@@ -1,6 +1,7 @@
 import { ITreeNodeDataThreeJs } from "../../interfaces/three/ITreeNodeDataThreeJs";
 import { ITreeNodeThreeJs } from "../../interfaces/three/ITreeNodeThreeJs";
 import { AbstractTreeNode } from "../AbstractTreeNode";
+import * as THREE from "three";
 
 export class TreeNodeThreeJs extends AbstractTreeNode<ITreeNodeThreeJs, ITreeNodeDataThreeJs> implements ITreeNodeThreeJs {
     #threeJsObject: { [key: string]: THREE.Object3D } = {};

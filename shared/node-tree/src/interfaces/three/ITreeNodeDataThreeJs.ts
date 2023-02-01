@@ -1,4 +1,5 @@
 import { ITreeNodeData } from "../ITreeNodeData";
+import * as THREE from "three";
 
 export interface ITreeNodeDataThreeJs extends ITreeNodeData<ITreeNodeDataThreeJs> {
     // #region Properties (1)

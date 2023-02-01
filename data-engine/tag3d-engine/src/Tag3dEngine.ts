@@ -159,7 +159,7 @@ export class Tag3dEngine {
                         } else if (attributeName === 'UV') {
                             attributeName = 'TEXCOORD_0';
                         }
-                        attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
+                        attributes[attributeName] = new AttributeData(<Float32Array>(<THREE.BufferAttribute>line.attributes[attribute]).array, line.attributes[attribute].itemSize, 0, 0, 0, false, (<Float32Array>(<THREE.BufferAttribute>line.attributes[attribute]).array).length / line.attributes[attribute].itemSize)
                     }
                     const child = new TreeNode('tag3d_'+line)
                     child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialStandardData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
