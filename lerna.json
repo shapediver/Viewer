@@ -8,8 +8,7 @@
     "rendering-engine-threejs/*",
     "tests/*",
     "features/*",
-    "main/*",
-    "utils/*"
+    "main/*"
   ],
   "version": "independent"
 }

@@ -77,9 +77,9 @@ let instructionsEndpoints: {
     })
     const pendants = await createSession({
         ticket:
-            '3bbafc9d7ce17df9503fee3368be2da7dcc47e761556351961fe37d28fddc1d71b341d75e5ff2c00997c7f33a26156b968336194237336320b5e03c89db413f459af9562a30b5c6b40555d4ce2a32f81116324b2b1177449623d171c0e23f6a7a29afb80b763bb-d35b791228e2af7a789e214969fec1ee',
+            'cb92435dea7deaaa15584cf1907cb70b39ea7b5910e94a5800fd339eb42c59fc016ecf15d98097b41283406f05a569ebdc9ca9b695a969cc8166c6d426da145a639c857cf09962b47d7289e28c9b06ba3c533b1b6330c218f9d2e0724f0760b03ce99b7f04c19eb5119fbbba6b1499349f903d4458f01275-390a9bc908987be09229c49fec7a0fd3',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-        id: 'pendants',
+        id: 'pendants'
     });
 
     // NOTE GUSTAVS: this is the label of the lamps from the code snippet you sent me without the ".gltf"
@@ -146,13 +146,16 @@ let instructionsEndpoints: {
 
         // get the current position (p) and the line (l1, l2) in world space
         const p = mat4.getTranslation(vec3.create(), node.worldMatrix);
-        const l1 = vec3.fromValues(lineData[0][0], lineData[0][1], lineData[0][2] + pendants.getParameterByName("room_height")[0].value);
-        const l2 = vec3.fromValues(lineData[1][0], lineData[1][1], lineData[1][2] + pendants.getParameterByName("room_height")[0].value);
+
+        const l1 = vec3.fromValues(lineData[0][0], lineData[0][1], lineData[0][2]);
 
         // restrict the values
         p[0] = l1[0];
         p[1] = l1[1];
-        p[2] = Math.max(Math.min(p[2], l1[2]), l2[2]);
+
+        const min = pendants.getParameterByName("room_height")[0].value- pendants.getParameterByName("pendants_height_lowest")[0].value;
+        const max = pendants.getParameterByName("room_height")[0].value- pendants.getParameterByName("pendants_height_highest")[0].value;
+        p[2] = Math.max(Math.min(p[2], max), min);
         
         // reset the translation of the drag matrix before calculating the world matrix for the inverse
         // to avoid inversion of the translation
