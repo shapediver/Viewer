@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { MeshStandardMaterial, MeshStandardMaterialParameters } from 'three';
 
-export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandardMaterialParameters {
+export interface SpecularGlossinessMaterialParameters extends MeshStandardMaterialParameters {
     // #region Properties (4)
 
     glossiness?: number | undefined;
@@ -11,7 +12,7 @@ export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandard
     // #endregion Properties (4)
 }
 
-export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
+export class SpecularGlossinessMaterial extends MeshStandardMaterial {
     // #region Properties (1)
 
     public isGLTFSpecularGlossinessMaterial: boolean;

@@ -1,7 +1,8 @@
 import * as THREE from 'three'
+import { Color as ThreeColor } from 'three'
 import { Color } from '@shapediver/viewer.shared.types';
 
-export class SDColor extends THREE.Color {
+export class SDColor extends ThreeColor {
     // #region Properties (3)
 
     private _colorSpace: 'srgb' | 'srgb-linear' = 'srgb-linear';
