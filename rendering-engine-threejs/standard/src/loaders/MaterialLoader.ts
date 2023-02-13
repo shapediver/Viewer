@@ -90,28 +90,6 @@ export class MaterialLoader implements ILoader {
             `
         )
 
-        // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment.includes(`vec4 envMapColor = textureCubeUV( envMap, worldNormal, 1.0 );`))
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCubeUV( envMap, worldNormal, 1.0 );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 envMapColor = textureCubeUV( envMap, worldNormal, 1.0 );
-            #else
-                vec4 envMapColor = textureCubeUV( envMap, worldNormal.xzy, 1.0 );
-            #endif`
-        )
-        
-        // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment.includes(`vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );`))
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );
-            #else
-                vec4 envMapColor = textureCubeUV( envMap, reflectVec.xzy, roughness );
-            #endif`
-        )
-
         // console.log(THREE.ShaderChunk.backgroundCube_frag.includes(`vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`))
         THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
             `vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`,
@@ -120,17 +98,6 @@ export class MaterialLoader implements ILoader {
                 vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );
             #else
                 vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.zy ) );
-            #endif`
-        )
-
-        // console.log(THREE.ShaderChunk.backgroundCube_frag.includes(`vec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );`))
-        THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
-            `vec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );
-            #else
-                vec4 texColor = textureCubeUV( envMap, vWorldDirection.xzy, backgroundBlurriness );
             #endif`
         )
         
