@@ -1,4 +1,4 @@
-import { sceneTree, addListener, createSession, createViewport, EVENTTYPE, ITreeNode, MaterialStandardData, CustomData, MATERIAL_ALPHA, VISIBILITY_MODE, GeometryData, ThreejsData } from '@shapediver/viewer';
+import { sceneTree, addListener, createSession, createViewport, EVENTTYPE, ITreeNode, MaterialStandardData, CustomData, MATERIAL_ALPHA, VISIBILITY_MODE, GeometryData, ThreejsData, ISessionApi } from '@shapediver/viewer';
 import { InteractionEngine, DragManager, InteractionData, IDragEvent, CameraPlaneConstraint, PlaneConstraint, LineConstraint } from '@shapediver/viewer.features.interaction';
 import { IPendantsLayout, IPendant, Line } from './pendantsGH_parametersDefinition'
 import { mat4, vec3 } from 'gl-matrix';
@@ -41,19 +41,19 @@ const updateMaterial = (pendant: ITreeNode, lampLabel: string) => {
                 if (settings) {
                     if (settings.alphaMode !== undefined)
                         materialData.alphaMode = settings.alphaMode;
-    
+
                     if (settings.color !== undefined)
                         materialData.color = settings.color;
-    
+
                     if (settings.ior !== undefined)
                         materialData.ior = settings.ior;
-    
+
                     if (settings.thickness !== undefined)
                         materialData.thickness = settings.thickness;
-    
+
                     if (settings.opacity !== undefined)
                         materialData.opacity = settings.opacity;
-    
+
                     materialData.updateVersion();
                     geometryData.updateVersion();
                     node.updateVersion();
@@ -83,11 +83,13 @@ let instructionsEndpoints: {
     });
 
     // NOTE GUSTAVS: this is the label of the lamps from the code snippet you sent me without the ".gltf"
-    const lampNames: string[] = []
+    const lampNames: string[] = ["configurator/100/100_Var4_White_ON_Z-153"]
 
     pendants.getParameterByName("coaxialCable_type")[0].value = 0;
     pendants.getParameterByName("aircraftCable_type")[0].value = 0;
     pendants.getParameterByName("import_template")[0].value = "";
+    pendants.getParameterByName("lamps_model_names")[0].value = JSON.stringify(lampNames);
+    pendants.getParameterByName("lamps_model_server")[0].value = "https://bocci.sfo3.digitaloceanspaces.com/";
     await pendants.customize();
 
     // NOTE GUSTAVS - PENDANT INFO: Here I load the pendantsLayout_JSON initially into pendantsLayoutJSON.
@@ -124,6 +126,73 @@ let instructionsEndpoints: {
         viewport.update();
     };
 
+    /**
+     * Toggle the emission of a specific pendant node.
+     * 
+     * @param pendants the ISessionApi object
+     * @param pendantId the id of the pendant
+     * @param toggle true = ON / false = OFF
+     * @param materialNameInclude the string that should be included in the material name
+     * @returns 
+     */
+    const toggleEmission = async (pendants: ISessionApi, pendantId: string, toggle: boolean, materialNameInclude: string = "emission") => {
+        // get the output for the lamps
+        const lampsOutput = pendants
+            .getOutputByName('lamps')
+            .find(obj => obj.format?.[0] != 'material')!;
+        if (!lampsOutput.node) return;
+
+        // traverse the children
+        lampsOutput.node.children.forEach((subNode) => {
+            // and its children
+            subNode.children.forEach((pendant) => {
+                // get the pendant data
+                const pendantCustomData: IPendant = (pendant.data.find(d => d instanceof CustomData)! as CustomData).data as IPendant;
+
+                // check if the id fits
+                if (pendantCustomData.id === pendantId) {
+
+                    // traverse all nodes in the pendant and check for each of them if it has a material with emission (there should only be one)
+                    pendant.traverse((node) => {
+                        for (let i = 0; i < node.data.length; i++) {
+                            if (node.data[i] instanceof GeometryData) {
+                                const geometryData = <GeometryData>node.data[i];
+                                const materialData = <MaterialStandardData>(geometryData.primitive.material);
+
+                                // check if we have a material and the materialNameInclude is included in the name
+                                if (!materialData || !materialData.name || !materialData.name.includes(materialNameInclude)) return;
+
+                                // store the data of the original emissiveness if not already stored
+                                let originalEmissivenessData = node.data.find(d => d instanceof CustomData)! as CustomData;
+                                if(!originalEmissivenessData) {
+                                    originalEmissivenessData = new CustomData({ originalEmissiveness: materialData.emissiveness});
+                                    node.addData(originalEmissivenessData)
+                                }
+
+                                // set the emissiveness according to the toggle
+                                if(toggle) {
+                                    materialData.emissiveness = originalEmissivenessData.data.originalEmissiveness;
+                                } else {
+                                    materialData.emissiveness = "#000000";
+                                }
+
+                                // and update
+                                materialData.updateVersion();
+                                geometryData.updateVersion();
+                                pendant.updateVersion();
+                            }
+                        }
+                    })
+                }
+            })
+        });
+        viewport.update();
+    };
+
+    (<any>window).toggle = (b: boolean) => {
+        toggleEmission(pendants, "11009", b)
+    }
+
     const items = pendants
         .getOutputByName('lamps')
         .find(obj => obj.format?.[0] != 'material')!;
@@ -153,10 +222,10 @@ let instructionsEndpoints: {
         p[0] = l1[0];
         p[1] = l1[1];
 
-        const min = pendants.getParameterByName("room_height")[0].value- pendants.getParameterByName("pendants_height_lowest")[0].value;
-        const max = pendants.getParameterByName("room_height")[0].value- pendants.getParameterByName("pendants_height_highest")[0].value;
+        const min = pendants.getParameterByName("room_height")[0].value - pendants.getParameterByName("pendants_height_lowest")[0].value;
+        const max = pendants.getParameterByName("room_height")[0].value - pendants.getParameterByName("pendants_height_highest")[0].value;
         p[2] = Math.max(Math.min(p[2], max), min);
-        
+
         // reset the translation of the drag matrix before calculating the world matrix for the inverse
         // to avoid inversion of the translation
         dragTransformation.matrix[12] = 0;
@@ -175,7 +244,7 @@ let instructionsEndpoints: {
 
         return dragTransformation.matrix;
     }
-    
+
 
     addListener(EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
         positionRestriction(e as IDragEvent);
@@ -204,6 +273,7 @@ let instructionsEndpoints: {
                 end: [endPosition[0], endPosition[1], endPosition[2]]
             })
         }
+        console.log(instructionsEndpoints)
 
         // NOTE GUSTAVS: not only do we need to adjust the instructions_endPoints_JSON, we also need to load the pendantsLayout_JSON again.
         pendants.getParameterByName('instructions_endPoints_JSON')[0].value = JSON.stringify(instructionsEndpoints);
