@@ -24,7 +24,6 @@ import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 import { MeshUnlitMaterialParameters } from '../materials/MeshUnlitMaterialParameters'
 import { Converter, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
 import { SDColor } from '../objects/SDColor'
@@ -47,9 +46,9 @@ export type MaterialSettings = {
 export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     private readonly _defaultColor: string = '#199b9b';
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _logger: Logger = Logger.instance;
     private _materialCache: {
         [key: string]: {
             materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | MaterialShadowData | null,

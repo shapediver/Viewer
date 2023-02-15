@@ -1,5 +1,4 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { container, singleton } from 'tsyringe'
 import { Converter, HttpClient, HttpResponse, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
@@ -14,23 +13,26 @@ import { materialDatabase } from './materialDatabase'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types'
 
-@singleton()
 export class MaterialEngine {
-    // #region Properties (3)
+    // #region Properties (4)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _logger: Logger = Logger.instance;
 
-    // #endregion Properties (3)
+    private static _instance: MaterialEngine;
 
-    // #region Constructors (1)
+    // #endregion Properties (4)
 
-    constructor() { }
+    // #region Public Static Accessors (1)
 
-    // #endregion Constructors (1)
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
 
-    // #region Public Methods (1)
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Methods (9)
 
     /**
        * Load the material content into a scene graph node.
@@ -48,7 +50,6 @@ export class MaterialEngine {
         let material = new MaterialStandardData();
 
         if (content.data) {
-
             const data: IMaterialContentData = content.data;
             let presetData: IMaterialContentDataV3 | undefined;
             if (data.materialpreset)
@@ -77,136 +78,6 @@ export class MaterialEngine {
         
         node.data.push(material);
         return node;
-    }
-
-    // #endregion Public Methods (1)
-
-    // #region Private Methods (9)
-
-    private assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
-        const promises: Promise<MapData | null>[] = [];
-
-        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture)
-            definition.transparencytexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.transparencytexture
-            }
-
-        if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold'))
-            definition.alphaThreshold = generalDefinition.alphaThreshold;
-
-        if (generalDefinition.bumptexture && !specificDefinition.bumptexture) 
-            definition.bumptexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bumptexture
-            }
-        
-        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) 
-            definition.bumpAmplitude = generalDefinition.bumpAmplitude!;
-
-        if (generalDefinition.color && !specificDefinition.color) 
-            definition.color = generalDefinition.color;
-
-        if (generalDefinition.bitmaptexture && !specificDefinition.bitmaptexture)
-            definition.bitmaptexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bitmaptexture
-            }
-        
-        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) 
-            definition.metalness = generalDefinition.metalness!;
-        
-        if (generalDefinition.metalnesstexture && !specificDefinition.metalnesstexture)
-            definition.metalnesstexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.metalnesstexture
-            }
-       
-        if (generalDefinition.normaltexture && !specificDefinition.normaltexture)
-            definition.normaltexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.normaltexture
-            }
-
-        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) 
-            definition.transparency = generalDefinition.transparency;
-            
-        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) 
-            definition.roughness = generalDefinition.roughness!;
-
-        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture) 
-            definition.roughnesstexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.roughnesstexture
-            }
-
-        if (generalDefinition.side && !specificDefinition.side) 
-            definition.side = generalDefinition.side;
-    }
-
-    private assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
-        if (specificDefinition.transparencytexture)
-            definition.transparencytexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.transparencytexture
-            }
-
-        if (specificDefinition.hasOwnProperty('alphaThreshold'))
-            definition.alphaThreshold = specificDefinition.alphaThreshold!;
-
-        if (specificDefinition.bumptexture)
-            definition.bumptexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bumptexture
-            }
-
-        if (specificDefinition.hasOwnProperty('bumpAmplitude')) 
-            definition.bumpAmplitude = specificDefinition.bumpAmplitude!;
-
-        if (specificDefinition.color) 
-            definition.color = specificDefinition.color;
-
-        if (specificDefinition.bitmaptexture)
-            definition.bitmaptexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bitmaptexture
-            }
-
-        if (specificDefinition.hasOwnProperty('metalness'))
-            definition.metalness = specificDefinition.metalness!;
-
-        if (specificDefinition.metalnesstexture)
-            definition.metalnesstexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.metalnesstexture
-            }
-            
-        if (specificDefinition.normaltexture)
-            definition.normaltexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.normaltexture
-            }
-
-        if (specificDefinition.hasOwnProperty('transparency')) 
-            definition.transparency = specificDefinition.transparency!;
-
-        if (specificDefinition.hasOwnProperty('roughness')) 
-            definition.roughness = specificDefinition.roughness!;
-
-        if (specificDefinition.roughnesstexture)
-            definition.roughnesstexture = {
-                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.roughnesstexture
-            }
-
-        if (specificDefinition.side) 
-            definition.side = specificDefinition.side;
-    }
-
-    private getClassAndSpecificId(id: number): { class: string, specific: string } {
-        // for a while, we had documented the presets to be 10, 20, 30 and 40 here, we allow for the few cases where this was used to succeed
-        if (id < 100 && id % 10 == 0) id /= 10;
-
-        // if the id is less than 10, multiply it by 100
-        if (id < 10) id *= 100;
-
-        const cast = (id: number): string => {
-            let idString = String(id);
-            return idString.padStart(2, '0').slice(0, 2);
-        };
-
-        return {
-            class: cast(Math.floor(id / 100)),
-            specific: cast(id - (Math.floor(id / 100) * 100))
-        };
     }
 
     public async loadMap(url: string, id?: string): Promise<MapData | null> {
@@ -242,7 +113,7 @@ export class MaterialEngine {
 
         return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, color, offset, repeat, texture.rotation || 0);
     }
-    
+
     public loadMaterialDefinitionV1(data: IMaterialContentDataV1, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
         // ambient is ignored
 
@@ -281,7 +152,7 @@ export class MaterialEngine {
             
         return presetData;
     }
-    
+
     public loadMaterialDefinitionV2(data: IMaterialContentDataV2, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
         // ambient is ignored
 
@@ -466,6 +337,10 @@ export class MaterialEngine {
         return material;
     }
 
+    public async loadPresetMaterial(preset: number): Promise<MaterialStandardData> {
+        return this.loadMaterialV3(this.loadPresetMaterialDefinition(preset));
+    }
+
     public loadPresetMaterialDefinition(preset: number): IMaterialContentDataV3 {
         const definition: IMaterialContentDataV3 = {};
         const idStrings = this.getClassAndSpecificId(preset);
@@ -482,9 +357,135 @@ export class MaterialEngine {
         return definition;
     }
 
-    public async loadPresetMaterial(preset: number): Promise<MaterialStandardData> {
-        return this.loadMaterialV3(this.loadPresetMaterialDefinition(preset));
+    // #endregion Public Methods (9)
+
+    // #region Private Methods (3)
+
+    private assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
+        const promises: Promise<MapData | null>[] = [];
+
+        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture)
+            definition.transparencytexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.transparencytexture
+            }
+
+        if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold'))
+            definition.alphaThreshold = generalDefinition.alphaThreshold;
+
+        if (generalDefinition.bumptexture && !specificDefinition.bumptexture) 
+            definition.bumptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bumptexture
+            }
+        
+        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) 
+            definition.bumpAmplitude = generalDefinition.bumpAmplitude!;
+
+        if (generalDefinition.color && !specificDefinition.color) 
+            definition.color = generalDefinition.color;
+
+        if (generalDefinition.bitmaptexture && !specificDefinition.bitmaptexture)
+            definition.bitmaptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bitmaptexture
+            }
+        
+        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) 
+            definition.metalness = generalDefinition.metalness!;
+        
+        if (generalDefinition.metalnesstexture && !specificDefinition.metalnesstexture)
+            definition.metalnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.metalnesstexture
+            }
+       
+        if (generalDefinition.normaltexture && !specificDefinition.normaltexture)
+            definition.normaltexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.normaltexture
+            }
+
+        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) 
+            definition.transparency = generalDefinition.transparency;
+            
+        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) 
+            definition.roughness = generalDefinition.roughness!;
+
+        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture) 
+            definition.roughnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.roughnesstexture
+            }
+
+        if (generalDefinition.side && !specificDefinition.side) 
+            definition.side = generalDefinition.side;
     }
 
-    // #endregion Private Methods (9)
+    private assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
+        if (specificDefinition.transparencytexture)
+            definition.transparencytexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.transparencytexture
+            }
+
+        if (specificDefinition.hasOwnProperty('alphaThreshold'))
+            definition.alphaThreshold = specificDefinition.alphaThreshold!;
+
+        if (specificDefinition.bumptexture)
+            definition.bumptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bumptexture
+            }
+
+        if (specificDefinition.hasOwnProperty('bumpAmplitude')) 
+            definition.bumpAmplitude = specificDefinition.bumpAmplitude!;
+
+        if (specificDefinition.color) 
+            definition.color = specificDefinition.color;
+
+        if (specificDefinition.bitmaptexture)
+            definition.bitmaptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bitmaptexture
+            }
+
+        if (specificDefinition.hasOwnProperty('metalness'))
+            definition.metalness = specificDefinition.metalness!;
+
+        if (specificDefinition.metalnesstexture)
+            definition.metalnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.metalnesstexture
+            }
+            
+        if (specificDefinition.normaltexture)
+            definition.normaltexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.normaltexture
+            }
+
+        if (specificDefinition.hasOwnProperty('transparency')) 
+            definition.transparency = specificDefinition.transparency!;
+
+        if (specificDefinition.hasOwnProperty('roughness')) 
+            definition.roughness = specificDefinition.roughness!;
+
+        if (specificDefinition.roughnesstexture)
+            definition.roughnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.roughnesstexture
+            }
+
+        if (specificDefinition.side) 
+            definition.side = specificDefinition.side;
+    }
+
+    private getClassAndSpecificId(id: number): { class: string, specific: string } {
+        // for a while, we had documented the presets to be 10, 20, 30 and 40 here, we allow for the few cases where this was used to succeed
+        if (id < 100 && id % 10 == 0) id /= 10;
+
+        // if the id is less than 10, multiply it by 100
+        if (id < 10) id *= 100;
+
+        const cast = (id: number): string => {
+            let idString = String(id);
+            return idString.padStart(2, '0').slice(0, 2);
+        };
+
+        return {
+            class: cast(Math.floor(id / 100)),
+            specific: cast(id - (Math.floor(id / 100) * 100))
+        };
+    }
+
+    // #endregion Private Methods (3)
 }

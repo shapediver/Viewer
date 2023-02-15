@@ -5,15 +5,14 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
-import { container } from 'tsyringe'
 import { SDData } from '../objects/SDData'
 import { SDObject } from '../objects/SDObject'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
 
     private _environmentGeometryObject!: SDObject;
     private _grid!: THREE.GridHelper;

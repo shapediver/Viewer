@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { UuidGenerator } from '../uuid-generator/UuidGenerator';
 
 import { IDomEventListener } from './IDomEventListener'
@@ -9,7 +8,7 @@ export class DomEventEngine {
     private readonly _domEventListeners: {
         [key: string]: IDomEventListener
     } = {};
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private _allowListeners = {
         mousewheel: true,

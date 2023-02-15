@@ -1,17 +1,11 @@
-import 'reflect-metadata'
-
-import { Tree } from '../src/implementation/Tree'
-import { TreeNode } from '../src/implementation/TreeNode'
-import { ITree } from '../src/interfaces/ITree'
-import { ITransformation, ITreeNode } from '../src/interfaces/ITreeNode'
-import { ITreeNodeData } from '../src/interfaces/ITreeNodeData'
+import { Tree, ITreeNode, TreeNode, ITreeNodeData, ITransformation } from "../"
 
 describe('scene graph engine - test', () => {
-  let tree: ITree;
+  let tree: Tree;
   let root: ITreeNode;
 
   beforeEach(() => {
-    tree = new Tree();
+    tree = Tree.instance;
     root = tree.root;
   });
 

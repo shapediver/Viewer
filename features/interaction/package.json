@@ -52,8 +52,7 @@
   "dependencies": {
     "@shapediver/viewer.rendering-engine.intersection-engine": "2.7.4",
     "detect-it": "4.0.1",
-    "gl-matrix": "3.3.0",
-    "tsyringe": "^4.5.0"
+    "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

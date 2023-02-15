@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { Logger, LOGGING_TOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
 import { RGBELoader } from '../three/loaders/RGBELoader';
@@ -73,7 +72,7 @@ export enum ENVIRONMENT_MAP_TYPE {
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
     private readonly _environmentMapHDR: string[] = [];
     private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[]
@@ -82,11 +81,11 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
     private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'null';

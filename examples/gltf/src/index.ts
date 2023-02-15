@@ -1,7 +1,6 @@
 
 
 import * as SDV from '@shapediver/viewer'
-import { container } from 'tsyringe'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { addListener, createViewport, ENVIRONMENT_MAP, EVENTTYPE, ITaskEvent, ITreeNode, sceneTree, TASK_TYPE, viewports } from '@shapediver/viewer';
 
@@ -9,7 +8,7 @@ import { addListener, createViewport, ENVIRONMENT_MAP, EVENTTYPE, ITaskEvent, IT
 (<any>window).SDV = SDV;
 (<any>window).gltfVersion = '2.0'
 
-const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
+const dataEngine: DataEngine = DataEngine.instance;
 let currentNode: ITreeNode;
 
 let promise: Promise<void>;

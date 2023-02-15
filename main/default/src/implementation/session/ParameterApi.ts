@@ -1,14 +1,13 @@
 import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup } from "@shapediver/api.geometry-api-dto-v2";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IParameter, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { IParameterApi } from "../../interfaces/session/IParameterApi";
 
 export class ParameterApi<T> implements IParameterApi<T> {
     // #region Properties (3)
 
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #parameter: IParameter<T>;
 
     // #endregion Properties (3)

@@ -1,7 +1,6 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
@@ -14,7 +13,7 @@ import { IHoverEvent } from '../../interfaces/events/IHoverEvent'
 export class HoverManager extends AbstractInteractionManager {
     // #region Properties (5)
 
-    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #eventEngine: EventEngine = EventEngine.instance;
 
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {

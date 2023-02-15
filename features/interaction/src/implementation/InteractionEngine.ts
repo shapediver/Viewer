@@ -1,7 +1,6 @@
 import { vec3 } from "gl-matrix";
 import { Logger, LOGGING_TOPIC, UuidGenerator, ShapeDiverViewerGeneralError, ShapeDiverViewerError, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
-import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../interfaces/IInteractionManager";
 import { IViewportApi, RENDERER_TYPE, sceneTree } from "@shapediver/viewer";
@@ -10,10 +9,10 @@ export class InteractionEngine implements IInteractionEngine {
     // #region Properties (6)
 
     readonly #canvasEventListenerToken: string;
-    readonly #intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #intersectionEngine: IntersectionEngine = IntersectionEngine.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #managers: { [key: string]: IInteractionManager } = {};
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
     #intersectionOpacity: number = 0;

@@ -1,6 +1,5 @@
 import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, UuidGenerator } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IFileParameter } from "../../interfaces/dto/IFileParameter";
 import { Parameter } from "./Parameter";
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
@@ -9,9 +8,9 @@ import { SessionEngine } from "../SessionEngine";
 export class FileParameter extends Parameter<File | Blob | string> implements IFileParameter {
     // #region Properties (5)
 
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #logger: Logger = Logger.instance;
     readonly #sessionEngine: SessionEngine;
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     // #endregion Properties (5)
 

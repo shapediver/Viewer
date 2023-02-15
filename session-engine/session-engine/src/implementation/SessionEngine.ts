@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
@@ -25,25 +24,25 @@ import { convert, ISettingsV3_1, latestVersion, validate, versions } from '@shap
 export class SessionEngine implements ISessionEngine {
     // #region Properties (40)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
     private readonly _id: string;
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _logger: Logger = Logger.instance;
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: IOutput; } = {};
     private readonly _outputsFreeze: { [key: string]: boolean; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _parameters: { [key: string]: IParameter<any>; } = {};
-    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    private readonly _sceneTree: ITree = <ITree>container.resolve(Tree);
-    private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    private readonly _performanceEvaluator = PerformanceEvaluator.instance;
+    private readonly _sceneTree: ITree = Tree.instance;
+    private readonly _sessionEngineId = (UuidGenerator.instance).create();
     private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _ticket: string;
-    private readonly _uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _uuidGenerator = UuidGenerator.instance;
 
     private _automaticSceneUpdate: boolean = true;
     private _bearerToken?: string;
@@ -56,7 +55,7 @@ export class SessionEngine implements ISessionEngine {
     } = {};
     private _excludeViewports: string[] = [];
     private _headers = {
-        "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
+        "X-ShapeDiver-Origin": (SystemInfo.instance).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
         "X-ShapeDiver-BuildVersion": '',
         "X-ShapeDiver-BuildDate": ''

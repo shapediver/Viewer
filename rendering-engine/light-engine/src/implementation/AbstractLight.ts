@@ -1,7 +1,6 @@
 import { vec3 } from 'gl-matrix'
 import { UuidGenerator } from '@shapediver/viewer.shared.services'
 import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { container } from 'tsyringe'
 
 import { ILight, LIGHT_TYPE } from '../interface/ILight'
 import { Color } from '@shapediver/viewer.shared.types'
@@ -17,7 +16,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     #order?: number;
     #useNodeData: boolean = false;
 
-    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    protected readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     // #endregion Properties (6)
 

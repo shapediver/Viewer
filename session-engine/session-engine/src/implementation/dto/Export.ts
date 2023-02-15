@@ -1,5 +1,4 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { container } from "tsyringe";
 import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { IExport } from "../../interfaces/dto/IExport";
@@ -8,14 +7,14 @@ import { SessionEngine } from "../SessionEngine";
 export class Export implements IExport {
   // #region Properties (24)
 
-  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #eventEngine: EventEngine = EventEngine.instance;
   readonly #id: string;
-  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #inputValidator: InputValidator = InputValidator.instance;
+  readonly #logger: Logger = Logger.instance;
   readonly #name: string;
   readonly #sessionEngine: SessionEngine;
   readonly #type: ShapeDiverResponseExportDefinitionType;
-  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
   #content?: ShapeDiverResponseExportContent[];
   #delay?: number;

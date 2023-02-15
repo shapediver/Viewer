@@ -2,7 +2,6 @@ import { vec3, vec2 } from "gl-matrix";
 import { CAMERA_TYPE, ICamera, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { ICameraApi } from "../../../interfaces/viewport/camera/ICameraApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerValidationError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { Box, IBox } from "@shapediver/viewer.shared.math";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 
@@ -12,8 +11,8 @@ export abstract class AbstractCameraApi implements ICameraApi {
     readonly #camera: ICamera;
     readonly #viewportApi: IViewportApi;
 
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
 
     readonly #validateOptions = (scope: string, options?: ICameraOptions) => {
         this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, options, 'object', false);

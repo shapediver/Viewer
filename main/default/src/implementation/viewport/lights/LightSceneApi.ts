@@ -12,7 +12,6 @@ import { ISpotLightApi } from "../../../interfaces/viewport/lights/types/ISpotLi
 import { IPointLightApi } from "../../../interfaces/viewport/lights/types/IPointLightApi";
 import { IHemisphereLightApi } from "../../../interfaces/viewport/lights/types/IHemisphereLightApi";
 import { IDirectionalLightApi } from "../../../interfaces/viewport/lights/types/IDirectionalLightApi";
-import { container } from "tsyringe";
 import { InputValidator, ShapeDiverViewerError, ShapeDiverBackendError, LOGGING_TOPIC, Logger } from "@shapediver/viewer.shared.services";
 import { ILightSceneApi } from "../../../interfaces/viewport/lights/ILightSceneApi";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
@@ -23,8 +22,8 @@ export class LightSceneApi implements ILightSceneApi {
 
     readonly #lightScene: ILightScene;
     readonly #lights: { [key: string]: ILightApi; } = {};
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
     
     // #endregion Properties (15)

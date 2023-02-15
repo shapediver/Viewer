@@ -1,5 +1,4 @@
 import { Converter, HttpClient } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import {
   IGLTF_v2,
   IGLTF_v2_Material,
@@ -29,8 +28,8 @@ import { TextureLoader } from './TextureLoader'
 export class MaterialLoader {
     // #region Properties (4)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _materialEngine: MaterialEngine = MaterialEngine.instance;
 
     private _loaded: { [key: string]: IMaterialAbstractData } = {};
 

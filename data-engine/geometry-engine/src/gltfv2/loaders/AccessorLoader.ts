@@ -9,7 +9,6 @@ import {
   ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { Logger, LOGGING_TOPIC } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { BufferLoader } from './BufferLoader'
 import { BufferViewLoader } from './BufferViewLoader'
@@ -17,7 +16,7 @@ import { BufferViewLoader } from './BufferViewLoader'
 export class AccessorLoader {
   // #region Properties (2)
 
-  private readonly _logger: Logger = <Logger>container.resolve(Logger);
+  private readonly _logger: Logger = Logger.instance;
 
   private _loaded: {
         [key: string]: AttributeData | null

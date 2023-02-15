@@ -1,4 +1,3 @@
-import { container, singleton } from 'tsyringe'
 import { vec3 } from 'gl-matrix'
 import { Converter, UuidGenerator, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 
@@ -19,10 +18,10 @@ import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     private readonly _lightNode: ITreeNode = new TreeNode('lights');
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _tree: ITree = Tree.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private _lightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};

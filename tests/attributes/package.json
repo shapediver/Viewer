@@ -35,7 +35,6 @@
     "chromedriver": "^108.0.0",
     "gl-matrix": "3.3.0",
     "jest-image-snapshot": "^4.5.1",
-    "selenium-webdriver": "^4.1.1",
-    "tsyringe": "^4.5.0"
+    "selenium-webdriver": "^4.1.1"
   }
 }

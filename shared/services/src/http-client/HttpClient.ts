@@ -1,5 +1,4 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { singleton } from 'tsyringe'
 import { ShapeDiverViewerConnectionError } from '../logger/ShapeDiverViewerErrors';
 import { HttpResponse } from './HttpResponse';
 
@@ -17,14 +16,14 @@ const errorHandler = (error: any) => {
     }
 }
 
-@singleton()
 export class HttpClient {
-    // #region Properties (2)
+    // #region Properties (3)
+
+    private static _instance: HttpClient;
 
     private _dataCache: {
         [key: string]: Promise<HttpResponse<any>>
     } = {};
-
     private _sessionLoading: {
         [key: string]: {
             getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -32,11 +31,11 @@ export class HttpClient {
         }
     } = {};
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
-    constructor() {
+    private constructor() {
         axios.interceptors.response.use(
             response => {
                 return response;
@@ -55,22 +54,15 @@ export class HttpClient {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (7)
+    // #region Public Static Accessors (1)
 
-    private getSessionId(href: string): string | undefined {
-        // searching for "/session/SESSION_ID/{'output' | 'export' | 'texture'}/ASSET_DATA"
-        const parts = href.split('/');
-        const sessionPartIndex = parts.indexOf('session');
-
-        // There have to be at exactly 4 parts, including the session
-        if (sessionPartIndex !== -1 && parts.length === sessionPartIndex + 4) {
-            const sessionId = parts[sessionPartIndex + 1];
-            // no such session has been registered, should never happen
-            if (!this._sessionLoading[sessionId]) return;
-            return sessionId;
-        }
-        return;
+    public static get instance() {
+        return this._instance || (this._instance = new this());
     }
+
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Methods (4)
 
     public addDataLoading(sessionId: string, callbacks: {
         getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -153,5 +145,24 @@ export class HttpClient {
         delete this._sessionLoading[sessionId];
     }
 
-    // #endregion Public Methods (7)
+    // #endregion Public Methods (4)
+
+    // #region Private Methods (1)
+
+    private getSessionId(href: string): string | undefined {
+        // searching for "/session/SESSION_ID/{'output' | 'export' | 'texture'}/ASSET_DATA"
+        const parts = href.split('/');
+        const sessionPartIndex = parts.indexOf('session');
+
+        // There have to be at exactly 4 parts, including the session
+        if (sessionPartIndex !== -1 && parts.length === sessionPartIndex + 4) {
+            const sessionId = parts[sessionPartIndex + 1];
+            // no such session has been registered, should never happen
+            if (!this._sessionLoading[sessionId]) return;
+            return sessionId;
+        }
+        return;
+    }
+
+    // #endregion Private Methods (1)
 }

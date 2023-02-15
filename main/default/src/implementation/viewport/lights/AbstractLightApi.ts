@@ -2,7 +2,6 @@ import { vec3 } from "gl-matrix";
 import { ILight, LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { ILightApi } from "../../../interfaces/viewport/lights/ILightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 import { Color } from "@shapediver/viewer.shared.types";
 
@@ -10,8 +9,8 @@ export abstract class AbstractLightApi implements ILightApi {
     // #region Properties (15)
 
     readonly #light: ILight;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
     protected scope: string = 'AbstractLightApi';

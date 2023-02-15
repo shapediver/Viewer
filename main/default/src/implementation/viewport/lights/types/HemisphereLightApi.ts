@@ -3,7 +3,6 @@ import { IHemisphereLight } from "@shapediver/viewer.rendering-engine.light-engi
 import { IHemisphereLightApi } from "../../../../interfaces/viewport/lights/types/IHemisphereLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 import { Color } from "@shapediver/viewer.shared.types";
 
@@ -11,8 +10,8 @@ export class HemisphereLightApi extends AbstractLightApi implements IHemisphereL
     // #region Properties (1)
 
     readonly #light: IHemisphereLight;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
     
     // #endregion Properties (1)

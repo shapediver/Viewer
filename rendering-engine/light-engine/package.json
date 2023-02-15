@@ -46,8 +46,7 @@
     "@shapediver/viewer.shared.node-tree": "2.7.4",
     "@shapediver/viewer.shared.services": "2.7.4",
     "@shapediver/viewer.shared.types": "2.7.4",
-    "gl-matrix": "3.3.0",
-    "tsyringe": "^4.5.0"
+    "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

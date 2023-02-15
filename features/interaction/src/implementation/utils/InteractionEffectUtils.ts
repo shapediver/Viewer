@@ -1,16 +1,24 @@
-import { container, singleton } from "tsyringe";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { GeometryData, IMaterialAbstractData } from "@shapediver/viewer.shared.types";
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IInteractionEffectUtils } from "../../interfaces/utils/IInteractionEffectUtils";
 
-@singleton()
 export class InteractionEffectUtils implements IInteractionEffectUtils {
-    // #region Properties (1)
+    // #region Properties (2)
 
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    // #endregion Properties (1)
+    private static _instance: InteractionEffectUtils;
+
+    // #endregion Properties (2)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (2)
 

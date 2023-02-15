@@ -1,26 +1,28 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { container, singleton } from 'tsyringe'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { SDTFAttributesData, SDTFAttributeData, SDTFItemData, SDTFOverviewData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { create, ISdtfReadableAsset, ISdtfReadableAttributes, ISdtfReadableChunk, ISdtfReadableDataItem, ISdtfReadableNode, SdtfTypeHintName  } from '@shapediver/sdk.sdtf-v1'
 import { SdtfPrimitiveTypeGuard  } from '@shapediver/sdk.sdtf-primitives'
 
-@singleton()
 export class SDTFEngine {
-    // #region Properties (2)
+    // #region Properties (3)
 
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _logger: Logger = Logger.instance;
+
+    private static _instance: SDTFEngine;
 
     private _parsedFile!: ISdtfReadableAsset;
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 
-    // #region Constructors (1)
+    // #region Public Static Accessors (1)
 
-    constructor() { }
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
 
-    // #endregion Constructors (1)
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (1)
 

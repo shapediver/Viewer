@@ -1,6 +1,5 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseParameterGroup } from "@shapediver/api.geometry-api-dto-v2";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IExport } from "@shapediver/viewer.session-engine.session-engine";
 import { IExportApi } from "../../interfaces/session/IExportApi";
 
@@ -8,8 +7,8 @@ export class ExportApi implements IExportApi {
 
     // #region Properties (3)
 
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #export: IExport;
 
     // #endregion Properties (3)

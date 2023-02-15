@@ -75,9 +75,7 @@
     "@shapediver/viewer.utils.mime-type": "1.0.0",
     "@types/qrcode": "^1.5.0",
     "gl-matrix": "3.3.0",
-    "qrcode": "^1.5.0",
-    "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.5.0"
+    "qrcode": "^1.5.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

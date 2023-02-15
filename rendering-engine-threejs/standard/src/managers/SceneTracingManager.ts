@@ -1,7 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
-import { container } from 'tsyringe'
 import { AbstractCamera, OrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerGeneralError } from '@shapediver/viewer.shared.services'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -11,8 +10,8 @@ import { RenderingEngine } from '../RenderingEngine'
 export class SceneTracingManager implements IManager {
     // #region Properties (2)
 
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _tree: ITree = Tree.instance;
 
     // #endregion Properties (2)
 
