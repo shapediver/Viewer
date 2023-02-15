@@ -26,7 +26,8 @@ export enum EVENTTYPE_VIEWPORT {
     BUSY_MODE_OFF = "viewport.busy.off",
     VIEWPORT_CREATED = "viewport.created",
     VIEWPORT_UPDATED = "viewport.updated",
-    VIEWPORT_CLOSED = "viewport.closed"
+    VIEWPORT_CLOSED = "viewport.closed",
+    VIEWPORT_SETTINGS_LOADED = "viewport.settingsLoaded"
 }
 
 export enum EVENTTYPE_SESSION {

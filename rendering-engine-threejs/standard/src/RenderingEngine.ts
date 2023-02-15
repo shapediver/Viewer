@@ -854,6 +854,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.clearAlpha = settingsEngine.environment.clearAlpha;
           this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
           this.applySyncSettings(sections);
+
+          this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
           resolve();
         })
         
@@ -862,6 +864,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       })
     } else {
       this.applySyncSettings(sections)
+      this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
     }
   }
 
