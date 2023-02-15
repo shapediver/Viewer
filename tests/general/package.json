@@ -13,6 +13,10 @@
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
+  "scripts": {
+    "pre-publish": "bash ../../scripts/pre-publish.sh",
+    "post-publish": "bash ../../scripts/post-publish.sh"
+  },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
   },

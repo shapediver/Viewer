@@ -14,7 +14,9 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "test": "bash ../../scripts/test.sh"
+    "test": "bash ../../scripts/test.sh",
+    "pre-publish": "bash ../../scripts/pre-publish.sh",
+    "post-publish": "bash ../../scripts/post-publish.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
