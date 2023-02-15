@@ -33,7 +33,7 @@ import { deployToS3, execPromise, getDirectories } from "../utils/utils"
         await execPromise(`npm run deploy-tests`)
 
         console.log("starting tests...")
-        await execPromise(`npm run test-all`)
+        await execPromise(`npm run test`)
 
         /**
          * Create build-data file.

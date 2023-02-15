@@ -2,7 +2,7 @@ import { execPromise, getDirectories, deployToS3 } from '../utils/utils';
 
 (async () => {
     try {
-        const examples = await getDirectories('examples');
+        const examples = (await getDirectories('examples')).filter(v => v.startsWith("test-"));
         
         for(let i = 0; i < examples.length; i++) {
             console.log('deploying example ' + (i+1) + '/' + examples.length + '...')

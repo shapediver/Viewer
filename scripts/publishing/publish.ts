@@ -24,7 +24,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         console.log('deploying tests...')
         await execPromise(`npm run deploy-tests`)
         console.log('starting tests...')
-        await execPromise(`npm run test-all`)
+        await execPromise(`npm run test`)
         
         console.log('checking versioning...')
 
