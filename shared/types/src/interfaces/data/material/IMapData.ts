@@ -21,17 +21,17 @@ export enum TEXTURE_FILTERING {
 export interface IMapData extends ITreeNodeData {
     // #region Properties (11)
 
-    readonly center: vec2;
-    readonly color?: Color;
-    readonly flipY: boolean;
-    readonly image: HTMLImageElement;
-    readonly magFilter: TEXTURE_FILTERING;
-    readonly minFilter: TEXTURE_FILTERING;
-    readonly offset: vec2;
-    readonly repeat: vec2;
-    readonly rotation: number;
-    readonly wrapS: TEXTURE_WRAPPING;
-    readonly wrapT: TEXTURE_WRAPPING;
+    center: vec2;
+    color?: Color;
+    flipY: boolean;
+    image: HTMLImageElement;
+    magFilter: TEXTURE_FILTERING;
+    minFilter: TEXTURE_FILTERING;
+    offset: vec2;
+    repeat: vec2;
+    rotation: number;
+    wrapS: TEXTURE_WRAPPING;
+    wrapT: TEXTURE_WRAPPING;
 
     // #endregion Properties (11)
 

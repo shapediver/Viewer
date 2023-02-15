@@ -19,7 +19,7 @@ import { Parameter } from './dto/Parameter'
 import { vec3 } from 'gl-matrix'
 import { Export } from './dto/Export'
 import { Output } from './dto/Output'
-import { convert, ISettingsV3_1, latestVersion, validate, versions } from '@shapediver/viewer.settings'
+import { convert, ISettingsV3_3, latestVersion, validate, versions } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (40)
@@ -257,7 +257,7 @@ export class SessionEngine implements ISessionEngine {
                 throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
             }
 
-            const settings = <ISettingsV3_1>convert(config, latestVersion);
+            const settings = <ISettingsV3_3>convert(config, latestVersion);
 
             const exportMappingUid: { [key: string]: string | undefined } = {};
             if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -323,10 +323,13 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
                 currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
-
+                currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
+                currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
+            
                 currentSettings.rendering.shadows = settings.rendering.shadows;
                 currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
 
+                currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
                 currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
                 currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
                 currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;

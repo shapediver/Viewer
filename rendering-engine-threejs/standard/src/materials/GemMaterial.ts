@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { MeshPhysicalMaterial, MeshPhysicalMaterialParameters } from 'three';
 import { frag, vert } from '../shaders/gem';
 
-export interface GemMaterialParameters extends THREE.MeshPhysicalMaterialParameters {
+export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
     // #region Properties (4)
 
     refractionIndex?: number | undefined;
@@ -22,7 +23,7 @@ export interface GemMaterialParameters extends THREE.MeshPhysicalMaterialParamet
     // #endregion Properties (4)
 }
 
-export class GemMaterial extends THREE.MeshPhysicalMaterial {
+export class GemMaterial extends MeshPhysicalMaterial {
     // #region Properties (1)
 
     public isGemMaterial: boolean;

@@ -19,6 +19,7 @@ export class SettingsEngine {
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _logger: Logger = Logger.instance;
     private readonly _settings: ISettings = Defaults();
+    private _settingsJson: any;
     private _settings_version: versions = latestVersion;
 
     // #endregion Properties (8)
@@ -64,6 +65,10 @@ export class SettingsEngine {
     public get settings(): ISettings {
         return this._settings;
     }
+    
+    public get settingsJson(): any {
+        return this._settingsJson;
+    }
 
     // #endregion Public Accessors (10)
 
@@ -94,6 +99,7 @@ export class SettingsEngine {
     }
 
     public loadSettings(json: any) {
+        this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
 
             const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2'];

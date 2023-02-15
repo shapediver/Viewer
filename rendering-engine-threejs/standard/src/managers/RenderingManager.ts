@@ -220,7 +220,7 @@ export class RenderingManager implements IManager {
         renderer.shadowMap.autoUpdate = false;
         renderer.localClippingEnabled = true;
         renderer.setSize(canvas.width, canvas.height);
-        renderer.setClearColor(this._renderingEngine.createThreeJsColor('#ffffff'), 1);
+        renderer.setClearColor(new THREE.Color('#ffffff'), 1);
         this._maxTextureUnits = renderer.getContext().getParameter(renderer.getContext().MAX_TEXTURE_IMAGE_UNITS);
         return renderer
     }
@@ -409,7 +409,7 @@ export class RenderingManager implements IManager {
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
-        this._renderingEngine.renderer.setClearColor(this._renderingEngine.createThreeJsColor(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
+        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._converter.toThreeJsColorInput(this._renderingEngine.clearColor)), this._renderingEngine.clearAlpha);
 
         // animation loop - part 12: actual rendering separation
         if (states.beautyRendering === true) {

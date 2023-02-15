@@ -95,7 +95,7 @@ export class HttpClient {
             // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
             if(sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
                 // take first session to load a texture that is not session related
-                this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
+                this._dataCache[dataKey] = new Promise<HttpResponse<any>>((resolve, reject) => {
                     sessionLoading!.downloadTexture(sessionId!, href).then((result) => {
                         resolve({
                             data: result[0],
@@ -103,6 +103,8 @@ export class HttpClient {
                                 'content-type': result[1]
                             }
                         })
+                    }).catch(e => {
+                        reject(e)
                     });
                 });
             } else {

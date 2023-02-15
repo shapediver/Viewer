@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.node-tree",
-  "version": "2.7.4",
+  "version": "2.7.7",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -42,8 +42,8 @@
   },
   "dependencies": {
     "@types/three": "0.149.0",
-    "@shapediver/viewer.shared.math": "2.7.4",
-    "@shapediver/viewer.shared.services": "2.7.4",
+    "@shapediver/viewer.shared.math": "2.7.7",
+    "@shapediver/viewer.shared.services": "2.7.7",
     "gl-matrix": "3.3.0",
     "three": "0.149.0"
   },

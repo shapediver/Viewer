@@ -99,7 +99,6 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.#stateEngine.renderingEngines[id].initialized.reset();
 
       await this.renderingEngines[id].close();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
 
       (<any>this.renderingEngines[id]) = undefined;
       delete this.renderingEngines[id];
@@ -107,6 +106,8 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.closeRenderingEngine: Viewport closed.`);
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeRenderingEngine', e);
@@ -153,7 +154,6 @@ export class CreationControlCenter implements ICreationControlCenter {
         }
       }
 
-      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
       this.#stateEngine.sessionEngines[id].settingsRegistered.reset();
 
       (<any>this.sessionEngines[id]) = undefined;
@@ -164,6 +164,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       for (let r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.closeSessionEngine')
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeSession', e);
@@ -267,15 +268,16 @@ export class CreationControlCenter implements ICreationControlCenter {
         }
       }
 
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CREATED, { viewportId: renderingEngineId });
       this.#stateEngine.renderingEngines[renderingEngineId].initialized.resolve(true);
 
       this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.createViewport: Viewport(${renderingEngineId}) created.`);
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created' };
-      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-
+      
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CREATED, { viewportId: renderingEngineId });
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
       return <RenderingEngineThreeJs>this.renderingEngines[renderingEngineId];
     } catch (e) {
       const eventCancel1: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.9, status: 'Viewport created failed, closing viewport' };
@@ -345,18 +347,20 @@ export class CreationControlCenter implements ICreationControlCenter {
           await sessionEngine.updateOutputs();
           this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
-          const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
-          this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
           for (let r in this.renderingEngines)
             this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=true')
+            
+          const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
+          this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         } else {
           sessionEngine.updateOutputs().then(() => {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
-            const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
-            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
             for (let r in this.renderingEngines)
               this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=false')
+              
+            const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
           })
         }
       }
@@ -364,12 +368,8 @@ export class CreationControlCenter implements ICreationControlCenter {
       // save the session
       this.sessionEngines[sessionEngineId] = sessionEngine;
 
-      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionEngineId });
       this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolve(true);
       this.#logger.debug(LOGGING_TOPIC.SESSION, `CreationControlCenter.createSession: Session(${sessionEngine.id}) created.`);
-
-      const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
-      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
       if (!this.#firstSessionEngine) 
         this.#firstSessionEngine = sessionEngine;
@@ -391,6 +391,10 @@ export class CreationControlCenter implements ICreationControlCenter {
         this.renderingEngines[r].update('CreationControlCenter.createSessionEngine')
 
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId: sessionEngineId });
       return sessionEngine;
     } catch (e) {
       // special behavior, if this was the only session, display the error on the logo screen
