@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { ITreeNodeData } from '../interfaces/ITreeNodeData'
@@ -9,8 +8,8 @@ export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> impleme
   #version: string;
 
   readonly #id: string;
-  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
+  readonly #eventEngine: EventEngine = EventEngine.instance;
 
   // #endregion Properties (3)
 

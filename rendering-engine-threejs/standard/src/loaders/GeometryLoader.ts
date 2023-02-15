@@ -12,7 +12,6 @@ import {
 } from '@shapediver/viewer.shared.types'
 import { IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
@@ -44,7 +43,7 @@ export class GeometryLoader implements ILoader {
             }
         }
     } = {};
-    private _logger: Logger = <Logger>container.resolve(Logger);
+    private _logger: Logger = Logger.instance;
     private _gemSphericalMapsCache: {
         [key: string]: THREE.CubeTexture
     } = {};

@@ -2,15 +2,14 @@ import { ShapeDiverResponseModelComputationStatus } from "@shapediver/api.geomet
 import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IOutputApi } from "../../interfaces/session/IOutputApi";
 import { OutputApiData } from "./data/OutputApiData";
 
 export class OutputApi implements IOutputApi {
     // #region Properties (3)
 
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #output: IOutput;
 
     // #endregion Properties (3)

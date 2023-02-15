@@ -1,4 +1,3 @@
-import { container, singleton } from "tsyringe";
 import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
@@ -6,8 +5,21 @@ import { IViewportApi } from "@shapediver/viewer";
 import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { IDragConstraintUtils } from "../../interfaces/utils/IDragConstraintUtils";
 
-@singleton()
 export class DragConstraintUtils implements IDragConstraintUtils {
+    // #region Properties (1)
+
+    private static _instance: DragConstraintUtils;
+
+    // #endregion Properties (1)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
+
     // #region Public Methods (2)
 
     /**

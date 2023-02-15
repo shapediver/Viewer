@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { SystemInfo } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { EffectComposer } from '../three/postprocessing/EffectComposer';
@@ -15,7 +14,7 @@ import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 export class BeautyRenderingManager implements IManager {
     // #region Properties (12)
 
-    private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
+    private readonly _systemInfo: SystemInfo = SystemInfo.instance;
 
     private _beautyRenderingActive: boolean = false;
     private _beautyRenderingDurationActive: number = 0;

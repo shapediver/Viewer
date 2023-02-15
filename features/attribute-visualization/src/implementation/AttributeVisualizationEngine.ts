@@ -2,7 +2,6 @@ import { ILayer } from "../interfaces/ILayer";
 import { addListener, IViewportApi, sceneTree } from "@shapediver/viewer";
 import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from "../interfaces/IAttribute";
 import { mat4 } from "gl-matrix";
-import { container } from "tsyringe";
 import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
 import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialStandardData, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
@@ -11,8 +10,8 @@ import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
     // #region Properties (7)
 
-    readonly #converter: Converter = <Converter>container.resolve(Converter);
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #converter: Converter = Converter.instance;
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
     #attributes: IAttribute[] = [];

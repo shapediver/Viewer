@@ -14,7 +14,6 @@ import {
   MaterialStandardData,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
-import { container } from 'tsyringe'
 
 import { SDGTFLoader } from './SDGTFLoader'
 
@@ -22,13 +21,13 @@ export class GLTFLoader {
     // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+    private readonly _logger: Logger = Logger.instance;
     private readonly _implementedExtensions = ['KHR_materials_common'];
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;

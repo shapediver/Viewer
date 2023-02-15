@@ -2,15 +2,14 @@ import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/
 import { IOrthographicCameraApi } from "../../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { AbstractCameraApi } from "./AbstractCameraApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 
 export class OrthographicCameraApi extends AbstractCameraApi implements IOrthographicCameraApi {
     // #region Properties (1)
 
     readonly #camera: IOrthographicCamera;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
     // #endregion Properties (1)

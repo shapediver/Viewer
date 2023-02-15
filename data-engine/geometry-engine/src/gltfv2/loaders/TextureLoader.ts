@@ -1,14 +1,13 @@
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
 import { Converter, HttpClient, HttpResponse } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { BufferViewLoader } from './BufferViewLoader'
 
 export class TextureLoader {
     // #region Properties (4)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _httpClient: HttpClient = HttpClient.instance;
 
     private _loaded: {
         [key: string]: HTMLImageElement

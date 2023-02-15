@@ -1,5 +1,4 @@
 import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { container } from "tsyringe";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator, UuidGenerator, LOGGING_TOPIC, ShapeDiverViewerError, ShapeDiverBackendError, Logger } from "@shapediver/viewer.shared.services";
 import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "../../interfaces/dto/IOutput";
@@ -9,11 +8,11 @@ export class Output implements IOutput {
   // #region Properties (23)
 
   readonly #id: string;
-  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #inputValidator: InputValidator = InputValidator.instance;
+  readonly #logger: Logger = Logger.instance;
   readonly #name: string;
   readonly #sessionEngine: SessionEngine;
-  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
   #bbmax?: number[];
   #bbmin?: number[];

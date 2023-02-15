@@ -42,7 +42,6 @@
     "@shapediver/viewer": "*",
     "@shapediver/viewer.features.interaction": "*",
     "@shapediver/viewer.shared.types": "*",
-    "gl-matrix": "3.3.0",
-    "tsyringe": "^4.5.0"
+    "gl-matrix": "3.3.0"
   }
 }

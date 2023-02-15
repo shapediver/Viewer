@@ -3,15 +3,14 @@ import { IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-e
 import { IPerspectiveCameraApi } from "../../../interfaces/viewport/camera/IPerspectiveCameraApi";
 import { AbstractCameraApi } from "./AbstractCameraApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 
 export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspectiveCameraApi {
     // #region Properties (1)
 
     readonly #camera: IPerspectiveCamera;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
     // #endregion Properties (1)

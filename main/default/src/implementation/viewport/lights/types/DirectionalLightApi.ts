@@ -3,15 +3,14 @@ import { IDirectionalLight } from "@shapediver/viewer.rendering-engine.light-eng
 import { IDirectionalLightApi } from "../../../../interfaces/viewport/lights/types/IDirectionalLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class DirectionalLightApi extends AbstractLightApi implements IDirectionalLightApi {
     // #region Properties (4)
 
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
     readonly #light: IDirectionalLight;
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
     // #endregion Properties (4)

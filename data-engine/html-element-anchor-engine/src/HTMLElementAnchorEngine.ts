@@ -1,4 +1,3 @@
-import { container, singleton } from 'tsyringe'
 import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, IAnchorDataText, IAnchorDataImage } from '@shapediver/viewer.shared.types'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGING_TOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
@@ -7,15 +6,24 @@ import { Box } from '@shapediver/viewer.shared.math'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { IAnchor, ITag2D } from '@shapediver/viewer.data-engine.shared-types'
 
-@singleton()
 export class HTMLElementAnchorEngine {
-    // #region Properties (2)
+    // #region Properties (4)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _inputValidator: InputValidator = InputValidator.instance;
+    private readonly _logger: Logger = Logger.instance;
 
-    // #endregion Properties (2)
+    private static _instance: HTMLElementAnchorEngine;
+
+    // #endregion Properties (4)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (1)
 

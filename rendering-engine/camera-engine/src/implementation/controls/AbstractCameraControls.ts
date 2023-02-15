@@ -1,6 +1,5 @@
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
@@ -13,7 +12,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager;
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
 
     private _canvas?: HTMLCanvasElement;
     private _manualInteraction: boolean = false;

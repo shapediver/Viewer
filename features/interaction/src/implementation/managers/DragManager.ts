@@ -2,7 +2,6 @@ import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.ren
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { FLAG_TYPE, IViewportApi } from '@shapediver/viewer'
 
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
@@ -16,8 +15,8 @@ import { IDragEvent } from '../../interfaces/events/IDragEvent'
 export class DragManager extends AbstractInteractionManager {
     // #region Properties (11)
 
-    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     #dragConstraints: { [key: string]: IDragConstraint } = {};
     #effectMaterialToken?: string;

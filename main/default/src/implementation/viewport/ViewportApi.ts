@@ -1,7 +1,6 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
-import { container } from "tsyringe";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
 import { Converter, IDomEventListener, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerArError, ShapeDiverViewerError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
 import { FLAG_TYPE, RENDERER_TYPE, SESSION_SETTINGS_MODE, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
@@ -26,14 +25,14 @@ import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-e
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
 
-    readonly #animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
+    readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
     readonly #renderingEngine: RenderingEngineThreeJs;
-    readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
-    readonly #converter: Converter = <Converter>container.resolve(Converter);
-    readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
+    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+    readonly #converter: Converter = Converter.instance;
+    readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
+    readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
     readonly #cameras: { [key: string]: ICameraApi } = {};
     readonly #lightScenes: { [key: string]: ILightSceneApi } = {};

@@ -5,7 +5,6 @@ import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager"
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IViewportApi } from "@shapediver/viewer";
 import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
@@ -13,7 +12,7 @@ import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
 export class SelectOnUpManager extends AbstractInteractionManager {
     // #region Properties (6)
 
-    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #eventEngine: EventEngine = EventEngine.instance;
 
     #deselectOnEmpty: boolean = true;
     #effectMaterialToken?: string;

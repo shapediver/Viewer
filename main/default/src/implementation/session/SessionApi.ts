@@ -1,6 +1,5 @@
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
 import { FileParameter, IParameter, ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { container } from "tsyringe";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
 import { IExportApi } from "../../interfaces/session/IExportApi";
@@ -18,11 +17,11 @@ import { SessionApiData } from "./data/SessionApiData";
 export class SessionApi implements ISessionApi {
     // #region Properties (2)
 
-    readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
+    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
     readonly #sessionEngine: SessionEngine;
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
+    readonly #logger: Logger = Logger.instance;
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
 
     readonly #outputs: { [key: string]: IOutputApi; } = {};
     readonly #parameters: { [key: string]: IParameterApi<any>; } = {};

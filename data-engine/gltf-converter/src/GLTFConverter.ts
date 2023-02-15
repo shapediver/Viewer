@@ -1,7 +1,6 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { container, singleton } from 'tsyringe'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
     ACCESSORTYPE_V2 as ACCESSORTYPE,
@@ -46,17 +45,18 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
 }
 
-@singleton()
 export class GLTFConverter {
-    // #region Properties (17)
+    // #region Properties (15)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     private readonly _globalTransformationInverse = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+
+    private static _instance: GLTFConverter;
 
     private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
@@ -81,13 +81,15 @@ export class GLTFConverter {
     private _promises: Promise<any>[] = [];
     private _viewport?: string;
 
-    // #endregion Properties (17)
+    // #endregion Properties (15)
 
-    // #region Constructors (1)
+    // #region Public Static Accessors (1)
 
-    constructor() { }
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
 
-    // #endregion Constructors (1)
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (1)
 
@@ -133,7 +135,6 @@ export class GLTFConverter {
         for (let i = 0; i < node.transformations.length; i++)
             if (node.transformations[i].id === globalTransformationInverseId)
                 node.removeTransformation(node.transformations[i]);
-
 
         if (convertForAR) {
             // remove translation the matrix
@@ -214,7 +215,7 @@ export class GLTFConverter {
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (18)
+    // #region Private Methods (17)
 
     private convertAccessor(data: IAttributeData): number {
         if (!this._content.accessors) this._content.accessors = [];
@@ -571,7 +572,6 @@ export class GLTFConverter {
             matrix[4], matrix[5], matrix[6], matrix[7],
             matrix[8], matrix[9], matrix[10], matrix[11],
             matrix[12], matrix[13], matrix[14], matrix[15]];
-
         }
 
         for (let i = 0; i < node.data.length; i++) {
@@ -634,7 +634,6 @@ export class GLTFConverter {
                             counter+=3;
                         }
                         primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4*4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
-                        
                     }
                 } else {
                     primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
@@ -780,5 +779,5 @@ export class GLTFConverter {
         return array.buffer;
     }
 
-    // #endregion Private Methods (18)
+    // #endregion Private Methods (17)
 }

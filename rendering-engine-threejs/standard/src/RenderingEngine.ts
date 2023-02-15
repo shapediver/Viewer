@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { vec2, vec3 } from 'gl-matrix'
-import { container } from 'tsyringe'
 import {
   CameraEngine,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
@@ -73,16 +72,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _cameraManager: CameraManager;
   // viewer essentials
   private readonly _canvas: ICanvas;
-  private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
-  private readonly _animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
+  private readonly _canvasEngine: CanvasEngine = CanvasEngine.instance;
+  private readonly _animationEngine: AnimationEngine = AnimationEngine.instance;
   // utils
-  private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _converter: Converter = Converter.instance;
   private readonly _domEventEngine: DomEventEngine;
   private readonly _environmentGeometryManager: EnvironmentGeometryManager;
-  private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
+  private readonly _systemInfo: SystemInfo = SystemInfo.instance;
   // loaders
   private readonly _environmentMapLoader: EnvironmentMapLoader;
-  private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  private readonly _eventEngine: EventEngine = EventEngine.instance;
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   // constructor properties
@@ -97,14 +96,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
-  private readonly _logger: Logger = <Logger>container.resolve(Logger);
+  private readonly _logger: Logger = Logger.instance;
   private readonly _materialLoader: MaterialLoader;
   private readonly _renderingManager: RenderingManager;
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
-  private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  private readonly _tree: ITree = <ITree>container.resolve(Tree);
-  private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  private readonly _stateEngine: StateEngine = StateEngine.instance;
+  private readonly _tree: ITree = Tree.instance;
+  private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
   private readonly _visibility: VISIBILITY_MODE;
 
   // settings
@@ -184,7 +183,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     const branding = Object.assign({}, prop.branding);
 
     // setting some of the provided properties
-    this._id = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    this._id = prop.id || (UuidGenerator.instance).create();
     this._visibility = prop.visibility || VISIBILITY_MODE.SESSION;
     this._sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
     this._sessionSettingsId = prop.sessionSettingsId;

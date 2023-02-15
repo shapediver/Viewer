@@ -1,4 +1,3 @@
-import { container, singleton } from 'tsyringe'
 import { CustomData } from '@shapediver/viewer.shared.types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
@@ -12,18 +11,27 @@ import { mat4 } from 'gl-matrix'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { NodeTreeUtils } from '@shapediver/viewer.shared.node-tree-utils'
 
-@singleton()
 export class DataEngine {
-    // #region Properties (6)
+    // #region Properties (7)
 
-    private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
-    private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = <HTMLElementAnchorEngine>container.resolve(HTMLElementAnchorEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
-    private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
-    private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
+    private readonly _geometryEngine: GeometryEngine = GeometryEngine.instance;
+    private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = HTMLElementAnchorEngine.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _materialEngine: MaterialEngine = MaterialEngine.instance;
+    private readonly _sdtfEngine: SDTFEngine = SDTFEngine.instance;
+    private readonly _tag3dEngine: Tag3dEngine = Tag3dEngine.instance;
 
-    // #endregion Properties (6)
+    private static _instance: DataEngine;
+
+    // #endregion Properties (7)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (1)
 

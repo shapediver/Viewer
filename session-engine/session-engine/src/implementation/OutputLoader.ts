@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { IMaterialAbstractData, GeometryData, AbstractMaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -14,7 +13,7 @@ import { ISessionEngine } from '../interfaces/ISessionEngine'
 export class OutputLoader {
     // #region Properties (3)
 
-    private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
+    private readonly _dataEngine: DataEngine = DataEngine.instance;
     private readonly _loadedOutputNodes: { 
         [key: string]: {
             [key: string]: ISessionTreeNode
@@ -23,7 +22,7 @@ export class OutputLoader {
     private readonly _lastOutputNodes: { 
         [key: string]: ISessionTreeNode
     } = {};
-    private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    private readonly _performanceEvaluator: PerformanceEvaluator = PerformanceEvaluator.instance;
 
     // #endregion Properties (3)
 

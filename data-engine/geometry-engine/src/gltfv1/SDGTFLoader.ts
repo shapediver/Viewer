@@ -12,14 +12,13 @@ import {
   PRIMITIVE_MODE,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
-import { container } from 'tsyringe'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 
 export class SDGTFLoader {
     // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _logger: Logger = Logger.instance;
 
     private _body!: ArrayBuffer;
     private _content!: ISDGTF_v1;

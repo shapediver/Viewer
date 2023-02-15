@@ -1,6 +1,5 @@
 import { IOrthographicControlsSettingsV3 } from '@shapediver/viewer.settings'
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 
 import { CAMERA_TYPE, ICamera } from '../..'
 import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
@@ -23,7 +22,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     private _panSpeed: number = 0.5;
     private _zoomSpeed: number = 0.5;
 
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
 
     // #endregion Properties (9)
 

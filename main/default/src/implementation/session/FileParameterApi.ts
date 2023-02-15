@@ -2,13 +2,12 @@ import { IFileParameter } from "@shapediver/viewer.session-engine.session-engine
 import { IFileParameterApi } from "../../interfaces/session/IFileParameterApi";
 import { ParameterApi } from "./ParameterApi";
 import { Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 
 export class FileParameterApi extends ParameterApi<File | Blob | string> implements IFileParameterApi {
     // #region Properties (3)
 
     readonly #parameter: IFileParameter;
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #logger: Logger = Logger.instance;
 
     // #endregion Properties (3)
 

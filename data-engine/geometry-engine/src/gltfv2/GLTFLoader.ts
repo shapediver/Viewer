@@ -8,7 +8,6 @@ import {
   ShapeDiverViewerDataProcessingError,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import {
@@ -58,12 +57,12 @@ export class GLTFLoader {
     // #region Properties (17)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _performanceEvaluator = PerformanceEvaluator.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private _accessorLoader!: AccessorLoader;
     private _baseUri: string | undefined;

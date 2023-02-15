@@ -12,13 +12,12 @@ import {
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { SDData } from '../objects/SDData'
 
 export class LightLoader implements ILoader {
 
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _converter: Converter = Converter.instance;
     
     private _shadowMapCount = 0;
     private _forceDisabledShadows: boolean = false;

@@ -30,7 +30,6 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
-import { container } from 'tsyringe'
 import { IManager, ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { ThreejsData } from '../types/ThreejsData'
@@ -44,13 +43,13 @@ import { SDBone } from '../objects/SDBone'
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _inputValidator: InputValidator = InputValidator.instance;
+    private readonly _logger: Logger = Logger.instance;
     private readonly _scene: THREE.Scene = new THREE.Scene();
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
+    private readonly _tree: ITree = Tree.instance;
 
     private _boundingBox: IBox = new Box();
     private _boundingBoxSensitiveData: {

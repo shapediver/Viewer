@@ -1,5 +1,4 @@
 import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { container } from 'tsyringe';
 import { ITree, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
 import { IViewportApi } from './interfaces/viewport/IViewportApi';
@@ -16,10 +15,10 @@ import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.re
 import { build_data } from '@shapediver/viewer.shared.build-data';
 
 
-const creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
-const inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-const logger: Logger = <Logger>container.resolve(Logger);
-const eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+const creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+const inputValidator: InputValidator = InputValidator.instance;
+const logger: Logger = Logger.instance;
+const eventEngine: EventEngine = EventEngine.instance;
 
 console.log(`Powered by:
    _____  __                         ____   _                   
@@ -121,7 +120,7 @@ export const removeListener = (id: string): boolean => {
  * The scene tree contains a unique node and child nodes for each session, 
  * and can also be used to add your own nodes.
  */
-export const sceneTree: ITree = <ITree>container.resolve(Tree);
+export const sceneTree: ITree = Tree.instance;
 
 /**
  * The viewports that are currently being used.

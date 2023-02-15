@@ -1,22 +1,29 @@
-import { container, singleton } from 'tsyringe'
-
 import { mat4, quat, vec3, vec4 } from 'gl-matrix'
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { AnimationData, GeometryData, IAnimationData } from '@shapediver/viewer.shared.types'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { IAnimationEngine } from '../interfaces/IAnimationEngine';
 
-@singleton()
 export class AnimationEngine implements IManager, IAnimationEngine {
-    // #region Properties (2)
+    // #region Properties (3)
 
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
+    private readonly _tree: ITree = Tree.instance;
+
+    private static _instance: AnimationEngine;
 
     private _animations: {
         [key: string]: IAnimationData
     } = {};
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Accessors (1)
 
