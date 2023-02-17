@@ -26,6 +26,11 @@
     value: string;
   }
 
+  export interface IColorElement extends ICustomUiElement {
+    type: "color";
+    value: string;
+  }
+
   export interface IBooleanElement extends ICustomUiElement {
     type: "boolean";
     value: boolean;
@@ -179,6 +184,60 @@
 
         textInputElement.oninput = () => {
           if (menuElement.onInputCallback) menuElement.onInputCallback(textInputElement.value);
+        };
+      } else if (menuElement.type === "color") {
+        const colorElement = menuElement as IColorElement;
+        
+        // add the label
+        label.classList.value = "block mb-2 mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
+        paramDiv.appendChild(label);
+
+        // create another div that will contain the color swatch and the text input
+        const div: HTMLDivElement = <HTMLDivElement>document.createElement("div");
+        div.style.justifyContent = "space-between";
+        div.style.alignItems = "center";
+        div.style.display = "flex";
+        paramDiv.appendChild(div);
+
+        // the input
+        const textInputElement = document.createElement("input") as HTMLInputElement;
+        textInputElement.style.width = "5rem";
+        textInputElement.setAttribute("name", "inputElement");
+        textInputElement.setAttribute("type", "text");
+        textInputElement.setAttribute("value", colorElement.value);
+        textInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+        div.appendChild(textInputElement);
+
+        // the callbacks
+        textInputElement.onchange = () => {
+          colorInputElement.value = textInputElement.value;
+          if (menuElement.onChangeCallback) menuElement.onChangeCallback(textInputElement.value);
+        };
+
+        textInputElement.oninput = () => {
+          colorInputElement.value = textInputElement.value;
+          if (menuElement.onInputCallback) menuElement.onInputCallback(textInputElement.value);
+        };
+
+        // the input
+        const colorInputElement = document.createElement("input") as HTMLInputElement;
+        colorInputElement.style.width = "5rem";
+        colorInputElement.style.height = "2.55rem";
+        colorInputElement.setAttribute("name", "inputElement");
+        colorInputElement.setAttribute("type", "color");
+        colorInputElement.setAttribute("value", colorElement.value);
+        colorInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+        div.appendChild(colorInputElement);
+
+        // the callbacks
+        colorInputElement.onchange = () => {
+          textInputElement.value = colorInputElement.value;
+          if (menuElement.onChangeCallback) menuElement.onChangeCallback(colorInputElement.value);
+        };
+
+        colorInputElement.oninput = () => {
+          textInputElement.value = colorInputElement.value;
+          if (menuElement.onInputCallback) menuElement.onInputCallback(colorInputElement.value);
         };
       }
   

@@ -178,23 +178,55 @@ export const createUi = (
             label.classList.value = "block mb-2 mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
             paramDiv.appendChild(label);
 
+            // create another div that will contain the color swatch and the text input
+            const div: HTMLDivElement = <HTMLDivElement>document.createElement("div");
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.style.display = "flex";
+            paramDiv.appendChild(div);
+
             // the input
-            const parameterInputElement = document.createElement("input") as HTMLInputElement;
-            parameterInputElement.setAttribute("name", "inputElement");
-            parameterInputElement.setAttribute("id", parameterObject.id);
-            parameterInputElement.setAttribute("type", "text");
-            parameterInputElement.setAttribute(
+            const parameterTextInputElement = document.createElement("input") as HTMLInputElement;
+            parameterTextInputElement.style.width = "5rem";
+            parameterTextInputElement.setAttribute("name", "inputElement");
+            parameterTextInputElement.setAttribute("id", parameterObject.id);
+            parameterTextInputElement.setAttribute("type", "text");
+            parameterTextInputElement.setAttribute(
                 "value",
                 (<string>parameterObject.value).replace("0x", "#").substring(0, 7)
             );
-            parameterInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
-            paramDiv.appendChild(parameterInputElement);
+            parameterTextInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+            div.appendChild(parameterTextInputElement);
 
+            
             // the callback
-            parameterInputElement.onchange = async () => {
-                parameterObject.value = parameterInputElement.value;
+            parameterTextInputElement.onchange = async () => {
+                parameterObject.value = parameterTextInputElement.value;
+                parameterColorInputElement.value = parameterTextInputElement.value;
                 await session.customize();
             };
+
+            // the color input
+            const parameterColorInputElement = document.createElement("input") as HTMLInputElement;
+            parameterColorInputElement.style.width = "5rem";
+            parameterColorInputElement.style.height = "2.55rem";
+            parameterColorInputElement.setAttribute("name", "inputElement");
+            parameterColorInputElement.setAttribute("id", parameterObject.id);
+            parameterColorInputElement.setAttribute("type", "color");
+            parameterColorInputElement.setAttribute(
+                "value",
+                (<string>parameterObject.value).replace("0x", "#").substring(0, 7)
+            );
+            parameterColorInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+            div.appendChild(parameterColorInputElement);
+
+            // the callback
+            parameterColorInputElement.onchange = async () => {
+                parameterObject.value = parameterColorInputElement.value;
+                parameterTextInputElement.value = parameterColorInputElement.value;
+                await session.customize();
+            };
+
         } else if (parameterObject.type === PARAMETER_TYPE.STRINGLIST) {
             // add the label
             label.classList.value = "block mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
