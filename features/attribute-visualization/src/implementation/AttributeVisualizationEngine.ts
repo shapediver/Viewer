@@ -44,7 +44,14 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.constructAttributeVisualization();
         addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
             this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
+            
+            const layers = this.#layers;
             this.createLayers();
+            for (let l in layers) {
+                if (this.#layers[l])
+                    this.#layers[l] = layers[l];
+            }
+
             this.constructAttributeVisualization();
 
             for (let l in this.#listeners)
