@@ -117,7 +117,7 @@ export class LightSceneApi implements ILightSceneApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
             const light = this.#lightScene.addAmbientLight(properties);
-            this.#viewportApi.update();
+            this.#viewportApi.render("LightSceneApi.addAmbientLight");
             return <IAmbientLightApi>this.#lights[light.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -139,7 +139,7 @@ export class LightSceneApi implements ILightSceneApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
             const light = this.#lightScene.addDirectionalLight(properties);
-            this.#viewportApi.update();
+            this.#viewportApi.render("LightSceneApi.addDirectionalLight");
             return <IDirectionalLightApi>this.#lights[light.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -158,7 +158,7 @@ export class LightSceneApi implements ILightSceneApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
             const light = this.#lightScene.addHemisphereLight(properties);
-            this.#viewportApi.update();
+            this.#viewportApi.render("LightSceneApi.addHemisphereLight");
             return <IHemisphereLightApi>this.#lights[light.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -179,7 +179,7 @@ export class LightSceneApi implements ILightSceneApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
             const light = this.#lightScene.addPointLight(properties);
-            this.#viewportApi.update();
+            this.#viewportApi.render("LightSceneApi.addPointLight");
             return <IPointLightApi>this.#lights[light.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -203,7 +203,7 @@ export class LightSceneApi implements ILightSceneApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
             const light = this.#lightScene.addSpotLight(properties);
-            this.#viewportApi.update();
+            this.#viewportApi.render("LightSceneApi.addSpotLight");
             return <ISpotLightApi>this.#lights[light.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -213,7 +213,7 @@ export class LightSceneApi implements ILightSceneApi {
 
     public removeLight(id: string): boolean {
         const check = this.#lightScene.removeLight(id);
-        this.#viewportApi.update();
+        this.#viewportApi.render("LightSceneApi.removeLight");
         return check;
     }
 

@@ -100,7 +100,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.ambientOcclusion = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('ambientOcclusion');
+            this.render('ambientOcclusion');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -117,7 +117,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.ambientOcclusionIntensity = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('ambientOcclusionIntensity');
+            this.render('ambientOcclusionIntensity');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -140,7 +140,6 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
             this.#renderingEngine.arRotation = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arRotation');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -157,7 +156,6 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
             this.#renderingEngine.arScale = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arScale');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -174,7 +172,6 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
             this.#renderingEngine.arTranslation = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arTranslation');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -191,7 +188,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.automaticColorAdjustment = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('automaticColorAdjustment');
+            this.render('automaticColorAdjustment');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -208,7 +205,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.automaticResizing = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('automaticResizing');
+            this.render('automaticResizing');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -225,7 +222,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.beautyRenderBlendingDuration = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('beautyRenderBlendingDuration');
+            this.render('beautyRenderBlendingDuration');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -242,7 +239,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.beautyRenderDelay = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('beautyRenderDelay');
+            this.render('beautyRenderDelay');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -272,7 +269,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.clearAlpha = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('clearAlpha');
+            this.render('clearAlpha');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -289,7 +286,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
             this.#renderingEngine.clearColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('clearColor');
+            this.render('clearColor');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -306,7 +303,6 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.enableAR = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('enableAR');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -323,7 +319,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'cubeMap');
             this.#renderingEngine.environmentMap = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMap');
+            this.render('environmentMap');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -340,7 +336,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.environmentMapAsBackground = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapAsBackground');
+            this.render('environmentMapAsBackground');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -357,7 +353,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'string');
             this.#renderingEngine.environmentMapResolution = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapResolution');
+            this.render('environmentMapResolution');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -374,7 +370,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.environmentMapForUnlitMaterials = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapForUnlitMaterials');
+            this.render('environmentMapForUnlitMaterials');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -391,7 +387,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
             this.#renderingEngine.gridColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('gridColor');
+            this.render('gridColor');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -408,7 +404,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.gridVisibility = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('gridVisibility');
+            this.render('gridVisibility');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -425,7 +421,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
             this.#renderingEngine.groundPlaneColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneColor');
+            this.render('groundPlaneColor');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -442,7 +438,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.groundPlaneVisibility = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneVisibility');
+            this.render('groundPlaneVisibility');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -459,7 +455,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
             this.#renderingEngine.groundPlaneShadowColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneShadowColor');
+            this.render('groundPlaneShadowColor');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -476,7 +472,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.groundPlaneShadowVisibility = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneShadowVisibility');
+            this.render('groundPlaneShadowVisibility');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -497,7 +493,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.lights = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('lights');
+            this.render('lights');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -531,7 +527,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value.height, 'number');
             this.#renderingEngine.maximumRenderingSize = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('maximumRenderingSize');
+            this.render('maximumRenderingSize');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -548,7 +544,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
             this.#renderingEngine.outputEncoding = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('outputEncoding');
+            this.render('outputEncoding');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -565,7 +561,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.physicallyCorrectLights = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('physicallyCorrectLights');
+            this.render('physicallyCorrectLights');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -582,7 +578,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.pointSize = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('pointSize');
+            this.render('pointSize');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -607,7 +603,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.shadows = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('shadows');
+            this.render('shadows');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -624,7 +620,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.show = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('show');
+            this.render('show');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -641,7 +637,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
             this.#renderingEngine.showStatistics = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('showStatistics');
+            this.render('showStatistics');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -658,7 +654,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
             this.#renderingEngine.textureEncoding = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('textureEncoding');
+            this.render('textureEncoding');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -675,7 +671,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TONE_MAPPING));
             this.#renderingEngine.toneMapping = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('toneMapping');
+            this.render('toneMapping');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -692,7 +688,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
             this.#renderingEngine.toneMappingExposure = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('toneMappingExposure');
+            this.render('toneMappingExposure');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -709,7 +705,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(RENDERER_TYPE));
             this.#renderingEngine.type = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('type');
+            this.render('type');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -726,7 +722,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'function', false);
             this.#renderingEngine.visualizeAttributes = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('visualizeAttributes');
+            this.render('visualizeAttributes');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -765,7 +761,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
             const check = this.#renderingEngine.cameraEngine.assignCamera(id);
-            this.update('assignCamera');
+            this.render('assignCamera');
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -778,7 +774,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
             const check = this.#renderingEngine.lightEngine.assignLightScene(id);
-            this.update('assignLightScene');
+            this.render('assignLightScene');
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -826,9 +822,7 @@ export class ViewportApi implements IViewportApi {
                 const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
                 throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
             }
-            this.update('convertToGlTF.start');
             const result = await this.#gltfConverter.convert(node, false, this.id);
-            this.update('convertToGlTF.end');
             return new Blob([result], { type: 'application/octet-stream' });
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -844,7 +838,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, prop.name, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, prop.standard, 'boolean', false);
             const lightScene = this.#renderingEngine.lightEngine.createLightScene(properties || {});
-            this.update('createLightScene');
+            this.render('createLightScene');
             return this.#lightScenes[lightScene.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -857,7 +851,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string', false);
             const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
-            this.update('createOrthographicCamera');
+            this.render('createOrthographicCamera');
             return <IOrthographicCameraApi>this.#cameras[camera.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -870,7 +864,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string', false);
             const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
-            this.update('createPerspectiveCamera');
+            this.render('createPerspectiveCamera');
             return <IPerspectiveCameraApi>this.#cameras[camera.id];
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -885,7 +879,6 @@ export class ViewportApi implements IViewportApi {
                 const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
                 throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
             }
-            this.update('createSDTFOverview');
             return this.#renderingEngine.createSDTFOverview(node);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -898,7 +891,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, message, 'string');
             this.#renderingEngine.displayErrorMessage(message);
-            this.update('displayErrorMessage');
+            this.render('displayErrorMessage');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -920,7 +913,6 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, type, 'string', false);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, quality, 'number', false);
-            this.update('getScreenshot');
             return this.#renderingEngine.getScreenshot(type, quality);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -965,7 +957,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
             const check = this.#renderingEngine.cameraEngine.removeCamera(id);
-            this.update('removeCamera');
+            this.render('removeCamera');
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -1002,7 +994,7 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
             const check = this.#renderingEngine.lightEngine.removeLightScene(id);
-            this.update('removeLightScene');
+            this.render('removeLightScene');
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -1010,10 +1002,10 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public render(): void {
+    public render(id?: string): void {
         const scope = 'render';
         try {
-            this.#renderingEngine.renderingManager.render();
+            this.#renderingEngine.update(id || 'ViewportApi');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -1026,7 +1018,7 @@ export class ViewportApi implements IViewportApi {
             for(let c in this.cameras)
                 this.#renderingEngine.cameraEngine.removeCamera(c);
             this.#renderingEngine.cameraEngine.createDefaultCameras();
-            this.update('resetToDefaultCameras');
+            this.render('resetToDefaultCameras');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -1039,7 +1031,7 @@ export class ViewportApi implements IViewportApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, width, 'number');
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, height, 'number');
             this.#renderingEngine.resize(width, height);
-            this.update('resize');
+            this.render('resize');
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
@@ -1118,6 +1110,7 @@ export class ViewportApi implements IViewportApi {
 
             // add scaling matrix to scene tree node
             targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+            targetNode.updateVersion();
 
             // create the gltf
             this.update('createArSessionLink.start');
@@ -1127,6 +1120,8 @@ export class ViewportApi implements IViewportApi {
             for (let i = 0; i < targetNode.transformations.length; i++)
                 if (targetNode.transformations[i].id === 'ar_scaling')
                     targetNode.transformations.splice(i, 1);
+
+            targetNode.updateVersion();
 
             this.update('createArSessionLink.end');
 
@@ -1198,6 +1193,7 @@ export class ViewportApi implements IViewportApi {
 
             // add scaling matrix to scene tree node
             targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+            targetNode.updateVersion();
 
             // create the gltf
             this.update('viewInAR.start');
@@ -1207,6 +1203,8 @@ export class ViewportApi implements IViewportApi {
             for (let i = 0; i < targetNode.transformations.length; i++)
                 if (targetNode.transformations[i].id === 'ar_scaling')
                     targetNode.transformations.splice(i, 1);
+
+            targetNode.updateVersion();
 
             this.update('viewInAR.end');
 

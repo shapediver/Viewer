@@ -348,9 +348,6 @@ export class CreationControlCenter implements ICreationControlCenter {
           await sessionEngine.updateOutputs();
           this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
-          for (let r in this.renderingEngines)
-            this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=true')
-            
           const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
           this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         } else {

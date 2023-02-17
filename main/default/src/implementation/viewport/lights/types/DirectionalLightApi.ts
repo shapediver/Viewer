@@ -39,7 +39,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'boolean');
             this.#light.castShadow = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("DirectionalLightApi.castShadow");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -56,7 +56,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
             this.#light.direction = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("DirectionalLightApi.direction");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -73,7 +73,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.shadowMapBias = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("DirectionalLightApi.shadowMapBias");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -90,7 +90,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.shadowMapResolution = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("DirectionalLightApi.shadowMapResolution");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);

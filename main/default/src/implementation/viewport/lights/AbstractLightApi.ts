@@ -39,7 +39,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'color');
             this.#light.color = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("AbstractLightApi.color");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -60,7 +60,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.intensity = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("AbstractLightApi.intensity");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -77,7 +77,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'string', false);
             this.#light.name = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("AbstractLightApi.name");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -94,7 +94,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number', false);
             this.#light.order = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
+            this.#viewportApi.render("AbstractLightApi.order");
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);

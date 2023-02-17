@@ -36,12 +36,15 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi) {
+    constructor(viewport: IViewportApi, initialUpdate: boolean = true) {
         this.#viewport = viewport;
 
         this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
         this.createLayers();
         this.constructAttributeVisualization();
+        if(initialUpdate === true) 
+            this.update();
+
         addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
             this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
             
@@ -133,6 +136,10 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         if (!this.#listeners[token]) return false;
         delete this.#listeners[token];
         return true;
+    }
+
+    public update() {
+        this.#viewport.update();
     }
 
     // #endregion Public Methods (3)
@@ -282,7 +289,6 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         }
 
         sceneTree.root.updateVersion();
-        this.#viewport.update();
     }
 
     private createLayers() {
