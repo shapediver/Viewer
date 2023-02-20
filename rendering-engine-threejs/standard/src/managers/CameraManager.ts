@@ -12,6 +12,10 @@ import { SDData } from '../objects/SDData'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class CameraManager implements IManager {
+
+    #camera: THREE.Camera = new THREE.PerspectiveCamera();
+    #cameraCache: { [key: string]: THREE.Camera } = {};
+
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) { }
@@ -19,6 +23,10 @@ export class CameraManager implements IManager {
     // #endregion Constructors (1)
 
     // #region Public Methods (2)
+
+    public get camera(): THREE.Camera {
+        return this.#camera;
+    }
 
     public updateCamera(time: number, aspect: number): boolean {
         if(this._renderingEngine.cameraEngine.camera?.type === 'perspective') 
@@ -28,11 +36,12 @@ export class CameraManager implements IManager {
     }
 
     public load(camera: AbstractCamera, dataChild?: SDData) {
-        let threeCamera: THREE.Camera | null = dataChild && dataChild.children[0] instanceof THREE.Camera ? <THREE.Camera>dataChild.children[0] : null;
+        let threeCamera: THREE.Camera | null = this.#cameraCache[camera.id];
 
         if(camera instanceof PerspectiveCamera) {
             if(!threeCamera) {
                 threeCamera = new THREE.PerspectiveCamera();
+                this.#cameraCache[camera.id] = threeCamera;
                 (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
                 if(dataChild)
                     dataChild.add(threeCamera);
@@ -52,6 +61,7 @@ export class CameraManager implements IManager {
         } else {
             if(!threeCamera) {
                 threeCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
+                this.#cameraCache[camera.id] = threeCamera;
                 (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
                 if(dataChild)
                     dataChild.add(threeCamera);
@@ -120,6 +130,7 @@ export class CameraManager implements IManager {
             }
         }
         
+        this.#camera = cameraThree;
         return cameraThree;
     }
 

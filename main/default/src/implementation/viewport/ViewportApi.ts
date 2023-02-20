@@ -665,6 +665,18 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public get threeJsCoreObjects(): {
+        scene: THREE.Scene,
+        renderer: THREE.WebGLRenderer,
+        camera: THREE.Camera
+      } {
+        return {
+            scene: this.#renderingEngine.sceneTreeManager.scene,
+            renderer: this.#renderingEngine.renderer,
+            camera: this.#renderingEngine.cameraManager.camera
+        };
+    }
+
     public get toneMapping(): TONE_MAPPING {
         return this.#renderingEngine.toneMapping;
     }

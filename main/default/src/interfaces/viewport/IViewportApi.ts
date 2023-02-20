@@ -269,6 +269,18 @@ export interface IViewportApi {
    * @see {@link outputEncoding}
    */
   textureEncoding: TEXTURE_ENCODING;
+
+  /**
+   * Some of the three.js core objects so that you are free to use and adjust them yourself.
+   * 
+   * Please note that the camera will be replaced when you change it via the API.
+   * The same goes for the children in the scene tree that are auto-generated and properties of the renderer that are adjusted internally.
+   */
+  threeJsCoreObjects: {
+    scene: THREE.Scene,
+    renderer: THREE.WebGLRenderer,
+    camera: THREE.Camera
+  };
   
   /**
    * The tone mapping that is used. (default: TONE_MAPPING.NONE)
