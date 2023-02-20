@@ -259,7 +259,7 @@ let instructionsEndpoints: {
         const pendantCustomData: IPendant = (node.data.find(d => d instanceof CustomData)! as CustomData).data as IPendant;
 
         // NOTE GUSTAVS: instead of the dragMatrix, which would only provide the offset, we need to get the position in world coordinates
-        const endPosition = mat4.getTranslation(vec3.create(), node.worldMatrix);
+        const endPosition = node.boundingBox.boundingSphere.center;
 
         // NOTE GUSTAVS: to keep the movement of previously moved pendants, we need to keep them stored and provide them again, as there is no State in the Grasshopper model
         const instruction = instructionsEndpoints.find(instruction => instruction.id === pendantCustomData.id);
