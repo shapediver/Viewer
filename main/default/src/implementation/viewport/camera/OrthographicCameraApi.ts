@@ -38,7 +38,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.controls.damping = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.damping");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -55,7 +55,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
             this.#camera.direction = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.direction");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -72,7 +72,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.controls.enableKeyPan = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.enableKeyPan");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -89,7 +89,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.controls.enablePan = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.enablePan");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -106,7 +106,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.controls.enableZoom = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.enableZoom");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -123,7 +123,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.controls.keyPanSpeed = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.keyPanSpeed");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -140,7 +140,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.controls.movementSmoothness = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.movementSmoothness");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -157,7 +157,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.controls.panSpeed = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.panSpeed");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -174,7 +174,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.controls.zoomSpeed = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("OrthographicCameraApi.zoomSpeed");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);

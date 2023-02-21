@@ -39,7 +39,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.angle = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.angle");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -56,7 +56,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.decay = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.decay");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -73,7 +73,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.distance = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.distance");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -90,7 +90,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.penumbra = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.penumbra");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -107,7 +107,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
             this.#light.position = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.position");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -124,7 +124,7 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
             this.#light.target = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("SpotLightApi.target");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);

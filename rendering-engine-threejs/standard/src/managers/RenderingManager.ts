@@ -230,7 +230,7 @@ export class RenderingManager implements IManager {
         if(value > this._maxTextureUnits) {
             this._logger.warn(LOGGING_TOPIC.VIEWPORT, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
-            this._renderingEngine.render('RenderingManager.evaluateTextureUnitCount');
+            this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
         } else {
             this._renderingEngine.lightLoader.forceDisabledShadows = false;
         }

@@ -499,7 +499,7 @@ export interface IViewportApi {
   /**
    * Manual call to render the scene.
    */
-  render(id?: string): void;
+  render(): void;
 
   /**
    * Delete all current cameras and create our 7 default cameras.
@@ -540,7 +540,7 @@ export interface IViewportApi {
    * This carries out preparations for rendering. Call it after doing 
    * direct changes to the scene tree. 
    */
-  update(id?: string): void;
+  update(): void;
 
   /**
    * Update the position of the environment geometry (grid, groundplane, etc) to the current viewport bounding box.

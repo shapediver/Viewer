@@ -49,7 +49,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.autoAdjust = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.autoAdjust");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -66,7 +66,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.cameraMovementDuration = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.cameraMovementDuration");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -83,7 +83,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'vec3');
             this.#camera.defaultPosition = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.defaultPosition");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -100,7 +100,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'vec3');
             this.#camera.defaultTarget = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.defaultTarget");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -117,7 +117,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.controls.enabled = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.enabled");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -138,7 +138,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'string', false);
             this.#camera.name = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.name");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -155,7 +155,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number', false);
             this.#camera.order = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.order");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -172,7 +172,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'vec3');
             this.#camera.position = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.position");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -189,7 +189,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
             this.#camera.revertAtMouseUp = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.revertAtMouseUp");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -206,7 +206,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.revertAtMouseUpDuration = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.revertAtMouseUpDuration");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -223,7 +223,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'vec3');
             this.#camera.target = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.target");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
@@ -244,7 +244,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
             this.#camera.zoomExtentsFactor = value;
             this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.render("AbstractCameraApi.zoomToFactor");
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);

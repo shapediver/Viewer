@@ -789,6 +789,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set type(value: RENDERER_TYPE) {
     this._type = value;
+    this.update('RenderingEngine.type')
   }
 
   public get usingSwiftShader(): boolean {
@@ -1086,17 +1087,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTracingManager.touchEventToRay(event);
   }
 
-  public render(id: string): void {
-    if(this.closed) return;
-    this._renderingManager.updateShadowMap();
-    this._renderingManager.render();
-  }
-
   public update(id: string): void {
     if(this.closed) return;
-
-    if(this._tree.root.version !== this._renderingManager.lastRootVersion) 
-      this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+    this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
     this._animationEngine.updateAnimationData();
     this._renderingManager.render();
