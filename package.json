@@ -39,7 +39,8 @@
     "webpack-merge": "^5.8.0"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist --force-local",
+    "bootstrap": "lerna bootstrap",
+    "hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf package-lock.json && npm run clean",
     "clean": "lerna clean --yes && rm -rf node_modules",
     "init": "bash ./scripts/other/init.sh",
     "test": "lerna run test --concurrency 1 --stream --no-bail",
