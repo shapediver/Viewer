@@ -1,5 +1,4 @@
 import { convert, validate, DefaultsV3_3 as Defaults, ISettingsV3_3 as ISettings, versions, latestVersion } from '@shapediver/viewer.settings';
-import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
 import { Logger, LOGGING_TOPIC } from '../logger/Logger';
@@ -17,8 +16,8 @@ type ISessionSettings = ISettings["session"];
 export class SettingsEngine {
     // #region Properties (8)
 
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _logger: Logger = Logger.instance;
     private readonly _settings: ISettings = Defaults();
     private _settingsJson: any;
     private _settings_version: versions = latestVersion;

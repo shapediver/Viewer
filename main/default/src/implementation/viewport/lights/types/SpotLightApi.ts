@@ -3,15 +3,14 @@ import { ISpotLight } from "@shapediver/viewer.rendering-engine.light-engine";
 import { ISpotLightApi } from "../../../../interfaces/viewport/lights/types/ISpotLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
     // #region Properties (7)
 
     readonly #light: ISpotLight;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
     // #endregion Properties (7)

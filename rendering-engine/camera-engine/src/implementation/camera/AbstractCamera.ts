@@ -1,19 +1,20 @@
 import * as detectIt from 'detect-it'
 import { vec2, vec3 } from 'gl-matrix'
 import {
+    DomEventEngine,
     EventEngine,
     EVENTTYPE,
     IEvent,
     SettingsEngine,
     StateEngine,
 } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../../interfaces/controls/ICameraControls'
 import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (23)
@@ -34,8 +35,8 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     #revertAtMouseUpDuration: number = 800;
     #zoomExtentsFactor: number = 1;
 
-    protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    protected readonly _eventEngine: EventEngine = EventEngine.instance;
+    protected readonly _stateEngine: StateEngine = StateEngine.instance;
 
     protected _boundingBox: IBox = new Box();
     protected _position: vec3 = vec3.create();
@@ -279,7 +280,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     // #region Public Abstract Methods (5)
 
     abstract applySettings(settingsEngine?: SettingsEngine): void;
-    abstract assignViewer(viewportId: string): void;
+    abstract assignViewer(renderingEngine: IRenderingEngine): void;
     abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract unproject(p: vec3): vec3;

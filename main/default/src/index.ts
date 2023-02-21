@@ -1,4 +1,3 @@
-import "reflect-metadata"
 import { ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITag2D, ITag3D, ITexture, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
 import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";

@@ -10,7 +10,6 @@ import {
   StateEngine,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { container, singleton } from 'tsyringe'
 import { Box } from '@shapediver/viewer.shared.math'
 import { vec3 } from 'gl-matrix'
 import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
@@ -37,12 +36,11 @@ export class CameraEngine implements ICameraEngine {
         [key: string]: string
     } = {};
     private readonly _cameraNode: ITreeNode = new TreeNode('cameras');
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
+    private readonly _tree: ITree = Tree.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private _camera: ICamera | null = null;
     private _settingsApplied: boolean = false;
@@ -166,7 +164,7 @@ export class CameraEngine implements ICameraEngine {
         }
         
         const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
-        camera.assignViewer(this._renderingEngine.id);
+        camera.assignViewer(this._renderingEngine);
 
         cameras[cameraId] = camera;
         if (this._settingsApplied && this._renderingEngine.settingsEngine) {

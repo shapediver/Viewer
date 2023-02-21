@@ -41,7 +41,6 @@
   "dependencies": {
     "@shapediver/viewer": "*",
     "@shapediver/viewer.data-engine.data-engine": "*",
-    "gl-matrix": "3.3.0",
-    "tsyringe": "^4.5.0"
+    "gl-matrix": "3.3.0"
   }
 }

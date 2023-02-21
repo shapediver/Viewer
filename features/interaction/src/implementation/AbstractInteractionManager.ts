@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
 import { IViewportApi, IMaterialAbstractData } from '@shapediver/viewer'
 
@@ -12,9 +11,9 @@ import { INTERACTION_STATE } from '../interfaces/IInteractionEngine'
 export abstract class AbstractInteractionManager implements IInteractionManager {
     // #region Properties (5)
 
-    #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
+    #dragConstraintUtils: IDragConstraintUtils = DragConstraintUtils.instance;
     #effectMaterial?: IMaterialAbstractData;
-    #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
+    #interactionEffectUtils: IInteractionEffectUtils = InteractionEffectUtils.instance;
     #viewport?: IViewportApi;
     abstract filter: IInteractionFilterOptions;
 

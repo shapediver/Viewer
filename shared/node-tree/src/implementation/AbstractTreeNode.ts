@@ -1,5 +1,4 @@
 import { mat4 } from 'gl-matrix'
-import { container } from 'tsyringe'
 import { UuidGenerator } from '@shapediver/viewer.shared.services'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 
@@ -9,7 +8,7 @@ import { ITreeNodeData } from '../interfaces/ITreeNodeData'
 export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> implements ITreeNode<T, U> {
   // #region Properties (13)
 
-  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
   readonly #children: T[] = [];
   readonly #data: U[] = [];

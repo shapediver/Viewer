@@ -1,7 +1,6 @@
 
 import * as SDV from '@shapediver/viewer';
 import { MaterialEngine } from '@shapediver/viewer';
-import { container } from 'tsyringe';
 import { gems, IGemMaterialProperties, IGemMaterialSettings } from './definitions';
 import { createCustomUi, createParameterUi, IDropdownElement, ISliderElement, IStringElement, updateCustomUi, updateParameterUi } from './ui';
 
@@ -13,9 +12,7 @@ const menuRight = <HTMLDivElement>document.getElementById('menu-right');
 let session: SDV.ISessionApi;
 let viewport: SDV.IViewportApi;
 
-const materialEngine: MaterialEngine = <MaterialEngine>(
-    container.resolve(MaterialEngine)
-);
+const materialEngine: MaterialEngine = MaterialEngine.instance;
 
 export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
 

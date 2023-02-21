@@ -1,30 +1,38 @@
-import { container, singleton } from "tsyringe";
 import { AnimationFrameCallback, IAnimationFrameEngine } from "../interfaces/IAnimationFrameEngine";
 import * as TWEEN from '@tweenjs/tween.js'
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
 import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
 
-@singleton()
 export class AnimationFrameEngine implements IAnimationFrameEngine {
-    // #region Properties (4)
+    // #region Properties (5)
+
+    readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
+    readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
+
+    private static _instance: AnimationFrameEngine;
 
     private _animationFrameCallbacks: {
         [key: string]: AnimationFrameCallback
     } = {};
     private _lastTime: number = 0;
 
-    readonly #animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor() {
+    private constructor() {
         this.animate(0);
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (2)
 

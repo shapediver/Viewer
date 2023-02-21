@@ -1,4 +1,3 @@
-import { container } from 'tsyringe'
 import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
@@ -25,25 +24,25 @@ import { convert, ISettingsV3_3, latestVersion, validate, versions } from '@shap
 export class SessionEngine implements ISessionEngine {
     // #region Properties (40)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
     private readonly _id: string;
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _logger: Logger = Logger.instance;
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: IOutput; } = {};
     private readonly _outputsFreeze: { [key: string]: boolean; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _parameters: { [key: string]: IParameter<any>; } = {};
-    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    private readonly _sceneTree: ITree = <ITree>container.resolve(Tree);
-    private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    private readonly _performanceEvaluator = PerformanceEvaluator.instance;
+    private readonly _sceneTree: ITree = Tree.instance;
+    private readonly _sessionEngineId = (UuidGenerator.instance).create();
     private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _ticket: string;
-    private readonly _uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _uuidGenerator = UuidGenerator.instance;
 
     private _automaticSceneUpdate: boolean = true;
     private _bearerToken?: string;
@@ -56,7 +55,7 @@ export class SessionEngine implements ISessionEngine {
     } = {};
     private _excludeViewports: string[] = [];
     private _headers = {
-        "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
+        "X-ShapeDiver-Origin": (SystemInfo.instance).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
         "X-ShapeDiver-BuildVersion": '',
         "X-ShapeDiver-BuildDate": ''
@@ -121,7 +120,7 @@ export class SessionEngine implements ISessionEngine {
 
     public set automaticSceneUpdate(value: boolean) {
         this._automaticSceneUpdate = value;
-        value ? this._sceneTree.addNode(this._node) : this._sceneTree.removeNode(this._node);
+        value ? this.addToSceneTree(this._node) : this.removeFromSceneTree(this._node);
     }
 
     public get bearerToken(): string | undefined {
@@ -373,7 +372,7 @@ export class SessionEngine implements ISessionEngine {
         try {
             this._httpClient.removeDataLoading(this._sessionId!)
             await this._sdk.session.close(this._sessionId!);
-            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+            if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
 
             this._closed = true;
         } catch (e) {
@@ -499,9 +498,9 @@ export class SessionEngine implements ISessionEngine {
                 this.#parameterHistoryForward = [];
             }
 
-            if (this.automaticSceneUpdate) this._sceneTree.removeNode(this.node);
+            if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
             this._node = newNode;
-            if (this.automaticSceneUpdate) this._sceneTree.addNode(this.node);
+            if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
@@ -736,9 +735,9 @@ export class SessionEngine implements ISessionEngine {
 
             if (cancelRequest()) return node;            
 
-            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+            if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
             this._node = node;
-            if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
+            if (this._automaticSceneUpdate) this.addToSceneTree(this._node);
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
@@ -1028,9 +1027,9 @@ export class SessionEngine implements ISessionEngine {
             return newNode;
         }
 
-        if (this.automaticSceneUpdate) this._sceneTree.removeNode(this.node);
+        if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
         this._node = newNode;
-        if (this.automaticSceneUpdate) this._sceneTree.addNode(this.node);
+        if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         
@@ -1383,6 +1382,17 @@ export class SessionEngine implements ISessionEngine {
             }
         }
     }
+
+    private addToSceneTree(node: ITreeNode) {
+        this._sceneTree.addNode(node);
+        this._sceneTree.root.updateVersion();
+    }
+
+    private removeFromSceneTree(node: ITreeNode) {
+        this._sceneTree.removeNode(node);
+        this._sceneTree.root.updateVersion();
+    }
+
 
     // #endregion Private Methods (8)
 }

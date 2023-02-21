@@ -1,11 +1,10 @@
-import { container } from 'tsyringe'
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
 import { HttpClient } from '@shapediver/viewer.shared.services'
 
 export class BufferLoader {
     // #region Properties (2)
 
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
 
     private _loaded: {
         [key: string]: ArrayBuffer

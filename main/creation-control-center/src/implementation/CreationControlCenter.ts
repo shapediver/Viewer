@@ -3,7 +3,6 @@ import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@sha
 import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
-import { container, singleton } from "tsyringe";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
@@ -11,19 +10,22 @@ import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
 import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 
-@singleton()
 export class CreationControlCenter implements ICreationControlCenter {
   // #region Properties (10)
 
-  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #sceneTree: ITree = <ITree>container.resolve(Tree);
-  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-  readonly renderingEngines: { [key: string]: RenderingEngineThreeJs } = {};
-  readonly sessionEngines: { [key: string]: SessionEngine } = {};
+  readonly #eventEngine: EventEngine = EventEngine.instance;
+  readonly #logger: Logger = Logger.instance;
+  readonly #sceneTree: ITree = Tree.instance;
+  readonly #stateEngine: StateEngine = StateEngine.instance;
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
+
+  private static _instance: CreationControlCenter;
 
   #firstSessionEngine?: SessionEngine;
+
+  public readonly renderingEngines: { [key: string]: RenderingEngineThreeJs } = {};
+  public readonly sessionEngines: { [key: string]: SessionEngine } = {};
+
   update?: (
     sessionEngines: { [key: string]: SessionEngine; },
     renderingEngines: { [key: string]: RenderingEngine; }
@@ -31,7 +33,15 @@ export class CreationControlCenter implements ICreationControlCenter {
 
   // #endregion Properties (10)
 
-  // #region Public Methods (6)
+  // #region Public Static Accessors (1)
+
+  public static get instance() {
+      return this._instance || (this._instance = new this());
+  }
+
+  // #endregion Public Static Accessors (1)
+
+  // #region Public Methods (11)
 
   public applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
     sections = sections || {};
@@ -56,16 +66,6 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
     }
     return new Promise(resolve => Promise.all(promises).then(() => resolve()));
-  }
-
-  public getViewportSettings(viewportId: string): ISettingsV3_1 {
-    let renderingEngine = this.renderingEngines[viewportId];
-    if(!renderingEngine)
-      throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Viewport with id ' + viewportId + ' could not be found.'), undefined, true, false);
-
-    const settingsEngine: SettingsEngine = new SettingsEngine();
-    renderingEngine.saveSettings(settingsEngine);
-    return settingsEngine.convertToTargetVersion();
   }
 
   public applyViewportSettings(viewportId: string, settings: ISettingsV3_1, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
@@ -211,7 +211,6 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
 
       const renderingEngine = new RenderingEngineThreeJs(properties);
-      container.registerInstance('renderingEngine', renderingEngine);
       this.renderingEngines[renderingEngineId] = renderingEngine;
 
       renderingEngine.cameraEngine.createDefaultCameras();
@@ -419,14 +418,6 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  public getARSessionEngine(): SessionEngine | undefined {
-    for (let s in this.sessionEngines) {
-      if (this.sessionEngines[s].canUploadGLTF) {
-        return this.sessionEngines[s];
-      }
-    }
-  }
-
   public createSettingsObject(sessionId: string, viewportId?: string): any {
     try {
       const session = this.sessionEngines[sessionId];
@@ -458,7 +449,25 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void> {
+  public getARSessionEngine(): SessionEngine | undefined {
+    for (let s in this.sessionEngines) {
+      if (this.sessionEngines[s].canUploadGLTF) {
+        return this.sessionEngines[s];
+      }
+    }
+  }
+
+  public getViewportSettings(viewportId: string): ISettingsV3_1 {
+    let renderingEngine = this.renderingEngines[viewportId];
+    if(!renderingEngine)
+      throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Viewport with id ' + viewportId + ' could not be found.'), undefined, true, false);
+
+    const settingsEngine: SettingsEngine = new SettingsEngine();
+    renderingEngine.saveSettings(settingsEngine);
+    return settingsEngine.convertToTargetVersion();
+  }
+
+  public resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void> {
     sections = sections || {};
     this.sessionEngines[sessionId].resetSettings(sections);
 
@@ -503,7 +512,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  // #endregion Public Methods (6)
+  // #endregion Public Methods (11)
 
   // #region Private Methods (1)
 

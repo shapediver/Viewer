@@ -1,6 +1,5 @@
 import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v2";
 import { Converter, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IParameter } from "../../interfaces/dto/IParameter";
 import { ISessionEngine, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from "../../interfaces/ISessionEngine";
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
@@ -10,7 +9,7 @@ export class Parameter<T> implements IParameter<T> {
     // #region Properties (24)
 
     readonly #choices?: string[];
-    readonly #converter: Converter = <Converter>container.resolve(Converter);
+    readonly #converter: Converter = Converter.instance;
     readonly #decimalplaces?: number;
     readonly #defaultValue: T | string;
     readonly #defval: string;
@@ -18,8 +17,8 @@ export class Parameter<T> implements IParameter<T> {
     readonly #format?: string[];
     readonly #group?: ShapeDiverResponseParameterGroup;
     readonly #id: string;
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #max?: number;
     readonly #min?: number;
     readonly #name: string;

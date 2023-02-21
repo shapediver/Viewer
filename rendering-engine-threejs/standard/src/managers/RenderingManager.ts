@@ -18,7 +18,6 @@ import {
   SystemInfo,
 } from '@shapediver/viewer.shared.services'
 import { mat4, vec3 } from 'gl-matrix'
-import { container } from 'tsyringe'
 import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types'
 import { BUSY_MODE_DISPLAY, IManager, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
@@ -31,14 +30,14 @@ import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-e
 export class RenderingManager implements IManager {
     // #region Properties (20)
 
-    private readonly _animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
-    private readonly _animationFrameEngine: AnimationFrameEngine = <AnimationFrameEngine>container.resolve(AnimationFrameEngine);
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
+    private readonly _animationEngine: AnimationEngine = AnimationEngine.instance;
+    private readonly _animationFrameEngine: AnimationFrameEngine = AnimationFrameEngine.instance;
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
+    private readonly _systemInfo: SystemInfo = SystemInfo.instance;
+    private readonly _tree: ITree = Tree.instance;
 
     private _activeRendering: boolean = true;
     private _cameraChanged: boolean = false;

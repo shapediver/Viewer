@@ -1,7 +1,6 @@
 import { IOrbitControlsSettingsV3 } from '@shapediver/viewer.settings'
 import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
-import { container } from 'tsyringe'
 
 import { CAMERA_TYPE, ICamera } from '../..'
 import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls'
@@ -33,8 +32,8 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     private _sphereTargetRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
     private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
     private _zoomSpeed: number = 0.5;
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
 
     // #endregion Properties (19)
 

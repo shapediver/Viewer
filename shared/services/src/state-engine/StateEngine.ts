@@ -1,24 +1,9 @@
-import { container, singleton } from 'tsyringe'
-
-import { EventEngine } from '../index'
 import { StatePromise } from './StatePromise'
 
-@singleton()
 export class StateEngine {
-    // #region Properties (8)
+    // #region Properties (6)
 
-    private readonly _customStates: {
-        [key: string]: StatePromise<boolean>
-    } = {};
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _fontLoaded: StatePromise<boolean>;
-    private readonly _sessionEngines: {
-        [key: string]: {
-            id: string,
-            initialized: StatePromise<boolean>,
-            settingsRegistered: StatePromise<boolean>,
-        }
-    } = {};
+    private readonly _fontLoaded: StatePromise<boolean> = new StatePromise();
     private readonly _renderingEngines: {
         [key: string]: {
             id: string,
@@ -29,31 +14,38 @@ export class StateEngine {
             busy: string[]
         }
     } = {};
-
-    // #endregion Properties (8)
-
-    // #region Constructors (1)
-
-    constructor() {
-        this._fontLoaded = new StatePromise();
-    }
-
-    // #endregion Constructors (1)
-
-    // #region Public Accessors (7)
-
-    public get fontLoaded(): StatePromise<boolean> {
-        return this._fontLoaded;
-    }
-
-    public get sessionEngines(): {
+    private readonly _sessionEngines: {
         [key: string]: {
             id: string,
             initialized: StatePromise<boolean>,
             settingsRegistered: StatePromise<boolean>,
         }
-    } {
-        return this._sessionEngines;
+    } = {};
+
+    private static _instance: StateEngine;
+
+    // #endregion Properties (6)
+
+    // #region Constructors (1)
+
+    private constructor() {
+        this._fontLoaded = new StatePromise();
+    }
+
+    // #endregion Constructors (1)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Accessors (3)
+
+    public get fontLoaded(): StatePromise<boolean> {
+        return this._fontLoaded;
     }
 
     public get renderingEngines(): {
@@ -69,5 +61,15 @@ export class StateEngine {
         return this._renderingEngines;
     }
 
-    // #endregion Public Accessors (7)
+    public get sessionEngines(): {
+        [key: string]: {
+            id: string,
+            initialized: StatePromise<boolean>,
+            settingsRegistered: StatePromise<boolean>,
+        }
+    } {
+        return this._sessionEngines;
+    }
+
+    // #endregion Public Accessors (3)
 }

@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGING_TOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -9,25 +8,27 @@ import { TextGeometry } from './three/geometries/TextGeometry'
 import { Font } from './three/loaders/FontLoader';
 import { font } from './font'
 
-@singleton()
 export class Tag3dEngine {
-    // #region Properties (5)
+    // #region Properties (6)
 
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _converter: Converter = Converter.instance;
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
+
+    private static _instance: Tag3dEngine;
 
     private _font!: Font;
 
-    // #endregion Properties (5)
+    // #endregion Properties (6)
 
-    // #region Constructors (1)
+    // #region Public Static Accessors (1)
 
-    constructor() {
+    public static get instance() {
+        return this._instance || (this._instance = new this());
     }
 
-    // #endregion Constructors (1)
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (1)
 
@@ -159,7 +160,7 @@ export class Tag3dEngine {
                         } else if (attributeName === 'UV') {
                             attributeName = 'TEXCOORD_0';
                         }
-                        attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
+                        attributes[attributeName] = new AttributeData(<Float32Array>(<THREE.BufferAttribute>line.attributes[attribute]).array, line.attributes[attribute].itemSize, 0, 0, 0, false, (<Float32Array>(<THREE.BufferAttribute>line.attributes[attribute]).array).length / line.attributes[attribute].itemSize)
                     }
                     const child = new TreeNode('tag3d_'+line)
                     child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialStandardData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));

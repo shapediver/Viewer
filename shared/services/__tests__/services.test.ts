@@ -1,7 +1,3 @@
-import 'reflect-metadata'
-
-import { container } from 'tsyringe'
-
 import { EventEngine, EVENTTYPE } from '../src/index'
 import { IEvent } from '../src/event-engine/interfaces/IEvent'
 
@@ -9,8 +5,7 @@ describe('test', () => {
     let instance: EventEngine;
 
     beforeEach(() => {
-        container.clearInstances();
-        instance = <EventEngine>container.resolve(EventEngine);
+        instance = EventEngine.instance;
     });
 
     it('test 1', async () => {
@@ -193,7 +188,7 @@ describe('uuid - test', () => {
     let uuidGenerator: UuidGenerator;
 
     beforeEach(() => {
-        uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+        uuidGenerator = UuidGenerator.instance;
     });
 
     test('creation', async () => {

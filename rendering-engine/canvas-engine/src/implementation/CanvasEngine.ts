@@ -1,21 +1,29 @@
-import { container, singleton } from 'tsyringe'
 import { UuidGenerator } from '@shapediver/viewer.shared.services'
 
 import { Canvas } from './Canvas'
 import { ICanvasEngine } from '../interfaces/ICanvasEngine'
 import { ICanvas } from '../interfaces/ICanvas'
 
-@singleton()
 export class CanvasEngine implements ICanvasEngine {
-    // #region Properties (4)
+    // #region Properties (3)
 
     private readonly _canvasDictionary: {
         [key: string]: Canvas
     } = {};
 
-    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private static _instance: CanvasEngine;
 
-    // #endregion Properties (4)
+    protected readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+
+    // #endregion Properties (3)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (2)
 

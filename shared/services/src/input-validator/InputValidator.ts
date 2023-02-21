@@ -1,4 +1,3 @@
-import { container, singleton } from 'tsyringe'
 import DOMPurify from 'dompurify';
 import { Logger, LOGGING_TOPIC } from '../logger/Logger'
 import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerErrors';
@@ -9,11 +8,29 @@ export type Types = 'string' | 'boolean' | 'function' |
                     'number' | 'factor' | 'positive' |
                     'vec3' | 'mat4' | 'cubeMap' | 'array' | 'stringArray' | 'object' | 'file' | 'color';
 
-@singleton()
 export class InputValidator {
+    // #region Properties (3)
 
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _typeChecker: TypeChecker = <TypeChecker>container.resolve(TypeChecker);
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _typeChecker: TypeChecker = TypeChecker.instance;
+
+    private static _instance: InputValidator;
+
+    // #endregion Properties (3)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Methods (2)
+
+    public sanitize(input: string): string {
+        return DOMPurify.sanitize(input);
+    }
 
     public validateAndError(topic: LOGGING_TOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
@@ -22,6 +39,10 @@ export class InputValidator {
         const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
         throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'InputValidator.validateAndError', error, false);
     }
+
+    // #endregion Public Methods (2)
+
+    // #region Private Methods (1)
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {
         if (defined === false && typeof value === 'undefined') return true;
@@ -94,7 +115,5 @@ export class InputValidator {
         return false;
     }
 
-    public sanitize(input: string): string {
-        return DOMPurify.sanitize(input);
-    }
+    // #endregion Private Methods (1)
 }

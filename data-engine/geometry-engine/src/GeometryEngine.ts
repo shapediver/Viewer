@@ -1,30 +1,32 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGING_TOPIC, PerformanceEvaluator, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader'
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
-@singleton()
 export class GeometryEngine {
-    // #region Properties (4)
+    // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _logger: Logger = Logger.instance;
+    private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 
-    // #endregion Properties (4)
+    private static _instance: GeometryEngine;
 
-    // #region Constructors (1)
+    // #endregion Properties (5)
 
-    constructor() { }
+    // #region Public Static Accessors (1)
 
-    // #endregion Constructors (1)
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
 
-    // #region Public Methods (2)
-    
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Methods (1)
+
     /**
      * Load the geometry content into a scene graph node.
      * 
@@ -126,5 +128,5 @@ export class GeometryEngine {
         return node;
     }
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (1)
 }

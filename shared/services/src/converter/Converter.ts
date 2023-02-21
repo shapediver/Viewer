@@ -1,47 +1,26 @@
 import { vec3, vec4 } from 'gl-matrix'
 import { TinyColor } from '@ctrl/tinycolor'
-import { container, singleton } from 'tsyringe'
 import { HttpClient } from '../http-client/HttpClient';
 import { HttpResponse } from '../http-client/HttpResponse';
 
-@singleton()
 export class Converter {
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    // #region Properties (2)
 
-    private tinyColorToString(color: TinyColor): string {
-        return color.toHex8String();
+    private readonly _httpClient: HttpClient = HttpClient.instance;
+
+    private static _instance: Converter;
+
+    // #endregion Properties (2)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
     }
 
-    /**
-     * @param color 
-     * @param defColor 
-     */
-    public toHex8Color(color: any, defColorString: string = '#199b9b'): string {
-        const c = this.toHexColor(color, defColorString);
-        const tColor = new TinyColor(c);
-        const cH8 = tColor.toHex8String();
-        return cH8.replace('#', '0x');
-    }
+    // #endregion Public Static Accessors (1)
 
-    public toColorArray(color: any): number[] {
-        if(typeof color !== 'string' || !color.startsWith("#"))
-            color = this.toHexColor(color);
-        const tColor = new TinyColor(color);
-        const rgb = tColor.toRgb()
-        return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
-    }
-
-    public toAlpha(color: any): number {
-        const c = this.toHexColor(color);
-        if (c.length <= 8) return 1;
-        return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
-    }
-
-    public toThreeJsColorInput(color: any): string {
-        const c = this.toHexColor(color);
-        return c.slice(0, c.length - 2);
-    }
-
+    // #region Public Methods (8)
 
     public async processSVG(blob: Blob): Promise<HTMLImageElement> {
         let data = <string>await new Promise((resolve, _) => {
@@ -168,6 +147,49 @@ export class Converter {
         return img;
     }
 
+    public async responseToImage(response: HttpResponse<ArrayBuffer>): Promise<HTMLImageElement> {
+        const arrayBufferView = new Uint8Array( response.data );
+        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
+        if (response.headers['content-type'] === 'image/svg+xml') {
+            const img = await this.processSVG(blob);
+            return img;
+        } else {
+            const img = new Image();
+            const promise = new Promise<void>(resolve => {
+                img.onload = () => resolve();
+            })
+            img.crossOrigin = "anonymous";
+            img.src = URL.createObjectURL(blob);
+            await promise;
+            return img;
+        }
+    }
+
+    public toAlpha(color: any): number {
+        const c = this.toHexColor(color);
+        if (c.length <= 8) return 1;
+        return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
+    }
+
+    public toColorArray(color: any): number[] {
+        if(typeof color !== 'string' || !color.startsWith("#"))
+            color = this.toHexColor(color);
+        const tColor = new TinyColor(color);
+        const rgb = tColor.toRgb()
+        return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
+    }
+
+    /**
+     * @param color 
+     * @param defColor 
+     */
+    public toHex8Color(color: any, defColorString: string = '#199b9b'): string {
+        const c = this.toHexColor(color, defColorString);
+        const tColor = new TinyColor(c);
+        const cH8 = tColor.toHex8String();
+        return cH8.replace('#', '0x');
+    }
+
     /**
      * This color converter is mostly left 'as-is' from viewer v2.
      * I didn't want to break something that works.
@@ -262,6 +284,11 @@ export class Converter {
         return tc.isValid ? this.tinyColorToString(tc) : defColorString;
     }
 
+    public toThreeJsColorInput(color: any): string {
+        const c = this.toHexColor(color);
+        return c.slice(0, c.length - 2);
+    }
+
     public toVec3(point: any): vec3 {
         if (Array.isArray(point) && point.length >= 3 && typeof point[0] === 'number' && typeof point[1] === 'number' && typeof point[2] === 'number')
             return vec3.fromValues(point[0], point[1], point[2]);
@@ -275,21 +302,13 @@ export class Converter {
         return vec3.create();
     }
 
-    public async responseToImage(response: HttpResponse<ArrayBuffer>): Promise<HTMLImageElement> {
-        const arrayBufferView = new Uint8Array( response.data );
-        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
-        if (response.headers['content-type'] === 'image/svg+xml') {
-            const img = await this.processSVG(blob);
-            return img;
-        } else {
-            const img = new Image();
-            const promise = new Promise<void>(resolve => {
-                img.onload = () => resolve();
-            })
-            img.crossOrigin = "anonymous";
-            img.src = URL.createObjectURL(blob);
-            await promise;
-            return img;
-        }
+    // #endregion Public Methods (8)
+
+    // #region Private Methods (1)
+
+    private tinyColorToString(color: TinyColor): string {
+        return color.toHex8String();
     }
+
+    // #endregion Private Methods (1)
 }

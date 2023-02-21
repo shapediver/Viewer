@@ -6,14 +6,28 @@ import { IIntersection } from "../interfaces/IIntersection";
 import { IIntersectionEngine } from "../interfaces/IIntersectionEngine";
 import { IIntersectionFilter } from "../interfaces/IIntersectionFilter";
 import { IRay } from "../interfaces/IRay";
-import { container, singleton } from "tsyringe";
 import { RENDERER_TYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 
-@singleton()
 export class IntersectionEngine implements IIntersectionEngine {
-    private readonly _tree: ITree = <ITree>container.resolve(Tree);
+    // #region Properties (2)
 
-    intersect(
+    private readonly _tree: ITree = Tree.instance;
+
+    private static _instance: IntersectionEngine;
+
+    // #endregion Properties (2)
+
+    // #region Public Static Accessors (1)
+
+    public static get instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    // #endregion Public Static Accessors (1)
+
+    // #region Public Methods (1)
+
+    public intersect(
         ray: IRay, 
         filterCriteria: IIntersectionFilter[] = [], 
         intersectionOptions: { opacity: number, rendererType: RENDERER_TYPE } = { opacity: 0, rendererType: RENDERER_TYPE.STANDARD }, 
@@ -45,11 +59,13 @@ export class IntersectionEngine implements IIntersectionEngine {
         }
         intersectNode(root);
 
-
         intersections.sort((a, b) => a.distance - b.distance);
         return intersections;
     }
 
+    // #endregion Public Methods (1)
+
+    // #region Private Methods (4)
 
     private checkIntersection(node: ITreeNode, material: IMaterialAbstractData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
         let point: vec3 | null;
@@ -115,7 +131,6 @@ export class IntersectionEngine implements IIntersectionEngine {
         }
     }
 
-
     private checkPointIntersection(node: ITreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
         const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
         const directionDistance = vec3.dot(closestPoint, ray.direction);
@@ -138,7 +153,6 @@ export class IntersectionEngine implements IIntersectionEngine {
             return;
         }
     }
-
 
     private intersectNode(node: ITreeNode, rayIn: IRay, intersectionOptions: { opacity: number, rendererType: RENDERER_TYPE }): IIntersection[] | undefined {
         if(node.visible === false) return;
@@ -176,7 +190,6 @@ export class IntersectionEngine implements IIntersectionEngine {
             if(materialData && materialData.opacity <= intersectionOptions.opacity)
                 return;
         }
-
 
         if (!geometryData) {
             let intersections: IIntersection[] = [];
@@ -273,7 +286,6 @@ export class IntersectionEngine implements IIntersectionEngine {
             intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         } else {
-
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
             if (node.boundingBox.clone().intersect(rayIn.origin, rayIn.direction) === null) return;
 
@@ -316,4 +328,5 @@ export class IntersectionEngine implements IIntersectionEngine {
         }
     }
 
+    // #endregion Private Methods (4)
 }

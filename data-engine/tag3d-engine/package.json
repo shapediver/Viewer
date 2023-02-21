@@ -44,10 +44,10 @@
     "@shapediver/viewer.shared.node-tree": "2.7.7",
     "@shapediver/viewer.shared.services": "2.7.7",
     "@shapediver/viewer.shared.types": "2.7.7",
+    "@types/three": "0.149.0",
     "axios": "^1.2.6",
     "gl-matrix": "3.3.0",
-    "three": "^0.149.0",
-    "tsyringe": "^4.5.0"
+    "three": "0.149.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

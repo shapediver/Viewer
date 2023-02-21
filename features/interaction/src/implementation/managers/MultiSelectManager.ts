@@ -5,14 +5,13 @@ import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager"
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
 import { IViewportApi } from "@shapediver/viewer";
 import { IMultiSelectEvent } from "../../interfaces/events/IMultiSelectEvent";
 
 export class MultiSelectManager extends AbstractInteractionManager {
     // #region Properties (6)
 
-    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #eventEngine: EventEngine = EventEngine.instance;
 
     #effectMaterialTokens: (string | undefined)[] = [];
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {

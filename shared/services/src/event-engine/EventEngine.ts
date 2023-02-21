@@ -1,5 +1,3 @@
-import { container, singleton } from 'tsyringe'
-
 import { EVENTTYPE, MainEventTypes } from './EventTypes'
 import { IListener } from './interfaces/IListener'
 import { ICallback } from './interfaces/ICallback'
@@ -7,21 +5,23 @@ import { IEvent } from './interfaces/IEvent'
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 import { Logger, LOGGING_TOPIC } from '../logger/Logger'
 
-@singleton()
 export class EventEngine {
-    // #region Properties (2)
+    // #region Properties (4)
 
-    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    protected readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private static _instance: EventEngine;
+
     private _eventListeners: {
         [key: string]: IListener[]
     };
 
-    // #endregion Properties (2)
+    protected readonly _logger: Logger = Logger.instance;
+    protected readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
-    constructor() {
+    private constructor() {
         this._eventListeners = {};
         for (const type in EVENTTYPE) {
             const subEventType = EVENTTYPE[type as keyof typeof EVENTTYPE];
@@ -34,21 +34,13 @@ export class EventEngine {
 
     // #endregion Constructors (1)
 
-    private convertTypeToString(type: string | MainEventTypes): string {
-        let typeString: string = '';
-        if(typeof type === 'string') typeString = type;
+    // #region Public Static Accessors (1)
 
-        for (const mainType in EVENTTYPE)
-            if(type === EVENTTYPE[mainType as keyof typeof EVENTTYPE])
-                typeString = mainType.toLowerCase();
-        
-        if(!typeString || !this._eventListeners[typeString]) {
-            this._logger.warn(LOGGING_TOPIC.GENERAL, 'EventEngine.convertTypeToString: No valid type provided.');
-            return '';
-        }
-        
-        return typeString;
+    public static get instance() {
+        return this._instance || (this._instance = new this());
     }
+
+    // #endregion Public Static Accessors (1)
 
     // #region Public Methods (3)
 
@@ -116,4 +108,24 @@ export class EventEngine {
     }
 
     // #endregion Public Methods (3)
+
+    // #region Private Methods (1)
+
+    private convertTypeToString(type: string | MainEventTypes): string {
+        let typeString: string = '';
+        if(typeof type === 'string') typeString = type;
+
+        for (const mainType in EVENTTYPE)
+            if(type === EVENTTYPE[mainType as keyof typeof EVENTTYPE])
+                typeString = mainType.toLowerCase();
+        
+        if(!typeString || !this._eventListeners[typeString]) {
+            this._logger.warn(LOGGING_TOPIC.GENERAL, 'EventEngine.convertTypeToString: No valid type provided.');
+            return '';
+        }
+        
+        return typeString;
+    }
+
+    // #endregion Private Methods (1)
 }
