@@ -43,6 +43,7 @@ let promise: Promise<void>;
     if (currentNode) sceneTree.removeNode(currentNode);
     currentNode = node;
     sceneTree.addNode(currentNode);
+    sceneTree.root.updateVersion();
     viewer.update()
     await viewer.camera!.set([0,0,0], [0,0,0], { duration: 0 });
     await viewer.camera!.zoomTo(undefined, { duration: 0 });

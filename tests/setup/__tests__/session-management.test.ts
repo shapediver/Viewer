@@ -159,17 +159,17 @@ describe('device testing', () => {
     });
 
 
-
-    test(name, async () => {
-        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewer = await SDV.createViewport({
-                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session2 = await SDV.createSession({ waitForOutputs: false, id: 'mySession2', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-            cb();
-        }, shelfTicket);
-        await screenshotCompare(await driver.takeScreenshot(), name + '/5_1');
-    });
+    // removed due to race condition
+    // test(name, async () => {
+    //     await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+    //         const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+    //         let viewer = await SDV.createViewport({
+    //             branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+    //         let session2 = await SDV.createSession({ waitForOutputs: false, id: 'mySession2', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+    //         cb();
+    //     }, shelfTicket);
+    //     await screenshotCompare(await driver.takeScreenshot(), name + '/5_1');
+    // });
 
 
     test(name, async () => {

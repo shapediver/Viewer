@@ -54,7 +54,7 @@
     "publish-no-tests": "ts-node ./scripts/publishing/publish-no-tests.ts",
     "deploy-doc-version": "ts-node ./scripts/deploying/deploy-doc-version.ts",
     "deploy-tests": "ts-node ./scripts/deploying/deploy-tests.ts",
-    "deploy-and-test": "npm run build-current && npm run deploy-tests && npm run test",
+    "deploy-and-test": "ts-node ./scripts/testing/deploy-and-test.ts",
     "doc": "lerna run doc",
     "lerna-publish-github": "lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/",
     "lerna-publish-npm": "lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/"

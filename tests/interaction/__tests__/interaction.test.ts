@@ -35,21 +35,21 @@ describe('device testing', () => {
 
         // await actions.move({ origin: bottomImage }).press().pause(1000).release().pause(1000).perform()
         // await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 640, y: 400 }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 640 * 1.5, y: 400 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 840, y: 450 }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 840 * 1.5, y: 450 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 540, y: 400 }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: 540 * 1.5, y: 400 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
     
         let topImage = driver.findElement(By.id('top'));
         actions = driver.actions({ async: true, bridge: true });
 
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 640, y: 300 }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 640 * 1.5, y: 300 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 850, y: 380 }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 850 * 1.5, y: 380 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 540, y: 300 }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: 540 * 1.5, y: 300 * 1.5 }).release().pause(1000).perform()
         await actions.clear()
     
 

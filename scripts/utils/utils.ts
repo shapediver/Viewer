@@ -9,11 +9,15 @@ const readline = require('readline');
 const bucketName = 'shapediverviewer';
 const prefixLatest = 'v3/latest';
 
-export const execPromise = (cmd: string) => {
+export const execPromise = (cmd: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-        exec(cmd, (error: any, stdout: any) => {
-            if (error) throw new Error(error);
+        const process = exec(cmd, (error: any, stdout: any) => {
+            if (error) reject(error);
             if (!error && typeof stdout === 'string') resolve(stdout.replace('\n', ''));
+        });
+
+        process.stdout.on('data', (data: any) =>  {
+            console.log(data); 
         });
     });
 }

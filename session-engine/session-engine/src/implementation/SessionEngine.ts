@@ -120,7 +120,7 @@ export class SessionEngine implements ISessionEngine {
 
     public set automaticSceneUpdate(value: boolean) {
         this._automaticSceneUpdate = value;
-        value ? this._sceneTree.addNode(this._node) : this._sceneTree.removeNode(this._node);
+        value ? this.addToSceneTree(this._node) : this.removeFromSceneTree(this._node);
     }
 
     public get bearerToken(): string | undefined {
@@ -372,7 +372,7 @@ export class SessionEngine implements ISessionEngine {
         try {
             this._httpClient.removeDataLoading(this._sessionId!)
             await this._sdk.session.close(this._sessionId!);
-            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+            if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
 
             this._closed = true;
         } catch (e) {
@@ -498,9 +498,9 @@ export class SessionEngine implements ISessionEngine {
                 this.#parameterHistoryForward = [];
             }
 
-            if (this.automaticSceneUpdate) this._sceneTree.removeNode(this.node);
+            if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
             this._node = newNode;
-            if (this.automaticSceneUpdate) this._sceneTree.addNode(this.node);
+            if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
@@ -735,9 +735,9 @@ export class SessionEngine implements ISessionEngine {
 
             if (cancelRequest()) return node;            
 
-            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+            if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
             this._node = node;
-            if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
+            if (this._automaticSceneUpdate) this.addToSceneTree(this._node);
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
@@ -1027,9 +1027,9 @@ export class SessionEngine implements ISessionEngine {
             return newNode;
         }
 
-        if (this.automaticSceneUpdate) this._sceneTree.removeNode(this.node);
+        if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
         this._node = newNode;
-        if (this.automaticSceneUpdate) this._sceneTree.addNode(this.node);
+        if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         
@@ -1382,6 +1382,17 @@ export class SessionEngine implements ISessionEngine {
             }
         }
     }
+
+    private addToSceneTree(node: ITreeNode) {
+        this._sceneTree.addNode(node);
+        this._sceneTree.root.updateVersion();
+    }
+
+    private removeFromSceneTree(node: ITreeNode) {
+        this._sceneTree.removeNode(node);
+        this._sceneTree.root.updateVersion();
+    }
+
 
     // #endregion Private Methods (8)
 }
