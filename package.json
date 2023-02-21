@@ -39,7 +39,7 @@
     "webpack-merge": "^5.8.0"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap -- --legacy-peer-deps",
+    "bootstrap": "lerna bootstrap --hoist --force-local",
     "clean": "lerna clean --yes && rm -rf node_modules",
     "reset": "lerna exec -- rm -rf ./dist && npm run clean",
     "hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf package-lock.json && npm run clean",
@@ -58,10 +58,5 @@
     "doc": "lerna run doc",
     "lerna-publish-github": "lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/",
     "lerna-publish-npm": "lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/"
-  },
-  "peerDependencies": {
-    "@types/three": "0.149.0",
-    "three": "0.149.0",
-    "@tweenjs/tween.js": "^18.6.4"
   }
 }
