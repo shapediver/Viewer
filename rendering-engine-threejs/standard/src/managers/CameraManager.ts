@@ -45,6 +45,10 @@ export class CameraManager implements IManager {
                 (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
                 if(dataChild)
                     dataChild.add(threeCamera);
+            } else {
+                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
+                if(dataChild && !dataChild.children.find(t => t === threeCamera))
+                    dataChild.add(threeCamera);
             }
             const perspectiveCamera = <PerspectiveCamera>camera;
             const threePerspectiveCamera = <THREE.PerspectiveCamera>threeCamera;
@@ -64,6 +68,10 @@ export class CameraManager implements IManager {
                 this.#cameraCache[camera.id] = threeCamera;
                 (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
                 if(dataChild)
+                    dataChild.add(threeCamera);
+            } else {
+                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
+                if(dataChild && !dataChild.children.find(t => t === threeCamera))
                     dataChild.add(threeCamera);
             }
             const orthographicCamera = <OrthographicCamera>camera;
