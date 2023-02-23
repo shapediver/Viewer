@@ -44,7 +44,7 @@
     "@shapediver/viewer.shared.node-tree": "2.7.7",
     "@shapediver/viewer.shared.services": "2.7.7",
     "@shapediver/viewer.shared.types": "2.7.7",
-    "@shapediver/viewer.utils.texture-unifier": "1.0.1",
+    "@shapediver/viewer.utils.texture-unifier": "1.0.3",
     "axios": "^1.2.6",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
