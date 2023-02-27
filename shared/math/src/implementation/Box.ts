@@ -133,7 +133,7 @@ export class Box implements IBox {
     public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, stride?: number, bytes?: number, matrix: mat4 = mat4.create()): IBox {
         let transformedArray = [];
         const length = (Math.floor(array.length / 3) * 3);
-        const byteStride = (stride && stride !== bytes) ? stride : 3;
+        const byteStride = (stride && stride !== bytes) ? +stride : 3;
         for (let i = 0; i < length; i += byteStride) {
             let point = vec4.transformMat4(vec4.create(), vec4.fromValues(array[i], array[i + 1], array[i + 2], 1), matrix);
             transformedArray.push([point[0] / point[3], point[1] / point[3], point[2] / point[3]]);
