@@ -4,12 +4,13 @@ import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractio
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../interfaces/IInteractionManager";
 import { IViewportApi, RENDERER_TYPE, sceneTree } from "@shapediver/viewer";
+import { IntersectionManager } from "./IntersectionManager";
 
 export class InteractionEngine implements IInteractionEngine {
     // #region Properties (6)
 
     readonly #canvasEventListenerToken: string;
-    readonly #intersectionEngine: IntersectionEngine = IntersectionEngine.instance;
+    readonly #intersectionEngine: IntersectionManager = IntersectionManager.instance;
     readonly #logger: Logger = Logger.instance;
     readonly #managers: { [key: string]: IInteractionManager } = {};
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;

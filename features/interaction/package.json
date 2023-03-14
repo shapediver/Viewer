@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@shapediver/viewer": "2.7.7",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "2.7.7",
     "@shapediver/viewer.shared.math": "2.7.7",
     "@shapediver/viewer.shared.node-tree": "2.7.7",
     "@shapediver/viewer.shared.services": "2.7.7",

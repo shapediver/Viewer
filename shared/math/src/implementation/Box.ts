@@ -59,6 +59,9 @@ export class Box implements IBox {
         return tmin >= 0 ? tmin : tmax;
     };
 
+    public intersects(origin: vec3, direction: vec3): boolean {
+        return this.intersect(origin, direction) === null ? false : true;
+    };
 
     public get boundingSphere(): ISphere {
         if (!(this._boundingSphereState.min[0] === this.min[0] && this._boundingSphereState.min[1] === this.min[1] && this._boundingSphereState.min[2] === this.min[2] &&

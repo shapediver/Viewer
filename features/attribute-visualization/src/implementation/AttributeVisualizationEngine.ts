@@ -279,9 +279,6 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
             }
         }
-
-        sceneTree.root.updateVersion();
-        this.#viewport.update();
     }
 
     private createLayers() {

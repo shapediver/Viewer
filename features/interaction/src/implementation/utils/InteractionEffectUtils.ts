@@ -37,6 +37,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
                     geometryData.primitive.effectMaterials.push({material, token});
+                    geometryData.updateVersion();
                 }
             }
 
@@ -45,7 +46,6 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
             }
         }
         applyEffect(node);
-        node.updateVersion();
         return token;
     }
 
@@ -62,6 +62,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
                     const geometryData = <GeometryData>node.data[i];
                     const index = geometryData.primitive.effectMaterials.findIndex(e => e.token === token); 
                     if(index !== -1) geometryData.primitive.effectMaterials.splice(index, 1);
+                    geometryData.updateVersion();
                 }
             }
 
@@ -70,7 +71,6 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
             }
         }
         removeEffect(node);
-        node.updateVersion();
     }
 
     // #endregion Public Methods (2)

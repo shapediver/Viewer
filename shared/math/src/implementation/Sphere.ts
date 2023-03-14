@@ -56,6 +56,39 @@ export class Sphere implements ISphere {
         return point;
     }
 
+    public intersect(origin: vec3, direction: vec3): number | null {
+        // vector from ray origin to sphere center
+        const rayToSphere = vec3.sub(vec3.create(), this.center, origin);
+
+        // project rayToSphere onto direction
+        const projection = vec3.dot(rayToSphere, direction);
+
+        // distance from sphere center to projection
+        const distanceToProjection = vec3.squaredDistance(rayToSphere, vec3.multiply(vec3.create(), direction, vec3.fromValues(projection, projection, projection)));
+
+        // check if the distance to projection is less than the radius
+        if (distanceToProjection <= this.radius * this.radius) {
+            // calculate the distance from the origin to the intersection point
+            const distanceToIntersection = Math.sqrt(this.radius * this.radius - distanceToProjection);
+            return projection - distanceToIntersection;
+        }
+
+        // if there is no intersection, return null
+        return null;
+    }
+
+    public intersects(origin: vec3, direction: vec3): boolean {
+        // vector from ray origin to sphere center
+        const rayToSphere = vec3.sub(vec3.create(), this.center, origin);
+
+        // project rayToSphere onto direction
+        const projection = vec3.dot(rayToSphere, direction);
+
+        // distance from sphere center to projection
+        const distanceToProjection = vec3.squaredDistance(rayToSphere, vec3.multiply(vec3.create(), direction, vec3.fromValues(projection, projection, projection)));
+        return distanceToProjection <= this.radius * this.radius;
+    }
+
     public setFromBox(box: IBox): ISphere {
         vec3.add(this.center, box.min, box.max);
         vec3.scale(this.center, this.center, 0.5);

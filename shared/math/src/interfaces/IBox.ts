@@ -18,6 +18,7 @@ export interface IBox extends IGeometry {
     clone(): IBox;
     containsPoint(point: vec3): boolean;
     intersect(origin: vec3, direction: vec3): number | null;
+    intersects(origin: vec3, direction: vec3): boolean;
     isEmpty(): boolean;
     setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, stride?: number, bytes?: number, matrix?: mat4): IBox;
     union(box: IBox): IBox;

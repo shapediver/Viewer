@@ -70,7 +70,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set bones(value: T[]) {
     this.#bones = value;
-    this.updateVersion();
   }
 
   public get boneInverses(): mat4[] {
@@ -79,7 +78,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set boneInverses(value: mat4[]) {
     this.#boneInverses = value;
-    this.updateVersion();
   }
 
   public get boundingBox(): IBox {
@@ -112,7 +110,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set excludeViewports(value: string[]) {
     this.#excludeViewports = value;
-    this.updateVersion();
   }
 
   public get id(): string {
@@ -156,7 +153,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set restrictViewports(value: string[]) {
     this.#restrictViewports = value;
-    this.updateVersion();
   }
 
   public get skinNode(): boolean {
@@ -165,7 +161,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set skinNode(value: boolean) {
     this.#skinNode = value;
-    this.updateVersion();
   }
 
   public get transformations(): ITransformation[] {
@@ -190,7 +185,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set visible(value: boolean) {
     this.#visible = value;
-    this.updateVersion();
   }
 
   public get worldMatrix(): mat4 {
@@ -220,21 +214,16 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
       child.parent.removeChild(child);
     (<AbstractTreeNode<any, any>>child.parent) = this;
 
-    this.updateVersion();
     return true;
   }
 
   public addData(data: U): boolean {
     this.#data.push(data);
-
-    this.updateVersion();
     return true;
   }
 
   public addTransformation(transformation: ITransformation): boolean {
     this.#transformations.push(transformation);
-
-    this.updateVersion();
     return true;
   }
 
@@ -323,7 +312,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     this.#children.splice(index, 1);
     (<T | undefined>child.parent) = undefined;
 
-    this.updateVersion();
     return true;
   }
 
@@ -332,7 +320,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     if (index === -1) return false;
     this.#data.splice(index, 1);
 
-    this.updateVersion();
     return true;
   }
 
@@ -341,7 +328,6 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     if (index === -1) return false;
     this.#transformations.splice(index, 1);
 
-    this.updateVersion();
     return true;
   }
 

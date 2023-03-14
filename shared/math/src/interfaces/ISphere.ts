@@ -15,6 +15,8 @@ export interface ISphere extends IGeometry {
     applyMatrix(matrix: mat4): ISphere;
     clampPoint(point: vec3): vec3;
     clone(): ISphere;
+    intersect(origin: vec3, direction: vec3): number | null;
+    intersects(origin: vec3, direction: vec3): boolean;
     containsPoint(point: vec3): boolean;
     setFromBox(box: IBox): ISphere;
 
