@@ -3,7 +3,7 @@ import { createSession, createViewport, viewports } from "@shapediver/viewer";
 (async () => {
     let viewer = await createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewport' });
     let session = await createSession({ 
-        ticket: 'd2795be17bb5f36ad8e799cd58c35b4fb84e84cb7ef5b8aa1365b7fe76fcaf3234167f0924fa613f03f31f82057b3107631c003bcc9077f785d38ad9a354a489e652d2be97a8e1f69c975bba070727b28f24af7ff68a9c966a124121362de07f6aecbdb9ebc46a-c13747650a644e02d24c0579cc104655', 
+        ticket: '95469c9c2f258fcf1e0221a1318e75cf16f8e5ee4d74b2fec799b1b9ab90a34b7db7c825275e54649d021953fc7f2b624e05b0b081d266128c08afb1197ca688c06753f14a3008be9a3678c543be4c06ffdae9d009e6570419fb85f36793f3d4aa88302e6e8a7e-d54a78fbbbe3dc91095d4ceedbff51bf', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
@@ -13,6 +13,11 @@ import { createSession, createViewport, viewports } from "@shapediver/viewer";
     if(viewports['myViewport'].viewableInAR()) {
         await viewports['myViewport'].viewInAR();
     } else {
-        alert('Hello there! Unfortunately, you cannot use the AR feature. The AR feature is available on Android (all browsers except Firefox) and on iOS (all browsers except Firefox and Chrome).')
+        const qr = await viewports['myViewport'].createArSessionLink(undefined, true);
+        const image = new Image();
+        image.src = qr;
+        image.style.position = "absolute";
+        image.style.bottom = "0%";
+        document.body.appendChild(image);
     }
 }

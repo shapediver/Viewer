@@ -108,7 +108,6 @@ export class GLTFConverter {
             nodes: []
         };
 
-        const nodeMatrix = mat4.clone(node.nodeMatrix);
         const globalTransformationInverseId = this._uuidGenerator.create();
         node.addTransformation({
             id: globalTransformationInverseId,
@@ -118,7 +117,7 @@ export class GLTFConverter {
         const translationMatrixId = this._uuidGenerator.create();
         if(convertForAR) {
           // add translation matrix to scene tree node
-          const bb = node.boundingBox.clone().applyMatrix(mat4.invert(mat4.create(), nodeMatrix));
+          const bb = node.boundingBox.clone();
           const center = bb.boundingSphere.center;
           let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
           node.addTransformation({ id: translationMatrixId, matrix: translationMatrix })
