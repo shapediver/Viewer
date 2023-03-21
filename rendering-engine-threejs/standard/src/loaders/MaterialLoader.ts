@@ -684,7 +684,8 @@ export class MaterialLoader implements ILoader {
                 if(material instanceof SpecularGlossinessMaterial || material instanceof THREE.MeshPhysicalMaterial) {
                     material.defines['ENVMAP_TYPE_' + this._envMapType.toUpperCase()] = '';
     
-                    if (materialSettings && materialSettings.useVertexTangents && material.normalScale) material.normalScale.y *= - 1;
+                    if (materialSettings && materialSettings.useVertexTangents) material.normalScale.y *= - 1;
+                    if (materialSettings && materialSettings.useVertexTangents && material instanceof THREE.MeshPhysicalMaterial) material.clearcoatNormalScale.y *= - 1;
                     if (materialSettings && materialSettings.useFlatShading) material.flatShading = true;
                 }
             }
