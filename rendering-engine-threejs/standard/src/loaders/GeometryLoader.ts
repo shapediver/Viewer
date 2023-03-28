@@ -28,7 +28,6 @@ export class GeometryLoader implements ILoader {
 
     private readonly _defaultColor: string = '#199b9b';
     
-    private _counter: number = 0;
     private _geometryCache: {
         [key: string]: {
             obj: SDData,
@@ -189,6 +188,9 @@ export class GeometryLoader implements ILoader {
 
     public loadGeometry(primitive: IPrimitiveData): THREE.BufferGeometry {
         let geometry = new THREE.BufferGeometry();
+        if (primitive.indices) 
+            geometry.setIndex(new THREE.BufferAttribute(primitive.indices!.array, primitive.indices!.itemSize));
+
         for (let attributeId in primitive.attributes) {
             const buffer = this.loadAttribute(primitive.attributes[attributeId], attributeId);
             const attributeName = this.getAttributeName(attributeId);
@@ -198,9 +200,6 @@ export class GeometryLoader implements ILoader {
                     continue;
 
             geometry.setAttribute(attributeName, buffer)
-
-            if (primitive.indices)
-                geometry.setIndex(new THREE.BufferAttribute(primitive.indices!.array, primitive.indices!.itemSize));
 
             const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
             if (morphAttributeData.length > 0) {

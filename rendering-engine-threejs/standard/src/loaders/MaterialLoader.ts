@@ -55,6 +55,9 @@ export class MaterialLoader implements ILoader {
             material: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial)
         }
     } = {};
+    private _defaultPointsMaterial?: THREE.PointsMaterial;
+    private _defaultLineMaterial?: THREE.LineBasicMaterial;
+    private _defaultMaterial?: THREE.MeshPhysicalMaterial;
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
@@ -68,6 +71,10 @@ export class MaterialLoader implements ILoader {
     // #endregion Properties (8)
 
     // #region Constructors (1)
+    
+    public cacheSize() {
+        return Object.entries(this._materialCache).length;
+    }
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
@@ -625,33 +632,13 @@ export class MaterialLoader implements ILoader {
         throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialLoader.getMaterialProperties`, error);
     }
 
-    /**
-     * Create a material object with the provided material data.
-     * 
-     * @param material the material data
-     * @returns the material object
-     */
-    public load(
+    public createMaterial(
+        type: MATERIAL_TYPE, 
         incomingData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | GeometryData,
+        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null, 
         materialSettings?: MaterialSettings
-    ): THREE.Material {
-        let materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null = null;
-        if(!(incomingData instanceof GeometryData)) 
-            materialData = incomingData;
-
-        // evaluate which type of material properties we are constructing
-        let type: MATERIAL_TYPE;
-        if(materialSettings && materialSettings.mode === 0) {
-            type = MATERIAL_TYPE.POINT;
-        } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
-            type = MATERIAL_TYPE.LINE;
-        } else {
-            type = MATERIAL_TYPE.MESH;
-        }
-
-        if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) 
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
-
+        ) 
+    {
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
@@ -716,20 +703,74 @@ export class MaterialLoader implements ILoader {
             }
         }
 
+        if(materialData) 
+            materialData.threeJsObject[this._renderingEngine.id] = material;
+
+        material.needsUpdate = true;
         material.userData = {
             SDid: incomingData.id,
             SDversion: incomingData.version
         }
 
-        if(materialData) 
-            materialData.threeJsObject[this._renderingEngine.id] = material;
+        return material;
+    }
+
+    /**
+     * Create a material object with the provided material data.
+     * 
+     * @param material the material data
+     * @returns the material object
+     */
+    public load(
+        incomingData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | GeometryData,
+        materialSettings?: MaterialSettings
+    ): THREE.Material {
+        let materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null = null;
+        if(!(incomingData instanceof GeometryData))
+            materialData = incomingData;
+
+        // evaluate which type of material properties we are constructing
+        let type: MATERIAL_TYPE;
+        if (materialSettings && materialSettings.mode === 0) {
+            type = MATERIAL_TYPE.POINT;
+        } else if (materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
+            type = MATERIAL_TYPE.LINE;
+        } else {
+            type = MATERIAL_TYPE.MESH;
+        }
+
+        if(!materialData) {            
+            // evaluate which type of material properties we are constructing
+            if (materialSettings && materialSettings.mode === 0) {
+                if(this._defaultPointsMaterial) return this._defaultPointsMaterial;
+            } else if (materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
+                if(this._defaultLineMaterial) return this._defaultLineMaterial;
+            } else {
+                if(this._defaultMaterial) return this._defaultMaterial;
+            }
+
+            const material = this.createMaterial(type, incomingData, materialData, materialSettings);
+            if (type === MATERIAL_TYPE.POINT) {
+                this._defaultPointsMaterial = <THREE.PointsMaterial>material;
+            } else if (type === MATERIAL_TYPE.LINE) {
+                this._defaultLineMaterial = <THREE.LineBasicMaterial>material;
+            } else {
+                this._defaultMaterial = <THREE.MeshPhysicalMaterial>material;
+            }
+
+            return material;
+        }
+
+        if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) 
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
+
+        const material = this.createMaterial(type, incomingData, materialData, materialSettings);
         
         if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) {
             this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material.copy(material)
             return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
         }
 
-        material.needsUpdate = true;
         this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = {
             material,
             materialData

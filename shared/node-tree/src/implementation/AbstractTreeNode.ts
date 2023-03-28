@@ -28,6 +28,8 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
   #skinNode: boolean = false;
   #bones: T[] = [];
   #boneInverses: mat4[] = [];
+  #nodeMatrix: mat4 = mat4.create();
+  #worldMatrix: mat4 = mat4.create();
   #originalId: string;
 
   // #endregion Properties (13)
@@ -125,10 +127,10 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
   }
 
   public get nodeMatrix(): mat4 {
-    const matrix: mat4 = mat4.create();
+    mat4.identity(this.#nodeMatrix);
     for (let transform of this.#transformations)
-      if (transform.id !== 'sdtf') mat4.multiply(matrix, matrix, transform.matrix);
-    return matrix;
+      if (transform.id !== 'sdtf') mat4.multiply(this.#nodeMatrix, this.#nodeMatrix, transform.matrix);
+    return this.#nodeMatrix;
   }
 
   public get parent(): T | undefined {
@@ -188,18 +190,18 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
   }
 
   public get worldMatrix(): mat4 {
-    const matrix: mat4 = mat4.create();
+    mat4.identity(this.#worldMatrix);
 
     for (let transform of this.#transformations)
-      mat4.multiply(matrix, matrix, transform.matrix);
+      mat4.multiply(this.#worldMatrix, this.#worldMatrix, transform.matrix);
 
     let node: AbstractTreeNode<any, any> = this;
     while (node.parent) {
-      mat4.multiply(matrix, node.parent.nodeMatrix, matrix);
+      mat4.multiply(this.#worldMatrix, node.parent.nodeMatrix, this.#worldMatrix);
       node = node.parent;
     }
 
-    return matrix;
+    return this.#worldMatrix;
   }
 
   // #endregion Public Accessors (19)

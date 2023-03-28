@@ -169,13 +169,14 @@ export class Box implements IBox {
     }
 
     public reset(): void {
-        this._boundingSphere = new Sphere();
-        this._boundingSphereState = {
-            min: vec3.create(), max: vec3.create()
-        }
+        vec3.zero(this._boundingSphere.center)
+        this._boundingSphere.radius = 0;
 
-        this._min = vec3.fromValues(Infinity, Infinity, Infinity);
-        this._max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+        vec3.zero(this._boundingSphereState.min);
+        vec3.zero(this._boundingSphereState.max);
+
+        vec3.set(this._min, Infinity, Infinity, Infinity);
+        vec3.set(this._max, -Infinity, -Infinity, -Infinity);
     }
 
     // #endregion Public Methods (5)

@@ -21,9 +21,6 @@ export class HttpClient {
 
     private static _instance: HttpClient;
 
-    private _dataCache: {
-        [key: string]: Promise<HttpResponse<any>>
-    } = {};
     private _sessionLoading: {
         [key: string]: {
             getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -72,9 +69,6 @@ export class HttpClient {
     }
 
     public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
-        const dataKey = btoa(href);
-        if (dataKey in this._dataCache) return await this._dataCache[dataKey];
-        
         // try to get sessionId from href
         let sessionId = this.getSessionId(href);
 
@@ -95,7 +89,7 @@ export class HttpClient {
             // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
             if(sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
                 // take first session to load a texture that is not session related
-                this._dataCache[dataKey] = new Promise<HttpResponse<any>>((resolve, reject) => {
+                return new Promise<HttpResponse<any>>((resolve, reject) => {
                     sessionLoading!.downloadTexture(sessionId!, href).then((result) => {
                         resolve({
                             data: result[0],
@@ -110,15 +104,15 @@ export class HttpClient {
             } else {
                 // we can load blobs and data urls directly
                 // or load it directly if we don't have a session
-                this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
+                return axios(href, Object.assign({ method: 'get' }, config));
             }
         } else {
             if(!sessionLoading) {
                 // if there is no session to load from, we use the fallback option
-                this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
+                return axios(href, Object.assign({ method: 'get' }, config));
             } else {
                 // all data links where we could somehow find a session to load it with
-                this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
+                return new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
                     sessionLoading!.getAsset(href)
                         .then((result) => {
                             resolve({
@@ -135,8 +129,6 @@ export class HttpClient {
                 });
             }
         }
-        
-        return this._dataCache[dataKey];
     }
 
     public async loadTexture(href: string): Promise<HttpResponse<ArrayBuffer>> {
