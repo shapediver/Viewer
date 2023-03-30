@@ -154,7 +154,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'arScale';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
-            this.#renderingEngine.arScale = value;
+            this.#renderingEngine.arScale = vec3.max(vec3.create(), value, vec3.fromValues(0.001, 0.001, 0.001));
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update('arScale');
         } catch (e) {
