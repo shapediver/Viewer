@@ -2,7 +2,7 @@ import { GeometryData, IMaterialAbstractData, MATERIAL_SIDE, PRIMITIVE_MODE } fr
 import { mat4, vec3 } from "gl-matrix";
 import { Triangle } from "@shapediver/viewer.shared.math";
 import { ITree, ITreeNode, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { InteractionData } from "./InteractionData";
 import { IIntersection, IIntersectionEngine, IIntersectionFilter, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'

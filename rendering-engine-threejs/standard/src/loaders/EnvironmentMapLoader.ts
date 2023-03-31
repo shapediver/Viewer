@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGING_TOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Logger, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
 import { RGBELoader } from '../three/loaders/RGBELoader';
@@ -172,8 +172,7 @@ export class EnvironmentMapLoader implements ILoader {
         if (!Array.isArray(name) && (name.startsWith('["https') && name.endsWith('"]')))
             try { name = JSON.parse(name); } catch (e) {
                 this.notify(eventId, true);
-                const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map.', name);
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
+                throw new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map.', name);
             }
 
         // deal with string or array, define names for loading and caching
@@ -183,8 +182,7 @@ export class EnvironmentMapLoader implements ILoader {
         } else {
             if (name.length !== 6) {
                 this.notify(eventId, true);
-                const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', name);
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
+                throw new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', name);
             }
             name_internal = JSON.stringify(name, null, 0);
             name_caching = name_internal;
@@ -241,8 +239,7 @@ export class EnvironmentMapLoader implements ILoader {
                 }
                 else {
                     this.notify(eventId, true);
-                    const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', name);
-                    throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
+                    throw new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', name);
                 }
             } else {
                 url = name;
@@ -257,7 +254,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
         catch (e) {
             this.notify(eventId, true);
-            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, e);
+            throw e;
         }
     }
 
@@ -346,7 +343,7 @@ export class EnvironmentMapLoader implements ILoader {
                 }
             } catch (e) {
                 this.notify(eventId, true);
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.loadEnvironmentMap`, e);
+                throw e;
             }
         })
     }

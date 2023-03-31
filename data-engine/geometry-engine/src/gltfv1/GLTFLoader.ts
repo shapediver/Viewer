@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
@@ -47,29 +47,22 @@ export class GLTFLoader {
         if(gltfBinary && gltfHeader)
             sdgtfNode = await new SDGTFLoader().load(gltfBinary, gltfHeader.length);
 
-        try {
-            this.validateVersionAndExtensions();
-            const node = await this.loadScene();
-            if(sdgtfNode) node.addChild(sdgtfNode);
-            return node;
-        } catch (e) {            
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.loadContent`, e);
-        }
+        this.validateVersionAndExtensions();
+        const node = await this.loadScene();
+        if(sdgtfNode) node.addChild(sdgtfNode);
+        return node;
+
     }
 
     public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let binaryGeometry: ArrayBuffer;
 
-        try {
-            this._performanceEvaluator.startSection('loadGltf.' + url);
-            binaryGeometry = (await this._httpClient.get(url!, {
-                responseType: 'arraybuffer'
-            })).data;
-            this._performanceEvaluator.endSection('loadGltf.' + url);
-        } catch (e) {            
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
-        }
+        this._performanceEvaluator.startSection('loadGltf.' + url);
+        binaryGeometry = (await this._httpClient.get(url!, {
+            responseType: 'arraybuffer'
+        })).data;
+        this._performanceEvaluator.endSection('loadGltf.' + url);
 
         // create header data
         const headerDataView = new DataView(binaryGeometry, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
@@ -80,10 +73,8 @@ export class GLTFLoader {
             contentLength: headerDataView.getUint32(12, true),
             contentFormat: headerDataView.getUint32(16, true)
         }
-        if (header.magic != 'glTF') {
-            const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: glTF magic wrong.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
-        }
+        if (header.magic != 'glTF') 
+            throw new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: glTF magic wrong.');
 
         // create content
         const contentDataView = new DataView(binaryGeometry, this.BINARY_EXTENSION_HEADER_LENGTH, header.contentLength);
@@ -95,15 +86,11 @@ export class GLTFLoader {
 
         const sdgtfNode = await new SDGTFLoader().load(binaryGeometry, header.length);
 
-        try {
-            this.validateVersionAndExtensions();
-            const node = await this.loadScene();
-            node.addChild(sdgtfNode);
-            this._performanceEvaluator.endSection('gltfProcessing.' + url);
-            return node;
-        } catch (e) {
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
-        }
+        this.validateVersionAndExtensions();
+        const node = await this.loadScene();
+        node.addChild(sdgtfNode);
+        this._performanceEvaluator.endSection('gltfProcessing.' + url);
+        return node;
     }
 
     // #endregion Public Methods (1)
@@ -123,7 +110,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info('GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
     }
@@ -134,7 +121,7 @@ export class GLTFLoader {
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
         const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-        if(accessor.componentType === 5124) this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
+        if(accessor.componentType === 5124) this._logger.warn('GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
         const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
@@ -185,7 +172,7 @@ export class GLTFLoader {
 
         if(material.extensions && material.extensions.KHR_materials_common) {
             const technique = material.extensions.KHR_materials_common.technique;
-            if(technique && technique !== 'BLINN') this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            if(technique && technique !== 'BLINN') this._logger.warn('The technique ' + technique + ' is not supported. Trying to load the material either way.')
             const values = material.extensions.KHR_materials_common.values;
 
             if (values.hasOwnProperty('doubleSided')) 
@@ -197,7 +184,7 @@ export class GLTFLoader {
                 materialData.color = diffuseScaled;
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse')) {
-                this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
+                this._logger.warn('GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
             }
             
             if (!values.hasOwnProperty('diffuse') && values.hasOwnProperty('ambient')) {
@@ -208,7 +195,7 @@ export class GLTFLoader {
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
                 materialData.emissiveness = values.emission;
             } else if (values.hasOwnProperty('emission')) {
-                this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
+                this._logger.warn('GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('shininess')) {

@@ -1,5 +1,5 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { IExport } from "../../interfaces/dto/IExport";
 import { SessionEngine } from "../SessionEngine";
@@ -156,14 +156,14 @@ export class Export implements IExport {
       const event: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request: Sending export request.`);
+      this.#logger.debugLow(`Export(${this.#id}).request: Sending export request.`);
       const currentParameters = this.#sessionEngine.parameterValues;
       const exportParameters: { [key: string]: string } = {}
 
       for (let parameter in currentParameters)
         exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
-      this.#logger.info(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
+      this.#logger.info(`Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
 
       const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters, this.#maxWaitTime);
       this.updateExportDefinition(exportDef);
@@ -176,8 +176,7 @@ export class Export implements IExport {
       const eventEnd: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Export request failed' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventEnd);
 
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request`, e);
+      throw e;
     }
   }
 

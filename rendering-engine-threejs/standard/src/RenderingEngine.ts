@@ -23,7 +23,6 @@ import {
   EVENTTYPE,
   EVENTTYPE_VIEWPORT,
   Logger,
-  LOGGING_TOPIC,
   SettingsEngine,
   ShapeDiverViewerArError,
   StateEngine,
@@ -1111,8 +1110,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (this.viewableInAR() === false) {
       const event: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
       this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
-      const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
-      throw this._logger.handleError(LOGGING_TOPIC.AR, 'Api.viewInAR', error, false);
+      throw new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
     }
 
     const arScale = options.arScale !== 'auto' ? 'fixed' : 'auto';

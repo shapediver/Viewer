@@ -3,7 +3,6 @@ import {
   Converter,
   HttpClient,
   Logger,
-  LOGGING_TOPIC,
   PerformanceEvaluator,
   ShapeDiverViewerDataProcessingError,
   UuidGenerator,
@@ -87,89 +86,81 @@ export class GLTFLoader {
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
         this._content = content;
 
-        try {
-            this.validateVersionAndExtensions();
+        this.validateVersionAndExtensions();
 
-            const dracoModule = await new DRACO();
+        const dracoModule = await new DRACO();
 
-            this._bufferLoader = new BufferLoader(this._content, this._body, this._baseUri);
-            await this._bufferLoader.load();
-            this._bufferViewLoader = new BufferViewLoader(this._content, this._bufferLoader);
-            this._bufferViewLoader.load();
-            this._accessorLoader = new AccessorLoader(this._content, this._bufferViewLoader);
-            this._accessorLoader.load();
-            this._textureLoader = new TextureLoader(this._content, this._bufferViewLoader, this._baseUri);
-            await this._textureLoader.load();
-            this._materialLoader = new MaterialLoader(this._content, this._textureLoader);
-            await this._materialLoader.load();
-            this._geometryLoader = new GeometryLoader(this._content, this._accessorLoader, this._bufferViewLoader, this._materialLoader, dracoModule);
+        this._bufferLoader = new BufferLoader(this._content, this._body, this._baseUri);
+        await this._bufferLoader.load();
+        this._bufferViewLoader = new BufferViewLoader(this._content, this._bufferLoader);
+        this._bufferViewLoader.load();
+        this._accessorLoader = new AccessorLoader(this._content, this._bufferViewLoader);
+        this._accessorLoader.load();
+        this._textureLoader = new TextureLoader(this._content, this._bufferViewLoader, this._baseUri);
+        await this._textureLoader.load();
+        this._materialLoader = new MaterialLoader(this._content, this._textureLoader);
+        await this._materialLoader.load();
+        this._geometryLoader = new GeometryLoader(this._content, this._accessorLoader, this._bufferViewLoader, this._materialLoader, dracoModule);
 
-            const node = this.loadScene();
+        const node = this.loadScene();
 
-            if (this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
-                const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
-                for (let i = 0; i < variants.length; i++)
-                    this._geometryLoader.materialVariantsData.variants.push(variants[i].name);
-                this._geometryLoader.materialVariantsData.variantIndex = 0;
-                node.data.push(this._geometryLoader.materialVariantsData)
-            }
+        if (this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+            const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
+            for (let i = 0; i < variants.length; i++)
+                this._geometryLoader.materialVariantsData.variants.push(variants[i].name);
+            this._geometryLoader.materialVariantsData.variantIndex = 0;
+            node.data.push(this._geometryLoader.materialVariantsData)
+        }
 
-            if (this._content.skins !== undefined && this._content.nodes !== undefined) {
-                for (let i = 0; i < this._content.nodes?.length; i++) {
-                    if (this._content.nodes[i].skin !== undefined) {
-                        const skinDef = this.loadSkin(this._content.nodes[i].skin!);
+        if (this._content.skins !== undefined && this._content.nodes !== undefined) {
+            for (let i = 0; i < this._content.nodes?.length; i++) {
+                if (this._content.nodes[i].skin !== undefined) {
+                    const skinDef = this.loadSkin(this._content.nodes[i].skin!);
 
-                        const skinNode = this._nodes[i];
+                    const skinNode = this._nodes[i];
 
-                        const bones: ITreeNode[] = [];
-                        const boneInverses: mat4[] = [];
+                    const bones: ITreeNode[] = [];
+                    const boneInverses: mat4[] = [];
 
-                        for (let j = 0; j < skinDef.joints.length; j++) {
-                            this._nodes[skinDef.joints[j]].data.push(new BoneData())
-                            bones.push(this._nodes[skinDef.joints[j]]);
+                    for (let j = 0; j < skinDef.joints.length; j++) {
+                        this._nodes[skinDef.joints[j]].data.push(new BoneData())
+                        bones.push(this._nodes[skinDef.joints[j]]);
 
-                            let mat = mat4.create();
-                            if (skinDef.inverseBindMatrices !== undefined) {
-                                const matricesArray = skinDef.inverseBindMatrices!.array;
-                                mat = mat4.fromValues(matricesArray[j * 16 + 0], matricesArray[j * 16 + 1], matricesArray[j * 16 + 2], matricesArray[j * 16 + 3],
-                                    matricesArray[j * 16 + 4], matricesArray[j * 16 + 5], matricesArray[j * 16 + 6], matricesArray[j * 16 + 7],
-                                    matricesArray[j * 16 + 8], matricesArray[j * 16 + 9], matricesArray[j * 16 + 10], matricesArray[j * 16 + 11],
-                                    matricesArray[j * 16 + 12], matricesArray[j * 16 + 13], matricesArray[j * 16 + 14], matricesArray[j * 16 + 15]);
-                            }
-                            boneInverses.push(mat);
+                        let mat = mat4.create();
+                        if (skinDef.inverseBindMatrices !== undefined) {
+                            const matricesArray = skinDef.inverseBindMatrices!.array;
+                            mat = mat4.fromValues(matricesArray[j * 16 + 0], matricesArray[j * 16 + 1], matricesArray[j * 16 + 2], matricesArray[j * 16 + 3],
+                                matricesArray[j * 16 + 4], matricesArray[j * 16 + 5], matricesArray[j * 16 + 6], matricesArray[j * 16 + 7],
+                                matricesArray[j * 16 + 8], matricesArray[j * 16 + 9], matricesArray[j * 16 + 10], matricesArray[j * 16 + 11],
+                                matricesArray[j * 16 + 12], matricesArray[j * 16 + 13], matricesArray[j * 16 + 14], matricesArray[j * 16 + 15]);
                         }
-
-                        skinNode.skinNode = true;
-                        skinNode.bones = bones;
-                        skinNode.boneInverses = boneInverses;
-
-                        NodeTreeUtils.addBones(skinNode, skinNode);
+                        boneInverses.push(mat);
                     }
+
+                    skinNode.skinNode = true;
+                    skinNode.bones = bones;
+                    skinNode.boneInverses = boneInverses;
+
+                    NodeTreeUtils.addBones(skinNode, skinNode);
                 }
             }
-
-            if (this._content.animations)
-                for (let i = 0; i < this._content.animations?.length; i++)
-                    node.data.push(this.loadAnimation(i));
-            return node;
-        } catch (e) {
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
+
+        if (this._content.animations)
+            for (let i = 0; i < this._content.animations?.length; i++)
+                node.data.push(this.loadAnimation(i));
+        return node;
     }
 
     public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let axiosResponse;
 
-        try {
-            this._performanceEvaluator.startSection('loadGltf.' + url);
-            axiosResponse = await this._httpClient.get(url!, {
-                responseType: 'arraybuffer'
-            });
-            this._performanceEvaluator.endSection('loadGltf.' + url);
-        } catch (e) {
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
-        }
+        this._performanceEvaluator.startSection('loadGltf.' + url);
+        axiosResponse = await this._httpClient.get(url!, {
+            responseType: 'arraybuffer'
+        });
+        this._performanceEvaluator.endSection('loadGltf.' + url);
 
         let gltfContent, gltfBinary, gltfBaseUrl, gltfHeader;
 
@@ -190,10 +181,9 @@ export class GLTFLoader {
                 contentLength: headerDataView.getUint32(12, true),
                 contentFormat: headerDataView.getUint32(16, true)
             }
-            if (gltfHeader.magic != 'glTF') {
-                const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: sdgTF magic wrong.');
-                throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
-            }
+            if (gltfHeader.magic != 'glTF') 
+                throw new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: sdgTF magic wrong.');
+
             // create content
             const contentDataView = new DataView(gltfBinary, this.BINARY_EXTENSION_HEADER_LENGTH, gltfHeader.contentLength);
             const contentDecoded = new TextDecoder().decode(contentDataView);
@@ -250,7 +240,7 @@ export class GLTFLoader {
             const output = this._accessorLoader.getAccessor(sampler.output);
             let interpolation = sampler.interpolation;
             if (interpolation === 'CUBICSPLINE') {
-                this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
+                this._logger.warn('Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
                 interpolation = 'linear';
             }
 
@@ -480,7 +470,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length - 1 ? '' : index === notSupported.length - 2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info('GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
 

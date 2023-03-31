@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { Logger, LOGGING_TOPIC } from '../logger/Logger'
+import { Logger } from '../logger/Logger'
 import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerErrors';
 import { TypeChecker } from '../type-check/TypeChecker'
 
@@ -32,12 +32,11 @@ export class InputValidator {
         return DOMPurify.sanitize(input);
     }
 
-    public validateAndError(topic: LOGGING_TOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
+    public validateAndError(scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
 
-        const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
-        throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'InputValidator.validateAndError', error, false);
+        throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
     }
 
     // #endregion Public Methods (2)

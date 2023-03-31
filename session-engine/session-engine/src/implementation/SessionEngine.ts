@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
+import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -227,7 +227,6 @@ export class SessionEngine implements ISessionEngine {
     // #region Public Methods (22)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
-        try {
             sections = sections || {};
             if (sections.session === undefined) {
                 sections.session = {
@@ -246,15 +245,13 @@ export class SessionEngine implements ISessionEngine {
             if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
                 config = (<ShapeDiverResponseDto>response).viewer!.config;
             } else {
-                const error = new ShapeDiverViewerSettingsError('Session.applySettings: No config object available.');
-                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
+                throw new ShapeDiverViewerSettingsError('Session.applySettings: No config object available.');
             }
 
             try {
                 validate(config)
             } catch (e) {
-                const error = new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
-                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
+                throw new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
             }
 
             const settings = <ISettingsV3_3>convert(config, latestVersion);
@@ -349,11 +346,6 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environment.map = settings.environment.map;
                 currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
             }
-
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Session.applySettings', e);
-        }
     }
 
     public canGoBack(): boolean {
@@ -376,7 +368,7 @@ export class SessionEngine implements ISessionEngine {
 
             this._closed = true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.close', e, retry);
+            await this.handleError(e, retry);
             return await this.close(true);
         }
     }
@@ -407,7 +399,7 @@ export class SessionEngine implements ISessionEngine {
             const oldNode = this.node.cloneInstance();
             this.#customizationProcess = customizationId;
 
-            this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
+            this._logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
 
             for (let r in this._stateEngine.renderingEngines)
                 this._stateEngine.renderingEngines[r].busy.push(customizationId);
@@ -427,7 +419,7 @@ export class SessionEngine implements ISessionEngine {
                             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-                        this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                        this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
 
                         const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
@@ -444,7 +436,7 @@ export class SessionEngine implements ISessionEngine {
 
                 const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
-                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return new SessionTreeNode();
             }
 
@@ -470,7 +462,7 @@ export class SessionEngine implements ISessionEngine {
             // update the session engine parameter values if everything succeeded
             for (const parameterId in this.parameters)
                 this.parameterValues[parameterId] = parameterSet[parameterId].valueString;
-            this._logger.info(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customizing session with parameters ${JSON.stringify(this.parameterValues)}.`);
+            this._logger.info(`Session(${this.id}).customize: Customizing session with parameters ${JSON.stringify(this.parameterValues)}.`);
 
             const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Sending customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
@@ -488,7 +480,7 @@ export class SessionEngine implements ISessionEngine {
 
                 const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
-                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return newNode;
             }
 
@@ -502,7 +494,7 @@ export class SessionEngine implements ISessionEngine {
             this._node = newNode;
             if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
-            this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
+            this._logger.debug(`Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
@@ -529,7 +521,7 @@ export class SessionEngine implements ISessionEngine {
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-            this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
+            this._logger.debug(`Session(${this.id}).customize: Session customized.`);
 
             this._eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
 
@@ -545,13 +537,11 @@ export class SessionEngine implements ISessionEngine {
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
+            throw e;
         }
     }
 
     public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
-        try {
             const parameterSet: {
                 [key: string]: string
             } = {};
@@ -563,15 +553,11 @@ export class SessionEngine implements ISessionEngine {
             const newNode = await this.customizeSession(parameterSet, () => false, true);
             newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
             return newNode;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
-        }
     }
 
     public async goBack(): Promise<ITreeNode> {
         if (!this.canGoBack()) {
-            this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further back.`);
+            this._logger.debug(`Session(${this.id}).goBack: Cannot go further back.`);
             return new TreeNode();
         }
         // get the current parameter set and store it in the forward history later on
@@ -594,7 +580,7 @@ export class SessionEngine implements ISessionEngine {
 
     public async goForward(): Promise<ITreeNode> {
         if (!this.canGoForward()) {
-            this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).goForward: Cannot go further forward.`);
+            this._logger.debug(`Session(${this.id}).goForward: Cannot go further forward.`);
             return new TreeNode();
         }
         // get the last undone parameter set and apply the values to the parameters
@@ -620,10 +606,8 @@ export class SessionEngine implements ISessionEngine {
     public async init(parameterValues?: {
         [key: string]: string;
     }, retry = false): Promise<void> {
-        if (this._initialized === true) {
-            const error = new ShapeDiverViewerSessionError('Session.init: Session already initialized.');
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.init', error);
-        }
+        if (this._initialized === true) 
+            throw new ShapeDiverViewerSessionError('Session.init: Session already initialized.');
 
         try {
             this._performanceEvaluator.startSection('sessionResponse');
@@ -654,7 +638,7 @@ export class SessionEngine implements ISessionEngine {
             this.updateResponseDto(this._responseDto, parameterSet);
             this._initialized = true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.init', e, retry);
+            await this.handleError(e, retry);
             return await this.init(parameterValues, true);
         }
     }
@@ -693,7 +677,7 @@ export class SessionEngine implements ISessionEngine {
             if (e instanceof OutputDelayException) {
                 await this.timeout(e.delay);
             } else {
-                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputsParallel', e, retry);
+                await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputsParallel(responseDto, cancelRequest, true);
             }
@@ -709,7 +693,7 @@ export class SessionEngine implements ISessionEngine {
                 this.updateResponseDto(responseDto);
                 return await this.loadOutputsParallel(responseDto, cancelRequest);
             } catch (e) {
-                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputsParallel', e, retry);
+                await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputsParallel(responseDto, cancelRequest, true);
             }
@@ -747,7 +731,7 @@ export class SessionEngine implements ISessionEngine {
             if (e instanceof OutputDelayException) {
                 await this.timeout(e.delay);
             } else {
-                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputs(cancelRequest, true);
             }
@@ -763,7 +747,7 @@ export class SessionEngine implements ISessionEngine {
                 this.updateResponseDto(responseDto);
                 return await this.loadOutputs(cancelRequest);
             } catch (e) {
-                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputs(cancelRequest, true);
             }
@@ -780,17 +764,15 @@ export class SessionEngine implements ISessionEngine {
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.requestExport', e, retry);
+            await this.handleError(e, retry);
             return await this.requestExport(exportId, parameters, maxWaitTime, true);
         }
     }
 
     public resetSettings(sections?: ISettingsSections): void {
-        if (!this._responseDto) {
-            const error = new ShapeDiverViewerSessionError(`Session.resetSettings: responseDto not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.resetSettings', error);
-        }
-        try {
+        if (!this._responseDto)
+            throw new ShapeDiverViewerSessionError(`Session.resetSettings: responseDto not available.`);
+
             sections = sections || {};
             if (sections.session === undefined) {
                 sections.session = {
@@ -806,27 +788,17 @@ export class SessionEngine implements ISessionEngine {
                 sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true };
 
             return this.applySettings(this._responseDto, sections);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Session.resetSettings', e);
-        }
     }
 
     public async saveDefaultParameterValues(): Promise<boolean> {
-        try {
-            this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
+            this._logger.debugLow(`Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
             const response = await this.saveDefaultParameters();
             if (response) {
-                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
+                this._logger.debug(`Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
             } else {
-                const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
-                throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, error);
+                throw new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
             }
             return response;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, e);
-        }
     }
 
     public async saveDefaultParameters(retry = false): Promise<boolean> {
@@ -835,7 +807,7 @@ export class SessionEngine implements ISessionEngine {
             await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues)
             return true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.saveDefaultParameters', e, retry);
+            await this.handleError(e, retry);
             return await this.saveDefaultParameters(true);
         }
     }
@@ -859,7 +831,7 @@ export class SessionEngine implements ISessionEngine {
             await this._sdk.export.updateDefinitions(this._modelId!, exports);
             return true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.saveExportProperties', e, retry);
+            await this.handleError(e, retry);
             return await this.saveExportProperties(exports, true);
         }
     }
@@ -883,7 +855,7 @@ export class SessionEngine implements ISessionEngine {
             await this._sdk.output.updateDefinitions(this._modelId!, outputs);
             return true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.saveOutputProperties', e, retry);
+            await this.handleError(e, retry);
             return await this.saveOutputProperties(outputs, true);
         }
     }
@@ -907,7 +879,7 @@ export class SessionEngine implements ISessionEngine {
             await this._sdk.model.updateParameterDefinitions(this._modelId!, parameters);
             return true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.saveParameterProperties', e, retry);
+            await this.handleError(e, retry);
             return await this.saveParameterProperties(parameters, true);
         }
     }
@@ -918,22 +890,20 @@ export class SessionEngine implements ISessionEngine {
         try {
             validate(json, <versions>this._viewerSettingsVersion)
         } catch (e) {
-            const error = new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
-            throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
+            throw new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
         } 
         
         try {        
             await this._sdk.model.updateConfig(this._modelId!, json);
             return true;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.saveSettings', e, retry);
+            await this.handleError(e, retry);
             return await this.saveSettings(json, true);
         }
     }
 
     public async saveUiProperties(saveInSettings: boolean = true): Promise<boolean> {
-        try {
-            this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
+            this._logger.debugLow(`Session(${this.id}).saveSessionProperties: Saving session properties.`);
 
             // settings saving 
             this._saveSessionSettings();
@@ -982,15 +952,11 @@ export class SessionEngine implements ISessionEngine {
             const response = saveInSettings ? await this.saveSettings(this._settingsEngine.convertToTargetVersion()) : true;
 
             if (response && responseP && responseO && responseE) {
-                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
+                this._logger.debug(`Session(${this.id}).saveSessionProperties: Saved session properties.`);
             } else {
-                this._logger.warn(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Could not save session properties.`);
+                this._logger.warn(`Session(${this.id}).saveSessionProperties: Could not save session properties.`);
             }
             return response && responseP && responseO && responseE;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties`, e);
-        }
     }
 
     public async updateOutputs(): Promise<ITreeNode> {
@@ -1002,7 +968,7 @@ export class SessionEngine implements ISessionEngine {
         const oldNode = this.node.cloneInstance();
         this.#customizationProcess = customizationId;
 
-        this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating Outputs.`);
+        this._logger.debugLow(`Session(${this.id}).updateOutputs: Updating Outputs.`);
 
         for (let r in this._stateEngine.renderingEngines)
             this._stateEngine.renderingEngines[r].busy.push(customizationId);
@@ -1023,7 +989,7 @@ export class SessionEngine implements ISessionEngine {
 
             const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating was exceeded by other customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
-            this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
+            this._logger.debug(`Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
             return newNode;
         }
 
@@ -1031,7 +997,7 @@ export class SessionEngine implements ISessionEngine {
         this._node = newNode;
         if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
 
-        this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
+        this._logger.debug(`Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         
         if (this._updateCallback) this._updateCallback(newNode, oldNode);
 
@@ -1054,7 +1020,7 @@ export class SessionEngine implements ISessionEngine {
             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-        this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
+        this._logger.debug(`Session(${this.id}).updateOutputs: Updated outputs.`);
 
         const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Outputs updated' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
@@ -1074,11 +1040,10 @@ export class SessionEngine implements ISessionEngine {
                 await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type);
                 return fileAsset.id;
             } else {
-                const error = new ShapeDiverViewerSessionError(`Session.uploadFile: Upload reply has not the required format.`);
-                throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadFile', error);
+                throw new ShapeDiverViewerSessionError(`Session.uploadFile: Upload reply has not the required format.`);
             }
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadFile', e, retry);
+            await this.handleError(e, retry);
             return await this.uploadFile(parameterId, data, type, true);
         }
     }
@@ -1087,13 +1052,11 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('gltf-upload');
         try {
             const responseDto = await this._sdk.gltf.upload(this._sessionId!, await blob.arrayBuffer(), 'model/gltf-binary', conversion);
-            if (!responseDto || !responseDto.gltf || !responseDto.gltf.href) {
-                const error = new ShapeDiverViewerSessionError(`Session.uploadGLTF: Upload reply has not the required format.`);
-                throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadGLTF', error);
-            }
+            if (!responseDto || !responseDto.gltf || !responseDto.gltf.href) 
+                throw new ShapeDiverViewerSessionError(`Session.uploadGLTF: Upload reply has not the required format.`);
             return responseDto;
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadGLTF', e, retry);
+            await this.handleError(e, retry);
             return await this.uploadGLTF(blob, conversion, true);
         }
     }
@@ -1155,7 +1118,7 @@ export class SessionEngine implements ISessionEngine {
             if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
                 warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
             if (warning)
-                this._logger.warn(LOGGING_TOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
+                this._logger.warn(`\nOutput(${outputId}):${warning}`);
         }
 
         // set the export definitions
@@ -1168,36 +1131,26 @@ export class SessionEngine implements ISessionEngine {
             if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
                 warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
             if (warning)
-                this._logger.warn(LOGGING_TOPIC.SESSION, `\nExport(${exportId}):${warning}`);
+                this._logger.warn(`\nExport(${exportId}):${warning}`);
         }
     }
 
     private checkAvailability(action?: string, checkForModelId = false) {
-        if (!this._responseDto) {
-            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: responseDto not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
-        }
+        if (!this._responseDto)
+            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: responseDto not available.`);
 
-        if (!this._sessionId) {
-            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: sessionId not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
-        }
+        if (!this._sessionId)
+            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: sessionId not available.`);
 
-        if (checkForModelId && !this._modelId) {
-            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: modelId not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
-        }
+        if (checkForModelId && !this._modelId)
+            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: modelId not available.`);
 
-        if (action && !this._responseDto.actions) {
-            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: actions not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
-        }
+        if (action && !this._responseDto.actions)
+            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: actions not available.`);
 
         const responseDtoAction = this._responseDto.actions?.find(a => a.name === action);
-        if (action && !responseDtoAction) {
-            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
-            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
-        }
+        if (action && !responseDtoAction)
+            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
     }
 
     private async customizeInternal(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
@@ -1214,35 +1167,30 @@ export class SessionEngine implements ISessionEngine {
             if (parallel === false) this.updateResponseDto(responseDto);
             return parallel === false ? this.loadOutputs(cancelRequest) : this.loadOutputsParallel(responseDto, cancelRequest);
         } catch (e) {
-            await this.handleError(LOGGING_TOPIC.SESSION, 'Session.customizeSession', e, retry);
+            await this.handleError(e, retry);
             if (cancelRequest()) return new SessionTreeNode();
             return await this.customizeSession(parameters, cancelRequest, parallel, true);
         }
     }
 
-    private async handleError(topic: LOGGING_TOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, retry = false) {
+    private async handleError(e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, retry = false) {
         if (e instanceof ShapeDiverResponseError) {
             if (e.error === ShapeDiverResponseErrorType.SESSION_GONE_ERROR) {
                 // case 1: the session is no longer available
                 // we try to re-initialize the session 3 times, if that does not work, we close it
 
-                this._logger.warn(topic, `The session has been closed, trying to re-initialize.`);
+                this._logger.warn(`The session has been closed, trying to re-initialize.`);
 
                 if (this._retryCounter < 3) {
                     // we retry this 3 times, the `retry` option in the init function is set to true and passed on 
                     this._retryCounter = retry ? this._retryCounter + 1 : 1;
-                    try {
-                        this._initialized = false;
-                        await this.init(this.parameterValues, true);
-                    } catch (e) {
-                        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-                        throw this._logger.handleError(topic, scope, e);
-                    }
+                    this._initialized = false;
+                    await this.init(this.parameterValues, true);
                 } else {
                     // the retries were exceeded, we close the session
-                    this._logger.warn(LOGGING_TOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
                     try { await this._closeOnFailure(); } catch (e) { }
-                    throw this._logger.handleError(topic, scope, e);
+                    throw e;
                 }
             } else if (e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR) {
                 // if any of the above errors occur, we try to get a new bearer token
@@ -1251,24 +1199,24 @@ export class SessionEngine implements ISessionEngine {
                     if (this._refreshBearerToken) {
                         this.bearerToken = await this._refreshBearerToken();
                         this._retryCounter = retry ? this._retryCounter + 1 : 1;
-                        this._logger.warn(LOGGING_TOPIC.SESSION, 'Re-trying with new bearer token.');
+                        this._logger.warn('Re-trying with new bearer token.');
                     } else {
                         // no bearer tokens are supplied, we close the session
-                        this._logger.warn(LOGGING_TOPIC.SESSION, 'No retry possible, no new bearer token was supplied. Closing Session.');
+                        this._logger.warn('No retry possible, no new bearer token was supplied. Closing Session.');
                         try { await this._closeOnFailure(); } catch (e) { }
-                        throw this._logger.handleError(topic, scope, e);
+                        throw e;
                     }
                 } else {
                     // the retries were exceeded, we close the session
-                    this._logger.warn(LOGGING_TOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
                     try { await this._closeOnFailure(); } catch (e) { }
-                    throw this._logger.handleError(topic, scope, e);
+                    throw e;
                 }
             } else {
-                throw this._logger.handleError(topic, scope, e);
+                throw e;
             }
         } else {
-            throw this._logger.handleError(topic, scope, e);
+            throw e;
         }
     }
 

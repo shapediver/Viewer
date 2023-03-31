@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { SDTFAttributesData, SDTFAttributeData, SDTFItemData, SDTFOverviewData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { create, ISdtfReadableAsset, ISdtfReadableAttributes, ISdtfReadableChunk, ISdtfReadableDataItem, ISdtfReadableNode, SdtfTypeHintName  } from '@shapediver/sdk.sdtf-v1'
@@ -36,10 +36,8 @@ export class SDTFEngine {
         const node = new TreeNode('sdtf');
 
         // We have to be safe and check if the content is a valid SDTF file
-        if (!content || (content && !content.href)) {
-            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
-        }
+        if (!content || (content && !content.href))
+            throw new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
 
         // create the sdtf sdk
         const sdk = jwtToken ? await create({ authToken: jwtToken }) : await create();
@@ -48,18 +46,14 @@ export class SDTFEngine {
         // parse the file
         this._parsedFile = await parser.readFromUrl(content.href!);
 
-        try {
-            // crete the overview and save it in the node data
-            node.data.push(await this.createSDTFOverview());
+        // crete the overview and save it in the node data
+        node.data.push(await this.createSDTFOverview());
 
-            // add the loaded chunks to the node
-            for (let i = 0; i < this._parsedFile.chunks.length; i++) 
-                node.children.push(await this.loadChunk(this._parsedFile.chunks[i], i));
-                
-            return node;
-        } catch (e) {
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.load`, e);
-        }
+        // add the loaded chunks to the node
+        for (let i = 0; i < this._parsedFile.chunks.length; i++)
+            node.children.push(await this.loadChunk(this._parsedFile.chunks[i], i));
+
+        return node;
     }
 
     // #endregion Public Methods (1)

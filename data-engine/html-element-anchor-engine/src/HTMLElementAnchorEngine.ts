@@ -1,6 +1,6 @@
 import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, IAnchorDataText, IAnchorDataImage } from '@shapediver/viewer.shared.types'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGING_TOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
+import { Logger, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -41,7 +41,7 @@ export class HTMLElementAnchorEngine {
                 data.forEach((element: ITag2D) => {
                     // we need a location and a text, otherwise this doesn't make sense
                     if (!element.location || !element.text) {
-                        this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'HTMLElementAnchorEngine.load: One of the specified Tag2D elements did not have all necessary properties.');
+                        this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Tag2D elements did not have all necessary properties.');
                         return;
                     }
                     const cleanedText = this._inputValidator.sanitize(element.text);
@@ -54,7 +54,7 @@ export class HTMLElementAnchorEngine {
                 const data: IAnchor[] = content.data;
                 data.forEach((element: IAnchor) => {
                     if (!element.location || !element.data) {
-                        this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
+                        this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
                         return;
                     }
 
@@ -76,7 +76,7 @@ export class HTMLElementAnchorEngine {
 
                     if (!element.format || (element.format === 'text')) {
                         if (!(<IAnchorDataText>element.data).text) {
-                            this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'HTMLElementAnchorEngine.load: The text property for an Anchor element is missing.');
+                            this._logger.warn('HTMLElementAnchorEngine.load: The text property for an Anchor element is missing.');
                             return;
                         }
                         const textData = <IAnchorDataText>element.data;
@@ -98,7 +98,7 @@ export class HTMLElementAnchorEngine {
 
                     } else if (element.format === 'image') {
                         if (!(<IAnchorDataImage>element.data).src || !(<IAnchorDataImage>element.data).width || !(<IAnchorDataImage>element.data).height || !(<IAnchorDataImage>element.data).alt) {
-                            this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
+                            this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
                             return;
                         }
                         const imageData = <IAnchorDataImage>element.data;
@@ -117,13 +117,12 @@ export class HTMLElementAnchorEngine {
                             intersectionTarget
                         }));
                     }
-                    this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, `HTMLElementAnchorEngine.load: The Anchor does not have a recognized format: ${element.format}`);
+                    this._logger.warn(`HTMLElementAnchorEngine.load: The Anchor does not have a recognized format: ${element.format}`);
                 });
             }
             return node;
         } catch (e) {
-            const error = new ShapeDiverViewerDataProcessingError('HTMLElementAnchorEngine.load: Loading of anchors failed.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `HTMLElementAnchorEngine.load`, error);
+            throw new ShapeDiverViewerDataProcessingError('HTMLElementAnchorEngine.load: Loading of anchors failed.');
         }
     }
 

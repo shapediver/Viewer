@@ -2,7 +2,7 @@ import { vec3 } from "gl-matrix";
 import { IDirectionalLight } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IDirectionalLightApi } from "../../../../interfaces/viewport/lights/types/IDirectionalLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
-import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class DirectionalLightApi extends AbstractLightApi implements IDirectionalLightApi {
@@ -34,15 +34,10 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
 
     public set castShadow(value: boolean) {
         const scope = 'castShadow';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'boolean');
-            this.#light.castShadow = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
+        this.#light.castShadow = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get direction(): vec3 {
@@ -51,15 +46,10 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
 
     public set direction(value: vec3) {
         const scope = 'direction';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
-            this.#light.direction = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'vec3');
+        this.#light.direction = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get shadowMapBias(): number {
@@ -68,15 +58,10 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
 
     public set shadowMapBias(value: number) {
         const scope = 'shadowMapBias';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.shadowMapBias = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.shadowMapBias = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get shadowMapResolution(): number {
@@ -85,15 +70,10 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
 
     public set shadowMapResolution(value: number) {
         const scope = 'shadowMapResolution';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.shadowMapResolution = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.shadowMapResolution = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     // #endregion Public Accessors (8)

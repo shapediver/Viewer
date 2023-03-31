@@ -2,7 +2,7 @@ import { mat4, vec2, vec3 } from "gl-matrix";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
-import { Converter, IDomEventListener, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerArError, ShapeDiverViewerError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
+import { Converter, IDomEventListener, InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerArError, ShapeDiverViewerError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
 import { FLAG_TYPE, RENDERER_TYPE, SESSION_SETTINGS_MODE, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { PerspectiveCameraApi } from "./camera/PerspectiveCameraApi";
@@ -95,15 +95,10 @@ export class ViewportApi implements IViewportApi {
 
     public set ambientOcclusion(value: boolean) {
         const scope = 'ambientOcclusion';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.ambientOcclusion = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('ambientOcclusion');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.ambientOcclusion = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('ambientOcclusion');
     }
 
     public get ambientOcclusionIntensity(): number {
@@ -112,15 +107,10 @@ export class ViewportApi implements IViewportApi {
 
     public set ambientOcclusionIntensity(value: number) {
         const scope = 'ambientOcclusionIntensity';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.ambientOcclusionIntensity = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('ambientOcclusionIntensity');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.ambientOcclusionIntensity = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('ambientOcclusionIntensity');
     }
 
     public get animations(): {
@@ -135,15 +125,10 @@ export class ViewportApi implements IViewportApi {
 
     public set arRotation(value: vec3) {
         const scope = 'arRotation';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
-            this.#renderingEngine.arRotation = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arRotation');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'vec3');
+        this.#renderingEngine.arRotation = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('arRotation');
     }
 
     public get arScale(): vec3 {
@@ -152,15 +137,10 @@ export class ViewportApi implements IViewportApi {
 
     public set arScale(value: vec3) {
         const scope = 'arScale';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
-            this.#renderingEngine.arScale = vec3.max(vec3.create(), value, vec3.fromValues(0.001, 0.001, 0.001));
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arScale');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'vec3');
+        this.#renderingEngine.arScale = vec3.max(vec3.create(), value, vec3.fromValues(0.001, 0.001, 0.001));
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('arScale');
     }
 
     public get arTranslation(): vec3 {
@@ -169,15 +149,10 @@ export class ViewportApi implements IViewportApi {
 
     public set arTranslation(value: vec3) {
         const scope = 'arTranslation';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
-            this.#renderingEngine.arTranslation = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('arTranslation');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'vec3');
+        this.#renderingEngine.arTranslation = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('arTranslation');
     }
 
     public get automaticColorAdjustment(): boolean {
@@ -186,15 +161,10 @@ export class ViewportApi implements IViewportApi {
 
     public set automaticColorAdjustment(value: boolean) {
         const scope = 'automaticColorAdjustment';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.automaticColorAdjustment = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('automaticColorAdjustment');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.automaticColorAdjustment = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('automaticColorAdjustment');
     }
 
     public get automaticResizing(): boolean {
@@ -203,15 +173,10 @@ export class ViewportApi implements IViewportApi {
 
     public set automaticResizing(value: boolean) {
         const scope = 'automaticResizing';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.automaticResizing = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('automaticResizing');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.automaticResizing = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('automaticResizing');
     }
 
     public get beautyRenderBlendingDuration(): number {
@@ -220,15 +185,10 @@ export class ViewportApi implements IViewportApi {
 
     public set beautyRenderBlendingDuration(value: number) {
         const scope = 'beautyRenderBlendingDuration';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.beautyRenderBlendingDuration = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('beautyRenderBlendingDuration');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.beautyRenderBlendingDuration = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('beautyRenderBlendingDuration');
     }
 
     public get beautyRenderDelay(): number {
@@ -237,15 +197,10 @@ export class ViewportApi implements IViewportApi {
 
     public set beautyRenderDelay(value: number) {
         const scope = 'beautyRenderDelay';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.beautyRenderDelay = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('beautyRenderDelay');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.beautyRenderDelay = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('beautyRenderDelay');
     }
 
     public get camera(): ICameraApi | null {
@@ -267,15 +222,10 @@ export class ViewportApi implements IViewportApi {
 
     public set clearAlpha(value: number) {
         const scope = 'clearAlpha';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.clearAlpha = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('clearAlpha');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.clearAlpha = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('clearAlpha');
     }
 
     public get clearColor(): Color {
@@ -284,15 +234,10 @@ export class ViewportApi implements IViewportApi {
 
     public set clearColor(value: Color) {
         const scope = 'clearColor';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.clearColor = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('clearColor');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'color');
+        this.#renderingEngine.clearColor = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('clearColor');
     }
 
     public get enableAR(): boolean {
@@ -301,15 +246,10 @@ export class ViewportApi implements IViewportApi {
 
     public set enableAR(value: boolean) {
         const scope = 'enableAR';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.enableAR = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('enableAR');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.enableAR = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('enableAR');
     }
 
     public get environmentMap(): string | string[] {
@@ -318,15 +258,10 @@ export class ViewportApi implements IViewportApi {
 
     public set environmentMap(value: string | string[]) {
         const scope = 'environmentMap';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'cubeMap');
-            this.#renderingEngine.environmentMap = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMap');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'cubeMap');
+        this.#renderingEngine.environmentMap = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMap');
     }
 
     public get environmentMapAsBackground(): boolean {
@@ -335,15 +270,10 @@ export class ViewportApi implements IViewportApi {
 
     public set environmentMapAsBackground(value: boolean) {
         const scope = 'environmentMapAsBackground';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.environmentMapAsBackground = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapAsBackground');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.environmentMapAsBackground = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapAsBackground');
     }
 
     public get environmentMapResolution(): string {
@@ -352,15 +282,10 @@ export class ViewportApi implements IViewportApi {
 
     public set environmentMapResolution(value: string) {
         const scope = 'environmentMapResolution';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'string');
-            this.#renderingEngine.environmentMapResolution = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapResolution');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'string');
+        this.#renderingEngine.environmentMapResolution = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapResolution');
     }
 
     public get environmentMapForUnlitMaterials(): boolean {
@@ -369,15 +294,10 @@ export class ViewportApi implements IViewportApi {
 
     public set environmentMapForUnlitMaterials(value: boolean) {
         const scope = 'environmentMapForUnlitMaterials';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.environmentMapForUnlitMaterials = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('environmentMapForUnlitMaterials');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.environmentMapForUnlitMaterials = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapForUnlitMaterials');
     }
 
     public get gridColor(): Color {
@@ -386,15 +306,10 @@ export class ViewportApi implements IViewportApi {
 
     public set gridColor(value: Color) {
         const scope = 'gridColor';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.gridColor = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('gridColor');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'color');
+        this.#renderingEngine.gridColor = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('gridColor');
     }
 
     public get gridVisibility(): boolean {
@@ -403,15 +318,10 @@ export class ViewportApi implements IViewportApi {
 
     public set gridVisibility(value: boolean) {
         const scope = 'gridVisibility';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.gridVisibility = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('gridVisibility');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.gridVisibility = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('gridVisibility');
     }
 
     public get groundPlaneColor(): Color {
@@ -420,15 +330,10 @@ export class ViewportApi implements IViewportApi {
 
     public set groundPlaneColor(value: Color) {
         const scope = 'groundPlaneColor';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneColor = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneColor');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'color');
+        this.#renderingEngine.groundPlaneColor = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('groundPlaneColor');
     }
 
     public get groundPlaneVisibility(): boolean {
@@ -437,15 +342,10 @@ export class ViewportApi implements IViewportApi {
 
     public set groundPlaneVisibility(value: boolean) {
         const scope = 'groundPlaneVisibility';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.groundPlaneVisibility = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneVisibility');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.groundPlaneVisibility = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('groundPlaneVisibility');
     }
 
     public get groundPlaneShadowColor(): Color {
@@ -454,15 +354,10 @@ export class ViewportApi implements IViewportApi {
 
     public set groundPlaneShadowColor(value: Color) {
         const scope = 'groundPlaneShadowColor';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneShadowColor = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneShadowColor');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'color');
+        this.#renderingEngine.groundPlaneShadowColor = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('groundPlaneShadowColor');
     }
 
     public get groundPlaneShadowVisibility(): boolean {
@@ -471,15 +366,10 @@ export class ViewportApi implements IViewportApi {
 
     public set groundPlaneShadowVisibility(value: boolean) {
         const scope = 'groundPlaneShadowVisibility';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.groundPlaneShadowVisibility = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('groundPlaneShadowVisibility');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.groundPlaneShadowVisibility = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('groundPlaneShadowVisibility');
     }
 
     public get id(): string {
@@ -492,15 +382,10 @@ export class ViewportApi implements IViewportApi {
 
     public set lights(value: boolean) {
         const scope = 'lights';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.lights = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('lights');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.lights = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('lights');
     }
 
     public get lightScene(): ILightSceneApi | null {
@@ -511,7 +396,7 @@ export class ViewportApi implements IViewportApi {
     public get lightScenes(): { [key: string]: ILightSceneApi; } {
         return this.#lightScenes;
     }
-    
+
     public get maximumRenderingSize(): {
         width: number,
         height: number
@@ -524,17 +409,12 @@ export class ViewportApi implements IViewportApi {
         height: number
     }) {
         const scope = 'maximumRenderingSize';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value, 'object');
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value.width, 'number');
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value.height, 'number');
-            this.#renderingEngine.maximumRenderingSize = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('maximumRenderingSize');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value.width, 'number');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value.height, 'number');
+        this.#renderingEngine.maximumRenderingSize = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('maximumRenderingSize');
     }
 
     public get outputEncoding(): TEXTURE_ENCODING {
@@ -543,15 +423,10 @@ export class ViewportApi implements IViewportApi {
 
     public set outputEncoding(value: TEXTURE_ENCODING) {
         const scope = 'outputEncoding';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
-            this.#renderingEngine.outputEncoding = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('outputEncoding');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+        this.#renderingEngine.outputEncoding = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('outputEncoding');
     }
 
     public get physicallyCorrectLights(): boolean {
@@ -560,15 +435,10 @@ export class ViewportApi implements IViewportApi {
 
     public set physicallyCorrectLights(value: boolean) {
         const scope = 'physicallyCorrectLights';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.physicallyCorrectLights = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('physicallyCorrectLights');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.physicallyCorrectLights = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('physicallyCorrectLights');
     }
 
     public get pointSize(): number {
@@ -577,15 +447,10 @@ export class ViewportApi implements IViewportApi {
 
     public set pointSize(value: number) {
         const scope = 'pointSize';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.pointSize = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('pointSize');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.pointSize = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('pointSize');
     }
 
     public get sessionSettingsId(): string | undefined {
@@ -602,15 +467,10 @@ export class ViewportApi implements IViewportApi {
 
     public set shadows(value: boolean) {
         const scope = 'shadows';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.shadows = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('shadows');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.shadows = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('shadows');
     }
 
     public get show(): boolean {
@@ -619,15 +479,10 @@ export class ViewportApi implements IViewportApi {
 
     public set show(value: boolean) {
         const scope = 'show';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.show = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('show');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.show = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('show');
     }
 
     public get showStatistics(): boolean {
@@ -636,15 +491,10 @@ export class ViewportApi implements IViewportApi {
 
     public set showStatistics(value: boolean) {
         const scope = 'showStatistics';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.showStatistics = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('showStatistics');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.showStatistics = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('showStatistics');
     }
 
     public get textureEncoding(): TEXTURE_ENCODING {
@@ -653,22 +503,17 @@ export class ViewportApi implements IViewportApi {
 
     public set textureEncoding(value: TEXTURE_ENCODING) {
         const scope = 'textureEncoding';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
-            this.#renderingEngine.textureEncoding = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('textureEncoding');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+        this.#renderingEngine.textureEncoding = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('textureEncoding');
     }
 
     public get threeJsCoreObjects(): {
         scene: THREE.Scene,
         renderer: THREE.WebGLRenderer,
         camera: THREE.Camera
-      } {
+    } {
         return {
             scene: this.#renderingEngine.sceneTreeManager.scene,
             renderer: this.#renderingEngine.renderer,
@@ -682,15 +527,10 @@ export class ViewportApi implements IViewportApi {
 
     public set toneMapping(value: TONE_MAPPING) {
         const scope = 'toneMapping';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(TONE_MAPPING));
-            this.#renderingEngine.toneMapping = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('toneMapping');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', true, Object.values(TONE_MAPPING));
+        this.#renderingEngine.toneMapping = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('toneMapping');
     }
 
     public get toneMappingExposure(): number {
@@ -699,15 +539,10 @@ export class ViewportApi implements IViewportApi {
 
     public set toneMappingExposure(value: number) {
         const scope = 'toneMappingExposure';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'number');
-            this.#renderingEngine.toneMappingExposure = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('toneMappingExposure');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.toneMappingExposure = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('toneMappingExposure');
     }
 
     public get type(): RENDERER_TYPE {
@@ -716,15 +551,10 @@ export class ViewportApi implements IViewportApi {
 
     public set type(value: RENDERER_TYPE) {
         const scope = 'type';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'enum', true, Object.values(RENDERER_TYPE));
-            this.#renderingEngine.type = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('type');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', true, Object.values(RENDERER_TYPE));
+        this.#renderingEngine.type = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('type');
     }
 
     public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
@@ -733,15 +563,10 @@ export class ViewportApi implements IViewportApi {
 
     public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
         const scope = 'visualizeAttributes';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'function', false);
-            this.#renderingEngine.visualizeAttributes = value;
-            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
-            this.update('visualizeAttributes');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
+        this.#renderingEngine.visualizeAttributes = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('visualizeAttributes');
     }
 
     // #endregion Public Accessors (69)
@@ -750,493 +575,310 @@ export class ViewportApi implements IViewportApi {
 
     public addCanvasEventListener(listener: IDomEventListener): string {
         const scope = 'addCanvasEventListener';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, listener, 'object');
-            return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, listener, 'object');
+        return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
     }
 
     public addFlag(flag: FLAG_TYPE): string {
         const scope = 'addFlag';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, flag, 'enum', true, Object.values(FLAG_TYPE));
-            const token = this.#renderingEngine.addFlag(flag);
-            return token;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, flag, 'enum', true, Object.values(FLAG_TYPE));
+        const token = this.#renderingEngine.addFlag(flag);
+        return token;
     }
 
     public assignCamera(id: string): boolean {
         const scope = 'assignCamera';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
-            const check = this.#renderingEngine.cameraEngine.assignCamera(id);
-            this.update('assignCamera');
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string');
+        const check = this.#renderingEngine.cameraEngine.assignCamera(id);
+        this.update('assignCamera');
+        return check;
     }
 
     public assignLightScene(id: string): boolean {
         const scope = 'assignLightScene';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
-            const check = this.#renderingEngine.lightEngine.assignLightScene(id);
-            this.update('assignLightScene');
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string');
+        const check = this.#renderingEngine.lightEngine.assignLightScene(id);
+        this.update('assignLightScene');
+        return check;
     }
-    
+
     public applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
         const scope = 'applyViewportSettings';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, settings, 'object');
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, sections, 'object', false);
-            return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
+        return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
     }
 
     public async close(): Promise<void> {
-        const scope = 'close';
-        try {
-            return await this.#creationControlCenter.closeRenderingEngine(this.id);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        return await this.#creationControlCenter.closeRenderingEngine(this.id);
     }
 
     public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
         const scope = 'convert3Dto2D';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, p, 'vec3');
-            return this.#renderingEngine.convert3Dto2D(p);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, p, 'vec3');
+        return this.#renderingEngine.convert3Dto2D(p);
     }
 
     public async convertToGlTF(node: ITreeNode = sceneTree.root): Promise<Blob> {
         const scope = 'convertToGlTF';
-        try {
-            if (!(node instanceof TreeNode)) {
-                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
-            }
-            this.update('convertToGlTF.start');
-            const result = await this.#gltfConverter.convert(node, false, this.id);
-            this.update('convertToGlTF.end');
-            return new Blob([result], { type: 'application/octet-stream' });
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        if (!(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+
+        this.update('convertToGlTF.start');
+        const result = await this.#gltfConverter.convert(node, false, this.id);
+        this.update('convertToGlTF.end');
+        return new Blob([result], { type: 'application/octet-stream' });
     }
 
     public createLightScene(properties?: { name?: string | undefined; standard?: boolean | undefined; }): ILightSceneApi {
         const scope = 'createLightScene';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, properties, 'object', false);
-            const prop = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, prop.name, 'string', false);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, prop.standard, 'boolean', false);
-            const lightScene = this.#renderingEngine.lightEngine.createLightScene(properties || {});
-            this.update('createLightScene');
-            return this.#lightScenes[lightScene.id];
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, properties, 'object', false);
+        const prop = Object.assign({}, properties);
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, prop.name, 'string', false);
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, prop.standard, 'boolean', false);
+        const lightScene = this.#renderingEngine.lightEngine.createLightScene(properties || {});
+        this.update('createLightScene');
+        return this.#lightScenes[lightScene.id];
     }
 
     public createOrthographicCamera(id?: string): IOrthographicCameraApi {
         const scope = 'createOrthographicCamera';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string', false);
-            const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
-            this.update('createOrthographicCamera');
-            return <IOrthographicCameraApi>this.#cameras[camera.id];
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string', false);
+        const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
+        this.update('createOrthographicCamera');
+        return <IOrthographicCameraApi>this.#cameras[camera.id];
     }
 
     public createPerspectiveCamera(id?: string): IPerspectiveCameraApi {
         const scope = 'createPerspectiveCamera';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string', false);
-            const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
-            this.update('createPerspectiveCamera');
-            return <IPerspectiveCameraApi>this.#cameras[camera.id];
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string', false);
+        const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
+        this.update('createPerspectiveCamera');
+        return <IPerspectiveCameraApi>this.#cameras[camera.id];
     }
 
     public createSDTFOverview(node: ITreeNode): ISDTFOverview {
         const scope = 'createSDTFOverview';
-        try {
-            if (!(node instanceof TreeNode)) {
-                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
-            }
-            this.update('createSDTFOverview');
-            return this.#renderingEngine.createSDTFOverview(node);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        if (!(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+
+        this.update('createSDTFOverview');
+        return this.#renderingEngine.createSDTFOverview(node);
     }
 
     public displayErrorMessage(message: string): void {
         const scope = 'displayErrorMessage';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, message, 'string');
-            this.#renderingEngine.displayErrorMessage(message);
-            this.update('displayErrorMessage');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, message, 'string');
+        this.#renderingEngine.displayErrorMessage(message);
+        this.update('displayErrorMessage');
     }
 
     public getEnvironmentMapImageUrl(): string {
-        const scope = 'getEnvironmentMapImageUrl';
-        try {
-            return this.#renderingEngine.getEnvironmentMapImageUrl();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        return this.#renderingEngine.getEnvironmentMapImageUrl();
     }
 
     public getScreenshot(type?: string, quality?: number): string {
         const scope = 'getScreenshot';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, type, 'string', false);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, quality, 'number', false);
-            this.update('getScreenshot');
-            return this.#renderingEngine.getScreenshot(type, quality);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, type, 'string', false);
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, quality, 'number', false);
+        this.update('getScreenshot');
+        return this.#renderingEngine.getScreenshot(type, quality);
     }
 
     public getViewportSettings(): ISettingsV3_1 {
-        const scope = 'getViewportSettings';
-        try {
-            return this.#creationControlCenter.getViewportSettings(this.id);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
-        }
+        return this.#creationControlCenter.getViewportSettings(this.id);
+
     }
 
     public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
-        const scope = 'mouseEventToRay';
-        try {
-            return this.#renderingEngine.mouseEventToRay(event);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
-        }
+        return this.#renderingEngine.mouseEventToRay(event);
     }
 
     public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
         const scope = 'raytraceScene';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, origin, 'vec3');
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, direction, 'vec3');
-            return this.#renderingEngine.raytraceScene(origin, direction, root);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, origin, 'vec3');
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, direction, 'vec3');
+        return this.#renderingEngine.raytraceScene(origin, direction, root);
     }
 
     public removeCamera(id: string): boolean {
         const scope = 'removeCamera';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
-            const check = this.#renderingEngine.cameraEngine.removeCamera(id);
-            this.update('removeCamera');
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string');
+        const check = this.#renderingEngine.cameraEngine.removeCamera(id);
+        this.update('removeCamera');
+        return check;
     }
 
     public removeCanvasEventListener(token: string): boolean {
         const scope = 'removeCanvasEventListener';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, token, 'string');
-            const check = this.#renderingEngine.domEventEngine.removeDomEventListener(token);
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, token, 'string');
+        const check = this.#renderingEngine.domEventEngine.removeDomEventListener(token);
+        return check;
     }
 
     public removeFlag(token: string): boolean {
         const scope = 'removeFlag';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, token, 'string');
-            const check = this.#renderingEngine.removeFlag(token)
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, token, 'string');
+        const check = this.#renderingEngine.removeFlag(token)
+        return check;
     }
 
     public removeLightScene(id: string): boolean {
         const scope = 'removeLightScene';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, id, 'string');
-            const check = this.#renderingEngine.lightEngine.removeLightScene(id);
-            this.update('removeLightScene');
-            return check;
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, id, 'string');
+        const check = this.#renderingEngine.lightEngine.removeLightScene(id);
+        this.update('removeLightScene');
+        return check;
     }
 
     public render(): void {
-        const scope = 'render';
-        try {
-            this.#renderingEngine.renderingManager.render();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#renderingEngine.renderingManager.render();
     }
 
     public resetToDefaultCameras(): void {
-        const scope = 'resetToDefaultCameras';
-        try {
-            for(let c in this.cameras)
-                this.#renderingEngine.cameraEngine.removeCamera(c);
-            this.#renderingEngine.cameraEngine.createDefaultCameras();
-            this.update('resetToDefaultCameras');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        for (let c in this.cameras)
+            this.#renderingEngine.cameraEngine.removeCamera(c);
+        this.#renderingEngine.cameraEngine.createDefaultCameras();
+        this.update('resetToDefaultCameras');
     }
 
     public resize(width: number, height: number): void {
         const scope = 'resize';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, width, 'number');
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, height, 'number');
-            this.#renderingEngine.resize(width, height);
-            this.update('resize');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, width, 'number');
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, height, 'number');
+        this.#renderingEngine.resize(width, height);
+        this.update('resize');
     }
 
     public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
-        const scope = 'touchToRay';
-        try {
-            return this.#renderingEngine.touchToRay(event);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
-        }
+        return this.#renderingEngine.touchToRay(event);
+
     }
 
     public touchEventToRay(event: TouchEvent): { origin: vec3; direction: vec3; } {
-        const scope = 'touchEventToRay';
-        try {
-            return this.#renderingEngine.touchEventToRay(event);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
-        }
+        return this.#renderingEngine.touchEventToRay(event);
+
     }
 
     public update(id?: string): void {
-        const scope = 'update';
-        try {
-            this.#renderingEngine.update(id || 'ViewportApi');
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#renderingEngine.update(id || 'ViewportApi');
     }
 
     public updateNode(node: ITreeNode): void {
         const scope = 'updateNode';
-        try {
-            if (!(node instanceof TreeNode)) {
-                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
-            }
-            this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id]);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        if (!(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id]);
     }
 
     public updateEnvironmentGeometry(): void {
-        const scope = 'updateEnvironmentGeometry';
-        try {
-            this.#renderingEngine.updateEnvironmentGeometry();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        this.#renderingEngine.updateEnvironmentGeometry();
     }
 
     public async createArSessionLink(node?: ITreeNode, qrCode: boolean = true, fallbackUrl?: string): Promise<string> {
         const scope = 'createArSessionLink';
-        try {
-            if (node && !(node instanceof TreeNode)) {
-                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'ViewportApi.validateAndError', error, false);
-            }
-            const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
-            if (!arSessionEngine) {
-                const error = new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
-                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'ViewportApi.createArSessionLink', error, false);
-            }
-            const targetNode = node || sceneTree.root;
+        if (node && !(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-            let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
+        if (!arSessionEngine)
+            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
 
-            // add scaling matrix to scene tree node
-            targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+        const targetNode = node || sceneTree.root;
 
-            // create the gltf
-            this.update('createArSessionLink.start');
-            const blob = await this.#gltfConverter.convert(targetNode, true);
+        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
 
-            // remove scaling the matrix
-            for (let i = 0; i < targetNode.transformations.length; i++)
-                if (targetNode.transformations[i].id === 'ar_scaling')
-                    targetNode.transformations.splice(i, 1);
+        // add scaling matrix to scene tree node
+        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
 
-            this.update('createArSessionLink.end');
+        // create the gltf
+        this.update('createArSessionLink.start');
+        const blob = await this.#gltfConverter.convert(targetNode, true);
 
-            const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
+        // remove scaling the matrix
+        for (let i = 0; i < targetNode.transformations.length; i++)
+            if (targetNode.transformations[i].id === 'ar_scaling')
+                targetNode.transformations.splice(i, 1);
 
-            const backends: {
-                [key:string]: string
-            } = {
-                "sddev3": "https://sddev3.eu-central-1.shapediver.com",
-                "sddev2": "https://sddev2.eu-central-1.shapediver.com",
-                "sddev": "https://sddev.eu-central-1.shapediver.com",
-                "sdtest": "https://sdtest.us-east-1.shapediver.com",
-                "sdeuc1": "https://sdeuc1.eu-central-1.shapediver.com",
-                "sdr7euc1": "https://sdr7euc1.eu-central-1.shapediver.com",
-                "sduse1": "https://model-view.shapediver.com",
-            }
+        this.update('createArSessionLink.end');
 
-            let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
-            if(!backendIdentifier) {
-                const modelViewUrl = arSessionEngine.modelViewUrl;
-                backendIdentifier = modelViewUrl.replace("https://", "").replace(".shapediver.com", "");
-            }
+        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
 
-            let fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : "";
+        const backends: {
+            [key: string]: string
+        } = {
+            "sddev3": "https://sddev3.eu-central-1.shapediver.com",
+            "sddev2": "https://sddev2.eu-central-1.shapediver.com",
+            "sddev": "https://sddev.eu-central-1.shapediver.com",
+            "sdtest": "https://sdtest.us-east-1.shapediver.com",
+            "sdeuc1": "https://sdeuc1.eu-central-1.shapediver.com",
+            "sdr7euc1": "https://sdr7euc1.eu-central-1.shapediver.com",
+            "sduse1": "https://model-view.shapediver.com",
+        }
 
-            if(!response.gltf || !response.gltf.sceneId) {
-                const error = new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
-                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'ViewportApi.createArSessionLink', error, false);            
-            }
-            let sceneId = response.gltf!.sceneId!;
+        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
+        if (!backendIdentifier) {
+            const modelViewUrl = arSessionEngine.modelViewUrl;
+            backendIdentifier = modelViewUrl.replace("https://", "").replace(".shapediver.com", "");
+        }
 
-            const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
-            if (qrCode === false) {
-                return link;
-            } else {
-                let qrCodeLink = await new Promise<string>(resolve => {
-                    QRCode.toDataURL(link,
-                        (error: Error | null | undefined, url: string) => {
-                            resolve(url)
-                        }
-                    )
-                })
-                return qrCodeLink;
-            }
+        let fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : "";
 
+        if (!response.gltf || !response.gltf.sceneId)
+            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
 
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        let sceneId = response.gltf!.sceneId!;
+
+        const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
+        if (qrCode === false) {
+            return link;
+        } else {
+            let qrCodeLink = await new Promise<string>(resolve => {
+                QRCode.toDataURL(link,
+                    (error: Error | null | undefined, url: string) => {
+                        resolve(url)
+                    }
+                )
+            })
+            return qrCodeLink;
         }
     }
 
 
     public async viewInAR(node?: ITreeNode): Promise<void> {
         const scope = 'viewInAR';
-        try {
-            if (node && !(node instanceof TreeNode)) {
-                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
-            }
-            const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
-            if (!arSessionEngine) {
-                const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
-                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'Api.viewInAR', error, false);
-            }
-            const targetNode = node || sceneTree.root;
+        if (node && !(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-            let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
+        if (!arSessionEngine)
+            throw new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
 
-            // add scaling matrix to scene tree node
-            targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+        const targetNode = node || sceneTree.root;
 
-            // create the gltf
-            this.update('viewInAR.start');
-            const blob = await this.#gltfConverter.convert(targetNode, true);
+        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
 
-            // remove scaling the matrix
-            for (let i = 0; i < targetNode.transformations.length; i++)
-                if (targetNode.transformations[i].id === 'ar_scaling')
-                    targetNode.transformations.splice(i, 1);
+        // add scaling matrix to scene tree node
+        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
 
-            this.update('viewInAR.end');
+        // create the gltf
+        this.update('viewInAR.start');
+        const blob = await this.#gltfConverter.convert(targetNode, true);
 
-            const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
-            return this.#renderingEngine.viewInAR(response.gltf!.href)
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        // remove scaling the matrix
+        for (let i = 0; i < targetNode.transformations.length; i++)
+            if (targetNode.transformations[i].id === 'ar_scaling')
+                targetNode.transformations.splice(i, 1);
+
+        this.update('viewInAR.end');
+
+        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+        return this.#renderingEngine.viewInAR(response.gltf!.href)
     }
 
     public viewableInAR(): boolean {
-        const scope = 'viewableInAR';
-        try {
-            return this.#renderingEngine.viewableInAR();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
-        }
+        return this.#renderingEngine.viewableInAR();
     }
     // #endregion Public Methods (23)
 }

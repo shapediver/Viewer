@@ -1,5 +1,5 @@
 import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { Logger, ShapeDiverViewerSessionError, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IFileParameter } from "../../interfaces/dto/IFileParameter";
 import { Parameter } from "./Parameter";
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
@@ -56,12 +56,10 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             }
         }
 
-        if (!allowedType) {
-            const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
-        }
+        if (!allowedType) 
+            throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
 
-        this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
+        this.#logger.debug(`Parameter(${this.id}).upload: Uploading FileParameter.`);
 
         return await this.#sessionEngine.uploadFile(this.id, data, type!)
     }

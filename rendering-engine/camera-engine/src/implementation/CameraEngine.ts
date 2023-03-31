@@ -4,7 +4,6 @@ import {
   EVENTTYPE,
   IEvent,
   Logger,
-  LOGGING_TOPIC,
   SettingsEngine,
   ShapeDiverViewerCameraError,
   StateEngine,
@@ -158,10 +157,8 @@ export class CameraEngine implements ICameraEngine {
     public createCamera(type: CAMERA_TYPE, id?: string): ICamera {
         const cameras = this.cameras;
         const cameraId = id || this._uuidGenerator.create();
-        if (cameras[cameraId]) {
-            const error = new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
-            throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `CameraEngine.createCamera`, error, false);
-        }
+        if (cameras[cameraId]) 
+            throw new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
         
         const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
         camera.assignViewer(this._renderingEngine);

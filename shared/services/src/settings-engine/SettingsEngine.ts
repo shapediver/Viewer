@@ -1,7 +1,7 @@
 import { convert, validate, DefaultsV3_3 as Defaults, ISettingsV3_3 as ISettings, versions, latestVersion } from '@shapediver/viewer.settings';
 
 import { EventEngine } from '../event-engine/EventEngine'
-import { Logger, LOGGING_TOPIC } from '../logger/Logger';
+import { Logger } from '../logger/Logger';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 
 type IARSettings = ISettings["ar"];
@@ -122,8 +122,7 @@ export class SettingsEngine {
                 this.cleanSettings(this._settings);
                 return;
             } catch (e) {
-                const error = new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
-                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
+                throw new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
             }
         } else {
             this._settings_version = latestVersion;       

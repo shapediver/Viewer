@@ -1,7 +1,7 @@
 import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, Logger, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
@@ -87,88 +87,78 @@ export class CreationControlCenter implements ICreationControlCenter {
   }
 
   public async closeRenderingEngine(id: string): Promise<void> {
-    try {
-      if (!this.renderingEngines[id]) return;
+    if (!this.renderingEngines[id]) return;
 
-      this.#logger.debugLow(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.closeRenderingEngine: Closing viewport ${id}.`);
-      if (this.#stateEngine.renderingEngines[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.renderingEngines[id].initialized.then(() => resolve()) })
+    this.#logger.debugLow(`CreationControlCenter.closeRenderingEngine: Closing viewport ${id}.`);
+    if (this.#stateEngine.renderingEngines[id].initialized.resolved === false)
+      await new Promise<void>(resolve => { this.#stateEngine.renderingEngines[id].initialized.then(() => resolve()) })
 
-      this.#stateEngine.renderingEngines[id].settingsAssigned.reset();
-      this.#stateEngine.renderingEngines[id].environmentMapLoaded.reset();
-      this.#stateEngine.renderingEngines[id].initialized.reset();
+    this.#stateEngine.renderingEngines[id].settingsAssigned.reset();
+    this.#stateEngine.renderingEngines[id].environmentMapLoaded.reset();
+    this.#stateEngine.renderingEngines[id].initialized.reset();
 
-      await this.renderingEngines[id].close();
+    await this.renderingEngines[id].close();
 
-      (<any>this.renderingEngines[id]) = undefined;
-      delete this.renderingEngines[id];
-      delete this.#stateEngine.renderingEngines[id];
+    (<any>this.renderingEngines[id]) = undefined;
+    delete this.renderingEngines[id];
+    delete this.#stateEngine.renderingEngines[id];
 
-      this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.closeRenderingEngine: Viewport closed.`);
-      if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+    this.#logger.debug(`CreationControlCenter.closeRenderingEngine: Viewport closed.`);
+    if (this.update) this.update(this.sessionEngines, this.renderingEngines);
 
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeRenderingEngine', e);
-    }
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
   }
 
   public async closeSessionEngine(id: string): Promise<void> {
-    try {
-      if (!this.sessionEngines[id]) return;
+    if (!this.sessionEngines[id]) return;
 
-      this.#logger.debugLow(LOGGING_TOPIC.SESSION, `CreationControlCenter.closeSession: Closing session ${id}.`);
+    this.#logger.debugLow(`CreationControlCenter.closeSession: Closing session ${id}.`);
 
-      if (this.#stateEngine.sessionEngines[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.sessionEngines[id].initialized.then(() => resolve()) })
+    if (this.#stateEngine.sessionEngines[id].initialized.resolved === false)
+      await new Promise<void>(resolve => { this.#stateEngine.sessionEngines[id].initialized.then(() => resolve()) })
 
-      await this.sessionEngines[id].close();
+    await this.sessionEngines[id].close();
 
-      // remove from rendering engines (also directly assigned)
-      for (let r in this.renderingEngines) {
-        if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && this.renderingEngines[r].sessionSettingsId === id) ||
-          (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
-          this.renderingEngines[r].reset();
-        }
+    // remove from rendering engines (also directly assigned)
+    for (let r in this.renderingEngines) {
+      if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && this.renderingEngines[r].sessionSettingsId === id) ||
+        (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
+        this.renderingEngines[r].reset();
       }
+    }
 
-      if (this.#firstSessionEngine === this.sessionEngines[id]) {
-        const engines = Object.values(this.sessionEngines).filter(s => s.id !== id);
-        this.#firstSessionEngine = engines.length === 0 ? undefined : engines[0];
-        if (this.#firstSessionEngine) {
-          let promises: StatePromise<boolean>[] = []
+    if (this.#firstSessionEngine === this.sessionEngines[id]) {
+      const engines = Object.values(this.sessionEngines).filter(s => s.id !== id);
+      this.#firstSessionEngine = engines.length === 0 ? undefined : engines[0];
+      if (this.#firstSessionEngine) {
+        let promises: StatePromise<boolean>[] = []
 
-          for (let r in this.renderingEngines) {
-            if (this.#stateEngine.renderingEngines[r].settingsAssigned.resolved === false) {
-              if (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
-                promises.push(this.#stateEngine.renderingEngines[r].settingsAssigned)
-                this.assignSettings(this.renderingEngines[r], this.#firstSessionEngine?.id);
-              }
+        for (let r in this.renderingEngines) {
+          if (this.#stateEngine.renderingEngines[r].settingsAssigned.resolved === false) {
+            if (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
+              promises.push(this.#stateEngine.renderingEngines[r].settingsAssigned)
+              this.assignSettings(this.renderingEngines[r], this.#firstSessionEngine?.id);
             }
           }
-
-          await Promise.all(promises)
-
-          if (this.update) this.update(this.sessionEngines, this.renderingEngines);
         }
+
+        await Promise.all(promises)
+
+        if (this.update) this.update(this.sessionEngines, this.renderingEngines);
       }
-
-      this.#stateEngine.sessionEngines[id].settingsRegistered.reset();
-
-      (<any>this.sessionEngines[id]) = undefined;
-      delete this.sessionEngines[id];
-      delete this.#stateEngine.sessionEngines[id];
-
-      this.#logger.debug(LOGGING_TOPIC.SESSION, `CreationControlCenter.closeSessionEngine: Session closed.`);
-      for (let r in this.renderingEngines)
-        this.renderingEngines[r].update('CreationControlCenter.closeSessionEngine')
-      if (this.update) this.update(this.sessionEngines, this.renderingEngines);
-      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeSession', e);
     }
+
+    this.#stateEngine.sessionEngines[id].settingsRegistered.reset();
+
+    (<any>this.sessionEngines[id]) = undefined;
+    delete this.sessionEngines[id];
+    delete this.#stateEngine.sessionEngines[id];
+
+    this.#logger.debug(`CreationControlCenter.closeSessionEngine: Session closed.`);
+    for (let r in this.renderingEngines)
+      this.renderingEngines[r].update('CreationControlCenter.closeSessionEngine')
+    if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
   }
 
   public async createRenderingEngineThreeJs(properties: {
@@ -197,7 +187,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         const eventClose: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.1, status: 'Closing viewport with same id' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
-        this.#logger.warn(LOGGING_TOPIC.SESSION, `CreationControlCenter.createViewport: Viewer with this id (${renderingEngineId}) already exists. Closing initial instance.`);
+        this.#logger.warn(`CreationControlCenter.createViewport: Viewer with this id (${renderingEngineId}) already exists. Closing initial instance.`);
         await this.closeRenderingEngine(renderingEngineId);
       }
 
@@ -217,7 +207,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL) {
         if (!properties.sessionSettingsId) 
-          throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.'), undefined, true, true);
+          throw new ShapeDiverViewerViewportError('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.');
         const sessionSettingsId = properties.sessionSettingsId;
         if (this.sessionEngines[sessionSettingsId]) {
           await this.assignSettings(renderingEngine, sessionSettingsId)
@@ -270,7 +260,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       this.#stateEngine.renderingEngines[renderingEngineId].initialized.resolve(true);
 
-      this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.createViewport: Viewport(${renderingEngineId}) created.`);
+      this.#logger.debug(`CreationControlCenter.createViewport: Viewport(${renderingEngineId}) created.`);
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created' };
       
@@ -288,8 +278,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       const eventCancel2: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created failed, exiting' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.createViewport', e);
+      throw e;
     }
   }
 
@@ -316,7 +305,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         const eventClose: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.1, status: 'Closing session with same id' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
-        this.#logger.warn(LOGGING_TOPIC.SESSION, `CreationControlCenter.createSession: Session with this id (${sessionEngineId}) already exists. Closing initial instance.`);
+        this.#logger.warn(`CreationControlCenter.createSession: Session with this id (${sessionEngineId}) already exists. Closing initial instance.`);
         await this.closeSessionEngine(sessionEngineId);
       }
 
@@ -369,7 +358,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.sessionEngines[sessionEngineId] = sessionEngine;
 
       this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolve(true);
-      this.#logger.debug(LOGGING_TOPIC.SESSION, `CreationControlCenter.createSession: Session(${sessionEngine.id}) created.`);
+      this.#logger.debug(`CreationControlCenter.createSession: Session(${sessionEngine.id}) created.`);
 
       if (!this.#firstSessionEngine) 
         this.#firstSessionEngine = sessionEngine;
@@ -413,40 +402,34 @@ export class CreationControlCenter implements ICreationControlCenter {
       const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created failed' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.createSession', e);
+      throw e;
     }
   }
 
   public createSettingsObject(sessionId: string, viewportId?: string): any {
-    try {
-      const session = this.sessionEngines[sessionId];
+    const session = this.sessionEngines[sessionId];
 
-      session.settingsEngine.settings.build_version = build_data.build_version;
-      session.settingsEngine.settings.build_date = build_data.build_date;
-      session.settingsEngine.settings.settings_version = '3.3'; 
+    session.settingsEngine.settings.build_version = build_data.build_version;
+    session.settingsEngine.settings.build_date = build_data.build_date;
+    session.settingsEngine.settings.settings_version = '3.3';
 
-      let renderingEngine;
-      if(viewportId && this.renderingEngines[viewportId]) {
-        renderingEngine = this.renderingEngines[viewportId];
-      } else {
-        for (let r in this.renderingEngines) {
-          if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
-            (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === this.renderingEngines[r].sessionSettingsId)) {
-              renderingEngine = this.renderingEngines[r];
-              continue;
-          }
+    let renderingEngine;
+    if (viewportId && this.renderingEngines[viewportId]) {
+      renderingEngine = this.renderingEngines[viewportId];
+    } else {
+      for (let r in this.renderingEngines) {
+        if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+          (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === this.renderingEngines[r].sessionSettingsId)) {
+          renderingEngine = this.renderingEngines[r];
+          continue;
         }
       }
-
-      if (renderingEngine)
-        renderingEngine.saveSettings();
-        
-      return session.settingsEngine.convertToTargetVersion();
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);
     }
+
+    if (renderingEngine)
+      renderingEngine.saveSettings();
+
+    return session.settingsEngine.convertToTargetVersion();
   }
 
   public getARSessionEngine(): SessionEngine | undefined {
@@ -460,7 +443,7 @@ export class CreationControlCenter implements ICreationControlCenter {
   public getViewportSettings(viewportId: string): ISettingsV3_1 {
     let renderingEngine = this.renderingEngines[viewportId];
     if(!renderingEngine)
-      throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Viewport with id ' + viewportId + ' could not be found.'), undefined, true, false);
+      throw new ShapeDiverViewerViewportError('Viewport with id ' + viewportId + ' could not be found.');
 
     const settingsEngine: SettingsEngine = new SettingsEngine();
     renderingEngine.saveSettings(settingsEngine);
@@ -493,23 +476,17 @@ export class CreationControlCenter implements ICreationControlCenter {
   }
 
   public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {
-    try {
-      const session = this.sessionEngines[sessionId];
-      await session.saveUiProperties(false);
+    const session = this.sessionEngines[sessionId];
+    await session.saveUiProperties(false);
 
-      const settingsObject = this.createSettingsObject(sessionId, viewportId);
-      const response = await session.saveSettings(settingsObject);
-      if (response) {
-        this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings: Saved settings.`);
-      } else {
-        const error = new ShapeDiverViewerSessionError(`Session(${sessionId}).saveSettings: Could not save settings.`);
-        throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, error);
-      }
-      return response;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);
+    const settingsObject = this.createSettingsObject(sessionId, viewportId);
+    const response = await session.saveSettings(settingsObject);
+    if (response) {
+      this.#logger.debug(`Session(${sessionId}).saveSettings: Saved settings.`);
+    } else {
+      throw new ShapeDiverViewerSessionError(`Session(${sessionId}).saveSettings: Could not save settings.`);
     }
+    return response;
   }
 
   // #endregion Public Methods (11)

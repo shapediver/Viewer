@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, HttpResponse, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, HttpResponse, Logger, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
     MATERIAL_SIDE,
@@ -42,10 +42,8 @@ export class MaterialEngine {
        */
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode(content.name || 'material');
-        if (!content) {
-            const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
-        }
+        if (!content) 
+            throw new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
 
         let material = new MaterialStandardData();
 
@@ -66,14 +64,12 @@ export class MaterialEngine {
                     } else if (data.version === '3.0') {
                         material = await this.loadMaterialV3(this.loadMaterialDefinitionV3(data, presetData));
                     } else {
-                        const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
-                        throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
+                        throw new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
                     }
                 }
             }
         } else {
-            const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
+            throw new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
         }
         
         node.data.push(material);
@@ -82,28 +78,17 @@ export class MaterialEngine {
 
     public async loadMap(url: string, id?: string): Promise<MapData | null> {
         let image: HTMLImageElement;
-        try {
-            if (!id) {
-                image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(url));
-            } else {
-                image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
-            }
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
+        if (!id) {
+            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(url));
+        } else {
+            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
         }
         return new MapData(image);
     }
 
     public async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
-        let image: HTMLImageElement;
-        try {
-            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(texture.href!));
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
-        }
-
+        let image: HTMLImageElement = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(texture.href!));
+        
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const center = texture.center ? vec2.fromValues(texture.center[0], texture.center[1]) : vec2.fromValues(0, 0);

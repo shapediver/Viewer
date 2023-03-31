@@ -2,7 +2,7 @@ import { vec3 } from "gl-matrix";
 import { ISpotLight } from "@shapediver/viewer.rendering-engine.light-engine";
 import { ISpotLightApi } from "../../../../interfaces/viewport/lights/types/ISpotLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
-import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
@@ -18,11 +18,11 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
     // #region Constructors (1)
 
     constructor(viewportApi: IViewportApi, light: ISpotLight) {
-            super(viewportApi, light)
-            this.#viewportApi = viewportApi;
-            this.#light = light;
-            this.scope = 'SpotLightApi';
-        }
+        super(viewportApi, light)
+        this.#viewportApi = viewportApi;
+        this.#light = light;
+        this.scope = 'SpotLightApi';
+    }
 
     // #endregion Constructors (1)
 
@@ -34,15 +34,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set angle(value: number) {
         const scope = 'angle';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.angle = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.angle = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get decay(): number {
@@ -51,15 +46,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set decay(value: number) {
         const scope = 'decay';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.decay = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.decay = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get distance(): number {
@@ -68,15 +58,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set distance(value: number) {
         const scope = 'distance';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.distance = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.distance = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get penumbra(): number {
@@ -85,15 +70,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set penumbra(value: number) {
         const scope = 'penumbra';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
-            this.#light.penumbra = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
+        this.#light.penumbra = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get position(): vec3 {
@@ -102,15 +82,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set position(value: vec3) {
         const scope = 'position';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
-            this.#light.position = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'vec3');
+        this.#light.position = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get target(): vec3 {
@@ -119,15 +94,10 @@ export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {
 
     public set target(value: vec3) {
         const scope = 'target';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
-            this.#light.target = value;
-            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
-            this.#viewportApi.update();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'vec3');
+        this.#light.target = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     // #endregion Public Accessors (12)

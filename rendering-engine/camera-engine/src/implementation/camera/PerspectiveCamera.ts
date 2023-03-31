@@ -2,7 +2,6 @@ import {
   Converter,
   DomEventEngine,
   Logger,
-  LOGGING_TOPIC,
   SettingsEngine,
   ShapeDiverViewerCameraError,
   StateEngine,
@@ -114,10 +113,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   }
 
   public assignViewer(renderingEngine: IRenderingEngine): void {
-    if(renderingEngine.closed) {
-      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${renderingEngine.id} not found.`);
-      throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
-    }
+    if(renderingEngine.closed) 
+      throw new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${renderingEngine.id} not found.`);
 
     this.assignViewerInternal(renderingEngine.id, renderingEngine.canvas);
     this._controls.assignViewer(renderingEngine.id, renderingEngine.canvas);

@@ -57,6 +57,15 @@ export class ShapeDiverViewerSessionError extends ShapeDiverViewerError {
     }
 }
 
+export class ShapeDiverViewerViewportError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string,
+        public readonly errorObject?: Error | unknown
+    ) {
+        super(ShapeDiverViewerErrorType.SESSION_ERROR, 'An error occurred while working with the viewport.', message);
+    }
+}
+
 export class ShapeDiverViewerLightError extends ShapeDiverViewerError {
     constructor(
         public readonly message: string,

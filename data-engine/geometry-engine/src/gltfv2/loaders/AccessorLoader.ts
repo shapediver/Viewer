@@ -2,15 +2,10 @@ import { AttributeData } from '@shapediver/viewer.shared.types'
 import {
   ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V2 as ACCESSORTYPE,
-  IGLTF_v2,
-  IGLTF_v2_Material,
-  IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-  IGLTF_v2_Primitive,
-  ISHAPEDIVER_materials_preset,
+  IGLTF_v2
 } from '@shapediver/viewer.data-engine.shared-types'
-import { Logger, LOGGING_TOPIC } from '@shapediver/viewer.shared.services'
+import { Logger } from '@shapediver/viewer.shared.services'
 
-import { BufferLoader } from './BufferLoader'
 import { BufferViewLoader } from './BufferViewLoader'
 
 export class AccessorLoader {
@@ -57,7 +52,7 @@ export class AccessorLoader {
             const arrayBuffer = this._bufferViewLoader.getBufferView(accessor.bufferView!);
 
             const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-            if (accessor.componentType === 5124) this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
+            if (accessor.componentType === 5124) this._logger.warn('GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
             const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
 
             const elementBytes = ArrayType.BYTES_PER_ELEMENT;

@@ -23,7 +23,7 @@ import { SpecularGlossinessMaterial, SpecularGlossinessMaterialParameters } from
 import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 import { MeshUnlitMaterialParameters } from '../materials/MeshUnlitMaterialParameters'
-import { Converter, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
 import { SDColor } from '../objects/SDColor'
@@ -628,8 +628,7 @@ export class MaterialLoader implements ILoader {
         }
 
         // we should never get here
-        const error = new ShapeDiverViewerDataProcessingError(`MaterialLoader.getMaterialProperties: No proper material properties were found.`);
-        throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialLoader.getMaterialProperties`, error);
+        throw new ShapeDiverViewerDataProcessingError(`MaterialLoader.getMaterialProperties: No proper material properties were found.`);
     }
 
     public createMaterial(

@@ -23,7 +23,6 @@ import {
     EVENTTYPE,
     InputValidator,
     Logger,
-    LOGGING_TOPIC,
     ShapeDiverBackendError,
     ShapeDiverViewerError,
     StateEngine,
@@ -401,16 +400,10 @@ export class SceneTreeManager implements IManager {
 
         if (this._renderingEngine.visualizeAttributes) {
             const userVisData = this._renderingEngine.visualizeAttributes(this._currentSDTFOverview, itemData);
-            try {
-                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes`, userVisData, 'object', true);
-                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
-                visData.material = userVisData.material;
-                visData.matrix = visData.matrix;
-            } catch (e) {
-                if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError)
-                    throw e;
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes: Encountered an error while parsing the visualization data.`, e);
-            }
+            this._inputValidator.validateAndError(`Viewer.visualizeAttributes`, userVisData, 'object', true);
+            this._inputValidator.validateAndError(`Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
+            visData.material = userVisData.material;
+            visData.matrix = visData.matrix;
         }
 
         node.addTransformation({

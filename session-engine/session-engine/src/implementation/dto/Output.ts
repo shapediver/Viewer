@@ -1,6 +1,6 @@
 import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InputValidator, UuidGenerator, LOGGING_TOPIC, ShapeDiverViewerError, ShapeDiverBackendError, Logger } from "@shapediver/viewer.shared.services";
+import { InputValidator, UuidGenerator, ShapeDiverViewerError, ShapeDiverBackendError, Logger } from "@shapediver/viewer.shared.services";
 import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "../../interfaces/dto/IOutput";
 import { SessionEngine } from "../SessionEngine";
 
@@ -203,7 +203,7 @@ export class Output implements IOutput {
     this.#chunks = outputDef.chunks;
     this.#msg = outputDef.msg;
     if (this.#msg !== undefined)
-      this.#logger.warn(LOGGING_TOPIC.OUTPUT, `Output(${this.id}): ${this.#msg}`);
+      this.#logger.warn(`Output(${this.id}): ${this.#msg}`);
     this.#bbmin = outputDef.bbmin;
     this.#bbmax = outputDef.bbmax;
     this.#status_computation = outputDef.status_computation;

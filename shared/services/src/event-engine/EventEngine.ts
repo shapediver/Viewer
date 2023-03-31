@@ -3,7 +3,7 @@ import { IListener } from './interfaces/IListener'
 import { ICallback } from './interfaces/ICallback'
 import { IEvent } from './interfaces/IEvent'
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
-import { Logger, LOGGING_TOPIC } from '../logger/Logger'
+import { Logger } from '../logger/Logger'
 
 export class EventEngine {
     // #region Properties (4)
@@ -120,7 +120,7 @@ export class EventEngine {
                 typeString = mainType.toLowerCase();
         
         if(!typeString || !this._eventListeners[typeString]) {
-            this._logger.warn(LOGGING_TOPIC.GENERAL, 'EventEngine.convertTypeToString: No valid type provided.');
+            this._logger.warn('EventEngine.convertTypeToString: No valid type provided.');
             return '';
         }
         

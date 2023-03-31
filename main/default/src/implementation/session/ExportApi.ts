@@ -1,5 +1,5 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseParameterGroup } from "@shapediver/api.geometry-api-dto-v2";
-import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { IExport } from "@shapediver/viewer.session-engine.session-engine";
 import { IExportApi } from "../../interfaces/session/IExportApi";
 
@@ -39,14 +39,9 @@ export class ExportApi implements IExportApi {
 
     public set displayname(value: string | undefined) {
         const scope = 'displayname';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, value, 'string', false);
-            this.#export.displayname = value;
-            this.#logger.debug(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}: ${scope} was updated to ${this.#export.displayname}.`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'string', false);
+        this.#export.displayname = value;
+        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.displayname}.`);
     }
 
     public get filename(): string | undefined {
@@ -63,14 +58,9 @@ export class ExportApi implements IExportApi {
 
     public set hidden(value: boolean) {
         const scope = 'hidden';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, value, 'boolean');
-            this.#export.hidden = value;
-            this.#logger.debug(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}: ${scope} was updated to ${this.#export.hidden}.`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'boolean');
+        this.#export.hidden = value;
+        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.hidden}.`);
     }
 
     public get id(): string {
@@ -83,14 +73,9 @@ export class ExportApi implements IExportApi {
 
     public set maxWaitTime(value: number) {
         const scope = 'maxWaitTime';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, value, 'number');
-            this.#export.maxWaitTime = value;
-            this.#logger.debug(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}: ${scope} was updated to ${this.#export.maxWaitTime}.`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'number');
+        this.#export.maxWaitTime = value;
+        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.maxWaitTime}.`);
     }
 
     public get msg(): string | undefined {
@@ -107,14 +92,9 @@ export class ExportApi implements IExportApi {
 
     public set order(value: number | undefined) {
         const scope = 'order';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, value, 'number', false);
-            this.#export.order = value;
-            this.#logger.debug(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}: ${scope} was updated to ${this.#export.order}.`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'number', false);
+        this.#export.order = value;
+        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.order}.`);
     }
 
     public get result(): ShapeDiverResponseExportResult | undefined {
@@ -135,14 +115,9 @@ export class ExportApi implements IExportApi {
 
     public set tooltip(value: string | undefined) {
         const scope = 'tooltip';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, value, 'string', false);
-            this.#export.tooltip = value;
-            this.#logger.debug(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}: ${scope} was updated to ${this.#export.tooltip}.`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'string', false);
+        this.#export.tooltip = value;
+        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.tooltip}.`);
     }
 
     public get type(): ShapeDiverResponseExportDefinitionType {
@@ -163,26 +138,15 @@ export class ExportApi implements IExportApi {
 
     public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
         const scope = 'request';
-        try {
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, parameters, 'object');
-            for(let p in parameters)
-                this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, parameters[p], 'string');
+        this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters, 'object');
+        for (let p in parameters)
+            this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters[p], 'string');
 
-            return this.#export.request(parameters);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        return this.#export.request(parameters);
     }
 
     public updateExport() {
-        const scope = 'updateExport';
-        try {
-            this.#export.updateExport();
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `ExportApi.${scope}`, e);
-        }
+        this.#export.updateExport();
     }
 
 }

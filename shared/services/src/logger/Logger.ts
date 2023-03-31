@@ -1,13 +1,3 @@
-import * as Sentry from '@sentry/browser'
-import { build_data } from '@shapediver/viewer.shared.build-data'
-import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-core'
-
-import { UuidGenerator } from '../uuid-generator/UuidGenerator'
-import { BrowserClient, Hub } from '@sentry/browser'
-import { ShapeDiverViewerConnectionError, ShapeDiverViewerUnknownError } from './ShapeDiverViewerErrors'
-import { ShapeDiverRequestError, ShapeDiverResponseError, ShapeDiverResponseErrorType } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ShapeDiverViewerError } from './ShapeDiverError'
-
 export enum LOGGING_LEVEL {
     NONE = 'none',
     ERROR = 'error',
@@ -20,68 +10,15 @@ export enum LOGGING_LEVEL {
     DEBUG_LOW = 'debug_low',
 }
 
-export enum LOGGING_TOPIC {
-    AR = 'ar',
-    GENERAL = 'general',
-    EXPORT = 'export',
-    PARAMETER = 'parameter',
-    OUTPUT = 'output',
-    SESSION = 'session',
-    VIEWPORT = 'viewer',
-    CAMERA = 'camera',
-    LIGHT = 'light',
-    CAMERA_CONTROL = 'camera_control',
-    DATA_PROCESSING = 'data_processing',
-    SDTF = 'sdtf',
-    THREE = 'three',
-    SETTINGS = 'settings',
-}
-
 export class Logger {
     // #region Properties (8)
 
     private static _instance: Logger;
 
-    private _breadCrumbCounter: number = 0;
-    private _breadCrumbs: Sentry.Breadcrumb[] = [];
     private _loggingLevel: LOGGING_LEVEL = LOGGING_LEVEL.WARN;
-    private _sentryHub: Hub;
     private _showMessages: boolean = true;
-    private _uuidGenerator: UuidGenerator = UuidGenerator.instance;
-    private _userId = this._uuidGenerator.create();
 
     // #endregion Properties (8)
-
-    // #region Constructors (1)
-
-    private constructor() {
-        const client = new BrowserClient({
-            dsn: "https://0510990697b04b9da3ad07868e94e378@o363881.ingest.sentry.io/5828729",
-            environment: 'local',
-            release: build_data.build_version,
-            maxBreadcrumbs: 100,
-            beforeBreadcrumb: (breadcrumb: Sentry.Breadcrumb, hint?: Sentry.BreadcrumbHint | undefined): Sentry.Breadcrumb | null => {
-                this._breadCrumbCounter++;
-                return breadcrumb;
-            },
-            beforeSend: (event: Sentry.Event, hint?: Sentry.EventHint | undefined): Sentry.Event | PromiseLike<Sentry.Event | null> | null => {
-                if (event.level === Sentry.Severity.Debug) event.fingerprint ? event.fingerprint.push(this._userId + '') : event.fingerprint = [this._userId + ''];
-                return event;
-            },
-            // Set tracesSampleRate to 1.0 to capture 100%
-            // of transactions for performance monitoring.
-            // We recommend adjusting this value in production
-            tracesSampleRate: 1.0
-        });
-
-        this._sentryHub = new Hub(client);
-
-        this._sentryHub.setUser({
-            id: this._userId
-        })
-    }
-
-    // #endregion Constructors (1)
 
     // #region Public Static Accessors (1)
 
@@ -117,7 +54,7 @@ export class Logger {
      * Logging a debug message.
      * @param msg the message
      */
-    public debug(topic: LOGGING_TOPIC, msg: string): void {
+    public debug(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.DEBUG) && this.showMessages === true)
             console.debug('(DEBUG) ' + this.messageConstruction(msg));
     }
@@ -126,7 +63,7 @@ export class Logger {
      * Logging a debug message with high priority.
      * @param msg the message
      */
-    public debugHigh(topic: LOGGING_TOPIC, msg: string): void {
+    public debugHigh(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.DEBUG_HIGH) && this.showMessages === true)
             console.debug('(DEBUG_HIGH) ' + this.messageConstruction(msg));
     }
@@ -135,7 +72,7 @@ export class Logger {
      * Logging a debug message with low priority.
      * @param msg the message
      */
-    public debugLow(topic: LOGGING_TOPIC, msg: string): void {
+    public debugLow(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.DEBUG_LOW) && this.showMessages === true)
             console.debug('(DEBUG_LOW) ' + this.messageConstruction(msg));
     }
@@ -144,7 +81,7 @@ export class Logger {
      * Logging a debug message with medium priority.
      * @param msg the message
      */
-    public debugMedium(topic: LOGGING_TOPIC, msg: string): void {
+    public debugMedium(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.DEBUG_MEDIUM) && this.showMessages === true)
             console.debug('(DEBUG_MEDIUM) ' + this.messageConstruction(msg));
     }
@@ -153,106 +90,34 @@ export class Logger {
      * Logging an error.
      * @param msg the message
      */
-    public error(topic: LOGGING_TOPIC, error: Error, msg?: string, throwError: boolean = false, notifySentry: boolean = true): void {
-        this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
-        if(notifySentry) 
-            this.sentryError(topic, error, msg);
+    public error(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.ERROR) && this.showMessages === true) 
-            console.error('(ERROR) ' + this.messageConstruction(msg || error.message));
-        if(throwError) throw error;
+            console.error('(ERROR) ' + this.messageConstruction(msg));
     }
 
     /**
      * Logging a fatal error.
      * @param msg the message
      */
-    public fatal(topic: LOGGING_TOPIC, msg: string, error: Error, throwError: boolean = false): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Fatal);
-        this.sentryError(topic, error, msg);
+    public fatal(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.FATAL) && this.showMessages === true)
             console.error('(FATAL) ' + this.messageConstruction(msg));
-        if(throwError) throw error;
-    }
-
-    public handleError(topic: LOGGING_TOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, logToSentry = true) {
-        if (this.canLog(LOGGING_LEVEL.ERROR) && this.showMessages === true) 
-            //console.error('(ERROR) ', e);
-        if(e instanceof ShapeDiverRequestError) {
-            const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            if(logToSentry) this.sentryError(topic, e, messageProperty);
-            throw e;
-        } else if(e instanceof ShapeDiverResponseError && e.error === ShapeDiverResponseErrorType.UNKNOWN) {
-            const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            if(logToSentry) this.sentryError(topic, e, messageProperty);
-            throw e;
-        } else if(e instanceof ShapeDiverResponseError) {
-            throw e;
-        } else if (e instanceof ShapeDiverViewerError) {
-            const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            if(logToSentry) {
-                if(!(e instanceof ShapeDiverViewerConnectionError) || (e.status && e.status >= 500)) {
-                    this.sentryError(topic, e, messageProperty);
-                }
-            }
-            throw e;
-        } else if(e) {
-            const error = <any>e;
-            const messageProperty = error.message ? error.message : `An unknown issue occurred in ${scope}.`;
-            const viewerError = new ShapeDiverViewerUnknownError(messageProperty, error);
-            if(logToSentry) this.sentryError(topic, viewerError, messageProperty);
-            throw viewerError;
-        }
     }
 
     /**
      * Logging an info.
      * @param msg the message
      */
-    public info(topic: LOGGING_TOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Info);
+    public info(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.INFO) && this.showMessages === true)
             console.info('(INFO) ' + this.messageConstruction(msg));
-    }
-
-    public sentryBreadcrumb(topic: LOGGING_TOPIC, msg: string, level: Sentry.Severity) {
-        this._breadCrumbs.push({
-            category: topic,
-            message: msg,
-            level: Sentry.Severity.Debug,
-            timestamp: Math.floor(new Date().getTime() / 1000)
-        })
-    }
-
-    public sentryError(topic: LOGGING_TOPIC, error: ShapeDiverBackendError | ShapeDiverViewerError | Error, msg?: string) {
-        this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
-
-        const breadcrumbCounter = this._breadCrumbCounter > 100 ? 100 : this._breadCrumbCounter;
-        for(let i = breadcrumbCounter; i < this._breadCrumbs.length + breadcrumbCounter; i++) {
-            if(i%100 === 0 && i !== 0) {
-                this._sentryHub.setTag('topic', topic);
-                this._sentryHub.setUser({ id: this._userId })
-                this._sentryHub.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId + ')', Sentry.Severity.Debug);
-                this._sentryHub.getScope()?.clear()
-            }
-            this._sentryHub.addBreadcrumb(this._breadCrumbs[i-breadcrumbCounter]);
-        }
-
-        this._sentryHub.setTag('topic', topic);
-        this._sentryHub.setUser({ id: this._userId })
-        
-        if(error instanceof ShapeDiverBackendError || error instanceof ShapeDiverViewerError) {
-            this._sentryHub.captureMessage(error.message, Sentry.Severity.Error);
-        } else {            
-            this._sentryHub.captureException(error);
-        }
     }
 
     /**
      * Logging a warning.
      * @param msg the message
      */
-    public warn(topic: LOGGING_TOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Warning);
+    public warn(msg: string): void {
         if (this.canLog(LOGGING_LEVEL.WARN) && this.showMessages === true)
             console.warn('(WARN) ' + this.messageConstruction(msg));
     }

@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix";
-import { Logger, LOGGING_TOPIC, UuidGenerator, ShapeDiverViewerGeneralError, ShapeDiverViewerError, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
+import { Logger, UuidGenerator, ShapeDiverViewerGeneralError, ShapeDiverViewerError, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../interfaces/IInteractionManager";

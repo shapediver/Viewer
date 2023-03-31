@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { HttpClient, Logger, LOGGING_TOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
@@ -49,10 +49,8 @@ export class Tag3dEngine {
         if(this._stateEngine.fontLoaded.resolved === false)
             await this._stateEngine.fontLoaded;
 
-        if (!content) {
-            const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `Tag3dEngine.loadContent`, error);
-        }
+        if (!content) 
+            throw new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
 
         if (content.data && Array.isArray(content.data)) {
             for (let i = 0; i < content.data.length; i++) {
@@ -168,8 +166,7 @@ export class Tag3dEngine {
                 }   
             }
         } else {
-            const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `Tag3dEngine.loadContent`, error);
+            throw new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.');
         }
         return node;
     }

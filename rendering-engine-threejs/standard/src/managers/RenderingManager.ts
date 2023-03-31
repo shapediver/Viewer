@@ -12,7 +12,6 @@ import {
   EVENTTYPE,
   EVENTTYPE_VIEWPORT,
   Logger,
-  LOGGING_TOPIC,
   ShapeDiverViewerWebGLError,
   StateEngine,
   SystemInfo,
@@ -227,7 +226,7 @@ export class RenderingManager implements IManager {
 
     public evaluateTextureUnitCount(value: number) {
         if(value > this._maxTextureUnits) {
-            this._logger.warn(LOGGING_TOPIC.VIEWPORT, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
+            this._logger.warn(`RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
             this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
         } else {
@@ -493,10 +492,9 @@ export class RenderingManager implements IManager {
                 _gl = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
 
                 if (_gl !== null) {
-                    this._logger.warn(LOGGING_TOPIC.VIEWPORT, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
+                    this._logger.warn('RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
-                    const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
-                    throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `RenderingLogic.createWebGLContext`, error, false);
+                    throw new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
                 }
             }
 
@@ -513,7 +511,7 @@ export class RenderingManager implements IManager {
                 const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 if (renderer === "Google SwiftShader") {
                     this._usingSwiftShader = true;
-                    this._logger.warn(LOGGING_TOPIC.VIEWPORT, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+                    this._logger.warn('RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
                 }
             }
 
@@ -522,8 +520,7 @@ export class RenderingManager implements IManager {
 
             return _gl;
         } catch (e) {
-            const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
-            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `RenderingLogic.createWebGLContext`, error, false);
+            throw new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
         }
     }
 

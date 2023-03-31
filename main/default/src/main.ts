@@ -2,7 +2,7 @@ import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILI
 import { ITree, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
 import { IViewportApi } from './interfaces/viewport/IViewportApi';
-import { EventEngine, IEvent, LOGGING_LEVEL, LOGGING_TOPIC, MainEventTypes, SettingsEngine, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { EventEngine, IEvent, LOGGING_LEVEL, MainEventTypes, SettingsEngine, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { Logger } from '@shapediver/viewer.shared.services';
 import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
 import { ShapeDiverBackendError } from '@shapediver/viewer.shared.services';
@@ -51,14 +51,9 @@ class GeneralOptions {
     }
 
     public set loggingLevel(value: LOGGING_LEVEL) {
-        try {
-            inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
-            logger.loggingLevel = value;
-            logger.debug(LOGGING_TOPIC.GENERAL, `loggingLevel: LoggingLevel was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw logger.handleError(LOGGING_TOPIC.GENERAL, 'loggingLevel', e);
-        }
+        inputValidator.validateAndError('loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
+        logger.loggingLevel = value;
+        logger.debug(`loggingLevel: LoggingLevel was set to: ${value}`);
     }
 
     public get showMessages(): boolean {
@@ -66,14 +61,9 @@ class GeneralOptions {
     }
 
     public set showMessages(value: boolean) {
-        try {
-            inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'showMessages', value, 'boolean');
-            logger.showMessages = value;
-            logger.debug(LOGGING_TOPIC.GENERAL, `showMessages: ShowMessages was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw logger.handleError(LOGGING_TOPIC.GENERAL, 'showMessages', e);
-        }
+        inputValidator.validateAndError('showMessages', value, 'boolean');
+        logger.showMessages = value;
+        logger.debug(`showMessages: ShowMessages was set to: ${value}`);
     }
 
     // #endregion Public Accessors (4)
@@ -87,15 +77,10 @@ class GeneralOptions {
  * @returns 
  */
 export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) => void): string => {
-    try {
-        inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, `addListener`, type, 'string');
-        inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, `addListener`, cb, 'function');
-        logger.debug(LOGGING_TOPIC.GENERAL, `addListener: Event Listener was registered for ${type}.`);
-        return eventEngine.addListener(type, cb);
-    } catch (e) {
-        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'addListener', e);
-    }
+    inputValidator.validateAndError(`addListener`, type, 'string');
+    inputValidator.validateAndError(`addListener`, cb, 'function');
+    logger.debug(`addListener: Event Listener was registered for ${type}.`);
+    return eventEngine.addListener(type, cb);
 };
 
 /**
@@ -105,14 +90,9 @@ export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) =
  * @returns 
  */
 export const removeListener = (id: string): boolean => {
-    try {
-        inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, `removeListener`, id, 'string');
-        logger.debug(LOGGING_TOPIC.GENERAL, `removeListener: Removing event listener with id ${id}.`);
-        return eventEngine.removeListener(id);
-    } catch (e) {
-        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'removeListener', e);
-    }
+    inputValidator.validateAndError(`removeListener`, id, 'string');
+    logger.debug(`removeListener: Removing event listener with id ${id}.`);
+    return eventEngine.removeListener(id);
 };
 
 /**
@@ -134,7 +114,7 @@ export const sessions: { [key: string]: ISessionApi; } = {};
 
 // Whenever a session or viewport is added or removed, this update is called.
 creationControlCenter.update = (
-    sessionEngines: { [key: string]: SessionEngine; }, 
+    sessionEngines: { [key: string]: SessionEngine; },
     renderingEngines: { [key: string]: RenderingEngineThreeJs; }
 ) => {
     for (let s in sessionEngines)
@@ -196,32 +176,27 @@ export const createSession = async (properties: {
     excludeViewports?: string[],
     initialParameterValues?: { [key: string]: string }
 }): Promise<ISessionApi> => {
-    try {
-        logger.info(LOGGING_TOPIC.SESSION, `createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
-        // input validation
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties, 'object');
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.ticket, 'string');
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.modelViewUrl, 'string');
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.jwtToken, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.id, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.waitForOutputs, 'boolean', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.loadOutputs, 'boolean', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.excludeViewports, 'stringArray', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.initialParameterValues, 'object', false);
-        if (properties.initialParameterValues)
-            for (let p in properties.initialParameterValues)
-                inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `createSession`, properties.initialParameterValues[p], 'string');
-    
-        if(properties.waitForOutputs === undefined) properties.waitForOutputs = true;
-        if(properties.loadOutputs === undefined) properties.loadOutputs = true;
-    
-        const sessionEngine = await creationControlCenter.createSessionEngine(properties);
-        sessions[sessionEngine.id] = new SessionApi(sessionEngine);
-        return sessions[sessionEngine.id];
-    } catch(e) {
-        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-        throw logger.handleError(LOGGING_TOPIC.SESSION, `createSession`, e);
-    }
+    logger.info(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+    // input validation
+    inputValidator.validateAndError(`createSession`, properties, 'object');
+    inputValidator.validateAndError(`createSession`, properties.ticket, 'string');
+    inputValidator.validateAndError(`createSession`, properties.modelViewUrl, 'string');
+    inputValidator.validateAndError(`createSession`, properties.jwtToken, 'string', false);
+    inputValidator.validateAndError(`createSession`, properties.id, 'string', false);
+    inputValidator.validateAndError(`createSession`, properties.waitForOutputs, 'boolean', false);
+    inputValidator.validateAndError(`createSession`, properties.loadOutputs, 'boolean', false);
+    inputValidator.validateAndError(`createSession`, properties.excludeViewports, 'stringArray', false);
+    inputValidator.validateAndError(`createSession`, properties.initialParameterValues, 'object', false);
+    if (properties.initialParameterValues)
+        for (let p in properties.initialParameterValues)
+            inputValidator.validateAndError(`createSession`, properties.initialParameterValues[p], 'string');
+
+    if (properties.waitForOutputs === undefined) properties.waitForOutputs = true;
+    if (properties.loadOutputs === undefined) properties.loadOutputs = true;
+
+    const sessionEngine = await creationControlCenter.createSessionEngine(properties);
+    sessions[sessionEngine.id] = new SessionApi(sessionEngine);
+    return sessions[sessionEngine.id];
 };
 
 /**
@@ -247,69 +222,62 @@ export const createViewport = async (properties?: {
     canvas?: HTMLCanvasElement,
     id?: string,
     branding?: {
-      /** 
-       * Optional URL to a logo to be displayed while the viewport is hidden. 
-       * A default logo will be used if none is provided. 
-       * Supply null to display no logo at all.
-       */
-      logo?: string | null,
-      /** 
-       * Optional background color to show while the viewport is hidden, can include alpha channel. 
-       * A default color will be used if none is provided.
-       */
-      backgroundColor?: string,
-      /** 
-       * Optional URL to a logo to be displayed while the viewport is in busy mode. 
-       * A default logo will be used if none is provided. 
-       * The positioning of the spinner can be influenced via {@link SPINNER_POSITIONING}.
-       */
-       busyModeSpinner?: string,
-       /**
-        * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
-        * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWPORT.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWPORT.BUSY_MODE_OFF} will be emitted.
-        */
-       busyModeDisplay?: BUSY_MODE_DISPLAY,
-       /**
-        * Where the spinner that is specified by {@link BUSY_MODE_DISPLAY} is desplayed on the screen. (default: BUSY_MODE_DISPLAY.BOTTOM_RIGHT)
-        */
-       spinnerPositioning?: SPINNER_POSITIONING
+        /** 
+         * Optional URL to a logo to be displayed while the viewport is hidden. 
+         * A default logo will be used if none is provided. 
+         * Supply null to display no logo at all.
+         */
+        logo?: string | null,
+        /** 
+         * Optional background color to show while the viewport is hidden, can include alpha channel. 
+         * A default color will be used if none is provided.
+         */
+        backgroundColor?: string,
+        /** 
+         * Optional URL to a logo to be displayed while the viewport is in busy mode. 
+         * A default logo will be used if none is provided. 
+         * The positioning of the spinner can be influenced via {@link SPINNER_POSITIONING}.
+         */
+        busyModeSpinner?: string,
+        /**
+         * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+         * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWPORT.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWPORT.BUSY_MODE_OFF} will be emitted.
+         */
+        busyModeDisplay?: BUSY_MODE_DISPLAY,
+        /**
+         * Where the spinner that is specified by {@link BUSY_MODE_DISPLAY} is desplayed on the screen. (default: BUSY_MODE_DISPLAY.BOTTOM_RIGHT)
+         */
+        spinnerPositioning?: SPINNER_POSITIONING
 
     },
     sessionSettingsId?: string,
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
     visibility?: VISIBILITY_MODE,
-  }): Promise<IViewportApi> => {
-    try {
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, 'createViewport', properties, 'object', false);
+}): Promise<IViewportApi> => {
+    inputValidator.validateAndError('createViewport', properties, 'object', false);
 
-        const prop = Object.assign({}, properties);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.canvas, 'HTMLCanvasElement', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.id, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.sessionSettingsId, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
+    const prop = Object.assign({}, properties);
+    inputValidator.validateAndError(`createViewport`, prop.canvas, 'HTMLCanvasElement', false);
+    inputValidator.validateAndError(`createViewport`, prop.id, 'string', false);
+    inputValidator.validateAndError(`createViewport`, prop.sessionSettingsId, 'string', false);
+    inputValidator.validateAndError(`createViewport`, prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
+    inputValidator.validateAndError(`createViewport`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
 
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, 'createViewport', prop.branding, 'object', false);
-        const branding = Object.assign({}, prop.branding);
-        if(branding.logo !== null) inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.logo, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.backgroundColor, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.busyModeSpinner, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
+    inputValidator.validateAndError('createViewport', prop.branding, 'object', false);
+    const branding = Object.assign({}, prop.branding);
+    if (branding.logo !== null) inputValidator.validateAndError(`createViewport`, branding.logo, 'string', false);
+    inputValidator.validateAndError(`createViewport`, branding.backgroundColor, 'string', false);
+    inputValidator.validateAndError(`createViewport`, branding.busyModeSpinner, 'string', false);
+    inputValidator.validateAndError(`createViewport`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
+    inputValidator.validateAndError(`createViewport`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
 
-        prop.sessionSettingsMode = prop.sessionSettingsMode !== undefined ? prop.sessionSettingsMode : SESSION_SETTINGS_MODE.FIRST;
+    prop.sessionSettingsMode = prop.sessionSettingsMode !== undefined ? prop.sessionSettingsMode : SESSION_SETTINGS_MODE.FIRST;
 
-        if(prop.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && !prop.sessionSettingsId) {
-            const error = new ShapeDiverViewerValidationError(`createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL`, prop.sessionSettingsId, 'string');
-            throw logger.handleError(LOGGING_TOPIC.VIEWPORT, 'createViewport', error, false);
-        }
+    if (prop.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && !prop.sessionSettingsId)
+        throw new ShapeDiverViewerValidationError(`createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL`, prop.sessionSettingsId, 'string');
 
-        const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
+    const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
 
-        viewports[renderingEngine.id] = new ViewportApi(renderingEngine);
-        return viewports[renderingEngine.id];
-    } catch (e) {
-        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'createViewport', e);
-    }
+    viewports[renderingEngine.id] = new ViewportApi(renderingEngine);
+    return viewports[renderingEngine.id];
 };

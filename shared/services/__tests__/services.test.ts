@@ -174,7 +174,7 @@ describe('test', () => {
 
 
 import { UuidGenerator } from '../src/index'
-import { Logger, LOGGING_TOPIC, PerformanceEvaluator } from '../src/index'
+import { Logger, PerformanceEvaluator } from '../src/index'
 
 jest.setTimeout(100000);
 
