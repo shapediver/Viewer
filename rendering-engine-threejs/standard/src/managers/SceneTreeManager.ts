@@ -419,28 +419,23 @@ export class SceneTreeManager implements IManager {
         switch (true) {
             case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
                 dataObject.traverse((o) => {
-                    if (o instanceof SDData) {
-                        if (o instanceof THREE.Mesh) {
-                            this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
-                            this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
-                            for (const key in o.geometry.attributes)
-                                o.geometry.deleteAttribute(key);
-                            o.geometry.setIndex(null);
-                            o.geometry.dispose();
-                            if ((<THREE.MeshPhysicalMaterial>o.material).alphaMap) (<THREE.MeshPhysicalMaterial>o.material).alphaMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).aoMap) (<THREE.MeshPhysicalMaterial>o.material).aoMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).bumpMap) (<THREE.MeshPhysicalMaterial>o.material).bumpMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).map) (<THREE.MeshPhysicalMaterial>o.material).map?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).emissiveMap) (<THREE.MeshPhysicalMaterial>o.material).emissiveMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).metalnessMap) (<THREE.MeshPhysicalMaterial>o.material).metalnessMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).roughnessMap) (<THREE.MeshPhysicalMaterial>o.material).roughnessMap?.dispose()
-                            if ((<THREE.MeshPhysicalMaterial>o.material).normalMap) (<THREE.MeshPhysicalMaterial>o.material).normalMap?.dispose()
-                            if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
-                            if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
-                            o.material.dispose();
-                        }
-                    }
+                    if (o instanceof THREE.Mesh) {
+                        this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                        this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                        for (const key in o.geometry.attributes)
+                            o.geometry.deleteAttribute(key);
+                        o.geometry.setIndex(null);
+                        o.geometry.dispose();
 
+                        for (let t in o.material) {
+                            if (o.material[t] instanceof THREE.Texture) {
+                                if (t !== 'envMap')
+                                    o.material[t].dispose();
+                            }
+                        }
+
+                        o.material.dispose();
+                    }
                 });
                 break;
             case dataObject.SDtype === SD_DATA_TYPE.THREEJS:
@@ -448,6 +443,10 @@ export class SceneTreeManager implements IManager {
             case dataObject.SDtype === SD_DATA_TYPE.MATERIAL:
                 break;
             case dataObject.SDtype === SD_DATA_TYPE.LIGHT:
+                dataObject.traverse((o) => {
+                    if (o instanceof THREE.Light)
+                        o.dispose();
+                });
                 break;
             case dataObject.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
                 this._renderingEngine.htmlElementAnchorLoader.removeData(dataObject.SDid, dataObject.SDversion);
