@@ -311,10 +311,12 @@ export class EnvironmentMapLoader implements ILoader {
                     const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadTexture(name);
                     const arrayBufferView = new Uint8Array(response.data);
                     const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
-                    new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    new RGBELoader().load(blobUrl, (texture) => {
                         const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                         this._pmremGenerator.dispose();
                         this._environmentMaps[name] = map;
+                        URL.revokeObjectURL(blobUrl);
                         resolve();
                     },
                         () => { },
@@ -336,6 +338,7 @@ export class EnvironmentMapLoader implements ILoader {
                             map.format = THREE.RGBAFormat;
                             map.mapping = THREE.CubeReflectionMapping;
                             this._environmentMaps[name] = map;
+                            urls.forEach(u => URL.revokeObjectURL(u));
                             resolve();
                         },
                         () => { },

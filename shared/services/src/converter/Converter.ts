@@ -161,6 +161,7 @@ export class Converter {
             img.crossOrigin = "anonymous";
             img.src = URL.createObjectURL(blob);
             await promise;
+            URL.revokeObjectURL(img.src);
             return img;
         }
     }

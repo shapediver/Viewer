@@ -51,7 +51,7 @@ export class TextureLoader {
                     array[i] = dataView.getUint8(i);
     
                 const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
-                const dataUri = window.URL.createObjectURL(blob);
+                const dataUri = URL.createObjectURL(blob);
     
                 promises.push(
                     new Promise<void>(resolve => {
@@ -59,6 +59,7 @@ export class TextureLoader {
                             .then(response => {
                                 this._converter.responseToImage(response).then(img => {
                                     this._loaded[textureId] = img;
+                                    URL.revokeObjectURL(dataUri)
                                     resolve()
                                 });
                             })
