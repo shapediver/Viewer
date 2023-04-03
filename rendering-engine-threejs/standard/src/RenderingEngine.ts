@@ -197,20 +197,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // creation of viewer essentials
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(prop.canvas));
 
-    this._canvas.canvasElement.addEventListener('webglcontextlost', (event) => {
-      event.preventDefault();
-      // prevent three.js event
-      event.stopImmediatePropagation();
-      this.displayErrorMessage(`An error occurred, please reload the page. If this happens again, please let us know.`);
-      this.show = false;
-    }, false);
-
-    this._canvas.canvasElement.addEventListener('webglcontextrestored', (event) => {
-      event.preventDefault();
-      // prevent three.js event
-      event.stopImmediatePropagation();
-    }, false);
-
     // creation of the engines (all singleton engines were created already)
     this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
     this._cameraEngine = new CameraEngine(this, this._canvas.canvasElement);

@@ -202,13 +202,28 @@ export class RenderingManager implements IManager {
             depth: true,
             antialias: true,
             preserveDrawingBuffer: true,
+            stencil: true,
+            premultipliedAlpha: true,
             canvas
         };
-
-        const context = this.createWebGLContext(renderingProperties);
-
-        const renderer = new THREE.WebGLRenderer(Object.assign({ context }, renderingProperties));
+        const renderer = new THREE.WebGLRenderer(renderingProperties);
         renderer.setPixelRatio(window.devicePixelRatio);
+
+        const context = renderer.getContext();
+
+        if (renderer.extensions.has("WEBGL_debug_renderer_info")) {
+            const debugInfo = renderer.extensions.get("WEBGL_debug_renderer_info");
+            console.log(debugInfo)
+            const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const rendererInfo = context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            if (rendererInfo === "Google SwiftShader") {
+                this._usingSwiftShader = true;
+                this._logger.warn('RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+            }
+        }
+
+        if (!renderer.extensions.has("EXT_shader_texture_lod"))
+            this._minimalRendering = true;
 
         renderer.physicallyCorrectLights = false;
         renderer.outputEncoding = THREE.sRGBEncoding;
@@ -462,65 +477,6 @@ export class RenderingManager implements IManager {
         return {
             width, adjustedWidth,
             height, adjustedHeight
-        }
-    }
-
-    private createWebGLContext(properties: {
-        alpha: boolean,
-        depth: boolean,
-        antialias: boolean,
-        preserveDrawingBuffer: boolean,
-        canvas: HTMLCanvasElement,
-    }): WebGLRenderingContext {
-        try {
-            let canvas = properties.canvas;
-            canvas.addEventListener('webglcontextlost', () => { }, false);
-            canvas.addEventListener('webglcontextrestored', () => { }, false);
-
-            const props = Object.assign({
-                stencil: true,
-                premultipliedAlpha: true,
-                powerPreference: 'default'
-            }, properties);
-
-
-            let _gl: WebGLRenderingContext | null = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
-
-            // creation failed
-            if (_gl === null) {
-                // create without the attributes
-                _gl = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
-
-                if (_gl !== null) {
-                    this._logger.warn('RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
-                } else {
-                    throw new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
-                }
-            }
-
-            // Some experimental-webgl implementations do not have getShaderPrecisionFormat
-            if (_gl.getShaderPrecisionFormat === undefined) {
-                _gl.getShaderPrecisionFormat = function () {
-                    return { 'rangeMin': 1, 'rangeMax': 1, 'precision': 1 };
-                };
-            }
-
-            const debugInfo = _gl.getExtension("WEBGL_debug_renderer_info");
-            if (debugInfo) {
-                const vendor = _gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                if (renderer === "Google SwiftShader") {
-                    this._usingSwiftShader = true;
-                    this._logger.warn('RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
-                }
-            }
-
-            if (!_gl.getExtension("EXT_shader_texture_lod"))
-                this._minimalRendering = true;
-
-            return _gl;
-        } catch (e) {
-            throw new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
         }
     }
 
