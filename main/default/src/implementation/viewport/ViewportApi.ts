@@ -585,6 +585,22 @@ export class ViewportApi implements IViewportApi {
         const token = this.#renderingEngine.addFlag(flag);
         return token;
     }
+    
+    public restrictEventListeners(allowedListeners: {
+        mousewheel?: boolean,
+        mousedown?: boolean,
+        mousemove?: boolean,
+        mouseup?: boolean,
+        mouseout?: boolean,
+        touchstart?: boolean,
+        touchmove?: boolean,
+        touchend?: boolean,
+        touchcancel?: boolean,
+        keydown?: boolean,
+        contextmenu?: boolean,
+    }) {
+        this.#renderingEngine.domEventEngine.allowEventListeners(allowedListeners);
+    }
 
     public assignCamera(id: string): boolean {
         const scope = 'assignCamera';

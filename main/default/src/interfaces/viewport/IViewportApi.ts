@@ -322,6 +322,31 @@ export interface IViewportApi {
    * If you want to stop this again call {@link removeFlag} with the returned token.
    */
   addFlag(flag: FLAG_TYPE): string;
+  
+
+  /**
+   * Restrict events.
+   * This can be used to disable events for a viewport.
+   * 
+   * Example use case: If you don't want to allow mouse wheel events for a specific viewport so that users can scroll past the viewport.
+   * 
+   * Be aware that this might cause some issues with the the camera controls if the mouse / touch events are disabled only partially.
+   * 
+   * @param allowedListeners 
+   */
+  restrictEventListeners(allowedListeners: {
+    mousewheel?: boolean,
+    mousedown?: boolean,
+    mousemove?: boolean,
+    mouseup?: boolean,
+    mouseout?: boolean,
+    touchstart?: boolean,
+    touchmove?: boolean,
+    touchend?: boolean,
+    touchcancel?: boolean,
+    keydown?: boolean,
+    contextmenu?: boolean,
+  }): void;
 
   /**
    * Apply the settings of a viewport manually. You can get the settings via {@link getViewportSettings}.
