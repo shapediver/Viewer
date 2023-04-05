@@ -58,6 +58,7 @@ export class SceneTreeManager implements IManager {
 
     private _currentSDTFOverview!: ISDTFOverview;
     private _mainNode!: SDObject;
+    private _lastRootVersion: string = '';
 
     // #endregion Properties (10)
 
@@ -73,6 +74,10 @@ export class SceneTreeManager implements IManager {
 
     public get boundingBox(): IBox {
         return this._boundingBox;
+    }
+
+    public get lastRootVersion(): string {
+        return this._lastRootVersion;
     }
 
     public get scene() {
@@ -324,6 +329,9 @@ export class SceneTreeManager implements IManager {
     }
 
     public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
+        if(this._tree.root.version === this._lastRootVersion) return;
+        this._lastRootVersion = this._tree.root.version;
+
         if (this._renderingEngine.closed) return;
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();

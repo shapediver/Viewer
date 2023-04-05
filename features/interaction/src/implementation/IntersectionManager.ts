@@ -34,7 +34,6 @@ export class IntersectionManager implements IIntersectionEngine {
                     this._intersectNodes.push(node)
             }
         })
-        console.log("collected Nodes: ", this._intersectNodes.length)
     }
 
     // #endregion Properties (2)

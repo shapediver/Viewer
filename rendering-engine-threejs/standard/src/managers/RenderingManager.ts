@@ -44,7 +44,6 @@ export class RenderingManager implements IManager {
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _lastCameraMatrix: mat4 = mat4.create();
-    private _lastRootVersion: string = '';
     private _lastSize: {
         adjustedWidth: number,
         adjustedHeight: number,
@@ -89,14 +88,6 @@ export class RenderingManager implements IManager {
 
     public set continuousShadowMapUpdate(value: boolean) {
         this._continuousShadowMapUpdate = value;
-    }
-
-    public get lastRootVersion(): string {
-        return this._lastRootVersion;
-    }
-
-    public set lastRootVersion(value: string) {
-        this._lastRootVersion = value;
     }
 
     public get minimalRendering(): boolean {
@@ -213,7 +204,6 @@ export class RenderingManager implements IManager {
 
         if (renderer.extensions.has("WEBGL_debug_renderer_info")) {
             const debugInfo = renderer.extensions.get("WEBGL_debug_renderer_info");
-            console.log(debugInfo)
             const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
             const rendererInfo = context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
             if (rendererInfo === "Google SwiftShader") {
@@ -335,11 +325,10 @@ export class RenderingManager implements IManager {
         this._renderingEngine.evaluateFlagState();
 
         // update if needed
-        if(this._tree.root.version !== this._lastRootVersion) {
+        if(this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion) {
             this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root, this._renderingEngine.lightEngine);
             this.updateShadowMap();
             this._animationEngine.updateAnimationData();
-            this._lastRootVersion = this._tree.root.version;
             this.render();
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id })
         }
