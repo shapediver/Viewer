@@ -13,12 +13,14 @@ import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine'
 import { SessionApi } from './implementation/session/SessionApi';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
 import { build_data } from '@shapediver/viewer.shared.build-data';
+import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 
 
 const creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
 const inputValidator: InputValidator = InputValidator.instance;
 const logger: Logger = Logger.instance;
 const eventEngine: EventEngine = EventEngine.instance;
+const geometryEngine: GeometryEngine = GeometryEngine.instance;
 
 console.log(`Powered by:
    _____  __                         ____   _                   
@@ -41,6 +43,13 @@ export interface IGeneralOptions {
      * Option to show/hide messages in the browser console.
      */
     showMessages: boolean;
+    
+    /**
+     * The number of glTFs that are downloaded and processed at the same time.
+     * Restricting this number might help if too much data is downloaded at the same time.
+     * (default: Infinity)
+     */
+    parallelGlTFProcessing: number;
 }
 
 class GeneralOptions {
@@ -64,6 +73,16 @@ class GeneralOptions {
         inputValidator.validateAndError('showMessages', value, 'boolean');
         logger.showMessages = value;
         logger.debug(`showMessages: ShowMessages was set to: ${value}`);
+    }
+    
+    public get parallelGlTFProcessing(): number {
+        return geometryEngine.parallelGlTFProcessing;
+    }
+
+    public set parallelGlTFProcessing(value: number) {
+        inputValidator.validateAndError('parallelGlTFProcessing', value, 'number');
+        geometryEngine.parallelGlTFProcessing = value;
+        logger.debug(`parallelGlTFProcessing: ParallelGlTFProcessing was set to: ${value}`);
     }
 
     // #endregion Public Accessors (4)
