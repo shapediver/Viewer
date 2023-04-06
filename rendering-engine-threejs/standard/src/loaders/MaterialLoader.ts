@@ -757,6 +757,11 @@ export class MaterialLoader implements ILoader {
                 this._defaultMaterial = <THREE.MeshPhysicalMaterial>material;
             }
 
+            this._materialCache[type + '_' + type] = {
+                material,
+                materialData
+            };
+
             return material;
         }
 
