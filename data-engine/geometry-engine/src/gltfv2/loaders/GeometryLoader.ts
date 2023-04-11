@@ -17,12 +17,12 @@ export class GeometryLoader {
     // #region Constructors (1)
 
     constructor(
-        private readonly _content: IGLTF_v2, 
-        private readonly _accessorLoader: AccessorLoader, 
-        private readonly _bufferViewLoader: BufferViewLoader, 
+        private readonly _content: IGLTF_v2,
+        private readonly _accessorLoader: AccessorLoader,
+        private readonly _bufferViewLoader: BufferViewLoader,
         private readonly _materialLoader: MaterialLoader,
         private readonly _dracoModule: any
-    ) {}
+    ) { }
 
     // #endregion Constructors (1)
 
@@ -69,19 +69,17 @@ export class GeometryLoader {
             const arrayBuffer = this._bufferViewLoader.getBufferView(dracoDef.bufferView!);
 
             const decoder = new this._dracoModule.Decoder();
-            const buffer = new this._dracoModule.DecoderBuffer();
-            buffer.Init(new Int8Array(arrayBuffer), arrayBuffer.byteLength);
-            const geometryType = decoder.GetEncodedGeometryType(buffer);
+            const array = new Int8Array(arrayBuffer);
+            const geometryType = decoder.GetEncodedGeometryType(array);
 
             let dracoGeometry;
             if (geometryType === this._dracoModule.TRIANGULAR_MESH) {
                 dracoGeometry = new this._dracoModule.Mesh();
-                decoder.DecodeBufferToMesh(buffer, dracoGeometry);
+                decoder.DecodeArrayToMesh(array, array.byteLength, dracoGeometry);
             } else if (geometryType === this._dracoModule.POINT_CLOUD) {
                 dracoGeometry = new this._dracoModule.PointCloud();
-                decoder.DecodeBufferToPointCloud(buffer, dracoGeometry);
+                decoder.DecodeArrayToPointCloud(array, array.byteLength, dracoGeometry);
             }
-            this._dracoModule.destroy(buffer);
 
             if (dracoDef.attributes['POSITION'] === undefined) {
                 const errorMsg = "No position attribute found in the mesh.";
@@ -97,51 +95,41 @@ export class GeometryLoader {
 
                 const byteOffset = attribute.byte_offset();
                 const normalized = attribute.normalized();
-                const num_components = attribute.num_components();
-                const count = attributeData.size();
+                const numComponents = attribute.num_components();
 
-                const array = new Float32Array(count);
+                const numPoints = dracoGeometry.num_points();
+                const numValues = numPoints * numComponents;
+                const byteLength = numValues * Float32Array.BYTES_PER_ELEMENT;
 
-                for (let i = 0; i < count; i++) {
-                    for (let a = 0; a < num_components; a++) {
-                        const temp = i * num_components;
-                        const value = attributeData.GetValue(temp + a);
-                        array[temp + a] = value;
-                    }
-                }
-                this._dracoModule.destroy(attributeData);
+                const ptr = this._dracoModule._malloc(byteLength);
+                decoder.GetAttributeDataArrayForAllPoints(dracoGeometry, attribute, this._dracoModule.DT_FLOAT32, byteLength, ptr);
+                const array = new Float32Array(this._dracoModule.HEAPF32.buffer, ptr, numValues).slice();
+                this._dracoModule._free(ptr);
+
+                if(a.includes("COLOR")) array.forEach((n, i) => array[i] = Math.max(0, Math.min(1, n)));
 
                 attributes[a] = new AttributeData(
                     array,
-                    num_components, // itemSize
-                    array.BYTES_PER_ELEMENT * num_components, // itemBytes = elementBytes * itemSize
+                    numComponents, // itemSize
+                    array.BYTES_PER_ELEMENT * numComponents, // itemBytes = elementBytes * itemSize
                     byteOffset, // byteOffset
                     array.BYTES_PER_ELEMENT, // elementBytes
                     normalized, // normalized
-                    array.length / num_components
+                    array.length / numComponents
                 );
             }
 
-            const numFaces = geometryType == this._dracoModule.TRIANGULAR_MESH ? dracoGeometry.num_faces() : 0;
-            const numIndices = numFaces * 3;
-            const indexArray = new Uint32Array(numIndices);
-
-            // For mesh, we need to generate the faces.
             if (geometryType == this._dracoModule.TRIANGULAR_MESH) {
-                const ia = new this._dracoModule.DracoInt32Array();
-                for (let i = 0; i < numFaces; ++i) {
-                    decoder.GetFaceFromMesh(dracoGeometry, i, ia);
-                    const index = i * 3;
-                    indexArray[index] = ia.GetValue(0);
-                    indexArray[index + 1] = ia.GetValue(1);
-                    indexArray[index + 2] = ia.GetValue(2);
-                }
-                this._dracoModule.destroy(ia);
-            }
-            this._dracoModule.destroy(decoder);
-            this._dracoModule.destroy(dracoGeometry);
 
-            if (geometryType == this._dracoModule.TRIANGULAR_MESH)
+                const numFaces = dracoGeometry.num_faces();
+                const numIndices = numFaces * 3;
+                const byteLength = numIndices * 4;
+
+                const ptr = this._dracoModule._malloc(byteLength);
+                decoder.GetTrianglesUInt32Array(dracoGeometry, byteLength, ptr);
+                const indexArray = new Uint32Array(this._dracoModule.HEAPF32.buffer, ptr, numIndices).slice();
+                this._dracoModule._free(ptr);
+
                 indices = new AttributeData(
                     indexArray,
                     1, // itemSize
@@ -151,6 +139,10 @@ export class GeometryLoader {
                     false, // normalized
                     indexArray.length // count
                 );
+            }
+
+            this._dracoModule.destroy(decoder);
+            this._dracoModule.destroy(dracoGeometry);
         }
 
         for (let attribute in primitive.attributes) {
@@ -158,6 +150,7 @@ export class GeometryLoader {
                 convertedNames[attribute] = attribute;
                 continue;
             }
+
 
             let attributeName = attribute;
             // attribute name conversion to be consistent with gltf
@@ -174,7 +167,7 @@ export class GeometryLoader {
             attributes[attributeName] = (this._accessorLoader.getAccessor(primitive.attributes[attribute]))!;
         }
 
-        if ((primitive.indices || primitive.indices === 0) && !indices)
+        if ((primitive.indices || primitive.indices === 0) && !indices) 
             indices = this._accessorLoader.getAccessor(primitive.indices);
 
         // reading and assigning morph targets
