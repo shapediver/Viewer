@@ -251,7 +251,7 @@ export class SceneTreeManager implements IManager {
         if (filter.transformationOnly === false) {
             // remove all data items that do not exist anymore
             const dataIds = node.data.map(d => d.id);
-            const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+            const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) || !(node.data.find(d => d.id === oc.SDid)!.version === oc.SDversion) : false);
             dataToRemove.forEach(dTR => {
                 this.removeData(<SDData>dTR)
                 convertedObject.remove(dTR);
