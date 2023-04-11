@@ -335,7 +335,7 @@ export class RenderingManager implements IManager {
 
         if(runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
-        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();
+        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNode(undefined, undefined, { transformationOnly: true });
         if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateMorphWeights();
 
         // get the current size

@@ -112,7 +112,7 @@ export class GeometryLoader implements ILoader {
 
             const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
 
-            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
+            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
             obj.traverse(o => {
                 if (
                     o instanceof THREE.Points ||
@@ -130,7 +130,6 @@ export class GeometryLoader implements ILoader {
                 obj.children.forEach(m => m.receiveShadow = true);
             }
 
-            parent.add(obj);
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 

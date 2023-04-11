@@ -106,7 +106,7 @@ export class DragManager extends AbstractInteractionManager {
         let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
         
         this.applyTransformation(this.#node, transformationMatrix);
-        this.viewport.updateNode(this.#node!);
+        this.viewport.updateNodeTransformation(this.#node!);
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_MOVE,
             {

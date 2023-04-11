@@ -589,12 +589,19 @@ export interface IViewportApi {
 
   /**
    * Update the viewport with the current changes of given scene tree node and its descendants.
-   * This carries out preparations for rendering. Call it after doing 
-   * direct changes to the scene tree. 
+   * This carries out preparations for rendering. Call it after doing direct changes to the scene tree. 
    * 
    * @param node The node to update.
    */
   updateNode(node: ITreeNode): void;
+
+  /**
+   * Update the viewport with the current changes in transformation of given scene tree node and its descendants.
+   * This carries out preparations for rendering. Call it after doing direct changes to the scene tree transformations. 
+   * 
+   * @param node The node to update.
+   */
+  updateNodeTransformation(node: ITreeNode): void;
 
   /**
    * View the current scene in AR.

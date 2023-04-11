@@ -39,8 +39,12 @@ import { SDData, SD_DATA_TYPE } from '../objects/SDData'
 import { SDObject } from '../objects/SDObject'
 import { SDBone } from '../objects/SDBone'
 
+type UpdateFilter = {
+    transformationOnly: boolean
+}
+
 export class SceneTreeManager implements IManager {
-    // #region Properties (10)
+    // #region Properties (13)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -55,13 +59,12 @@ export class SceneTreeManager implements IManager {
         data: AbstractLight,
         dataChild: SDData
     }[] = [];
-
     private _currentSDTFOverview!: ISDTFOverview;
-    private _mainNode!: SDObject;
-    private _lastRootVersion: string = '';
     private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
+    private _lastRootVersion: string = '';
+    private _mainNode!: SDObject;
 
-    // #endregion Properties (10)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -71,25 +74,25 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Accessors (4)
 
     public get boundingBox(): IBox {
         return this._boundingBox;
-    }
-
-    public get lastRootVersion(): string {
-        return this._lastRootVersion;
     }
 
     public get lastRendererType(): RENDERER_TYPE {
         return this._lastRendererType;
     }
 
+    public get lastRootVersion(): string {
+        return this._lastRootVersion;
+    }
+
     public get scene() {
         return this._scene;
     }
 
-    // #endregion Public Accessors (2)
+    // #endregion Public Accessors (4)
 
     // #region Public Methods (6)
 
@@ -100,28 +103,19 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
-    private getBone(node: ITreeNode): SDBone {
-        let bone: SDBone;
-        this._mainNode.traverse((o) => {
-            if ((<SDObject>o).SDid === node.id)
-                bone = (<SDBone>o);
-        });
-        return bone!;
-    }
-
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData): void {
+    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter): void {
         let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
 
-        if (!dataChild)
+        if (!dataChild) {
             dataChild = new SDData(data.id, data.version);
-
-        obj.add(dataChild);
+            obj.add(dataChild);
+        }
 
         if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES)
             this.injectAttributeData(node, data);
@@ -129,22 +123,25 @@ export class SceneTreeManager implements IManager {
         switch (true) {
             case data instanceof GeometryData:
                 dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
-                const geometryData = <IGeometryData>data;
 
-                let skeleton;
-                if (geometryData.skinNode) {
-                    const bones: THREE.Bone[] = [];
-                    for (let i = 0; i < geometryData.skinNode.bones.length; i++)
-                        bones.push(this.getBone(geometryData.skinNode.bones[i]));
+                if (filter.transformationOnly === false) {
+                    const geometryData = <IGeometryData>data;
 
-                    const boneInverses: THREE.Matrix4[] = [];
-                    for (let i = 0; i < geometryData.skinNode.boneInverses.length; i++)
-                        boneInverses.push(new THREE.Matrix4().fromArray(geometryData.skinNode.boneInverses[i]));
+                    let skeleton;
+                    if (geometryData.skinNode) {
+                        const bones: THREE.Bone[] = [];
+                        for (let i = 0; i < geometryData.skinNode.bones.length; i++)
+                            bones.push(this.getBone(geometryData.skinNode.bones[i]));
 
-                    skeleton = new THREE.Skeleton(bones, boneInverses)
+                        const boneInverses: THREE.Matrix4[] = [];
+                        for (let i = 0; i < geometryData.skinNode.boneInverses.length; i++)
+                            boneInverses.push(new THREE.Matrix4().fromArray(geometryData.skinNode.boneInverses[i]));
+
+                        skeleton = new THREE.Skeleton(bones, boneInverses)
+                    }
+
+                    this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
                 }
-
-                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
 
                 const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix)
 
@@ -152,9 +149,9 @@ export class SceneTreeManager implements IManager {
                 node.boundingBox.union(bb);
 
                 // create the specific BB if it doesn't exist yet
-                if(!node.boundingBoxViewport[this._renderingEngine.id]) 
+                if (!node.boundingBoxViewport[this._renderingEngine.id])
                     node.boundingBoxViewport[this._renderingEngine.id] = new Box();
-                                
+
                 // adjust the specific BB
                 node.boundingBoxViewport[this._renderingEngine.id].union(bb);
 
@@ -169,9 +166,9 @@ export class SceneTreeManager implements IManager {
                 node.boundingBox.union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
 
                 // create the specific BB if it doesn't exist yet
-                if(!node.boundingBoxViewport[this._renderingEngine.id]) 
+                if (!node.boundingBoxViewport[this._renderingEngine.id])
                     node.boundingBoxViewport[this._renderingEngine.id] = new Box();
-                                
+
                 // adjust the specific BB
                 node.boundingBoxViewport[this._renderingEngine.id].union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
 
@@ -181,17 +178,17 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof AbstractLight:
                 dataChild.SDtype = SD_DATA_TYPE.LIGHT;
-                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
+                if (filter.transformationOnly === false) this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
                 if (data instanceof DirectionalLight && (<DirectionalLight>data).useNodeData === false)
                     this._boundingBoxSensitiveData.push({ data: <AbstractLight>data, dataChild })
                 break;
             case data instanceof AbstractCamera:
                 dataChild.SDtype = SD_DATA_TYPE.CAMERA;
-                this._renderingEngine.cameraManager.load(<AbstractCamera>data, dataChild);
+                if (filter.transformationOnly === false) this._renderingEngine.cameraManager.load(<AbstractCamera>data, dataChild);
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
-                this._renderingEngine.htmlElementAnchorLoader.load(node, <HTMLElementAnchorData>data);
+                if (filter.transformationOnly === false) this._renderingEngine.htmlElementAnchorLoader.load(node, <HTMLElementAnchorData>data);
                 break;
             case data instanceof AnimationData:
                 dataChild.SDtype = SD_DATA_TYPE.ANIMATION;
@@ -199,21 +196,6 @@ export class SceneTreeManager implements IManager {
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
                 break;
-        }
-    }
-
-    public updateNodeTransformations(node: ITreeNode = this._tree.root, obj: SDObject = this._mainNode) {
-        if (!node || !obj) return;
-
-        obj.visible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
-        obj.applyTransformation(node.nodeMatrix);
-
-        // add new children and update the ones that have a different version
-        for (let i = 0, len = node.children.length; i < len; i++) {
-            const nodeChild = node.children[i];
-            if (!nodeChild) continue;
-            const objChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
-            if (objChild) this.updateNodeTransformations(nodeChild, objChild);
         }
     }
 
@@ -236,7 +218,6 @@ export class SceneTreeManager implements IManager {
             }
         }
 
-
         for (let i = 0, len = node.children.length; i < len; i++) {
             const nodeChild = node.children[i];
             if (!nodeChild) continue;
@@ -252,7 +233,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: ITreeNode, obj: THREE.Object3D) {
+    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }) {
         const convertedObject = <SDObject>obj;
 
         // reset the general bounding box of the current node
@@ -260,37 +241,39 @@ export class SceneTreeManager implements IManager {
         node.boundingBox.reset();
 
         // create the specific BB if it doesn't exist yet
-        if(!node.boundingBoxViewport[this._renderingEngine.id]) 
+        if (!node.boundingBoxViewport[this._renderingEngine.id])
             node.boundingBoxViewport[this._renderingEngine.id] = new Box();
 
         // reset the specific bounding box of the current node
         // it will be recomputed in the following steps
         node.boundingBoxViewport[this._renderingEngine.id].reset();
 
-        // remove all data items that do not exist anymore
-        const dataIds = node.data.map(d => d.id);
-        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
-        dataToRemove.forEach(dTR => {
-            this.removeData(<SDData>dTR)
-            convertedObject.remove(dTR);
-        })
-
-        // remove all child nodes in the transformed object that do not exist anymore
-        // the filter goes also through the data items as they were already added
-        const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
-        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject ? !nodeIds.includes(oc.SDid) : false);
-        childrenToRemove.forEach(cTR => {
-            cTR.traverse((o) => {
-                if (o instanceof SDData)
-                    this.removeData(o);
+        if (filter.transformationOnly === false) {
+            // remove all data items that do not exist anymore
+            const dataIds = node.data.map(d => d.id);
+            const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+            dataToRemove.forEach(dTR => {
+                this.removeData(<SDData>dTR)
+                convertedObject.remove(dTR);
             })
-            convertedObject.remove(cTR);
-        });
+
+            // remove all child nodes in the transformed object that do not exist anymore
+            // the filter goes also through the data items as they were already added
+            const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
+            const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject && !(oc instanceof SDData) ? !nodeIds.includes(oc.SDid) : false);
+            childrenToRemove.forEach(cTR => {
+                cTR.traverse((o) => {
+                    if (o instanceof SDData)
+                        this.removeData(o);
+                })
+                convertedObject.remove(cTR);
+            });
+        }
 
         // convert all data items of the current node
         // old versions will be replaced by new ones
         for (let i = 0, len = node.data.length; i < len; i++)
-            this.updateData(node, convertedObject, node.data[i]);
+            this.updateData(node, convertedObject, node.data[i], filter);
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -301,16 +284,16 @@ export class SceneTreeManager implements IManager {
                 const newChild = node.data.find(d => d instanceof BoneData) ? new SDBone(nodeChild.id, nodeChild.version) : new SDObject(nodeChild.id, nodeChild.version);
                 const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
                 nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
-                if(nodeChild.updateCallbackThreeJsObject) 
+                if (nodeChild.updateCallbackThreeJsObject)
                     nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
                 convertedObject.add(newChild);
-                this.updateNode(nodeChild, newChild);
+                this.updateNode(nodeChild, newChild, filter);
             } else if (objChild.SDversion !== nodeChild.version) {
                 // if the version is different, update the child
-                this.updateNode(nodeChild, objChild);
+                this.updateNode(nodeChild, objChild, filter);
                 objChild.SDversion = nodeChild.version;
             } else {
-                this.updateNode(nodeChild, objChild);
+                this.updateNode(nodeChild, objChild, filter);
             }
 
             // adjust the general BB
@@ -323,7 +306,7 @@ export class SceneTreeManager implements IManager {
                 // 1. visible
                 // 2. no included in the "excludeViewports"
                 // 3. if there are "restrictViewports", it needs to be in them
-                if(node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id))) {
+                if (node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id))) {
                     node.boundingBoxViewport[this._renderingEngine.id].union(nodeChild.boundingBoxViewport[this._renderingEngine.id]);
                 }
             }
@@ -334,7 +317,7 @@ export class SceneTreeManager implements IManager {
     }
 
     public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
-        if(this._tree.root.version === this._lastRootVersion && this._renderingEngine.type === RENDERER_TYPE.STANDARD) return;
+        if (this._tree.root.version === this._lastRootVersion && this._renderingEngine.type === RENDERER_TYPE.STANDARD) return;
         this._lastRootVersion = this._tree.root.version;
         this._lastRendererType = this._renderingEngine.type;
 
@@ -347,7 +330,7 @@ export class SceneTreeManager implements IManager {
             this._mainNode = new SDObject(root.id, root.version);
             const oldObj = root.threeJsObject[this._renderingEngine.id];
             root.threeJsObject[this._renderingEngine.id] = this._mainNode;
-            if(root.updateCallbackThreeJsObject) 
+            if (root.updateCallbackThreeJsObject)
                 root.updateCallbackThreeJsObject(this._mainNode, oldObj, this._renderingEngine.id)
             this._scene.add(this._mainNode);
         }
@@ -379,7 +362,7 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Public Methods (6)
 
-    // #region Private Methods (4)
+    // #region Private Methods (5)
 
     private collectSDTFItemData(node: ITreeNode): SDTFItemData | undefined {
         for (let i = 0, len = node.data.length; i < len; i++)
@@ -400,6 +383,15 @@ export class SceneTreeManager implements IManager {
             out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
         return out.overview;
+    }
+
+    private getBone(node: ITreeNode): SDBone {
+        let bone: SDBone;
+        this._mainNode.traverse((o) => {
+            if ((<SDObject>o).SDid === node.id)
+                bone = (<SDBone>o);
+        });
+        return bone!;
     }
 
     private injectAttributeData(node: ITreeNode, data: ITreeNodeData) {
@@ -473,5 +465,5 @@ export class SceneTreeManager implements IManager {
         }
     }
 
-    // #endregion Private Methods (4)
+    // #endregion Private Methods (5)
 }

@@ -785,7 +785,15 @@ export class ViewportApi implements IViewportApi {
         if (!(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id]);
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id], );
+    }
+
+    public updateNodeTransformation(node: ITreeNode): void {
+        const scope = 'updateNodeTransformation';
+        if (!(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id], { transformationOnly: true });
     }
 
     public updateEnvironmentGeometry(): void {
