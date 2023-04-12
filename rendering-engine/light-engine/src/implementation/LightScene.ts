@@ -88,6 +88,7 @@ export class LightScene implements ILightScene {
 
     public addLight(light: AbstractLight): void {
         const node = new TreeNode(light.id);
+        light.parentNode = node;
         node.data.push(light);
         this._node.addChild(node)
         this._lights[light.id] = light;

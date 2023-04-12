@@ -52,6 +52,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set decay(value: number) {
     this.#decay = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get distance(): number {
@@ -61,6 +62,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set distance(value: number) {
     this.#distance = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get position(): vec3 {
@@ -70,6 +72,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set position(value: vec3) {
     this.#position = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get threeJsObject(): { [key: string]: THREE.PointLight } {

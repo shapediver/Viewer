@@ -47,6 +47,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     public set groundColor(value: Color) {
         this.#groundColor = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get threeJsObject(): { [key: string]: THREE.HemisphereLight } {

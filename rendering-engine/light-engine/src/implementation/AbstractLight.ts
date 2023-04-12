@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix'
 import { UuidGenerator } from '@shapediver/viewer.shared.services'
-import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ILight, LIGHT_TYPE } from '../interface/ILight'
 import { Color } from '@shapediver/viewer.shared.types'
@@ -15,6 +15,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     #name?: string;
     #order?: number;
     #useNodeData: boolean = false;
+    #parentNode?: ITreeNode;
 
     protected readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
@@ -49,6 +50,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set color(value: Color) {
         this.#color = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get intensity(): number {
@@ -58,6 +60,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set intensity(value: number) {
         this.#intensity = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get name(): string | undefined {
@@ -67,6 +70,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set name(value: string | undefined) {
         this.#name = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get order(): number | undefined {
@@ -76,6 +80,15 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set order(value: number | undefined) {
         this.#order = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
+    }
+
+    public set parentNode(value: ITreeNode | undefined) {
+        this.#parentNode = value;
+    }
+
+    public get parentNode(): ITreeNode | undefined {
+        return this.#parentNode;
     }
 
     public get type(): LIGHT_TYPE {

@@ -56,6 +56,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set castShadow(value: boolean) {
         this.#castShadow = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get direction(): vec3 {
@@ -65,6 +66,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set direction(value: vec3) {
         this.#direction = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get shadowMapBias(): number {
@@ -74,6 +76,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set shadowMapBias(value: number) {
         this.#shadowMapBias = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get shadowMapResolution(): number {
@@ -83,6 +86,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set shadowMapResolution(value: number) {
         this.#shadowMapResolution = value;
         this.updateVersion();
+        if(this.parentNode) this.parentNode.updateVersion();
     }
 
     public get threeJsObject(): { [key: string]: THREE.DirectionalLight } {

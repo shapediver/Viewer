@@ -61,6 +61,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set angle(value: number) {
     this.#angle = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get decay(): number {
@@ -70,6 +71,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set decay(value: number) {
     this.#decay = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get distance(): number {
@@ -79,6 +81,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set distance(value: number) {
     this.#distance = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get penumbra(): number {
@@ -88,6 +91,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set penumbra(value: number) {
     this.#penumbra = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get position(): vec3 {
@@ -97,6 +101,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set position(value: vec3) {
     this.#position = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get target(): vec3 {
@@ -106,6 +111,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set target(value: vec3) {
     this.#target = value;
     this.updateVersion();
+    if(this.parentNode) this.parentNode.updateVersion();
   }
 
   public get threeJsObject(): { [key: string]: THREE.SpotLight } {
