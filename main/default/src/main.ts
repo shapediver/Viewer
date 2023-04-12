@@ -22,16 +22,7 @@ const logger: Logger = Logger.instance;
 const eventEngine: EventEngine = EventEngine.instance;
 const geometryEngine: GeometryEngine = GeometryEngine.instance;
 
-console.log(`Powered by:
-   _____  __                         ____   _                   
-  / ___/ / /_   ____ _ ____   ___   / __ \\ (_)_   __ ___   _____
-  \\__ \\ / __ \\ / __ '// __ \\ / _ \\ / / / // /| | / // _ \\ / ___/
- ___/ // / / // /_/ // /_/ //  __// /_/ // / | |/ //  __// /    
-/____//_/ /_/ \\__,_// .___/ \\___//_____//_/  |___/ \\___//_/     
-                   /_/                                          
-ShapeDiver Viewer 3, Version ${build_data.build_version.replace('3.', '')}
-Visit us at https://shapediver.com/ and find out more!
-`);
+let createdConsoleMessage = false, consoleBranding = true;
 
 export interface IGeneralOptions {
     /**
@@ -50,6 +41,12 @@ export interface IGeneralOptions {
      * (default: Infinity)
      */
     parallelGlTFProcessing: number;
+
+    /**
+     * When set to false, the branding in the viewer console will be limited to a single line.
+     * This will only include the viewer version. (default: true)
+     */
+    consoleBranding: boolean;
 }
 
 class GeneralOptions {
@@ -83,6 +80,16 @@ class GeneralOptions {
         inputValidator.validateAndError('parallelGlTFProcessing', value, 'number');
         geometryEngine.parallelGlTFProcessing = value;
         logger.debug(`parallelGlTFProcessing: ParallelGlTFProcessing was set to: ${value}`);
+    }
+
+    public get consoleBranding(): boolean {
+        return consoleBranding;
+    }
+
+    public set consoleBranding(value: boolean) {
+        inputValidator.validateAndError('consoleBranding', value, 'boolean');
+        consoleBranding = value;
+        logger.debug(`consoleBranding: ConsoleBranding was set to: ${value}`);
     }
 
     // #endregion Public Accessors (4)
@@ -154,6 +161,24 @@ creationControlCenter.update = (
     }
 }
 
+const showConsoleMessage = () => {
+    createdConsoleMessage = true;
+    if(consoleBranding === true) {
+        console.log(`Powered by:
+   _____  __                         ____   _                   
+  / ___/ / /_   ____ _ ____   ___   / __ \\ (_)_   __ ___   _____
+  \\__ \\ / __ \\ / __ '// __ \\ / _ \\ / / / // /| | / // _ \\ / ___/
+ ___/ // / / // /_/ // /_/ //  __// /_/ // / | |/ //  __// /    
+/____//_/ /_/ \\__,_// .___/ \\___//_____//_/  |___/ \\___//_/     
+                   /_/                                          
+ShapeDiver Viewer 3, Version ${build_data.build_version.replace('3.', '')}
+Visit us at https://shapediver.com/ and find out more!
+`);
+    } else {
+        console.log(`ShapeDiver Viewer 3, Version ${build_data.build_version.replace('3.', '')}`);
+    }
+}
+
 /**
  * General Viewer options that are used everywhere.
  * - loggingLevel: The logging level that is used.
@@ -195,6 +220,8 @@ export const createSession = async (properties: {
     excludeViewports?: string[],
     initialParameterValues?: { [key: string]: string }
 }): Promise<ISessionApi> => {
+    if(createdConsoleMessage === false) showConsoleMessage();
+
     logger.info(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
     inputValidator.validateAndError(`createSession`, properties, 'object');
@@ -273,6 +300,8 @@ export const createViewport = async (properties?: {
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
     visibility?: VISIBILITY_MODE,
 }): Promise<IViewportApi> => {
+    if(createdConsoleMessage === false) showConsoleMessage();
+
     inputValidator.validateAndError('createViewport', properties, 'object', false);
 
     const prop = Object.assign({}, properties);
