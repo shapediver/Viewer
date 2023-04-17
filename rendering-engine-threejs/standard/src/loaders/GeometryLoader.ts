@@ -27,7 +27,7 @@ export class GeometryLoader implements ILoader {
     // #region Properties (3)
 
     private readonly _defaultColor: string = '#199b9b';
-    
+
     private _geometryCache: {
         [key: string]: {
             obj: SDData,
@@ -73,46 +73,47 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject, skeleton?: THREE.Skeleton): IBox {
+    public load(geometry: GeometryData, parent: SDObject, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
+        const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version] ? this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry : this.loadGeometry(geometry.primitive);
+
+        let incomingMaterialData: IMaterialAbstractData | null;
+        if (geometry.primitive.effectMaterials.length > 0) {
+            incomingMaterialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+        } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+            incomingMaterialData = geometry.primitive.attributeMaterial;
+        } else {
+            incomingMaterialData = geometry.primitive.material;
+        }
+
+        const materialSettings = {
+            mode: geometry.primitive.mode,
+            useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+            useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+            useFlatShading: threeGeometry.attributes.normal === undefined,
+            useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
+            useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
+        }
+
+        if (incomingMaterialData instanceof MaterialGemData) {
+            const gemMaterialData = <MaterialGemData>incomingMaterialData;
+            if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
+
+            let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
+
+            let center = threeGeometry.boundingSphere!.center,
+                radius = threeGeometry.boundingSphere!.radius;
+
+            gemMaterialData.side = MATERIAL_SIDE.FRONT;
+
+            gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
+            gemMaterialData.radius = radius;
+            (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+        }
+
+        const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
+        let obj: SDData;
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
-            let incomingMaterialData: IMaterialAbstractData | null;
-            if (geometry.primitive.effectMaterials.length > 0) {
-                incomingMaterialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
-            } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                incomingMaterialData = geometry.primitive.attributeMaterial;
-            } else {
-                incomingMaterialData = geometry.primitive.material;
-            }
-
-            const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry.clone();
-            const materialSettings = {
-                mode: geometry.primitive.mode,
-                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-                useFlatShading: threeGeometry.attributes.normal === undefined,
-                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
-                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-            }
-
-            if (incomingMaterialData instanceof MaterialGemData) {
-                const gemMaterialData = <MaterialGemData>incomingMaterialData;
-                if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
-
-                let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
-
-                let center = threeGeometry.boundingSphere!.center,
-                    radius = threeGeometry.boundingSphere!.radius;
-
-                gemMaterialData.side = MATERIAL_SIDE.FRONT;
-
-                gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
-                gemMaterialData.radius = radius;
-                (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
-            }
-
-            const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
-
-            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
+            obj = newChild === false ? this._geometryCache[geometry.id + '_' + geometry.version].obj : this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
             obj.traverse(o => {
                 if (
                     o instanceof THREE.Points ||
@@ -122,72 +123,27 @@ export class GeometryLoader implements ILoader {
                     o instanceof THREE.Mesh)
                     o.material = material;
             })
-
-            obj.children.forEach(m => m.castShadow = true);
-            if(material instanceof GemMaterial) {
-                obj.children.forEach(m => m.receiveShadow = false);
-            } else {
-                obj.children.forEach(m => m.receiveShadow = true);
-            }
-
         } else {
-            const threeGeometry = this.loadGeometry(geometry.primitive);
-
-            let incomingMaterialData: IMaterialAbstractData | null;
-            if (geometry.primitive.effectMaterials.length > 0) {
-                incomingMaterialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
-            } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                incomingMaterialData = geometry.primitive.attributeMaterial;
-            } else {
-                incomingMaterialData = geometry.primitive.material;
-            }
-
-            const materialSettings = {
-                mode: geometry.primitive.mode,
-                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-                useFlatShading: threeGeometry.attributes.normal === undefined,
-                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
-                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-            }
-
-            if (incomingMaterialData instanceof MaterialGemData) {
-                const gemMaterialData = <MaterialGemData>incomingMaterialData;
-                if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
-
-                let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
-
-                let center = threeGeometry.boundingSphere!.center,
-                    radius = threeGeometry.boundingSphere!.radius;
-
-                gemMaterialData.side = MATERIAL_SIDE.FRONT;
-
-                gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
-                gemMaterialData.radius = radius;
-                (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
-            }
-
-            const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
-
-            const obj = new SDData(geometry.id, geometry.version);
-            this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
-
-            obj.children.forEach(m => m.castShadow = true);
-            if(material instanceof GemMaterial) {
-                obj.children.forEach(m => m.receiveShadow = false);
-            } else {
-                obj.children.forEach(m => m.receiveShadow = true);
-            }
-
-            parent.add(obj);
+            const newObj = new SDData(geometry.id, geometry.version);
+            this.createMesh(newObj, geometry, threeGeometry, material, materialSettings, skeleton);
+            obj = newObj.clone()
         }
+
+        obj.children.forEach(m => m.castShadow = true);
+        if (material instanceof GemMaterial) {
+            obj.children.forEach(m => m.receiveShadow = false);
+        } else {
+            obj.children.forEach(m => m.receiveShadow = true);
+        }
+
+        parent.add(obj);
 
         return geometry.boundingBox.clone();
     }
 
     public loadGeometry(primitive: IPrimitiveData): THREE.BufferGeometry {
         let geometry = new THREE.BufferGeometry();
-        if (primitive.indices) 
+        if (primitive.indices)
             geometry.setIndex(new THREE.BufferAttribute(primitive.indices!.array, primitive.indices!.itemSize));
 
         for (let attributeId in primitive.attributes) {
@@ -293,7 +249,7 @@ export class GeometryLoader implements ILoader {
             }
         }
 
-        if (index === null) 
+        if (index === null)
             throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.`);
 
         const numberOfTriangles = index.count - 2;
@@ -321,16 +277,14 @@ export class GeometryLoader implements ILoader {
         if ((newIndices.length / 3) !== numberOfTriangles)
             throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.`);
 
-        const newGeometry = geometry.clone();
-        newGeometry.setIndex(newIndices);
-        return newGeometry;
+        geometry.setIndex(newIndices);
     }
 
     private createCubeNormalMap(geometryData: GeometryData, geometry: THREE.BufferGeometry, resolution = 1024) {
         if (this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version])
             return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
 
-        if(!this._gemScene) {
+        if (!this._gemScene) {
             this._gemScene = new THREE.Scene();
             this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
             this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
@@ -411,6 +365,8 @@ export class GeometryLoader implements ILoader {
 
         this._gemCubeCamera!.update(this._renderingEngine.renderer, this._gemScene);
         this._gemScene.remove(mesh);
+        mesh.geometry.dispose();
+        mesh.material.dispose();
 
         this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = this._gemCubeCamera!.renderTarget.texture;
         return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
@@ -436,7 +392,7 @@ export class GeometryLoader implements ILoader {
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             let bufferGeometry = threeGeometry;
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
-                bufferGeometry = this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
+                this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
 
             if (skeleton) {
                 const skinnedMesh = new THREE.SkinnedMesh(bufferGeometry, material);
@@ -457,7 +413,7 @@ export class GeometryLoader implements ILoader {
         }
 
         obj.traverse(m => {
-            if(m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
+            if (m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
                 (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
                 (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
                 (<THREE.Mesh>m).geometry.userData = {

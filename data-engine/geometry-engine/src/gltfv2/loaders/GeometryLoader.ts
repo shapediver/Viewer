@@ -11,6 +11,9 @@ export class GeometryLoader {
     // #region Properties (1)
 
     private _materialVariantsData = new MaterialVariantsData();
+    private _loaded: {
+        [key: string]: GeometryData
+    } = {};
 
     // #endregion Properties (1)
 
@@ -39,12 +42,13 @@ export class GeometryLoader {
     public loadMesh(meshId: number, weights?: number[]): ITreeNode {
         if (!this._content.meshes) throw new Error('GeometryLoader.loadMesh: Meshes not available.')
         if (!this._content.meshes[meshId]) throw new Error('GeometryLoader.loadMesh: Mesh not available.')
+        
         const mesh = this._content.meshes[meshId];
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
-                meshNode.addChild(this.loadPrimitive(mesh.primitives, i, mesh.weights || weights));
+                meshNode.addChild(this.loadPrimitive(meshId, mesh.primitives, i, mesh.weights || weights));
 
         return meshNode;
     }
@@ -53,9 +57,14 @@ export class GeometryLoader {
 
     // #region Private Methods (1)
 
-    private loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): ITreeNode {
+    private loadPrimitive(meshId: number, primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): ITreeNode {
         const primitive = primitives[index];
         const primitiveNode = new TreeNode('primitive_' + index);
+
+        if (this._loaded['mesh_' + meshId + '_primitive_' + index]) {
+            primitiveNode.data.push(this._loaded['mesh_' + meshId + '_primitive_' + index].clone());
+            return primitiveNode
+        }
 
         const attributes: {
             [key: string]: AttributeData
@@ -200,6 +209,8 @@ export class GeometryLoader {
 
         const geometryData = new GeometryData(primitiveData);
         geometryData.morphWeights = weights;
+        this._loaded['mesh_' + meshId + '_primitive_' + index] = geometryData;
+
         primitiveNode.data.push(geometryData);
         return primitiveNode;
     }
