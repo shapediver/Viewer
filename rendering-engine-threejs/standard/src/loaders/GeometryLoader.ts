@@ -112,7 +112,7 @@ export class GeometryLoader implements ILoader {
 
         const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
         let obj: SDData;
-        if (this._geometryCache[geometry.id + '_' + geometry.version]) {
+        if (this._geometryCache[geometry.id + '_' + geometry.version] && !skeleton) {
             obj = newChild === false ? this._geometryCache[geometry.id + '_' + geometry.version].obj : this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
             obj.traverse(o => {
                 if (

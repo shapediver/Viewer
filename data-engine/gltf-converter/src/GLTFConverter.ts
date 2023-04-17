@@ -477,7 +477,7 @@ export class GLTFConverter {
 
     private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
-        if (this._materialCache[data.id]) return this._materialCache[data.id];
+        if (this._materialCache[data.id + '_' + data.version]) return this._materialCache[data.id + '_' + data.version];
         
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
@@ -548,13 +548,13 @@ export class GLTFConverter {
 
         this._content.materials.push(materialDef);
 
-        this._materialCache[data.id] = this._content.materials.length - 1;
-        return this._materialCache[data.id];
+        this._materialCache[data.id + '_' + data.version] = this._content.materials.length - 1;
+        return this._materialCache[data.id + '_' + data.version];
     }
 
     private convertMesh(data: IGeometryData): number {
         if (!this._content.meshes) this._content.meshes = [];
-        if (this._meshCache[data.id]) return this._meshCache[data.id];
+        if (this._meshCache[data.id + '_' + data.version]) return this._meshCache[data.id + '_' + data.version];
 
         const meshDef: IGLTF_v2_Mesh = {
             primitives: [],
@@ -564,8 +564,8 @@ export class GLTFConverter {
         meshDef.primitives?.push(this.convertPrimitive(data.primitive))
 
         this._content.meshes.push(meshDef);
-        this._meshCache[data.id] = this._content.meshes.length - 1;
-        return this._meshCache[data.id];
+        this._meshCache[data.id + '_' + data.version] = this._content.meshes.length - 1;
+        return this._meshCache[data.id + '_' + data.version];
     }
 
     private convertNode(node: ITreeNode): number {

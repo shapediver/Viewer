@@ -109,7 +109,7 @@ export class SceneTreeManager implements IManager {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter): void {
+    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter, skeleton?: THREE.Skeleton): void {
         let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
         let newChild = false;
 
@@ -126,24 +126,8 @@ export class SceneTreeManager implements IManager {
             case data instanceof GeometryData:
                 dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
 
-                if (filter.transformationOnly === false) {
-                    const geometryData = <IGeometryData>data;
-
-                    let skeleton;
-                    if (geometryData.skinNode) {
-                        const bones: THREE.Bone[] = [];
-                        for (let i = 0; i < geometryData.skinNode.bones.length; i++)
-                            bones.push(this.getBone(geometryData.skinNode.bones[i]));
-
-                        const boneInverses: THREE.Matrix4[] = [];
-                        for (let i = 0; i < geometryData.skinNode.boneInverses.length; i++)
-                            boneInverses.push(new THREE.Matrix4().fromArray(geometryData.skinNode.boneInverses[i]));
-
-                        skeleton = new THREE.Skeleton(bones, boneInverses)
-                    }
-
+                if (filter.transformationOnly === false) 
                     this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton);
-                }
 
                 const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix)
 
@@ -235,7 +219,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }) {
+    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }, skeleton?: THREE.Skeleton) {
         const convertedObject = <SDObject>obj;
 
         // reset the general bounding box of the current node
@@ -272,10 +256,23 @@ export class SceneTreeManager implements IManager {
             });
         }
 
+        // create the skeleton if the node is marked as the skin node (root node of the skeleton)
+        if(node.skinNode === true) { 
+            const bones: THREE.Bone[] = [];
+            for (let i = 0; i < node.bones.length; i++)
+                bones.push(this.getBone(node.bones[i]));
+
+            const boneInverses: THREE.Matrix4[] = [];
+            for (let i = 0; i < node.boneInverses.length; i++)
+                boneInverses.push(new THREE.Matrix4().fromArray(node.boneInverses[i]));
+
+            skeleton = new THREE.Skeleton(bones, boneInverses)
+        }
+
         // convert all data items of the current node
         // old versions will be replaced by new ones
         for (let i = 0, len = node.data.length; i < len; i++)
-            this.updateData(node, convertedObject, node.data[i], filter);
+            this.updateData(node, convertedObject, node.data[i], filter, skeleton);
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -289,13 +286,13 @@ export class SceneTreeManager implements IManager {
                 if (nodeChild.updateCallbackThreeJsObject)
                     nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
                 convertedObject.add(newChild);
-                this.updateNode(nodeChild, newChild, filter);
+                this.updateNode(nodeChild, newChild, filter, skeleton);
             } else if (objChild.SDversion !== nodeChild.version) {
                 // if the version is different, update the child
-                this.updateNode(nodeChild, objChild, filter);
+                this.updateNode(nodeChild, objChild, filter, skeleton);
                 objChild.SDversion = nodeChild.version;
             } else {
-                this.updateNode(nodeChild, objChild, filter);
+                this.updateNode(nodeChild, objChild, filter, skeleton);
             }
 
             // adjust the general BB

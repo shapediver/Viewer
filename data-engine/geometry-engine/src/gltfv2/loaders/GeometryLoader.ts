@@ -63,7 +63,7 @@ export class GeometryLoader {
 
         if (this._loaded['mesh_' + meshId + '_primitive_' + index]) {
             primitiveNode.data.push(this._loaded['mesh_' + meshId + '_primitive_' + index].clone());
-            return primitiveNode
+            return primitiveNode;
         }
 
         const attributes: {

@@ -344,7 +344,6 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   #boundingBox: IBox = new Box();
   #renderOrder: number = 0;
   #morphWeights: number[] = [];
-  #skinNode: ITreeNode | undefined;
   #threeJsObject: { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } = {};
 
   // #endregion Properties (4)
@@ -395,14 +394,6 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
 
   public set morphWeights(value: number[]) {
     this.#morphWeights = value
-  }
-
-  public get skinNode(): ITreeNode | undefined {
-    return this.#skinNode;
-  }
-
-  public set skinNode(value: ITreeNode | undefined) {
-    this.#skinNode = value;
   }
   
   public get threeJsObject(): { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } {

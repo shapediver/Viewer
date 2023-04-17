@@ -46,7 +46,6 @@
     "@shapediver/viewer.rendering-engine.light-engine": "2.8.2",
     "@shapediver/viewer.shared.build-data": "2.8.2",
     "@shapediver/viewer.shared.node-tree": "2.8.2",
-    "@shapediver/viewer.shared.node-tree-utils": "2.8.2",
     "@shapediver/viewer.shared.services": "2.8.2",
     "@shapediver/viewer.shared.types": "2.8.2",
     "axios": "^1.2.6",
