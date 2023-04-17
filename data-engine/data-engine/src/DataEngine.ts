@@ -68,8 +68,8 @@ export class DataEngine {
                             t[8], t[9], t[10], t[11],
                             t[12], t[13], t[14], t[15])
                     }].concat(node.transformations);
-                    transformationNode.updateVersion()
-                    transformationNode.addChild(nodeInstance)
+                    transformationNode.updateVersion();
+                    transformationNode.addChild(nodeInstance);
                 }
             }
         } else {

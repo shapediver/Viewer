@@ -73,7 +73,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
+    public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
         const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version] ? this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry : this.loadGeometry(geometry.primitive);
 
         let incomingMaterialData: IMaterialAbstractData | null;
@@ -113,7 +113,15 @@ export class GeometryLoader implements ILoader {
         const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
         let obj: SDData;
         if (this._geometryCache[geometry.id + '_' + geometry.version] && !skeleton) {
-            obj = newChild === false ? this._geometryCache[geometry.id + '_' + geometry.version].obj : this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
+            obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
+
+            // case 1: in case the geometry data was cloned and this is a different object
+            // case 2: it is a new child
+            if(newChild === false && obj.parent !== parent || newChild === true) {
+                obj = obj.cloneObject() as SDData;
+                parent.add(obj);
+            }
+
             obj.traverse(o => {
                 if (
                     o instanceof THREE.Points ||
@@ -124,9 +132,9 @@ export class GeometryLoader implements ILoader {
                     o.material = material;
             })
         } else {
-            const newObj = new SDData(geometry.id, geometry.version);
-            this.createMesh(newObj, geometry, threeGeometry, material, materialSettings, skeleton);
-            obj = newObj.clone()
+            obj = new SDData(geometry.id, geometry.version);
+            this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
+            parent.add(obj);
         }
 
         obj.children.forEach(m => m.castShadow = true);
@@ -136,7 +144,10 @@ export class GeometryLoader implements ILoader {
             obj.children.forEach(m => m.receiveShadow = true);
         }
 
-        parent.add(obj);
+        const c = parent.children.find(c => { (c as SDData).SDid === obj.SDid && (c as SDData).SDversion === obj.SDversion });
+        if(c) parent.remove(c);
+
+        this._geometryCache[geometry.id + '_' + geometry.version].obj
 
         return geometry.boundingBox.clone();
     }
