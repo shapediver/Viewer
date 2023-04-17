@@ -20,9 +20,9 @@ export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> impleme
    * 
    * @param id Id of this data object
    */
-  constructor(id?: string) {
+  constructor(id?: string, version?: string) {
     this.#id = id || this.#uuidGenerator.create();
-    this.#version = this.#uuidGenerator.create();
+    this.#version = version || this.#uuidGenerator.create();
   }
 
   // #endregion Constructors (1)
@@ -36,7 +36,7 @@ export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> impleme
   public get version(): string {
     return this.#version;
   }
-
+  
   // #endregion Public Accessors (2)
 
   // #region Public Methods (1)

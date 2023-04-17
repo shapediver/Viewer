@@ -33,9 +33,10 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
         tracks: IAnimationTrack[],
         start: number,
         duration: number,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#name = name;
         this.#tracks = tracks;
         this.#start = start;
@@ -102,7 +103,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
      * Clones the scene graph data.
      */
     public clone(): IAnimationData {
-        return new AnimationData(this.name, this.#tracks, this.start, this.duration, this.id);
+        return new AnimationData(this.name, this.#tracks, this.start, this.duration, this.id, this.version);
     }
 
     public continueAnimation() {

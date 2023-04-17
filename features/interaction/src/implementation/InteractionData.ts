@@ -28,9 +28,10 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      */
     constructor(
         interactionTypes: IInteractionTypes,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#interactionTypes = interactionTypes;
     }
 
@@ -90,7 +91,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      * Clones the scene graph data.
      */
     public clone(): IInteractionData {
-        return new InteractionData(this.#interactionTypes, this.id);
+        return new InteractionData(this.#interactionTypes, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

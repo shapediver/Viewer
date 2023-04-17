@@ -13,8 +13,8 @@ export class MaterialVariantsData extends AbstractTreeNodeData implements IMater
 
     // #region Constructors (1)
 
-    constructor(id?: string) {
-        super(id);
+    constructor(id?: string, version?: string) {
+        super(id, version);
     }
 
     // #endregion Constructors (1)
@@ -53,7 +53,7 @@ export class MaterialVariantsData extends AbstractTreeNodeData implements IMater
      * Clones the scene graph data.
      */
     public clone(): IMaterialVariantsData {
-        return new MaterialVariantsData(this.id);
+        return new MaterialVariantsData(this.id, this.version);
     }
 
     // #endregion Public Methods (1)

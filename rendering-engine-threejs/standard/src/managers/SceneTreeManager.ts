@@ -111,8 +111,10 @@ export class SceneTreeManager implements IManager {
      */
     public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter): void {
         let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
+        let newChild = false;
 
         if (!dataChild) {
+            newChild = true;
             dataChild = new SDData(data.id, data.version);
             obj.add(dataChild);
         }
@@ -140,7 +142,7 @@ export class SceneTreeManager implements IManager {
                         skeleton = new THREE.Skeleton(bones, boneInverses)
                     }
 
-                    this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
+                    this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton);
                 }
 
                 const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix)

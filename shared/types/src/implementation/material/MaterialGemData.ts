@@ -37,9 +37,10 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
      */
     constructor(
         properties?: IMaterialGemDataProperties,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(properties, id);
+        super(properties, id, version);
         if (!properties) return;
 
         if (properties.refractionIndex !== undefined) this.refractionIndex = properties.refractionIndex;
@@ -221,7 +222,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
             dispersion: this.dispersion,
             tracingOpacity: this.tracingOpacity,
             envMap: this.envMap,
-        }, this.id);
+        }, this.id, this.version);
     }
 
     public copy(source: MaterialGemData): void {

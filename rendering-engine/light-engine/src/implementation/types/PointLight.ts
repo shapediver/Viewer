@@ -26,7 +26,8 @@ export class PointLight extends AbstractLight implements IPointLight {
     decay?: number,
     name?: string,
     order?: number,
-    id?: string
+    id?: string,
+    version?: string
   }) {
     super({
       color: properties.color || '#ffffff',
@@ -34,7 +35,8 @@ export class PointLight extends AbstractLight implements IPointLight {
       type: LIGHT_TYPE.POINT,
       name: properties.name,
       order: properties.order,
-      id: properties.id
+      id: properties.id,
+      version: properties.version
     });
     if (properties.position) this.#position = properties.position;
     if (properties.distance) this.#distance = properties.distance;
@@ -91,7 +93,9 @@ export class PointLight extends AbstractLight implements IPointLight {
       decay: this.decay,
       intensity: this.intensity,
       name: this.name,
-      order: this.order
+      order: this.order,
+      id: this.id,
+      version: this.version
     });
   }
 

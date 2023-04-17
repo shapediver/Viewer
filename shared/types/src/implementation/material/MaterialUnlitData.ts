@@ -20,9 +20,10 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
      */
     constructor(
         properties?: IMaterialUnlitDataProperties,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(properties, id);
+        super(properties, id, version);
         if (!properties) return;
         if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
@@ -63,7 +64,7 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
             opacity: this.opacity,
             side: this.side,
             envMap: this.envMap
-        }, this.id);
+        }, this.id, this.version);
     }
 
     public copy(source: MaterialUnlitData): void {

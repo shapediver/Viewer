@@ -49,8 +49,8 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERA_TYPE) {
-        super(_id);
+    constructor(private readonly _id: string, private readonly _type: CAMERA_TYPE, version?: string) {
+        super(_id, version);
     }
 
     // #endregion Constructors (1)

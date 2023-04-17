@@ -50,9 +50,10 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
    */
   constructor(
     properties?: IMaterialStandardDataProperties,
-    id?: string
+    id?: string,
+    version?: string
   ) {
-    super(properties, id);
+    super(properties, id, version);
     if (!properties) return;
     if (properties.metalness !== undefined) this.metalness = properties.metalness;
     if (properties.metalnessMap !== undefined) this.metalnessMap = properties.metalnessMap;
@@ -434,7 +435,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
       specularColorMap: this.specularColorMap,
       specularIntensity: this.specularIntensity,
       specularIntensityMap: this.specularIntensityMap,
-    }, this.id);
+    }, this.id, this.version);
   }
 
   public copy(source: MaterialStandardData): void {

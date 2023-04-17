@@ -37,9 +37,10 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
             viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
+            version?: string
         }
     ) {
-        super(properties.id);
+        super(properties.id, properties.version);
 
         this.#location = properties.location;
         this.#data = properties.data;
@@ -189,6 +190,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
+            version?: string
         }) {
         super({
             location: properties.location,
@@ -198,6 +200,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
+            version: properties.version,
         })
     }
 
@@ -213,6 +216,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
+            version: this.version
         });
     }
 
@@ -255,6 +259,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
+            version?: string
         }) {
         super({
             location: properties.location,
@@ -264,6 +269,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
+            version: properties.version
         })
     }
 
@@ -279,6 +285,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
+            version: this.version
         });
     }
 
@@ -320,6 +327,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
+            version?: string
             create: (properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) => void,
             update: (properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean, visible: boolean }) => void
         }) {
@@ -331,6 +339,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
+            version: properties.version
         })
 
         this.#create = properties.create;
@@ -357,6 +366,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
+            version: this.version,
             create: this.#create,
             update: this.#update,
         });

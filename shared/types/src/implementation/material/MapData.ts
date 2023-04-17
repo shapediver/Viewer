@@ -34,8 +34,10 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       repeat: vec2 = vec2.fromValues(1, 1),
       rotation: number = 0,
       flipY: boolean = true,
+      id?: string,
+      version?: string
     ) {
-      super();
+      super(id, version);
       this.#image = image;
       this.#wrapS = wrapS;
       this.#wrapT = wrapT;
@@ -146,7 +148,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Public Methods (1)
 
     public clone(): IMapData {
-      return new MapData(<HTMLImageElement>this.image.cloneNode(), this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.flipY);
+      return new MapData(<HTMLImageElement>this.image, this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.flipY, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

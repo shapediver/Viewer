@@ -36,7 +36,7 @@ export class ThreejsData extends AbstractTreeNodeData implements IThreejsData {
     // #region Public Methods (1)
 
     public clone(): IThreejsData {
-        return new ThreejsData(this.obj.clone(), this.id);
+        return new ThreejsData(this.obj, this.id);
     }
 
     // #endregion Public Methods (1)

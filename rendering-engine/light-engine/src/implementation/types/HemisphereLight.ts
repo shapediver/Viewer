@@ -22,7 +22,8 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
         intensity?: number,
         name?: string,
         order?: number,
-        id?: string
+        id?: string,
+        version?: string
     }) {
         super({
             color: properties.color || '#ffffff',
@@ -30,7 +31,8 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
             type: LIGHT_TYPE.HEMISPHERE,
             name: properties.name,
             order: properties.order,
-            id: properties.id
+            id: properties.id,
+            version: properties.version
         });
 
         if (properties.groundColor) this.#groundColor = properties.groundColor;
@@ -64,7 +66,9 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
             groundColor: this.groundColor,
             intensity: this.intensity,
             name: this.name,
-            order: this.order
+            order: this.order,
+            id: this.id,
+            version: this.version
         });
     }
 

@@ -18,9 +18,10 @@ export class CustomData extends AbstractTreeNodeData implements ICustomData {
      */
     constructor(
         data: { [key: string]: any },
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#data = data;
     }
 
@@ -44,7 +45,7 @@ export class CustomData extends AbstractTreeNodeData implements ICustomData {
      * Clones the scene graph data.
      */
     public clone(): ICustomData {
-        return new CustomData({ ...this.data }, this.id);
+        return new CustomData({ ...this.data }, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

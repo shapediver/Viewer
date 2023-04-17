@@ -24,9 +24,10 @@ export class SDTFItemData extends AbstractTreeNodeData implements ISDTFItemData 
         attributes: {
             [key: string]: ISDTFAttributeData
         },
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#attributes = attributes;
         this.#typeHint = typeHint;
         this.#value = value;
@@ -64,7 +65,7 @@ export class SDTFItemData extends AbstractTreeNodeData implements ISDTFItemData 
      * Clones the scene graph data.
      */
     public clone(): ISDTFItemData {
-        return new SDTFItemData(this.typeHint, this.value, this.attributes, this.id);
+        return new SDTFItemData(this.typeHint, this.value, this.attributes, this.id, this.version);
     }
 
     // #endregion Public Methods (1)
