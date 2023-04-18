@@ -19,7 +19,8 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
         intensity?: number,
         name?: string,
         order?: number,
-        id?: string
+        id?: string,
+        version?: string
     }) {
         super({
             color: properties.color || '#ffffff', 
@@ -27,7 +28,8 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
             type: LIGHT_TYPE.AMBIENT,
             name: properties.name,
             order: properties.order,
-            id: properties.id
+            id: properties.id,
+            version: properties.version
         });
     }
 
@@ -48,7 +50,9 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
             color: this.color || '#ffffff', 
             intensity: this.intensity || 0.5, 
             name: this.name,
-            order: this.order
+            order: this.order,
+            id: this.id,
+            version: this.version
         });
     }
 

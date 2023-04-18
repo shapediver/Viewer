@@ -80,6 +80,12 @@ export class GLTFConverter {
     }[] = [];
     private _promises: Promise<any>[] = [];
     private _viewport?: string;
+    private _materialCache: {
+        [key: string]: number
+    } = {};
+    private _meshCache: {
+        [key: string]: number
+    } = {};
 
     // #endregion Properties (15)
 
@@ -117,8 +123,7 @@ export class GLTFConverter {
         const translationMatrixId = this._uuidGenerator.create();
         if(convertForAR) {
           // add translation matrix to scene tree node
-          const bb = node.boundingBox.clone();
-          const center = bb.boundingSphere.center;
+          const center = node.boundingBox.boundingSphere.center;
           let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
           node.addTransformation({ id: translationMatrixId, matrix: translationMatrix })
         }
@@ -472,6 +477,8 @@ export class GLTFConverter {
 
     private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
+        if (this._materialCache[data.id + '_' + data.version]) return this._materialCache[data.id + '_' + data.version];
+        
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
             pbrMetallicRoughness: {}
@@ -540,11 +547,15 @@ export class GLTFConverter {
         materialDef.doubleSided = data.side === MATERIAL_SIDE.DOUBLE;
 
         this._content.materials.push(materialDef);
-        return this._content.materials.length - 1;
+
+        this._materialCache[data.id + '_' + data.version] = this._content.materials.length - 1;
+        return this._materialCache[data.id + '_' + data.version];
     }
 
     private convertMesh(data: IGeometryData): number {
         if (!this._content.meshes) this._content.meshes = [];
+        if (this._meshCache[data.id + '_' + data.version]) return this._meshCache[data.id + '_' + data.version];
+
         const meshDef: IGLTF_v2_Mesh = {
             primitives: [],
             name: data.id
@@ -553,7 +564,8 @@ export class GLTFConverter {
         meshDef.primitives?.push(this.convertPrimitive(data.primitive))
 
         this._content.meshes.push(meshDef);
-        return this._content.meshes.length - 1;
+        this._meshCache[data.id + '_' + data.version] = this._content.meshes.length - 1;
+        return this._meshCache[data.id + '_' + data.version];
     }
 
     private convertNode(node: ITreeNode): number {

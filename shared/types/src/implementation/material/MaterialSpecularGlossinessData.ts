@@ -26,9 +26,10 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
      */
     constructor(
         properties?: IMaterialSpecularGlossinessDataProperties,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(properties, id);
+        super(properties, id, version);
         if (!properties) return;
         if (properties.glossiness !== undefined) this.glossiness = properties.glossiness;
         if (properties.specular !== undefined) this.specular = properties.specular;
@@ -120,7 +121,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
             glossiness: this.glossiness,
             glossinessMap: this.glossinessMap,
             envMap: this.envMap,
-        }, this.id);
+        }, this.id, this.version);
     }
 
     public copy(source: MaterialSpecularGlossinessData): void {

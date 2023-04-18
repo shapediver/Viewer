@@ -13,9 +13,10 @@ export class SDTFOverviewData extends AbstractTreeNodeData implements ISDTFOverv
 
     constructor(
         overview: ISDTFOverview,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#overview = overview;
     }
 
@@ -35,7 +36,7 @@ export class SDTFOverviewData extends AbstractTreeNodeData implements ISDTFOverv
      * Clones the scene graph data.
      */
     public clone(): ISDTFOverviewData {
-        return new SDTFOverviewData(this.#overview, this.id);
+        return new SDTFOverviewData(this.#overview, this.id, this.version);
     }
 
     public merge(data: ISDTFOverviewData) {

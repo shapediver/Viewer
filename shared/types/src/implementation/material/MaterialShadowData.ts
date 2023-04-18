@@ -13,9 +13,10 @@ export class MaterialShadowData extends AbstractMaterialData implements IMateria
      */
     constructor(
         properties?: IMaterialShadowDataProperties,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(properties, id);
+        super(properties, id, version);
         if (!properties) return;
     }
 
@@ -32,7 +33,7 @@ export class MaterialShadowData extends AbstractMaterialData implements IMateria
         return new MaterialShadowData({
             color: this.color,
             opacity: this.opacity,
-        }, this.id);
+        }, this.id, this.version);
     }
 
     public copy(source: MaterialShadowData): void {

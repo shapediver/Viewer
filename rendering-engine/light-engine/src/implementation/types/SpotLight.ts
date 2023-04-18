@@ -32,7 +32,8 @@ export class SpotLight extends AbstractLight implements ISpotLight {
     penumbra?: number,
     name?: string,
     order?: number,
-    id?: string
+    id?: string,
+    version?: string
   }) {
     super({
       color: properties.color || '#ffffff',
@@ -40,7 +41,8 @@ export class SpotLight extends AbstractLight implements ISpotLight {
       type: LIGHT_TYPE.SPOT,
       name: properties.name,
       order: properties.order,
-      id: properties.id
+      id: properties.id,
+      version: properties.version
     });
     if (properties.position) this.#position = properties.position;
     if (properties.target) this.#target = properties.target;
@@ -133,7 +135,9 @@ export class SpotLight extends AbstractLight implements ISpotLight {
       penumbra: this.penumbra,
       intensity: this.intensity,
       name: this.name,
-      order: this.order
+      order: this.order,
+      id: this.id,
+      version: this.version
     });
   }
 

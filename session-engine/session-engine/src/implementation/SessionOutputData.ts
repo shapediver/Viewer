@@ -13,9 +13,10 @@ export class SessionOutputData extends AbstractTreeNodeData implements ISessionO
 
     constructor(
         responseOutput: ShapeDiverResponseOutput,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#responseOutput = responseOutput;
     }
 
@@ -36,7 +37,7 @@ export class SessionOutputData extends AbstractTreeNodeData implements ISessionO
     // #region Public Methods (1)
 
     public clone(): ISessionOutputData {
-        return new SessionOutputData(this.responseOutput, this.id);
+        return new SessionOutputData(this.responseOutput, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

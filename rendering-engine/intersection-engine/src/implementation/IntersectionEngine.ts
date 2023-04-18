@@ -205,7 +205,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             return;
         } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINES) {
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.clone().intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
             
             const index = geometryData.primitive.indices;
             const position = geometryData.primitive.attributes['POSITION'];
@@ -238,7 +238,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             return intersections;
         } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.clone().intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
             
             const index = geometryData.primitive.indices;
             const position = geometryData.primitive.attributes['POSITION'];
@@ -287,7 +287,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             return intersections;
         } else {
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.clone().intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
 
             const material = geometryData.primitive.material;
             const index = geometryData.primitive.indices;

@@ -19,11 +19,7 @@ const sendSlackMessage = async (text: string) => {
 
 const processError = async (e: unknown) => {
     console.log(e)
-    if(e instanceof Error && e.message) {
-        sendSlackMessage("Tests failed with error: " + e.message)
-    } else {
-        sendSlackMessage("Tests failed.")
-    }
+    sendSlackMessage("Tests failed.")
 }
 
 (async () => {
@@ -32,7 +28,7 @@ const processError = async (e: unknown) => {
         console.log(await execPromise(`npm run deploy-tests`));
         const res = await execPromise(`npm run test`);
         console.log(res);
-        sendSlackMessage("Tests finished!")
+        sendSlackMessage("Tests finished successfully!")
     } catch (e) {
         processError(e)
     }

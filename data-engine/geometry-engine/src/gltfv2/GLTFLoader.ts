@@ -30,7 +30,6 @@ import { AccessorLoader } from './loaders/AccessorLoader'
 import { TextureLoader } from './loaders/TextureLoader'
 import { MaterialLoader } from './loaders/MaterialLoader'
 import { GeometryLoader } from './loaders/GeometryLoader'
-import { NodeTreeUtils } from '@shapediver/viewer.shared.node-tree-utils'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
@@ -140,8 +139,6 @@ export class GLTFLoader {
                     skinNode.skinNode = true;
                     skinNode.bones = bones;
                     skinNode.boneInverses = boneInverses;
-
-                    NodeTreeUtils.addBones(skinNode, skinNode);
                 }
             }
         }

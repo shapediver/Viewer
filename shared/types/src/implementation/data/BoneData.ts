@@ -11,9 +11,10 @@ export class BoneData extends AbstractTreeNodeData implements IBoneData {
      * @param id the id
      */
     constructor(
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
     }
 
     // #endregion Constructors (1)
@@ -24,7 +25,7 @@ export class BoneData extends AbstractTreeNodeData implements IBoneData {
      * Clones the scene graph data.
      */
     public clone(): IBoneData {
-        return new BoneData(this.id);
+        return new BoneData(this.id, this.version);
     }
 
     // #endregion Public Methods (1)

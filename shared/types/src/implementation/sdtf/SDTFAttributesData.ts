@@ -96,9 +96,10 @@ export class SDTFAttributesData extends AbstractTreeNodeData implements ISDTFAtt
         attributes: {
             [key: string]: SDTFAttributeData
         } = {},
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#attributes = attributes;
     }
 
@@ -120,7 +121,7 @@ export class SDTFAttributesData extends AbstractTreeNodeData implements ISDTFAtt
      * Clones the scene graph data.
      */
     public clone(): ISDTFAttributesData {
-        return new SDTFAttributesData(this.attributes, this.id);
+        return new SDTFAttributesData(this.attributes, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

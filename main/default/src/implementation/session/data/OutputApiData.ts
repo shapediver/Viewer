@@ -19,9 +19,10 @@ export class OutputApiData extends AbstractTreeNodeData implements IOutputApiDat
      */
     constructor(
         api: IOutputApi,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#api = api;
     }
 
@@ -45,7 +46,7 @@ export class OutputApiData extends AbstractTreeNodeData implements IOutputApiDat
      * Clones the scene graph data.
      */
     public clone(): IOutputApiData {
-        return new OutputApiData(this.api, this.id);
+        return new OutputApiData(this.api, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

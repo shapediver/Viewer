@@ -47,5 +47,12 @@ export class SDObject extends Object3D implements ISDObject {
         this.#SDversion = value;
     }
 
+    public cloneObject(): SDObject {
+        const clone = this.clone();
+        clone.SDid = this.SDid;
+        clone.SDversion = this.SDversion;
+        return clone;
+    }
+
     // #endregion Public Accessors (4)
 }

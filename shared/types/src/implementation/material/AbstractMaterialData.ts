@@ -39,9 +39,10 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
    */
   constructor(
     properties?: IMaterialAbstractDataProperties,
-    id?: string
+    id?: string,
+    version?: string
   ) {
-    super(id);
+    super(id, version);
     if (!properties) return;
     if (properties.alphaMap !== undefined) this.alphaMap = properties.alphaMap;
     if (properties.alphaCutoff !== undefined) this.alphaCutoff = properties.alphaCutoff;

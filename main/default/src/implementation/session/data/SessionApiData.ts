@@ -19,9 +19,10 @@ export class SessionApiData extends AbstractTreeNodeData implements ISessionApiD
      */
     constructor(
         api: ISessionApi,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#api = api;
     }
 
@@ -45,7 +46,7 @@ export class SessionApiData extends AbstractTreeNodeData implements ISessionApiD
      * Clones the scene graph data.
      */
     public clone(): ISessionApiData {
-        return new SessionApiData(this.api, this.id);
+        return new SessionApiData(this.api, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

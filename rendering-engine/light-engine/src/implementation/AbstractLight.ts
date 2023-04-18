@@ -29,9 +29,10 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
         type: LIGHT_TYPE,
         name?: string,
         order?: number,
-        id?: string
+        id?: string,
+        version?: string
     }) {
-        super(properties.id);
+        super(properties.id, properties.version);
         this.#color = properties.color;
         this.#intensity = properties.intensity;
         this.#type = properties.type;

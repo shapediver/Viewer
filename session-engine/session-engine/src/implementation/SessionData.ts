@@ -13,9 +13,10 @@ export class SessionData extends AbstractTreeNodeData implements ISessionData {
 
     constructor( 
         responseDto: ShapeDiverResponseDto,
-        id?: string
+        id?: string,
+        version?: string
     ) {
-        super(id);
+        super(id, version);
         this.#responseDto = responseDto;
     }
 
@@ -36,7 +37,7 @@ export class SessionData extends AbstractTreeNodeData implements ISessionData {
     // #region Public Methods (1)
 
     public clone(): ISessionData {
-        return new SessionData(this.responseDto, this.id);
+        return new SessionData(this.responseDto, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

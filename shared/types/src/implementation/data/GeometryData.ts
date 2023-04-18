@@ -51,9 +51,11 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     sparse?: boolean,
     sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
     sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
-    morphAttributeData: IAttributeData[] = []
+    morphAttributeData: IAttributeData[] = [],
+    id?: string,
+    version?: string
   ) {
-    super();
+    super(id, version);
     this.#array = array;
     this.#itemSize = itemSize;
     this.#itemBytes = itemBytes;
@@ -138,10 +140,8 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
    * Clones the attribute data.
    */
   public clone(): IAttributeData {
-    let array = this.#array.slice(0, this.#array.length);
-    array.set(this.#array);
     return new AttributeData(
-      array,
+      this.#array,
       this.#itemSize,
       this.#itemBytes,
       this.#byteOffset,
@@ -154,7 +154,9 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
       this.#sparse,
       this.#sparseIndices,
       this.#sparseValues,
-      this.#morphAttributeData
+      this.#morphAttributeData,
+      this.id,
+      this.version
     );
   }
 
@@ -199,8 +201,10 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     indices: IAttributeData | null = null,
     material: IMaterialAbstractData | null = null,
     attributeMaterial: IMaterialAbstractData | null = null,
+    id?: string,
+    version?: string
   ) {
-    super();
+    super(id, version);
     this.#attributes = attributes;
     this.#mode = mode;
 
@@ -285,7 +289,8 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     } = {};
     for (let attribute in this.#attributes)
       attributes[attribute] = <IAttributeData>this.#attributes[attribute].clone();
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <IMaterialAbstractData>this.#material?.clone(), <IMaterialAbstractData>this.#attributeMaterial?.clone());
+
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices, <IMaterialAbstractData>this.#material, <IMaterialAbstractData>this.#attributeMaterial, this.id, this.version);
   }
 
   public computeBoundingBox(matrix: mat4): IBox {
@@ -339,7 +344,6 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   #boundingBox: IBox = new Box();
   #renderOrder: number = 0;
   #morphWeights: number[] = [];
-  #skinNode: ITreeNode | undefined;
   #threeJsObject: { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } = {};
 
   // #endregion Properties (4)
@@ -354,10 +358,11 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    */
   constructor(
     primitive: IPrimitiveData,
+    morphWeights: number[] = [],
     id?: string,
-    morphWeights: number[] = []
+    version?: string
   ) {
-    super(id);
+    super(id, version);
     this.#primitive = primitive;
     this.#boundingBox = this.primitive.boundingBox.clone();
     this.#morphWeights = morphWeights;
@@ -390,14 +395,6 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   public set morphWeights(value: number[]) {
     this.#morphWeights = value
   }
-
-  public get skinNode(): ITreeNode | undefined {
-    return this.#skinNode;
-  }
-
-  public set skinNode(value: ITreeNode | undefined) {
-    this.#skinNode = value;
-  }
   
   public get threeJsObject(): { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } {
     return this.#threeJsObject;
@@ -411,7 +408,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    * Clones the scene graph data.
    */
   public clone(): IGeometryData {
-    return new GeometryData(this.#primitive.clone(), this.id, this.#morphWeights);
+    return new GeometryData(this.#primitive, this.#morphWeights, this.id, this.version);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

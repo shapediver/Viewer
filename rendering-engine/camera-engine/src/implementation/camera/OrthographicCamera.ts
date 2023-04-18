@@ -41,8 +41,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   // #region Constructors (1)
 
-  constructor(id: string) {
-    super(id, CAMERA_TYPE.ORTHOGRAPHIC);
+  constructor(id: string, version?: string) {
+    super(id, CAMERA_TYPE.ORTHOGRAPHIC, version);
     this._controls = new OrthographicCameraControls(this, true);
   }
 
@@ -200,7 +200,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   }
 
   public clone(): IOrthographicCamera {
-    return new OrthographicCamera(this.id);
+    return new OrthographicCamera(this.id, this.version);
   }
 
   public calculateZoomTo(zoomTarget?: Box, startingPosition: vec3 = this.position, startingTarget: vec3 = this.target): { position: vec3; target: vec3; } {

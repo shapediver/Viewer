@@ -28,7 +28,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         shadowMapBias?: number,
         name?: string,
         order?: number,
-        id?: string
+        id?: string,
+        version?: string
     }) {
         super({
             color: properties.color || '#ffffff', 
@@ -36,7 +37,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             type: LIGHT_TYPE.DIRECTIONAL,
             name: properties.name,
             order: properties.order,
-            id: properties.id
+            id: properties.id,
+            version: properties.version
         });
 
         if(properties.direction) this.#direction = properties.direction;
@@ -106,7 +108,9 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             shadowMapResolution: this.shadowMapResolution,
             shadowMapBias: this.shadowMapBias,
             name: this.name,
-            order: this.order
+            order: this.order,
+            id: this.id,
+            version: this.version
         });
     }
 
