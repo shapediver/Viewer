@@ -1,40 +1,40 @@
 import { AttributeData } from '@shapediver/viewer.shared.types'
 import {
-  ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-  ACCESSORTYPE_V2 as ACCESSORTYPE,
-  IGLTF_v2
+    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+    ACCESSORTYPE_V2 as ACCESSORTYPE,
+    IGLTF_v2
 } from '@shapediver/viewer.data-engine.shared-types'
 import { Logger } from '@shapediver/viewer.shared.services'
 
 import { BufferViewLoader } from './BufferViewLoader'
 
 export class AccessorLoader {
-  // #region Properties (2)
+    // #region Properties (2)
 
-  private readonly _logger: Logger = Logger.instance;
+    private readonly _logger: Logger = Logger.instance;
 
-  private _loaded: {
+    private _loaded: {
         [key: string]: AttributeData | null
     } = {};
 
-  // #endregion Properties (2)
+    // #endregion Properties (2)
 
-  // #region Constructors (1)
+    // #region Constructors (1)
 
-  constructor(private readonly _content: IGLTF_v2, private readonly _bufferViewLoader: BufferViewLoader) { }
+    constructor(private readonly _content: IGLTF_v2, private readonly _bufferViewLoader: BufferViewLoader) { }
 
-  // #endregion Constructors (1)
+    // #endregion Constructors (1)
 
-  // #region Public Methods (2)
+    // #region Public Methods (2)
 
-  public getAccessor(accessorId: number): AttributeData | null {
+    public getAccessor(accessorId: number): AttributeData | null {
         if (!this._content.accessors) throw new Error('AccessorLoader.getAccessor: Accessors not available.')
         if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not available.')
         if (!this._loaded[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not loaded.')
         return this._loaded[accessorId];
     }
 
-  public load(): void {
+    public load(): void {
         if (!this._content.accessors) return;
         for (let i = 0; i < this._content.accessors.length; i++) {
             const accessorId = i;
@@ -76,14 +76,6 @@ export class AccessorLoader {
                 }
             }
 
-            if (normalized) {
-                const scale = this.getNormalizedComponentScale(ArrayType);
-                const scaled = new Float32Array(array.length);
-                for (let j = 0, jl = array.length; j < jl; j++)
-                    scaled[j] = array[j] * scale;
-                array = scaled;
-            }
-
             if (accessor.sparse !== undefined) {
                 const itemSizeIndices = ACCESSORTYPE.SCALAR;
                 const IndicesArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.sparse.indices.componentType];
@@ -104,31 +96,5 @@ export class AccessorLoader {
         }
     }
 
-  // #endregion Public Methods (2)
-
-  // #region Private Methods (1)
-
-  private getNormalizedComponentScale(constructor: Uint8ArrayConstructor | Int8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor) {
-        // Reference:
-        // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
-
-        switch (constructor) {
-            case Int8Array:
-                return 1 / 127;
-
-            case Uint8Array:
-                return 1 / 255;
-
-            case Int16Array:
-                return 1 / 32767;
-
-            case Uint16Array:
-                return 1 / 65535;
-
-            default:
-                throw new Error('THREE.GLTFLoader: Unsupported normalized accessor component type.');
-        }
-    }
-
-  // #endregion Private Methods (1)
+    // #endregion Public Methods (2)
 }
