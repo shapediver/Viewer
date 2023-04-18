@@ -27,6 +27,7 @@ export interface IAttributeData extends ITreeNodeData {
     readonly min: number[];
     readonly morphAttributeData: IAttributeData[];
     readonly normalized: boolean;
+    readonly target: number | undefined;
     readonly sparse?: boolean;
     readonly sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
     readonly sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;

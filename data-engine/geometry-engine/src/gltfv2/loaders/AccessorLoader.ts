@@ -60,6 +60,7 @@ export class AccessorLoader {
             const byteOffset = accessor.byteOffset || 0;
             const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].byteStride : undefined : undefined;
             const normalized = accessor.normalized === true;
+            const target = this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].target : undefined;
             let array;
 
             if (byteStride && byteStride !== itemBytes) {
@@ -95,11 +96,11 @@ export class AccessorLoader {
                 const sparseIndices = new IndicesArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.indices.bufferView!), byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
                 const sparseValues = new ArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);
 
-                this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, true, sparseIndices, sparseValues);
+                this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, target, true, sparseIndices, sparseValues);
                 continue;
             }
 
-            this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride);
+            this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, target);
         }
     }
 

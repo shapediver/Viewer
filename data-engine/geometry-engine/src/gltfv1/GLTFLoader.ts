@@ -152,12 +152,13 @@ export class GLTFLoader {
         const byteOffset = accessor.byteOffset || 0;
         const byteStride = accessor.byteStride;
         const normalized = false;
+        const target = this._content.bufferViews![accessor.bufferView] ? this._content.bufferViews![accessor.bufferView].target : undefined;
 
         const min = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.min || [] : [];
         const max = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.max || [] : [];
 
         // The buffer is not interleaved if the stride is the item size in bytes.
-        return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, min, max, byteStride);
+        return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, min, max, byteStride, target);
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
@@ -270,7 +271,7 @@ export class GLTFLoader {
 
                 attributes[attributeName] = await this.loadAccessor(primitive.attributes[attribute]);
                 if(attributeName.startsWith('COLOR'))
-                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride)
+                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride, attributes[attributeName].target)
             }
 
             let material: MaterialStandardData | undefined;

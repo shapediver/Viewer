@@ -419,7 +419,8 @@ export class GLTFConverter {
         const bufferViewDef: IGLTF_v2_BufferView = {
             buffer: this.convertBuffer(dataView.buffer),
             byteOffset: this._byteOffset,
-            byteLength: byteLength
+            byteLength: byteLength,
+            target: data.target
         };
         this._byteOffset += byteLength;
 
