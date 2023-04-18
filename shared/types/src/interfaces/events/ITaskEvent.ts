@@ -8,7 +8,7 @@ export enum TASK_TYPE {
     GLTF_CONTENT_LOADING = 'gltf_content_loading',
     MATERIAL_CONTENT_LOADING = 'material_content_loading',
     TAG_CONTENT_LOADING = 'tag_content_loading',
-    SDTF_CONTENT_LOADING = 'tag_content_loading',
+    SDTF_CONTENT_LOADING = 'sdtf_content_loading',
     SESSION_CUSTOMIZATION = 'session_customization',
     SESSION_CREATION = 'session_creation',
     SESSION_OUTPUTS_UPDATE = 'session_outputs_update',
