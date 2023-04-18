@@ -326,30 +326,40 @@ export class CreationControlCenter implements ICreationControlCenter {
         bearerToken: properties.jwtToken
       });
 
-      const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };
+      const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session.' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
       await sessionEngine.init(properties.initialParameterValues);
 
       if (properties.loadOutputs !== false) {
         if (properties.waitForOutputs !== false) {
-          await sessionEngine.updateOutputs();
+          await sessionEngine.updateOutputs({
+            eventId,
+            type: TASK_TYPE.SESSION_CREATION,
+            progressRange: {
+              min: 0.25,
+              max: 0.9
+            },
+            data: undefined
+          });
           this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
           for (let r in this.renderingEngines)
             this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=true')
-            
-          const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
-          this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         } else {
-          sessionEngine.updateOutputs().then(() => {
+          sessionEngine.updateOutputs({
+            eventId,
+            type: TASK_TYPE.SESSION_CREATION,
+            progressRange: {
+              min: 0.25,
+              max: 0.9
+            },
+            data: undefined
+          }).then(() => {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
             for (let r in this.renderingEngines)
               this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=false')
-              
-            const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
-            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
           })
         }
       }

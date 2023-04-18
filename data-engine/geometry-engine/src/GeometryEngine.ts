@@ -48,7 +48,7 @@ export class GeometryEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, taskEventId: string): Promise<ITreeNode> {
         if (!content || (content && !content.href))
             throw new ShapeDiverViewerDataProcessingError('GeometryEngine cannot load content.');
 
@@ -127,9 +127,9 @@ export class GeometryEngine {
             }
             
             if (version === '1.0') {
-                resolve(await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl));
+                resolve(await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId));
             } else {
-                resolve(await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl));
+                resolve(await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId));
             }
         })
 

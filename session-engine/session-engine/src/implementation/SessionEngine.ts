@@ -1,7 +1,7 @@
 import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
-import { OutputLoader } from './OutputLoader'
+import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
@@ -464,12 +464,20 @@ export class SessionEngine implements ISessionEngine {
                 this.parameterValues[parameterId] = parameterSet[parameterId].valueString;
             this._logger.info(`Session(${this.id}).customize: Customizing session with parameters ${JSON.stringify(this.parameterValues)}.`);
 
-            const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Sending customization request' };
+            const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Sending customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
-            const newNode = await this.customizeInternal(() => this.#customizationProcess !== customizationId);
+            const newNode = await this.customizeInternal(() => this.#customizationProcess !== customizationId, {
+                eventId,
+                type: TASK_TYPE.SESSION_CUSTOMIZATION,
+                progressRange: {
+                    min: 0.1,
+                    max: 0.9
+                },
+                data: { sessionId: this.id }
+            });
 
-            const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
+            const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.9, data: { sessionId: this.id }, status: 'Updating scene' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
             // OPTION TO SKIP - PART 2
@@ -541,7 +549,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+    public async customizeParallel(parameterValues: { [key: string]: string }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode> {
             const parameterSet: {
                 [key: string]: string
             } = {};
@@ -550,7 +558,7 @@ export class SessionEngine implements ISessionEngine {
             for (const parameterId in this.parameters)
                 parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
 
-            const newNode = await this.customizeSession(parameterSet, () => false, true);
+            const newNode = await this.customizeSession(parameterSet, () => false, taskEventInfo, true);
             newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
             return newNode;
     }
@@ -652,7 +660,7 @@ export class SessionEngine implements ISessionEngine {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, retry = false): Promise<ISessionTreeNode> {
+     public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability();
 
         let outputs: {
@@ -669,7 +677,7 @@ export class SessionEngine implements ISessionEngine {
         }
 
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, outputsFreeze);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, outputsFreeze, taskEventInfo);
             node.data.push(new SessionData(responseDto));      
             return node;
         }
@@ -679,7 +687,7 @@ export class SessionEngine implements ISessionEngine {
             } else {
                 await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputsParallel(responseDto, cancelRequest, true);
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
             }
 
             if (cancelRequest()) return new SessionTreeNode();
@@ -691,11 +699,11 @@ export class SessionEngine implements ISessionEngine {
                 const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
                 if (cancelRequest()) return new SessionTreeNode();
                 this.updateResponseDto(responseDto);
-                return await this.loadOutputsParallel(responseDto, cancelRequest);
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
             } catch (e) {
                 await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputsParallel(responseDto, cancelRequest, true);
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
             }
         }
     }
@@ -708,13 +716,13 @@ export class SessionEngine implements ISessionEngine {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(cancelRequest: () => boolean = () => false, retry = false): Promise<ISessionTreeNode> {
+    public async loadOutputs(cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability();
 
         const o = Object.assign({}, this._outputs);
         const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', o, of);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', o, of, taskEventInfo);
             node.data.push(new SessionData(this._responseDto!));
 
             if (cancelRequest()) return node;            
@@ -733,7 +741,7 @@ export class SessionEngine implements ISessionEngine {
             } else {
                 await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputs(cancelRequest, true);
+                return await this.loadOutputs(cancelRequest, taskEventInfo, true);
             }
 
             if (cancelRequest()) return new SessionTreeNode();
@@ -745,11 +753,11 @@ export class SessionEngine implements ISessionEngine {
                 const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
                 if (cancelRequest()) return new SessionTreeNode();
                 this.updateResponseDto(responseDto);
-                return await this.loadOutputs(cancelRequest);
+                return await this.loadOutputs(cancelRequest, taskEventInfo);
             } catch (e) {
                 await this.handleError(e, retry);
                 if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputs(cancelRequest, true);
+                return await this.loadOutputs(cancelRequest, taskEventInfo, true);
             }
         }
     }
@@ -959,12 +967,17 @@ export class SessionEngine implements ISessionEngine {
             return response && responseP && responseO && responseE;
     }
 
-    public async updateOutputs(): Promise<ITreeNode> {
-        const eventId = this._uuidGenerator.create();
-        const customizationId = this._uuidGenerator.create();
-        const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Updating outputs' };
-        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+    public async updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode> {
+        const eventId = taskEventInfo ? taskEventInfo.eventId : this._uuidGenerator.create();
+        const eventType = taskEventInfo ? taskEventInfo.type : TASK_TYPE.SESSION_OUTPUTS_UPDATE;
+        const eventData = taskEventInfo ? taskEventInfo.data : { sessionId: this.id };
 
+        if(!taskEventInfo) {
+            const eventStart: ITaskEvent = { type: eventType, id: eventId, progress: 0, data: eventData, status: 'Updating outputs' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+        }
+
+        const customizationId = this._uuidGenerator.create();
         const oldNode = this.node.cloneInstance();
         this.#customizationProcess = customizationId;
 
@@ -973,12 +986,20 @@ export class SessionEngine implements ISessionEngine {
         for (let r in this._stateEngine.renderingEngines)
             this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
-        const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
+        const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
-        const newNode = await this.loadOutputs(() => this.#customizationProcess !== customizationId);
+        const newNode = await this.loadOutputs(() => this.#customizationProcess !== customizationId, {
+            eventId,
+            type: eventType,
+            progressRange: {
+                min: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1,
+                max: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.9 + taskEventInfo.progressRange.min : 0.9
+            },
+            data: eventData
+        });
 
-        const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
+        const eventSceneUpdate: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.9 + taskEventInfo.progressRange.min : 0.9, data: eventData, status: 'Updating scene' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
         // OPTION TO SKIP - PART 1
@@ -987,7 +1008,7 @@ export class SessionEngine implements ISessionEngine {
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-            const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating was exceeded by other customization request' };
+            const eventCancel1: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 1 + taskEventInfo.progressRange.min : 1, data: eventData, status: 'Output updating was exceeded by other customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
             this._logger.debug(`Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
             return newNode;
@@ -1021,9 +1042,11 @@ export class SessionEngine implements ISessionEngine {
                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updated outputs.`);
-
-        const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Outputs updated' };
-        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+        
+        if(!taskEventInfo) {
+            const eventEnd: ITaskEvent = { type: eventType, id: eventId, progress: 1, data: eventData, status: 'Outputs updated' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+        }
 
         return this.node;
     }
@@ -1153,11 +1176,11 @@ export class SessionEngine implements ISessionEngine {
             throw new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
     }
 
-    private async customizeInternal(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
-        return this.customizeSession(this._parameterValues, cancelRequest);
+    private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
+        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo);
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, parallel = false, retry = false): Promise<ISessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
@@ -1165,11 +1188,11 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.endSection('sessionResponse');
             if (cancelRequest()) return new SessionTreeNode();            
             if (parallel === false) this.updateResponseDto(responseDto);
-            return parallel === false ? this.loadOutputs(cancelRequest) : this.loadOutputsParallel(responseDto, cancelRequest);
+            return parallel === false ? this.loadOutputs(cancelRequest, taskEventInfo) : this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
         } catch (e) {
             await this.handleError(e, retry);
             if (cancelRequest()) return new SessionTreeNode();
-            return await this.customizeSession(parameters, cancelRequest, parallel, true);
+            return await this.customizeSession(parameters, cancelRequest, taskEventInfo, parallel, true);
         }
     }
 

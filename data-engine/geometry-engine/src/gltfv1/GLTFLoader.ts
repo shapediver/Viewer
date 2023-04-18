@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, ShapeDiverViewerDataProcessingError, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
@@ -13,6 +13,8 @@ import {
   MATERIAL_SIDE,
   MaterialStandardData,
   PrimitiveData,
+  ITaskEvent,
+  TASK_TYPE,
 } from '@shapediver/viewer.shared.types'
 
 import { SDGTFLoader } from './SDGTFLoader'
@@ -26,18 +28,31 @@ export class GLTFLoader {
     private readonly _logger: Logger = Logger.instance;
     private readonly _implementedExtensions = ['KHR_materials_common'];
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _performanceEvaluator = PerformanceEvaluator.instance;
+    private readonly _progressUpdateLimit = 500;
 
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v1;
+    private _eventId: string = "";
+    private _numberOfNodes = 0;
+    private _numberOfConvertedNodes = 0;
+    private _progressTimer = 0;
 
     // #endregion Properties (5)
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<ITreeNode> {
+    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string, taskEventId?: string): Promise<ITreeNode> {
+        this._eventId = taskEventId || this._uuidGenerator.create();
+        const eventStart: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 0, status: 'Starting glTF 1.0 loading.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+        
+        this._numberOfConvertedNodes = 0;
+        this._numberOfNodes = content.nodes ? Object.values(content.nodes).length : 0;
+        this._progressTimer = performance.now();
+        
         this._baseUri = baseUri;
         if(gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength, gltfHeader.length);
@@ -47,11 +62,19 @@ export class GLTFLoader {
         if(gltfBinary && gltfHeader)
             sdgtfNode = await new SDGTFLoader().load(gltfBinary, gltfHeader.length);
 
+            
+        const eventProgressSDgTF: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 0.25, status: 'Loaded SDgTF content.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgressSDgTF);
+
+
         this.validateVersionAndExtensions();
         const node = await this.loadScene();
         if(sdgtfNode) node.addChild(sdgtfNode);
-        return node;
 
+        const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 1, status: 'GlTF loading complete.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+        return node;
     }
 
     public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
@@ -296,6 +319,16 @@ export class GLTFLoader {
                 // got through all children
                 nodeDef.addChild(await this.loadNode(node.children![i]));
             }
+        }
+
+        
+        this._numberOfConvertedNodes++;
+
+        if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
+            this._progressTimer = performance.now();
+            const eventProgress: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: (this._numberOfConvertedNodes / this._numberOfNodes) / 2 + 0.25, status: `GlTF conversion progress: ${this._numberOfConvertedNodes}/${this._numberOfNodes} nodes.` };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
 
         return nodeDef;

@@ -1,6 +1,7 @@
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
+import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
 import { IExport } from './dto/IExport';
 import { IOutput } from './dto/IOutput';
 import { IParameter } from './dto/IParameter';
@@ -122,18 +123,18 @@ export interface ISessionEngine {
   canGoForward(): boolean;
   close(): Promise<void>;
   customize(force: boolean): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: { [key: string]: string; }): Promise<void>;
-  loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
-  loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean): Promise<ITreeNode>;
+  loadOutputs(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
+  loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
   resetSettings(sections?: ISettingsSections): void;
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;
   saveUiProperties(): Promise<boolean>;
-  updateOutputs(): Promise<ITreeNode>;
+  updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 

@@ -1,6 +1,8 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
   Converter,
+  EventEngine,
+  EVENTTYPE,
   HttpClient,
   Logger,
   PerformanceEvaluator,
@@ -14,7 +16,9 @@ import {
   IAnimationTrack,
   AttributeData,
   BoneData,
-  Color
+  Color,
+  ITaskEvent,
+  TASK_TYPE
 } from '@shapediver/viewer.shared.types'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
@@ -55,11 +59,12 @@ export class GLTFLoader {
     // #region Properties (17)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _httpClient: HttpClient = HttpClient.instance;
     private readonly _logger: Logger = Logger.instance;
     private readonly _performanceEvaluator = PerformanceEvaluator.instance;
+    private readonly _progressUpdateLimit = 500;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private _accessorLoader!: AccessorLoader;
@@ -68,18 +73,30 @@ export class GLTFLoader {
     private _bufferLoader!: BufferLoader;
     private _bufferViewLoader!: BufferViewLoader;
     private _content!: IGLTF_v2;
+    private _eventId: string = "";
     private _geometryLoader!: GeometryLoader;
     private _materialLoader!: MaterialLoader;
     private _nodes: {
         [key: number]: ITreeNode
     } = {};
+    private _numberOfNodes = 0;
+    private _numberOfConvertedNodes = 0;
     private _textureLoader!: TextureLoader;
+    private _progressTimer = 0;
 
     // #endregion Properties (17)
 
     // #region Public Methods (2)
 
-    public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<ITreeNode> {
+    public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string, taskEventId?: string): Promise<ITreeNode> {
+        this._eventId = taskEventId || this._uuidGenerator.create();
+        const eventStart: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 0, status: 'Starting glTF 2.0 loading.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+        
+        this._numberOfConvertedNodes = 0;
+        this._numberOfNodes = content.nodes ? content.nodes.length : 0;
+        this._progressTimer = performance.now();
+        
         this._baseUri = baseUri;
         if (gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
@@ -101,7 +118,10 @@ export class GLTFLoader {
         await this._materialLoader.load();
         this._geometryLoader = new GeometryLoader(this._content, this._accessorLoader, this._bufferViewLoader, this._materialLoader, dracoModule);
 
-        const node = this.loadScene();
+        const eventProgressInit: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 0.1, status: 'Initial logic of glTF loading.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgressInit);
+
+        const node = await this.loadScene();
 
         if (this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
             const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
@@ -146,6 +166,9 @@ export class GLTFLoader {
         if (this._content.animations)
             for (let i = 0; i < this._content.animations?.length; i++)
                 node.data.push(this.loadAnimation(i));
+
+        const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: 1, status: 'GlTF loading complete.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         return node;
     }
 
@@ -342,7 +365,7 @@ export class GLTFLoader {
         return lightNode;
     }
 
-    private loadNode(nodeId: number): ITreeNode {
+    private async loadNode(nodeId: number): Promise<ITreeNode> {
         if (!this._content.nodes) throw new Error('Nodes not available.')
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
         const node = this._content.nodes[nodeId];
@@ -401,14 +424,22 @@ export class GLTFLoader {
         if (node.children) {
             for (let i = 0, len = node.children.length; i < len; i++) {
                 // got through all children
-                nodeDef.addChild(this.loadNode(node.children[i]));
+                nodeDef.addChild(await this.loadNode(node.children[i]));
             }
+        }
+
+        this._numberOfConvertedNodes++;
+        if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
+            this._progressTimer = performance.now();
+            const eventProgress: ITaskEvent = { type: TASK_TYPE.GLTF_CONTENT_LOADING, id: this._eventId, progress: (this._numberOfConvertedNodes / this._numberOfNodes) / 2 + 0.1, status: `GlTF conversion progress: ${this._numberOfConvertedNodes}/${this._numberOfNodes} nodes.` };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
 
         return nodeDef;
     }
 
-    private loadScene(): ITreeNode {
+    private async loadScene(): Promise<ITreeNode> {
         if (!this._content.scenes) throw new Error('Scenes not available.')
         const sceneId = this._content.scene || 0;
         if (!this._content.scenes[sceneId]) throw new Error('Scene not available.')
@@ -420,7 +451,7 @@ export class GLTFLoader {
         })
         if (scene.nodes)
             for (let i = 0, len = scene.nodes.length; i < len; i++)
-                sceneDef.addChild(this.loadNode(scene.nodes[i]));
+                sceneDef.addChild(await this.loadNode(scene.nodes[i]));
         return sceneDef;
     }
 
