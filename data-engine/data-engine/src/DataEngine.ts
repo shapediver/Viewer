@@ -1,10 +1,10 @@
-import { CustomData } from '@shapediver/viewer.shared.types'
+import { CustomData, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, Logger, ShapeDiverViewerDataProcessingError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 
 import { mat4 } from 'gl-matrix'
@@ -15,10 +15,11 @@ export class DataEngine {
 
     private readonly _geometryEngine: GeometryEngine = GeometryEngine.instance;
     private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = HTMLElementAnchorEngine.instance;
-    private readonly _logger: Logger = Logger.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _materialEngine: MaterialEngine = MaterialEngine.instance;
     private readonly _sdtfEngine: SDTFEngine = SDTFEngine.instance;
     private readonly _tag3dEngine: Tag3dEngine = Tag3dEngine.instance;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private static _instance: DataEngine;
 
@@ -34,25 +35,37 @@ export class DataEngine {
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent, jwtToken?: string): Promise<ITreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string): Promise<ITreeNode> {
         if (!content || (content && !content.format)) 
             throw new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
+
+        taskEventId = taskEventId || this._uuidGenerator.create();
 
         let node: ITreeNode;
 
         if (content.format === 'glb' || content.format === 'gltf') {
-            node = await this._geometryEngine.loadContent(content);
+            node = await this._geometryEngine.loadContent(content, taskEventId);
         } else if (content.format === 'material') {
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, { type: TASK_TYPE.MATERIAL_CONTENT_LOADING, id: taskEventId, progress: 0, status: 'Loading material content.' });
             node = await this._materialEngine.loadContent(content);
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, { type: TASK_TYPE.MATERIAL_CONTENT_LOADING, id: taskEventId, progress: 1, status: 'MATERIAL content loaded.' });
         } else if (content.format === 'tag2d' || content.format === 'anchor') {
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, { type: TASK_TYPE.TAG_CONTENT_LOADING, id: taskEventId, progress: 0, status: 'Loading tag content.' });
             node = await this._htmlElementAnchorEngine.loadContent(content);
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, { type: TASK_TYPE.TAG_CONTENT_LOADING, id: taskEventId, progress: 1, status: 'Tag content loaded.' });
         } else if (content.format === 'tag3d') {
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, { type: TASK_TYPE.TAG_CONTENT_LOADING, id: taskEventId, progress: 0, status: 'Loading tag content.' });
             node = await this._tag3dEngine.loadContent(content);
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, { type: TASK_TYPE.TAG_CONTENT_LOADING, id: taskEventId, progress: 1, status: 'Tag content loaded.' });
         } else if (content.format === 'sdtf') {
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, { type: TASK_TYPE.SDTF_CONTENT_LOADING, id: taskEventId, progress: 0, status: 'Loading sdTF content.' });
             node = await this._sdtfEngine.loadContent(content, jwtToken);
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, { type: TASK_TYPE.SDTF_CONTENT_LOADING, id: taskEventId, progress: 1, status: 'SdTF content loaded.' });
         } else {
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, { type: TASK_TYPE.CUSTOM_CONTENT_LOADING, id: taskEventId, progress: 0, status: 'Loading custom content.' });
             node = new TreeNode('custom');
             node.data.push(new CustomData({ ...content }));
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, { type: TASK_TYPE.CUSTOM_CONTENT_LOADING, id: taskEventId, progress: 1, status: 'Custom content loaded.' });
         }
 
         const transformationNode = new TreeNode('transformation');

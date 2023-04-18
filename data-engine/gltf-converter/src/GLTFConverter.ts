@@ -1,6 +1,6 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Converter, EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
     ACCESSORTYPE_V2 as ACCESSORTYPE,
@@ -36,6 +36,8 @@ import {
     IAttributeData,
     IAnimationData,
     IGeometryData,
+    ITaskEvent,
+    TASK_TYPE,
 } from '@shapediver/viewer.shared.types'
 import { combineTextures } from "@shapediver/viewer.utils.texture-unifier"
 
@@ -49,12 +51,14 @@ export class GLTFConverter {
     // #region Properties (15)
 
     private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _globalTransformationInverse = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+    private readonly _progressUpdateLimit = 500;
 
     private static _instance: GLTFConverter;
 
@@ -71,6 +75,7 @@ export class GLTFConverter {
     }
 
     private _convertForAR = false;
+    private _eventId = '';
     private _extensionsRequired: string[] = [];
     private _extensionsUsed: string[] = [];
     private _imageCache: { [key: string]: number } = {};
@@ -78,6 +83,8 @@ export class GLTFConverter {
         node: ITreeNode,
         id: number
     }[] = [];
+    private _numberOfNodes = 0;
+    private _progressTimer = 0;
     private _promises: Promise<any>[] = [];
     private _viewport?: string;
     private _materialCache: {
@@ -100,6 +107,15 @@ export class GLTFConverter {
     // #region Public Methods (1)
 
     public async convert(node: ITreeNode, convertForAR = false, viewport?: string): Promise<ArrayBuffer> {
+        this._eventId = this._uuidGenerator.create();
+        const eventStart: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 0, status: 'Starting glTF conversion.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
+        this._numberOfNodes = 0;
+        node.traverse(() => this._numberOfNodes++);
+
+        this._progressTimer = performance.now();
+
         this.reset();
 
         this._convertForAR = convertForAR;
@@ -130,10 +146,10 @@ export class GLTFConverter {
 
         if (this._viewport) {
             if(this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
-                sceneDef.nodes?.push(this.convertNode(node));
+                sceneDef.nodes?.push(await this.convertNode(node));
             }
         } else {
-            sceneDef.nodes?.push(this.convertNode(node));
+            sceneDef.nodes?.push(await this.convertNode(node));
         }
 
         for (let i = 0; i < node.transformations.length; i++)
@@ -162,6 +178,10 @@ export class GLTFConverter {
             await Promise.all(this._promises);
             await new Promise(resolve => setTimeout(resolve, 0));
         }
+
+        const eventProgressImagePromises: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 0.75, status: 'GlTF images resolved.' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgressImagePromises);
+
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
         
@@ -210,6 +230,8 @@ export class GLTFConverter {
                 const glbReader = new window.FileReader();
                 glbReader.readAsArrayBuffer(glbBlob);
                 glbReader.onloadend = () => {
+                    const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
+                    this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
                     resolve(<ArrayBuffer>glbReader.result);
                 };
 
@@ -568,7 +590,7 @@ export class GLTFConverter {
         return this._meshCache[data.id + '_' + data.version];
     }
 
-    private convertNode(node: ITreeNode): number {
+    private async convertNode(node: ITreeNode): Promise<number> {
         if (!this._content.nodes) this._content.nodes = [];
         const nodeDef: IGLTF_v2_Node = {
             name: this._convertForAR ? this._uuidGenerator.create() : node.name,
@@ -609,7 +631,7 @@ export class GLTFConverter {
                     if(node.children[i].excludeViewports.includes(this._viewport)) continue;
                     if(node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
                 }
-                nodeDef.children?.push(this.convertNode(node.children[i]));
+                nodeDef.children?.push(await this.convertNode(node.children[i]));
             }
         }
 
@@ -618,6 +640,14 @@ export class GLTFConverter {
             node,
             id: this._content.nodes.length - 1
         });
+
+        if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
+            this._progressTimer = performance.now();
+            const eventProgress: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: (this._content.nodes.length / this._numberOfNodes) / 2, status: `GlTF conversion progress: ${this._content.nodes.length}/${this._numberOfNodes} nodes.` };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
         return this._content.nodes.length - 1;
     }
 

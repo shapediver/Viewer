@@ -1,19 +1,30 @@
-import { IMaterialAbstractData, GeometryData, AbstractMaterialData } from '@shapediver/viewer.shared.types'
+import { IMaterialAbstractData, GeometryData, AbstractMaterialData, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { OutputDelayException } from './OutputDelayException'
 import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
-import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IEvent, PerformanceEvaluator, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 import { ISessionEngine } from '../interfaces/ISessionEngine'
+
+export type OutputLoaderTaskEventInfo = {
+    eventId: string,
+    type: TASK_TYPE,
+    progressRange: {
+        min: number,
+        max: number
+    },
+    data: any
+}
 
 export class OutputLoader {
     // #region Properties (3)
 
     private readonly _dataEngine: DataEngine = DataEngine.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _loadedOutputNodes: { 
         [key: string]: {
             [key: string]: ISessionTreeNode
@@ -46,7 +57,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }): Promise<SessionTreeNode> {
+     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
         let currentNodes: { 
@@ -58,6 +69,32 @@ export class OutputLoader {
         let promisesNodes: ISessionTreeNode[] = [];
         let maxDelay = 0;
 
+        let progress: {
+            [key: string]: number
+        } = {};
+
+        const outputIDs = Object.keys(outputs);
+
+        const cb = (e: IEvent) => {
+            const taskEvent = e as ITaskEvent;
+            if(outputIDs.includes(taskEvent.id)) {
+                progress[taskEvent.id] = taskEvent.progress;
+
+                let sum = 0;
+                Object.values(progress).forEach(p => { sum += p; });
+
+                const outputLoadingProgress = (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * (sum / outputIDs.length) + taskEventInfo.progressRange.min;
+                const eventProgressUpdate: ITaskEvent = { type: taskEventInfo.type, id: taskEventInfo.eventId, progress: outputLoadingProgress, data: taskEventInfo.data, status: 'Output content loading progress.' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgressUpdate);
+            }
+        }
+        
+        let listenerTokens = [];
+        listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_START, cb));
+        listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_PROCESS, cb));
+        listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_CANCEL, cb));
+        listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_END, cb));
+
         for (let outputID in outputs) {
             currentNodes[outputID] = {};
             if(!this._loadedOutputNodes[outputID]) 
@@ -65,6 +102,8 @@ export class OutputLoader {
              
             if(outputsFreeze[outputID]) {
                 currentNodes[outputID][outputs[outputID].version] = this._lastOutputNodes[outputID];
+                // no loading necessary, progress done
+                progress[outputID] = 1;
             } else if(outputs[outputID].delay) {
                 maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
             } else if(!this._loadedOutputNodes[outputID][outputs[outputID].version]) {
@@ -72,12 +111,14 @@ export class OutputLoader {
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.bearerToken))
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.bearerToken, outputID))
                         promisesNodes.push(currentNodes[outputID][outputs[outputID].version])
                     }
                 }
             } else {
                 currentNodes[outputID][outputs[outputID].version] = this._loadedOutputNodes[outputID][outputs[outputID].version];
+                // no loading necessary, progress done
+                progress[outputID] = 1;
             }
         }
 
@@ -85,6 +126,8 @@ export class OutputLoader {
             throw new OutputDelayException(maxDelay);
 
         await Promise.all(promises);
+
+        listenerTokens.forEach(t => this._eventEngine.removeListener(t));
 
         // all promises are resolved, await in the next lines is just for structural purposes
         for(let i = 0; i < promises.length; i++) 
