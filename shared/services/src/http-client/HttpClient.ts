@@ -1,20 +1,5 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { ShapeDiverViewerConnectionError } from '../logger/ShapeDiverViewerErrors';
+import axios, { AxiosRequestConfig } from 'axios'
 import { HttpResponse } from './HttpResponse';
-
-const errorHandler = (error: any) => {
-    if (error.response) {
-        // Request was made and server responded with 4xx or 5xx
-        const resp = error.response as AxiosResponse
-        throw new ShapeDiverViewerConnectionError( error.message || resp.data.message || (resp.data.desc || (resp.data.error ?? "")), resp.status, resp.data.error ?? "")
-    } else if (error.request) {
-        // The request was made but no response was received
-        throw new ShapeDiverViewerConnectionError("The request was made but no response was received.")
-    } else {
-        // Something happened in setting up the request that triggered an Error
-        throw new ShapeDiverViewerConnectionError(error.message)
-    }
-}
 
 export class HttpClient {
     // #region Properties (3)
@@ -32,22 +17,7 @@ export class HttpClient {
 
     // #region Constructors (1)
 
-    private constructor() {
-        axios.interceptors.response.use(
-            response => {
-                return response;
-            },
-            error => {
-                throw errorHandler(error);
-            });
-        axios.interceptors.request.use(
-            response => {
-                return response;
-            },
-            error => {
-                throw errorHandler(error);
-            });
-    }
+    private constructor() {}
 
     // #endregion Constructors (1)
 
