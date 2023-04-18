@@ -146,10 +146,12 @@ export class GLTFConverter {
 
         if (this._viewport) {
             if(this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
-                sceneDef.nodes?.push(await this.convertNode(node));
+                const nodeId = await this.convertNode(node);
+                if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
             }
         } else {
-            sceneDef.nodes?.push(await this.convertNode(node));
+            const nodeId = await this.convertNode(node);
+            if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
         }
 
         for (let i = 0; i < node.transformations.length; i++)
@@ -632,15 +634,14 @@ export class GLTFConverter {
                     if(node.children[i].excludeViewports.includes(this._viewport)) continue;
                     if(node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
                 }
-                nodeDef.children?.push(await this.convertNode(node.children[i]));
+                const nodeId = await this.convertNode(node.children[i]);
+                if(nodeId !== -1) nodeDef.children?.push(nodeId);
             }
         }
 
-        this._content.nodes.push(nodeDef);
-        this._nodes.push({
-            node,
-            id: this._content.nodes.length - 1
-        });
+        // remove children array if it is empty
+        if(nodeDef.children !== undefined && nodeDef.children.length === 0)
+            nodeDef.children = undefined;
 
         if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
             this._progressTimer = performance.now();
@@ -648,6 +649,15 @@ export class GLTFConverter {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
             await new Promise(resolve => setTimeout(resolve, 0));
         }
+
+        // if the node is empty, don't add it
+        if(nodeDef.camera === undefined && nodeDef.children === undefined && nodeDef.mesh === undefined && nodeDef.extensions === undefined && nodeDef.extras === undefined && nodeDef.skin === undefined) return -1;
+
+        this._content.nodes.push(nodeDef);
+        this._nodes.push({
+            node,
+            id: this._content.nodes.length - 1
+        });
 
         return this._content.nodes.length - 1;
     }
