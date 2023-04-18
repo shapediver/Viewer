@@ -19,6 +19,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
   readonly #max: number[] = [];
   readonly #min: number[] = [];
   readonly #normalized: boolean;
+  readonly #target?: number;
   readonly #sparse?: boolean;
   readonly #sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
   readonly #sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
@@ -48,6 +49,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     min: number[] = [],
     max: number[] = [],
     byteStride?: number,
+    target?: number,
     sparse?: boolean,
     sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
     sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
@@ -66,6 +68,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     this.#min = min;
     this.#max = max;
     this.#byteStride = byteStride;
+    this.#target = target;
     this.#sparse = sparse;
     this.#sparseIndices = sparseIndices;
     this.#sparseValues = sparseValues;
@@ -120,6 +123,10 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     return this.#normalized;
   }
 
+  public get target(): number | undefined {
+    return this.#target;
+  }
+
   public get sparse(): boolean | undefined {
     return this.#sparse;
   }
@@ -151,6 +158,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
       this.#min,
       this.#max,
       this.#byteStride,
+      this.#target,
       this.#sparse,
       this.#sparseIndices,
       this.#sparseValues,
