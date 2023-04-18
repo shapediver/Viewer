@@ -123,7 +123,7 @@ export interface ISessionEngine {
   canGoForward(): boolean;
   close(): Promise<void>;
   customize(force: boolean): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: { [key: string]: string; }): Promise<void>;

@@ -549,7 +549,12 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async customizeParallel(parameterValues: { [key: string]: string }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode> {
+    public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+            const eventId = this._uuidGenerator.create();
+
+            const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
             const parameterSet: {
                 [key: string]: string
             } = {};
@@ -558,8 +563,20 @@ export class SessionEngine implements ISessionEngine {
             for (const parameterId in this.parameters)
                 parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
 
-            const newNode = await this.customizeSession(parameterSet, () => false, taskEventInfo, true);
+            const newNode = await this.customizeSession(parameterSet, () => false, {
+                eventId,
+                type: TASK_TYPE.SESSION_CUSTOMIZATION,
+                progressRange: {
+                    min: 0.0,
+                    max: 1
+                },
+                data: { sessionId: this.id }
+            }, true);
             newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
+
+            
+            const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
             return newNode;
     }
 
