@@ -6,7 +6,7 @@ import { IExportApi } from "../../interfaces/session/IExportApi";
 import { IOutputApi } from "../../interfaces/session/IOutputApi";
 import { IParameterApi } from "../../interfaces/session/IParameterApi";
 import { ISessionApi } from "../../interfaces/session/ISessionApi";
-import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
 import { OutputApi } from "./OutputApi";
 import { ExportApi } from "./ExportApi";
 import { ParameterApi } from "./ParameterApi";

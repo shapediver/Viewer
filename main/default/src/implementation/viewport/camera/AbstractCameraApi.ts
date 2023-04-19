@@ -1,7 +1,7 @@
 import { vec3, vec2 } from "gl-matrix";
 import { CAMERA_TYPE, ICamera, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { ICameraApi } from "../../../interfaces/viewport/camera/ICameraApi";
-import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerValidationError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger, ShapeDiverViewerValidationError } from "@shapediver/viewer.shared.services";
 import { Box, IBox } from "@shapediver/viewer.shared.math";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 

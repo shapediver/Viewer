@@ -4,8 +4,6 @@ import { ISessionApi } from './interfaces/session/ISessionApi';
 import { IViewportApi } from './interfaces/viewport/IViewportApi';
 import { EventEngine, IEvent, LOGGING_LEVEL, MainEventTypes, SettingsEngine, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { Logger } from '@shapediver/viewer.shared.services';
-import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
-import { ShapeDiverBackendError } from '@shapediver/viewer.shared.services';
 import { InputValidator } from '@shapediver/viewer.shared.services';
 import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
 import { ViewportApi } from './implementation/viewport/ViewportApi';

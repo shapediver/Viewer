@@ -1,5 +1,5 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseParameterGroup } from "@shapediver/api.geometry-api-dto-v2";
-import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IExport } from "@shapediver/viewer.session-engine.session-engine";
 import { IExportApi } from "../../interfaces/session/IExportApi";
 

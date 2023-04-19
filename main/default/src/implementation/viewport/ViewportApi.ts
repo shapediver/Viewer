@@ -2,7 +2,7 @@ import { mat4, vec2, vec3 } from "gl-matrix";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
-import { Converter, IDomEventListener, InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerArError, ShapeDiverViewerError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
+import { Converter, IDomEventListener, InputValidator, Logger, ShapeDiverViewerArError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
 import { FLAG_TYPE, RENDERER_TYPE, SESSION_SETTINGS_MODE, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { PerspectiveCameraApi } from "./camera/PerspectiveCameraApi";

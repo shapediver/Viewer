@@ -23,8 +23,6 @@ import {
     EVENTTYPE,
     InputValidator,
     Logger,
-    ShapeDiverBackendError,
-    ShapeDiverViewerError,
     StateEngine,
 } from '@shapediver/viewer.shared.services'
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
