@@ -1,21 +1,7 @@
 import { ShapeDiverResponseErrorType } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from "./ShapeDiverError";
 
-export class ShapeDiverGeometryBackendError extends ShapeDiverViewerError {
-    // #region Constructors (1)
-
-    constructor(
-        public readonly errorType: ShapeDiverViewerErrorType,
-        public readonly desc: string,
-        message: string
-    ) {
-        super(errorType, desc, message)
-    }
-
-    // #endregion Constructors (1)
-}
-
-export class ShapeDiverGeometryBackendRequestError extends ShapeDiverGeometryBackendError {
+export class ShapeDiverGeometryBackendRequestError extends ShapeDiverViewerError {
     // #region Constructors (1)
 
     constructor(
@@ -28,7 +14,7 @@ export class ShapeDiverGeometryBackendRequestError extends ShapeDiverGeometryBac
     // #endregion Constructors (1)
 }
 
-export class ShapeDiverGeometryBackendResponseError extends ShapeDiverGeometryBackendError {
+export class ShapeDiverGeometryBackendResponseError extends ShapeDiverViewerError {
     // #region Constructors (1)
 
     constructor(

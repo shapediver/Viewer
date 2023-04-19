@@ -21,6 +21,8 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
     /**
      * Upload the data (File, Blob) that is currently set to the {@link value} property.
      * This call returns immediately in case no data is waiting to be uploaded.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     upload(): Promise<string>;
 

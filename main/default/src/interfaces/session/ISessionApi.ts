@@ -138,6 +138,8 @@ export interface ISessionApi {
      * 
      * @param response the ShapeDiverResponseDto of the model whose settings shall be applied
      * @param sections specify true for those parts of the settings that should be applied
+     * 
+     * @throws {@link ShapeDiverViewerError}
      */
     applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void>;
 
@@ -173,6 +175,8 @@ export interface ISessionApi {
      * Close the session. 
      * This removes the {@link node} from the scene tree and closes the session
      * with the Geometry Backend.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     close(): Promise<void>;
     
@@ -180,6 +184,8 @@ export interface ISessionApi {
      * Convert the session into a glTF file.
      * 
      * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     convertToGlTF(): Promise<Blob>;
 
@@ -207,6 +213,8 @@ export interface ISessionApi {
      *     {@link IOutputApi.freeze} is true will be skipped).
      * 
      * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     customize(force?: boolean): Promise<ITreeNode>;
 
@@ -225,6 +233,8 @@ export interface ISessionApi {
      * {@link IOutputApi.freeze} will be ignored.
      * 
      * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
 
@@ -309,6 +319,8 @@ export interface ISessionApi {
      * @see {@link canGoForward}
      * @see {@link goBack}
      * @see {@link goForward}
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     goBack(): Promise<ITreeNode>;
 
@@ -321,6 +333,8 @@ export interface ISessionApi {
      * @see {@link canGoForward}
      * @see {@link goBack}
      * @see {@link goForward}
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     goForward(): Promise<ITreeNode>;
     
@@ -328,6 +342,8 @@ export interface ISessionApi {
      * Reset the parameters to their stored default values and customize the scene.
      * 
      * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     resetParameterValues(force?: boolean): Promise<ITreeNode>;
 
@@ -335,6 +351,8 @@ export interface ISessionApi {
      * Reset all or some settings of the current session and the viewports. 
      * 
      * @param sections specify false for those parts of the settings that should not be applied
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     resetSettings(sections?: ISettingsSections): Promise<void>;
 
@@ -343,6 +361,8 @@ export interface ISessionApi {
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permission to 
      * save parameter default values for the model.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     saveDefaultParameterValues(): Promise<boolean>;
     
@@ -350,6 +370,8 @@ export interface ISessionApi {
      * Save UI-related properties of parameter, output, and export definitions (displayname, order, hidden and tooltip, etc).
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permissions for the model.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     saveUiProperties(): Promise<boolean>;
     
@@ -362,6 +384,8 @@ export interface ISessionApi {
      * save viewport settings for the model.
      *
      * @param viewportId The optional viewport id.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     saveSettings(viewportId?: string): Promise<boolean>;
     
@@ -369,6 +393,8 @@ export interface ISessionApi {
      * Update the current available outputs.
      * Calling this function makes sense if you have updated one of
      * the outputs manually by calling {@link IOutputApi.updateOutputContent}.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     updateOutputs(): Promise<ITreeNode>;
 
