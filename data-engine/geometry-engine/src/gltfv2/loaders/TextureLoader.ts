@@ -1,5 +1,5 @@
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
-import { Converter, HttpClient, HttpResponse } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient } from '@shapediver/viewer.shared.services'
 
 import { BufferViewLoader } from './BufferViewLoader'
 
@@ -54,28 +54,28 @@ export class TextureLoader {
                 const dataUri = URL.createObjectURL(blob);
     
                 promises.push(
-                    new Promise<void>(resolve => {
+                    new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(dataUri)
                             .then(response => {
                                 this._converter.responseToImage(response).then(img => {
                                     this._loaded[textureId] = img;
                                     URL.revokeObjectURL(dataUri)
                                     resolve()
-                                });
+                                }).catch(e => reject(e));
                             })
                     })
                 );
             } else {
                 const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
                 promises.push(
-                    new Promise<void>(resolve => {
+                    new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(url!)
                             .then(response => {
                                 this._converter.responseToImage(response).then(img => {
                                     this._loaded[textureId] = img;
                                     resolve()
                                 });
-                            })
+                            }).catch(e => reject(e));
                     })
                 );
             }
