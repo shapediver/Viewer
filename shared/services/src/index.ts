@@ -15,9 +15,9 @@ import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluat
 import { Logger, LOGGING_LEVEL } from './logger/Logger'
 import { StatePromise } from './state-engine/StatePromise'
 import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError, ShapeDiverViewerInteractionError, ShapeDiverViewerViewportError } from './logger/ShapeDiverViewerErrors'
-import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ShapeDiverViewerError } from './logger/ShapeDiverError'
+import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from './logger/ShapeDiverError'
 import { HttpResponse } from './http-client/HttpResponse'
+import { ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors'
 
 export {
   EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -62,6 +62,7 @@ export {
 
 export {
     Logger, LOGGING_LEVEL, 
+    ShapeDiverViewerErrorType,
     ShapeDiverViewerError, 
     ShapeDiverViewerDataProcessingError, 
     ShapeDiverViewerEnvironmentMapError,
@@ -76,7 +77,8 @@ export {
     ShapeDiverViewerCameraError,
     ShapeDiverViewerValidationError,
     ShapeDiverViewerInteractionError,
-    ShapeDiverBackendError
+    ShapeDiverGeometryBackendRequestError,
+    ShapeDiverGeometryBackendResponseError
 }
 
 export {
