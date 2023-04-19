@@ -193,51 +193,57 @@ export class GLTFConverter {
         // Update byte length of the single buffer.
         if (this._content.buffers && this._content.buffers.length > 0) this._content.buffers[0].byteLength = blob.size;
 
-        return new Promise<ArrayBuffer>(resolve => {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             // https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
 
-            const reader = new window.FileReader();
-            reader.readAsArrayBuffer(blob);
-            reader.onloadend = () => {
-                // Binary chunk.
-                const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
-                binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
-                binaryChunkPrefix.setUint32(4, 0x004E4942, true);
-
-                // JSON chunk.
-                const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
-                const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
-                jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
-                jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
-
-                // GLB header.
-                const header = new ArrayBuffer(12);
-                const headerView = new DataView(header);
-                headerView.setUint32(0, 0x46546C67, true);
-                headerView.setUint32(4, 2, true);
-                const totalByteLength = 12
-                    + jsonChunkPrefix.byteLength + jsonChunk.byteLength
-                    + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
-                headerView.setUint32(8, totalByteLength, true);
-
-                const glbBlob = new Blob([
-                    header,
-                    jsonChunkPrefix,
-                    jsonChunk,
-                    binaryChunkPrefix,
-                    binaryChunk
-                ], { type: 'application/octet-stream' });
-
-                const glbReader = new window.FileReader();
-                glbReader.readAsArrayBuffer(glbBlob);
-                glbReader.onloadend = () => {
-                    const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
-                    this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-                    resolve(<ArrayBuffer>glbReader.result);
+            try {
+                const reader = new window.FileReader();
+                reader.readAsArrayBuffer(blob);
+                reader.onloadend = () => {
+                    // Binary chunk.
+                    const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                    const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
+                    binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
+                    binaryChunkPrefix.setUint32(4, 0x004E4942, true);
+    
+                    // JSON chunk.
+                    const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
+                    const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
+                    jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
+                    jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
+    
+                    // GLB header.
+                    const header = new ArrayBuffer(12);
+                    const headerView = new DataView(header);
+                    headerView.setUint32(0, 0x46546C67, true);
+                    headerView.setUint32(4, 2, true);
+                    const totalByteLength = 12
+                        + jsonChunkPrefix.byteLength + jsonChunk.byteLength
+                        + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
+                    headerView.setUint32(8, totalByteLength, true);
+    
+                    const glbBlob = new Blob([
+                        header,
+                        jsonChunkPrefix,
+                        jsonChunk,
+                        binaryChunkPrefix,
+                        binaryChunk
+                    ], { type: 'application/octet-stream' });
+    
+                    const glbReader = new window.FileReader();
+                    glbReader.readAsArrayBuffer(glbBlob);
+                    glbReader.onloadend = () => {
+                        const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
+                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+                        resolve(<ArrayBuffer>glbReader.result);
+                    };
+                    glbReader.onerror = reject;
                 };
 
-            };
+                reader.onerror = reject;
+            } catch (e) {
+                reject(e);
+            }
         })
     }
 
@@ -432,20 +438,25 @@ export class GLTFConverter {
 
     private async convertBufferViewImage(blob: Blob): Promise<number> {
         if (!this._content.bufferViews) this._content.bufferViews = [];
-        return new Promise((resolve) => {
-            const reader = new window.FileReader();
-            reader.readAsArrayBuffer(blob);
-            reader.onloadend = () => {
-                const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                const bufferViewDef = {
-                    buffer: this.convertBuffer(buffer),
-                    byteOffset: this._byteOffset,
-                    byteLength: buffer.byteLength
+        return new Promise((resolve, reject) => {
+            try {
+                const reader = new window.FileReader();
+                reader.readAsArrayBuffer(blob);
+                reader.onloadend = () => {
+                    const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                    const bufferViewDef = {
+                        buffer: this.convertBuffer(buffer),
+                        byteOffset: this._byteOffset,
+                        byteLength: buffer.byteLength
+                    };
+                    this._byteOffset += buffer.byteLength;
+                    this._content.bufferViews!.push(bufferViewDef);
+                    resolve(this._content.bufferViews!.length - 1);
                 };
-                this._byteOffset += buffer.byteLength;
-                this._content.bufferViews!.push(bufferViewDef);
-                resolve(this._content.bufferViews!.length - 1);
-            };
+                reader.onerror = reject;
+            } catch(e) {
+                reject(e)
+            }
         });
     }
 
@@ -479,19 +490,31 @@ export class GLTFConverter {
             for (let i = 0; i < byteString.length; i++)
                 ia[i] = byteString.charCodeAt(i);
             const blob = new Blob([ab], { type: mimeType });
-            this._promises.push(new Promise<void>(async (resolve) => {
-                const bufferViewIndex = await this.convertBufferViewImage(blob!);
-                imageDef.bufferView = bufferViewIndex;
-                resolve();
-            }));
-        } else {
-            ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
-            this._promises.push(new Promise<void>((resolve) => {
-                canvas.toBlob(async (blob) => {
+            this._promises.push(new Promise<void>(async (resolve, reject) => {
+                try {
                     const bufferViewIndex = await this.convertBufferViewImage(blob!);
                     imageDef.bufferView = bufferViewIndex;
                     resolve();
-                }, mimeType);
+                } catch(e) {
+                    reject(e);
+                }
+            }));
+        } else {
+            ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+            this._promises.push(new Promise<void>((resolve, reject) => {
+                try {
+                    canvas.toBlob(async (blob) => {
+                        try {
+                            const bufferViewIndex = await this.convertBufferViewImage(blob!);
+                            imageDef.bufferView = bufferViewIndex;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }, mimeType);
+                } catch (e) {
+                    reject(e);
+                }
             }));
         }
 
@@ -550,15 +573,19 @@ export class GLTFConverter {
             if (standardMaterialData.metalnessRoughnessMap && includeMaps) {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
             } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
-                this._promises.push(new Promise<void>(async resolve => {
-                    const imageData = await combineTextures(
-                        undefined, 
-                        standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
-                        standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
-                    );
-                    const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
-                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY)) }
-                    resolve();
+                this._promises.push(new Promise<void>(async (resolve, reject) => {
+                    try {
+                        const imageData = await combineTextures(
+                            undefined, 
+                            standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
+                            standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
+                        );
+                        const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
+                        materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY)) }
+                        resolve();
+                    } catch(e) {
+                        reject(e);
+                    }
                 }))
             }
         }

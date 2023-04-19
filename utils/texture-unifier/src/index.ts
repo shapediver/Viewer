@@ -157,8 +157,9 @@ export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageE
     ctx.putImageData(imageData, 0, 0);
 
     const imageOut = new Image();
-    const promise = new Promise<void>(resolve => {
+    const promise = new Promise<void>((resolve, reject) => {
         imageOut.onload = () => resolve();
+        imageOut.onerror = reject;
     })
     imageOut.crossOrigin = "anonymous";
     imageOut.src = canvas.toDataURL("image/jpeg", 1.0);

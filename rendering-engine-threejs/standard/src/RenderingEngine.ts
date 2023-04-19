@@ -831,17 +831,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
-      await new Promise<void>(resolve => {
+      await new Promise<void>((resolve, reject) => {
         this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
-          if (!settingsEngine) return;
-          this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
-          this.clearAlpha = settingsEngine.environment.clearAlpha;
-          this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
-          this.applySyncSettings(sections);
-
-          this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
-          resolve();
-        })
+          try {
+            if (!settingsEngine) return;
+            this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
+            this.clearAlpha = settingsEngine.environment.clearAlpha;
+            this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
+            this.applySyncSettings(sections);
+  
+            this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
+            resolve();
+          } catch(e) {
+            reject(e);
+          }
+        }).catch(e => reject(e))
         
         // set it like this to not trigger the loading
         this.environmentMap = settingsEngine!.environment.map;
