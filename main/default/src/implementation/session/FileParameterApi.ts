@@ -1,7 +1,7 @@
 import { IFileParameter } from "@shapediver/viewer.session-engine.session-engine";
 import { IFileParameterApi } from "../../interfaces/session/IFileParameterApi";
 import { ParameterApi } from "./ParameterApi";
-import { Logger, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { Logger } from "@shapediver/viewer.shared.services";
 
 export class FileParameterApi extends ParameterApi<File | Blob | string> implements IFileParameterApi {
     // #region Properties (3)

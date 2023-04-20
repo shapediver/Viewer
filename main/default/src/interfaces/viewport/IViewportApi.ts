@@ -354,6 +354,8 @@ export interface IViewportApi {
    * 
    * @param settings 
    * @param sections 
+   * 
+   * @throws {@type ShapeDiverViewerError}
    */
   applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
 
@@ -401,6 +403,8 @@ export interface IViewportApi {
    * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
    * 
    * @param node Optional node to provide to transform into a glTF. (default: scene tree)
+   * 
+   * @throws {@type ShapeDiverViewerError}
    */
   convertToGlTF(node?: ITreeNode): Promise<Blob>;
 
@@ -414,6 +418,8 @@ export interface IViewportApi {
    * @param node Optional node to display in AR. (default: scene tree)
    * @param qrCode Option to receive a QR Code instead of a link (default: true)
    * @param fallbackUrl Optional fallback url if the link was opened by an unsupported device or an error occurred. If none was provided, the user will be redirected to shapediver.com/app
+   * 
+   * @throws {@type ShapeDiverViewerError}
    */
   createArSessionLink(node?: ITreeNode, qrCode?: boolean, fallbackUrl?: string): Promise<string>;
 
@@ -613,6 +619,8 @@ export interface IViewportApi {
    * 
    * @param node Optional node to display in AR. (default: scene tree)
    * @param androidOptions 
+   * 
+   * @throws {@type ShapeDiverViewerError}
    */
   viewInAR(node?: ITreeNode): Promise<void>;
   

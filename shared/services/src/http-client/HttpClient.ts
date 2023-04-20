@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseError, ShapeDiverRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
 
 export class HttpClient {
-    // #region Properties (3)
+    // #region Properties (2)
 
     private static _instance: HttpClient;
 
@@ -13,11 +15,11 @@ export class HttpClient {
         }
     } = {};
 
-    // #endregion Properties (3)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
-    private constructor() {}
+    private constructor() { }
 
     // #endregion Constructors (1)
 
@@ -29,7 +31,7 @@ export class HttpClient {
 
     // #endregion Public Static Accessors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     public addDataLoading(sessionId: string, callbacks: {
         getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -38,26 +40,45 @@ export class HttpClient {
         this._sessionLoading[sessionId] = callbacks;
     }
 
+    /**
+     * Maps the geometry backend error to the corresponding viewer errors:
+     * - ShapeDiverResponseError is mapped to ShapeDiverGeometryBackendResponseError
+     * - ShapeDiverRequestError is mapped to ShapeDiverGeometryBackendRequestError
+     * 
+     * Other error types are thrown as is.
+     * 
+     * @param e 
+     */
+    public convertError(e: ShapeDiverBackendError | Error | unknown) {
+        if (e instanceof ShapeDiverResponseError) {
+            throw new ShapeDiverGeometryBackendResponseError(e.message, e.status, e.error, e.desc);
+        } else if (e instanceof ShapeDiverRequestError) {
+            throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc)
+        } else {
+            throw e;
+        }
+    }
+
     public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
         // try to get sessionId from href
         let sessionId = this.getSessionId(href);
 
-        // if href does not have sessionId, use the first sesison, if available
-        if(!sessionId && Object.keys(this._sessionLoading).length > 0)
+        // if href does not have sessionId, use the first session, if available
+        if (!sessionId && Object.keys(this._sessionLoading).length > 0)
             sessionId = Object.keys(this._sessionLoading)[0];
-        
+
         // get the session loading functions, if available
-        let sessionLoading: { 
+        let sessionLoading: {
             getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
             downloadTexture: (sessionId: string, url: string) => Promise<[ArrayBuffer, string]>,
         } | undefined;
-        if(sessionId)
+        if (sessionId)
             sessionLoading = this._sessionLoading[sessionId];
 
         // separation texture vs everything else
-        if(textureLoading) {
+        if (textureLoading) {
             // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
-            if(sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
+            if (sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
                 // take first session to load a texture that is not session related
                 return new Promise<HttpResponse<any>>((resolve, reject) => {
                     sessionLoading!.downloadTexture(sessionId!, href).then((result) => {
@@ -67,19 +88,19 @@ export class HttpClient {
                                 'content-type': result[1]
                             }
                         })
-                    }).catch(e => {
-                        reject(e)
-                    });
-                });
+                    }).catch(e => reject(e))
+                }).catch(e => { throw this.convertError(e) });
             } else {
                 // we can load blobs and data urls directly
                 // or load it directly if we don't have a session
-                return axios(href, Object.assign({ method: 'get' }, config));
+                return axios(href, Object.assign({ method: 'get' }, config))
+                    .catch(e => { throw this.convertError(e) });
             }
         } else {
-            if(!sessionLoading) {
+            if (!sessionLoading) {
                 // if there is no session to load from, we use the fallback option
-                return axios(href, Object.assign({ method: 'get' }, config));
+                return axios(href, Object.assign({ method: 'get' }, config))
+                    .catch(e => { throw this.convertError(e) });
             } else {
                 // all data links where we could somehow find a session to load it with
                 return new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
@@ -92,11 +113,13 @@ export class HttpClient {
                                 }
                             })
                         })
-                        .catch((e) => {
+                        .catch(() => {
                             // if this fails, we just load it directly
-                            resolve(axios(href, Object.assign({ method: 'get' }, config)))
-                        })
-                });
+                            const axiosPromise = axios(href, Object.assign({ method: 'get' }, config));
+                            axiosPromise.catch(e => reject(e))
+                            resolve(axiosPromise);
+                        });
+                }).catch(e => { throw this.convertError(e) });
             }
         }
     }
@@ -109,7 +132,7 @@ export class HttpClient {
         delete this._sessionLoading[sessionId];
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 
     // #region Private Methods (1)
 

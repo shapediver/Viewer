@@ -1,6 +1,6 @@
 import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InputValidator, UuidGenerator, ShapeDiverViewerError, ShapeDiverBackendError, Logger } from "@shapediver/viewer.shared.services";
+import { InputValidator, UuidGenerator, Logger } from "@shapediver/viewer.shared.services";
 import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "../../interfaces/dto/IOutput";
 import { SessionEngine } from "../SessionEngine";
 

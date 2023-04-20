@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, HttpResponse, Logger, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
     MATERIAL_SIDE,

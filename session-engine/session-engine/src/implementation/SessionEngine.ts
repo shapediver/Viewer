@@ -1,12 +1,11 @@
-import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
+import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendRequestError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
-import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { AxiosRequestConfig } from 'axios'
+import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
@@ -66,7 +65,7 @@ export class SessionEngine implements ISessionEngine {
     private _refreshBearerToken?: () => Promise<string>;
     private _responseDto?: ShapeDiverResponseDto;
     private _retryCounter = 0;
-    private _sdk: ShapeDiverSdk;
+    private _sdk!: ShapeDiverSdk;
     private _sessionId?: string;
     private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
     private _viewerSettings?: object;
@@ -106,8 +105,12 @@ export class SessionEngine implements ISessionEngine {
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader(this);
 
-        this._sdk = create(this._modelViewUrl, this._bearerToken);
-        this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.REQUEST_HEADERS, this._headers);
+        try {
+            this._sdk = create(this._modelViewUrl, this._bearerToken);
+            this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.REQUEST_HEADERS, this._headers);
+        } catch (e) {
+            throw this._httpClient.convertError(e);
+        }
     }
 
     // #endregion Constructors (1)
@@ -129,7 +132,11 @@ export class SessionEngine implements ISessionEngine {
 
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
-        this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
+        try {
+            this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
+        } catch (e) {
+            throw this._httpClient.convertError(e);
+        }
     }
 
     public get canUploadGLTF(): boolean {
@@ -545,7 +552,7 @@ export class SessionEngine implements ISessionEngine {
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
-            throw e;
+            throw this._httpClient.convertError(e);
         }
     }
 
@@ -646,7 +653,6 @@ export class SessionEngine implements ISessionEngine {
 
             this._viewerSettings = this._responseDto.viewer?.config;
             this._viewerSettingsVersion = this._responseDto.viewerSettingsVersion || latestVersion;
-            this._settingsEngine.loadSettings(this._viewerSettings);
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
             
@@ -655,6 +661,8 @@ export class SessionEngine implements ISessionEngine {
                 downloadTexture: this._sdk.asset.downloadImage.bind(this._sdk.asset),
             })
 
+            this._settingsEngine.loadSettings(this._viewerSettings);
+            
             if (!this._sessionId)
                 throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a sessionId.`)
             if (!this._modelId)
@@ -1220,6 +1228,7 @@ export class SessionEngine implements ISessionEngine {
                 // we try to re-initialize the session 3 times, if that does not work, we close it
 
                 this._logger.warn(`The session has been closed, trying to re-initialize.`);
+                if(this._sessionId) this._httpClient.removeDataLoading(this._sessionId)
 
                 if (this._retryCounter < 3) {
                     // we retry this 3 times, the `retry` option in the init function is set to true and passed on 
@@ -1230,7 +1239,7 @@ export class SessionEngine implements ISessionEngine {
                     // the retries were exceeded, we close the session
                     this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
                     try { await this._closeOnFailure(); } catch (e) { }
-                    throw e;
+                    throw this._httpClient.convertError(e);
                 }
             } else if (e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR) {
                 // if any of the above errors occur, we try to get a new bearer token
@@ -1244,19 +1253,19 @@ export class SessionEngine implements ISessionEngine {
                         // no bearer tokens are supplied, we close the session
                         this._logger.warn('No retry possible, no new bearer token was supplied. Closing Session.');
                         try { await this._closeOnFailure(); } catch (e) { }
-                        throw e;
+                        throw this._httpClient.convertError(e);
                     }
                 } else {
                     // the retries were exceeded, we close the session
                     this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
                     try { await this._closeOnFailure(); } catch (e) { }
-                    throw e;
+                    throw this._httpClient.convertError(e);
                 }
             } else {
-                throw e;
+                throw this._httpClient.convertError(e);
             }
         } else {
-            throw e;
+            throw this._httpClient.convertError(e);
         }
     }
 

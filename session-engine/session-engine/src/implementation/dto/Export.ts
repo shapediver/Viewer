@@ -1,5 +1,5 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { EventEngine, EVENTTYPE, InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, InputValidator, Logger, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { IExport } from "../../interfaces/dto/IExport";
 import { SessionEngine } from "../SessionEngine";

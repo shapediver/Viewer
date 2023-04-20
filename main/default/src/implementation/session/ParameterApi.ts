@@ -1,5 +1,5 @@
 import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup } from "@shapediver/api.geometry-api-dto-v2";
-import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IParameter, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { IParameterApi } from "../../interfaces/session/IParameterApi";
 

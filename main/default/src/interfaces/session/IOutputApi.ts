@@ -1,6 +1,7 @@
 import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ShapeDiverResponseOutputContent } from '@shapediver/viewer.session-engine.session-engine';
+import { ISessionApi } from './ISessionApi';
 
 /**
  * The api for an output of a corresponding [session]{@link ISessionApi}.
@@ -77,6 +78,8 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
      * @param content The new output content.
      * @param preventUpdate Option to not update the output immediately (default: false). Use this to update
      *                      the content of several outputs at the same time, then call {@link ISessionApi.updateOutputs}.
+     * 
+     * @throws {@type ShapeDiverViewerError}
      */
     updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean): Promise<ITreeNode | undefined>;
 

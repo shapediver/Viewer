@@ -57,7 +57,7 @@ export class GeometryEngine {
 
         const url = content.href!;
         // eslint-disable-next-line no-async-promise-executor
-        const loadingPromise = new Promise<ITreeNode>(async (resolve) => {
+        const loadingPromise = new Promise<ITreeNode>(async (resolve, reject) => {
             let gltfContent, gltfBinary, gltfBaseUrl, gltfHeader;
             let version = '2.0';
     
@@ -126,11 +126,14 @@ export class GeometryEngine {
                 }
             }
             
+            let promise: Promise<ITreeNode>;
             if (version === '1.0') {
-                resolve(await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId));
+                promise = new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId)
             } else {
-                resolve(await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId));
+                promise = new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl, taskEventId);
             }
+            promise.catch(e => { reject(e) })
+            resolve(promise);
         })
 
         this._loadingQueue.push(loadingPromise);

@@ -1,7 +1,7 @@
 import { ShapeDiverResponseModelComputationStatus } from "@shapediver/api.geometry-api-dto-v2";
 import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InputValidator, Logger, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IOutputApi } from "../../interfaces/session/IOutputApi";
 import { OutputApiData } from "./data/OutputApiData";
 
