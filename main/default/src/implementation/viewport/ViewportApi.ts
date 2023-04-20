@@ -858,10 +858,14 @@ export class ViewportApi implements IViewportApi {
         if (qrCode === false) {
             return link;
         } else {
-            let qrCodeLink = await new Promise<string>(resolve => {
+            let qrCodeLink = await new Promise<string>((resolve, reject) => {
                 QRCode.toDataURL(link,
                     (error: Error | null | undefined, url: string) => {
-                        resolve(url)
+                        if(error) {
+                            reject(error)
+                        } else {
+                            resolve(url)
+                        }
                     }
                 )
             })

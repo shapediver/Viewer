@@ -23,9 +23,10 @@ export class Converter {
     // #region Public Methods (8)
 
     public async processSVG(blob: Blob): Promise<HTMLImageElement> {
-        let data = <string>await new Promise((resolve, _) => {
+        let data = <string>await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(<string>reader.result);
+            reader.onerror = reject;
             reader.readAsDataURL(blob);
         });
         data = data.replace('data:image/svg+xml;base64,', '')
@@ -139,8 +140,9 @@ export class Converter {
         let du = 'data:image/svg+xml,' + encodeURIComponent(data);
         let img = new Image(); // same as document.createElement('img')
         img.crossOrigin = 'Anonymous';
-        const promise = new Promise<void>(resolve => {
+        const promise = new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
+            img.onerror = reject;
         })
         img.src = du;
         await promise;
@@ -155,8 +157,9 @@ export class Converter {
             return img;
         } else {
             const img = new Image();
-            const promise = new Promise<void>(resolve => {
+            const promise = new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
+                img.onerror = reject;
             })
             img.crossOrigin = "anonymous";
             img.src = URL.createObjectURL(blob);
