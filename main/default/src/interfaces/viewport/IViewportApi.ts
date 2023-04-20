@@ -485,6 +485,18 @@ export interface IViewportApi {
   getViewportSettings(): ISettingsV3_1;
   
   /**
+   * Determines if the current device is a mobile device (or tablet) but still doesn't support to view the content in AR.
+   * 
+   * Can be used in combination with {@link viewableInAR} to display a warning to use a different browser
+   * if {@link viewableInAR} is false and {@link isMobileDeviceWithoutBrowserARSupport} is true.
+   * 
+   * Reasons for that can be:
+   *  - Firefox
+   *  - Instagram in App browser
+   */
+  isMobileDeviceWithoutBrowserARSupport(): boolean;
+  
+  /**
    * Calculate the ray that is created by the mouse event and the camera.
    * 
    * @see {@link touchToRay}
@@ -626,6 +638,9 @@ export interface IViewportApi {
   
   /**
    * Determines if the current device supports viewing in AR.
+   * 
+   * Can be used in combination with {@link isMobileDeviceWithoutBrowserARSupport} to display a warning to use a different browser
+   * if {@link viewableInAR} is false and {@link isMobileDeviceWithoutBrowserARSupport} is true.
    */
   viewableInAR(): boolean;
 

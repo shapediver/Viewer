@@ -703,7 +703,10 @@ export class ViewportApi implements IViewportApi {
 
     public getViewportSettings(): ISettingsV3_1 {
         return this.#creationControlCenter.getViewportSettings(this.id);
+    }
 
+    public isMobileDeviceWithoutBrowserARSupport(): boolean {
+        return this.#renderingEngine.isMobileDeviceWithoutBrowserARSupport();
     }
 
     public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
