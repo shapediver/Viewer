@@ -102,6 +102,13 @@ export class SystemInfo {
     }
 
     /**
+     * Check if we are running in an instagram browser
+     */
+    public get isInstagram(): boolean {
+        return this._parser.getBrowser().name === "Instagram";
+    }
+
+    /**
      * Check if we are on a Mac OS device
      */
     public get isMacOS(): boolean {
