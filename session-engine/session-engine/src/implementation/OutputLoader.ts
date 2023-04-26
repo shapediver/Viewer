@@ -65,6 +65,10 @@ export class OutputLoader {
                 [key: string]: ISessionTreeNode
             }; 
         } = {};
+        let outputInfo: { [key: string]: {
+            version:string,
+            contentFormat: string[],
+        } } = {};
         let promises: Promise<ITreeNode>[] = [];
         let promisesNodes: ISessionTreeNode[] = [];
         let maxDelay = 0;
@@ -96,27 +100,33 @@ export class OutputLoader {
         listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_END, cb));
 
         for (let outputID in outputs) {
+            // we store some necessary information as this data may have been changed after the await (see warning below)
+            outputInfo[outputID] = {
+                version: outputs[outputID].version,
+                contentFormat: outputs[outputID].content ? outputs[outputID].content!.map(c => c.format) : []
+            }
+
             currentNodes[outputID] = {};
             if(!this._loadedOutputNodes[outputID]) 
                 this._loadedOutputNodes[outputID] = {};
              
             if(outputsFreeze[outputID]) {
-                currentNodes[outputID][outputs[outputID].version] = this._lastOutputNodes[outputID];
+                currentNodes[outputID][outputInfo[outputID].version] = this._lastOutputNodes[outputID];
                 // no loading necessary, progress done
                 progress[outputID] = 1;
             } else if(outputs[outputID].delay) {
                 maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
-            } else if(!this._loadedOutputNodes[outputID][outputs[outputID].version]) {
-                currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
-                currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
+            } else if(!this._loadedOutputNodes[outputID][outputInfo[outputID].version]) {
+                currentNodes[outputID][outputInfo[outputID].version] = new SessionTreeNode(outputID);
+                currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
                         promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.bearerToken, outputID))
-                        promisesNodes.push(currentNodes[outputID][outputs[outputID].version])
+                        promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version])
                     }
                 }
             } else {
-                currentNodes[outputID][outputs[outputID].version] = this._loadedOutputNodes[outputID][outputs[outputID].version];
+                currentNodes[outputID][outputInfo[outputID].version] = this._loadedOutputNodes[outputID][outputInfo[outputID].version];
                 // no loading necessary, progress done
                 progress[outputID] = 1;
             }
@@ -124,6 +134,12 @@ export class OutputLoader {
 
         if(maxDelay)
             throw new OutputDelayException(maxDelay);
+
+        /**
+         * WARNING: After this point outputs object cannot be used anymore.
+         * This can happen when fast consecutive scene updates are done.
+         * Therefore, we stored the data in the outputInfo.
+         */
 
         await Promise.all(promises);
 
@@ -134,22 +150,21 @@ export class OutputLoader {
             promisesNodes[i].addChild(await promises[i])
 
         // here we assign all outputs just to the node and return it
-        for (let outputID in outputs) {
-            node.addChild(currentNodes[outputID][outputs[outputID].version]);
-        }
+        for (let outputID in outputInfo)
+            node.addChild(currentNodes[outputID][outputInfo[outputID].version]);
 
         // save the nodes as the last available version
-        for (let outputID in outputs) {
+        for (let outputID in outputInfo) {
             this._loadedOutputNodes[outputID] = {};
-            this._loadedOutputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
-            this._lastOutputNodes[outputID] = currentNodes[outputID][outputs[outputID].version];
+            this._loadedOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
+            this._lastOutputNodes[outputID] = currentNodes[outputID][outputInfo[outputID].version];
         }
 
-        for (let outputID in outputs) {
-            if(currentNodes[outputID][outputs[outputID].version].children.length > 1) {
-                for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                    if(outputs[outputID].content![i].format === 'sdtf') {
-                        this.mergeContentNodes(currentNodes[outputID][outputs[outputID].version])
+        for (let outputID in outputInfo) {
+            if(currentNodes[outputID][outputInfo[outputID].version].children.length > 1) {
+                for (let i = 0, len = outputInfo[outputID].contentFormat!.length; i < len; i++) {
+                    if(outputInfo[outputID].contentFormat[i] === 'sdtf') {
+                        this.mergeContentNodes(currentNodes[outputID][outputInfo[outputID].version])
                         break;
                     }
                 }
