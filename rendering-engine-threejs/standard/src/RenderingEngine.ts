@@ -980,6 +980,26 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }
 
+  public isMobileDeviceWithoutBrowserARSupport(): boolean {
+    // has to be a mobile device (duh)
+    if (this._systemInfo.isIOS === false && this._systemInfo.isAndroid === false)
+      return false;
+
+    // no Firefox on Android
+    if (this._systemInfo.isAndroid === true && this._systemInfo.isFirefox === true)
+      return true;
+
+    // no Firefox on iOS
+    if (this._systemInfo.isIOS === true && this._systemInfo.isFirefox === true)
+      return true;
+
+    // no Instagram on iOS
+    if (this._systemInfo.isIOS === true && this._systemInfo.isInstagram === true)
+      return true;
+
+    return false;
+  }
+
   public mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 } {
     return this._sceneTracingManager.mouseEventToRay(event);
   }
