@@ -1342,8 +1342,22 @@ export class SessionEngine implements ISessionEngine {
                     break;
             }
 
-            if(initialParameters && initialParameters[parameterId] !== undefined) 
-                this.parameters[parameterId].value = initialParameters[parameterId]
+            // we don't have to do larger restrictions for this as the backend would have already thrown an error if the values were not correct
+            if(initialParameters) {
+                // check if the id is within the initial parameters
+                if(initialParameters[parameterId] !== undefined) {
+                    this.parameters[parameterId].value = initialParameters[parameterId] 
+                } 
+                // check if the name is within the initial parameters
+                else if(initialParameters[this.parameters[parameterId].name] !== undefined) {
+                    this.parameters[parameterId].value = initialParameters[this.parameters[parameterId].name];
+                } 
+                // NOTE: At some point the checking may also be done with the displayname, this is the code for it
+                // // check if the displayname is within the initial parameters
+                // else if(this.parameters[parameterId].displayname && initialParameters[this.parameters[parameterId].displayname!] !== undefined) {
+                //     this.parameters[parameterId].value = initialParameters[this.parameters[parameterId].displayname!];
+                // }
+            }
 
             parameterSet[parameterId] = {
                 value: this.parameters[parameterId].value,
