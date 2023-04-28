@@ -352,6 +352,8 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environment.clearColor = settings.environment.clearColor;
                 currentSettings.environment.map = settings.environment.map;
                 currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+                currentSettings.environment.blurriness = settings.environment.blurriness;
+                currentSettings.environment.intensity = settings.environment.intensity;
             }
     }
 

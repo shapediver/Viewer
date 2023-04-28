@@ -47,6 +47,155 @@ describe('device testing', () => {
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/scale');
+    });  
+
+    test(name + '_envMapBlur', async () => {
+        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ 
+                id: 'myViewer', 
+                canvas: <HTMLCanvasElement>document.getElementById('canvas')
+            })
+            let session = await SDV.createSession({ 
+                id: 'mySession', 
+                ticket, 
+                modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' 
+            });
+
+            viewer.groundPlaneVisibility = false;
+            viewer.gridVisibility = false;
+            viewer.environmentMap = SDV.ENVIRONMENT_MAP.VENICE_SUNSET;
+            viewer.environmentMapAsBackground = true;
+
+            await Promise.all([
+                new Promise<void>(resolve => {
+                    SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+                        const taskEvent = e as any;
+                        if (taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+                            resolve();
+                    });
+                }),
+                new Promise<void>((resolve) => {
+                    SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+            ]);
+            cb();
+        }, shelfTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapBlurDefault');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapBlurriness = 0.2
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapBlur_02');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapBlurriness = 1
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapBlur_1');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapBlurriness = 0;
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapBlur_0');
     });
+
+    test(name + '_envMapIntensity', async () => {
+        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ 
+                id: 'myViewer', 
+                canvas: <HTMLCanvasElement>document.getElementById('canvas')
+            })
+            let session = await SDV.createSession({ 
+                id: 'mySession', 
+                ticket, 
+                modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' 
+            });
+
+            viewer.groundPlaneVisibility = false;
+            viewer.gridVisibility = false;
+            viewer.environmentMap = SDV.ENVIRONMENT_MAP.VENICE_SUNSET;
+            viewer.environmentMapAsBackground = true;
+
+            await Promise.all([
+                new Promise<void>(resolve => {
+                    SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+                        const taskEvent = e as any;
+                        if (taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+                            resolve();
+                    });
+                }),
+                new Promise<void>((resolve) => {
+                    SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+            ]);
+            cb();
+        }, shelfTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapIntensityDefault');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapIntensity = 0
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapIntensity_0');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapIntensity = 5
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapIntensity_5');
+
+        await driver.executeAsyncScript(async (cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const viewport = SDV.viewports['myViewer']!;
+
+            viewport.environmentMapIntensity = 1;
+
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        });
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMapIntensity_1');
+    });
+
 
 });
