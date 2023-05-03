@@ -26,8 +26,6 @@ import { SDObject } from '../objects/SDObject'
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
 
-    private readonly _defaultColor: string = '#199b9b';
-
     private _geometryCache: {
         [key: string]: {
             obj: SDData,

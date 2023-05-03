@@ -47,7 +47,6 @@ export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _converter: Converter = Converter.instance;
-    private readonly _defaultColor: string = '#199b9b';
     private readonly _logger: Logger = Logger.instance;
     private _materialCache: {
         [key: string]: {
@@ -276,6 +275,16 @@ export class MaterialLoader implements ILoader {
         }
     }
 
+    public assignDefaultMaterialColor() {
+        for(let m in this._materialCache) {
+            const { material, materialData } = this._materialCache[m];
+
+            // if there is no materialData stored in the cache that means that the default material was used
+            if(!materialData) 
+                (<THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial>material).color = this._renderingEngine.createThreeJsColor(this._renderingEngine.defaultMaterialColor);
+        }
+    }
+
     public assignColorCorrection(value: boolean) {
         const convertColor = (c: THREE.Color | SDColor | undefined, toggle: boolean): THREE.Color | SDColor | undefined => {
             if(!c) return;
@@ -289,9 +298,19 @@ export class MaterialLoader implements ILoader {
                     sdColor.colorCorrection(toggle);
                     return sdColor;
                 } else {
-                    // some colors may not have been set by us, but have been set automatically
-                    // in this case we expect the color to be linear either way and therefore omit a color correction
-                    return c;
+                    // we check in this case if the converted color has been stored already
+                    const clone = c.clone();
+                    toggle === true ? clone.convertSRGBToLinear() : clone.convertLinearToSRGB();
+                    const sdColorClone = this._renderingEngine.colorCache.find(color => color.equals(clone));
+                    
+                    if(sdColorClone) {
+                        sdColorClone.colorCorrection(toggle);
+                        return sdColorClone;
+                    } else {
+                        // some colors may not have been set by us, but have been set automatically
+                        // in this case we expect the color to be linear either way and therefore omit a color correction
+                        return c;
+                    }
                 }
             }
         }
@@ -341,7 +360,7 @@ export class MaterialLoader implements ILoader {
 
         // if no MaterialStandardData is provided, we return our default
         if(!materialData) {
-            generalProperties.color = this._renderingEngine.createThreeJsColor(this._defaultColor);
+            generalProperties.color = this._renderingEngine.createThreeJsColor(this._renderingEngine.defaultMaterialColor);
             if(materialSettings !== undefined && materialSettings.useVertexColors)
                 generalProperties.color = this._renderingEngine.createThreeJsColor('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
@@ -377,9 +396,9 @@ export class MaterialLoader implements ILoader {
             generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.map.color);
 
         if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color === undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
-            generalProperties.color = this._renderingEngine.createThreeJsColor(this._defaultColor);
+            generalProperties.color = this._renderingEngine.createThreeJsColor(this._renderingEngine.defaultMaterialColor);
 
-        if((materialSettings !== undefined && materialSettings.useVertexColors) && (materialData.color === this._defaultColor || materialData.color === this._defaultColor+'ff' || materialData.color === undefined))
+        if((materialSettings !== undefined && materialSettings.useVertexColors) && (materialData.color === this._converter.toHexColor(this._renderingEngine.defaultMaterialColor) || materialData.color+'ff' === this._converter.toHexColor(this._renderingEngine.defaultMaterialColor) || materialData.color === this._renderingEngine.defaultMaterialColor || materialData.color === this._renderingEngine.defaultMaterialColor+'ff' || materialData.color === undefined))
             generalProperties.color = this._renderingEngine.createThreeJsColor('#d3d3d3');
 
         if(materialData.side !== undefined)

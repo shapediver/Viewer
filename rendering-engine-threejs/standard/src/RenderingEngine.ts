@@ -121,6 +121,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
+  private _defaultMaterialColor: Color = "#199b9b";
   private _enableAR: boolean = true;
   private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
@@ -415,6 +416,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set continuousShadowMapUpdate(value: boolean) {
     this._renderingManager.continuousShadowMapUpdate = value;
+  }
+
+  public get defaultMaterialColor(): Color {
+    return this._defaultMaterialColor;
+  }
+
+  public set defaultMaterialColor(value: Color) {
+    this._defaultMaterialColor = value;
+    this._materialLoader.assignDefaultMaterialColor();
   }
 
   public get domEventEngine(): DomEventEngine {
@@ -922,7 +932,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public createThreeJsColor(color: Color): THREE.Color {
     const sdColor = new SDColor(this._converter.toThreeJsColorInput(color), color);
     sdColor.colorCorrection(this.automaticColorAdjustment);
-    this._colorCache.push(sdColor)
+    this._colorCache.push(sdColor);
     return sdColor;
   }
 
@@ -1108,6 +1118,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
     settingsEngine.general.transformation.translation = { x: this.arTranslation[0], y: this.arTranslation[1], z: this.arTranslation[2] };
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
+    settingsEngine.general.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
 
     settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
@@ -1259,6 +1270,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
 
     if (sections.general) {
+      this.defaultMaterialColor = this._settingsEngine.general.defaultMaterialColor;
       this.pointSize = this._settingsEngine.general.pointSize;
     }
 
