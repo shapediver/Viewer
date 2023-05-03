@@ -397,7 +397,7 @@ export class SceneTreeManager implements IManager {
             material: IMaterialAbstractData,
             matrix: mat4
         } = {
-            material: new MaterialStandardData({ color: '#199b9b', opacity: 1 }),
+            material: new MaterialStandardData({ color: this._renderingEngine.defaultMaterialColor, opacity: 1 }),
             matrix: mat4.create()
         };
 

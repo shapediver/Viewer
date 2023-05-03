@@ -164,6 +164,11 @@ export interface IViewportApi {
   clearColor: Color;
 
   /**
+   * The color that is used when no material is specified. (default: #199b9b)
+   */
+  defaultMaterialColor: Color;
+
+  /**
    * The environment map used by the viewport.
    * You can either use the HDR maps at {@link ENVIRONMENT_MAP} or the LDR legacy maps at {@link ENVIRONMENT_MAP_CUBE}.
    * Additionally, you can specify your own maps. For HDR maps, provide a link to a .hdr file, for LDR provide the folder where the six cube map images are located.
@@ -185,7 +190,7 @@ export interface IViewportApi {
    * Option to set the environment map for unlit materials. (default: false)
    * For unlit materials, which use the three.js MeshBasicMaterial, per default we don't set the environment map to keep the colors as realistic as possible.
    */
-   environmentMapForUnlitMaterials: boolean;
+  environmentMapForUnlitMaterials: boolean;
 
   /**
    * The color of the grid.

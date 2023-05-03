@@ -10,7 +10,6 @@ import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
     // #region Properties (7)
 
-    readonly #converter: Converter = Converter.instance;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 

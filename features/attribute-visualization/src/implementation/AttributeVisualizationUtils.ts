@@ -11,9 +11,9 @@ const grayscaleVisualization = (factor: number, materialType: 'unlit' | 'standar
     }
 }
 
-const opacityVisualization = (factor: number, materialType: 'unlit' | 'standard', defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
+const opacityVisualization = (factor: number, materialType: 'unlit' | 'standard', defaultMaterial: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     return {
-        material: materialType === 'unlit' ? new MaterialUnlitData({color: defaultMaterial?.color || '#199b9b', opacity: factor}) : new MaterialStandardData({color: defaultMaterial?.color || '#199b9b', opacity: factor}),
+        material: materialType === 'unlit' ? new MaterialUnlitData({color: defaultMaterial.color, opacity: factor}) : new MaterialStandardData({color: defaultMaterial.color, opacity: factor}),
         matrix: mat4.create()
     }
 }
@@ -139,7 +139,7 @@ const hslVisualization = (factor: number, materialType: 'unlit' | 'standard'): I
     }
 }
 
-const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTE_VISUALIZATION, materialType: 'unlit' | 'standard', defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
+const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTE_VISUALIZATION, materialType: 'unlit' | 'standard', defaultMaterial: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     let factor = (value - min) / (max - min);
     factor = Math.min(1, Math.max(0, factor))
 
@@ -165,7 +165,7 @@ const numberVisualization = (value: number, min: number, max: number, type: ATTR
     }
 }
 
-const stringVisualization = (value: string, values: string[], type: ATTRIBUTE_VISUALIZATION, materialType: 'unlit' | 'standard', defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
+const stringVisualization = (value: string, values: string[], type: ATTRIBUTE_VISUALIZATION, materialType: 'unlit' | 'standard', defaultMaterial: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     let factor = values.indexOf(value) / (values.length - 1);
     factor = Math.min(1, Math.max(0, factor))
     switch(type) {

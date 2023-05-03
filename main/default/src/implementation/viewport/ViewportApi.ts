@@ -239,6 +239,18 @@ export class ViewportApi implements IViewportApi {
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('clearColor');
     }
+    
+    public get defaultMaterialColor(): Color {
+        return this.#renderingEngine.defaultMaterialColor;
+    }
+
+    public set defaultMaterialColor(value: Color) {
+        const scope = 'defaultMaterialColor';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'color');
+        this.#renderingEngine.defaultMaterialColor = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('defaultMaterialColor');
+    }
 
     public get enableAR(): boolean {
         return this.#renderingEngine.enableAR;

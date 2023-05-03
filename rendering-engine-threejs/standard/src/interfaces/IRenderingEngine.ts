@@ -12,6 +12,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     beautyRenderDelay: number;
     clearAlpha: number;
     clearColor: Color;
+    defaultMaterialColor: Color;
     visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
