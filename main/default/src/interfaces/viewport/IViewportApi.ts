@@ -176,6 +176,16 @@ export interface IViewportApi {
   environmentMapAsBackground: boolean;
 
   /**
+   * The amount of which the environment map is blurred. (default: 0)
+   */
+  environmentMapBlurriness: number;
+
+  /**
+   * Scales how much the environment map effects the materials. (default: 1)
+   */
+  environmentMapIntensity: number;
+
+  /**
    * The environment map resolution that is used for preset cube maps.
    * @see {@link environmentMap}
    */

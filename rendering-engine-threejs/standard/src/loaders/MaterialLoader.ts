@@ -61,6 +61,7 @@ export class MaterialLoader implements ILoader {
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
+    private _envMapIntensity: number = 1;
     private _height: number = 1020;
     private _lightSizeUV: number = 0.025;
     private _pointSize: number = 1.0;
@@ -196,7 +197,27 @@ export class MaterialLoader implements ILoader {
             }
         }
     }
+    
+    public assignEnvironmentMapIntensity(value: number) {
+        this._envMapIntensity = value;
+        for(let m in this._materialCache) {
+            if((this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial)) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m].material;
+                if (this._materialCache[m].materialData &&
+                    (
+                        this._materialCache[m].materialData instanceof MaterialStandardData ||
+                        this._materialCache[m].materialData instanceof MaterialGemData ||
+                        this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
+                        this._materialCache[m].materialData instanceof MaterialUnlitData
+                    ) &&
+                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                ) continue;
 
+                material.envMapIntensity = value;
+                material.needsUpdate = true;
+            }
+        }
+    }
     
     public assignEnvironmentMapForUnlitMaterials(toggle: boolean) {
         for(let m in this._materialCache) {
@@ -324,8 +345,10 @@ export class MaterialLoader implements ILoader {
             if(materialSettings !== undefined && materialSettings.useVertexColors)
                 generalProperties.color = this._renderingEngine.createThreeJsColor('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
-            if(!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) 
+            if(!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) {
                 (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMap = this._envMap;
+                (<THREE.MeshPhysicalMaterialParameters>generalProperties).emissiveIntensity = this._envMapIntensity;
+            }
             return { properties: generalProperties, mapCount };
         }
 
@@ -447,7 +470,8 @@ export class MaterialLoader implements ILoader {
             mapCount++;
         }
 
-       standardProperties.envMap = this._envMap;
+        standardProperties.envMap = this._envMap;
+        standardProperties.emissiveIntensity = this._envMapIntensity;
 
         if (materialData.normalMap !== undefined) {
             standardProperties.normalMap = this.createTexture(materialData.normalMap);

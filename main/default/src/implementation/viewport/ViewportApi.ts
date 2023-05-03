@@ -276,6 +276,30 @@ export class ViewportApi implements IViewportApi {
         this.update('environmentMapAsBackground');
     }
 
+    public get environmentMapBlurriness(): number {
+        return this.#renderingEngine.environmentMapBlurriness;
+    }
+
+    public set environmentMapBlurriness(value: number) {
+        const scope = 'environmentMapBlurriness';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.environmentMapBlurriness = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapBlurriness');
+    }
+
+    public get environmentMapIntensity(): number {
+        return this.#renderingEngine.environmentMapIntensity;
+    }
+
+    public set environmentMapIntensity(value: number) {
+        const scope = 'environmentMapIntensity';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.environmentMapIntensity = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapIntensity');
+    }
+
     public get environmentMapResolution(): string {
         return this.#renderingEngine.environmentMapResolution;
     }
