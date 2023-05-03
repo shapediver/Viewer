@@ -15,6 +15,8 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
+    environmentMapBlurriness: number;
+    environmentMapIntensity: number;
     environmentMapResolution: string;
     environmentMapForUnlitMaterials: boolean;
     gridColor: Color; 

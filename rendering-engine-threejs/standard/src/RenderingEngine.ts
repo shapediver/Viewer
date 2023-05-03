@@ -124,6 +124,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _enableAR: boolean = true;
   private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
+  private _environmentMapBlurriness: number = 0;
+  private _environmentMapIntensity: number = 1;
   private _environmentMapResolution: string = '1024';
   private _environmentMapForUnlitMaterials: boolean = false;
   private _gridVisibility: boolean = true;
@@ -441,6 +443,25 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set environmentMapAsBackground(value: boolean) {
     this._environmentMapAsBackground = value;
+  }
+
+  public get environmentMapBlurriness(): number {
+    return this._environmentMapBlurriness;
+  }
+
+  public set environmentMapBlurriness(value: number) {
+    this._environmentMapBlurriness = value;
+    this._sceneTreeManager.scene.backgroundBlurriness = this._environmentMapBlurriness
+  }
+
+  public get environmentMapIntensity(): number {
+    return this._environmentMapIntensity;
+  }
+
+  public set environmentMapIntensity(value: number) {
+    this._environmentMapIntensity = value;
+    this._sceneTreeManager.scene.backgroundIntensity = value;
+    this._materialLoader.assignEnvironmentMapIntensity(value);
   }
 
   public get environmentMapLoader(): EnvironmentMapLoader {
@@ -838,6 +859,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
             this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
             this.clearAlpha = settingsEngine.environment.clearAlpha;
             this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
+            this.environmentMapBlurriness = settingsEngine.environment.blurriness;
+            this.environmentMapIntensity = settingsEngine.environment.intensity;
             this.applySyncSettings(sections);
   
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
@@ -1059,6 +1082,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
     settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);
+    settingsEngine.environment.blurriness = this.environmentMapBlurriness;
+    settingsEngine.environment.intensity = this.environmentMapIntensity;
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
