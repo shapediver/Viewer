@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { quat, vec2, vec3 } from 'gl-matrix'
 import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -180,6 +180,11 @@ export interface IViewportApi {
    * @see {@link environmentMap}
    */
   environmentMapResolution: string;
+
+  /**
+   * The rotation quaternion that is used on the environment map. (default: [0,0,0,1])
+   */
+  environmentMapRotation: quat;
 
   /**
    * Option to set the environment map for unlit materials. (default: false)

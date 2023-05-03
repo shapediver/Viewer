@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { vec2, vec3 } from 'gl-matrix'
+import { quat, vec2, vec3 } from 'gl-matrix'
 import {
   CameraEngine,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
@@ -126,6 +126,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
   private _environmentMapForUnlitMaterials: boolean = false;
+  private _environmentMapRotation: quat = quat.create();
   private _gridVisibility: boolean = true;
   private _groundPlaneVisibility: boolean = true;
   private _groundPlaneShadowVisibility: boolean = false;
@@ -463,6 +464,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set environmentMapForUnlitMaterials(value: boolean) {
     this._environmentMapForUnlitMaterials = value;
     this._materialLoader.assignEnvironmentMapForUnlitMaterials(value);
+  }
+
+  public get environmentMapRotation(): quat {
+    return this._environmentMapRotation;
+  }
+
+  public set environmentMapRotation(value: quat) {
+    this._environmentMapRotation = value;
+    this._materialLoader.updateEnvironmentMapRotation(value);
   }
 
   public get eventEngine(): EventEngine {
@@ -838,6 +848,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
             this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
             this.clearAlpha = settingsEngine.environment.clearAlpha;
             this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
+            this.environmentMapRotation = [settingsEngine.environment.rotation.x, settingsEngine.environment.rotation.y, settingsEngine.environment.rotation.z, settingsEngine.environment.rotation.w];
             this.applySyncSettings(sections);
   
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
@@ -1059,6 +1070,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
     settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);
+    settingsEngine.environment.rotation = { x: this.environmentMapRotation[0], y: this.environmentMapRotation[1], z: this.environmentMapRotation[2], w: this.environmentMapRotation[3] };
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;

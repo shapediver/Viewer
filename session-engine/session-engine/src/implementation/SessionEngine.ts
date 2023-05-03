@@ -352,6 +352,7 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environment.clearColor = settings.environment.clearColor;
                 currentSettings.environment.map = settings.environment.map;
                 currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+                currentSettings.environment.rotation = settings.environment.rotation;
             }
     }
 
