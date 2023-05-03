@@ -8,7 +8,7 @@ import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
 import { AbstractInteractionManager } from '../AbstractInteractionManager'
-import { InteractionData } from '../InteractionData'
+import { IDragAnchor, InteractionData } from '../InteractionData'
 import { ITransformation, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { IDragEvent } from '../../interfaces/events/IDragEvent'
 
@@ -95,7 +95,15 @@ export class DragManager extends AbstractInteractionManager {
 
     public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        this.removeNode(event);
+        if(!this.#node) return;
+
+        let transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+        let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
+        
+        this.applyTransformation(this.#node, transformationMatrix);
+        this.viewport.updateNodeTransformation(this.#node!);
+
+        this.removeNode(event, ray);
     }
 
     public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {        
@@ -116,6 +124,7 @@ export class DragManager extends AbstractInteractionManager {
                 ray,
                 event,
                 dragConstraint: transformation.dragConstraint,
+                dragAnchor: transformation.dragAnchor,
                 manager: this
             } as IDragEvent
         );
@@ -138,16 +147,36 @@ export class DragManager extends AbstractInteractionManager {
      * 
      * @returns 
      */
-    public removeNode(event?: MouseEvent | TouchEvent) {
+    public removeNode(event?: MouseEvent | TouchEvent, ray?: IRay) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(!this.#node) return;
 
-        const transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
+        let transformationMatrix: mat4 | undefined,
+            transformation: {
+                dragConstraint?: IDragConstraint;
+                matrix: mat4;
+                dragAnchor?: IDragAnchor;
+            } | undefined;
+
+        // if we have everything we need (the ray) than we try one last time to calculate the transformation
+        if(ray) {
+            transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+            transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
+            
+            this.applyTransformation(this.#node, transformationMatrix);
+            this.viewport.updateNodeTransformation(this.#node!);
+        } else {
+            transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
+        }
+
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_END, {
             viewportId: this.viewport.id,
             node: this.#node,
             matrix: transformationMatrix,
             event,
+            ray,
+            dragConstraint: transformation?.dragConstraint,
+            dragAnchor: transformation?.dragAnchor,
             manager: this
         } as IDragEvent);
         this.#setupOptions = null;
@@ -194,6 +223,7 @@ export class DragManager extends AbstractInteractionManager {
             ray,
             event,
             dragConstraint: transformation.dragConstraint,
+            dragAnchor: transformation.dragAnchor,
             manager: this
         } as IDragEvent);
     }

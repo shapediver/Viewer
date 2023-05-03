@@ -4,7 +4,7 @@ import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
 import { IViewportApi } from "@shapediver/viewer";
 import { IPlane, Plane } from "@shapediver/viewer.shared.math";
-import { InteractionData } from "../InteractionData";
+import { IDragAnchor, InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
@@ -45,21 +45,35 @@ export class PlaneConstraint implements IDragConstraint {
         this.#coplanarPoint = _coplanarPoint;
         this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
+    
+    public get coplanarPoint(): vec3 | undefined {
+        return this.#coplanarPoint;
+    }
+
+    public get normal(): vec3 {
+        return this.#normal;
+    }
+
+    public get rotation(): { axis: vec3, angle: number } | undefined {
+        return this.#rotation;
+    }
 
     // #endregion Constructors (1)
 
     // #region Public Methods (2)
 
-    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
+    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
-            return { distance, transformation: calculateDragMatrix(node, point, this.#rotation, this.#dragOrigin!, point) };
+            
+            const { matrix, dragAnchor } = calculateDragMatrix(node, point, this.#rotation, this.#dragOrigin!, point);
+            return { distance, transformation: matrix, dragAnchor };
         }
         return;
     }
 
-    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4 } | undefined {
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         if (this.#coplanarPoint) {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, this.#coplanarPoint);
         } else {

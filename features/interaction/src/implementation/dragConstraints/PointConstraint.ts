@@ -3,7 +3,7 @@ import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.interse
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
 import { IViewportApi } from "@shapediver/viewer";
-import { InteractionData } from "../InteractionData";
+import { IDragAnchor, InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
@@ -45,11 +45,23 @@ export class PointConstraint implements IDragConstraint {
         this.#rotation = _rotation || { axis: vec3.fromValues(0,0,1), angle: 0 };
     }
 
+    public get point(): vec3 {
+        return this.#point;
+    }
+
+    public get radius(): number {
+        return this.#radius;
+    }
+
+    public get rotation(): { axis: vec3, angle: number } | undefined {
+        return this.#rotation;
+    }
+
     // #endregion Constructors (1)
 
     // #region Public Methods (2)
 
-    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
+    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         const closestPoint = vec3.sub(vec3.create(), this.#point, ray.origin);
 		const directionDistance = vec3.dot(closestPoint, ray.direction);
 
@@ -61,12 +73,14 @@ export class PointConstraint implements IDragConstraint {
         }
         
         const distance = vec3.distance(closestPoint, this.#point);
-        if (distance < this.#radius) 
-            return { distance, transformation: calculateDragMatrix(node, this.#point, this.#rotation, this.#dragOrigin!, closestPoint) };
+        if (distance < this.#radius) {
+            const { matrix, dragAnchor } = calculateDragMatrix(node, this.#point, this.#rotation, this.#dragOrigin!, closestPoint);
+            return { distance, transformation: matrix, dragAnchor };
+        }
         return;
     }
 
-    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4 } | undefined {       
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {       
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, mat4.invert(mat4.create(), previousDragMatrix));
         return this.intersect(viewport, node, ray);
