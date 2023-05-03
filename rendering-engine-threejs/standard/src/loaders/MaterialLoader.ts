@@ -15,7 +15,7 @@ import {
   MaterialShadowData,
   GeometryData,
 } from '@shapediver/viewer.shared.types'
-import { vec4 } from 'gl-matrix'
+import { mat4, quat } from 'gl-matrix'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { entry, main } from '../shaders/PCSS'
@@ -68,6 +68,7 @@ export class MaterialLoader implements ILoader {
     private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
     private _maxMapCount: number = 0;
     private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
+    private _environmentMapRotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
 
     // #endregion Properties (8)
 
@@ -85,14 +86,26 @@ export class MaterialLoader implements ILoader {
         }
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
 
+        // set the uniform for the background envmap calculation initially
+        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
+
+        // console.log(THREE.ShaderChunk.envmap_common_pars_fragment)
+        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+            `#ifdef ENVMAP_TYPE_CUBE_UV`,
+            `uniform mat4 envMapRotation;
+             #ifdef ENVMAP_TYPE_CUBE_UV`
+        )
+
         // console.log(THREE.ShaderChunk.envmap_fragment.includes(`vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`))
         THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
             `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
             `
             #ifdef ENVMAP_TYPE_LDR
-                vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );
+                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.yz, 1.0 ) * envMapRotation;
+                vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
             #else
-                vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.zy ) );
+                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.zy, 1.0 ) * envMapRotation;
+                vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
             #endif
             `
         )
@@ -102,9 +115,11 @@ export class MaterialLoader implements ILoader {
             `vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`,
             `
             #ifdef ENVMAP_TYPE_LDR
-                vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );
+                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.yz, 1.0 ) * envMapRotation;
+                vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
             #else
-                vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.zy ) );
+                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.zy, 1.0 ) * envMapRotation;
+                vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
             #endif`
         )
         
@@ -113,9 +128,11 @@ export class MaterialLoader implements ILoader {
             `vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`,
             `
             #ifdef ENVMAP_TYPE_LDR
-                vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );            
+                vec4 adjustedEnvReflectVector = vec4(sampleDir, 1.0) * envMapRotation;
+                vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );            
             #else
-                vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );            
+                vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
+                vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );            
             #endif`
         )
 
@@ -124,9 +141,11 @@ export class MaterialLoader implements ILoader {
             `vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`,
             `
             #ifdef ENVMAP_TYPE_LDR
-                vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );            
+                vec4 adjustedEnvReflectVector = vec4(sampleDir, 1.0) * envMapRotation;
+                vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );            
             #else
-                vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );        
+                vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
+                vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );        
             #endif`
         )
 
@@ -137,7 +156,8 @@ export class MaterialLoader implements ILoader {
                 #ifdef ENVMAP_TYPE_NONE
                     vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
                     reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-                    radiance += (vec3((reflectVec.z + 1.0) / 2.0) + 0.5) / 1.5;
+                    vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0) * envMapRotation;
+                    radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
                 #endif
             #endif
             ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
@@ -688,6 +708,7 @@ export class MaterialLoader implements ILoader {
                     before(shader, renderer);
                     shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
                     shader.uniforms.blending = { value: this._blending };
+                    shader.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
                     material.userData.shader = shader;
                 };
 
@@ -810,6 +831,22 @@ export class MaterialLoader implements ILoader {
     public updateMaterials(): void {
         for(let m in this._materialCache)
             this._materialCache[m].material.needsUpdate = true;
+    }
+
+    public updateEnvironmentMapRotation(quaternion: quat) {
+        this._environmentMapRotationMatrix = new THREE.Matrix4().fromArray(mat4.fromQuat(mat4.create(), quaternion)).transpose();
+        for(let m in this._materialCache) 
+            if(this._materialCache[m].material.userData.shader) {
+                this._materialCache[m].material.userData.shader.uniforms.envMapRotation.value = this._environmentMapRotationMatrix;
+            }
+
+        // set the new uniform value as the default if the environment is recomputed
+        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
+
+        // the background cube is its own mesh that lives somewhere within three.js
+        // therefore our way to change the uniform is to go through the renderer list and set the uniforms there
+        const list = this._renderingEngine.renderer.renderLists.get(this._renderingEngine.scene, 0);
+        list.opaque.forEach(element => (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: this._environmentMapRotationMatrix }) )
     }
 
     public updateSoftShadow(lightSizeUV: number, blending: number) {

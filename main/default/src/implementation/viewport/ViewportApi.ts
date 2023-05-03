@@ -1,4 +1,4 @@
-import { mat4, vec2, vec3 } from "gl-matrix";
+import { mat4, quat, vec2, vec3 } from "gl-matrix";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
@@ -322,6 +322,18 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.environmentMapForUnlitMaterials = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('environmentMapForUnlitMaterials');
+    }
+
+    public get environmentMapRotation(): quat {
+        return this.#renderingEngine.environmentMapRotation;
+    }
+
+    public set environmentMapRotation(value: quat) {
+        const scope = 'environmentMapRotation';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'quat');
+        this.#renderingEngine.environmentMapRotation = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapRotation');
     }
 
     public get gridColor(): Color {
