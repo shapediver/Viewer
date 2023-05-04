@@ -4,6 +4,7 @@ import { mat4, vec3 } from "gl-matrix";
 import { IViewportApi } from "@shapediver/viewer";
 import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { IDragConstraintUtils } from "../../interfaces/utils/IDragConstraintUtils";
+import { IDragAnchor } from "../InteractionData";
 
 export class DragConstraintUtils implements IDragConstraintUtils {
     // #region Properties (1)
@@ -32,8 +33,8 @@ export class DragConstraintUtils implements IDragConstraintUtils {
      * @param ray 
      * @returns 
      */
-    public intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4 } {
-        const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint }[] = [];
+    public intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4, dragAnchor?: IDragAnchor } {
+        const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint, dragAnchor?: IDragAnchor }[] = [];
         for(let d in dragConstraints) {
             const res = dragConstraints[d].intersect(viewport, node, ray);
             if(res) dragConstraintResults.push(Object.assign({ dragConstraint: dragConstraints[d] }, res));
@@ -41,7 +42,7 @@ export class DragConstraintUtils implements IDragConstraintUtils {
 
         if(dragConstraintResults.length > 0) {
             dragConstraintResults.sort((a, b) => a.distance - b.distance);
-            return { dragConstraint: dragConstraintResults[0].dragConstraint, matrix: dragConstraintResults[0].transformation };        
+            return { dragConstraint: dragConstraintResults[0].dragConstraint, matrix: dragConstraintResults[0].transformation, dragAnchor: dragConstraintResults[0].dragAnchor };        
         } else {
             return { matrix: mat4.create() };
         }
@@ -58,8 +59,8 @@ export class DragConstraintUtils implements IDragConstraintUtils {
      * @param intersection 
      * @returns 
      */
-    public setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { dragConstraint?: IDragConstraint, matrix: mat4 } {
-        const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint }[] = [];
+    public setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { dragConstraint?: IDragConstraint, matrix: mat4, dragAnchor?: IDragAnchor } {
+        const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint, dragAnchor?: IDragAnchor }[] = [];
         for(let d in dragConstraints) {
             const res = dragConstraints[d].setup(viewport, node, ray, intersection, previousDragMatrix);
             if(res) dragConstraintResults.push(Object.assign({ dragConstraint: dragConstraints[d] }, res));
@@ -67,7 +68,7 @@ export class DragConstraintUtils implements IDragConstraintUtils {
 
         if(dragConstraintResults.length > 0) {
             dragConstraintResults.sort((a, b) => a.distance - b.distance);
-            return { dragConstraint: dragConstraintResults[0].dragConstraint, matrix: dragConstraintResults[0].transformation };        
+            return { dragConstraint: dragConstraintResults[0].dragConstraint, matrix: dragConstraintResults[0].transformation, dragAnchor: dragConstraintResults[0].dragAnchor };        
         } else {
             return { matrix: mat4.create() };
         }

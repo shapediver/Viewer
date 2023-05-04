@@ -1,17 +1,19 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
 import { IInteractionData, IInteractionTypes } from '../interfaces/IInteractionData';
+
+export interface IDragAnchor { 
+    position: vec3,
+    rotation?: {
+        axis: vec3,
+        angle: number
+    }
+}
 
 export class InteractionData extends AbstractTreeNodeData implements IInteractionData  {
     // #region Properties (4)
 
-    #dragAnchors: { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[] = [];
+    #dragAnchors: IDragAnchor[] = [];
     #dragOrigin?: vec3;
     #interactionStates: IInteractionTypes = {};
     #interactionTypes: IInteractionTypes = {};
@@ -39,23 +41,11 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
 
     // #region Public Accessors (8)
 
-    public get dragAnchors(): { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[] {
+    public get dragAnchors(): IDragAnchor[] {
         return this.#dragAnchors;
     }
 
-    public set dragAnchors(value: { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[]) {
+    public set dragAnchors(value: IDragAnchor[]) {
         this.#dragAnchors = value;
     }
 
