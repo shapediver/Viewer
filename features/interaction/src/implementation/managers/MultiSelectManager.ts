@@ -145,13 +145,9 @@ export class MultiSelectManager extends AbstractInteractionManager {
         // find and store all nodes that are within the group
         this.#groupedNodes[this.#nodes.length - 1] = [];
         this.#groupEffectMaterialToken[this.#nodes.length - 1] = [];
-        if(data.groupId) {
-            this.#tree.root.traverse(n => {
-                for(let i = 0; i < n.data.length; i++)
-                    if(n.data[i] instanceof InteractionData && (<InteractionData>n.data[i]).groupId === data.groupId)
-                        this.#groupedNodes[this.#nodes.length - 1].push(n);
-            })
-        }
+        if(data.groupId) 
+            this.#groupedNodes[this.#nodes.length - 1] = this.gatheredGroupedNodes[data.groupId] || [];
+    
 
         if(this.effectMaterial) {
             this.#effectMaterialTokens.push(this.interactionEffectUtils.applyEffectMaterial(intersection.node, this.effectMaterial))

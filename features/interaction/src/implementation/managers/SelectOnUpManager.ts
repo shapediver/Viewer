@@ -153,13 +153,8 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         
         // find and store all nodes that are within the group
         if(data.groupId) {
-            this.#groupedNodes = [];
+            this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
-            this.#tree.root.traverse(n => {
-                for(let i = 0; i < n.data.length; i++)
-                    if(n.data[i] instanceof InteractionData && (<InteractionData>n.data[i]).groupId === data.groupId)
-                        this.#groupedNodes!.push(n);
-            })
         }
 
         // apply the effect material if there is something to apply
