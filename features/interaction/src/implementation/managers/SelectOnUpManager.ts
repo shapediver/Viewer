@@ -1,5 +1,5 @@
 import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
@@ -13,6 +13,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
     // #region Properties (6)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #tree: Tree = Tree.instance;
 
     #deselectOnEmpty: boolean = true;
     #effectMaterialToken?: string;
@@ -34,6 +35,9 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: ITreeNode | null = null;
+    
+    #groupedNodes?: ITreeNode[];
+    #groupEffectMaterialToken?: string[];
 
     // #endregion Properties (6)
 
@@ -139,15 +143,36 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
+        
+        // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates.select = true;
+        
+        // find and store all nodes that are within the group
+        if(data.groupId) {
+            this.#groupedNodes = [];
+            this.#groupEffectMaterialToken = [];
+            this.#tree.root.traverse(n => {
+                for(let i = 0; i < n.data.length; i++)
+                    if(n.data[i] instanceof InteractionData && (<InteractionData>n.data[i]).groupId === data.groupId)
+                        this.#groupedNodes!.push(n);
+            })
+        }
+
+        // apply the effect material if there is something to apply
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+            if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)))
         } else {
             this.#effectMaterialToken = undefined;
         }
         
         this.viewport.updateNode(this.#node);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+
         this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON,
@@ -157,7 +182,8 @@ export class SelectOnUpManager extends AbstractInteractionManager {
                 intersectionPoint: this.#intersection.point,
                 ray,
                 event,
-                manager: this
+                manager: this,
+                groupedNodes: this.#groupedNodes
             } as ISelectEvent
         );
     }
@@ -170,28 +196,39 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      */
     private deactivateNode(event?: MouseEvent | TouchEvent) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        
+        // find the interaction data
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        if (data) data.interactionStates.select = false;
+        
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
-        }
-        this.viewport.updateNode(this.#node!);
-        this.viewport.render();
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates.select = false;
-        
-        const node = this.#node;
 
-        this.#intersection = null;
-        this.#node = null;
+            if(this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
+            this.#groupEffectMaterialToken = undefined;
+        }
+        
+        this.viewport.updateNode(this.#node!);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+
+        this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
             { 
                 viewportId: this.viewport.id,
-                node,
+                node: this.#node,
                 event,
-                manager: this         
+                manager: this,
+                groupedNodes: this.#groupedNodes   
             } as ISelectEvent
         );
+        
+        this.#intersection = null;
+        this.#node = null;
+        
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
     }
 
     // #endregion Private Methods (2)
