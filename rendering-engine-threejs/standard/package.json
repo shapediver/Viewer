@@ -45,6 +45,7 @@
     "@shapediver/viewer.rendering-engine.canvas-engine": "2.8.3",
     "@shapediver/viewer.rendering-engine.light-engine": "2.8.3",
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.8.3",
+    "@shapediver/viewer.rendering-engine.intersection-engine": "2.8.3",
     "@shapediver/viewer.shared.math": "2.8.3",
     "@shapediver/viewer.shared.node-tree": "2.8.3",
     "@shapediver/viewer.shared.services": "2.8.3",
