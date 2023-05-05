@@ -14,5 +14,7 @@ export interface ISelectEvent extends IViewportEvent {
     /** The original event that triggered the selection. Only provided if it was not a manual selection. */
     event?: MouseEvent | TouchEvent,
     /** The manager that emitted this event. */
-    manager: IInteractionManager
+    manager: IInteractionManager,
+    /** All nodes in the scene tree that share the same groupId and are therefore interacted with at the same time. */
+    groupedNodes?: ITreeNode[]
 }

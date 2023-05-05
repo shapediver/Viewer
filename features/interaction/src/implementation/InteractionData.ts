@@ -17,6 +17,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
     #dragOrigin?: vec3;
     #interactionStates: IInteractionTypes = {};
     #interactionTypes: IInteractionTypes = {};
+    #groupId?: string;
 
     // #endregion Properties (4)
 
@@ -30,11 +31,13 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      */
     constructor(
         interactionTypes: IInteractionTypes,
+        groupId?: string,
         id?: string,
         version?: string
     ) {
         super(id, version);
         this.#interactionTypes = interactionTypes;
+        this.#groupId = groupId;
     }
 
     // #endregion Constructors (1)
@@ -73,6 +76,14 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         this.#interactionTypes = value;
     }
 
+    public get groupId(): string | undefined {
+        return this.#groupId;
+    }
+
+    public set groupId(value: string | undefined) {
+        this.#groupId = value;
+    }
+
     // #endregion Public Accessors (8)
 
     // #region Public Methods (1)
@@ -81,7 +92,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      * Clones the scene graph data.
      */
     public clone(): IInteractionData {
-        return new InteractionData(this.#interactionTypes, this.id, this.version);
+        return new InteractionData(this.#interactionTypes, this.#groupId, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

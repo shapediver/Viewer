@@ -22,5 +22,7 @@ export interface IDragEvent extends IViewportEvent {
     /** The optional drag anchor that was used. */
     dragAnchor?: IDragAnchor,
     /** The manager that emitted this event. */
-    manager: IInteractionManager
+    manager: IInteractionManager,
+    /** All nodes in the scene tree that share the same groupId and are therefore interacted with at the same time. */
+    groupedNodes?: ITreeNode[]
 }

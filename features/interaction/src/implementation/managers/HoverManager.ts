@@ -1,5 +1,5 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services'
 
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
@@ -14,6 +14,7 @@ export class HoverManager extends AbstractInteractionManager {
     // #region Properties (5)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #tree: Tree = Tree.instance;
 
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
@@ -34,6 +35,9 @@ export class HoverManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: ITreeNode | null = null;
+    
+    #groupedNodes?: ITreeNode[];
+    #groupEffectMaterialToken?: string[];
 
     // #endregion Properties (5)
 
@@ -124,15 +128,31 @@ export class HoverManager extends AbstractInteractionManager {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
+
+        // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates.hover = true;
-        if(this.effectMaterial) {
+        
+        // find and store all nodes that are within the group
+        if(data.groupId) {
+            this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
+            this.#groupEffectMaterialToken = [];
+        }
+
+        // apply the effect material if there is something to apply
+        if (this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+            if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)))
         } else {
             this.#effectMaterialToken = undefined;
         }
 
         this.viewport.updateNode(this.#node);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+
         this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, 
@@ -142,7 +162,8 @@ export class HoverManager extends AbstractInteractionManager {
                 intersectionPoint: this.#intersection.point,
                 ray,
                 event,
-                manager: this
+                manager: this,
+                groupedNodes: this.#groupedNodes
             } as IHoverEvent
         );
     }
@@ -155,28 +176,39 @@ export class HoverManager extends AbstractInteractionManager {
      */
     private deactivateNode(event?: MouseEvent | TouchEvent) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        
+        // find the interaction data
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        if (data) data.interactionStates.hover = false;
+        
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
-        }
-        this.viewport.updateNode(this.#node!);
-        this.viewport.render();
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if (data) data.interactionStates.hover = false;
 
-        const node = this.#node;
-        
-        this.#intersection = null;
-        this.#node = null;
+            if(this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
+            this.#groupEffectMaterialToken = undefined;
+        }
+
+        this.viewport.updateNode(this.#node!);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+
+        this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, 
             { 
                 viewportId: this.viewport.id,
-                node: node,
+                node: this.#node,
                 event,
-                manager: this
+                manager: this,
+                groupedNodes: this.#groupedNodes
             } as IHoverEvent
         );
+        
+        this.#intersection = null;
+        this.#node = null;
+        
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
     }
 
     // #endregion Private Methods (2)
