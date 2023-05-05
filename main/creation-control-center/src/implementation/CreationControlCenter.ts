@@ -429,7 +429,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     if (renderingEngine)
       renderingEngine.saveSettings();
 
-    return session.settingsEngine.convertToTargetVersion();
+    return session.settingsEngine.settings;
   }
 
   public getARSessionEngine(): SessionEngine | undefined {
@@ -447,7 +447,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
     const settingsEngine: SettingsEngine = new SettingsEngine();
     renderingEngine.saveSettings(settingsEngine);
-    return settingsEngine.convertToTargetVersion();
+    return settingsEngine.settings;
   }
 
   public resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void> {
