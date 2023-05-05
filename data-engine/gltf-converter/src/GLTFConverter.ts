@@ -837,8 +837,13 @@ export class GLTFConverter {
         this._extensionsRequired = [];
         this._extensionsUsed = [];
         this._imageCache = {};
+        this._materialCache = {};
+        this._meshCache = {};
         this._nodes = [];
         this._promises = [];
+
+        this._convertForAR = false;
+        this._viewport = undefined;
     }
 
     private stringToArrayBuffer(text: string) {
