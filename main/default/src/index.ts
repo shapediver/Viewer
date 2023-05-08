@@ -22,7 +22,7 @@ import { IDirectionalLightApi } from "./interfaces/viewport/lights/types/IDirect
 import { IHemisphereLightApi } from "./interfaces/viewport/lights/types/IHemisphereLightApi";
 import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightApi";
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
-import { addListener, createSession, createViewport, generalOptions, IGeneralOptions, removeListener, sceneTree, sessions, viewports } from "./main";
+import { addListener, createSession, createViewport, generalOptions, IGeneralOptions, removeListener, sceneTree, sessions, version, viewports } from "./main";
 import { IBox, ISphere, IGeometry, Box, Sphere } from "@shapediver/viewer.shared.math";
 import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, ISettingsSections } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseOutput, ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend, ShapeDiverResponseExportDefinitionType as EXPORT_TYPE } from '@shapediver/sdk.geometry-api-sdk-v2';
@@ -38,7 +38,8 @@ export {
     createViewport, createSession, addListener, removeListener,
     sessions, viewports, 
     sceneTree,
-    generalOptions
+    generalOptions,
+    version
 }
 
 export { IGeneralOptions, IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }

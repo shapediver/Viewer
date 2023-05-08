@@ -136,6 +136,11 @@ export const viewports: { [key: string]: IViewportApi; } = {};
  */
 export const sessions: { [key: string]: ISessionApi; } = {};
 
+/**
+ * The version of the viewer.
+ */
+export const version: string = build_data.build_version.replace('3.', '');
+
 // Whenever a session or viewport is added or removed, this update is called.
 creationControlCenter.update = (
     sessionEngines: { [key: string]: SessionEngine; },
