@@ -869,7 +869,7 @@ export class ViewportApi implements IViewportApi {
 
         // create the gltf
         this.update('createArSessionLink.start');
-        const blob = await this.#gltfConverter.convert(targetNode, true);
+        const blob = await this.#gltfConverter.convert(targetNode, true, this.id);
 
         // remove scaling the matrix
         for (let i = 0; i < targetNode.transformations.length; i++)
@@ -943,7 +943,7 @@ export class ViewportApi implements IViewportApi {
 
         // create the gltf
         this.update('viewInAR.start');
-        const blob = await this.#gltfConverter.convert(targetNode, true);
+        const blob = await this.#gltfConverter.convert(targetNode, true, this.id);
 
         // remove scaling the matrix
         for (let i = 0; i < targetNode.transformations.length; i++)
