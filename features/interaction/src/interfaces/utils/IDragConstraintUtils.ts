@@ -2,6 +2,7 @@ import { mat4 } from "gl-matrix";
 import { ITreeNode, IViewportApi } from "@shapediver/viewer";
 import { IDragConstraint } from "./IDragConstraint";
 import { IIntersection, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
+import { IDragAnchor } from "../../implementation/InteractionData";
 
 export interface IDragConstraintUtils {
     // #region Public Methods (2)
@@ -20,7 +21,7 @@ export interface IDragConstraintUtils {
      * @param ray 
      * @returns
      */
-    intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4 };
+    intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4, dragAnchor?: IDragAnchor };
     /**
      * Setup the provided drag constraints.
      * The drag origin is set here and a first computation of the matrix is done.
@@ -36,7 +37,7 @@ export interface IDragConstraintUtils {
      * @param previousDragMatrix 
      * @returns
      */
-    setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { dragConstraint?: IDragConstraint, matrix: mat4 };
+    setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { dragConstraint?: IDragConstraint, matrix: mat4, dragAnchor?: IDragAnchor };
 
     // #endregion Public Methods (2)
 }

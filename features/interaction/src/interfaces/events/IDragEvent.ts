@@ -4,6 +4,7 @@ import { IViewportEvent } from "@shapediver/viewer.shared.types";
 import { IDragConstraint } from "../utils/IDragConstraint";
 import { IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../IInteractionManager";
+import { IDragAnchor } from "../../implementation/InteractionData";
 
 export interface IDragEvent extends IViewportEvent {
     /** The node being dragged. */
@@ -18,6 +19,10 @@ export interface IDragEvent extends IViewportEvent {
     event?: MouseEvent | TouchEvent,
     /** The optional drag constraint that was applied. */
     dragConstraint?: IDragConstraint,
+    /** The optional drag anchor that was used. */
+    dragAnchor?: IDragAnchor,
     /** The manager that emitted this event. */
-    manager: IInteractionManager
+    manager: IInteractionManager,
+    /** All nodes in the scene tree that share the same groupId and are therefore interacted with at the same time. */
+    groupedNodes?: ITreeNode[]
 }

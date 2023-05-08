@@ -1,5 +1,5 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { FLAG_TYPE, GeometryData, IGeometryData, IViewportApi } from '@shapediver/viewer'
@@ -8,7 +8,7 @@ import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
 import { AbstractInteractionManager } from '../AbstractInteractionManager'
-import { InteractionData } from '../InteractionData'
+import { IDragAnchor, InteractionData } from '../InteractionData'
 import { ITransformation, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { IDragEvent } from '../../interfaces/events/IDragEvent'
 
@@ -17,6 +17,7 @@ export class DragManager extends AbstractInteractionManager {
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
+    readonly #tree: Tree = Tree.instance;
 
     #dragConstraints: { [key: string]: IDragConstraint } = {};
     #effectMaterialToken?: string;
@@ -50,6 +51,9 @@ export class DragManager extends AbstractInteractionManager {
     #nodeWorldMatrix: mat4 = mat4.create();
     #nodeWorldMatrixInverse: mat4 = mat4.create();
     #previousDragMatrix: mat4 = mat4.create();
+    
+    #groupedNodes?: ITreeNode[];
+    #groupEffectMaterialToken?: string[];
 
     // #endregion Properties (11)
 
@@ -95,7 +99,24 @@ export class DragManager extends AbstractInteractionManager {
 
     public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        this.removeNode(event);
+        if(!this.#node) return;
+
+        let transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+        let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
+        
+        // apply the transformation for the main node
+        this.applyTransformation(this.#node, transformationMatrix);
+        this.viewport.updateNodeTransformation(this.#node!);
+        
+        // and apply it for all grouped nodes
+        if (this.#groupedNodes) {
+            this.#groupedNodes.forEach(n => {
+                this.applyTransformation(n, transformationMatrix!);
+                this.viewport!.updateNodeTransformation(n);
+            })
+        }
+
+        this.removeNode(event, ray);
     }
 
     public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {        
@@ -105,8 +126,17 @@ export class DragManager extends AbstractInteractionManager {
         let transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
         let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
         
+        // apply the transformation for the main node
         this.applyTransformation(this.#node, transformationMatrix);
         this.viewport.updateNodeTransformation(this.#node!);
+        
+        // and apply it for all grouped nodes
+        if (this.#groupedNodes) {
+            this.#groupedNodes.forEach(n => {
+                this.applyTransformation(n, transformationMatrix!);
+                this.viewport!.updateNodeTransformation(n);
+            })
+        }
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_MOVE,
             {
@@ -116,7 +146,9 @@ export class DragManager extends AbstractInteractionManager {
                 ray,
                 event,
                 dragConstraint: transformation.dragConstraint,
-                manager: this
+                dragAnchor: transformation.dragAnchor,
+                manager: this,
+                groupedNodes: this.#groupedNodes
             } as IDragEvent
         );
     }
@@ -138,23 +170,58 @@ export class DragManager extends AbstractInteractionManager {
      * 
      * @returns 
      */
-    public removeNode(event?: MouseEvent | TouchEvent) {
+    public removeNode(event?: MouseEvent | TouchEvent, ray?: IRay) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(!this.#node) return;
 
-        const transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
+        let transformationMatrix: mat4 | undefined,
+            transformation: {
+                dragConstraint?: IDragConstraint;
+                matrix: mat4;
+                dragAnchor?: IDragAnchor;
+            } | undefined;
+
+        // if we have everything we need (the ray) than we try one last time to calculate the transformation
+        if(ray) {
+            transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+            transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
+            
+            // apply the transformation for the main node
+            this.applyTransformation(this.#node, transformationMatrix);
+            this.viewport.updateNodeTransformation(this.#node!);
+
+            // and apply it for all grouped nodes
+            if(this.#groupedNodes) {
+                this.#groupedNodes.forEach(n => {
+                    this.applyTransformation(n, transformationMatrix!);
+                    this.viewport!.updateNodeTransformation(n);
+                })
+            }
+        } else {
+            transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
+        }
+
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_END, {
             viewportId: this.viewport.id,
             node: this.#node,
             matrix: transformationMatrix,
             event,
-            manager: this
+            ray,
+            dragConstraint: transformation?.dragConstraint,
+            dragAnchor: transformation?.dragAnchor,
+            manager: this,
+            groupedNodes: this.#groupedNodes
         } as IDragEvent);
         this.#setupOptions = null;
 
         // optional removal
         // this.removeTransformation(this.#node!);
         this.viewport.updateNode(this.#node!);
+
+        // and update all grouped nodes
+        if (this.#groupedNodes) 
+            this.#groupedNodes.forEach(n => this.viewport!.updateNode(n))
+
         this.deactivateNode();
         
         this.viewport.removeFlag(this.#tokenCameraFreeze);
@@ -181,8 +248,17 @@ export class DragManager extends AbstractInteractionManager {
         let transformation = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!, this.#previousDragMatrix);
         let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
         
+        // apply the transformation for the main node
         this.applyTransformation(this.#node!, transformationMatrix);
         this.viewport.updateNode(this.#node!);
+
+        // and apply it for all grouped nodes
+        if(this.#groupedNodes) {
+            this.#groupedNodes.forEach(n => {
+                this.applyTransformation(n, transformationMatrix);
+                this.viewport!.updateNode(n);
+            })
+        }
 
         this.#tokenCameraFreeze = this.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
         this.#tokenContinuousRendering = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
@@ -195,7 +271,9 @@ export class DragManager extends AbstractInteractionManager {
             ray,
             event,
             dragConstraint: transformation.dragConstraint,
-            manager: this
+            dragAnchor: transformation.dragAnchor,
+            manager: this,
+            groupedNodes: this.#groupedNodes
         } as IDragEvent);
     }
 
@@ -213,19 +291,39 @@ export class DragManager extends AbstractInteractionManager {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
 
-        this.#previousDragMatrix = this.removeTransformation(this.#node)
-        this.#nodeWorldMatrix = this.#node.worldMatrix;
-        this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
-
+        // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates.drag = true;
-        if(this.effectMaterial) {
+
+        // find and store all nodes that are within the group
+        if(data.groupId) {
+            this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
+            this.#groupEffectMaterialToken = [];
+        }
+
+        // remove the previous transformation of the dragged node (and all grouped within)
+        this.#previousDragMatrix = this.removeTransformation(this.#node)
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.removeTransformation(n));
+
+        // store the initial world matrix and its inverse
+        this.#nodeWorldMatrix = this.#node.worldMatrix;
+        this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
+        
+        // apply the effect material if there is something to apply
+        if (this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+            if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)))
         } else {
             this.#effectMaterialToken = undefined;
         }
+
+        // update the node
         this.viewport.updateNode(this.#node);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+
         this.viewport.render();
     }
 
@@ -252,16 +350,30 @@ export class DragManager extends AbstractInteractionManager {
      */
     private deactivateNode() {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+
+        // find the interaction data
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        if(data) data.interactionStates.drag = false;
+
+
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
+
+            if(this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
+            this.#groupEffectMaterialToken = undefined;
         }
+
         this.viewport.updateNode(this.#node!);
+        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+        
         this.viewport.render();
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates.drag = false;
+
         this.#intersection = null;
         this.#node = null;
+        
+        this.#groupedNodes = undefined;
+        this.#groupEffectMaterialToken = undefined;
     }
 
     private removeTransformation(node: ITreeNode): mat4 {

@@ -20,7 +20,6 @@ export class SettingsEngine {
     private readonly _logger: Logger = Logger.instance;
     private readonly _settings: ISettings = Defaults();
     private _settingsJson: any;
-    private _settings_version: versions = latestVersion;
 
     // #endregion Properties (8)
 
@@ -74,10 +73,6 @@ export class SettingsEngine {
 
     // #region Public Methods (4)
 
-    public convertToTargetVersion(): any {
-        return convert(this._settings, this._settings_version);
-    }
-
     public flatten() {
         const flattenObject = (ob: any) => {
             const toReturn: { [key: string]: any } = {};
@@ -108,7 +103,6 @@ export class SettingsEngine {
 
                 try { 
                     validate(json, v as versions);             
-                    this._settings_version = v as versions;       
                     (<any>this._settings) = convert(json, latestVersion);
                     this.cleanSettings(this._settings);
                     return;
@@ -117,7 +111,6 @@ export class SettingsEngine {
 
             try { 
                 validate(json, latestVersion);             
-                this._settings_version = latestVersion;       
                 (<any>this._settings) = convert(json, latestVersion);
                 this.cleanSettings(this._settings);
                 return;
@@ -125,14 +118,12 @@ export class SettingsEngine {
                 throw new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
             }
         } else {
-            this._settings_version = latestVersion;       
             (<any>this._settings) = Defaults();
             return;
         }
     }
 
     public reset() {
-        this._settings_version = latestVersion;       
         (<any>this._settings) = Defaults();
     }
 

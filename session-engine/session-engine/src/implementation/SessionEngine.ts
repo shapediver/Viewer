@@ -70,6 +70,7 @@ export class SessionEngine implements ISessionEngine {
     private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
     private _viewerSettings?: object;
     private _viewerSettingsVersion: string = latestVersion;
+    private _viewerSettingsVersionBackend: string = latestVersion;
 
     #customizationProcess!: string;
     #parameterHistory: {
@@ -656,7 +657,7 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
-            this._viewerSettingsVersion = this._responseDto.viewerSettingsVersion || latestVersion;
+            this._viewerSettingsVersionBackend = this._responseDto.viewerSettingsVersion || latestVersion;
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
             
@@ -926,6 +927,11 @@ export class SessionEngine implements ISessionEngine {
         
         try {
             validate(json, <versions>this._viewerSettingsVersion)
+            
+            // if viewer settings version is higher than backend settings version
+            // convert to backend settings version
+            if(+this._viewerSettingsVersion > +this._viewerSettingsVersionBackend) 
+                json = convert(json, <versions>this._viewerSettingsVersionBackend)
         } catch (e) {
             throw new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
         } 
@@ -986,7 +992,7 @@ export class SessionEngine implements ISessionEngine {
             const responseO = Object.values(properties).length !== 0 ? await this.saveOutputProperties(properties) : true;
 
             // save partial settings
-            const response = saveInSettings ? await this.saveSettings(this._settingsEngine.convertToTargetVersion()) : true;
+            const response = saveInSettings ? await this.saveSettings(this._settingsEngine.settings) : true;
 
             if (response && responseP && responseO && responseE) {
                 this._logger.debug(`Session(${this.id}).saveSessionProperties: Saved session properties.`);

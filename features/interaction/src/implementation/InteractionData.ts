@@ -1,20 +1,23 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
 import { IInteractionData, IInteractionTypes } from '../interfaces/IInteractionData';
+
+export interface IDragAnchor { 
+    position: vec3,
+    rotation?: {
+        axis: vec3,
+        angle: number
+    }
+}
 
 export class InteractionData extends AbstractTreeNodeData implements IInteractionData  {
     // #region Properties (4)
 
-    #dragAnchors: { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[] = [];
+    #dragAnchors: IDragAnchor[] = [];
     #dragOrigin?: vec3;
     #interactionStates: IInteractionTypes = {};
     #interactionTypes: IInteractionTypes = {};
+    #groupId?: string;
 
     // #endregion Properties (4)
 
@@ -28,34 +31,24 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      */
     constructor(
         interactionTypes: IInteractionTypes,
+        groupId?: string,
         id?: string,
         version?: string
     ) {
         super(id, version);
         this.#interactionTypes = interactionTypes;
+        this.#groupId = groupId;
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (8)
 
-    public get dragAnchors(): { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[] {
+    public get dragAnchors(): IDragAnchor[] {
         return this.#dragAnchors;
     }
 
-    public set dragAnchors(value: { 
-        position: vec3,
-        rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    }[]) {
+    public set dragAnchors(value: IDragAnchor[]) {
         this.#dragAnchors = value;
     }
 
@@ -83,6 +76,14 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         this.#interactionTypes = value;
     }
 
+    public get groupId(): string | undefined {
+        return this.#groupId;
+    }
+
+    public set groupId(value: string | undefined) {
+        this.#groupId = value;
+    }
+
     // #endregion Public Accessors (8)
 
     // #region Public Methods (1)
@@ -91,7 +92,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      * Clones the scene graph data.
      */
     public clone(): IInteractionData {
-        return new InteractionData(this.#interactionTypes, this.id, this.version);
+        return new InteractionData(this.#interactionTypes, this.#groupId, this.id, this.version);
     }
 
     // #endregion Public Methods (1)
