@@ -2,7 +2,7 @@ import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.ren
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { FLAG_TYPE, IViewportApi } from '@shapediver/viewer'
+import { FLAG_TYPE, GeometryData, IGeometryData, IViewportApi } from '@shapediver/viewer'
 
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
@@ -94,7 +94,7 @@ export class DragManager extends AbstractInteractionManager {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
         if(intersections.length > 0) 
-            this.setNode(intersections[0].node, intersections[0].distance, intersections[0].point, event, ray);
+            this.setNode(intersections[0].node, intersection[0].geometryData, intersections[0].distance, intersections[0].point, event, ray);
     }
 
     public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
@@ -239,9 +239,10 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersectionPoint 
      * @param ray 
      */
-    public setNode(node: ITreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), event?: MouseEvent | TouchEvent, ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
+    public setNode(node: ITreeNode, geometryData: IGeometryData, distance: number = 0, intersectionPoint: vec3 = vec3.create(), event?: MouseEvent | TouchEvent, ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        this.activateNode({node, distance, point: intersectionPoint});
+
+        this.activateNode({node, distance, point: intersectionPoint, geometryData: geometryData});
         this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
         
         let transformation = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!, this.#previousDragMatrix);

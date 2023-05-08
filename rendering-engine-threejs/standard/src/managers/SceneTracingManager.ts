@@ -1,17 +1,15 @@
 import { vec2, vec3 } from 'gl-matrix'
-import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { GeometryData } from '@shapediver/viewer.shared.types'
 import { AbstractCamera, OrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Logger, ShapeDiverViewerGeneralError } from '@shapediver/viewer.shared.services'
+import { ShapeDiverViewerGeneralError } from '@shapediver/viewer.shared.services'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 
 export class SceneTracingManager implements IManager {
     // #region Properties (2)
 
-    private readonly _logger: Logger = Logger.instance;
-    private readonly _tree: ITree = Tree.instance;
+    private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
 
     // #endregion Properties (2)
 
@@ -35,7 +33,8 @@ export class SceneTracingManager implements IManager {
             throw new ShapeDiverViewerGeneralError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
-        const tracing = this.trace(camera.position, direction);
+        const tracing = this._intersectionManager.intersect({ origin: camera.position, direction });
+
         const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
 
         pos[0] = (pos[0] * (width / 2)) + (width / 2);
@@ -45,8 +44,12 @@ export class SceneTracingManager implements IManager {
         pos[0] = pos[0] / devicePixelRatio;
         pos[1] = pos[1] / devicePixelRatio;
 
+        // epsilon is added as a distance spacer as users tend to put the anchors of html elements directly at the vertices
+        // with this we prevent flickering
+        const eps = 0.0001;
+
         return {
-            hidden: tracing.length > 1 && tracing[0].distance > 0 && tracing[0].distance < Infinity && tracing[0].distance < vec3.distance(camera.position, p),
+            hidden: tracing.length > 0 && tracing[0].distance + eps < vec3.distance(camera.position, p),
             container: vec2.clone(pos),
             client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
             page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
@@ -54,28 +57,6 @@ export class SceneTracingManager implements IManager {
     }
 
     public init(): void { }
-
-    public trace(origin: vec3, direction: vec3, root: ITreeNode = this._tree.root) {
-        const tracingData: { distance: number, node: ITreeNode, data: GeometryData }[] = [];
-        const trace = (node: ITreeNode) => {
-            if (node.excludeViewports.includes(this._renderingEngine.id)) return;
-            if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
-
-            for (let i = 0; i < node.data.length; i++)
-                if (node.data[i] instanceof GeometryData) {
-                    const dist = (<GeometryData>node.data[i]).intersect(origin, direction);
-                    if (dist) tracingData.push({ distance: dist, node, data: <GeometryData>node.data[i] })
-                }
-            for (let i = 0; i < node.children.length; i++)
-                trace(node.children[i]);
-        }
-        trace(root);
-
-        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
-            return a.distance - b.distance;
-        })
-        return tracingData;
-    }
 
     /**
      * Calculate the ray that is created by the mouse event and the camera.

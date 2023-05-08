@@ -46,6 +46,7 @@ import {
 import {
   AnimationEngine
 } from "@shapediver/viewer.rendering-engine.animation-engine"
+import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine'
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
 import { RenderingManager } from './managers/RenderingManager'
@@ -77,6 +78,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _converter: Converter = Converter.instance;
   private readonly _domEventEngine: DomEventEngine;
   private readonly _environmentGeometryManager: EnvironmentGeometryManager;
+  private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
   private readonly _systemInfo: SystemInfo = SystemInfo.instance;
   // loaders
   private readonly _environmentMapLoader: EnvironmentMapLoader;
@@ -1049,7 +1051,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
-    return this.sceneTracingManager.trace(origin, direction, root)
+    const intersect = this._intersectionManager.intersect({ origin, direction }, undefined, undefined, root);
+    return intersect.map(i => {
+      return {
+        distance: i.distance,
+        node: i.node,
+        data: i.geometryData
+      }
+    })
   }
 
   public removeFlag(token: string): boolean {
