@@ -626,10 +626,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get outputEncoding(): TEXTURE_ENCODING {
-    switch (this._renderer.outputEncoding) {
-      case (THREE.sRGBEncoding):
+    switch (this._renderer.outputColorSpace) {
+      case (THREE.SRGBColorSpace):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.LinearEncoding):
+      case (THREE.LinearSRGBColorSpace):
       default:
         return TEXTURE_ENCODING.LINEAR;
     }
@@ -638,23 +638,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set outputEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
-        this._renderer.outputEncoding = THREE.sRGBEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        this._renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.SRGBColorSpace);
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
-        this._renderer.outputEncoding = THREE.LinearEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.LinearEncoding);
+        this._renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.LinearSRGBColorSpace);
         break;
     }
   }
 
   public get physicallyCorrectLights(): boolean {
-    return this._renderer.physicallyCorrectLights;
+    return !this._renderer.useLegacyLights;
   }
 
   public set physicallyCorrectLights(value: boolean) {
-    this._renderer.physicallyCorrectLights = value;
+    this._renderer.useLegacyLights = !value;
   }
 
   public get pointSize(): number {
@@ -744,9 +744,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
-      case (THREE.sRGBEncoding):
+      case (THREE.SRGBColorSpace):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.LinearEncoding):
+      case (THREE.LinearSRGBColorSpace):
       default:
         return TEXTURE_ENCODING.LINEAR;
     }
@@ -755,13 +755,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set textureEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
-        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
-        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
+        this.environmentMapLoader.textureEncoding = THREE.SRGBColorSpace;
+        this.materialLoader.textureEncoding = THREE.SRGBColorSpace;
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
-        this.environmentMapLoader.textureEncoding = THREE.LinearEncoding;
-        this.materialLoader.textureEncoding = THREE.LinearEncoding;
+        this.environmentMapLoader.textureEncoding = THREE.LinearSRGBColorSpace;
+        this.materialLoader.textureEncoding = THREE.LinearSRGBColorSpace;
     }
   }
 

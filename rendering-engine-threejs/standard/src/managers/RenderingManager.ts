@@ -215,8 +215,8 @@ export class RenderingManager implements IManager {
         if (!renderer.extensions.has("EXT_shader_texture_lod"))
             this._minimalRendering = true;
 
-        renderer.physicallyCorrectLights = false;
-        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.useLegacyLights = true;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.NoToneMapping;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.needsUpdate = true;

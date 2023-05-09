@@ -1,4 +1,4 @@
-import { ExtrudeGeometry } from 'three';
+import { ExtrudeGeometry, Shape, ExtrudeGeometryOptions } from 'three';
 
 import { Font } from '../loaders/FontLoader';
 
@@ -32,6 +32,8 @@ export class TextGeometry extends ExtrudeGeometry {
         bevelSize: number;
         bevelOffset: number;
         bevelSegments: number;
+        shapes: Shape | Shape[]; 
+        options: ExtrudeGeometryOptions
     };
 }
 

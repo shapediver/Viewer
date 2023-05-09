@@ -74,8 +74,8 @@ export class BeautyRenderingManager implements IManager {
         this._renderingEngine.materialLoader.updateMaterials();
     }
 
-    public assignOutputEncoding(encoding: number) {
-        if(encoding === 3001) {
+    public assignOutputEncoding(encoding: string) {
+        if(encoding === THREE.SRGBColorSpace) {
             if(!this._effectComposer.passes.includes(this._gammaCorrectionPass))
                 this._effectComposer.addPass(this._gammaCorrectionPass);
         } else {
