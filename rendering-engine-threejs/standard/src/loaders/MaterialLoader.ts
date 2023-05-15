@@ -90,11 +90,13 @@ export class MaterialLoader implements ILoader {
         THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
 
         // console.log(THREE.ShaderChunk.envmap_common_pars_fragment)
-        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-            `#ifdef ENVMAP_TYPE_CUBE_UV`,
-            `uniform mat4 envMapRotation;
-             #ifdef ENVMAP_TYPE_CUBE_UV`
-        )
+        if (!THREE.ShaderChunk.cube_uv_reflection_fragment.includes('uniform mat4 envMapRotation;')) {
+            THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+                `#ifdef ENVMAP_TYPE_CUBE_UV`,
+                `uniform mat4 envMapRotation;
+                #ifdef ENVMAP_TYPE_CUBE_UV`
+            )
+        }
 
         // console.log(THREE.ShaderChunk.envmap_fragment.includes(`vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`))
         THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
