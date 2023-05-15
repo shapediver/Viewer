@@ -281,7 +281,7 @@ export class MaterialLoader implements ILoader {
             const { material, materialData, materialSettings } = this._materialCache[m];
 
             // if there is no materialData stored in the cache that means that the default material was used
-            if(!materialData && (materialSettings !== undefined && materialSettings.useVertexColors)) 
+            if(!materialData && !(materialSettings !== undefined && materialSettings.useVertexColors)) 
                 (<THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial>material).color = this._renderingEngine.createThreeJsColor(this._renderingEngine.defaultMaterialColor);
         }
     }
@@ -392,7 +392,7 @@ export class MaterialLoader implements ILoader {
 
         if(materialData.color !== undefined)
             generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.color);
-        
+
         if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color !== undefined)
             generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.map.color);
 
