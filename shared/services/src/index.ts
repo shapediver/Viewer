@@ -18,6 +18,7 @@ import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerD
 import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from './logger/ShapeDiverError'
 import { HttpResponse } from './http-client/HttpResponse'
 import { ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors'
+import { ShapeDiverResponseErrorType as ShapeDiverGeometryBackendResponseErrorType } from "@shapediver/sdk.geometry-api-sdk-v2";
 
 export {
   EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -78,7 +79,8 @@ export {
     ShapeDiverViewerValidationError,
     ShapeDiverViewerInteractionError,
     ShapeDiverGeometryBackendRequestError,
-    ShapeDiverGeometryBackendResponseError
+    ShapeDiverGeometryBackendResponseError,
+    ShapeDiverGeometryBackendResponseErrorType
 }
 
 export {
