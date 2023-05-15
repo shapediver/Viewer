@@ -51,7 +51,8 @@ export class MaterialLoader implements ILoader {
     private _materialCache: {
         [key: string]: {
             materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | MaterialShadowData | null,
-            material: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial)
+            material: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial),
+            materialSettings?: MaterialSettings 
         }
     } = {};
     private _defaultPointsMaterial?: THREE.PointsMaterial;
@@ -277,10 +278,10 @@ export class MaterialLoader implements ILoader {
 
     public assignDefaultMaterialColor() {
         for(let m in this._materialCache) {
-            const { material, materialData } = this._materialCache[m];
+            const { material, materialData, materialSettings } = this._materialCache[m];
 
             // if there is no materialData stored in the cache that means that the default material was used
-            if(!materialData) 
+            if(!materialData && (materialSettings !== undefined && materialSettings.useVertexColors)) 
                 (<THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial>material).color = this._renderingEngine.createThreeJsColor(this._renderingEngine.defaultMaterialColor);
         }
     }
@@ -823,7 +824,8 @@ export class MaterialLoader implements ILoader {
 
             this._materialCache[type + '_' + type] = {
                 material,
-                materialData
+                materialData,
+                materialSettings
             };
 
             return material;
@@ -841,7 +843,8 @@ export class MaterialLoader implements ILoader {
 
         this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = {
             material,
-            materialData
+            materialData,
+            materialSettings
         };
 
         return material;

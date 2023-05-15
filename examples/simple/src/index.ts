@@ -10,21 +10,7 @@ import * as SDV from '@shapediver/viewer';
     })
     let session = await SDV.createSession({
         id: 'mySession',
-        ticket: '05954626e18ed8e90a3d24a14ec5b243da764785f1953ab5217864d6f1d566861229146fb8386cf0099f9f1a005440093dec077043dd49c2b993e0ac0aa3c9eaff40bef92decacd9508d7a4eaae1b6cb657f4424dac1bd859eea1425dd3efc4f2b7e0b67dde101-08e21c8ce4c4ce11b9396570cedafe15',
-        modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com'
+        ticket: '2a98a50b98fc37a65612e19ddc1c660a1335d1eaebc09a595e1e1cef4402ea7f24325c840bba11e69cf5596347229a164e2eca14f39041cae6146bdfdab320b31acd7a077099d600805e215f79bf4cd0880ced268290385b6d9a4dda82e9bac52738734b4defca-4c3aab65c18be4a6c6f42a3cb97f347f',
+        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
     })
-
-    const b1 = await viewport.convertToGlTF();
-    const a1 = document.createElement("a");
-    a1.href = URL.createObjectURL(b1);
-    a1.click();
-
-    session.getParameterByName("Exterior Color")[0].value = "#ff0000";
-    await session.customize();
-
-    
-    const b2 = await viewport.convertToGlTF();
-    const a2 = document.createElement("a");
-    a2.href = URL.createObjectURL(b2);
-    a2.click();
 })();
