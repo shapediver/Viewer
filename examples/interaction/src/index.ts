@@ -231,9 +231,12 @@ const addShelf = async (def: ShelfDefinition) => {
     newNode!.visible = false;
     SDV.viewports[viewer.id].update();
 
-
+    let geometryData: SDV.GeometryData;
+    newNode.traverseData(d => {
+        if(d instanceof SDV.GeometryData) geometryData = d
+    });
     // we tell the dragManager to drag this node
-    dragManager.setNode(newNode!);
+    dragManager.setNode(newNode!, geometryData!);
 
     // some things have to be done on the first move in the viewer
     const tokenMove = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
