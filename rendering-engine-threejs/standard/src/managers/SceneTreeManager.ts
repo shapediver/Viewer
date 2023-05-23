@@ -246,7 +246,9 @@ export class SceneTreeManager implements IManager {
             const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
             const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject && !(oc instanceof SDData) ? !nodeIds.includes(oc.SDid) : false);
             childrenToRemove.forEach(cTR => {
-                cTR.traverse((o) => {
+                // only remove the data on the next level
+                // children below that might be unchanged and therefore the results need to be cached
+                cTR.children.forEach(o => {
                     if (o instanceof SDData)
                         this.removeData(o);
                 })
@@ -415,7 +417,7 @@ export class SceneTreeManager implements IManager {
         })
 
         if (data instanceof GeometryData)
-            data.primitive.attributeMaterial = visData.material;
+            data.attributeMaterial = visData.material;
     }
 
     private removeData(dataObject: SDData) {
@@ -424,6 +426,7 @@ export class SceneTreeManager implements IManager {
                 dataObject.traverse((o) => {
                     if (o instanceof THREE.Mesh) {
                         this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                        this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion)
                         this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
                         for (const key in o.geometry.attributes)
                             o.geometry.deleteAttribute(key);

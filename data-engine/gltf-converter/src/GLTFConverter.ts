@@ -613,7 +613,7 @@ export class GLTFConverter {
             name: data.id
         };
 
-        meshDef.primitives?.push(this.convertPrimitive(data.primitive))
+        meshDef.primitives?.push(this.convertPrimitive(data, data.primitive))
 
         this._content.meshes.push(meshDef);
         this._meshCache[data.id + '_' + data.version] = this._content.meshes.length - 1;
@@ -640,10 +640,10 @@ export class GLTFConverter {
         for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData) {
                 if (this._convertForAR) {
-                    if ((<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.POINTS &&
-                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINES &&
-                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_LOOP &&
-                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_STRIP)
+                    if ((<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.POINTS &&
+                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINES &&
+                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINE_LOOP &&
+                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINE_STRIP)
                         nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
                 } else {
                     nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
@@ -689,10 +689,10 @@ export class GLTFConverter {
         return this._content.nodes.length - 1;
     }
 
-    private convertPrimitive(data: IPrimitiveData): IGLTF_v2_Primitive {
+    private convertPrimitive(geometryData: IGeometryData, data: IPrimitiveData): IGLTF_v2_Primitive {
         const primitiveDef: IGLTF_v2_Primitive = {
             attributes: {},
-            mode: data.mode
+            mode: geometryData.mode
         };
 
         for (let a in data.attributes) {
@@ -723,9 +723,9 @@ export class GLTFConverter {
         if (data.indices)
             primitiveDef.indices = this.convertAccessor(data.indices);
 
-        if (data.material) {
+        if (geometryData.material) {
             const k = Object.keys(primitiveDef.attributes).find(k => k.includes('TEXCOORD'));
-            primitiveDef.material = this.convertMaterial(data.material, !!k);
+            primitiveDef.material = this.convertMaterial(geometryData.material, !!k);
         }
 
         return primitiveDef;

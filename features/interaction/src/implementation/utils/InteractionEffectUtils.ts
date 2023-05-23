@@ -36,7 +36,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
-                    geometryData.primitive.effectMaterials.push({material, token});
+                    geometryData.effectMaterials.push({material, token});
                 }
             }
 
@@ -59,8 +59,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
-                    const index = geometryData.primitive.effectMaterials.findIndex(e => e.token === token); 
-                    if(index !== -1) geometryData.primitive.effectMaterials.splice(index, 1);
+                    const index = geometryData.effectMaterials.findIndex(e => e.token === token); 
+                    if(index !== -1) geometryData.effectMaterials.splice(index, 1);
                 }
             }
 

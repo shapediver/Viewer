@@ -14,7 +14,7 @@ export enum PRIMITIVE_MODE {
 }
 
 export interface IAttributeData extends ITreeNodeData {
-    // #region Properties (14)
+    // #region Properties (15)
 
     readonly array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
     readonly byteOffset: number;
@@ -27,12 +27,12 @@ export interface IAttributeData extends ITreeNodeData {
     readonly min: number[];
     readonly morphAttributeData: IAttributeData[];
     readonly normalized: boolean;
-    readonly target: number | undefined;
     readonly sparse?: boolean;
     readonly sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
     readonly sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+    readonly target: number | undefined;
 
-    // #endregion Properties (14)
+    // #endregion Properties (15)
 
     // #region Public Methods (1)
 
@@ -42,42 +42,42 @@ export interface IAttributeData extends ITreeNodeData {
 }
 
 export interface IPrimitiveData extends ITreeNodeData {
-    // #region Properties (9)
+    // #region Properties (3)
 
     readonly attributes: {
         [key: string]: IAttributeData
     };
-    readonly mode: PRIMITIVE_MODE;
 
-    attributeMaterial: IMaterialAbstractData | null;
     boundingBox: IBox;
-    effectMaterials: { material: IMaterialAbstractData, token: string }[];
     indices: IAttributeData | null;
-    material: IMaterialAbstractData | null;
-    materialVariants: { material: IMaterialAbstractData, variant: number }[];
-    standardMaterial: IMaterialAbstractData | null;
 
-    // #endregion Properties (9)
+    // #endregion Properties (3)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     clone(): IPrimitiveData;
     computeBoundingBox(matrix: mat4): IBox;
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 }
 
 export interface IGeometryData extends ITreeNodeData {
-    // #region Properties (7)
+    // #region Properties (11)
 
+    readonly mode: PRIMITIVE_MODE;
     readonly primitive: IPrimitiveData;
 
+    attributeMaterial: IMaterialAbstractData | null;
     boundingBox: IBox;
+    effectMaterials: { material: IMaterialAbstractData, token: string }[];
+    material: IMaterialAbstractData | null;
+    materialVariants: { material: IMaterialAbstractData, variant: number }[];
     morphWeights: number[];
     renderOrder: number;
     skinNode?: ITreeNode;
+    standardMaterial: IMaterialAbstractData | null;
 
-    // #endregion Properties (7)
+    // #endregion Properties (11)
 
     // #region Public Methods (1)
 

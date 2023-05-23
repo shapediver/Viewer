@@ -136,7 +136,7 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
+            const geometry = new GeometryData(new PrimitiveData(attributes, null), PRIMITIVE_MODE.LINE_STRIP);
             singleArcNode.data.push(geometry);
 
             singleArcNode.addTransformation({
@@ -263,7 +263,7 @@ export class SDGTFLoader {
         } = {};
         attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
+        const geometry = new GeometryData(new PrimitiveData(attributes, null), PRIMITIVE_MODE.LINE_STRIP);
         beziercurveNode.data.push(geometry);
 
         return beziercurveNode;
@@ -317,7 +317,7 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
+            const geometry = new GeometryData(new PrimitiveData(attributes, null), PRIMITIVE_MODE.LINE_STRIP);
             singleCircleNode.data.push(geometry);
 
             singleCircleNode.addTransformation({
@@ -449,7 +449,7 @@ export class SDGTFLoader {
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
             attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)));
+            const geometry = new GeometryData(new PrimitiveData(attributes, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)), PRIMITIVE_MODE.TRIANGLES);
             singleCylinderNode.data.push(geometry);
 
             singleCylinderNode.addTransformation({
@@ -567,7 +567,7 @@ export class SDGTFLoader {
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
             attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)));
+            const geometry = new GeometryData(new PrimitiveData(attributes, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)), PRIMITIVE_MODE.TRIANGLES);
             singleSphereNode.data.push(geometry);
 
             singleSphereNode.addTransformation({
@@ -592,7 +592,7 @@ export class SDGTFLoader {
         const data = await this.loadAccessor(point.attributes['POINTS']);
         attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized, data.count)
 
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.POINTS, null));
+        const geometry = new GeometryData(new PrimitiveData(attributes, null), PRIMITIVE_MODE.POINTS);
         pointNode.data.push(geometry);
 
         return pointNode;
@@ -610,7 +610,7 @@ export class SDGTFLoader {
         const data = await this.loadAccessor(polyLine.attributes['VERTICES']);
         attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized, data.count)
 
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
+        const geometry = new GeometryData(new PrimitiveData(attributes, null), PRIMITIVE_MODE.LINE_STRIP);
         polyLineNode.data.push(geometry);
 
         return polyLineNode;
@@ -767,7 +767,7 @@ export class SDGTFLoader {
         // in our geometry loader, this array will cause the computation of vertex normals
         attributes['NORMAL'] = new AttributeData(new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 3, 0, 0, 0, false, vertices.length / 3);
         
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)));
+        const geometry = new GeometryData(new PrimitiveData(attributes, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)), PRIMITIVE_MODE.TRIANGLES);
         surfacepatchNode.data.push(geometry);
 
         return surfacepatchNode;

@@ -1,12 +1,12 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { IMaterialVariantsData } from '../../interfaces/data/material/IMaterialVariantsData';
-import { PrimitiveData } from '../data/GeometryData';
+import { GeometryData, PrimitiveData } from '../data/GeometryData';
 
 export class MaterialVariantsData extends AbstractTreeNodeData implements IMaterialVariantsData {
     // #region Properties (1)
 
     readonly #variants: string[] = [];
-    readonly #primitiveData: PrimitiveData[] = [];
+    readonly #geometryData: GeometryData[] = [];
     #variantIndex?: number;
 
     // #endregion Properties (1)
@@ -21,8 +21,8 @@ export class MaterialVariantsData extends AbstractTreeNodeData implements IMater
 
     // #region Public Accessors (2)
 
-    public get primitiveData(): PrimitiveData[] {
-        return this.#primitiveData;
+    public get geometryData(): GeometryData[] {
+        return this.#geometryData;
     }
 
     public get variants(): string[] {
@@ -35,12 +35,12 @@ export class MaterialVariantsData extends AbstractTreeNodeData implements IMater
 
     public set variantIndex(value: number | undefined) {
         this.#variantIndex = value;
-        for(let i = 0; i < this.primitiveData.length; i++) {            
-            const variant = this.primitiveData[i].materialVariants.find(v => v.variant === this.#variantIndex);
+        for(let i = 0; i < this.geometryData.length; i++) {            
+            const variant = this.geometryData[i].materialVariants.find(v => v.variant === this.#variantIndex);
             if(variant) {
-                this.primitiveData[i].material = variant.material;
+                this.geometryData[i].material = variant.material;
             } else {
-                this.primitiveData[i].material = this.primitiveData[i].standardMaterial;
+                this.geometryData[i].material = this.geometryData[i].standardMaterial;
             }
         }
     }

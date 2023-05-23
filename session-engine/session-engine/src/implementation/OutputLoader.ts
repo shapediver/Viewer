@@ -185,9 +185,9 @@ export class OutputLoader {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometry = <GeometryData>node.data[i];
-                    const currentMaterial = geometry.primitive.material;
+                    const currentMaterial = geometry.material;
                     if(currentMaterial === null || currentMaterial.materialOutput === true) {
-                        geometry.primitive.material = material;
+                        geometry.material = material;
                     }
                 }
             }
