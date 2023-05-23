@@ -32,7 +32,7 @@ export const updateGemMaterial = async (properties: IGemMaterialProperties) => {
         output.node!.traverse(n => {
             for(let i = 0; i < n.data.length; i++) {
                 if(n.data[i] instanceof SDV.GeometryData) {
-                    (<SDV.GeometryData>n.data[i]).primitive.material = new SDV.MaterialGemData(gemMaterialProperties);
+                    (<SDV.GeometryData>n.data[i]).material = new SDV.MaterialGemData(gemMaterialProperties);
                 }
             }
         })
