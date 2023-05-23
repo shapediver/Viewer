@@ -4,7 +4,7 @@ import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStri
 import { mat4 } from "gl-matrix";
 import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
-import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialStandardData, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialGemData, MaterialShadowData, MaterialSpecularGlossinessData, MaterialStandardData, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
 import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
@@ -189,7 +189,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // early out, layer is not enabled
             if (layer.enabled === false) {
-                const mat = <IMaterialAbstractData>this.#defaultMaterial.clone();
+                const mat = this.createMaterialCopy(this.#defaultMaterial);
                 mat.opacity = 0;
                 return {
                     matrix: mat4.create(),
@@ -270,13 +270,39 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
 
                 // no attributes were found, return the default material adjusted by the layer opacity
-                const mat = <IMaterialAbstractData>this.#defaultMaterial.clone();
+                const mat = this.createMaterialCopy(this.#defaultMaterial);
                 mat.opacity *= layer.opacity;
                 return {
                     matrix: mat4.create(),
                     material: mat
                 }
             }
+        }
+    }
+
+    private createMaterialCopy(material: IMaterialAbstractData): IMaterialAbstractData {
+        if(material instanceof MaterialGemData) {
+            const newMaterial = new MaterialGemData();
+            newMaterial.copy(material);
+            return newMaterial;
+        } else if(material instanceof MaterialShadowData) {
+            const newMaterial = new MaterialShadowData();
+            newMaterial.copy(material);
+            return newMaterial;
+        } else if(material instanceof MaterialSpecularGlossinessData) {
+            const newMaterial = new MaterialSpecularGlossinessData();
+            newMaterial.copy(material);
+            return newMaterial;
+        } else if(material instanceof MaterialStandardData) {
+            const newMaterial = new MaterialStandardData();
+            newMaterial.copy(material);
+            return newMaterial;
+        } else if(material instanceof MaterialUnlitData) {
+            const newMaterial = new MaterialUnlitData();
+            newMaterial.copy(material);
+            return newMaterial;
+        } else {
+            return new MaterialStandardData();
         }
     }
 
