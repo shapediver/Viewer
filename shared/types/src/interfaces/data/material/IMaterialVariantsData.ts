@@ -1,10 +1,10 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { IPrimitiveData } from "../IGeometryData";
+import { IGeometryData } from "../IGeometryData";
 
 export interface IMaterialVariantsData extends ITreeNodeData {
     // #region Properties (3)
 
-    readonly primitiveData: IPrimitiveData[];
+    readonly geometryData: IGeometryData[];
     readonly variants: string[];
 
     variantIndex?: number;

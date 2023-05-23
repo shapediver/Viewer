@@ -4,11 +4,9 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from '../../interfaces/data/IGeometryData';
 import { IMaterialAbstractData } from '../../interfaces/data/material/IMaterialAbstractData';
 
-
 export class AttributeData extends AbstractTreeNodeData implements IAttributeData {
-  // #region Properties (13)
+  // #region Properties (15)
 
-  readonly #morphAttributeData: IAttributeData[] = [];
   readonly #array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
   readonly #byteOffset: number;
   readonly #byteStride?: number;
@@ -18,13 +16,14 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
   readonly #itemSize: number;
   readonly #max: number[] = [];
   readonly #min: number[] = [];
+  readonly #morphAttributeData: IAttributeData[] = [];
   readonly #normalized: boolean;
-  readonly #target?: number;
   readonly #sparse?: boolean;
   readonly #sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
   readonly #sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+  readonly #target?: number;
 
-  // #endregion Properties (13)
+  // #endregion Properties (15)
 
   // #region Constructors (1)
 
@@ -77,7 +76,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (13)
+  // #region Public Accessors (15)
 
   public get array(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array {
     return this.#array;
@@ -123,10 +122,6 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     return this.#normalized;
   }
 
-  public get target(): number | undefined {
-    return this.#target;
-  }
-
   public get sparse(): boolean | undefined {
     return this.#sparse;
   }
@@ -139,7 +134,11 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     return this.#sparseValues;
   }
 
-  // #endregion Public Accessors (13)
+  public get target(): number | undefined {
+    return this.#target;
+  }
+
+  // #endregion Public Accessors (15)
 
   // #region Public Methods (1)
 
@@ -172,26 +171,20 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
 }
 
 export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveData {
-  // #region Properties (5)
+  // #region Properties (4)
 
   readonly #attributes: {
     [key: string]: IAttributeData
   } = {};
-  readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
 
   #boundingBoxes: {
     matrix: mat4,
     boundingBox: IBox
   }[] = [];
   #indices: IAttributeData | null = null;
-  #material: IMaterialAbstractData | null = null;
-  #standardMaterial: IMaterialAbstractData | null = null;
-  #effectMaterials: { material: IMaterialAbstractData, token: string }[] = [];
-  #materialVariants: { material: IMaterialAbstractData, variant: number }[] = [];
-  #attributeMaterial: IMaterialAbstractData | null = null;
   #threeJsObject: { [key: string]: THREE.BufferGeometry } = {};
 
-  // #endregion Properties (5)
+  // #endregion Properties (4)
 
   // #region Constructors (1)
 
@@ -205,26 +198,18 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     attributes: {
       [key: string]: IAttributeData
     } = {},
-    mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     indices: IAttributeData | null = null,
-    material: IMaterialAbstractData | null = null,
-    attributeMaterial: IMaterialAbstractData | null = null,
     id?: string,
     version?: string
   ) {
     super(id, version);
     this.#attributes = attributes;
-    this.#mode = mode;
-
     this.#indices = indices;
-    this.#material = material;
-    this.#standardMaterial = material;
-    this.#attributeMaterial = attributeMaterial;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (7)
+  // #region Public Accessors (5)
 
   public get attributes(): {
     [key: string]: IAttributeData
@@ -244,49 +229,13 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     this.#indices = value
   }
 
-  public get standardMaterial(): IMaterialAbstractData | null {
-    return this.#standardMaterial;
-  }
-
-  public set standardMaterial(value: IMaterialAbstractData | null) {
-    this.#standardMaterial = value;
-  }
-
-  public get material(): IMaterialAbstractData | null {
-    return this.#material;
-  }
-
-  public set material(value: IMaterialAbstractData | null) {
-    this.#material = value;
-  }
-
-  public get effectMaterials(): { material: IMaterialAbstractData, token: string }[] {
-    return this.#effectMaterials;
-  }
-
-  public get materialVariants(): { material: IMaterialAbstractData, variant: number }[] {
-    return this.#materialVariants;
-  }
-
-  public get attributeMaterial(): IMaterialAbstractData | null {
-    return this.#attributeMaterial;
-  }
-
-  public set attributeMaterial(value: IMaterialAbstractData | null) {
-    this.#attributeMaterial = value;
-  }
-
-  public get mode(): PRIMITIVE_MODE {
-    return this.#mode;
-  }
-  
   public get threeJsObject(): { [key: string]: THREE.BufferGeometry } {
     return this.#threeJsObject;
   }
 
-  // #endregion Public Accessors (7)
+  // #endregion Public Accessors (5)
 
-  // #region Public Methods (1)
+  // #region Public Methods (2)
 
   /**
    * Clones the primitive data.
@@ -298,7 +247,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     for (let attribute in this.#attributes)
       attributes[attribute] = <IAttributeData>this.#attributes[attribute].clone();
 
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices, <IMaterialAbstractData>this.#material, <IMaterialAbstractData>this.#attributeMaterial, this.id, this.version);
+    return new PrimitiveData(attributes, <AttributeData>this.#indices, this.id, this.version);
   }
 
   public computeBoundingBox(matrix: mat4): IBox {
@@ -341,20 +290,26 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     return new Box();
   }
 
-  // #endregion Public Methods (1)
+  // #endregion Public Methods (2)
 }
 
 export class GeometryData extends AbstractTreeNodeData implements IGeometryData {
-  // #region Properties (4)
+  // #region Properties (11)
 
+  readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
   readonly #primitive: IPrimitiveData;
 
+  #attributeMaterial: IMaterialAbstractData | null = null;
   #boundingBox: IBox = new Box();
-  #renderOrder: number = 0;
+  #effectMaterials: { material: IMaterialAbstractData, token: string }[] = [];
+  #material: IMaterialAbstractData | null = null;
+  #materialVariants: { material: IMaterialAbstractData, variant: number }[] = [];
   #morphWeights: number[] = [];
+  #renderOrder: number = 0;
+  #standardMaterial: IMaterialAbstractData | null = null;
   #threeJsObject: { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } = {};
 
-  // #endregion Properties (4)
+  // #endregion Properties (11)
 
   // #region Constructors (1)
 
@@ -366,7 +321,10 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    */
   constructor(
     primitive: IPrimitiveData,
+    mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
+    material: IMaterialAbstractData | null = null,
     morphWeights: number[] = [],
+    attributeMaterial: IMaterialAbstractData | null = null,
     id?: string,
     version?: string
   ) {
@@ -374,14 +332,55 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
     this.#primitive = primitive;
     this.#boundingBox = this.primitive.boundingBox.clone();
     this.#morphWeights = morphWeights;
+
+    this.#mode = mode;
+    this.#material = material;
+    this.#standardMaterial = material;
+    this.#attributeMaterial = attributeMaterial;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (5)
+  // #region Public Accessors (16)
+
+  public get attributeMaterial(): IMaterialAbstractData | null {
+    return this.#attributeMaterial;
+  }
+
+  public set attributeMaterial(value: IMaterialAbstractData | null) {
+    this.#attributeMaterial = value;
+  }
 
   public get boundingBox(): IBox {
     return this.#boundingBox;
+  }
+
+  public get effectMaterials(): { material: IMaterialAbstractData, token: string }[] {
+    return this.#effectMaterials;
+  }
+
+  public get material(): IMaterialAbstractData | null {
+    return this.#material;
+  }
+
+  public set material(value: IMaterialAbstractData | null) {
+    this.#material = value;
+  }
+
+  public get materialVariants(): { material: IMaterialAbstractData, variant: number }[] {
+    return this.#materialVariants;
+  }
+
+  public get mode(): PRIMITIVE_MODE {
+    return this.#mode;
+  }
+
+  public get morphWeights(): number[] {
+    return this.#morphWeights;
+  }
+
+  public set morphWeights(value: number[]) {
+    this.#morphWeights = value
   }
 
   public get primitive(): IPrimitiveData {
@@ -396,19 +395,19 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
     this.#renderOrder = value;
   }
 
-  public get morphWeights(): number[] {
-    return this.#morphWeights;
+  public get standardMaterial(): IMaterialAbstractData | null {
+    return this.#standardMaterial;
   }
 
-  public set morphWeights(value: number[]) {
-    this.#morphWeights = value
+  public set standardMaterial(value: IMaterialAbstractData | null) {
+    this.#standardMaterial = value;
   }
-  
+
   public get threeJsObject(): { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } {
     return this.#threeJsObject;
   }
 
-  // #endregion Public Accessors (5)
+  // #endregion Public Accessors (16)
 
   // #region Public Methods (2)
 
@@ -416,11 +415,11 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    * Clones the scene graph data.
    */
   public clone(): IGeometryData {
-    return new GeometryData(this.#primitive, this.#morphWeights, this.id, this.version);
+    return new GeometryData(this.#primitive, this.#mode, this.#material, this.#morphWeights, this.#attributeMaterial);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {
-    if (this.primitive.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
+    if (this.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
     return this.boundingBox.intersect(origin, direction);
   }
 

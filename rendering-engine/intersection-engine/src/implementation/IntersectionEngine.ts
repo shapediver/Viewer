@@ -186,12 +186,12 @@ export class IntersectionEngine implements IIntersectionEngine {
         // quick out if the material does not fit the intersection options
         if (geometryData && intersectionOptions) {
             let materialData: IMaterialAbstractData | null = null;
-            if (geometryData.primitive.effectMaterials.length > 0) {
-                materialData = geometryData.primitive.effectMaterials[geometryData.primitive.effectMaterials.length - 1].material
+            if (geometryData.effectMaterials.length > 0) {
+                materialData = geometryData.effectMaterials[geometryData.effectMaterials.length - 1].material
             } else if (intersectionOptions.rendererType === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometryData.primitive.attributeMaterial;
+                materialData = geometryData.attributeMaterial;
             } else {
-                materialData = geometryData.primitive.material;
+                materialData = geometryData.material;
             }
 
             // if opacity <= intersectionOptions.opacity
@@ -211,7 +211,7 @@ export class IntersectionEngine implements IIntersectionEngine {
                 return intersections;
             }
             return;
-        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINES) {
+        } else if (geometryData.mode === PRIMITIVE_MODE.LINES) {
             // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
             if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
 
@@ -245,7 +245,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             intersections.sort((a, b) => a.distance - b.distance);
             intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
-        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
+        } else if (geometryData.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.mode === PRIMITIVE_MODE.LINE_STRIP) {
             // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
             if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
 
@@ -279,7 +279,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             intersections.sort((a, b) => a.distance - b.distance);
             intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
-        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.POINTS) {
+        } else if (geometryData.mode === PRIMITIVE_MODE.POINTS) {
             const position = geometryData.primitive.attributes['POSITION'];
             const radius = 0.1;
             let intersections: IIntersection[] = [];
@@ -308,7 +308,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
             if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
 
-            const material = geometryData.primitive.material;
+            const material = geometryData.material;
             const index = geometryData.primitive.indices;
             const position = geometryData.primitive.attributes['POSITION'];
 

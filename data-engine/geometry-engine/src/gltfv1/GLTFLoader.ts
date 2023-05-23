@@ -15,6 +15,7 @@ import {
   PrimitiveData,
   ITaskEvent,
   TASK_TYPE,
+  PRIMITIVE_MODE,
 } from '@shapediver/viewer.shared.types'
 
 import { SDGTFLoader } from './SDGTFLoader'
@@ -278,7 +279,7 @@ export class GLTFLoader {
             if(primitive.material) 
                 material = await this.loadMaterial(primitive.material);
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, 4, await this.loadAccessor(primitive.indices!), material));
+            const geometry = new GeometryData(new PrimitiveData(attributes, await this.loadAccessor(primitive.indices!)), PRIMITIVE_MODE.TRIANGLES, material);
             primitiveNode.data.push(geometry);
         }
         return meshNode;

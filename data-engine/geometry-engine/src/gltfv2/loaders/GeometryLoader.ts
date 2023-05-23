@@ -193,21 +193,21 @@ export class GeometryLoader {
         if (primitive.material || primitive.material === 0) 
             material = this._materialLoader.getMaterial(primitive.material);
 
-        const primitiveData = new PrimitiveData(attributes, primitive.mode, indices, material);
+        const primitiveData = new PrimitiveData(attributes, indices);
+        const geometryData = new GeometryData(primitiveData, primitive.mode, material);
 
         if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
-            this._materialVariantsData.primitiveData.push(primitiveData);
+            this._materialVariantsData.geometryData.push(geometryData);
             const variantsExtension = primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS];
 
             for (let i = 0; i < variantsExtension.mappings.length; i++) {
                 const mapping = variantsExtension.mappings[i];
                 const material = this._materialLoader.getMaterial(mapping.material);
                 for (let j = 0; j < mapping.variants.length; j++)
-                    primitiveData.materialVariants.push({ variant: mapping.variants[j], material });
+                    geometryData.materialVariants.push({ variant: mapping.variants[j], material });
             }
         }
 
-        const geometryData = new GeometryData(primitiveData);
         geometryData.morphWeights = weights;
         this._loaded['mesh_' + meshId + '_primitive_' + index] = geometryData;
 
