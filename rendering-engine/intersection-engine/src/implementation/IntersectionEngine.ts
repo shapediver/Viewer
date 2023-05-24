@@ -7,15 +7,35 @@ import { IIntersectionFilter } from "../interfaces/IIntersectionFilter";
 import { IRay } from "../interfaces/IRay";
 import { IIntersection } from "../interfaces/IIntersection";
 import { IIntersectionEngine } from "../interfaces/IIntersectionEngine";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 
 export class IntersectionEngine implements IIntersectionEngine {
-    // #region Properties (2)
+    // #region Properties (4)
 
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _tree: ITree = Tree.instance;
 
     private static _instance: IntersectionEngine;
 
-    // #endregion Properties (2)
+    private _intersectNodes: {
+        node: ITreeNode,
+        visible: boolean,
+        excludeViewports: string[],
+        restrictViewports: string[],
+    }[] = [];
+
+    // #endregion Properties (4)
+
+    // #region Constructors (1)
+
+    private constructor() {
+        this.gatherNodes();
+        this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, () => {
+            this.gatherNodes();
+        })
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Static Accessors (1)
 
@@ -25,7 +45,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 
     // #endregion Public Static Accessors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
 
     public intersect(
         ray: IRay, 
@@ -35,12 +56,12 @@ export class IntersectionEngine implements IIntersectionEngine {
         viewerID?: string
     ): IIntersection[] {
         let intersections: IIntersection[] = [];
-        const intersectNode = (node: ITreeNode) => {
-            if(node.visible === false) return;
+        const intersectNode = (node: ITreeNode, visible: boolean, excludeViewports: string[], restrictViewports: string[]) => {
+            if(visible === false) return;
 
             if(viewerID !== undefined) {
-                if(node.excludeViewports.includes(viewerID)) return;
-                if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(viewerID)) return;
+                if(excludeViewports.includes(viewerID)) return;
+                if(restrictViewports.length > 0 && !restrictViewports.includes(viewerID)) return;
             }
 
             if(filterCriteria) {
@@ -63,103 +84,13 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
 
             for (let i = 0; i < node.children.length; i++)
-                intersectNode(node.children[i])
+                intersectNode(node.children[i], visible && node.children[i].visible, excludeViewports.concat(node.children[i].excludeViewports), restrictViewports.concat(node.children[i].restrictViewports))
         }
-        intersectNode(root);
+        for (let i = 0; i < this._intersectNodes.length; i++)
+             intersectNode(this._intersectNodes[i].node, this._intersectNodes[i].visible, this._intersectNodes[i].excludeViewports, this._intersectNodes[i].restrictViewports)
 
         intersections.sort((a, b) => a.distance - b.distance);
         return intersections;
-    }
-
-    // #endregion Public Methods (1)
-
-    // #region Private Methods (4)
-
-    private checkIntersection(node: ITreeNode, material: IMaterialAbstractData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        let point: vec3 | null;
-
-        if (material && material.side === MATERIAL_SIDE.BACK) {
-            const triangle = new Triangle(pC, pB, pA);
-            point = triangle.intersect(ray.origin, ray.direction);
-        } else {
-            const triangle = new Triangle(pA, pB, pC);
-            point = triangle.intersect(ray.origin, ray.direction);
-        }
-
-        if (point === null) return;
-
-        const distance = vec3.distance(ray.origin, point);
-        return {
-            distance: distance,
-            point: vec3.clone(point),
-            node
-        };
-    }
-
-    private checkLineIntersection(node: ITreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        const direction = vec3.sub(vec3.create(), pB, pA);
-        const lineLength = vec3.length(direction);
-        const lineRay = {
-            origin: pA,
-            direction: vec3.divide(vec3.create(), direction, vec3.fromValues(lineLength, lineLength, lineLength))
-        };
-        const planeNormal = vec3.cross(vec3.create(), ray.direction, lineRay.direction);
-
-        const Na = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), ray.direction, planeNormal));
-        const Nb = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), lineRay.direction, planeNormal));
-
-        const da = vec3.dot(vec3.sub(vec3.create(), pA, ray.origin), Nb) / vec3.dot(ray.direction, Nb);
-        const db = vec3.dot(vec3.sub(vec3.create(), ray.origin, pA), Na) / vec3.dot(lineRay.direction, Na);
-
-        let pointA: vec3 = vec3.create();
-        if (da < 0) {
-            vec3.copy(pointA, ray.origin);
-        } else {
-            pointA = vec3.add(vec3.create(), ray.origin, vec3.mul(vec3.create(), ray.direction, vec3.fromValues(da, da, da)));
-        }
-
-        let pointB: vec3 = vec3.create();
-        if (db < 0) {
-            vec3.copy(pointB, pA);
-        } else if (db < lineLength) {
-            pointB = vec3.add(vec3.create(), pA, vec3.mul(vec3.create(), lineRay.direction, vec3.fromValues(db, db, db)));
-        } else {
-            vec3.copy(pointB, pB);
-        }
-
-        const distance = vec3.distance(pointA, pointB);
-        if (distance < radius) {
-            return {
-                distance: distance,
-                point: vec3.clone(pointB),
-                node
-            }
-        } else {
-            return;
-        }
-    }
-
-    private checkPointIntersection(node: ITreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
-        const directionDistance = vec3.dot(closestPoint, ray.direction);
-
-        if (directionDistance < 0) {
-            vec3.copy(closestPoint, ray.origin);
-        } else {
-            vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
-            vec3.add(closestPoint, closestPoint, ray.origin);
-        }
-
-        const distance = vec3.distance(closestPoint, p);
-        if (distance < radius) {
-            return {
-                distance: distance,
-                point: vec3.clone(closestPoint),
-                node
-            }
-        } else {
-            return;
-        }
     }
 
     public intersectNode(node: ITreeNode, rayIn: IRay, intersectionOptions?: { opacity: number, rendererType: RENDERER_TYPE }): IIntersection[] | undefined {
@@ -345,6 +276,126 @@ export class IntersectionEngine implements IIntersectionEngine {
             intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         }
+    }
+
+    // #endregion Public Methods (2)
+
+    // #region Private Methods (4)
+
+    private checkIntersection(node: ITreeNode, material: IMaterialAbstractData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
+        let point: vec3 | null;
+
+        if (material && material.side === MATERIAL_SIDE.BACK) {
+            const triangle = new Triangle(pC, pB, pA);
+            point = triangle.intersect(ray.origin, ray.direction);
+        } else {
+            const triangle = new Triangle(pA, pB, pC);
+            point = triangle.intersect(ray.origin, ray.direction);
+        }
+
+        if (point === null) return;
+
+        const distance = vec3.distance(ray.origin, point);
+        return {
+            distance: distance,
+            point: vec3.clone(point),
+            node
+        };
+    }
+
+    private checkLineIntersection(node: ITreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
+        const direction = vec3.sub(vec3.create(), pB, pA);
+        const lineLength = vec3.length(direction);
+        const lineRay = {
+            origin: pA,
+            direction: vec3.divide(vec3.create(), direction, vec3.fromValues(lineLength, lineLength, lineLength))
+        };
+        const planeNormal = vec3.cross(vec3.create(), ray.direction, lineRay.direction);
+
+        const Na = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), ray.direction, planeNormal));
+        const Nb = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), lineRay.direction, planeNormal));
+
+        const da = vec3.dot(vec3.sub(vec3.create(), pA, ray.origin), Nb) / vec3.dot(ray.direction, Nb);
+        const db = vec3.dot(vec3.sub(vec3.create(), ray.origin, pA), Na) / vec3.dot(lineRay.direction, Na);
+
+        let pointA: vec3 = vec3.create();
+        if (da < 0) {
+            vec3.copy(pointA, ray.origin);
+        } else {
+            pointA = vec3.add(vec3.create(), ray.origin, vec3.mul(vec3.create(), ray.direction, vec3.fromValues(da, da, da)));
+        }
+
+        let pointB: vec3 = vec3.create();
+        if (db < 0) {
+            vec3.copy(pointB, pA);
+        } else if (db < lineLength) {
+            pointB = vec3.add(vec3.create(), pA, vec3.mul(vec3.create(), lineRay.direction, vec3.fromValues(db, db, db)));
+        } else {
+            vec3.copy(pointB, pB);
+        }
+
+        const distance = vec3.distance(pointA, pointB);
+        if (distance < radius) {
+            return {
+                distance: distance,
+                point: vec3.clone(pointB),
+                node
+            }
+        } else {
+            return;
+        }
+    }
+
+    private checkPointIntersection(node: ITreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
+        const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
+        const directionDistance = vec3.dot(closestPoint, ray.direction);
+
+        if (directionDistance < 0) {
+            vec3.copy(closestPoint, ray.origin);
+        } else {
+            vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
+            vec3.add(closestPoint, closestPoint, ray.origin);
+        }
+
+        const distance = vec3.distance(closestPoint, p);
+        if (distance < radius) {
+            return {
+                distance: distance,
+                point: vec3.clone(closestPoint),
+                node
+            }
+        } else {
+            return;
+        }
+    }
+
+    private gatherNodes() {
+        this._intersectNodes = [];
+        this._tree.root.traverse(node => {
+            if (node.visible === false) return;
+
+            for(let i = 0; i < node.data.length; i++) {
+                if(node.data[i] instanceof GeometryData) {
+
+                    let tempNode = node;
+                    let visible = true, restrictViewports: string[] = [], excludeViewports: string[] = [];
+                    while(tempNode.parent) {
+                        visible = tempNode.visible && visible;
+                        restrictViewports = restrictViewports.concat(tempNode.restrictViewports)
+                        excludeViewports = excludeViewports.concat(tempNode.excludeViewports)
+                        tempNode = tempNode.parent;
+                    }
+
+                    this._intersectNodes.push({
+                        node,
+                        visible,
+                        restrictViewports: [...new Set(restrictViewports)],
+                        excludeViewports: [...new Set(excludeViewports)]
+                    })
+
+                }
+            }
+        })
     }
 
     // #endregion Private Methods (4)
