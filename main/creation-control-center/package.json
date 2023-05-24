@@ -39,7 +39,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/api.geometry-api-dto-v2": "1.6.0",
+    "@shapediver/api.geometry-api-dto-v2": "1.8.0",
     "@shapediver/viewer.rendering-engine-threejs.standard": "2.9.0",
     "@shapediver/viewer.rendering-engine.camera-engine": "2.9.0",
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.9.0",
