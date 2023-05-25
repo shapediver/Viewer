@@ -428,10 +428,6 @@ export class SceneTreeManager implements IManager {
                         this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
                         this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion)
                         this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
-                        for (const key in o.geometry.attributes)
-                            o.geometry.deleteAttribute(key);
-                        o.geometry.setIndex(null);
-                        o.geometry.dispose();
 
                         for (let t in o.material) {
                             if (o.material[t] instanceof THREE.Texture) {

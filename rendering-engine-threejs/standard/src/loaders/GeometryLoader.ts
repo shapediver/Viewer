@@ -121,6 +121,9 @@ export class GeometryLoader implements ILoader {
             (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
         }
 
+        while(parent.children.length !== 0)
+            parent.remove(parent.children[0]);
+
         const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
         let obj: SDData;
         if (this._geometryCache[geometry.id + '_' + geometry.version] && !skeleton) {
@@ -155,9 +158,6 @@ export class GeometryLoader implements ILoader {
         } else {
             obj.children.forEach(m => m.receiveShadow = true);
         }
-
-        const c = parent.children.find(c => { (c as SDData).SDid === obj.SDid && (c as SDData).SDversion === obj.SDversion });
-        if(c) parent.remove(c);
 
         return geometry.boundingBox.clone();
     }
@@ -215,6 +215,11 @@ export class GeometryLoader implements ILoader {
     public removeFromPrimitiveCache(id: string) {
         if (this._primitiveCache[id]) {
             if(this._primitiveCache[id].counter === 1) {
+                for (const key in this._primitiveCache[id].threeGeometry.attributes)
+                    this._primitiveCache[id].threeGeometry.deleteAttribute(key);
+                this._primitiveCache[id].threeGeometry.setIndex(null);
+                this._primitiveCache[id].threeGeometry.dispose();
+
                 delete this._primitiveCache[id];
             } else {
                 this._primitiveCache[id].counter--;
