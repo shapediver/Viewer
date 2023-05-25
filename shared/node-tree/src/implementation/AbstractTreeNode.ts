@@ -277,6 +277,24 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return;
   }
 
+  public getNodesByName(node: T, name: string): T[] {
+    let nodes: T[] = [];
+    if (name === node.name) nodes.push(node);
+    node.traverse((n) => {
+      if (name === n.name) nodes.push(n);
+    });
+    return nodes;
+  };
+
+  public getNodesByNameWithRegex(node: T, regex: RegExp): T[] {
+    let nodes: T[] = [];
+    if (regex.test(node.name)) nodes.push(node);
+    node.traverse((n) => {
+      if (regex.test(n.name)) nodes.push(n);
+    });
+    return nodes;
+  };
+
   public getPath(): string {
     let path = this.name;
     let node: T | undefined = this.parent;

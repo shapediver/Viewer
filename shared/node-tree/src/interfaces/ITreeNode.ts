@@ -12,7 +12,7 @@ export interface ITransformation {
 }
 
 export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> {
-    // #region Properties (17)
+    // #region Properties (18)
 
     /**
      * The bounding box of this tree node.
@@ -23,7 +23,7 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * As there can be properties where tree nodes are excluded from the viewport, the bounding boxes may be different per viewport.
      * The {@link boundingBox} property can be used as the general bounding box without any viewport specific exclusions.
      */
-     readonly boundingBoxViewport: { [key: string]: IBox };
+    readonly boundingBoxViewport: { [key: string]: IBox };
     /**
      * The children of this tree node. Can be added and remove via {@link addChild} and {@link removeChild}. 
      */
@@ -98,9 +98,9 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      */
     visible: boolean;
 
-    // #endregion Properties (17)
+    // #endregion Properties (18)
 
-    // #region Public Methods (17)
+    // #region Public Methods (20)
 
     /**
      * Add a child to the children of this node.
@@ -133,12 +133,24 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
     cloneInstance(): T;
     /**
      * Returns the child with the specified id
-    */
+     */
     getChild(id: string): T | undefined;
     /**
      * Returns the data item with the specified id
-    */
+     */
     getData(id: string): U | undefined;
+    /**
+     * Test this node and all it's descendents for nodes with the specified name and return them in an array.
+     * @param node 
+     * @param name 
+     */
+    getNodesByName(node: T, name: string): T[]
+    /**
+     * Test this nodes name and all it's descendents name for nodes for the specified regex and return them in an array.
+     * @param node 
+     * @param regex 
+     */
+    getNodesByNameWithRegex(node: T, regex: RegExp): T[]
     /**
      * Return the path to this node.
      */
@@ -200,5 +212,5 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      */
     updateVersion(): void;
 
-    // #endregion Public Methods (17)
+    // #endregion Public Methods (20)
 }
