@@ -141,16 +141,14 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
     getData(id: string): U | undefined;
     /**
      * Test this node and all it's descendents for nodes with the specified name and return them in an array.
-     * @param node 
      * @param name 
      */
-    getNodesByName(node: T, name: string): T[]
+    getNodesByName(name: string): T[]
     /**
      * Test this nodes name and all it's descendents name for nodes for the specified regex and return them in an array.
-     * @param node 
      * @param regex 
      */
-    getNodesByNameWithRegex(node: T, regex: RegExp): T[]
+    getNodesByNameWithRegex(regex: RegExp): T[]
     /**
      * Return the path to this node.
      */
