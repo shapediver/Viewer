@@ -24,10 +24,12 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
     // #region Constructors (1)
 
     /**
-     * Creates a custom data node.
+     * Creates an interaction data item.
      * 
-     * @param _data the data as key- value pairs 
-     * @param id the id
+     * @param interactionTypes the data as key-value pairs 
+     * @param groupId the group id to be able to interact with multiple nodes at once
+     * @param id the id that is used internally (leave empty if in doubt)
+     * @param version the version that is used internally (leave empty if in doubt)
      */
     constructor(
         interactionTypes: IInteractionTypes,
