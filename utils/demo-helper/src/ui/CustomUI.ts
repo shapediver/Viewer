@@ -153,6 +153,8 @@
           if (dropdownElement.value == j) option.setAttribute("selected", "");
           dropdownInputElement.appendChild(option);
         }
+        dropdownInputElement.selectedIndex = dropdownElement.value;
+
         dropdownInputElement.classList.value = "w-full mb-2 mt-2 right-5 text-gray-300 bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-1 py-0.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800";
         paramDiv.appendChild(dropdownInputElement);
 
