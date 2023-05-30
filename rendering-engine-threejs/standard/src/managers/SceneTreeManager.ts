@@ -246,9 +246,7 @@ export class SceneTreeManager implements IManager {
             const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
             const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject && !(oc instanceof SDData) ? !nodeIds.includes(oc.SDid) : false);
             childrenToRemove.forEach(cTR => {
-                // only remove the data on the next level
-                // children below that might be unchanged and therefore the results need to be cached
-                cTR.children.forEach(o => {
+                cTR.traverse(o => {
                     if (o instanceof SDData)
                         this.removeData(o);
                 })
