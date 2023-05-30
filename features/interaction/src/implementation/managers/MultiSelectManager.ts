@@ -94,7 +94,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
         if(this.#nodes.length > 0) {
             let originalNode: ITreeNode | undefined;
             this.#groupedNodes.forEach(array => {
-                if(array.includes(intersections[0].node))
+                if(intersections.length > 0 && array.includes(intersections[0].node))
                     originalNode = this.#nodes.find(n => array.includes(n))!;
             });
 
