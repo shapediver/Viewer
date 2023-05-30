@@ -121,7 +121,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.bearerToken, outputID))
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID))
                         promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version])
                     }
                 }
