@@ -123,7 +123,7 @@ export interface IRenderingEngine {
   getScreenshot(type?: string, encoderOptions?: number): string;
   isMobileDeviceWithoutBrowserARSupport(): boolean;
   mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 };
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[]
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;

@@ -10,5 +10,5 @@ export interface IIntersection {
     /** The intersected node. */
     node: ITreeNode
     /** The intersected geometry data */
-    geometryData: IGeometryData
+    geometryData?: IGeometryData
 }

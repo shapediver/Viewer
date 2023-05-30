@@ -239,7 +239,7 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersectionPoint 
      * @param ray 
      */
-    public setNode(node: ITreeNode, geometryData: IGeometryData, distance: number = 0, intersectionPoint: vec3 = vec3.create(), event?: MouseEvent | TouchEvent, ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
+    public setNode(node: ITreeNode, geometryData?: IGeometryData, distance: number = 0, intersectionPoint: vec3 = vec3.create(), event?: MouseEvent | TouchEvent, ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
 
         this.activateNode({node, distance, point: intersectionPoint, geometryData: geometryData});
