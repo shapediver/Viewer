@@ -21,9 +21,8 @@ import { Output } from './dto/Output'
 import { convert, ISettingsV3_4, latestVersion, validate, versions } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (40)
+    // #region Properties (43)
 
-    private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
     private readonly _httpClient: HttpClient = HttpClient.instance;
@@ -43,35 +42,6 @@ export class SessionEngine implements ISessionEngine {
     private readonly _ticket: string;
     private readonly _uuidGenerator = UuidGenerator.instance;
 
-    private _automaticSceneUpdate: boolean = true;
-    private _bearerToken?: string;
-    private _closeOnFailure: () => Promise<void> = async () => { };
-
-    private _closed: boolean = false;
-    private _customizeOnParameterChange: boolean = false;
-    private _dataCache: {
-        [key: string]: Promise<HttpResponse<any>>
-    } = {};
-    private _excludeViewports: string[] = [];
-    private _headers = {
-        "X-ShapeDiver-Origin": (SystemInfo.instance).origin,
-        "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
-        "X-ShapeDiver-BuildVersion": '',
-        "X-ShapeDiver-BuildDate": ''
-    };
-    private _initialized: boolean = false;
-    private _modelId?: string;
-    private _node: ITreeNode;
-    private _refreshBearerToken?: () => Promise<string>;
-    private _responseDto?: ShapeDiverResponseDto;
-    private _retryCounter = 0;
-    private _sdk!: ShapeDiverSdk;
-    private _sessionId?: string;
-    private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
-    private _viewerSettings?: object;
-    private _viewerSettingsVersion: string = latestVersion;
-    private _viewerSettingsVersionBackend: string = latestVersion;
-
     #customizationProcess!: string;
     #parameterHistory: {
         [key: string]: {
@@ -86,8 +56,35 @@ export class SessionEngine implements ISessionEngine {
             valueString: string
         }
     }[] = [];
+    private _automaticSceneUpdate: boolean = true;
+    private _closeOnFailure: () => Promise<void> = async () => { };
+    private _closed: boolean = false;
+    private _customizeOnParameterChange: boolean = false;
+    private _dataCache: {
+        [key: string]: Promise<HttpResponse<any>>
+    } = {};
+    private _excludeViewports: string[] = [];
+    private _headers = {
+        "X-ShapeDiver-Origin": (SystemInfo.instance).origin,
+        "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
+        "X-ShapeDiver-BuildVersion": '',
+        "X-ShapeDiver-BuildDate": ''
+    };
+    private _initialized: boolean = false;
+    private _jwtToken?: string;
+    private _modelId?: string;
+    private _node: ITreeNode;
+    private _refreshJwtToken?: () => Promise<string>;
+    private _responseDto?: ShapeDiverResponseDto;
+    private _retryCounter = 0;
+    private _sdk!: ShapeDiverSdk;
+    private _sessionId?: string;
+    private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
+    private _viewerSettings?: object;
+    private _viewerSettingsVersion: string = latestVersion;
+    private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (40)
+    // #endregion Properties (43)
 
     // #region Constructors (1)
 
@@ -95,19 +92,19 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, excludeViewports?: string[] }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[] }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
         this._excludeViewports = properties.excludeViewports || [];
-        this._bearerToken = properties.bearerToken;
+        this._jwtToken = properties.jwtToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader(this);
 
         try {
-            this._sdk = create(this._modelViewUrl, this._bearerToken);
+            this._sdk = create(this._modelViewUrl, this._jwtToken);
             this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.REQUEST_HEADERS, this._headers);
         } catch (e) {
             throw this._httpClient.convertError(e);
@@ -116,7 +113,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (23)
+    // #region Public Accessors (24)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -125,19 +122,6 @@ export class SessionEngine implements ISessionEngine {
     public set automaticSceneUpdate(value: boolean) {
         this._automaticSceneUpdate = value;
         value ? this.addToSceneTree(this._node) : this.removeFromSceneTree(this._node);
-    }
-
-    public get bearerToken(): string | undefined {
-        return this._bearerToken;
-    }
-
-    public set bearerToken(value: string | undefined) {
-        this._bearerToken = value;
-        try {
-            this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
-        } catch (e) {
-            throw this._httpClient.convertError(e);
-        }
     }
 
     public get canUploadGLTF(): boolean {
@@ -178,6 +162,10 @@ export class SessionEngine implements ISessionEngine {
         return this._initialized;
     }
 
+    public get jwtToken(): string | undefined {
+        return this._jwtToken;
+    }
+
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
@@ -202,12 +190,12 @@ export class SessionEngine implements ISessionEngine {
         return this._parameters;
     }
 
-    public get refreshBearerToken(): (() => Promise<string>) | undefined {
-        return this._refreshBearerToken;
+    public get refreshJwtToken(): (() => Promise<string>) | undefined {
+        return this._refreshJwtToken;
     }
 
-    public set refreshBearerToken(value: (() => Promise<string>) | undefined) {
-        this._refreshBearerToken = value;
+    public set refreshJwtToken(value: (() => Promise<string>) | undefined) {
+        this._refreshJwtToken = value;
     }
 
     public get settingsEngine(): SettingsEngine {
@@ -221,18 +209,18 @@ export class SessionEngine implements ISessionEngine {
     public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
       return this._updateCallback;
     }
-  
+
     public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
       this._updateCallback = value;
-    }  
+    }
 
     public get viewerSettings(): object | undefined {
         return this._viewerSettings;
     }
 
-    // #endregion Public Accessors (23)
+    // #endregion Public Accessors (24)
 
-    // #region Public Methods (22)
+    // #region Public Methods (24)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
             sections = sections || {};
@@ -585,7 +573,6 @@ export class SessionEngine implements ISessionEngine {
                 data: { sessionId: this.id }
             }, true);
             newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
-
             
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
@@ -690,7 +677,7 @@ export class SessionEngine implements ISessionEngine {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
+    public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability();
 
         let outputs: {
@@ -1002,6 +989,19 @@ export class SessionEngine implements ISessionEngine {
             return response && responseP && responseO && responseE;
     }
 
+    public async setJwtToken(value: string) {
+        this.checkAvailability();
+
+        this._jwtToken = value;
+        try {
+            this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
+            const responseDto = await this._sdk.session.default(this._sessionId!);
+            if(this._responseDto) this._responseDto.actions = responseDto.actions;
+        } catch (e) {
+            throw this._httpClient.convertError(e);
+        }
+    }
+
     public async updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode> {
         const eventId = taskEventInfo ? taskEventInfo.eventId : this._uuidGenerator.create();
         const eventType = taskEventInfo ? taskEventInfo.type : TASK_TYPE.SESSION_OUTPUTS_UPDATE;
@@ -1119,9 +1119,9 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (22)
+    // #endregion Public Methods (24)
 
-    // #region Private Methods (8)
+    // #region Private Methods (10)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1193,6 +1193,11 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    private addToSceneTree(node: ITreeNode) {
+        this._sceneTree.addNode(node);
+        this._sceneTree.root.updateVersion();
+    }
+
     private checkAvailability(action?: string, checkForModelId = false) {
         if (!this._responseDto)
             throw new ShapeDiverViewerSessionError(`Session.checkAvailability: responseDto not available.`);
@@ -1255,8 +1260,8 @@ export class SessionEngine implements ISessionEngine {
                 // if any of the above errors occur, we try to get a new bearer token
                 // if we get a new one, we retry 3 times (by requiring new bearer tokens every time)
                 if (this._retryCounter < 3) {
-                    if (this._refreshBearerToken) {
-                        this.bearerToken = await this._refreshBearerToken();
+                    if (this._refreshJwtToken) {
+                        await this.setJwtToken(await this._refreshJwtToken());
                         this._retryCounter = retry ? this._retryCounter + 1 : 1;
                         this._logger.warn('Re-trying with new bearer token.');
                     } else {
@@ -1277,6 +1282,11 @@ export class SessionEngine implements ISessionEngine {
         } else {
             throw this._httpClient.convertError(e);
         }
+    }
+
+    private removeFromSceneTree(node: ITreeNode) {
+        this._sceneTree.removeNode(node);
+        this._sceneTree.root.updateVersion();
     }
 
     /**
@@ -1404,16 +1414,5 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    private addToSceneTree(node: ITreeNode) {
-        this._sceneTree.addNode(node);
-        this._sceneTree.root.updateVersion();
-    }
-
-    private removeFromSceneTree(node: ITreeNode) {
-        this._sceneTree.removeNode(node);
-        this._sceneTree.root.updateVersion();
-    }
-
-
-    // #endregion Private Methods (8)
+    // #endregion Private Methods (10)
 }

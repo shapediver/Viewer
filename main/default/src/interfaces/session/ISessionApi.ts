@@ -74,6 +74,13 @@ export interface ISessionApi {
 
 
     /**
+     * The JWT used for authorizing API calls to the Geometry Backend.
+     * 
+     * @see setJwtToken
+     */
+    readonly jwtToken: string | undefined;
+
+    /**
      * (Platform specific) Option to enable commit-mode for parameters.
      * This setting is used purely for UI purposes, it does not have any influence on the session itself.
      */
@@ -105,11 +112,6 @@ export interface ISessionApi {
      * The ids of the viewports in which the session's scene tree {@link node} should not be shown.
      */
     excludeViewports: string[];
-
-    /**
-     * The JWT used for authorizing API calls to the Geometry Backend.
-     */
-    jwtToken: string | undefined;
     
     /**
      * A callback that is executed whenever a session's {@link node} is to be replaced
@@ -388,6 +390,16 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     saveSettings(viewportId?: string): Promise<boolean>;
+
+    /**
+     * Set a new JWT used for authorizing API calls to the Geometry Backend.
+     * If a change of the JWT would result in different parameters / exports / outputs of the model, 
+     * please create a new session with that token instead.
+     * 
+     * @see jwtToken
+     * @param token 
+     */
+    setJwtToken(token: string): Promise<void>;
     
     /**
      * Update the current available outputs.

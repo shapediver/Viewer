@@ -128,14 +128,7 @@ export class SessionApi implements ISessionApi {
     }
 
     public get jwtToken(): string | undefined {
-        return this.#sessionEngine.bearerToken;
-    }
-
-    public set jwtToken(value: string | undefined) {
-        const scope = 'jwtToken';
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'string', false);
-        this.#sessionEngine.bearerToken = value;
-        this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+        return this.#sessionEngine.jwtToken;
     }
 
     public get modelViewUrl(): string {
@@ -170,13 +163,13 @@ export class SessionApi implements ISessionApi {
     }
 
     public get refreshJwtToken(): (() => Promise<string>) | undefined {
-        return this.#sessionEngine.refreshBearerToken;
+        return this.#sessionEngine.refreshJwtToken;
     }
 
     public set refreshJwtToken(value: (() => Promise<string>) | undefined) {
         const scope = 'refreshJwtToken';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'function', false);
-        this.#sessionEngine.refreshBearerToken = value;
+        this.#sessionEngine.refreshJwtToken = value;
         this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
     }
 
@@ -318,6 +311,14 @@ export class SessionApi implements ISessionApi {
 
     public saveUiProperties(): Promise<boolean> {
         return this.#sessionEngine.saveUiProperties();
+    }
+
+    public async setJwtToken(value: string): Promise<void> {
+        const scope = 'setJwtToken';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'string', false);
+        await this.#sessionEngine.setJwtToken(value);
+        this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+        return;
     }
 
     public updateOutputs(): Promise<ITreeNode> {

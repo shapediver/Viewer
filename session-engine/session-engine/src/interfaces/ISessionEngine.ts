@@ -101,7 +101,7 @@ export interface ISettingsSections {
 export interface ISessionEngine {
   // #region Properties (11)
 
-  bearerToken?: string;
+  readonly jwtToken?: string;
   canUploadGLTF: boolean;
   exports: { [key: string]: IExport };
   id: string;
@@ -109,7 +109,7 @@ export interface ISessionEngine {
   modelViewUrl: string;
   outputs: { [key: string]: IOutput };
   parameters: { [key: string]: IParameter<any> };
-  refreshBearerToken: (() => Promise<string>) | undefined;
+  refreshJwtToken: (() => Promise<string>) | undefined;
   settingsEngine: SettingsEngine;
   ticket: string;
   updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
@@ -134,6 +134,7 @@ export interface ISessionEngine {
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;
   saveUiProperties(): Promise<boolean>;
+  setJwtToken(token: string): Promise<void>;
   updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
