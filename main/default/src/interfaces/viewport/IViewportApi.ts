@@ -539,7 +539,7 @@ export interface IViewportApi {
    * @param direction 
    * @param root 
    */
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData }[]; 
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData }[]; 
 
   /**
    * Remove the camera with the specified id and destroys it.

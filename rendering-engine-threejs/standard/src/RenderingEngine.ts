@@ -1050,7 +1050,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTracingManager.mouseEventToRay(event);
   }
 
-  public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
+  public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
     const intersect = this._intersectionManager.intersect({ origin, direction }, undefined, undefined, root);
     return intersect.map(i => {
       return {
