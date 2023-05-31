@@ -81,7 +81,7 @@ export class OutputLoader {
 
         const cb = (e: IEvent) => {
             const taskEvent = e as ITaskEvent;
-            if(outputIDs.includes(taskEvent.id)) {
+            if(outputIDs.find(oId => taskEvent.id.startsWith(oId))) {
                 progress[taskEvent.id] = taskEvent.progress;
 
                 let sum = 0;
@@ -121,7 +121,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID))
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + "_" + outputInfo[outputID].version + "_" + i))
                         promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version])
                     }
                 }
