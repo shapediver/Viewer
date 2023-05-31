@@ -329,6 +329,13 @@ export class GeometryLoader implements ILoader {
             this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
             this._gemCubeCamera = new THREE.CubeCamera(0.001, 10000, this._gemCubeCameraRenderTarget);
             this._gemScene.add(this._gemCubeCamera);
+        } else {
+            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+            this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
+            this._gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
+            this._gemCubeCamera!.renderTarget = this._gemCubeCameraRenderTarget;
         }
 
         if (!this._gemNormalMaterial) {
