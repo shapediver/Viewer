@@ -197,10 +197,12 @@ export class CreationControlCenter implements ICreationControlCenter {
         environmentMapLoaded: new StatePromise(),
         settingsAssigned: new StatePromise(),
         boundingBoxCreated: new StatePromise(),
-        busy: []
+        busy: [],
+        update: () => {}
       }
 
       const renderingEngine = new RenderingEngineThreeJs(properties);
+      this.#stateEngine.renderingEngines[renderingEngineId].update = renderingEngine.update.bind(renderingEngine);
       this.renderingEngines[renderingEngineId] = renderingEngine;
 
       renderingEngine.cameraEngine.createDefaultCameras();
