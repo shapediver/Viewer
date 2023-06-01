@@ -1,4 +1,4 @@
-import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
+import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { FileParameter, IParameter, ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";

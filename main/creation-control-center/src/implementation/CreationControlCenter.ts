@@ -7,7 +7,7 @@ import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
-import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
+import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ISettingsV3_1, latestVersion } from "@shapediver/viewer.settings";
 
 export class CreationControlCenter implements ICreationControlCenter {
