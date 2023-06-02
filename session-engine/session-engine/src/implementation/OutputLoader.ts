@@ -151,16 +151,19 @@ export class OutputLoader {
 
         // here we assign all outputs just to the node and return it
         for (let outputID in outputInfo)
-            node.addChild(currentNodes[outputID][outputInfo[outputID].version]);
+            if(currentNodes[outputID][outputInfo[outputID].version])    
+                node.addChild(currentNodes[outputID][outputInfo[outputID].version]);
 
         // save the nodes as the last available version
         for (let outputID in outputInfo) {
+            if(!currentNodes[outputID][outputInfo[outputID].version]) continue;
             this._loadedOutputNodes[outputID] = {};
             this._loadedOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
             this._lastOutputNodes[outputID] = currentNodes[outputID][outputInfo[outputID].version];
         }
 
         for (let outputID in outputInfo) {
+            if(!currentNodes[outputID][outputInfo[outputID].version]) continue;
             if(currentNodes[outputID][outputInfo[outputID].version].children.length > 1) {
                 for (let i = 0, len = outputInfo[outputID].contentFormat!.length; i < len; i++) {
                     if(outputInfo[outputID].contentFormat[i] === 'sdtf') {
