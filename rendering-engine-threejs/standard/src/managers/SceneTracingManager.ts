@@ -108,7 +108,7 @@ export class SceneTracingManager implements IManager {
         origin: vec3,
         direction: vec3
     } {
-        if (event.touches.length > 1) 
+        if (event.touches.length < 1) 
             throw new ShapeDiverViewerGeneralError('SceneTracingManager.touchEventToRay: No touches in this event.');
 
         const touch = event.changedTouches[0];

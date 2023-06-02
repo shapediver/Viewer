@@ -55,7 +55,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
     if (input === mapping.zoom && this._controls.enableZoom) {
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2) {
+      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
         x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
         y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
       }
@@ -150,7 +150,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
     if (this._controls.enableZoom && this._active.zoom){
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2) {
+      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
         x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
         y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
       }
@@ -233,6 +233,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
         y: event.clientY / window.innerHeight
       }
     } else {
+      if(event.touches.length < 1) return { x: 0, y: 0 };
       return {
         x: event.touches[0].pageX / window.innerWidth * aspect,
         y: event.touches[0].pageY / window.innerHeight
