@@ -185,7 +185,9 @@ export class Output implements IOutput {
         }
       }
     }
+  }
 
+  public triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
     if (this.#updateCallback) this.#updateCallback(newNode, oldNode);
   }
 

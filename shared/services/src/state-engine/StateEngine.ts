@@ -11,7 +11,8 @@ export class StateEngine {
             settingsAssigned: StatePromise<boolean>,
             environmentMapLoaded: StatePromise<boolean>,
             boundingBoxCreated: StatePromise<boolean>,
-            busy: string[]
+            busy: string[],
+            update: (id: string) => void
         }
     } = {};
     private readonly _sessionEngines: {
@@ -55,7 +56,8 @@ export class StateEngine {
             settingsAssigned: StatePromise<boolean>,
             environmentMapLoaded: StatePromise<boolean>,
             boundingBoxCreated: StatePromise<boolean>,
-            busy: string[]
+            busy: string[],
+            update: (id: string) => void
         }
     } {
         return this._renderingEngines;

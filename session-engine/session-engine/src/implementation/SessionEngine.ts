@@ -507,8 +507,6 @@ export class SessionEngine implements ISessionEngine {
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-
-            if (this._updateCallback) this._updateCallback(newNode, oldNode);
                 
             // set the output content to what has been updated
             for (const outputId in this.outputs)
@@ -535,6 +533,21 @@ export class SessionEngine implements ISessionEngine {
 
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+            // update the viewports
+            for (let r in this._stateEngine.renderingEngines)
+                if(!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+
+            // call the update callback function on the session
+            if (this._updateCallback) this._updateCallback(newNode, oldNode);
+
+            // call the update callback functions on the outputs
+            for (const outputId in this.outputs)
+                this.outputs[outputId].triggerUpdateCallback(
+                    newNode.children.find(c => c.name === outputId)!,
+                    oldNode.children.find(c => c.name === outputId)!
+                );
 
             return this.node;
         } catch (e) {
@@ -1055,8 +1068,6 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         
-        if (this._updateCallback) this._updateCallback(newNode, oldNode);
-
         // set the output content to what has been updated
         for (const outputId in this.outputs) {
             this.outputs[outputId].updateOutput(
@@ -1082,6 +1093,21 @@ export class SessionEngine implements ISessionEngine {
             const eventEnd: ITaskEvent = { type: eventType, id: eventId, progress: 1, data: eventData, status: 'Outputs updated' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         }
+
+        // update the viewports
+        for (let r in this._stateEngine.renderingEngines)
+            if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+
+        // call the update callback function on the session
+        if (this._updateCallback) this._updateCallback(newNode, oldNode);
+
+        // call the update callback functions on the outputs
+        for (const outputId in this.outputs)
+            this.outputs[outputId].triggerUpdateCallback(
+                newNode.children.find(c => c.name === outputId)!,
+                oldNode.children.find(c => c.name === outputId)!
+            );
 
         return this.node;
     }
