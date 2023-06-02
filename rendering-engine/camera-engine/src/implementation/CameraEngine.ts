@@ -160,7 +160,8 @@ export class CameraEngine implements ICameraEngine {
         if (cameras[cameraId]) 
             throw new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
         
-        const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
+        const initialAspectRatio =  (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientWidth / (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientHeight;
+        const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId, undefined, initialAspectRatio) : new OrthographicCamera(cameraId);
         camera.assignViewer(this._renderingEngine);
 
         cameras[cameraId] = camera;

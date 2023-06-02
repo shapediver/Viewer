@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseError, ShapeDiverRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseError, ShapeDiverRequestError, isGBResponseError, isGBRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
 
@@ -50,9 +50,9 @@ export class HttpClient {
      * @param e 
      */
     public convertError(e: ShapeDiverBackendError | Error | unknown) {
-        if (e instanceof ShapeDiverResponseError) {
+        if (isGBResponseError(e)) {
             throw new ShapeDiverGeometryBackendResponseError(e.message, e.status, e.error, e.desc);
-        } else if (e instanceof ShapeDiverRequestError) {
+        } else if (isGBRequestError(e)) {
             throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc)
         } else {
             throw e;

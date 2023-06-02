@@ -38,8 +38,9 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   // #region Constructors (1)
 
-  constructor(id: string, version?: string) {
+  constructor(id: string, version?: string, initialAspect?: number) {
     super(id, CAMERA_TYPE.PERSPECTIVE, version);
+    this.#aspect = initialAspect;
     this._controls = new PerspectiveCameraControls(this, true);
   }
 
@@ -134,7 +135,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   }
 
   public clone(): IPerspectiveCamera {
-    return new PerspectiveCamera(this.id, this.version);
+    return new PerspectiveCamera(this.id, this.version, this.aspect);
   }
 
   public calculateZoomTo(zoomTarget?: Box, startingPosition: vec3 = this.position, startingTarget: vec3 = this.target): { position: vec3, target: vec3 } {
