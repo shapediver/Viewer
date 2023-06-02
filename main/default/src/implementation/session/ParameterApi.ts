@@ -130,6 +130,7 @@ export class ParameterApi<T> implements IParameterApi<T> {
 
     public set value(value: T | string) {
         const scope = 'value';
+        this.isValid(value, true);
         this.#parameter.value = value;
         this.#logger.debug(`ParameterApi.${scope}: ${scope} was set to ${this.#parameter.value}.`);
     }
