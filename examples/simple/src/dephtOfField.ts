@@ -6,8 +6,7 @@ import {
     createViewport,
     POST_PROCESSING_EFFECT_TYPE,
     DepthOfFieldEffect,
-    BlendFunction,
-    IDepthOfFieldEffectDefinition
+    BlendFunction
 } from "@shapediver/viewer";
 
 import * as SDV from "@shapediver/viewer"
@@ -35,7 +34,7 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         type: POST_PROCESSING_EFFECT_TYPE.SMAA
     })
 
-    const depthOfFieldEffectDefinition: IDepthOfFieldEffectDefinition = {
+    const depthOfFieldEffectToken = viewport.postProcessing.addEffect({
         /** The blend function of this effect. (default: BlendFunction.NORMAL) */
         blendFunction: BlendFunction.NORMAL,
         /** The scale of the bokeh blur. (default: 1.0) */
@@ -47,29 +46,23 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         /** The focus range. Range is [0.0, 1.0]. (default: 0.1) */
         focusRange: 0.1,
         type: POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD
-    };
-
-    const depthOfFieldEffectToken = viewport.postProcessing.addEffect(depthOfFieldEffectDefinition)
+    })
     const depthOfFieldEffect = <DepthOfFieldEffect>viewport.postProcessing.getEffect(depthOfFieldEffectToken);
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => { 
-                depthOfFieldEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
+            onInputCallback: (value: any) => depthOfFieldEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: any) => depthOfFieldEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
             choices: Object.keys(BlendFunction),
             value: Object.values(BlendFunction).indexOf(depthOfFieldEffect.blendMode.blendFunction)
         },
         <ISliderElement>{
             name: "bokehScale",
             type: "slider",
-            onInputCallback: (value: any) => { 
-                depthOfFieldEffectDefinition.bokehScale = value;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
+            onInputCallback: (value: any) => depthOfFieldEffect.bokehScale = value,
+            onChangeCallback: (value: any) => depthOfFieldEffect.bokehScale = value,
             value: 1,
             min: 0,
             max: 10,
@@ -78,10 +71,8 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         <ISliderElement>{
             name: "focalLength",
             type: "slider",
-            onInputCallback: (value: any) => { 
-                depthOfFieldEffectDefinition.focalLength = value;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
+            onInputCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focalLength = value,
+            onChangeCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focalLength = value,
             value: 0.1,
             min: 0,
             max: 1,
@@ -90,10 +81,8 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         <ISliderElement>{
             name: "focusDistance",
             type: "slider",
-            onInputCallback: (value: any) => { 
-                depthOfFieldEffectDefinition.focusDistance = value;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
+            onInputCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focusDistance = value,
+            onChangeCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focusDistance = value,
             value: 0.0,
             min: 0,
             max: 1,
@@ -102,10 +91,8 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         <ISliderElement>{
             name: "focusRange",
             type: "slider",
-            onInputCallback: (value: any) => { 
-                depthOfFieldEffectDefinition.focusRange = value;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
+            onInputCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focusRange = value,
+            onChangeCallback: (value: any) => depthOfFieldEffect.circleOfConfusionMaterial.focusRange = value,
             value: 0.1,
             min: 0,
             max: 1,
