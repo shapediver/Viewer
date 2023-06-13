@@ -2,19 +2,19 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-  CAMERA_TYPE,
-  PerspectiveCamera,
-  PerspectiveCameraControls,
+    CAMERA_TYPE,
+    PerspectiveCamera,
+    PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
-  Converter,
-  EventEngine,
-  EVENTTYPE,
-  EVENTTYPE_VIEWPORT,
-  Logger,
-  ShapeDiverViewerWebGLError,
-  StateEngine,
-  SystemInfo,
+    Converter,
+    EventEngine,
+    EVENTTYPE,
+    EVENTTYPE_VIEWPORT,
+    Logger,
+    ShapeDiverViewerWebGLError,
+    StateEngine,
+    SystemInfo,
 } from '@shapediver/viewer.shared.services'
 import { mat4, vec3 } from 'gl-matrix'
 import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types'
@@ -27,7 +27,7 @@ import { AnimationFrameEngine } from '@shapediver/viewer.rendering-engine.animat
 import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine'
 
 export class RenderingManager implements IManager {
-    // #region Properties (20)
+    // #region Properties (28)
 
     private readonly _animationEngine: AnimationEngine = AnimationEngine.instance;
     private readonly _animationFrameEngine: AnimationFrameEngine = AnimationFrameEngine.instance;
@@ -39,6 +39,9 @@ export class RenderingManager implements IManager {
     private readonly _tree: ITree = Tree.instance;
 
     private _activeRendering: boolean = true;
+    private _softShadowRenderingActive: boolean = false;
+    private _softShadowRenderingDurationActive: number = 0;
+    private _softShadowRenderingTimeout: NodeJS.Timeout | null = null;
     private _cameraChanged: boolean = false;
     private _continuousRendering: boolean = false;
     private _continuousShadowMapUpdate: boolean = false;
@@ -55,6 +58,8 @@ export class RenderingManager implements IManager {
             width: 0,
             height: 0
         };
+    private _lightSizeUVEnd = 0.15;
+    private _lightSizeUVStart = 0.025;
     private _maxTextureUnits: number = 0;
     private _minimalRendering: boolean = false;
     private _noWebGL: boolean = false;
@@ -64,7 +69,7 @@ export class RenderingManager implements IManager {
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
 
-    // #endregion Properties (20)
+    // #endregion Properties (28)
 
     // #region Constructors (1)
 
@@ -100,7 +105,7 @@ export class RenderingManager implements IManager {
 
     // #endregion Public Accessors (6)
 
-    // #region Public Methods (9)
+    // #region Public Methods (10)
 
     public addLogo(canvas: HTMLCanvasElement, branding: {
         logo: string | null;
@@ -108,7 +113,7 @@ export class RenderingManager implements IManager {
         busyModeSpinner: string;
         busyModeDisplay: BUSY_MODE_DISPLAY;
         spinnerPositioning: SPINNER_POSITIONING
-      }): HTMLDivElement {
+    }): HTMLDivElement {
         const logoDivElement = document.createElement('div');
         logoDivElement.style.backgroundColor = branding.backgroundColor;
         logoDivElement.style.position = 'relative';
@@ -116,7 +121,7 @@ export class RenderingManager implements IManager {
         logoDivElement.style.width = '100%';
         canvas.parentElement?.insertBefore(logoDivElement, canvas.parentElement?.firstChild);
 
-        if(branding.logo) {
+        if (branding.logo) {
             const img = new Image();
             img.style.position = 'absolute';
             img.style.top = '50%';
@@ -128,7 +133,6 @@ export class RenderingManager implements IManager {
 
         return logoDivElement;
     }
-    
 
     public addSpinner(canvas: HTMLCanvasElement, branding: {
         logo: string | null;
@@ -136,23 +140,23 @@ export class RenderingManager implements IManager {
         busyModeSpinner: string;
         busyModeDisplay: BUSY_MODE_DISPLAY;
         spinnerPositioning: SPINNER_POSITIONING
-      }): HTMLDivElement {
+    }): HTMLDivElement {
         const spinnerDivElement = document.createElement('div');
         spinnerDivElement.style.position = 'absolute';
         spinnerDivElement.style.userSelect = 'none';
         spinnerDivElement.style.cursor = 'default';
         spinnerDivElement.style.pointerEvents = 'none';
 
-        if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
+        if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
             spinnerDivElement.style.right = '10px';
             spinnerDivElement.style.bottom = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
+        } else if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
             spinnerDivElement.style.left = '10px';
             spinnerDivElement.style.bottom = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+        } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
             spinnerDivElement.style.right = '10px';
             spinnerDivElement.style.top = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+        } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
             spinnerDivElement.style.left = '10px';
             spinnerDivElement.style.top = '10px';
         } else {
@@ -163,21 +167,21 @@ export class RenderingManager implements IManager {
         spinnerDivElement.style.visibility = 'hidden';
         canvas.parentElement?.insertBefore(spinnerDivElement, canvas.parentElement?.firstChild);
 
-        if(branding.busyModeSpinner) {
+        if (branding.busyModeSpinner) {
             const img = new Image();
             img.src = branding.busyModeSpinner;
 
-            if(branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
+            if (branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
                 img.style.position = 'absolute';
                 img.style.top = '50%';
                 img.style.left = '50%';
                 img.style.transform = 'translateX(-50%) translateY(-50%)';
             } else {
-                if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+                if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
                     img.style.float = 'right';
-                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
                     img.style.float = 'left';
-                } 
+                }
                 img.style.width = 'calc(100% * 0.75)';
                 img.style.height = 'calc(100% * 0.75)';
             }
@@ -230,7 +234,7 @@ export class RenderingManager implements IManager {
     }
 
     public evaluateTextureUnitCount(value: number) {
-        if(value > this._maxTextureUnits) {
+        if (value > this._maxTextureUnits) {
             this._logger.warn(`RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
             this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
@@ -245,6 +249,12 @@ export class RenderingManager implements IManager {
 
     public init(): void {
         try {
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVEnd, 1.0);
+
+            this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+            this._renderingEngine.materialLoader.updateMaterials();
+
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
                 const viewerEvent = <ICameraEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id)
@@ -314,9 +324,15 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.shadowMap.needsUpdate = true;
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (10)
 
-    // #region Private Methods (10)
+    // #region Private Methods (14)
+
+    private activateBeautyRenderShaders() {
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.materialLoader.updateMaterials();
+    }
 
     private animate(time: number, deltaTime: number, runningAnimation: boolean): void {
         // animation loop - part 1: initial discarding
@@ -325,7 +341,7 @@ export class RenderingManager implements IManager {
         this._renderingEngine.evaluateFlagState();
 
         // update if needed
-        if(this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion) {
+        if (this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion) {
             this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root, this._renderingEngine.lightEngine);
             this.updateShadowMap();
             this._animationEngine.updateAnimationData();
@@ -333,10 +349,10 @@ export class RenderingManager implements IManager {
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id })
         }
 
-        if(runningAnimation !== this._runningAnimation) this.render();
+        if (runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
-        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNode(undefined, undefined, { transformationOnly: true });
-        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateMorphWeights();
+        if (this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNode(undefined, undefined, { transformationOnly: true });
+        if (this._runningAnimation) this._renderingEngine.sceneTreeManager.updateMorphWeights();
 
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
@@ -374,8 +390,9 @@ export class RenderingManager implements IManager {
         // animation loop - part 8: calculate the current size
         const currentSize = new THREE.Vector2();
         this._renderingEngine.renderer.getSize(currentSize);
-        if(!currentSize.equals(new THREE.Vector2(adjustedWidth, adjustedHeight))) {
+        if (!currentSize.equals(new THREE.Vector2(adjustedWidth, adjustedHeight))) {
             this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
+            this._renderingEngine.postProcessingManager.resize(adjustedWidth, adjustedHeight);
             this._renderingEngine.renderer.domElement.style.width = width + 'px';
             this._renderingEngine.renderer.domElement.style.height = height + 'px';
             this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
@@ -395,19 +412,19 @@ export class RenderingManager implements IManager {
 
         let threeJsLightObject, oldLightVisibility = true;
         // enable / disable lights
-        if(this._renderingEngine.lights === false) {
+        if (this._renderingEngine.lights === false) {
             const ls = this._renderingEngine.lightEngine.lightScene;
-            if(ls) {
+            if (ls) {
                 threeJsLightObject = ls.node.threeJsObject[this._renderingEngine.id];
-                if(threeJsLightObject) {
+                if (threeJsLightObject) {
                     oldLightVisibility = threeJsLightObject.visible;
                     threeJsLightObject.visible = false;
                 }
             }
         }
-        
+
         // update shadowMap if need
-        if(states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        if (states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
@@ -415,29 +432,40 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.setClearColor(new THREE.Color(this._converter.toThreeJsColorInput(this._renderingEngine.clearColor)), this._renderingEngine.clearAlpha);
 
         // animation loop - part 12: actual rendering separation
-        if (states.beautyRendering === true) {
-            this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
+        if (states.softShadowRendering === true) {
+            this.setShaderProperties();
+
+            if (this._renderingEngine.postProcessingManager.effects.length > 0 || this._renderingEngine.postProcessingManager.manualPostProcessing) {
+                this._renderingEngine.postProcessingManager.render(deltaTime, camera);
+            } else {
+                this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
+            }
+
             // if the duration was long enough, disable the beauty rendering
-            if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
+            if (this._softShadowRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
                 this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewportId: this._renderingEngine.id });
-                this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
+                this.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             } else {
-                this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive += deltaTime;
+                this._softShadowRenderingDurationActive += deltaTime;
             }
         } else {
-            this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
+            if (this._renderingEngine.postProcessingManager.effects.length > 0 || this._renderingEngine.postProcessingManager.manualPostProcessing) {
+                this._renderingEngine.postProcessingManager.render(deltaTime, camera);
+            } else {
+                this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
+            }
 
             // if the beauty rendering was active, disable it
-            if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive) {
+            if (this._softShadowRenderingActive) {
                 this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewportId: this._renderingEngine.id });
-                this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
+                this.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             }
         }
 
         // reset the visibility of the threeJs light object
-        if(threeJsLightObject)
+        if (threeJsLightObject)
             threeJsLightObject.visible = oldLightVisibility;
 
         this._stats.end();
@@ -469,12 +497,22 @@ export class RenderingManager implements IManager {
         }
     }
 
+    private deactivateBeautyRenderShaders() {
+        this._softShadowRenderingTimeout = null;
+        this._softShadowRenderingActive = false;
+        this._softShadowRenderingDurationActive = 0;
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
+        this._renderingEngine.materialLoader.updateMaterials();
+    }
+
     private evaluateRenderingState(): {
         showScene: boolean,
         rendering: boolean,
         busyMode: boolean,
         updateShadowMap: boolean,
-        beautyRendering: boolean
+        softShadowRendering: boolean
     } {
         // If there is a camera to show the scene and the setting for it is set to true, we show the scene
         let showScene = false;
@@ -496,7 +534,7 @@ export class RenderingManager implements IManager {
             if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
-                    return { showScene, rendering: true, updateShadowMap, busyMode: this._renderingEngine.busy, beautyRendering: false };
+                    return { showScene, rendering: true, updateShadowMap, busyMode: this._renderingEngine.busy, softShadowRendering: false };
             }
         } else {
             rendering = false;
@@ -508,13 +546,29 @@ export class RenderingManager implements IManager {
             busyMode = true;
 
         // If we should render in beauty mode
-        let beautyRendering = false;
-        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && busyMode === false && this._continuousRendering === false &&
+        let softShadowRendering = false;
+        if (this._softShadowRenderingActive === true && busyMode === false && this._continuousRendering === false &&
             (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES)
-            beautyRendering = true;
+            softShadowRendering = true;
 
-        return { showScene, rendering, updateShadowMap, busyMode, beautyRendering };
+        return { showScene, rendering, updateShadowMap, busyMode, softShadowRendering };
+    }
+
+    private setShaderProperties() {
+        const deltaTime = Math.min(this._softShadowRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
+        const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
+
+        if (percentage < 0.25) {
+            const percentageMapped = percentage / 0.25;
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
+
+        } else {
+            const percentageMapped = (percentage - 0.25) / (1 - 0.25);
+            // this._lightSizeUVStart -> this._lightSizeUVEnd
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
+        }
+        return percentage;
     }
 
     private showStatistics() {
@@ -529,21 +583,35 @@ export class RenderingManager implements IManager {
 
     private startAndStopRendering() {
         this._activeRendering = true;
-        this._renderingEngine.beautyRenderingManager.stopBeautyRenderCountdown();
-        this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        this.stopBeautyRenderCountdown();
+        this.startBeautyRenderCountdown();
+    }
+
+    private startBeautyRenderCountdown() {
+        this._softShadowRenderingTimeout = setTimeout(() => {
+            this._softShadowRenderingActive = true;
+            this._softShadowRenderingDurationActive = 0;
+            this.activateBeautyRenderShaders();
+        }, this._renderingEngine.beautyRenderDelay);
     }
 
     private startRendering() {
         this._activeRendering = true;
-        this._renderingEngine.beautyRenderingManager.stopBeautyRenderCountdown();
+        this.stopBeautyRenderCountdown();
+    }
+
+    private stopBeautyRenderCountdown() {
+        if (this._softShadowRenderingTimeout)
+            clearTimeout(this._softShadowRenderingTimeout);
+        this.deactivateBeautyRenderShaders();
     }
 
     private stopRendering() {
-        this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        this.startBeautyRenderCountdown();
     }
 
     private toggleBusyMode(toggle: boolean) {
-        if(this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.BLUR) {
+        if (this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.BLUR) {
             this._renderingEngine.htmlElementAnchorLoader.toggleBusyMode(toggle);
             if (toggle) {
                 if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
@@ -552,7 +620,7 @@ export class RenderingManager implements IManager {
             } else {
                 this._renderingEngine.renderer.domElement.style.filter = '';
             }
-        } else if(this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.SPINNER) {
+        } else if (this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.SPINNER) {
             if (toggle) {
                 this._renderingEngine.spinnerDivElement.style.visibility = 'visible';
             } else {
@@ -568,5 +636,5 @@ export class RenderingManager implements IManager {
             this._renderingEngine.canvas.style.display = !toggle ? 'inherit' : 'none';
     }
 
-    // #endregion Private Methods (10)
+    // #endregion Private Methods (14)
 }

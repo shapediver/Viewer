@@ -55,18 +55,16 @@ import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'
 import { GeometryLoader } from './loaders/GeometryLoader'
 import { LightLoader } from './loaders/LightLoader'
 import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
-import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { SDColor } from './objects/SDColor'
+import { PostProcessingManager } from './managers/PostProcessingManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
 
-  // managers
-  private readonly _beautyRenderingManager: BeautyRenderingManager;
   // engines
   private readonly _cameraEngine: CameraEngine;
   private readonly _cameraManager: CameraManager;
@@ -100,6 +98,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _logger: Logger = Logger.instance;
   private readonly _materialLoader: MaterialLoader;
   private readonly _renderingManager: RenderingManager;
+  private readonly _postProcessingManager: PostProcessingManager
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = StateEngine.instance;
@@ -209,12 +208,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)
-    this._beautyRenderingManager = new BeautyRenderingManager(this);
     this._cameraManager = new CameraManager(this);
     this._environmentGeometryManager = new EnvironmentGeometryManager(this);
     this._sceneTracingManager = new SceneTracingManager(this);
     this._sceneTreeManager = new SceneTreeManager(this);
     this._renderingManager = new RenderingManager(this);
+    this._postProcessingManager = new PostProcessingManager(this);
 
     // loaders
     this._environmentMapLoader = new EnvironmentMapLoader(this);
@@ -229,12 +228,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
-    this._beautyRenderingManager.init();
     this._cameraManager.init();
     this._environmentGeometryManager.init();
     this._sceneTracingManager.init();
     this._sceneTreeManager.init();
     this._renderingManager.init();
+    this._postProcessingManager.init();
 
     // loaders
     this._environmentMapLoader.init();
@@ -334,10 +333,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._beautyRenderDelay = value;
   }
 
-  public get beautyRenderingManager(): BeautyRenderingManager {
-    return this._beautyRenderingManager;
-  }
-
   public get busy(): boolean {
     return this._busy;
   }
@@ -362,6 +357,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     spinnerPositioning: SPINNER_POSITIONING
   } {
     return this._branding;
+  }
+
+  public get camera(): THREE.Camera {
+    return this._cameraManager.camera;
   }
 
   public get cameraEngine(): CameraEngine {
@@ -639,12 +638,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
         this._renderer.outputColorSpace = THREE.SRGBColorSpace;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.SRGBColorSpace);
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
         this._renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.LinearSRGBColorSpace);
         break;
     }
   }
@@ -664,6 +661,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set pointSize(value: number) {
     this._pointSize = value;
     this.materialLoader.assignPointSize(value)
+  }
+
+  public get postProcessingManager(): PostProcessingManager {
+    return this._postProcessingManager;
   }
 
   public get renderer(): THREE.WebGLRenderer {
