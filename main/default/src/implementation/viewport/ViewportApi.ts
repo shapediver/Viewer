@@ -21,6 +21,8 @@ import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
 import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
+import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
+import { PostProcessingApi } from "./PostProcessingApi";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
@@ -32,6 +34,7 @@ export class ViewportApi implements IViewportApi {
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
     readonly #logger: Logger = Logger.instance;
+    readonly #postProcessing: IPostProcessingApi;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
     readonly #cameras: { [key: string]: ICameraApi } = {};
@@ -83,6 +86,9 @@ export class ViewportApi implements IViewportApi {
 
         // We call it once in the beginning to get the current state.
         this.#renderingEngine.lightEngine.update();
+
+        // We create the post processing api
+        this.#postProcessing = new PostProcessingApi(this, this.#renderingEngine);
     }
 
     // #endregion Constructors (1)
@@ -499,6 +505,10 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.pointSize = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('pointSize');
+    }
+
+    public get postProcessing(): IPostProcessingApi {
+        return this.#postProcessing;
     }
 
     public get sessionSettingsId(): string | undefined {

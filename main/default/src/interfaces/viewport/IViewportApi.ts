@@ -16,6 +16,7 @@ import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
 import { ISettingsV3_1 } from '@shapediver/viewer.settings'
+import { IPostProcessingApi } from './IPostProcessingApi'
 
 /**
  * The api for viewports.
@@ -71,6 +72,11 @@ export interface IViewportApi {
    * The [light scenes]{@link ILightSceneApi} of the viewport.
    */
   readonly lightScenes: { [key: string]: ILightSceneApi };
+  
+  /**
+   * The [post processing api]{@link IPostProcessingApi} of the viewport. 
+   */
+  readonly postProcessing: IPostProcessingApi;
 
   /**
    * Optional identifier of the session to be used for loading / persisting settings of the viewport.
