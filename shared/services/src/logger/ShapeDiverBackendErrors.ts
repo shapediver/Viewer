@@ -28,3 +28,13 @@ export class ShapeDiverGeometryBackendResponseError extends ShapeDiverViewerErro
 
     // #endregion Constructors (1)
 }
+
+export class ShapeDiverGeometryBackendError extends ShapeDiverViewerError {
+    // #region Constructors (1)
+
+    constructor(message: string) {
+        super(ShapeDiverViewerErrorType.GEOMETRY_BACKEND_ERROR, "A generic geometry backend error occurred.", message);
+    }
+
+    // #endregion Constructors (1)
+}

@@ -1,17 +1,18 @@
 export enum ShapeDiverViewerErrorType {
     AR_ERROR = 'SdARError',
+    GEOMETRY_BACKEND_ERROR = 'SdGeometryBackendError',
     GEOMETRY_BACKEND_REQUEST_ERROR = 'SdGeometryBackendRequestError',
     GEOMETRY_BACKEND_RESPONSE_ERROR = 'SdGeometryBackendResponseError',
     CAMERA_ERROR = 'SdCameraError',
     CONNECTION_ERROR = 'SdConnectionError',
     DATA_PROCESSING_ERROR = 'SdDataProcessingError',
     ENVIRONMENT_MAP_ERROR = 'SdEnvironmentMapError',
-    GENERAL_VIEWPORT_ERROR = 'SdGeneralViewerError',
     INTERACTION_ERROR = 'SdInteractionError',
     LIGHT_ERROR = 'SdLightError',
     SESSION_ERROR = 'SdSessionError',
     SETTINGS_ERROR = 'SdSettingsError',
     VALIDATION_ERROR = 'SdValidationError',
+    VIEWPORT_ERROR = 'SdViewerError',
     WEBGL_ERROR = 'SdWebGLError',
     UNKNOWN = "",
 }
@@ -38,9 +39,10 @@ export class ShapeDiverError extends Error {
 
 export class ShapeDiverViewerError extends ShapeDiverError implements IShapeDiverViewerError {
     // #region Constructors (1)
+    public readonly errorType: ShapeDiverViewerErrorType = ShapeDiverViewerErrorType.UNKNOWN;
 
     constructor(
-        public readonly errorType: ShapeDiverViewerErrorType,
+        errorType: ShapeDiverViewerErrorType,
         public readonly desc: string,
         message: string
     ) {
