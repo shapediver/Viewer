@@ -121,6 +121,8 @@ export class RenderingManager implements IManager {
             img.style.position = 'absolute';
             img.style.top = '50%';
             img.style.left = '50%';
+            img.style.maxWidth = 'calc(100% * 0.5)';
+            img.style.maxHeight = 'calc(100% * 0.5)';
             img.style.transform = 'translateX(-50%) translateY(-50%)';
             img.src = branding.logo;
             logoDivElement.appendChild(img)
@@ -139,26 +141,12 @@ export class RenderingManager implements IManager {
       }): HTMLDivElement {
         const spinnerDivElement = document.createElement('div');
         spinnerDivElement.style.position = 'absolute';
+        spinnerDivElement.style.height = '100%';
+        spinnerDivElement.style.width = '100%';
+
         spinnerDivElement.style.userSelect = 'none';
         spinnerDivElement.style.cursor = 'default';
         spinnerDivElement.style.pointerEvents = 'none';
-
-        if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
-            spinnerDivElement.style.right = '10px';
-            spinnerDivElement.style.bottom = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
-            spinnerDivElement.style.left = '10px';
-            spinnerDivElement.style.bottom = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
-            spinnerDivElement.style.right = '10px';
-            spinnerDivElement.style.top = '10px';
-        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
-            spinnerDivElement.style.left = '10px';
-            spinnerDivElement.style.top = '10px';
-        } else {
-            spinnerDivElement.style.height = '100%';
-            spinnerDivElement.style.width = '100%';
-        }
 
         spinnerDivElement.style.visibility = 'hidden';
         canvas.parentElement?.insertBefore(spinnerDivElement, canvas.parentElement?.firstChild);
@@ -166,21 +154,34 @@ export class RenderingManager implements IManager {
         if(branding.busyModeSpinner) {
             const img = new Image();
             img.src = branding.busyModeSpinner;
+            img.style.position = 'absolute';
 
             if(branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
-                img.style.position = 'absolute';
                 img.style.top = '50%';
                 img.style.left = '50%';
                 img.style.transform = 'translateX(-50%) translateY(-50%)';
             } else {
-                if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+                if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
+                    img.style.right = 'calc(100% * 0.01)';
+                    img.style.bottom = 'calc(100% * 0.01)';
                     img.style.float = 'right';
-                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
+                    img.style.left = 'calc(100% * 0.01)';
+                    img.style.bottom = 'calc(100% * 0.01)';
                     img.style.float = 'left';
-                } 
-                img.style.width = 'calc(100% * 0.75)';
-                img.style.height = 'calc(100% * 0.75)';
+                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+                    img.style.right = 'calc(100% * 0.01)';
+                    img.style.top = 'calc(100% * 0.01)';
+                    img.style.float = 'right';
+                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+                    img.style.left = 'calc(100% * 0.01)';
+                    img.style.top = 'calc(100% * 0.01)';
+                    img.style.float = 'left';
+                }
             }
+            
+            img.style.maxWidth = 'calc(100% * 0.15)';
+            img.style.maxHeight = 'calc(100% * 0.15)';
             spinnerDivElement.appendChild(img)
         }
 
