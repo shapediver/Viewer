@@ -5,7 +5,7 @@ import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
-import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
@@ -1263,7 +1263,7 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async handleError(e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, retry = false) {
-        if (e instanceof ShapeDiverResponseError) {
+        if (isGBResponseError(e)) {
             if (e.error === ShapeDiverResponseErrorType.SESSION_GONE_ERROR) {
                 // case 1: the session is no longer available
                 // we try to re-initialize the session 3 times, if that does not work, we close it

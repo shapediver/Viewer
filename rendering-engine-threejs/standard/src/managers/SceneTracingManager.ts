@@ -1,6 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 import { AbstractCamera, OrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { ShapeDiverViewerGeneralError } from '@shapediver/viewer.shared.services'
+import { ShapeDiverViewerViewportError } from '@shapediver/viewer.shared.services'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine'
 
@@ -30,7 +30,7 @@ export class SceneTracingManager implements IManager {
 
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera) 
-            throw new ShapeDiverViewerGeneralError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
         const tracing = this._intersectionManager.intersect({ origin: camera.position, direction });
@@ -71,7 +71,7 @@ export class SceneTracingManager implements IManager {
         const rect = this._renderingEngine.canvas.getBoundingClientRect();
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera) 
-            throw new ShapeDiverViewerGeneralError('SceneTracingManager.mouseEventToRay: No camera is defined for this viewer.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.mouseEventToRay: No camera is defined for this viewer.');
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -109,14 +109,14 @@ export class SceneTracingManager implements IManager {
         direction: vec3
     } {
         if (event.touches.length < 1) 
-            throw new ShapeDiverViewerGeneralError('SceneTracingManager.touchEventToRay: No touches in this event.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchEventToRay: No touches in this event.');
 
         const touch = event.changedTouches[0];
 
         const rect = this._renderingEngine.canvas.getBoundingClientRect();
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera) 
-            throw new ShapeDiverViewerGeneralError('SceneTracingManager.touchEventToRay: No camera is defined for this viewer.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchEventToRay: No camera is defined for this viewer.');
 
         let _mouse_x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
         let _mouse_y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
@@ -155,7 +155,7 @@ export class SceneTracingManager implements IManager {
         const rect = this._renderingEngine.canvas.getBoundingClientRect();
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera) 
-            throw new ShapeDiverViewerGeneralError('SceneTracingManager.touchToRay: No camera is defined for this viewer.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchToRay: No camera is defined for this viewer.');
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;

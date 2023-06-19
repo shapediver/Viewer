@@ -14,11 +14,12 @@ import { UuidGenerator } from './uuid-generator/UuidGenerator'
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator'
 import { Logger, LOGGING_LEVEL } from './logger/Logger'
 import { StatePromise } from './state-engine/StatePromise'
-import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError, ShapeDiverViewerInteractionError, ShapeDiverViewerViewportError } from './logger/ShapeDiverViewerErrors'
+import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerWebGLError, ShapeDiverViewerInteractionError, ShapeDiverViewerViewportError } from './logger/ShapeDiverViewerErrors'
 import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from './logger/ShapeDiverError'
 import { HttpResponse } from './http-client/HttpResponse'
-import { ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors'
+import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors'
 import { ShapeDiverResponseErrorType as ShapeDiverGeometryBackendResponseErrorType } from "@shapediver/sdk.geometry-api-sdk-v2";
+import { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError } from './logger/ErrorTypeGuards'
 
 export {
   EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -71,16 +72,36 @@ export {
     ShapeDiverViewerSettingsError,
     ShapeDiverViewerSessionError,
     ShapeDiverViewerViewportError,
-    ShapeDiverViewerGeneralError,
     ShapeDiverViewerUnknownError, 
     ShapeDiverViewerArError,
     ShapeDiverViewerLightError,
     ShapeDiverViewerCameraError,
     ShapeDiverViewerValidationError,
     ShapeDiverViewerInteractionError,
+    ShapeDiverGeometryBackendError,
     ShapeDiverGeometryBackendRequestError,
     ShapeDiverGeometryBackendResponseError,
     ShapeDiverGeometryBackendResponseErrorType
+}
+
+export {
+    isViewerError,
+    isViewerUnknownError,
+    isViewerDataProcessingError,
+    isViewerEnvironmentMapError,
+    isViewerWebGLError,
+    isViewerSettingsError,
+    isViewerSessionError,
+    isViewerViewportError,
+    isViewerLightError,
+    isViewerCameraError,
+    isARError,
+    isViewerValidationError,
+    isViewerInteractionError,
+    isViewerGeometryBackendError,
+    isViewerGeometryBackendGenericError,
+    isViewerGeometryBackendRequestError,
+    isViewerGeometryBackendResponseError
 }
 
 export {
