@@ -152,8 +152,8 @@ export class EnvironmentGeometryManager implements IManager {
         let eps = 0.005;
         let bs = bb.boundingSphere;
         this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
+        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
     }
 
     public init(): void {
@@ -217,8 +217,8 @@ export class EnvironmentGeometryManager implements IManager {
             this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
 
             if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
+            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
         }
     }
 
