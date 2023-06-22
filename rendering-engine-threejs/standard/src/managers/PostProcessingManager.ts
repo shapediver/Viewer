@@ -1,14 +1,17 @@
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { OverrideMaterialManager, BloomEffect, ChromaticAberrationEffect, DepthDownsamplingPass, DepthOfFieldEffect, DotScreenEffect, EdgeDetectionMaterial, EdgeDetectionMode, Effect, EffectComposer, EffectPass, FXAAEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, NormalPass, OutlineEffect, PixelationEffect, PredicationMode, RenderPass, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, SMAAEffect, SMAAPreset, SSAOEffect, TextureEffect, TiltShiftEffect, ToneMappingEffect, VignetteEffect, ShaderPass, CopyMaterial, CopyPass } from 'postprocessing';
+import { OverrideMaterialManager, BloomEffect, ChromaticAberrationEffect, DepthDownsamplingPass, DepthOfFieldEffect, DotScreenEffect, Effect, EffectComposer, EffectPass, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, NormalPass, OutlineEffect, PixelationEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, SSAOEffect, TiltShiftEffect, VignetteEffect, RenderPass, TextureEffect, ColorChannel } from 'postprocessing';
 import { Converter, EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
-import { IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IFXAAEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, IPostProcessingEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ISMAAEffectDefinition, ISSAOEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, POST_PROCESSING_EFFECT_TYPE } from '../interfaces/IPostProcessingEffectDefinitions';
+import { IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, IPostProcessingEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ISSAOEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, POST_PROCESSING_EFFECT_TYPE } from '../interfaces/IPostProcessingEffectDefinitions';
 import * as THREE from 'three';
 import { OutlineManager } from './postprocessing/OutlineManager';
 import { GodRaysManager } from './postprocessing/GodRaysManager';
 import { IViewportEvent } from '@shapediver/viewer.shared.types';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
+import { BlendFunction } from '..';
+import { DepthEffect } from './postprocessing/utils/DepthEffect';
+import { DepthPass } from './postprocessing/utils/DepthPass';
 export class PostProcessingManager implements IManager {
     // #region Properties (14)
 
@@ -113,6 +116,8 @@ export class PostProcessingManager implements IManager {
 
         this._composer.removeAllPasses();
         this._composer.addPass(this._ssaaRenderPass);
+        // this._composer.addPass(new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera));
+        // this._composer.addPass(new DepthPass(this._renderingEngine.scene, this._renderingEngine.camera))
 
         // remove the effects where the tokens are not in the effectDefinitions
         const activeEffectTokens = this._effectDefinitions.map(e => e.token);
@@ -179,18 +184,6 @@ export class PostProcessingManager implements IManager {
                                 blendFunction: definition.blendFunction,
                                 scale: definition.scale,
                                 angle: definition.angle
-                            })
-                        });
-                    }
-                    break;
-
-                case POST_PROCESSING_EFFECT_TYPE.FXAA:
-                    {
-                        const definition: IFXAAEffectDefinition = this._effectDefinitions[i].definition as IFXAAEffectDefinition;
-                        this._effects.push({
-                            token: this._effectDefinitions[i].token,
-                            effect: new FXAAEffect({
-                                blendFunction: definition.blendFunction
                             })
                         });
                     }
@@ -286,20 +279,6 @@ export class PostProcessingManager implements IManager {
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new PixelationEffect(definition.granularity)
-                        });
-                    }
-                    break;
-
-                case POST_PROCESSING_EFFECT_TYPE.SMAA:
-                    {
-                        const definition: ISMAAEffectDefinition = this._effectDefinitions[i].definition as ISMAAEffectDefinition;
-                        this._effects.push({
-                            token: this._effectDefinitions[i].token,
-                            effect: new SMAAEffect({
-                                preset: definition.preset,
-                                edgeDetectionMode: definition.edgeDetectionMode,
-                                predicationMode: definition.predicationMode
-                            })
                         });
                     }
                     break;
@@ -428,7 +407,7 @@ export class PostProcessingManager implements IManager {
         this._composer = new EffectComposer(this._renderingEngine.renderer);
         // EffectComposer disables autoClear, we enable/disable this in the postprocessing render loop
         this._renderingEngine.renderer.autoClear = true;
-        this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera, this._renderingEngine.renderer.getClearColor(new THREE.Color()), this._renderingEngine.renderer.getClearAlpha());
+        this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
         this._composer.addPass(this._ssaaRenderPass);
 
         this._normalPassScene = this._renderingEngine.scene.clone();
@@ -462,8 +441,6 @@ export class PostProcessingManager implements IManager {
     }
 
     public render(deltaTime: number, camera: THREE.Camera) {
-        this._ssaaRenderPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());      
-        this._ssaaRenderPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
         this._renderingEngine.renderer.autoClear = false;
         this._composer.setMainCamera(camera);
         this._composer.render();

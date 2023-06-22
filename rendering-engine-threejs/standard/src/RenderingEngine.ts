@@ -182,7 +182,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
-
+    THREE.ColorManagement.enabled = false;
+    
     const prop = Object.assign({}, properties);
     const branding = Object.assign({}, prop.branding);
 

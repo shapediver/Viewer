@@ -1,20 +1,20 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
     KernelSize,
-    POST_PROCESSING_EFFECT_TYPE,
-    GodRaysEffect,
-    BloomEffect,
-    BlendFunction
-} from "@shapediver/viewer";
+    POST_PROCESSING_EFFECT_TYPE
+} from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IDropdownElement,
+    ISliderElement
+} from '@shapediver/viewer.utils.demo-helper';
+import { IBloomEffectDefinition } from '@shapediver/viewer';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IColorElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
-import * as THREE from "three"
 
 (async () => {
     // create a viewport
@@ -30,13 +30,7 @@ import * as THREE from "three"
         id: "mySession"
     });
 
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
-
-    const bloomEffectToken = viewport.postProcessing.addEffect({
+    const bloomEffectDefinition: IBloomEffectDefinition = {
         /** The blend function of this effect. (default: BlendFunction.ADD) */
         blendFunction: BlendFunction.ADD,
         /** The bloom intensity. (default: 1.0) */
@@ -50,23 +44,36 @@ import * as THREE from "three"
         /** Enables or disables mipmap blur. (default: false) */
         mipmapBlur: false,
         type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
-    })
-    const bloomEffect = <BloomEffect>viewport.postProcessing.getEffect(bloomEffectToken);
+    }
+    const bloomEffectToken = viewport.postProcessing.addEffect(bloomEffectDefinition)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => bloomEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => bloomEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                bloomEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(bloomEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(bloomEffectDefinition.blendFunction!)
+        },
+        <IBooleanElement>{
+            name: "mipmapBlur",
+            type: "boolean",
+            onChangeCallback: (value: boolean) => {
+                bloomEffectDefinition.mipmapBlur = value;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
+            value: bloomEffectDefinition.mipmapBlur
         },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
-            onInputCallback: (value: any) => bloomEffect.intensity = value,
-            onChangeCallback: (value: any) => bloomEffect.intensity = value,
+            onChangeCallback: (value: number) => {
+                bloomEffectDefinition.intensity = value;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
             value: 1,
             min: 0,
             max: 10,
@@ -75,8 +82,10 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "luminanceSmoothing",
             type: "slider",
-            onInputCallback: (value: any) => bloomEffect.luminanceMaterial.smoothing = value,
-            onChangeCallback: (value: any) => bloomEffect.luminanceMaterial.smoothing = value,
+            onChangeCallback: (value: number) => {
+                bloomEffectDefinition.luminanceSmoothing = value;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
             value: 0.025,
             min: 0,
             max: 1,
@@ -85,8 +94,10 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "luminanceThreshold",
             type: "slider",
-            onInputCallback: (value: any) => bloomEffect.luminanceMaterial.threshold = value,
-            onChangeCallback: (value: any) => bloomEffect.luminanceMaterial.threshold = value,
+            onChangeCallback: (value: number) => {
+                bloomEffectDefinition.luminanceThreshold = value;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
             value: 0.9,
             min: 0,
             max: 1,
@@ -95,10 +106,12 @@ import * as THREE from "three"
         <IDropdownElement>{
             name: "kernelSize",
             type: "dropdown",
-            onInputCallback: (value: any) => bloomEffect.kernelSize = value,
-            onChangeCallback: (value: any) => bloomEffect.kernelSize = value,
+            onChangeCallback: (value: number) => {
+                bloomEffectDefinition.kernelSize = value;
+                viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
+            },
             choices: Object.keys(KernelSize),
-            value: KernelSize.LARGE
+            value: bloomEffectDefinition.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

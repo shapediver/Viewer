@@ -1,4 +1,4 @@
-import { Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IFXAAEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISMAAEffectDefinition, ISSAOEffectDefinition, POST_PROCESSING_EFFECT_TYPE } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard/dist/interfaces/IPostProcessingEffectDefinitions";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
@@ -112,14 +112,12 @@ export interface IPostProcessingApi {
     addEffect(definition: IChromaticAberrationEffectDefinition): string;
     addEffect(definition: IDepthOfFieldEffectDefinition): string;
     addEffect(definition: IDotScreenEffectDefinition): string;
-    addEffect(definition: IFXAAEffectDefinition): string;
     addEffect(definition: IGodRaysEffectDefinition): string;
     addEffect(definition: IGridEffectDefinition): string;
     addEffect(definition: IHueSaturationEffectDefinition): string;
     addEffect(definition: INoiseEffectDefinition): string;
     addEffect(definition: IOutlineEffectDefinition): string;
     addEffect(definition: IPixelationEffectDefinition): string;
-    addEffect(definition: ISMAAEffectDefinition): string;
     addEffect(definition: ISSAOEffectDefinition): string;
     addEffect(definition: IScanlineEffectDefinition): string;
     addEffect(definition: ISelectiveBloomEffectDefinition): string;

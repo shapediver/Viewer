@@ -1,20 +1,18 @@
 import { Color } from "@shapediver/viewer.shared.types"
 import { vec2 } from "gl-matrix"
-import { EdgeDetectionMode, PredicationMode, SMAAPreset, BlendFunction, KernelSize, VignetteTechnique } from "postprocessing"
+import { BlendFunction, KernelSize, VignetteTechnique } from "postprocessing"
 
 export enum POST_PROCESSING_EFFECT_TYPE {
     BLOOM = "bloom",
     CHROMATIC_ABERRATION = "chromatic_aberration",
     DEPTH_OF_FIELD = "depth_of_field",
     DOT_SCREEN = "dot_screen",
-    FXAA = "fxaa",
     GOD_RAYS = "god_rays",
     GRID = "grid",
     HUE_SATURATION = "hue_saturation",
     NOISE = "noise",
     OUTLINE = "outline",
     PIXELATION = "pixelation",
-    SMAA = "smaa",
     SSAO = "ssao",
     SCANLINE = "scanline",
     SELECTIVE_BLOOM = "selective_bloom",
@@ -98,16 +96,6 @@ export interface IDotScreenEffectDefinition extends IPostProcessingEffectDefinit
     type: POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN
 
     // #endregion Properties (4)
-}
-
-export interface IFXAAEffectDefinition extends IPostProcessingEffectDefinition {
-    // #region Properties (2)
-
-    /** The blend function of this effect. (default: BlendFunction.SRC) */
-    blendFunction?: BlendFunction,
-    type: POST_PROCESSING_EFFECT_TYPE.FXAA
-
-    // #endregion Properties (2)
 }
 
 export interface IGodRaysEffectDefinition extends IPostProcessingEffectDefinition {
@@ -210,20 +198,6 @@ export interface IPixelationEffectDefinition extends IPostProcessingEffectDefini
     type: POST_PROCESSING_EFFECT_TYPE.PIXELATION
 
     // #endregion Properties (2)
-}
-
-export interface ISMAAEffectDefinition extends IPostProcessingEffectDefinition {
-    // #region Properties (4)
-
-    /** The edge detection mode. (default: EdgeDetectionMode.COLOR) */
-    edgeDetectionMode?: EdgeDetectionMode,
-    /** The predication mode. (default: PredicationMode.DISABLED) */
-    predicationMode?: PredicationMode,
-    /** The quality preset. (default: SMAAPreset.MEDIUM) */
-    preset?: SMAAPreset,
-    type: POST_PROCESSING_EFFECT_TYPE.SMAA,
-
-    // #endregion Properties (4)
 }
 
 export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
