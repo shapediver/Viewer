@@ -8,7 +8,6 @@ import {
   CustomBlending,
   HalfFloatType,
   Mesh,
-  MeshBasicMaterial,
   OneFactor,
   OrthographicCamera,
   PerspectiveCamera,
@@ -35,7 +34,7 @@ let geometry: BufferGeometry | null = null;
  * @return {BufferGeometry} The fullscreen geometry.
  */
 
-function getFullscreenTriangle() {
+const getFullscreenTriangle = () =>  {
 
 	if(geometry === null) {
 
@@ -67,18 +66,19 @@ function getFullscreenTriangle() {
 export class SSAARenderPass extends Pass {
   // #region Properties (9)
 
-  private readonly _copyMaterial: ShaderMaterial;
+  private readonly _clearPass: ClearPass;
   private readonly _copyUniforms: any;
   private readonly _fsQuad: FullScreenQuad;
+  private readonly _fullScreen: Mesh;
   private readonly _sampleRenderTarget: WebGLRenderTarget;
+  private readonly _ssaaCopyMaterial: ShaderMaterial;
 
   private _clearAlpha: number | undefined;
   private _clearColor: Color = new Color();
   private _oldClearColor: Color = new Color();
   private _sampleLevel: number = 4;
   private _unbiased: boolean = true;
-  private _copyMaterial2: CopyMaterial;
-  _fullScreen: any;
+  private _copyMaterial: CopyMaterial;
 
   // #endregion Properties (9)
 
@@ -98,7 +98,8 @@ export class SSAARenderPass extends Pass {
     const copyShader = CopyShader;
     this._copyUniforms = UniformsUtils.clone(copyShader.uniforms);
 
-    this._copyMaterial = new ShaderMaterial({
+    // Create a copy material to render the ssaa sample render target to.
+    this._ssaaCopyMaterial = new ShaderMaterial({
       uniforms: this._copyUniforms,
       vertexShader: copyShader.vertexShader,
       fragmentShader: copyShader.fragmentShader,
@@ -114,13 +115,15 @@ export class SSAARenderPass extends Pass {
       blendSrc: SrcAlphaFactor,
       blendSrcAlpha: OneFactor,
     });
+    this._fsQuad = new FullScreenQuad(this._ssaaCopyMaterial);
 
-    this._fsQuad = new FullScreenQuad(this._copyMaterial);
-
-    this._copyMaterial2 = new CopyMaterial();
-    this._fullScreen = new Mesh(getFullscreenTriangle(), this._copyMaterial2);
+    // create a second copy material to render the final results to
+    this._copyMaterial = new CopyMaterial();
+    this._fullScreen = new Mesh(getFullscreenTriangle(), this._copyMaterial);
     this._fullScreen.frustumCulled = false;
 
+    // clear pass for color and depth
+    this._clearPass = new ClearPass(true, true, false);
   }
 
   // #endregion Constructors (1)
@@ -163,7 +166,7 @@ export class SSAARenderPass extends Pass {
 
   public dispose() {
     this._sampleRenderTarget.dispose();
-    this._copyMaterial.dispose();
+    this._ssaaCopyMaterial.dispose();
     this._fsQuad.dispose();
   }
 
@@ -187,9 +190,11 @@ export class SSAARenderPass extends Pass {
 
     const jitterOffsets = _JitterVectors[Math.max(0, Math.min(this._sampleLevel, 5))];
 
+    // save the original auto clear and set to false
     const autoClear = renderer.autoClear;
     renderer.autoClear = false;
 
+    // save the original clear color and alpha
     renderer.getClearColor(this._oldClearColor);
     const oldClearAlpha = renderer.getClearAlpha();
 
@@ -243,7 +248,6 @@ export class SSAARenderPass extends Pass {
         sampleWeight += roundingRange * uniformCenteredDistribution;
       }
 
-      this._copyUniforms["opacity"].value = sampleWeight;
       renderer.setClearColor(this._clearColor, this._clearAlpha);
       renderer.setRenderTarget(this._sampleRenderTarget);
       renderer.clear();
@@ -256,24 +260,24 @@ export class SSAARenderPass extends Pass {
         renderer.clear();
       }
 
+      // set the weight of the current samples in the ssaaCopyMaterial
+      this._copyUniforms["opacity"].value = sampleWeight;
+
+      // render the sampleRenderTarget to fullscreen
       this._fsQuad.render(renderer);
     }
 
-    new ClearPass(true, true, false).render(renderer, inputBuffer, inputBuffer)
-    new ClearPass(false, true, false).render(renderer, outputBuffer, outputBuffer)
+    // clear color and depth
+    this._clearPass.render(renderer, inputBuffer, inputBuffer);
 
-    this._copyMaterial2.uniforms.inputBuffer.value = outputBuffer.texture;
-    this._copyMaterial2.uniforms.opacity.value = 1;
+    // render to the final result to fullscreen
+    this._copyMaterial.uniforms.inputBuffer.value = outputBuffer.texture;
+    this._copyMaterial.uniforms.opacity.value = 1;
     renderer.setRenderTarget(this.renderToScreen ? null : inputBuffer);
 
-    renderer.clearColor()
-    //   // renderer.clear();
-    //   // renderer.clearDepth()
     this.scene.add(this._fullScreen);
     renderer.render(this.scene, this.camera);
 		this.scene.remove(this._fullScreen);
-    // renderer.setRenderTarget(inputBuffer);
-    // renderer.render(this.scene, this.camera);
 
     if ((<PerspectiveCamera | OrthographicCamera>this.camera).setViewOffset && originalViewOffset.enabled) {
       (<PerspectiveCamera | OrthographicCamera>this.camera).setViewOffset(

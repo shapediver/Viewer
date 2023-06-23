@@ -66,6 +66,14 @@ export class PostProcessingApi implements IPostProcessingApi {
         return this.#renderingEngine.postProcessingManager.selectiveBloomManagers;
     }
 
+    public get ssaaSampleLevel(): number {
+        return this.#renderingEngine.postProcessingManager.ssaaSampleLevel;
+    }
+
+    public set ssaaSampleLevel(value: number) {
+        this.#renderingEngine.postProcessingManager.ssaaSampleLevel = value;
+    }
+
     // #endregion Public Accessors (6)
 
     // #region Public Methods (3)

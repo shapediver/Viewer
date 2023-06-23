@@ -44,7 +44,6 @@
     "@shapediver/viewer.shared.types": "*",
     "@shapediver/viewer.data-engine.data-engine": "*",
     "@shapediver/viewer.features.interaction": "*",
-    "@shapediver/viewer.utils.demo-helper": "*",
     "gl-matrix": "3.3.0"
   }
 }

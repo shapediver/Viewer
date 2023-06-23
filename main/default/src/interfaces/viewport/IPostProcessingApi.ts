@@ -104,6 +104,12 @@ export interface IPostProcessingApi {
         }
     }
 
+    /**
+     * The number of samples that are taken in the Supersample Anti-Aliasing Render Pass.
+     * Specified as n, where the number of samples is 2^n, so sampleLevel = 4, is 2^4 samples, 16. (default: 4)
+     */
+    ssaaSampleLevel: number;
+
     // #endregion Properties (5)
 
     // #region Public Methods (21)

@@ -1,17 +1,62 @@
-import { RenderingEngine } from '../RenderingEngine'
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { OverrideMaterialManager, BloomEffect, ChromaticAberrationEffect, DepthDownsamplingPass, DepthOfFieldEffect, DotScreenEffect, Effect, EffectComposer, EffectPass, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, NormalPass, OutlineEffect, PixelationEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, SSAOEffect, TiltShiftEffect, VignetteEffect, RenderPass, TextureEffect, ColorChannel } from 'postprocessing';
-import { Converter, EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
-import { IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, IPostProcessingEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ISSAOEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, POST_PROCESSING_EFFECT_TYPE } from '../interfaces/IPostProcessingEffectDefinitions';
 import * as THREE from 'three';
-import { OutlineManager } from './postprocessing/OutlineManager';
+import {
+    BlendFunction,
+    BloomEffect,
+    ChromaticAberrationEffect,
+    DepthDownsamplingPass,
+    DepthOfFieldEffect,
+    DotScreenEffect,
+    Effect,
+    EffectComposer,
+    EffectPass,
+    GodRaysEffect,
+    GridEffect,
+    HueSaturationEffect,
+    NoiseEffect,
+    NormalPass,
+    OutlineEffect,
+    OverrideMaterialManager,
+    PixelationEffect,
+    ScanlineEffect,
+    SelectiveBloomEffect,
+    SepiaEffect,
+    SSAOEffect,
+    TiltShiftEffect,
+    VignetteEffect
+    } from 'postprocessing';
+import {
+    Converter,
+    EventEngine,
+    EVENTTYPE,
+    UuidGenerator
+    } from '@shapediver/viewer.shared.services';
 import { GodRaysManager } from './postprocessing/GodRaysManager';
+import {
+    IBloomEffectDefinition,
+    IChromaticAberrationEffectDefinition,
+    IDepthOfFieldEffectDefinition,
+    IDotScreenEffectDefinition,
+    IGodRaysEffectDefinition,
+    IGridEffectDefinition,
+    IHueSaturationEffectDefinition,
+    INoiseEffectDefinition,
+    IOutlineEffectDefinition,
+    IPixelationEffectDefinition,
+    IPostProcessingEffectDefinition,
+    IScanlineEffectDefinition,
+    ISelectiveBloomEffectDefinition,
+    ISepiaEffectDefinition,
+    ISSAOEffectDefinition,
+    ITiltShiftEffectDefinition,
+    IVignetteEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
+    } from '../interfaces/IPostProcessingEffectDefinitions';
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { IViewportEvent } from '@shapediver/viewer.shared.types';
+import { OutlineManager } from './postprocessing/OutlineManager';
+import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
-import { BlendFunction } from '..';
-import { DepthEffect } from './postprocessing/utils/DepthEffect';
-import { DepthPass } from './postprocessing/utils/DepthPass';
 export class PostProcessingManager implements IManager {
     // #region Properties (14)
 
@@ -91,6 +136,14 @@ export class PostProcessingManager implements IManager {
         } else {
             this._composer.addPass(this._ssaaRenderPass);
         }
+    }
+
+    public get ssaaSampleLevel(): number {
+        return this._ssaaRenderPass.sampleLevel;
+    }
+
+    public set ssaaSampleLevel(value: number) {
+        this._ssaaRenderPass.sampleLevel = value;
     }
 
     // #endregion Public Accessors (4)
