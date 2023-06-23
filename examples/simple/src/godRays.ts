@@ -1,17 +1,20 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
-    KernelSize,
-    POST_PROCESSING_EFFECT_TYPE,
     GodRaysEffect,
-    BlendFunction
-} from "@shapediver/viewer";
+    IGodRaysEffectDefinition,
+    KernelSize,
+    POST_PROCESSING_EFFECT_TYPE
+} from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IDropdownElement,
+    ISliderElement
+} from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -23,17 +26,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-    
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
 
-    const godRaysEffectToken = viewport.postProcessing.addEffect({
+    const godRaysEffectDefinition: IGodRaysEffectDefinition = {
         /** The blend function of this effect. (default: BlendFunction.SCREEN) */
         blendFunction: BlendFunction.SCREEN,
         /** Whether the god rays should be blurred to reduce artifacts. (default: true) */
@@ -51,34 +49,43 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         type: POST_PROCESSING_EFFECT_TYPE.GOD_RAYS,
         /** A light ray weight factor. (default: 0.4) */
         weight: 0.4
-    })
-    const godRaysEffect = <GodRaysEffect>viewport.postProcessing.getEffect(godRaysEffectToken);
+    };
+    const godRaysEffectToken = viewport.postProcessing.addEffect(godRaysEffectDefinition)
 
     const output = session.getOutputByName("HorizontalBottom").find(o => !o.format.includes("material"))!;
-    viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)    
+    viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => godRaysEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => godRaysEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                godRaysEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(godRaysEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(godRaysEffectDefinition.blendFunction!)
         },
         <IBooleanElement>{
             name: "blur",
             type: "boolean",
-            onInputCallback: (value: any) => godRaysEffect.blur = value,
-            onChangeCallback: (value: any) => godRaysEffect.blur = value,
-            value: true
+            onChangeCallback: (value: boolean) => {
+                godRaysEffectDefinition.blur = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.blur
         },
         <ISliderElement>{
             name: "density",
             type: "slider",
-            onInputCallback: (value: any) => godRaysEffect.godRaysMaterial.density = value,
-            onChangeCallback: (value: any) => godRaysEffect.godRaysMaterial.density = value,
-            value: 0.96,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.density = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.density,
             min: 0,
             max: 1,
             step: 0.001
@@ -86,9 +93,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "decay",
             type: "slider",
-            onInputCallback: (value: any) => godRaysEffect.godRaysMaterial.decay = value,
-            onChangeCallback: (value: any) => godRaysEffect.godRaysMaterial.decay = value,
-            value: 0.9,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.decay = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.decay,
             min: 0,
             max: 1,
             step: 0.001
@@ -96,9 +106,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "weight",
             type: "slider",
-            onInputCallback: (value: any) => godRaysEffect.godRaysMaterial.weight = value,
-            onChangeCallback: (value: any) => godRaysEffect.godRaysMaterial.weight = value,
-            value: 0.4,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.weight = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.weight,
             min: 0,
             max: 1,
             step: 0.001
@@ -106,9 +119,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "exposure",
             type: "slider",
-            onInputCallback: (value: any) => godRaysEffect.godRaysMaterial.exposure = value,
-            onChangeCallback: (value: any) => godRaysEffect.godRaysMaterial.exposure = value,
-            value: 0.6,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.exposure = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.exposure,
             min: 0,
             max: 1,
             step: 0.001
@@ -116,9 +132,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "clampMax",
             type: "slider",
-            onInputCallback: (value: any) => godRaysEffect.godRaysMaterial.uniforms.clampMax.value = value,
-            onChangeCallback: (value: any) => godRaysEffect.godRaysMaterial.uniforms.clampMax.value = value,
-            value: 1,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.clampMax = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
+            value: godRaysEffectDefinition.clampMax,
             min: 0,
             max: 1,
             step: 0.001
@@ -126,10 +145,13 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <IDropdownElement>{
             name: "kernelSize",
             type: "dropdown",
-            onInputCallback: (value: any) => godRaysEffect.kernelSize = value,
-            onChangeCallback: (value: any) => godRaysEffect.kernelSize = value,
+            onChangeCallback: (value: number) => {
+                godRaysEffectDefinition.kernelSize = value;
+                viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
+                viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
+            },
             choices: Object.keys(KernelSize),
-            value: KernelSize.SMALL
+            value: godRaysEffectDefinition.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

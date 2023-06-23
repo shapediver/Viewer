@@ -25,8 +25,8 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
 
@@ -74,7 +74,7 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
                 bloomEffectDefinition.intensity = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: 1,
+            value: bloomEffectDefinition.intensity,
             min: 0,
             max: 10,
             step: 0.01
@@ -86,7 +86,7 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
                 bloomEffectDefinition.luminanceSmoothing = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: 0.025,
+            value: bloomEffectDefinition.luminanceSmoothing,
             min: 0,
             max: 1,
             step: 0.001
@@ -98,13 +98,13 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
                 bloomEffectDefinition.luminanceThreshold = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: 0.9,
+            value: bloomEffectDefinition.luminanceThreshold,
             min: 0,
             max: 1,
             step: 0.001
         },
         <IDropdownElement>{
-            name: "kernelSize",
+            name: "blur - kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
                 bloomEffectDefinition.kernelSize = value;

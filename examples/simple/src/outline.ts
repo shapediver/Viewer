@@ -1,20 +1,21 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
+    IOutlineEffectDefinition,
     KernelSize,
-    POST_PROCESSING_EFFECT_TYPE,
-    OutlineEffect,
-    BlendFunction,
-    Resolution
-} from "@shapediver/viewer";
+    POST_PROCESSING_EFFECT_TYPE
+} from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IColorElement,
+    IDropdownElement,
+    ISliderElement
+} from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IColorElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
-import * as THREE from "three"
 
 (async () => {
     // create a viewport
@@ -25,17 +26,12 @@ import * as THREE from "three"
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
 
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
-
-    const outlineEffectToken = viewport.postProcessing.addEffect({
+    const outlineEffectDefinition: IOutlineEffectDefinition = {
         /** The blend function of this effect. (default: BlendFunction.SCREEN) */
         blendFunction: BlendFunction.SCREEN,
         /** Whether the outline should be blurred. (default: false) */
@@ -55,39 +51,51 @@ import * as THREE from "three"
         visibleEdgeColor: "#ffffff",
         /** Whether occluded parts of selected objects should be visible. (default: true) */
         xRay: true,
-    })
-    const outlineEffect = <OutlineEffect>viewport.postProcessing.getEffect(outlineEffectToken);
+    };
+    const outlineEffectToken = viewport.postProcessing.addEffect(outlineEffectDefinition)
     viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => outlineEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => outlineEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                outlineEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(outlineEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(outlineEffectDefinition.blendFunction!)
         },
         <IBooleanElement>{
             name: "blur",
             type: "boolean",
-            onInputCallback: (value: any) => outlineEffect.blur = value,
-            onChangeCallback: (value: any) => outlineEffect.blur = value,
-            value: false
+            onChangeCallback: (value: boolean) => {
+                outlineEffectDefinition.blur = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.blur
         },
         <IBooleanElement>{
             name: "xRay",
             type: "boolean",
-            onInputCallback: (value: any) => outlineEffect.xRay = value,
-            onChangeCallback: (value: any) => outlineEffect.xRay = value,
-            value: true
+            onChangeCallback: (value: boolean) => {
+                outlineEffectDefinition.xRay = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.xRay
         },
         <ISliderElement>{
             name: "edgeStrength",
             type: "slider",
-            onInputCallback: (value: any) => outlineEffect.edgeStrength = value,
-            onChangeCallback: (value: any) => outlineEffect.edgeStrength = value,
-            value: 1,
+            onChangeCallback: (value: number) => {
+                outlineEffectDefinition.edgeStrength = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.edgeStrength,
             min: 0,
             max: 100,
             step: 0.01
@@ -95,9 +103,12 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "multisampling",
             type: "slider",
-            onInputCallback: (value: any) => outlineEffect.multisampling = value,
-            onChangeCallback: (value: any) => outlineEffect.multisampling = value,
-            value: 0,
+            onChangeCallback: (value: number) => {
+                outlineEffectDefinition.multisampling = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.multisampling,
             min: 0,
             max: 10,
             step: 1
@@ -105,9 +116,12 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "pulseSpeed",
             type: "slider",
-            onInputCallback: (value: any) => outlineEffect.pulseSpeed = value,
-            onChangeCallback: (value: any) => outlineEffect.pulseSpeed = value,
-            value: 0,
+            onChangeCallback: (value: number) => {
+                outlineEffectDefinition.pulseSpeed = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.pulseSpeed,
             min: 0,
             max: 10,
             step: 0.01
@@ -115,32 +129,33 @@ import * as THREE from "three"
         <IColorElement>{
             name: "visibleEdgeColor",
             type: "color",
-            onInputCallback: (value: any) => outlineEffect.visibleEdgeColor = new THREE.Color(value),
-            onChangeCallback: (value: any) => outlineEffect.visibleEdgeColor = new THREE.Color(value),
-            value: "#ffffff"
+            onChangeCallback: (value: string) => {
+                outlineEffectDefinition.visibleEdgeColor = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.visibleEdgeColor
         },
         <IColorElement>{
             name: "hiddenEdgeColor",
             type: "color",
-            onInputCallback: (value: any) => outlineEffect.hiddenEdgeColor = new THREE.Color(value),
-            onChangeCallback: (value: any) => outlineEffect.hiddenEdgeColor = new THREE.Color(value),
-            value: "#22090a"
+            onChangeCallback: (value: string) => {
+                outlineEffectDefinition.hiddenEdgeColor = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
+            value: outlineEffectDefinition.hiddenEdgeColor
         },
         <IDropdownElement>{
-            name: "kernelSize",
+            name: "blur - kernelSize",
             type: "dropdown",
-            onInputCallback: (value: any) => outlineEffect.kernelSize = value,
-            onChangeCallback: (value: any) => outlineEffect.kernelSize = value,
+            onChangeCallback: (value: number) => {
+                outlineEffectDefinition.kernelSize = value;
+                viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
+                viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
+            },
             choices: Object.keys(KernelSize),
-            value: KernelSize.VERY_SMALL
-        },
-        <IDropdownElement>{
-            name: "kernelSize",
-            type: "dropdown",
-            onInputCallback: (value: any) => outlineEffect.resolution.height = [Resolution.AUTO_SIZE, 240, 360, 480, 720, 1080][value],
-            onChangeCallback: (value: any) => outlineEffect.resolution.height = [Resolution.AUTO_SIZE, 240, 360, 480, 720, 1080][value],
-            choices: ["auto", "240", "360", "480", "720", "1080"],
-            value: 0
+            value: outlineEffectDefinition.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

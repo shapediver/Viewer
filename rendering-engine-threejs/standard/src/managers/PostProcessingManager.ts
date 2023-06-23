@@ -216,9 +216,8 @@ export class PostProcessingManager implements IManager {
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new GridEffect({
-                                blendFunction: definition.blendFunction,
-                                scale: definition.scale,
-                                lineWidth: definition.lineWidth
+                                blendFunction: definition.blendFunction || BlendFunction.MULTIPLY,
+                                scale: definition.scale
                             })
                         });
                     }
@@ -255,7 +254,7 @@ export class PostProcessingManager implements IManager {
                     {
                         const definition: IOutlineEffectDefinition = this._effectDefinitions[i].definition as IOutlineEffectDefinition;
                         const outlineEffect = new OutlineEffect(this._renderingEngine.scene, this._renderingEngine.camera, {
-                            blendFunction: definition.blendFunction,
+                            blendFunction: definition.blendFunction || BlendFunction.SCREEN,
                             edgeStrength: definition.edgeStrength,
                             pulseSpeed: definition.pulseSpeed,
                             visibleEdgeColor: <any>new THREE.Color(this._converter.toHexColor(definition.visibleEdgeColor).substring(0,7)),
@@ -349,8 +348,7 @@ export class PostProcessingManager implements IManager {
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new SepiaEffect({
-                                blendFunction: definition.blendFunction,
-                                intensity: definition.intensity
+                                blendFunction: definition.blendFunction
                             })
                         });
                     }

@@ -1,16 +1,13 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
-    POST_PROCESSING_EFFECT_TYPE,
-    DotScreenEffect,
-    BlendFunction
-} from "@shapediver/viewer";
+    IDotScreenEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
+} from '@shapediver/viewer';
+import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -22,19 +19,12 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
 
-    // we continuously render to see the changes made via the UI immediately.
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
-
-    const dotScreenEffectToken = viewport.postProcessing.addEffect({
+    const dotScreenEffectDefinition: IDotScreenEffectDefinition = {
         /** The blend function of this effect. (default: BlendFunction.NORMAL) */
         blendFunction: BlendFunction.NORMAL,
         type: POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN,
@@ -42,24 +32,28 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         angle: 1.57,
         /** The scale of the dot pattern. (default: 1.0) */
         scale: 1.0,
-    })
-    const dotScreenEffect = <DotScreenEffect>viewport.postProcessing.getEffect(dotScreenEffectToken);
+    }
+    const dotScreenEffectToken = viewport.postProcessing.addEffect(dotScreenEffectDefinition)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => dotScreenEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => dotScreenEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                dotScreenEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(dotScreenEffectToken, dotScreenEffectDefinition);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(dotScreenEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(dotScreenEffectDefinition.blendFunction!)
         },
         <ISliderElement>{
             name: "angle",
             type: "slider",
-            onInputCallback: (value: any) => dotScreenEffect.angle = value,
-            onChangeCallback: (value: any) => dotScreenEffect.angle = value,
-            value: 1.57,
+            onChangeCallback: (value: number) => {
+                dotScreenEffectDefinition.angle = value;
+                viewport.postProcessing.updateEffect(dotScreenEffectToken, dotScreenEffectDefinition);
+            },
+            value: dotScreenEffectDefinition.angle,
             min: 0,
             max: 3.14,
             step: 0.01
@@ -67,9 +61,11 @@ import { createCustomUi, IDropdownElement, ISliderElement } from "@shapediver/vi
         <ISliderElement>{
             name: "scale",
             type: "slider",
-            onInputCallback: (value: any) => dotScreenEffect.scale = value,
-            onChangeCallback: (value: any) => dotScreenEffect.scale = value,
-            value: 1.0,
+            onChangeCallback: (value: number) => {
+                dotScreenEffectDefinition.scale = value;
+                viewport.postProcessing.updateEffect(dotScreenEffectToken, dotScreenEffectDefinition);
+            },
+            value: dotScreenEffectDefinition.scale,
             min: 0,
             max: 1,
             step: 0.001

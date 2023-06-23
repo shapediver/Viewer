@@ -1,19 +1,18 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
     BlendFunction,
-    ChromaticAberrationEffect,
     createSession,
     createViewport,
-    KernelSize,
     POST_PROCESSING_EFFECT_TYPE
-} from "@shapediver/viewer";
+} from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IDropdownElement,
+    ISliderElement
+} from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IColorElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
-import * as THREE from "three"
 
 (async () => {
     // create a viewport
@@ -24,14 +23,12 @@ import * as THREE from "three"
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
 
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-
-    const chromaticAberrationEffectToken = viewport.postProcessing.addEffect({
+    const chromaticAberrationEffectDefinition: SDV.IChromaticAberrationEffectDefinition = {
         /** The blend function of this effect. (default: BlendFunction.NORMAL) */
         blendFunction: BlendFunction.NORMAL,
         /** The modulation offset. Only applies if `radialModulation` is enabled. (default: 0.15) */
@@ -41,31 +38,37 @@ import * as THREE from "three"
         /** Whether the effect should be modulated with a radial gradient. (default: false) */
         radialModulation: false,
         type: POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION
-    })
-    const chromaticAberrationEffect = <ChromaticAberrationEffect>viewport.postProcessing.getEffect(chromaticAberrationEffectToken);
+    }
+    const chromaticAberrationEffectToken = viewport.postProcessing.addEffect(chromaticAberrationEffectDefinition)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => chromaticAberrationEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => chromaticAberrationEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                chromaticAberrationEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(chromaticAberrationEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(chromaticAberrationEffectDefinition.blendFunction!)
         },
         <IBooleanElement>{
             name: "radialModulation",
             type: "boolean",
-            onInputCallback: (value: any) => chromaticAberrationEffect.radialModulation = value,
-            onChangeCallback: (value: any) => chromaticAberrationEffect.radialModulation = value,
-            value: false
+            onChangeCallback: (value: boolean) => {
+                chromaticAberrationEffectDefinition.radialModulation = value;
+                viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
+            },
+            value: chromaticAberrationEffectDefinition.radialModulation
         },
         <ISliderElement>{
             name: "offset - x",
             type: "slider",
-            onInputCallback: (value: any) => chromaticAberrationEffect.offset = new THREE.Vector2(value, chromaticAberrationEffect.offset.y),
-            onChangeCallback: (value: any) => chromaticAberrationEffect.offset = new THREE.Vector2(value, chromaticAberrationEffect.offset.y),
-            value: 0.001,
+            onChangeCallback: (value: number) => {
+                chromaticAberrationEffectDefinition.offset = [value, chromaticAberrationEffectDefinition.offset![1]];
+                viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
+            },
+            value: chromaticAberrationEffectDefinition.offset![0],
             min: 0,
             max: 1,
             step: 0.0001
@@ -73,9 +76,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "offset - y",
             type: "slider",
-            onInputCallback: (value: any) => chromaticAberrationEffect.offset = new THREE.Vector2(chromaticAberrationEffect.offset.x, value),
-            onChangeCallback: (value: any) => chromaticAberrationEffect.offset = new THREE.Vector2(chromaticAberrationEffect.offset.x, value),
-            value: 0.0005,
+            onChangeCallback: (value: number) => {
+                chromaticAberrationEffectDefinition.offset = [chromaticAberrationEffectDefinition.offset![0], value];
+                viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
+            },
+            value: chromaticAberrationEffectDefinition.offset![1],
             min: 0,
             max: 1,
             step: 0.0001
@@ -83,9 +88,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "modulationOffset",
             type: "slider",
-            onInputCallback: (value: any) => chromaticAberrationEffect.modulationOffset = value,
-            onChangeCallback: (value: any) => chromaticAberrationEffect.modulationOffset = value,
-            value: 0.15,
+            onChangeCallback: (value: number) => {
+                chromaticAberrationEffectDefinition.modulationOffset = value;
+                viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
+            },
+            value: chromaticAberrationEffectDefinition.modulationOffset,
             min: 0,
             max: 1,
             step: 0.0001

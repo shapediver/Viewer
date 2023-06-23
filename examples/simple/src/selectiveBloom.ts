@@ -1,17 +1,20 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
+    ISelectiveBloomEffectDefinition,
     KernelSize,
     POST_PROCESSING_EFFECT_TYPE,
-    SelectiveBloomEffect,
-    BlendFunction
-} from "@shapediver/viewer";
+    SelectiveBloomEffect
+    } from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IDropdownElement,
+    ISliderElement
+    } from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -23,17 +26,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-    
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
 
-    const selectiveBloomEffectToken = viewport.postProcessing.addEffect({
+    const selectiveBloomEffectDefinition: ISelectiveBloomEffectDefinition = {
         type: POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
         /** The blend function of this effect. (default: BlendFunction.ADD) */
         blendFunction: BlendFunction.ADD,
@@ -47,8 +45,9 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         luminanceThreshold: 0.9,
         /** Enables or disables mipmap blur. (default: false) */
         mipmapBlur: false
+    }
+    const selectiveBloomEffectToken = viewport.postProcessing.addEffect(selectiveBloomEffectDefinition);
 
-    })
     const selectiveBloomEffect = <SelectiveBloomEffect>viewport.postProcessing.getEffect(selectiveBloomEffectToken);    
     viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
 
@@ -56,24 +55,40 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => selectiveBloomEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => selectiveBloomEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                selectiveBloomEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(selectiveBloomEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(selectiveBloomEffectDefinition.blendFunction!)
         },
         <IBooleanElement>{
-            name: "ignoreBackground",
+            name: "mipmapBlur",
             type: "boolean",
-            onInputCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
-            onChangeCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
-            value: false
+            onChangeCallback: (value: boolean) => {
+                selectiveBloomEffectDefinition.mipmapBlur = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
+            value: selectiveBloomEffectDefinition.mipmapBlur
         },
+        // <IBooleanElement>{
+        //     name: "ignoreBackground",
+        //     type: "boolean",
+        //     onInputCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
+        //     onChangeCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
+        //     value: selectiveBloomEffect.ignoreBackground
+        // },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
-            onInputCallback: (value: any) => selectiveBloomEffect.intensity = value,
-            onChangeCallback: (value: any) => selectiveBloomEffect.intensity = value,
-            value: 1,
+            onChangeCallback: (value: number) => {
+                selectiveBloomEffectDefinition.intensity = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
+            value: selectiveBloomEffectDefinition.intensity,
             min: 0,
             max: 10,
             step: 0.01
@@ -81,9 +96,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "luminanceSmoothing",
             type: "slider",
-            onInputCallback: (value: any) => selectiveBloomEffect.luminanceMaterial.smoothing = value,
-            onChangeCallback: (value: any) => selectiveBloomEffect.luminanceMaterial.smoothing = value,
-            value: 0.025,
+            onChangeCallback: (value: number) => {
+                selectiveBloomEffectDefinition.luminanceSmoothing = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
+            value: selectiveBloomEffectDefinition.luminanceSmoothing,
             min: 0,
             max: 1,
             step: 0.001
@@ -91,20 +109,26 @@ import { createCustomUi, IBooleanElement, IDropdownElement, ISliderElement } fro
         <ISliderElement>{
             name: "luminanceThreshold",
             type: "slider",
-            onInputCallback: (value: any) => selectiveBloomEffect.luminanceMaterial.threshold = value,
-            onChangeCallback: (value: any) => selectiveBloomEffect.luminanceMaterial.threshold = value,
-            value: 0.9,
+            onChangeCallback: (value: number) => {
+                selectiveBloomEffectDefinition.luminanceThreshold = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
+            value: selectiveBloomEffectDefinition.luminanceThreshold,
             min: 0,
             max: 1,
             step: 0.001
         },
         <IDropdownElement>{
-            name: "kernelSize",
+            name: "blur - kernelSize",
             type: "dropdown",
-            onInputCallback: (value: any) => selectiveBloomEffect.kernelSize = value,
-            onChangeCallback: (value: any) => selectiveBloomEffect.kernelSize = value,
+            onChangeCallback: (value: number) => {
+                selectiveBloomEffectDefinition.kernelSize = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
             choices: Object.keys(KernelSize),
-            value: KernelSize.LARGE
+            value: selectiveBloomEffectDefinition.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

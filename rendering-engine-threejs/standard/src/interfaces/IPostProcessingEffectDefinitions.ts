@@ -125,10 +125,8 @@ export interface IGodRaysEffectDefinition extends IPostProcessingEffectDefinitio
 export interface IGridEffectDefinition extends IPostProcessingEffectDefinition {
     // #region Properties (4)
 
-    /** The blend function of this effect. (default: BlendFunction.OVERLAY) */
+    /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
     blendFunction?: BlendFunction,
-    /** The line width of the grid pattern. (default: 0.0) */
-    lineWidth?: number,
     /** The scale of the grid pattern. (default: 1.0) */
     scale?: number,
     type: POST_PROCESSING_EFFECT_TYPE.GRID
@@ -267,8 +265,6 @@ export interface ISepiaEffectDefinition extends IPostProcessingEffectDefinition 
 
     /** The blend function of this effect. (default: BlendFunction.NORMAL) */
     blendFunction?: BlendFunction,
-    /** The intensity of the effect. (default: 1.0) */
-    intensity?: number,
     type: POST_PROCESSING_EFFECT_TYPE.SEPIA,
 
     // #endregion Properties (3)

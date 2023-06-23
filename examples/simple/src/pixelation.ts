@@ -1,15 +1,12 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
+import { createCustomUi, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
 import {
     createSession,
     createViewport,
-    POST_PROCESSING_EFFECT_TYPE,
-    PixelationEffect
-} from "@shapediver/viewer";
+    IPixelationEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
+    } from '@shapediver/viewer';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -21,26 +18,27 @@ import { createCustomUi, ISliderElement } from "@shapediver/viewer.utils.demo-he
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
 
-    const pixelationEffectToken = viewport.postProcessing.addEffect({
+    const pixelationEffectDefinition: IPixelationEffectDefinition = {
         /** The pixel granularity. (default: 30.0) */
         granularity: 30.0,
         type: POST_PROCESSING_EFFECT_TYPE.PIXELATION
-    })
-    const pixelationEffect = <PixelationEffect>viewport.postProcessing.getEffect(pixelationEffectToken);
+    }
+    const pixelationEffectToken = viewport.postProcessing.addEffect(pixelationEffectDefinition)
 
     createCustomUi([
         <ISliderElement>{
             name: "granularity",
             type: "slider",
-            onInputCallback: (value: any) => pixelationEffect.granularity = value,
-            onChangeCallback: (value: any) => pixelationEffect.granularity = value,
-            value: 30,
+            onChangeCallback: (value: number) => {
+                pixelationEffectDefinition.granularity = value;
+                viewport.postProcessing.updateEffect(pixelationEffectToken, pixelationEffectDefinition);
+            },
+            value: pixelationEffectDefinition.granularity,
             min: 0,
             max: 100,
             step: 0.01

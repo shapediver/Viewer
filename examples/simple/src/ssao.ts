@@ -1,17 +1,19 @@
-// Notes on CodeSandBox
-// if you don't see a preview when you load this page for the first time, reload the browser tab to the right
-
+import * as SDV from '@shapediver/viewer';
 import {
     BlendFunction,
     createSession,
     createViewport,
-    POST_PROCESSING_EFFECT_TYPE,
-    SSAOEffect
-} from "@shapediver/viewer";
+    ISSAOEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
+    } from '@shapediver/viewer';
+import {
+    createCustomUi,
+    IBooleanElement,
+    IColorElement,
+    IDropdownElement,
+    ISliderElement
+    } from '@shapediver/viewer.utils.demo-helper';
 
-import * as SDV from "@shapediver/viewer"
-import { createCustomUi, IBooleanElement, IColorElement, IDropdownElement, ISliderElement } from "@shapediver/viewer.utils.demo-helper";
-import * as THREE from "three"
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -23,17 +25,12 @@ import * as THREE from "three"
     // create a session
     const session = await createSession({
         ticket:
-            "319f14f08c1e67a874fd843acecfd321049772deb0cdb5a0dbb39385592a156e83730e45c5e7af5eab52e15b1e36d44a092f71ada1331e1935b0f25d9448af34d0add0bd5abf8984325b97ee9e6106b25216446d15a86bb18b40114df89d2f5909b08e8c8b9eeb-7516be37cb2d968a0b3c545baf3ae51e",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-    viewport.addFlag(SDV.FLAG_TYPE.CONTINUOUS_RENDERING)
-
-    viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.SMAA
-    })
-
-    const ssaoEffectToken = viewport.postProcessing.addEffect({
+    
+    const ssaoEffectDefinition: ISSAOEffectDefinition = {
         /** An occlusion bias. Eliminates artifacts caused by depth discontinuities. (default: 0.025) */
         bias: 0.025,
         /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
@@ -57,38 +54,46 @@ import * as THREE from "three"
         /** The amount of samples per pixel. Should not be a multiple of the ring count. (default: 9) */
         samples: 9,
         type: POST_PROCESSING_EFFECT_TYPE.SSAO
-    })
-    const ssaoEffect = <SSAOEffect>viewport.postProcessing.getEffect(ssaoEffectToken);
+    };
+    const ssaoEffectToken = viewport.postProcessing.addEffect(ssaoEffectDefinition)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
-            onInputCallback: (value: any) => ssaoEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
-            onChangeCallback: (value: any) => ssaoEffect.blendMode.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction,
+            onChangeCallback: (value: string) => {
+                ssaoEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(ssaoEffect.blendMode.blendFunction)
+            value: Object.values(BlendFunction).indexOf(ssaoEffectDefinition.blendFunction!)
         },
         <IColorElement>{
             name: "color",
             type: "color",
-            onInputCallback: (value: any) => ssaoEffect.color = new THREE.Color(value),
-            onChangeCallback: (value: any) => ssaoEffect.color = new THREE.Color(value),
-            value: "#000000"
+            onChangeCallback: (value: string) => {
+                ssaoEffectDefinition.color = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.color
         },
         <IBooleanElement>{
             name: "depthAwareUpsampling",
             type: "boolean",
-            onInputCallback: (value: any) => ssaoEffect.depthAwareUpsampling = value,
-            onChangeCallback: (value: any) => ssaoEffect.depthAwareUpsampling = value,
-            value: true
+            onChangeCallback: (value: boolean) => {
+                ssaoEffectDefinition.depthAwareUpsampling = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.depthAwareUpsampling
         },
         <ISliderElement>{
             name: "bias",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.bias = value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.bias = value,
-            value: 0.025,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.bias = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.bias,
             min: 0,
             max: 1,
             step: 0.01
@@ -96,9 +101,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "fade",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.fade = value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.fade = value,
-            value: 0.01,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.fade = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.fade,
             min: 0,
             max: 1,
             step: 0.01
@@ -106,9 +113,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "intensity",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.intensity = value,
-            onChangeCallback: (value: any) => ssaoEffect.intensity = value,
-            value: 1,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.intensity = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.intensity,
             min: 0,
             max: 100,
             step: 0.01
@@ -116,9 +125,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "luminanceInfluence",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.luminanceInfluence = value,
-            onChangeCallback: (value: any) => ssaoEffect.luminanceInfluence = value,
-            value: 0.7,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.luminanceInfluence = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.luminanceInfluence,
             min: 0,
             max: 1,
             step: 0.01
@@ -126,9 +137,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "minRadiusScale",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.minRadiusScale = value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.minRadiusScale = value,
-            value: 0.1,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.minRadiusScale = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.minRadiusScale,
             min: 0,
             max: 1,
             step: 0.01
@@ -136,9 +149,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "radius",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.radius = value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.radius = value,
-            value: 0.1825,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.radius = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.radius,
             min: 0,
             max: 1,
             step: 0.01
@@ -146,9 +161,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "Rings",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.rings = +value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.rings = +value,
-            value: 7,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.rings = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.rings,
             min: 0,
             max: 100,
             step: 1
@@ -156,9 +173,11 @@ import * as THREE from "three"
         <ISliderElement>{
             name: "Samples",
             type: "slider",
-            onInputCallback: (value: any) => ssaoEffect.ssaoMaterial.samples = +value,
-            onChangeCallback: (value: any) => ssaoEffect.ssaoMaterial.samples = +value,
-            value: 9,
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.samples = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.samples,
             min: 0,
             max: 100,
             step: 1
