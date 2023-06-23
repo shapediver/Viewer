@@ -41,25 +41,20 @@ describe('device testing', () => {
         const effectTokens = await driver.executeAsyncScript(async (cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = SDV.viewports['myViewport'];            
-            
-            const smaaEffectToken = viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
         
             const bloomEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
                 mipmapBlur: true,
-                intensity: 2,
-                luminanceSmoothing: 0.5,
-                luminanceThreshold: 0.8
+                intensity: 1.5,
+                luminanceSmoothing: 0,
+                luminanceThreshold: 0.7
         
             })
-        
             
             await new Promise<void>((resolve) => {
                 SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
-            cb([bloomEffectToken, smaaEffectToken]);
+            cb([bloomEffectToken]);
         });
         await screenshotCompare(await driver.takeScreenshot(), name + "_on");
 
@@ -84,16 +79,13 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            const smaaEffectToken = viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
         
             const bloomEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
                 mipmapBlur: true,
-                intensity: 2,
-                luminanceSmoothing: 0.5,
-                luminanceThreshold: 0.8
+                intensity: 1.5,
+                luminanceSmoothing: 0,
+                luminanceThreshold: 0.7
         
             })  
             await new Promise<void>((resolve) => {
@@ -109,9 +101,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            const smaaEffectToken = viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
         
             const bloomEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
@@ -151,10 +140,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const depthOfFieldEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD,
@@ -181,10 +166,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const dotScreenEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN,
@@ -202,33 +183,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + "_dotScreen");
     });
 
-    test(name + "_fxaa", async () => {
-        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.FXAA
-            })
-
-            await new Promise<void>((resolve) => {
-                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-            })
-            cb();
-        }, shelfTicket);
-        await screenshotCompare(await driver.takeScreenshot(), name + "_fxaa");
-    });
-
     test(name + "_godRays", async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const godRaysEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.GOD_RAYS,
@@ -251,10 +210,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
         
             const gridEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.GRID,
@@ -277,10 +232,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
         
             const hueSaturationEffectToken = viewport.postProcessing.addEffect({
                 /** The hue in radians. (default: 0.0) */
@@ -308,10 +259,6 @@ describe('device testing', () => {
     //         const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
     //         let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
     //         let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-    //         viewport.postProcessing.addEffect({
-    //             type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-    //         })
         
     //         const noiseEffectToken = viewport.postProcessing.addEffect({
     //             /** Whether the noise should be multiplied with the input colors prior to blending. (default: false) */
@@ -332,13 +279,9 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const outlineEffectToken = viewport.postProcessing.addEffect({
+                blendFunction: SDV.BlendFunction.ALPHA,
                 /** Whether the outline should be blurred. (default: false) */
                 blur: true,
                 /** The edge strength. (default: 1.0) */
@@ -433,10 +376,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const scanlineEffectToken = viewport.postProcessing.addEffect({
                 /** The blend function of this effect. (default: BlendFunction.OVERLAY) */
@@ -459,10 +398,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const selectiveBloomEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
@@ -497,10 +432,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
 
             const selectiveBloomEffectToken = viewport.postProcessing.addEffect({
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
@@ -536,9 +467,6 @@ describe('device testing', () => {
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
             
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
             const sepiaEffectToken = viewport.postProcessing.addEffect({
                 /** The blend function of this effect. (default: BlendFunction.NORMAL) */
                 blendFunction: SDV.BlendFunction.NORMAL,
@@ -555,33 +483,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + "_sepia");
     });
 
-    test(name + "_smaa", async () => {
-        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
-            
-            await new Promise<void>((resolve) => {
-                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-            })
-            cb();
-        }, shelfTicket);
-        await screenshotCompare(await driver.takeScreenshot(), name + "_smaa");
-    });
-
     test(name + "_tiltShift", async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
                     
             const tiltShiftEffectToken = viewport.postProcessing.addEffect({
                 /** The blend function of this effect. (default: BlendFunction.NORMAL) */
@@ -611,10 +517,6 @@ describe('device testing', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });          
-            
-            viewport.postProcessing.addEffect({
-                type: SDV.POST_PROCESSING_EFFECT_TYPE.SMAA
-            })
                             
             const vignetteEffectToken = viewport.postProcessing.addEffect({
                 /** The blend function of this effect. (default: BlendFunction.NORMAL) */
