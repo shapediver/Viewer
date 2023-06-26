@@ -21,6 +21,13 @@ export enum POST_PROCESSING_EFFECT_TYPE {
     VIGNETTE = "vignette"
 }
 
+export enum ANTI_ALIASING_TECHNIQUE {
+    FXAA = "fxaa",
+    NONE = "none",
+    SMAA = "smaa",
+    SSAA = "ssaa"
+}
+
 export interface IPostProcessingEffectDefinition {
     // #region Properties (1)
 
