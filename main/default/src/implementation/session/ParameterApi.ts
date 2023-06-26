@@ -146,7 +146,17 @@ export class ParameterApi<T> implements IParameterApi<T> {
     public isValid(value: any, throwError?: boolean): boolean {
         const scope = 'isValid';
         this.#inputValidator.validateAndError(`ParameterApi.${scope}`, throwError, 'boolean', false);
-        return this.#parameter.isValid(value, throwError);
+
+        if(throwError === false) {
+            try {
+                this.#parameter.isValid(value);
+            } catch(e) {
+                return false;
+            }
+            return true;
+        } else {
+            return this.#parameter.isValid(value);
+        }
     }
 
     public resetToDefaultValue(): void {
