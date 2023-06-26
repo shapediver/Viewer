@@ -17,7 +17,7 @@ import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
-import { ISettingsV3_1 } from "@shapediver/viewer.settings";
+import { ISettingsV3_4 } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
 import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
@@ -666,7 +666,7 @@ export class ViewportApi implements IViewportApi {
         return check;
     }
 
-    public applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
+    public applyViewportSettings(settings: ISettingsV3_4, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
         const scope = 'applyViewportSettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
@@ -749,7 +749,7 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.getScreenshot(type, quality);
     }
 
-    public getViewportSettings(): ISettingsV3_1 {
+    public getViewportSettings(): ISettingsV3_4 {
         return this.#creationControlCenter.getViewportSettings(this.id);
     }
 

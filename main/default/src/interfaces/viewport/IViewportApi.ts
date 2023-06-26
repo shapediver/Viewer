@@ -15,7 +15,7 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
-import { ISettingsV3_1 } from '@shapediver/viewer.settings'
+import { ISettingsV3_4 } from '@shapediver/viewer.settings'
 
 /**
  * The api for viewports.
@@ -377,7 +377,7 @@ export interface IViewportApi {
    * 
    * @throws {@type ShapeDiverViewerError}
    */
-  applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+  applyViewportSettings(settings: ISettingsV3_4, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
 
   /**
    * Assign the camera with the specified id to the viewport.
@@ -502,7 +502,7 @@ export interface IViewportApi {
    * Get the current settings object of this viewport.
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
-  getViewportSettings(): ISettingsV3_1;
+  getViewportSettings(): ISettingsV3_4;
   
   /**
    * Determines if the current device is a mobile device (or tablet) but still doesn't support to view the content in AR.
