@@ -44,11 +44,11 @@ import {
         /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
         luminanceThreshold: 0.9,
         /** Enables or disables mipmap blur. (default: false) */
-        mipmapBlur: false
+        mipmapBlur: false,
+        /** Enables or disables if the background is evaluated for the bloom calculation. (default: true) */
+        ignoreBackground: true
     }
     const selectiveBloomEffectToken = viewport.postProcessing.addEffect(selectiveBloomEffectDefinition);
-
-    const selectiveBloomEffect = <SelectiveBloomEffect>viewport.postProcessing.getEffect(selectiveBloomEffectToken);    
     viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
 
     createCustomUi([
@@ -73,13 +73,16 @@ import {
             },
             value: selectiveBloomEffectDefinition.mipmapBlur
         },
-        // <IBooleanElement>{
-        //     name: "ignoreBackground",
-        //     type: "boolean",
-        //     onInputCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
-        //     onChangeCallback: (value: any) => selectiveBloomEffect.ignoreBackground = value,
-        //     value: selectiveBloomEffect.ignoreBackground
-        // },
+        <IBooleanElement>{
+            name: "ignoreBackground",
+            type: "boolean",
+            onChangeCallback: (value: any) => {
+                selectiveBloomEffectDefinition.ignoreBackground = value;
+                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
+                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+            },
+            value: selectiveBloomEffectDefinition.ignoreBackground
+        },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
