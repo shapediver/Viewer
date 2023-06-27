@@ -1,9 +1,31 @@
 import { Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
-import { IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard/dist/interfaces/IPostProcessingEffectDefinitions";
+import { ANTI_ALIASING_TECHNIQUE, IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard/dist/interfaces/IPostProcessingEffectDefinitions";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IPostProcessingApi {
     // #region Properties (5)
+
+    /**
+     * Defines the anti-aliasing technique that is used when the post-processing is active. (default: ANTI_ALIASING_TECHNIQUE.SSAA)
+     * 
+     * The various anti-aliasing technique have an impact on the performance and the rendering quality. 
+     * The order is as follows: NONE -> FXAA -> SMAA -> SSAA
+     * (lowest to highest quality, fastest to slowest performance)
+     * 
+     * For the SSAA approach please see {@link ssaaSampleLevel}.
+     */
+    antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE;
+    
+    /**
+     * Defines the anti-aliasing technique that is used when the post-processing is active on mobile.
+     * 
+     * The various anti-aliasing technique have an impact on the performance and the rendering quality. 
+     * The order is as follows: NONE -> FXAA -> SMAA -> SSAA
+     * (lowest to highest quality, fastest to slowest performance)
+     * 
+     * For the SSAA approach please see {@link ssaaSampleLevel}.
+     */
+    antiAliasingTechniqueMobile: ANTI_ALIASING_TECHNIQUE;
 
     /**
      * The effect composer that is used internally for the rendering of the postprocessing effects.
@@ -107,6 +129,8 @@ export interface IPostProcessingApi {
     /**
      * The number of samples that are taken in the Supersample Anti-Aliasing Render Pass.
      * Specified as n, where the number of samples is 2^n, so sampleLevel = 4, is 2^4 samples, 16. (default: 4)
+     * 
+     * Only works with {@link ANTI_ALIASING_TECHNIQUE.SSAA}.
      */
     ssaaSampleLevel: number;
 

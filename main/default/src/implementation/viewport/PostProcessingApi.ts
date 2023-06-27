@@ -1,7 +1,7 @@
 import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
-import { Effect, EffectComposer, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export class PostProcessingApi implements IPostProcessingApi {
@@ -23,7 +23,31 @@ export class PostProcessingApi implements IPostProcessingApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (6)
+    // #region Public Accessors (12)
+
+    public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
+        return this.#renderingEngine.postProcessingManager.antiAliasingTechnique;
+    }
+
+    public set antiAliasingTechnique(value: ANTI_ALIASING_TECHNIQUE) {
+        const scope = 'antiAliasingTechnique';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, value, 'enum', true, Object.values(ANTI_ALIASING_TECHNIQUE));
+        this.#renderingEngine.postProcessingManager.antiAliasingTechnique = value;
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
+
+    public get antiAliasingTechniqueMobile(): ANTI_ALIASING_TECHNIQUE {
+        return this.#renderingEngine.postProcessingManager.antiAliasingTechnique;
+    }
+
+    public set antiAliasingTechniqueMobile(value: ANTI_ALIASING_TECHNIQUE) {
+        const scope = 'antiAliasingTechniqueMobile';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, value, 'enum', true, Object.values(ANTI_ALIASING_TECHNIQUE));
+        this.#renderingEngine.postProcessingManager.antiAliasingTechniqueMobile = value;
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
 
     public get effectComposer(): EffectComposer {
         return this.#renderingEngine.postProcessingManager.effectComposer;
@@ -43,7 +67,11 @@ export class PostProcessingApi implements IPostProcessingApi {
     }
 
     public set manualPostProcessing(value: boolean) {
+        const scope = 'manualPostProcessing';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, value, 'boolean');
         this.#renderingEngine.postProcessingManager.manualPostProcessing = value;
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
     public get outlineEffects(): {
@@ -71,12 +99,16 @@ export class PostProcessingApi implements IPostProcessingApi {
     }
 
     public set ssaaSampleLevel(value: number) {
+        const scope = 'ssaaSampleLevel';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, value, 'number');
         this.#renderingEngine.postProcessingManager.ssaaSampleLevel = value;
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
     }
 
-    // #endregion Public Accessors (6)
+    // #endregion Public Accessors (12)
 
-    // #region Public Methods (3)
+    // #region Public Methods (4)
 
     public addEffect(definition: IPostProcessingEffectDefinition): string {
         const scope = 'addEffect';
@@ -88,6 +120,9 @@ export class PostProcessingApi implements IPostProcessingApi {
     }
 
     public getEffect(token: string): Effect {
+        const scope = 'getEffect';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, token, 'string');
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was called with token ${token}.`);
         return this.#renderingEngine.postProcessingManager.getEffect(token);
     }
 
@@ -108,5 +143,5 @@ export class PostProcessingApi implements IPostProcessingApi {
         this.#viewportApi.update();
     }
 
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (4)
 }

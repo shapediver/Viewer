@@ -146,6 +146,10 @@ export class SSAARenderPass extends Pass {
     super.renderToScreen = value;
   }
 
+  public get sampleLevel() {
+    return this._sampleLevel;
+  }
+
   /**
    * specified as n, where the number of samples is 2^n, so sampleLevel = 4, is 2^4 samples, 16.
    */
