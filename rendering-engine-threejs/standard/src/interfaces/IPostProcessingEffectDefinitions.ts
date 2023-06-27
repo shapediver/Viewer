@@ -80,8 +80,6 @@ export interface IDepthOfFieldEffectDefinition extends IPostProcessingEffectDefi
     blendFunction?: BlendFunction,
     /** The scale of the bokeh blur. (default: 1.0) */
     bokehScale?: number,
-    /** The focal length. Range is [0.0, 1.0]. (default: 0.1) */
-    focalLength?: number,
     /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
     focusDistance?: number,
     /** The focus range. Range is [0.0, 1.0]. (default: 0.1) */
