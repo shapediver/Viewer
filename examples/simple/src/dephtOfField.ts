@@ -28,8 +28,6 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
         blendFunction: BlendFunction.NORMAL,
         /** The scale of the bokeh blur. (default: 1.0) */
         bokehScale: 1.0,
-        /** The focal length. Range is [0.0, 1.0]. (default: 0.1) */
-        focalLength: 0.1,
         /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
         focusDistance: 0.0,
         /** The focus range. Range is [0.0, 1.0]. (default: 0.1) */
@@ -61,18 +59,6 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             min: 0,
             max: 10,
             step: 0.01
-        },
-        <ISliderElement>{
-            name: "focalLength",
-            type: "slider",
-            onChangeCallback: (value: number) => {
-                depthOfFieldEffectDefinition.focalLength = value;
-                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
-            },
-            value: depthOfFieldEffectDefinition.focalLength,
-            min: 0,
-            max: 1,
-            step: 0.001
         },
         <ISliderElement>{
             name: "focusDistance",

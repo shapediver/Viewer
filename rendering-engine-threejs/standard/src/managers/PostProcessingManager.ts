@@ -244,7 +244,6 @@ export class PostProcessingManager implements IManager {
                             effect: new DepthOfFieldEffect(this._renderingEngine.camera, {
                                 blendFunction: definition.blendFunction,
                                 focusDistance: definition.focusDistance,
-                                focalLength: definition.focalLength,
                                 focusRange: definition.focusRange,
                                 bokehScale: definition.bokehScale
                             })
