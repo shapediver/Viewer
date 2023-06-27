@@ -411,6 +411,7 @@ export class PostProcessingManager implements IManager {
                             intensity: definition.intensity,
                             kernelSize: definition.kernelSize
                         });
+                        selectiveBloomEffect.ignoreBackground = definition.ignoreBackground !== undefined ? definition.ignoreBackground : true;
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: selectiveBloomEffect

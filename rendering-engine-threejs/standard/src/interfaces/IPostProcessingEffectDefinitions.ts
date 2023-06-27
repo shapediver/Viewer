@@ -262,6 +262,8 @@ export interface ISelectiveBloomEffectDefinition extends IPostProcessingEffectDe
     luminanceThreshold?: number,
     /** Enables or disables mipmap blur. (default: false) */
     mipmapBlur?: boolean,
+    /** Enables or disables if the background is evaluated for the bloom calculation. (default: true) */
+    ignoreBackground?: boolean,
     type: POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
 
     // #endregion Properties (10)
