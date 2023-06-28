@@ -62,6 +62,7 @@ import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
+const REALISM_EFFECTS: any = require('realism-effects');
 
 export class PostProcessingManager implements IManager {
     // #region Properties (21)
@@ -195,6 +196,10 @@ export class PostProcessingManager implements IManager {
         } else {
             this._composer.addPass(this._renderPass);
         }
+
+        const velocityDepthNormalPass = new REALISM_EFFECTS.VelocityDepthNormalPass(this._renderingEngine.scene, this._renderingEngine.camera)
+        this._composer.addPass(velocityDepthNormalPass)
+
 
         // remove the effects where the tokens are not in the effectDefinitions
         const activeEffectTokens = this._effectDefinitions.map(e => e.token);
@@ -364,21 +369,40 @@ export class PostProcessingManager implements IManager {
                         if (this._renderingEngine.renderer.capabilities.isWebGL2)
                             this._composer.addPass(this._depthDownsamplingPass);
 
+                        const defaultAOOptions = {
+                            resolutionScale: 1,
+                            spp: 8,
+                            distance: 2,
+                            distancePower: 1,
+                            power: 5,
+                            bias: 40,
+                            thickness: 0.075,
+                            color: new THREE.Color("black"),
+                            useNormalPass: false,
+                            // velocityDepthNormalPass: velocityDepthNormalPass,
+                            
+                            
+                                iterations: 1,
+                                radius: 8,
+                                rings: 5.625,
+                                lumaPhi: 10,
+                                depthPhi: 2,
+                                normalPhi: 3.25,
+                                samples: 16,
+                                normalTexture: null,//this._normalPass.texture
+                              
+                          };
+
+                        //   options = { ...defaultAOOptions,
+                        //     ...HBAOEffect.DefaultOptions,
+                        //     ...options
+                        //   };
+
+                            
+                        console.log(REALISM_EFFECTS.HBAOEffect)
+
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
-                        const ssaoEffect = new SSAOEffect(this._renderingEngine.camera, this._normalPass.texture, <any>{
-                            blendFunction: definition.blendFunction,
-                            depthAwareUpsampling: definition.depthAwareUpsampling,
-                            normalBuffer: this._normalPass.texture || undefined,
-                            samples: definition.samples,
-                            rings: definition.rings,
-                            luminanceInfluence: definition.luminanceInfluence,
-                            minRadiusScale: definition.minRadiusScale,
-                            radius: definition.radius,
-                            intensity: definition.intensity,
-                            bias: definition.bias,
-                            fade: definition.fade,
-                            color: <any>new THREE.Color(this._converter.toHexColor(definition.color).substring(0, 7))
-                        });
+                        const ssaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, defaultAOOptions);
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: ssaoEffect

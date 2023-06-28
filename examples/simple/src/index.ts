@@ -3,14 +3,13 @@ import {
     BlendFunction,
     createSession,
     createViewport,
-    ISelectiveBloomEffectDefinition,
-    KernelSize,
-    POST_PROCESSING_EFFECT_TYPE,
-    SelectiveBloomEffect
+    ISSAOEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
     } from '@shapediver/viewer';
 import {
     createCustomUi,
     IBooleanElement,
+    IColorElement,
     IDropdownElement,
     ISliderElement
     } from '@shapediver/viewer.utils.demo-helper';
@@ -31,107 +30,190 @@ import {
         id: "mySession"
     });
 
-    const selectiveBloomEffectDefinition: ISelectiveBloomEffectDefinition = {
-        type: POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
-        /** The blend function of this effect. (default: BlendFunction.ADD) */
-        blendFunction: BlendFunction.ADD,
-        /** The bloom intensity. (default: 1.0) */
+    // viewport.postProcessing.antiAliasingTechnique = SDV.ANTI_ALIASING_TECHNIQUE.SMAA
+
+    const defaultPoissonBlurOptions = {
+        iterations: 1,
+        radius: 8,
+        rings: 5.625,
+        lumaPhi: 10,
+        depthPhi: 2,
+        normalPhi: 3.25,
+        samples: 16,
+        normalTexture: null
+      };
+    const defaultAOOptions = {
+        resolutionScale: 1,
+        spp: 8,
+        distance: 2,
+        distancePower: 1,
+        power: 2,
+        bias: 40,
+        thickness: 0.075,
+        color: new THREE.Color("black"),
+        useNormalPass: false,
+        velocityDepthNormalPass: null,
+        iterations: 1,
+        radius: 8,
+        rings: 5.625,
+        lumaPhi: 10,
+        depthPhi: 2,
+        normalPhi: 3.25,
+        samples: 16,
+        normalTexture: null
+      };
+    
+    const ssaoEffectDefinition: ISSAOEffectDefinition = {
+        /** An occlusion bias. Eliminates artifacts caused by depth discontinuities. (default: 0.025) */
+        bias: 0.025,
+        /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
+        blendFunction: BlendFunction.MULTIPLY,
+        /** The color of the ambient occlusion. (default: #000000) */
+        color: "#000000",
+        /** Enables or disables depth-aware upsampling. Has no effect if WebGL 2 is not supported. (default: true) */
+        depthAwareUpsampling: true,
+        /** Influences the smoothness of the shadows. A lower value results in higher contrast. (default: 0.01) */
+        fade: 0.01,
+        /** The intensity of the ambient occlusion. (default: 1.0) */
         intensity: 1.0,
-        /** The blur kernel size. (default: KernelSize.LARGE) */
-        kernelSize: KernelSize.LARGE,
-        /** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
-        luminanceSmoothing: 0.025,
-        /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
-        luminanceThreshold: 0.9,
-        /** Enables or disables mipmap blur. (default: false) */
-        mipmapBlur: false,
-        /** Enables or disables if the background is evaluated for the bloom calculation. (default: true) */
-        ignoreBackground: true
-    }
-    const selectiveBloomEffectToken = viewport.postProcessing.addEffect(selectiveBloomEffectDefinition);
-    viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+        /** Determines how much the luminance of the scene influences the ambient occlusion. (default: 0.7) */
+        luminanceInfluence: 0.7,
+        /** The minimum radius scale. (default: 0.1) */
+        minRadiusScale: 0.1,
+        /** The occlusion sampling radius, expressed as a scale relative to the resolution. Range [1e-6, 1.0]. (default: 0.1825) */
+        radius: 0.1825,
+        /** The amount of spiral turns in the occlusion sampling pattern. Should be a prime number. (default: 7) */
+        rings: 7,
+        /** The amount of samples per pixel. Should not be a multiple of the ring count. (default: 9) */
+        samples: 9,
+        type: POST_PROCESSING_EFFECT_TYPE.SSAO
+    };
+    const ssaoEffectToken = viewport.postProcessing.addEffect(ssaoEffectDefinition)
 
     createCustomUi([
         <IDropdownElement>{
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                selectiveBloomEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(selectiveBloomEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(ssaoEffectDefinition.blendFunction!)
+        },
+        <IColorElement>{
+            name: "color",
+            type: "color",
+            onChangeCallback: (value: string) => {
+                ssaoEffectDefinition.color = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.color
         },
         <IBooleanElement>{
-            name: "mipmapBlur",
+            name: "depthAwareUpsampling",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                selectiveBloomEffectDefinition.mipmapBlur = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.depthAwareUpsampling = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            value: selectiveBloomEffectDefinition.mipmapBlur
+            value: ssaoEffectDefinition.depthAwareUpsampling
         },
-        <IBooleanElement>{
-            name: "ignoreBackground",
-            type: "boolean",
-            onChangeCallback: (value: any) => {
-                selectiveBloomEffectDefinition.ignoreBackground = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+        <ISliderElement>{
+            name: "bias",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.bias = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            value: selectiveBloomEffectDefinition.ignoreBackground
+            value: ssaoEffectDefinition.bias,
+            min: 0,
+            max: 1,
+            step: 0.01
+        },
+        <ISliderElement>{
+            name: "fade",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.fade = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.fade,
+            min: 0,
+            max: 1,
+            step: 0.01
         },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.intensity = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.intensity = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            value: selectiveBloomEffectDefinition.intensity,
+            value: ssaoEffectDefinition.intensity,
             min: 0,
-            max: 10,
+            max: 100,
             step: 0.01
         },
         <ISliderElement>{
-            name: "luminanceSmoothing",
+            name: "luminanceInfluence",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.luminanceSmoothing = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.luminanceInfluence = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            value: selectiveBloomEffectDefinition.luminanceSmoothing,
+            value: ssaoEffectDefinition.luminanceInfluence,
             min: 0,
             max: 1,
-            step: 0.001
+            step: 0.01
         },
         <ISliderElement>{
-            name: "luminanceThreshold",
+            name: "minRadiusScale",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.luminanceThreshold = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.minRadiusScale = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            value: selectiveBloomEffectDefinition.luminanceThreshold,
+            value: ssaoEffectDefinition.minRadiusScale,
             min: 0,
             max: 1,
-            step: 0.001
+            step: 0.01
         },
-        <IDropdownElement>{
-            name: "blur - kernelSize",
-            type: "dropdown",
+        <ISliderElement>{
+            name: "radius",
+            type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.kernelSize = value;
-                viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
-                viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
+                ssaoEffectDefinition.radius = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
             },
-            choices: Object.keys(KernelSize),
-            value: selectiveBloomEffectDefinition.kernelSize
+            value: ssaoEffectDefinition.radius,
+            min: 0,
+            max: 1,
+            step: 0.01
+        },
+        <ISliderElement>{
+            name: "Rings",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.rings = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.rings,
+            min: 0,
+            max: 100,
+            step: 1
+        },
+        <ISliderElement>{
+            name: "Samples",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                ssaoEffectDefinition.samples = value;
+                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+            },
+            value: ssaoEffectDefinition.samples,
+            min: 0,
+            max: 100,
+            step: 1
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();
