@@ -1287,6 +1287,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
     if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
+
+    // call adjust camera to load the three.js camera objects
+    this.cameraManager.adjustCamera(1);
+    
     this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
     this.update('RenderingEngine.applySyncSettings');
   }

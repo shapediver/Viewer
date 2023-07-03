@@ -23,7 +23,7 @@ import {
     SelectiveBloomEffect,
     SepiaEffect,
     SMAAEffect,
-    SSAOEffect,
+    SMAAPreset,
     TiltShiftEffect,
     VignetteEffect
 } from 'postprocessing';
@@ -43,6 +43,7 @@ import {
     IDotScreenEffectDefinition,
     IGodRaysEffectDefinition,
     IGridEffectDefinition,
+    IHBAOEffectDefinition,
     IHueSaturationEffectDefinition,
     INoiseEffectDefinition,
     IOutlineEffectDefinition,
@@ -72,10 +73,9 @@ export class PostProcessingManager implements IManager {
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    private _antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.SSAA;
-    private _antiAliasingTechniqueMobile: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.SMAA;
+    private _antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.SMAA;
+    private _antiAliasingTechniqueMobile: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.FXAA;
     private _composer!: EffectComposer;
-    private _depthDownsamplingPass!: DepthDownsamplingPass;
     private _effectDefinitions: {
         token: string,
         definition: IPostProcessingEffectDefinition
@@ -85,13 +85,12 @@ export class PostProcessingManager implements IManager {
         token: string,
         effect: Effect
     }[] = [];
+    private _enablePostProcessingOnMobile: boolean = true;
     private _fxaaEffect!: FXAAEffect;
     private _godRaysManagers: {
         [key: string]: GodRaysManager
     } = {};
     private _manualPostProcessing: boolean = false;
-    private _normalPass!: NormalPass;
-    private _normalPassScene: THREE.Scene = new THREE.Scene();
     private _outlineManagers: {
         [key: string]: OutlineManager
     } = {};
@@ -136,6 +135,14 @@ export class PostProcessingManager implements IManager {
 
     public get effects(): { token: string, effect: Effect }[] {
         return this._effects;
+    }
+
+    public get enablePostProcessingOnMobile(): boolean {
+        return this._enablePostProcessingOnMobile;
+    }
+
+    public set enablePostProcessingOnMobile(value: boolean) {
+        this._enablePostProcessingOnMobile = value;
     }
 
     public get godRaysManagers(): {
@@ -186,6 +193,7 @@ export class PostProcessingManager implements IManager {
     }
 
     public changeEffectPass() {
+        if (this._systemInfo.isMobile === true && this._enablePostProcessingOnMobile === false) return;
         if (this._manualPostProcessing) return;
 
         this._composer.removeAllPasses();
@@ -196,10 +204,6 @@ export class PostProcessingManager implements IManager {
         } else {
             this._composer.addPass(this._renderPass);
         }
-
-        const velocityDepthNormalPass = new REALISM_EFFECTS.VelocityDepthNormalPass(this._renderingEngine.scene, this._renderingEngine.camera)
-        this._composer.addPass(velocityDepthNormalPass)
-
 
         // remove the effects where the tokens are not in the effectDefinitions
         const activeEffectTokens = this._effectDefinitions.map(e => e.token);
@@ -234,8 +238,8 @@ export class PostProcessingManager implements IManager {
                             effect: new ChromaticAberrationEffect({
                                 blendFunction: definition.blendFunction,
                                 offset: definition.offset ? new THREE.Vector2(...definition.offset) : undefined,
-                                radialModulation: definition.radialModulation || false,
-                                modulationOffset: definition.modulationOffset || 0.15
+                                radialModulation: definition.radialModulation !== undefined ? definition.radialModulation : false,
+                                modulationOffset: definition.modulationOffset !== undefined ? definition.modulationOffset : 0.15
                             })
                         });
                     }
@@ -297,9 +301,36 @@ export class PostProcessingManager implements IManager {
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new GridEffect({
-                                blendFunction: definition.blendFunction || BlendFunction.MULTIPLY,
+                                blendFunction: definition.blendFunction !== undefined ? definition.blendFunction : BlendFunction.MULTIPLY,
                                 scale: definition.scale
                             })
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.HBAO:
+                    {
+                        const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
+                        const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+                            resolutionScale: definition.resolutionScale !== undefined ? definition.resolutionScale : 1,
+                            spp: definition.spp !== undefined ? definition.spp : 8,
+                            distance: definition.distance !== undefined ? definition.distance : 2,
+                            distancePower: definition.distanceIntensity !== undefined ? definition.distanceIntensity : 1,
+                            power: definition.intensity !== undefined ? definition.intensity : 5,
+                            bias: definition.bias !== undefined ? definition.bias : 40,
+                            thickness: definition.thickness !== undefined ? definition.thickness : 0.075,
+                            color: definition.color !== undefined ? new THREE.Color(this._converter.toHexColor(definition.color).substring(0, 7)) : new THREE.Color("black"),
+                            iterations: definition.iterations !== undefined ? definition.iterations : 1,
+                            radius: definition.radius !== undefined ? definition.radius : 8,
+                            rings: definition.rings !== undefined ? definition.rings : 5.625,
+                            lumaPhi: definition.lumaPhi !== undefined ? definition.lumaPhi : 10,
+                            depthPhi: definition.depthPhi !== undefined ? definition.depthPhi : 2,
+                            normalPhi: definition.normalPhi !== undefined ? definition.normalPhi : 3.25,
+                            samples: definition.samples !== undefined ? definition.samples : 16
+                        });
+                        this._effects.push({
+                            token: this._effectDefinitions[i].token,
+                            effect: hbaoEffect
                         });
                     }
                     break;
@@ -335,7 +366,7 @@ export class PostProcessingManager implements IManager {
                     {
                         const definition: IOutlineEffectDefinition = this._effectDefinitions[i].definition as IOutlineEffectDefinition;
                         const outlineEffect = new OutlineEffect(this._renderingEngine.scene, this._renderingEngine.camera, {
-                            blendFunction: definition.blendFunction || BlendFunction.SCREEN,
+                            blendFunction: definition.blendFunction !== undefined ? definition.blendFunction : BlendFunction.SCREEN,
                             edgeStrength: definition.edgeStrength,
                             pulseSpeed: definition.pulseSpeed,
                             visibleEdgeColor: <any>new THREE.Color(this._converter.toHexColor(definition.visibleEdgeColor).substring(0, 7)),
@@ -365,44 +396,23 @@ export class PostProcessingManager implements IManager {
 
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
-                        this._composer.addPass(this._normalPass);
-                        if (this._renderingEngine.renderer.capabilities.isWebGL2)
-                            this._composer.addPass(this._depthDownsamplingPass);
-
-                        const defaultAOOptions = {
-                            resolutionScale: 1,
-                            spp: 8,
-                            distance: 2,
-                            distancePower: 1,
-                            power: 5,
-                            bias: 40,
-                            thickness: 0.075,
-                            color: new THREE.Color("black"),
-                            useNormalPass: false,
-                            // velocityDepthNormalPass: velocityDepthNormalPass,
-                            
-                            
-                                iterations: 1,
-                                radius: 8,
-                                rings: 5.625,
-                                lumaPhi: 10,
-                                depthPhi: 2,
-                                normalPhi: 3.25,
-                                samples: 16,
-                                normalTexture: null,//this._normalPass.texture
-                              
-                          };
-
-                        //   options = { ...defaultAOOptions,
-                        //     ...HBAOEffect.DefaultOptions,
-                        //     ...options
-                        //   };
-
-                            
-                        console.log(REALISM_EFFECTS.HBAOEffect)
-
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
-                        const ssaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, defaultAOOptions);
+                        const ssaoEffect = new REALISM_EFFECTS.SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+                            resolutionScale: definition.resolutionScale !== undefined ? definition.resolutionScale : 1,
+                            spp: definition.spp !== undefined ? definition.spp : 8,
+                            distance: definition.distance !== undefined ? definition.distance : 2,
+                            distancePower: definition.distanceIntensity !== undefined ? definition.distanceIntensity : 1,
+                            power: definition.intensity !== undefined ? definition.intensity : 5,
+                            color: definition.color !== undefined ? new THREE.Color(this._converter.toHexColor(definition.color).substring(0, 7)) : new THREE.Color("black"),
+                            iterations: definition.iterations !== undefined ? definition.iterations : 1,
+                            radius: definition.radius !== undefined ? definition.radius : 8,
+                            rings: definition.rings !== undefined ? definition.rings : 5.625,
+                            lumaPhi: definition.lumaPhi !== undefined ? definition.lumaPhi : 10,
+                            depthPhi: definition.depthPhi !== undefined ? definition.depthPhi : 2,
+                            normalPhi: definition.normalPhi !== undefined ? definition.normalPhi : 3.25,
+                            samples: definition.samples !== undefined ? definition.samples : 16
+                        });
+
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: ssaoEffect
@@ -503,6 +513,12 @@ export class PostProcessingManager implements IManager {
 
         this._effectPass = new EffectPass(this._renderingEngine.camera, ...this._effects.map(v => v.effect));
         this._composer.addPass(this._effectPass)
+
+        // for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
+        if (this._effectDefinitions.find(e => e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO || e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO)) {
+            // respect the AA choice if one of the effects was selected, use SMAA otherwise
+            this._composer.addPass(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect : this._smaaEffect))
+        }
     }
 
     public getEffect(token: string): Effect {
@@ -517,30 +533,9 @@ export class PostProcessingManager implements IManager {
 
         // create anti-aliasing effects and passes
         this._fxaaEffect = new FXAAEffect();
-        this._smaaEffect = new SMAAEffect();
+        this._smaaEffect = new SMAAEffect({ preset: SMAAPreset.ULTRA });
         this._renderPass = new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
         this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
-
-        this._normalPassScene = this._renderingEngine.scene.clone();
-        this._normalPassScene.traverseVisible(o => {
-            if (o instanceof THREE.LineSegments)
-                o.visible = false;
-        })
-        this._normalPass = new NormalPass(this._normalPassScene, this._renderingEngine.camera);
-        this._depthDownsamplingPass = new DepthDownsamplingPass({
-            normalBuffer: this._normalPass.texture,
-            resolutionScale: 1
-        });
-
-        this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, (e) => {
-            if ((<IViewportEvent>e).viewportId !== this._renderingEngine.id) return;
-            this._normalPassScene = this._renderingEngine.scene.clone();
-            this._normalPassScene.traverseVisible(o => {
-                if (o instanceof THREE.LineSegments)
-                    o.visible = false;
-            })
-            this._normalPass.mainScene = this._normalPassScene;
-        })
     }
 
     public removeEffect(token: string): boolean {
@@ -561,7 +556,6 @@ export class PostProcessingManager implements IManager {
     public resize(width: number, height: number) {
         this._renderPass.setSize(width, height);
         this._ssaaRenderPass.setSize(width, height);
-        this._normalPass.setSize(width, height);
         this._effectPass?.setSize(width, height);
         this._composer.setSize(width, height);
     }

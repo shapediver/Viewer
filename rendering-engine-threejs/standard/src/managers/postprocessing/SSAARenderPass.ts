@@ -76,7 +76,7 @@ export class SSAARenderPass extends Pass {
   private _clearAlpha: number | undefined;
   private _clearColor: Color = new Color();
   private _oldClearColor: Color = new Color();
-  private _sampleLevel: number = 4;
+  private _sampleLevel: number = 2;
   private _unbiased: boolean = true;
   private _copyMaterial: CopyMaterial;
 

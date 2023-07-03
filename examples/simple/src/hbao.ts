@@ -2,7 +2,7 @@ import * as SDV from '@shapediver/viewer';
 import {
     createSession,
     createViewport,
-    ISSAOEffectDefinition,
+    IHBAOEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
 } from '@shapediver/viewer';
 import {
@@ -27,7 +27,7 @@ import {
         id: "mySession"
     });
 
-    const ssaoEffectDefinition: ISSAOEffectDefinition = {
+    const hbaoEffectDefinition: IHBAOEffectDefinition = {
         /** The resolution scale of the ambient occlusion. (default: 1) */
         resolutionScale: 1,
         /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
@@ -40,7 +40,11 @@ import {
         intensity: 5,
         /** The color of the ambient occlusion. (default: black) */
         color: "#000000",
-       
+        /** The bias that is used for the effect in world units. (default: 40) */
+        bias: 40,
+        /** The thickness if the ambient occlusion effect. (default: 0.075) */
+        thickness: 0.075,
+
         /** The number of iterations of the denoising pass. (default: 1) */
         iterations: 1,
         /** The radius of the poisson disk. (default: 8) */
@@ -56,9 +60,9 @@ import {
         /** The samples that are used in the poisson disk. (default: 16) */
         samples: 16,
 
-        type: POST_PROCESSING_EFFECT_TYPE.SSAO
+        type: POST_PROCESSING_EFFECT_TYPE.HBAO
     };
-    const ssaoEffectToken = viewport.postProcessing.addEffect(ssaoEffectDefinition)
+    const hbaoEffectToken = viewport.postProcessing.addEffect(hbaoEffectDefinition)
 
     createCustomUi([
 
@@ -66,10 +70,10 @@ import {
             name: "resolutionScale",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.resolutionScale = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.resolutionScale = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.resolutionScale,
+            value: hbaoEffectDefinition.resolutionScale,
             min: 0.1,
             max: 1,
             step: 0.1
@@ -79,10 +83,10 @@ import {
             type: "slider",
             onChangeCallback: (value: number) => {
                 console.log(typeof value)
-                ssaoEffectDefinition.spp = +value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.spp = +value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.spp,
+            value: hbaoEffectDefinition.spp,
             min: 1,
             max: 64,
             step: 1
@@ -91,10 +95,10 @@ import {
             name: "distance",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.distance = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.distance = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.distance,
+            value: hbaoEffectDefinition.distance,
             min: 0.1,
             max: 10,
             step: 0.001
@@ -103,10 +107,10 @@ import {
             name: "distanceIntensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.distanceIntensity = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.distanceIntensity = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.distanceIntensity,
+            value: hbaoEffectDefinition.distanceIntensity,
             min: 0,
             max: 2,
             step: 0.001
@@ -115,31 +119,55 @@ import {
             name: "intensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.intensity = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.intensity = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.intensity,
+            value: hbaoEffectDefinition.intensity,
             min: 0,
             max: 32,
+            step: 0.001
+        },
+        <ISliderElement>{
+            name: "bias",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                hbaoEffectDefinition.bias = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
+            },
+            value: hbaoEffectDefinition.bias,
+            min: 0,
+            max: 100,
+            step: 0.001
+        },
+        <ISliderElement>{
+            name: "thickness",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                hbaoEffectDefinition.thickness = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
+            },
+            value: hbaoEffectDefinition.thickness,
+            min: 0,
+            max: 1,
             step: 0.001
         },
         <IColorElement>{
             name: "color",
             type: "color",
             onChangeCallback: (value: string) => {
-                ssaoEffectDefinition.color = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.color = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.color
+            value: hbaoEffectDefinition.color
         },
         <ISliderElement>{
             name: "iterations",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.iterations = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.iterations = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.iterations,
             min: 0,
             max: 3,
             step: 1
@@ -148,10 +176,10 @@ import {
             name: "radius",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.iterations = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.iterations = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.iterations,
             min: 0,
             max: 32,
             step: 0.001
@@ -160,10 +188,10 @@ import {
             name: "rings",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.iterations = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.iterations = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.iterations,
             min: 0,
             max: 16,
             step: 1
@@ -172,10 +200,10 @@ import {
             name: "lumaPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.lumaPhi = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.lumaPhi = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.lumaPhi,
+            value: hbaoEffectDefinition.lumaPhi,
             min: 0,
             max: 20,
             step: 0.001
@@ -185,10 +213,10 @@ import {
             name: "depthPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.depthPhi = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.depthPhi = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.depthPhi,
+            value: hbaoEffectDefinition.depthPhi,
             min: 0,
             max: 20,
             step: 0.001
@@ -198,10 +226,10 @@ import {
             name: "normalPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.normalPhi = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.normalPhi = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.normalPhi,
+            value: hbaoEffectDefinition.normalPhi,
             min: 0,
             max: 50,
             step: 0.001
@@ -211,10 +239,10 @@ import {
             name: "samples",
             type: "slider",
             onChangeCallback: (value: number) => {
-                ssaoEffectDefinition.samples = value;
-                viewport.postProcessing.updateEffect(ssaoEffectToken, ssaoEffectDefinition);
+                hbaoEffectDefinition.samples = value;
+                viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: ssaoEffectDefinition.samples,
+            value: hbaoEffectDefinition.samples,
             min: 0,
             max: 32,
             step: 1

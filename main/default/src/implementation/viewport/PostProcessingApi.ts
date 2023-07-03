@@ -52,6 +52,18 @@ export class PostProcessingApi implements IPostProcessingApi {
     public get effectComposer(): EffectComposer {
         return this.#renderingEngine.postProcessingManager.effectComposer;
     }
+    
+    public get enablePostProcessingOnMobile(): boolean {
+        return this.#renderingEngine.postProcessingManager.enablePostProcessingOnMobile;
+    }
+
+    public set enablePostProcessingOnMobile(value: boolean) {
+        const scope = 'enablePostProcessingOnMobile';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.postProcessingManager.enablePostProcessingOnMobile = value;
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
 
     public get godRaysEffects(): {
         [key: string]: {

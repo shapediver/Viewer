@@ -68,6 +68,7 @@ export class RenderingManager implements IManager {
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
+    private _hideLogo: boolean = false
 
     // #endregion Properties (28)
 
@@ -373,7 +374,13 @@ export class RenderingManager implements IManager {
             this.toggleBusyMode(false);
             return;
         } else {
-            this.toggleLogo(false);
+            // we delay for one render call as some of the postprocessing effects have artefacts in the first call
+            if(this._hideLogo === true) {
+                this.toggleLogo(false);
+                this._hideLogo = false;
+            } else {
+                this._hideLogo = true;
+            }
         }
 
         // animation loop - part 6: the scene is shown, but there is no active rendering happening
@@ -431,11 +438,16 @@ export class RenderingManager implements IManager {
         // set the background color / alpha
         this._renderingEngine.renderer.setClearColor(new THREE.Color(this._converter.toThreeJsColorInput(this._renderingEngine.clearColor)), this._renderingEngine.clearAlpha);
 
+        // check if we should render with post-processing
+        const renderPostProcessing = (this._renderingEngine.postProcessingManager.effects.length > 0 || this._renderingEngine.postProcessingManager.manualPostProcessing) &&
+            !(this._renderingEngine.postProcessingManager.enablePostProcessingOnMobile === false && this._systemInfo.isMobile === true);
+
         // animation loop - part 12: actual rendering separation
         if (states.softShadowRendering === true) {
             this.setShaderProperties();
 
-            if (this._renderingEngine.postProcessingManager.effects.length > 0 || this._renderingEngine.postProcessingManager.manualPostProcessing) {
+
+            if (renderPostProcessing) {
                 this._renderingEngine.postProcessingManager.render(deltaTime, camera);
             } else {
                 this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
@@ -450,7 +462,7 @@ export class RenderingManager implements IManager {
                 this._softShadowRenderingDurationActive += deltaTime;
             }
         } else {
-            if (this._renderingEngine.postProcessingManager.effects.length > 0 || this._renderingEngine.postProcessingManager.manualPostProcessing) {
+            if (renderPostProcessing) {
                 this._renderingEngine.postProcessingManager.render(deltaTime, camera);
             } else {
                 this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);

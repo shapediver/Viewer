@@ -34,6 +34,14 @@ export interface IPostProcessingApi {
     readonly effectComposer: EffectComposer;
 
     /**
+     * If the post-processing effects should be enabled on mobile. (default: true)
+     * 
+     * As some post-processing effects greatly effect the rendering performance it might make sense to not use post-processing on mobile device.
+     * This will ensure that the rendering on mobile devices is still fluid, while providing the best results on desktop.
+     */
+    enablePostProcessingOnMobile: boolean;
+
+    /**
      * Access to all currently added god ray effects via token.
      * 
      * @see addEffect

@@ -9,6 +9,7 @@ export enum POST_PROCESSING_EFFECT_TYPE {
     DOT_SCREEN = "dot_screen",
     GOD_RAYS = "god_rays",
     GRID = "grid",
+    HBAO = "hbao",
     HUE_SATURATION = "hue_saturation",
     NOISE = "noise",
     OUTLINE = "outline",
@@ -139,6 +140,48 @@ export interface IGridEffectDefinition extends IPostProcessingEffectDefinition {
     // #endregion Properties (4)
 }
 
+
+export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
+    // #region Properties (15)
+
+    /** The resolution scale of the ambient occlusion. (default: 1) */
+    resolutionScale?: number,
+    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+    spp?: number,
+    /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+    distance?: number,
+    /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+    distanceIntensity?: number,
+    /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+    intensity?: number,
+    /** The color of the ambient occlusion. (default: black) */
+    color?: Color,
+    /** The bias that is used for the effect in world units. (default: 40) */
+    bias?: number,
+    /** The thickness if the ambient occlusion effect. (default: 0.075) */
+    thickness?: number,
+
+    /** The number of iterations of the denoising pass. (default: 1) */
+    iterations?: number,
+    /** The radius of the poisson disk. (default: 8) */
+    radius?: number,
+    /** The rings of the poisson disk. (default: 5.625) */
+    rings?: number,
+    /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
+    lumaPhi?: number,
+    /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
+    depthPhi?: number,
+    /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
+    normalPhi?: number,
+    /** The samples that are used in the poisson disk. (default: 16) */
+    samples?: number,
+
+    type: POST_PROCESSING_EFFECT_TYPE.HBAO
+
+    // #endregion Properties (15)
+}
+
+
 export interface IHueSaturationEffectDefinition extends IPostProcessingEffectDefinition {
     // #region Properties (4)
 
@@ -206,28 +249,34 @@ export interface IPixelationEffectDefinition extends IPostProcessingEffectDefini
 export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
     // #region Properties (15)
 
-    /** An occlusion bias. Eliminates artifacts caused by depth discontinuities. (default: 0.025) */
-    bias?: number,
-    /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
-    blendFunction?: BlendFunction,
-    /** The color of the ambient occlusion. (default: #000000) */
-    color?: Color,
-    /** Enables or disables depth-aware upsampling. Has no effect if WebGL 2 is not supported. (default: true) */
-    depthAwareUpsampling?: boolean,
-    /** Influences the smoothness of the shadows. A lower value results in higher contrast. (default: 0.01) */
-    fade?: number,
-    /** The intensity of the ambient occlusion. (default: 1.0) */
+    /** The resolution scale of the ambient occlusion. (default: 1) */
+    resolutionScale?: number,
+    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+    spp?: number,
+    /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+    distance?: number,
+    /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+    distanceIntensity?: number,
+    /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
     intensity?: number,
-    /** Determines how much the luminance of the scene influences the ambient occlusion. (default: 0.7) */
-    luminanceInfluence?: number,
-    /** The minimum radius scale. (default: 0.1) */
-    minRadiusScale?: number,
-    /** The occlusion sampling radius, expressed as a scale relative to the resolution. Range [1e-6, 1.0]. (default: 0.1825) */
+    /** The color of the ambient occlusion. (default: black) */
+    color?: Color,
+
+    /** The number of iterations of the denoising pass. (default: 1) */
+    iterations?: number,
+    /** The radius of the poisson disk. (default: 8) */
     radius?: number,
-    /** The amount of spiral turns in the occlusion sampling pattern. Should be a prime number. (default: 7) */
+    /** The rings of the poisson disk. (default: 5.625) */
     rings?: number,
-    /** The amount of samples per pixel. Should not be a multiple of the ring count. (default: 9) */
+    /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
+    lumaPhi?: number,
+    /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
+    depthPhi?: number,
+    /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
+    normalPhi?: number,
+    /** The samples that are used in the poisson disk. (default: 16) */
     samples?: number,
+
     type: POST_PROCESSING_EFFECT_TYPE.SSAO
 
     // #endregion Properties (15)
