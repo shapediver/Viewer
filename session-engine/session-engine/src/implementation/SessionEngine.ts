@@ -18,7 +18,7 @@ import { Parameter } from './dto/Parameter'
 import { vec3 } from 'gl-matrix'
 import { Export } from './dto/Export'
 import { Output } from './dto/Output'
-import { convert, ISettingsV3_4, latestVersion, validate, versions } from '@shapediver/viewer.settings'
+import { convert, ISettings, latestVersion, validate, versions } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (43)
@@ -250,7 +250,7 @@ export class SessionEngine implements ISessionEngine {
                 throw new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
             }
 
-            const settings = <ISettingsV3_4>convert(config, latestVersion);
+            const settings = <ISettings>convert(config, latestVersion);
 
             const exportMappingUid: { [key: string]: string | undefined } = {};
             if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -320,7 +320,6 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
             
                 currentSettings.rendering.shadows = settings.rendering.shadows;
-                currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
 
                 currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
                 currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;

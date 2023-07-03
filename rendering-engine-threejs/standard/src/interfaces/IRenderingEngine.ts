@@ -6,8 +6,6 @@ import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
     // #region Properties (17)
 
-    ambientOcclusion: boolean;
-    ambientOcclusionIntensity: number;
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
     clearAlpha: number;

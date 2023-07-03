@@ -1,4 +1,4 @@
-import { convert, validate, DefaultsV3_4 as Defaults, ISettingsV3_4 as ISettings, versions, latestVersion } from '@shapediver/viewer.settings';
+import { convert, validate, Defaults, ISettings, versions, latestVersion } from '@shapediver/viewer.settings';
 
 import { EventEngine } from '../event-engine/EventEngine'
 import { Logger } from '../logger/Logger';

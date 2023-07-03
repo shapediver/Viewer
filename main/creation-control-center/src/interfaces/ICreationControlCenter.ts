@@ -2,7 +2,7 @@ import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILI
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ISettingsV3_4 as ISettings } from "@shapediver/viewer.settings";
+import { ISettings } from "@shapediver/viewer.settings";
 
 export interface ICreationControlCenter {
   // #region Properties (3)

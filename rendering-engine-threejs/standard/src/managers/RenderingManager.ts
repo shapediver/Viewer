@@ -560,7 +560,7 @@ export class RenderingManager implements IManager {
         // If we should render in beauty mode
         let softShadowRendering = false;
         if (this._softShadowRenderingActive === true && busyMode === false && this._continuousRendering === false &&
-            (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
+            (this._renderingEngine.shadows || !this._systemInfo.isIOS) &&
             this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES)
             softShadowRendering = true;
 

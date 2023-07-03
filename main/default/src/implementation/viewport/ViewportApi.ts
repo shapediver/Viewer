@@ -17,7 +17,7 @@ import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
-import { ISettingsV3_4 as ISettings } from "@shapediver/viewer.settings";
+import { ISettings } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
 import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
@@ -94,30 +94,6 @@ export class ViewportApi implements IViewportApi {
     // #endregion Constructors (1)
 
     // #region Public Accessors (69)
-
-    public get ambientOcclusion(): boolean {
-        return this.#renderingEngine.ambientOcclusion;
-    }
-
-    public set ambientOcclusion(value: boolean) {
-        const scope = 'ambientOcclusion';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
-        this.#renderingEngine.ambientOcclusion = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('ambientOcclusion');
-    }
-
-    public get ambientOcclusionIntensity(): number {
-        return this.#renderingEngine.ambientOcclusionIntensity;
-    }
-
-    public set ambientOcclusionIntensity(value: number) {
-        const scope = 'ambientOcclusionIntensity';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
-        this.#renderingEngine.ambientOcclusionIntensity = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('ambientOcclusionIntensity');
-    }
 
     public get animations(): {
         [key: string]: IAnimationData

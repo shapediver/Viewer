@@ -107,8 +107,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _visibility: VISIBILITY_MODE;
 
   // settings
-  private _ambientOcclusion: boolean = true;
-  private _ambientOcclusionIntensity: number = 0.1;
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
@@ -251,29 +249,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
       this.environmentMap = 'photo_studio';
-      this.ambientOcclusion = false;
     }
   }
 
   // #endregion Constructors (1)
 
   // #region Public Accessors (103)
-
-  public get ambientOcclusion(): boolean {
-    return this._ambientOcclusion;
-  }
-
-  public set ambientOcclusion(value: boolean) {
-    this._ambientOcclusion = value;
-  }
-
-  public get ambientOcclusionIntensity(): number {
-    return this._ambientOcclusionIntensity;
-  }
-
-  public set ambientOcclusionIntensity(value: number) {
-    this._ambientOcclusionIntensity = value;
-  }
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -1131,8 +1112,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
     settingsEngine.general.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
 
-    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
-    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
     settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
@@ -1269,7 +1248,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.groundPlaneShadowVisibility = this._settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
       this.shadows = this._settingsEngine.rendering.shadows;
-      this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
       this.lights = this._settingsEngine.rendering.lights;
 
       this.automaticColorAdjustment = this._settingsEngine.rendering.automaticColorAdjustment;

@@ -15,7 +15,7 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
-import { ISettingsV3_4 as ISettings } from '@shapediver/viewer.settings'
+import { ISettings } from '@shapediver/viewer.settings'
 import { IPostProcessingApi } from './IPostProcessingApi'
 
 /**
@@ -126,16 +126,6 @@ export interface IViewportApi {
    * @see {@link arRotation}
    */
   arRotation: vec3;
-
-  /**
-   * Option to enable / disable the ambient occlusion post-processing. (default: false)
-   */
-  ambientOcclusion: boolean;
-
-  /**
-   * The ambient occlusion intensity.
-   */
-  ambientOcclusionIntensity: number;
 
   /**
    * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
