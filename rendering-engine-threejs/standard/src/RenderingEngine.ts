@@ -1087,6 +1087,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
     (<CameraEngine>this.cameraEngine).saveSettings(settingsEngine);
+    (<PostProcessingManager>this.postProcessingManager).saveSettings(settingsEngine);
 
     settingsEngine.ar.enable = this.enableAR;
 
@@ -1265,6 +1266,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
     if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
+    (<PostProcessingManager>this.postProcessingManager).applySettings(this._settingsEngine);
 
     // call adjust camera to load the three.js camera objects
     this.cameraManager.adjustCamera(1);

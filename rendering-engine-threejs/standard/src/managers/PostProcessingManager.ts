@@ -3,7 +3,6 @@ import {
     BlendFunction,
     BloomEffect,
     ChromaticAberrationEffect,
-    DepthDownsamplingPass,
     DepthOfFieldEffect,
     DotScreenEffect,
     Effect,
@@ -14,7 +13,6 @@ import {
     GridEffect,
     HueSaturationEffect,
     NoiseEffect,
-    NormalPass,
     OutlineEffect,
     OverrideMaterialManager,
     PixelationEffect,
@@ -31,6 +29,7 @@ import {
     Converter,
     EventEngine,
     EVENTTYPE,
+    SettingsEngine,
     SystemInfo,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
@@ -63,10 +62,11 @@ import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
+import { IPostProcessingEffectsArray } from '@shapediver/viewer.settings';
 const REALISM_EFFECTS: any = require('realism-effects');
 
 export class PostProcessingManager implements IManager {
-    // #region Properties (21)
+    // #region Properties (19)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -101,7 +101,7 @@ export class PostProcessingManager implements IManager {
     private _smaaEffect!: SMAAEffect;
     private _ssaaRenderPass!: SSAARenderPass;
 
-    // #endregion Properties (21)
+    // #endregion Properties (19)
 
     // #region Constructors (1)
 
@@ -109,7 +109,7 @@ export class PostProcessingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (13)
+    // #region Public Accessors (15)
 
     public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
         return this._antiAliasingTechnique;
@@ -181,15 +181,36 @@ export class PostProcessingManager implements IManager {
         this._ssaaRenderPass.sampleLevel = value;
     }
 
-    // #endregion Public Accessors (13)
+    // #endregion Public Accessors (15)
 
-    // #region Public Methods (8)
+    // #region Public Methods (10)
 
     public addEffect(definition: IPostProcessingEffectDefinition, t?: string): string {
         const token = t || this._uuidGenerator.create();
         this._effectDefinitions.push({ token, definition });
         this.changeEffectPass();
         return token;
+    }
+
+    public applySettings(settingsEngine: SettingsEngine) {
+        this.antiAliasingTechnique = settingsEngine.settings.postprocessing.antiAliasingTechnique as ANTI_ALIASING_TECHNIQUE;
+        this.antiAliasingTechniqueMobile = settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile as ANTI_ALIASING_TECHNIQUE;
+        this.enablePostProcessingOnMobile = settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
+        this.ssaaSampleLevel = settingsEngine.settings.postprocessing.ssaaSampleLevel;
+
+        const effects = settingsEngine.settings.postprocessing.effects;
+        for(let i = 0; i < effects.length; i++) {
+            const token = this._uuidGenerator.create();
+            
+            this._effectDefinitions.push({
+                token,
+                definition: {
+                    type: effects[i].type as POST_PROCESSING_EFFECT_TYPE,
+                    ...effects[i].properties
+                }
+            });
+        }
+        this.changeEffectPass();
     }
 
     public changeEffectPass() {
@@ -560,6 +581,244 @@ export class PostProcessingManager implements IManager {
         this._composer.setSize(width, height);
     }
 
+    public saveSettings(settingsEngine: SettingsEngine) {
+
+        settingsEngine.settings.postprocessing.antiAliasingTechnique = this.antiAliasingTechnique;
+        settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile = this.antiAliasingTechniqueMobile;
+        settingsEngine.settings.postprocessing.enablePostProcessingOnMobile = this.enablePostProcessingOnMobile;
+        settingsEngine.settings.postprocessing.ssaaSampleLevel = this.ssaaSampleLevel;
+
+        const effects: IPostProcessingEffectsArray = [];
+
+        for (let i = 0; i < this._effectDefinitions.length; i++) {
+            switch (this._effectDefinitions[i].definition.type) {
+                case POST_PROCESSING_EFFECT_TYPE.BLOOM:
+                    {
+                        const definition: IBloomEffectDefinition = this._effectDefinitions[i].definition as IBloomEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                luminanceThreshold: definition.luminanceThreshold,
+                                luminanceSmoothing: definition.luminanceSmoothing,
+                                mipmapBlur: definition.mipmapBlur,
+                                intensity: definition.intensity,
+                                kernelSize: definition.kernelSize
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION:
+                    {
+                        const definition: IChromaticAberrationEffectDefinition = this._effectDefinitions[i].definition as IChromaticAberrationEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                offset: definition.offset ? { x: definition.offset[0], y: definition.offset[1] } : undefined,
+                                radialModulation: definition.radialModulation,
+                                modulationOffset: definition.modulationOffset
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
+                    {
+                        const definition: IDepthOfFieldEffectDefinition = this._effectDefinitions[i].definition as IDepthOfFieldEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                focusDistance: definition.focusDistance,
+                                focusRange: definition.focusRange,
+                                bokehScale: definition.bokehScale
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
+                    {
+                        const definition: IDotScreenEffectDefinition = this._effectDefinitions[i].definition as IDotScreenEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                scale: definition.scale,
+                                angle: definition.angle
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.GRID:
+                    {
+                        const definition: IGridEffectDefinition = this._effectDefinitions[i].definition as IGridEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.GRID,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                scale: definition.scale
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.HBAO:
+                    {
+                        const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.HBAO,
+                            properties: {
+                                resolutionScale: definition.resolutionScale,
+                                spp: definition.spp,
+                                distance: definition.distance,
+                                distanceIntensity: definition.distanceIntensity,
+                                intensity: definition.intensity,
+                                bias: definition.bias,
+                                thickness: definition.thickness,
+                                color: definition.color !== undefined ? this._converter.toHexColor(definition.color) : undefined,
+                                iterations: definition.iterations,
+                                radius: definition.radius,
+                                rings: definition.rings,
+                                lumaPhi: definition.lumaPhi,
+                                depthPhi: definition.depthPhi,
+                                normalPhi: definition.normalPhi,
+                                samples: definition.samples
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION:
+                    {
+                        const definition: IHueSaturationEffectDefinition = this._effectDefinitions[i].definition as IHueSaturationEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                hue: definition.hue,
+                                saturation: definition.saturation
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.NOISE:
+                    {
+                        const definition: INoiseEffectDefinition = this._effectDefinitions[i].definition as INoiseEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.NOISE,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                premultiply: definition.premultiply
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
+                    {
+                        const definition: IPixelationEffectDefinition = this._effectDefinitions[i].definition as IPixelationEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.PIXELATION,
+                            properties: {
+                                granularity: definition.granularity
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.SSAO:
+                    {
+                        const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.SSAO,
+                            properties: {
+                                resolutionScale: definition.resolutionScale,
+                                spp: definition.spp,
+                                distance: definition.distance,
+                                distanceIntensity: definition.distanceIntensity,
+                                intensity: definition.intensity,
+                                color: definition.color !== undefined ? this._converter.toHexColor(definition.color) : undefined,
+                                iterations: definition.iterations,
+                                radius: definition.radius,
+                                rings: definition.rings,
+                                lumaPhi: definition.lumaPhi,
+                                depthPhi: definition.depthPhi,
+                                normalPhi: definition.normalPhi,
+                                samples: definition.samples
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
+                    {
+                        const definition: IScanlineEffectDefinition = this._effectDefinitions[i].definition as IScanlineEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.SCANLINE,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                density: definition.density
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.SEPIA:
+                    {
+                        const definition: ISepiaEffectDefinition = this._effectDefinitions[i].definition as ISepiaEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.SEPIA,
+                            properties: {
+                                blendFunction: definition.blendFunction
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
+                    {
+                        const definition: ITiltShiftEffectDefinition = this._effectDefinitions[i].definition as ITiltShiftEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                offset: definition.offset,
+                                rotation: definition.rotation,
+                                focusArea: definition.focusArea,
+                                feather: definition.feather,
+                                kernelSize: definition.kernelSize
+                            }
+                        });
+                    }
+                    break;
+
+                case POST_PROCESSING_EFFECT_TYPE.VIGNETTE:
+                    {
+                        const definition: IVignetteEffectDefinition = this._effectDefinitions[i].definition as IVignetteEffectDefinition;
+                        effects.push({
+                            type: POST_PROCESSING_EFFECT_TYPE.VIGNETTE,
+                            properties: {
+                                blendFunction: definition.blendFunction,
+                                technique: definition.technique,
+                                offset: definition.offset,
+                                darkness: definition.darkness,
+                            }
+                        });
+                    }
+                    break;
+
+                default:
+            }
+        }
+
+        settingsEngine.settings.postprocessing.effects = effects;
+    }
+
     public updateEffect(token: string, definition: IPostProcessingEffectDefinition) {
         const effectDefinition = this._effectDefinitions.find(e => e.token === token);
         if (!effectDefinition) return;
@@ -567,5 +826,5 @@ export class PostProcessingManager implements IManager {
         this.addEffect(definition, token);
     }
 
-    // #endregion Public Methods (8)
+    // #endregion Public Methods (10)
 }

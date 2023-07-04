@@ -235,7 +235,7 @@ export class SessionEngine implements ISessionEngine {
             if (sections.session.export === undefined)
                 sections.session.export = { displayname: false, order: false, hidden: false };
             if (sections.viewport === undefined)
-                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false };
+                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false, postprocessing: false };
 
             let config: object;
             if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
@@ -334,6 +334,10 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.general.commitParameters = settings.general.commitParameters;
                 currentSettings.general.pointSize = settings.general.pointSize;
             }
+
+            // apply postprocessing settings
+            if (sections.viewport.postprocessing) 
+                currentSettings.postprocessing = settings.postprocessing;
 
             // apply environment settings
             if (sections.viewport.environment) {
