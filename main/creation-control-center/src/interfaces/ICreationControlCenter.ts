@@ -17,7 +17,7 @@ export interface ICreationControlCenter {
   // #region Public Methods (10)
 
   applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void>;
-  applyViewportSettings(viewportId: string, settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+  applyViewportSettings(viewportId: string, settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }): Promise<void>;
   closeRenderingEngine(id: string): Promise<void>;
   closeSessionEngine(id: string): Promise<void>;
   createRenderingEngineThreeJs(properties: { canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string, busyModeSpinner?: string, busyModeDisplay?: BUSY_MODE_DISPLAY, spinnerPositioning?: SPINNER_POSITIONING }, sessionSettingsId?: string, sessionSettingsMode?: SESSION_SETTINGS_MODE, visibility?: VISIBILITY_MODE, }): Promise<RenderingEngineThreeJs>;

@@ -826,7 +826,7 @@ export class SessionEngine implements ISessionEngine {
             if (sections.session.export === undefined)
                 sections.session.export = { displayname: true, order: true, hidden: true };
             if (sections.viewport === undefined)
-                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true };
+                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true, postprocessing: true };
 
             return this.applySettings(this._responseDto, sections);
     }

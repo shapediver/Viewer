@@ -840,14 +840,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       camera?: boolean,
       light?: boolean,
       environment?: boolean,
-      general?: boolean
+      general?: boolean,
+      postprocessing?: boolean
     } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
-      general: true
+      general: true,
+      postprocessing: true
     },
     settingsEngine?: SettingsEngine
   ): Promise<void> {
@@ -867,7 +869,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
             this.environmentMapRotation = [settingsEngine.environment.rotation.x, settingsEngine.environment.rotation.y, settingsEngine.environment.rotation.z, settingsEngine.environment.rotation.w];
             this.environmentMapBlurriness = settingsEngine.environment.blurriness;
             this.environmentMapIntensity = settingsEngine.environment.intensity;
-            this.applySyncSettings(sections);
+            this.applySyncSettings(sections, settingsEngine);
   
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
             resolve();
@@ -880,7 +882,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.environmentMap = settingsEngine!.environment.map;
       })
     } else {
-      this.applySyncSettings(sections)
+      this.applySyncSettings(sections, settingsEngine)
       this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
     }
   }
@@ -1222,51 +1224,56 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     camera?: boolean,
     light?: boolean,
     environment?: boolean,
-    general?: boolean
+    general?: boolean,
+    postprocessing?: boolean
   } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
-      general: true
-    }) {
-    if (!this._settingsEngine) return;
+      general: true,
+      postprocessing: true
+    },
+    settingsEngine?: SettingsEngine) {
+      
+    settingsEngine = settingsEngine || this._settingsEngine
+    if (!settingsEngine) return;
     
     if (sections.ar) {
-      this.enableAR = this._settingsEngine.ar.enable;
-      this.arScale = [this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z];
-      this.arTranslation = [this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z];
-      this.arRotation = [this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z];
+      this.enableAR = settingsEngine.ar.enable;
+      this.arScale = [settingsEngine.general.transformation.scale.x, settingsEngine.general.transformation.scale.y, settingsEngine.general.transformation.scale.z];
+      this.arTranslation = [settingsEngine.general.transformation.translation.x, settingsEngine.general.transformation.translation.y, settingsEngine.general.transformation.translation.z];
+      this.arRotation = [settingsEngine.general.transformation.rotation.x, settingsEngine.general.transformation.rotation.y, settingsEngine.general.transformation.rotation.z];
     }
 
     if (sections.scene) {
-      this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-      this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-      this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-      this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-      this.groundPlaneShadowColor = this._settingsEngine.environmentGeometry.groundPlaneShadowColor;
-      this.groundPlaneShadowVisibility = this._settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
+      this.gridColor = settingsEngine.environmentGeometry.gridColor;
+      this.gridVisibility = settingsEngine.environmentGeometry.gridVisibility;
+      this.groundPlaneColor = settingsEngine.environmentGeometry.groundPlaneColor;
+      this.groundPlaneVisibility = settingsEngine.environmentGeometry.groundPlaneVisibility;
+      this.groundPlaneShadowColor = settingsEngine.environmentGeometry.groundPlaneShadowColor;
+      this.groundPlaneShadowVisibility = settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
-      this.shadows = this._settingsEngine.rendering.shadows;
-      this.lights = this._settingsEngine.rendering.lights;
+      this.shadows = settingsEngine.rendering.shadows;
+      this.lights = settingsEngine.rendering.lights;
 
-      this.automaticColorAdjustment = this._settingsEngine.rendering.automaticColorAdjustment;
-      this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-      this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-      this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-      this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-      this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
+      this.automaticColorAdjustment = settingsEngine.rendering.automaticColorAdjustment;
+      this.textureEncoding = <TEXTURE_ENCODING>settingsEngine.rendering.textureEncoding;
+      this.outputEncoding = <TEXTURE_ENCODING>settingsEngine.rendering.outputEncoding;
+      this.physicallyCorrectLights = settingsEngine.rendering.physicallyCorrectLights;
+      this.toneMapping = <TONE_MAPPING>settingsEngine.rendering.toneMapping;
+      this.toneMappingExposure = settingsEngine.rendering.toneMappingExposure;
     }
 
     if (sections.general) {
-      this.defaultMaterialColor = this._settingsEngine.general.defaultMaterialColor;
-      this.pointSize = this._settingsEngine.general.pointSize;
+      this.defaultMaterialColor = settingsEngine.general.defaultMaterialColor;
+      this.pointSize = settingsEngine.general.pointSize;
     }
 
-    if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
-    if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
-    (<PostProcessingManager>this.postProcessingManager).applySettings(this._settingsEngine);
+    if (sections.light) (<LightEngine>this.lightEngine).applySettings(settingsEngine);
+    if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(settingsEngine);
+    if (sections.postprocessing) (<PostProcessingManager>this.postProcessingManager).applySettings(settingsEngine);
 
     // call adjust camera to load the three.js camera objects
     this.cameraManager.adjustCamera(1);

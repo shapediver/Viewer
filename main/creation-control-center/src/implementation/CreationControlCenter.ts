@@ -68,7 +68,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     return new Promise(resolve => Promise.all(promises).then(() => resolve()));
   }
 
-  public applyViewportSettings(viewportId: string, settings: ISettings, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
+  public applyViewportSettings(viewportId: string, settings: ISettings, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
     sections = sections || {};
 
     const settingsEngine: SettingsEngine = new SettingsEngine();

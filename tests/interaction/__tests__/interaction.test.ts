@@ -33,23 +33,25 @@ describe('device testing', () => {
         let bottomImage = driver.findElement(By.id('bottom'));
         actions = driver.actions({ async: true, bridge: true });
 
+        const factor = 0.6;
+
         // await actions.move({ origin: bottomImage }).press().pause(1000).release().pause(1000).perform()
         // await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(640 * 0.75), y: Math.round(400 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(640* factor), y: Math.round(400* factor) }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(840 * 0.75), y: Math.round(450 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(840* factor), y: Math.round(450* factor) }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(540 * 0.75), y: Math.round(400 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: bottomImage }).press().pause(1000).move({ x: Math.round(540* factor), y: Math.round(400* factor) }).release().pause(1000).perform()
         await actions.clear()
     
         let topImage = driver.findElement(By.id('top'));
         actions = driver.actions({ async: true, bridge: true });
 
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(640 * 0.75), y: Math.round(300 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(640* factor), y: Math.round(300* factor) }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(850 * 0.75), y: Math.round(380 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(850* factor), y: Math.round(380* factor) }).release().pause(1000).perform()
         await actions.clear()
-        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(540 * 0.75), y: Math.round(300 * 0.75) }).release().pause(1000).perform()
+        await actions.move({ origin: topImage }).press().pause(1000).move({ x: Math.round(540* factor), y: Math.round(300* factor) }).release().pause(1000).perform()
         await actions.clear()
     
 

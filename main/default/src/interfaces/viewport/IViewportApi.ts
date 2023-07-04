@@ -373,7 +373,7 @@ export interface IViewportApi {
    * 
    * @throws {@type ShapeDiverViewerError}
    */
-  applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+  applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }): Promise<void>;
 
   /**
    * Assign the camera with the specified id to the viewport.

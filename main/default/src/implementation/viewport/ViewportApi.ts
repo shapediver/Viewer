@@ -652,7 +652,7 @@ export class ViewportApi implements IViewportApi {
         return check;
     }
 
-    public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
+    public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }) {
         const scope = 'applyViewportSettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
