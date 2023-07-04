@@ -16,6 +16,10 @@ export const sdr7euc1: IModelDescription = {
         'La Modula': {
             ticket: 'c2881a729f89a2b53fdd3a3baf10b402d37213b04b05cdc595b3dd3ed772060dca1db41d9da8b4dff62cc5c8b2757441581ce9a2144e261cc4f7296a45e7e2a3e65a4d3c00b90ab61c6612734ae0e6a1f760f4061d26bf146c5e3aaf5a854a2a91d1cca9328597-3025199a939048bb6970cd09ec5a405d',
             slug: '22-10-27-lamodula-jg-3'
+        },
+        'Shelf': {
+            ticket: "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+            slug: "shelf-47-2-3",
         }
     }
 }

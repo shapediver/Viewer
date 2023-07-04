@@ -1,0 +1,73 @@
+import * as SDV from '@shapediver/viewer';
+import {
+    BlendFunction,
+    createSession,
+    createViewport,
+    POST_PROCESSING_EFFECT_TYPE
+} from '@shapediver/viewer';
+import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
+
+(<any>window).SDV = SDV;
+
+(async () => {
+    // create a viewport
+    const viewport = await createViewport({
+        canvas: document.getElementById("canvas") as HTMLCanvasElement,
+        id: "myViewport"
+    });
+    // create a session
+    const session = await createSession({
+        ticket:
+            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
+        id: "mySession"
+    });
+
+    const hueSaturationEffectDefinition: SDV.IHueSaturationEffectDefinition = {
+        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+        blendFunction: BlendFunction.NORMAL,
+        /** The hue in radians. (default: 0.0) */
+        hue: 0,
+        /** The saturation factor, ranging from -1 to 1, where 0 means no change. (default: 0.0) */
+        saturation: 0,
+        type: POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION
+    }
+    const hueSaturationEffectToken = viewport.postProcessing.addEffect(hueSaturationEffectDefinition)
+
+    createCustomUi([
+        <IDropdownElement>{
+            name: "BlendFunction",
+            type: "dropdown",
+            onChangeCallback: (value: string) => {
+                hueSaturationEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
+            },
+            choices: Object.keys(BlendFunction),
+            value: Object.values(BlendFunction).indexOf(hueSaturationEffectDefinition.blendFunction!)
+        },
+        <ISliderElement>{
+            name: "hue",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                hueSaturationEffectDefinition.hue = value;
+                viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
+            },
+            value: hueSaturationEffectDefinition.hue,
+            min: -3.14,
+            max: 3.14,
+            step: 0.001
+        },
+        <ISliderElement>{
+            name: "saturation",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                hueSaturationEffectDefinition.saturation = value;
+                viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
+            },
+            value: hueSaturationEffectDefinition.saturation,
+            min: -1,
+            max: 1,
+            step: 0.001
+        }
+    ], document.getElementById("ui") as HTMLDivElement)
+})();

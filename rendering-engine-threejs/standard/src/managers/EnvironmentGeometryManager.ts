@@ -152,8 +152,8 @@ export class EnvironmentGeometryManager implements IManager {
         let eps = 0.005;
         let bs = bb.boundingSphere;
         this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
+        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
     }
 
     public init(): void {
@@ -168,7 +168,6 @@ export class EnvironmentGeometryManager implements IManager {
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
         this._gridObject.add(this._grid);
-        this._gridObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._gridObject);
 
         this._groundPlaneObject = new SDData('groundPlane', '');
@@ -182,7 +181,6 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlane.receiveShadow = true;
         this._groundPlane.visible = this._renderingEngine.groundPlaneVisibility;
         this._groundPlaneObject.add(this._groundPlane);
-        this._groundPlaneObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._groundPlaneObject);
 
         this._groundPlaneShadowObject = new SDData('groundPlaneShadow', '');
@@ -193,7 +191,6 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneShadow.receiveShadow = true;
         this._groundPlaneShadow.visible = this._renderingEngine.groundPlaneShadowVisibility;
         this._groundPlaneShadowObject.add(this._groundPlaneShadow);
-        this._groundPlaneShadowObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._groundPlaneShadowObject);
 
         let eps = 0.005;
@@ -217,8 +214,8 @@ export class EnvironmentGeometryManager implements IManager {
             this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
 
             if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
+            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
         }
     }
 

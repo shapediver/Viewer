@@ -8,7 +8,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
 import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ISettingsV3_1, latestVersion } from "@shapediver/viewer.settings";
+import { ISettings, latestVersion } from "@shapediver/viewer.settings";
 
 export class CreationControlCenter implements ICreationControlCenter {
   // #region Properties (10)
@@ -68,7 +68,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     return new Promise(resolve => Promise.all(promises).then(() => resolve()));
   }
 
-  public applyViewportSettings(viewportId: string, settings: ISettingsV3_1, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
+  public applyViewportSettings(viewportId: string, settings: ISettings, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
     sections = sections || {};
 
     const settingsEngine: SettingsEngine = new SettingsEngine();
@@ -452,7 +452,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  public getViewportSettings(viewportId: string): ISettingsV3_1 {
+  public getViewportSettings(viewportId: string): ISettings {
     let renderingEngine = this.renderingEngines[viewportId];
     if(!renderingEngine)
       throw new ShapeDiverViewerViewportError('Viewport with id ' + viewportId + ' could not be found.');

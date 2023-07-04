@@ -95,6 +95,8 @@ export interface ISettingsSections {
       environment?: boolean
       /** Option to update the general settings (default: false) */
       general?: boolean
+      /** Option to update the postprocessing settings (default: false) */
+      postprocessing?: boolean
   }
 };
 

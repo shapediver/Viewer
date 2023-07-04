@@ -63,7 +63,7 @@
     "@shapediver/viewer.rendering-engine.light-engine": "2.9.3",
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.9.3",
     "@shapediver/viewer.session-engine.session-engine": "2.9.3",
-    "@shapediver/viewer.settings": "0.4.3",
+    "@shapediver/viewer.settings": "0.5.0",
     "@shapediver/viewer.shared.build-data": "2.9.3",
     "@shapediver/viewer.shared.math": "2.9.3",
     "@shapediver/viewer.shared.node-tree": "2.9.3",
@@ -71,10 +71,10 @@
     "@shapediver/viewer.shared.types": "2.9.3",
     "@shapediver/viewer.utils.mime-type": "1.0.0",
     "@types/qrcode": "^1.5.0",
-    "@types/three": "0.149.0",
+    "@types/three": "0.152.0",
     "gl-matrix": "3.3.0",
     "qrcode": "^1.5.0",
-    "three": "0.149.0"
+    "three": "0.152.2"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

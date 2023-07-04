@@ -15,7 +15,8 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
-import { ISettingsV3_1 } from '@shapediver/viewer.settings'
+import { ISettings } from '@shapediver/viewer.settings'
+import { IPostProcessingApi } from './IPostProcessingApi'
 
 /**
  * The api for viewports.
@@ -71,6 +72,11 @@ export interface IViewportApi {
    * The [light scenes]{@link ILightSceneApi} of the viewport.
    */
   readonly lightScenes: { [key: string]: ILightSceneApi };
+  
+  /**
+   * The [post processing api]{@link IPostProcessingApi} of the viewport. 
+   */
+  readonly postProcessing: IPostProcessingApi;
 
   /**
    * Optional identifier of the session to be used for loading / persisting settings of the viewport.
@@ -120,16 +126,6 @@ export interface IViewportApi {
    * @see {@link arRotation}
    */
   arRotation: vec3;
-
-  /**
-   * Option to enable / disable the ambient occlusion post-processing. (default: false)
-   */
-  ambientOcclusion: boolean;
-
-  /**
-   * The ambient occlusion intensity.
-   */
-  ambientOcclusionIntensity: number;
 
   /**
    * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
@@ -377,7 +373,7 @@ export interface IViewportApi {
    * 
    * @throws {@type ShapeDiverViewerError}
    */
-  applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+  applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
 
   /**
    * Assign the camera with the specified id to the viewport.
@@ -502,7 +498,7 @@ export interface IViewportApi {
    * Get the current settings object of this viewport.
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
-  getViewportSettings(): ISettingsV3_1;
+  getViewportSettings(): ISettings;
   
   /**
    * Determines if the current device is a mobile device (or tablet) but still doesn't support to view the content in AR.

@@ -17,10 +17,12 @@ import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
-import { ISettingsV3_1 } from "@shapediver/viewer.settings";
+import { ISettings } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
 import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
+import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
+import { PostProcessingApi } from "./PostProcessingApi";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
@@ -32,6 +34,7 @@ export class ViewportApi implements IViewportApi {
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
     readonly #logger: Logger = Logger.instance;
+    readonly #postProcessing: IPostProcessingApi;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
     readonly #cameras: { [key: string]: ICameraApi } = {};
@@ -83,35 +86,14 @@ export class ViewportApi implements IViewportApi {
 
         // We call it once in the beginning to get the current state.
         this.#renderingEngine.lightEngine.update();
+
+        // We create the post processing api
+        this.#postProcessing = new PostProcessingApi(this, this.#renderingEngine);
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (69)
-
-    public get ambientOcclusion(): boolean {
-        return this.#renderingEngine.ambientOcclusion;
-    }
-
-    public set ambientOcclusion(value: boolean) {
-        const scope = 'ambientOcclusion';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
-        this.#renderingEngine.ambientOcclusion = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('ambientOcclusion');
-    }
-
-    public get ambientOcclusionIntensity(): number {
-        return this.#renderingEngine.ambientOcclusionIntensity;
-    }
-
-    public set ambientOcclusionIntensity(value: number) {
-        const scope = 'ambientOcclusionIntensity';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
-        this.#renderingEngine.ambientOcclusionIntensity = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('ambientOcclusionIntensity');
-    }
 
     public get animations(): {
         [key: string]: IAnimationData
@@ -501,6 +483,10 @@ export class ViewportApi implements IViewportApi {
         this.update('pointSize');
     }
 
+    public get postProcessing(): IPostProcessingApi {
+        return this.#postProcessing;
+    }
+
     public get sessionSettingsId(): string | undefined {
         return this.#renderingEngine.sessionSettingsId;
     }
@@ -666,7 +652,7 @@ export class ViewportApi implements IViewportApi {
         return check;
     }
 
-    public applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
+    public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
         const scope = 'applyViewportSettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
@@ -749,7 +735,7 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.getScreenshot(type, quality);
     }
 
-    public getViewportSettings(): ISettingsV3_1 {
+    public getViewportSettings(): ISettings {
         return this.#creationControlCenter.getViewportSettings(this.id);
     }
 
