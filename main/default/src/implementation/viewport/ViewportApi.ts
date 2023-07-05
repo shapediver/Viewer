@@ -531,6 +531,18 @@ export class ViewportApi implements IViewportApi {
         this.update('showStatistics');
     }
 
+    public get softShadows(): boolean {
+        return this.#renderingEngine.softShadows;
+    }
+
+    public set softShadows(value: boolean) {
+        const scope = 'softShadows';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.softShadows = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('softShadows');
+    }
+
     public get textureEncoding(): TEXTURE_ENCODING {
         return this.#renderingEngine.textureEncoding;
     }
@@ -663,6 +675,10 @@ export class ViewportApi implements IViewportApi {
         return await this.#creationControlCenter.closeRenderingEngine(this.id);
     }
 
+    public continueRendering(): void {
+        this.#renderingEngine.continueRendering()
+    }
+
     public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
         const scope = 'convert3Dto2D';
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, p, 'vec3');
@@ -745,6 +761,10 @@ export class ViewportApi implements IViewportApi {
 
     public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
         return this.#renderingEngine.mouseEventToRay(event);
+    }
+
+    public pauseRendering(): void {
+        this.#renderingEngine.pauseRendering()
     }
 
     public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {

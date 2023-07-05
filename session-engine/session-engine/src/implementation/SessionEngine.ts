@@ -320,6 +320,7 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
             
                 currentSettings.rendering.shadows = settings.rendering.shadows;
+                currentSettings.rendering.softShadows = settings.rendering.softShadows;
 
                 currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
                 currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;

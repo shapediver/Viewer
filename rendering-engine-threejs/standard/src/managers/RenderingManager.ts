@@ -385,7 +385,7 @@ export class RenderingManager implements IManager {
         }
 
         // animation loop - part 6: the scene is shown, but there is no active rendering happening
-        if (states.rendering === false) return;
+        if (states.rendering === false || this._renderingEngine.pause === true) return;
 
         // animation loop - part 7: there is actual rendering happening
         // do the things that have to be done for standard and beauty rendering in the same way
@@ -569,6 +569,11 @@ export class RenderingManager implements IManager {
     }
 
     private setShaderProperties() {
+        if(this._renderingEngine.softShadows === false) {
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0);
+            return 0;
+        }
+
         const deltaTime = Math.min(this._softShadowRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
         const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 

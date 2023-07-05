@@ -119,10 +119,12 @@ export interface IRenderingEngine {
   // #region Public Methods (7)
 
   addFlag(flag: FLAG_TYPE): string;
+  continueRendering(): void;
   convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
   getScreenshot(type?: string, encoderOptions?: number): string;
   isMobileDeviceWithoutBrowserARSupport(): boolean;
   mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 };
+  pauseRendering(): void;
   raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;

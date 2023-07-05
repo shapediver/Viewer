@@ -34,6 +34,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
     shadows: boolean;
+    softShadows: boolean;
     textureEncoding: TEXTURE_ENCODING; 
     toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 

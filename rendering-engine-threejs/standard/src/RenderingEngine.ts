@@ -135,6 +135,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
+  private _pause: boolean = false;
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
@@ -143,6 +144,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
+  private _softShadows: boolean = true;
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
@@ -628,6 +630,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
+  public get pause(): boolean {
+    return this._pause;
+  }
+
+  public set pause(value: boolean) {
+    this._pause = value;
+  }
+
   public get physicallyCorrectLights(): boolean {
     return !this._renderer.useLegacyLights;
   }
@@ -715,6 +725,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set showStatistics(value: boolean) {
     this._showStatistics = value;
+  }
+
+  public get softShadows(): boolean {
+    return this._softShadows;
+  }
+
+  public set softShadows(value: boolean) {
+    this._softShadows = value;
   }
 
   public get spinnerDivElement(): HTMLDivElement {
@@ -887,6 +905,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
+  public continueRendering(): void {
+    this._pause = false;
+  }
+
   public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
     return this.sceneTracingManager.convert3Dto2D(p)
   }
@@ -1035,6 +1057,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTracingManager.mouseEventToRay(event);
   }
 
+  public pauseRendering(): void {
+    this._pause = true;
+  }
+
   public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
     const intersect = this._intersectionManager.intersect({ origin, direction }, undefined, undefined, root);
     return intersect.map(i => {
@@ -1125,7 +1151,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
     settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
     settingsEngine.rendering.shadows = this.shadows;
-    
+    settingsEngine.rendering.softShadows = this.softShadows;
   }
   
   public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
@@ -1256,6 +1282,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.groundPlaneShadowVisibility = settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
       this.shadows = settingsEngine.rendering.shadows;
+      this.softShadows = settingsEngine.rendering.softShadows;
       this.lights = settingsEngine.rendering.lights;
 
       this.automaticColorAdjustment = settingsEngine.rendering.automaticColorAdjustment;

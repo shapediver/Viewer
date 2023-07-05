@@ -280,6 +280,11 @@ export interface IViewportApi {
   showStatistics: boolean;
 
   /**
+   * Option if the soft shadows should be rendered when the camera is not moving. (default: true)
+   */
+  softShadows: boolean;
+
+  /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
    * 
    * @see {@link outputEncoding}
@@ -399,6 +404,14 @@ export interface IViewportApi {
    * Closes the viewport and will remove all traces of the canvas element.
    */
   close(): Promise<void>;
+
+  /**
+   * Continue the rendering of the scene. 
+   * Can be used with {@link pauseRendering} to continue/pause the rendering at will.
+   * 
+   * @see {@link pauseRendering}
+   */
+  continueRendering(): void;
 
   /**
    * Convert the given 3D position to different 2D coordinates of HTML Elements.
@@ -521,6 +534,14 @@ export interface IViewportApi {
    * @returns 
    */
   mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 }
+
+  /**
+   * Pause the rendering of the scene. 
+   * Can be used with {@link continueRendering} to continue/pause the rendering at will.
+   * 
+   * @see {@link continueRendering}
+   */
+  pauseRendering(): void;
 
   /**
    * From the provided origin and direction, trace the ray through the scene.
