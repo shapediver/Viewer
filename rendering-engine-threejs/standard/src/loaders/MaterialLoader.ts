@@ -516,14 +516,14 @@ export class MaterialLoader implements ILoader {
             specularGlossinessProperties.glossiness = materialData.glossiness;
 
             if (materialData.specularGlossinessMap !== undefined) {
-                specularGlossinessProperties.specularMap = this.createTexture(materialData.specularGlossinessMap);
-                specularGlossinessProperties.specularMap.colorSpace = THREE.SRGBColorSpace;
-                specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap;
+                specularGlossinessProperties.specularMap2 = this.createTexture(materialData.specularGlossinessMap);
+                specularGlossinessProperties.specularMap2.colorSpace = THREE.SRGBColorSpace;
+                specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap2;
                 mapCount++;
             } else {
                 if (materialData.specularMap !== undefined) {
-                    specularGlossinessProperties.specularMap = this.createTexture(materialData.specularMap);
-                    specularGlossinessProperties.specularMap.colorSpace = THREE.SRGBColorSpace;
+                    specularGlossinessProperties.specularMap2 = this.createTexture(materialData.specularMap);
+                    specularGlossinessProperties.specularMap2.colorSpace = THREE.SRGBColorSpace;
                     mapCount++;
                 }
                 if (materialData.glossinessMap !== undefined) {
