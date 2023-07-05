@@ -33,7 +33,7 @@ describe('device testing', () => {
         let bottomImage = driver.findElement(By.id('bottom'));
         actions = driver.actions({ async: true, bridge: true });
 
-        const factor = 0.6;
+        const factor = 0.75;
 
         // await actions.move({ origin: bottomImage }).press().pause(1000).release().pause(1000).perform()
         // await actions.clear()
