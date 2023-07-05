@@ -944,6 +944,7 @@ export class MaterialLoader implements ILoader {
         texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
         texture.rotation = map.rotation;
+        if(map.texCoord !== undefined) texture.channel = map.texCoord;
 
         texture.flipY = map.flipY;
         texture.needsUpdate = true;

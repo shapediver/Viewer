@@ -325,7 +325,7 @@ export class MaterialLoader {
 
     // #region Private Methods (1)
 
-    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): IMapData {
+    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number, texCoord?: number }): IMapData {
         if (!this._content.textures) throw new Error('Textures not available.')
         const texture = this._content.textures[textureId];
         if (!this._content.images) throw new Error('Images not available.')
@@ -343,8 +343,9 @@ export class MaterialLoader {
             properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined,
             properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined,
             properties && properties.rotation !== undefined ? properties.rotation : 0,
+            properties?.texCoord,            
             false
-        );;
+        );
     }
 
     // #endregion Private Methods (1)

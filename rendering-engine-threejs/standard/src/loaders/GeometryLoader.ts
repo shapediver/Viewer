@@ -189,7 +189,7 @@ export class GeometryLoader implements ILoader {
 
             // we copy the uv coordinates into the second set of uv coordinates if there are none
             // this allows for the usage of AO and light maps that share this coordinate set
-            const attributeIdUV2 = 'TEXCOORD_1', attributeNameUV2 = 'uv2';
+            const attributeIdUV2 = 'TEXCOORD_1', attributeNameUV2 = 'uv1';
             if (attributeName === 'uv' && !primitive.attributes[attributeIdUV2]) {
                 geometry.setAttribute(attributeNameUV2, buffer)
 
@@ -485,7 +485,11 @@ export class GeometryLoader implements ILoader {
             case 'UV':
                 return 'uv';
             case 'TEXCOORD_1':
+                return 'uv1';
+            case 'TEXCOORD_2':
                 return 'uv2';
+            case 'TEXCOORD_3':
+                return 'uv3';
             case 'COLOR_0':
             case 'COLOR0':
             case 'COLOR':

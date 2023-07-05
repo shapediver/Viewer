@@ -15,6 +15,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     #offset: vec2 = vec2.fromValues(0, 0);
     #repeat: vec2 = vec2.fromValues(1, 1);
     #rotation: number = 0;
+    #texCoord?: number;
     #wrapS: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT;
     #wrapT: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT;
 
@@ -33,6 +34,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       offset: vec2 = vec2.fromValues(0, 0),
       repeat: vec2 = vec2.fromValues(1, 1),
       rotation: number = 0,
+      texCoord?: number,
       flipY: boolean = true,
       id?: string,
       version?: string
@@ -48,6 +50,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       this.#offset = offset;
       this.#repeat = repeat;
       this.#rotation = rotation;
+      this.#texCoord = texCoord;
       this.#flipY = flipY;
     }
 
@@ -127,6 +130,14 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       this.#rotation = value;
     }
 
+    public get texCoord(): number | undefined {
+      return this.#texCoord;
+    }
+
+    public set texCoord(value: number | undefined) {
+      this.#texCoord = value;
+    }
+
     public get wrapS(): TEXTURE_WRAPPING {
       return this.#wrapS;
     }
@@ -148,7 +159,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Public Methods (1)
 
     public clone(): IMapData {
-      return new MapData(<HTMLImageElement>this.image, this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.flipY, this.id, this.version);
+      return new MapData(<HTMLImageElement>this.image, this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.texCoord, this.flipY, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

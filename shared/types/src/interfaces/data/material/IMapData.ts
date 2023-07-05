@@ -30,6 +30,7 @@ export interface IMapData extends ITreeNodeData {
     offset: vec2;
     repeat: vec2;
     rotation: number;
+    texCoord?: number;
     wrapS: TEXTURE_WRAPPING;
     wrapT: TEXTURE_WRAPPING;
 
