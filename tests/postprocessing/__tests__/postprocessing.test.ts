@@ -145,8 +145,6 @@ describe('device testing', () => {
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD,
                 /** The scale of the bokeh blur. (default: 1.0) */
                 bokehScale: 8,
-                /** The focal length. Range is [0.0, 1.0]. (default: 0.1) */
-                focalLength: 0.02,
                 /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
                 focusDistance: 0.05,
                 /** The focus range. Range is [0.0, 1.0]. (default: 0.1) */
@@ -224,6 +222,57 @@ describe('device testing', () => {
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + "_grid");
+    });
+    
+
+    test(name + "_hbao", async () => {
+        await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewport = await SDV.createViewport({ id: 'myViewport', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com' });          
+
+            const hbaoEffectToken = viewport.postProcessing.addEffect({
+                /** The resolution scale of the ambient occlusion. (default: 1) */
+                resolutionScale: 1,
+                /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+                spp: 8,
+                /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+                distance: 2,
+                /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+                distanceIntensity: 1,
+                /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+                intensity: 5,
+                /** The color of the ambient occlusion. (default: black) */
+                color: "#000000",
+                /** The bias that is used for the effect in world units. (default: 40) */
+                bias: 40,
+                /** The thickness if the ambient occlusion effect. (default: 0.075) */
+                thickness: 0.075,
+
+                /** The number of iterations of the denoising pass. (default: 1) */
+                iterations: 1,
+                /** The radius of the poisson disk. (default: 8) */
+                radius: 8,
+                /** The rings of the poisson disk. (default: 5.625) */
+                rings: 5.625,
+                /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
+                lumaPhi: 10,
+                /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
+                depthPhi: 2,
+                /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
+                normalPhi: 3.25,
+                /** The samples that are used in the poisson disk. (default: 16) */
+                samples: 16,
+
+                type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO
+            })
+            
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        }, shelfTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + "_hbao");
     });
 
     test(name + "_hueSaturation", async () => {
@@ -337,28 +386,34 @@ describe('device testing', () => {
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com' });          
 
             const ssaoEffectToken = viewport.postProcessing.addEffect({
-                /** An occlusion bias. Eliminates artifacts caused by depth discontinuities. (default: 0.025) */
-                bias: 0.1,
-                /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
-                blendFunction: SDV.BlendFunction.MULTIPLY,
-                /** The color of the ambient occlusion. (default: #000000) */
+                /** The resolution scale of the ambient occlusion. (default: 1) */
+                resolutionScale: 1,
+                /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+                spp: 8,
+                /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+                distance: 2,
+                /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+                distanceIntensity: 1,
+                /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+                intensity: 5,
+                /** The color of the ambient occlusion. (default: black) */
                 color: "#000000",
-                /** Enables or disables depth-aware upsampling. Has no effect if WebGL 2 is not supported. (default: true) */
-                depthAwareUpsampling: true,
-                /** Influences the smoothness of the shadows. A lower value results in higher contrast. (default: 0.01) */
-                fade: 0.01,
-                /** The intensity of the ambient occlusion. (default: 1.0) */
-                intensity: 100.0,
-                /** Determines how much the luminance of the scene influences the ambient occlusion. (default: 0.7) */
-                luminanceInfluence: 0,
-                /** The minimum radius scale. (default: 0.1) */
-                minRadiusScale: 0.1,
-                /** The occlusion sampling radius, expressed as a scale relative to the resolution. Range [1e-6, 1.0]. (default: 0.1825) */
-                radius: 0.1,
-                /** The amount of spiral turns in the occlusion sampling pattern. Should be a prime number. (default: 7) */
-                rings: 7,
-                /** The amount of samples per pixel. Should not be a multiple of the ring count. (default: 9) */
-                samples: 9,
+
+                /** The number of iterations of the denoising pass. (default: 1) */
+                iterations: 1,
+                /** The radius of the poisson disk. (default: 8) */
+                radius: 8,
+                /** The rings of the poisson disk. (default: 5.625) */
+                rings: 5.625,
+                /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
+                lumaPhi: 10,
+                /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
+                depthPhi: 2,
+                /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
+                normalPhi: 3.25,
+                /** The samples that are used in the poisson disk. (default: 16) */
+                samples: 16,
+
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO
             })
             

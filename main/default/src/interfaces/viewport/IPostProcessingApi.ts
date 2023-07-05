@@ -1,5 +1,4 @@
-import { Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
-import { ANTI_ALIASING_TECHNIQUE, IGridEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard/dist/interfaces/IPostProcessingEffectDefinitions";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IPostProcessingApi {
@@ -152,6 +151,7 @@ export interface IPostProcessingApi {
     addEffect(definition: IDotScreenEffectDefinition): string;
     addEffect(definition: IGodRaysEffectDefinition): string;
     addEffect(definition: IGridEffectDefinition): string;
+    addEffect(definition: IHBAOEffectDefinition): string;
     addEffect(definition: IHueSaturationEffectDefinition): string;
     addEffect(definition: INoiseEffectDefinition): string;
     addEffect(definition: IOutlineEffectDefinition): string;

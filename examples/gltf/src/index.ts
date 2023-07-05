@@ -28,6 +28,8 @@ let promise: Promise<void>;
         });
     })
     await promise;
+
+    // await ((<any>window).addGLTF(`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb`));
 })();
 
 
