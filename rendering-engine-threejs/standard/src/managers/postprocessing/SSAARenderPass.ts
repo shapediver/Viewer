@@ -185,10 +185,7 @@ export class SSAARenderPass extends Pass {
    */
   public render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget, outputBuffer: WebGLRenderTarget, deltaTime: undefined, stencilTest: undefined) {
     // set clear color / clear alpha / color space from the current renderer
-    this._clearColor = renderer
-      .getClearColor(new Color())
-      .clone()
-      .convertSRGBToLinear();
+    this._clearColor = renderer.getClearColor(new Color());
     this._clearAlpha = renderer.getClearAlpha();
     this._sampleRenderTarget.texture.colorSpace = renderer.outputColorSpace;
 
