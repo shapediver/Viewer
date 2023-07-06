@@ -511,7 +511,7 @@ export interface IViewportApi {
    * if {@link viewableInAR} is false and {@link isMobileDeviceWithoutBrowserARSupport} is true.
    * 
    * Reasons for that can be:
-   *  - Firefox
+   *  - Firefox on Android
    *  - Instagram in App browser
    */
   isMobileDeviceWithoutBrowserARSupport(): boolean;
