@@ -1042,10 +1042,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (this._systemInfo.isAndroid === true && this._systemInfo.isFirefox === true)
       return true;
 
-    // no Firefox on iOS
-    if (this._systemInfo.isIOS === true && this._systemInfo.isFirefox === true)
-      return true;
-
     // no Instagram on iOS
     if (this._systemInfo.isIOS === true && this._systemInfo.isInstagram === true)
       return true;
