@@ -46,6 +46,7 @@ import {
     IOutlineEffectDefinition,
     IPixelationEffectDefinition,
     IPostProcessingEffectDefinition,
+    IPostProcessingEffectsArray,
     IScanlineEffectDefinition,
     ISelectiveBloomEffectDefinition,
     ISepiaEffectDefinition,
@@ -59,8 +60,8 @@ import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
-import { IPostProcessingEffectsArray } from '@shapediver/viewer.settings';
 const REALISM_EFFECTS: any = require('realism-effects');
+
 
 export class PostProcessingManager implements IManager {
     // #region Properties (19)
@@ -202,7 +203,7 @@ export class PostProcessingManager implements IManager {
                 token,
                 definition: {
                     type: effects[i].type as POST_PROCESSING_EFFECT_TYPE,
-                    ...effects[i].properties
+                    properties: effects[i].properties
                 }
             });
         }
@@ -233,15 +234,16 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.BLOOM:
                     {
                         const definition: IBloomEffectDefinition = this._effectDefinitions[i].definition as IBloomEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new BloomEffect({
-                                blendFunction: definition.blendFunction,
-                                luminanceThreshold: definition.luminanceThreshold,
-                                luminanceSmoothing: definition.luminanceSmoothing,
-                                mipmapBlur: definition.mipmapBlur,
-                                intensity: definition.intensity,
-                                kernelSize: definition.kernelSize
+                                blendFunction: properties.blendFunction,
+                                luminanceThreshold: properties.luminanceThreshold,
+                                luminanceSmoothing: properties.luminanceSmoothing,
+                                mipmapBlur: properties.mipmapBlur,
+                                intensity: properties.intensity,
+                                kernelSize: properties.kernelSize
                             })
                         });
                     }
@@ -250,13 +252,16 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION:
                     {
                         const definition: IChromaticAberrationEffectDefinition = this._effectDefinitions[i].definition as IChromaticAberrationEffectDefinition;
+                        const properties = definition.properties || {};
+                        const offsetArray = properties.offset !== undefined ? Array.isArray(properties.offset) ? properties.offset : [(<any>properties.offset).x, (<any>properties.offset).y] : undefined;
+
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new ChromaticAberrationEffect({
-                                blendFunction: definition.blendFunction,
-                                offset: definition.offset ? new THREE.Vector2(...definition.offset) : undefined,
-                                radialModulation: definition.radialModulation !== undefined ? definition.radialModulation : false,
-                                modulationOffset: definition.modulationOffset !== undefined ? definition.modulationOffset : 0.15
+                                blendFunction: properties.blendFunction,
+                                offset: offsetArray ? new THREE.Vector2(...offsetArray) : undefined,
+                                radialModulation: properties.radialModulation !== undefined ? properties.radialModulation : false,
+                                modulationOffset: properties.modulationOffset !== undefined ? properties.modulationOffset : 0.15
                             })
                         });
                     }
@@ -265,13 +270,14 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
                     {
                         const definition: IDepthOfFieldEffectDefinition = this._effectDefinitions[i].definition as IDepthOfFieldEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new DepthOfFieldEffect(this._renderingEngine.camera, {
-                                blendFunction: definition.blendFunction,
-                                focusDistance: definition.focusDistance,
-                                focusRange: definition.focusRange,
-                                bokehScale: definition.bokehScale
+                                blendFunction: properties.blendFunction,
+                                focusDistance: properties.focusDistance,
+                                focusRange: properties.focusRange,
+                                bokehScale: properties.bokehScale
                             })
                         });
                     }
@@ -280,12 +286,13 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
                     {
                         const definition: IDotScreenEffectDefinition = this._effectDefinitions[i].definition as IDotScreenEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new DotScreenEffect({
-                                blendFunction: definition.blendFunction,
-                                scale: definition.scale,
-                                angle: definition.angle
+                                blendFunction: properties.blendFunction,
+                                scale: properties.scale,
+                                angle: properties.angle
                             })
                         });
                     }
@@ -294,15 +301,16 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
                     {
                         const definition: IGodRaysEffectDefinition = this._effectDefinitions[i].definition as IGodRaysEffectDefinition;
+                        const properties = definition.properties || {};
                         const godRaysEffect = new GodRaysEffect(this._renderingEngine.camera, new THREE.Mesh(), {
-                            blendFunction: definition.blendFunction,
-                            density: definition.density,
-                            decay: definition.decay,
-                            weight: definition.weight,
-                            exposure: definition.exposure,
-                            clampMax: definition.clampMax,
-                            kernelSize: definition.kernelSize,
-                            blur: definition.blur
+                            blendFunction: properties.blendFunction,
+                            density: properties.density,
+                            decay: properties.decay,
+                            weight: properties.weight,
+                            exposure: properties.exposure,
+                            clampMax: properties.clampMax,
+                            kernelSize: properties.kernelSize,
+                            blur: properties.blur
                         });
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
@@ -315,11 +323,12 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.GRID:
                     {
                         const definition: IGridEffectDefinition = this._effectDefinitions[i].definition as IGridEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new GridEffect({
-                                blendFunction: definition.blendFunction !== undefined ? definition.blendFunction : BlendFunction.MULTIPLY,
-                                scale: definition.scale
+                                blendFunction: properties.blendFunction !== undefined ? properties.blendFunction : BlendFunction.MULTIPLY,
+                                scale: properties.scale
                             })
                         });
                     }
@@ -328,22 +337,23 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.HBAO:
                     {
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
+                        const properties = definition.properties || {};
                         const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
-                            resolutionScale: definition.resolutionScale !== undefined ? definition.resolutionScale : 1,
-                            spp: definition.spp !== undefined ? definition.spp : 8,
-                            distance: definition.distance !== undefined ? definition.distance : 2,
-                            distancePower: definition.distanceIntensity !== undefined ? definition.distanceIntensity : 1,
-                            power: definition.intensity !== undefined ? definition.intensity : 5,
-                            bias: definition.bias !== undefined ? definition.bias : 40,
-                            thickness: definition.thickness !== undefined ? definition.thickness : 0.075,
-                            color: definition.color !== undefined ? new THREE.Color(this._converter.toHexColor(definition.color).substring(0, 7)) : new THREE.Color("black"),
-                            iterations: definition.iterations !== undefined ? definition.iterations : 1,
-                            radius: definition.radius !== undefined ? definition.radius : 8,
-                            rings: definition.rings !== undefined ? definition.rings : 5.625,
-                            lumaPhi: definition.lumaPhi !== undefined ? definition.lumaPhi : 10,
-                            depthPhi: definition.depthPhi !== undefined ? definition.depthPhi : 2,
-                            normalPhi: definition.normalPhi !== undefined ? definition.normalPhi : 3.25,
-                            samples: definition.samples !== undefined ? definition.samples : 16
+                            resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
+                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            distance: properties.distance !== undefined ? properties.distance : 2,
+                            distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
+                            power: properties.intensity !== undefined ? properties.intensity : 5,
+                            bias: properties.bias !== undefined ? properties.bias : 40,
+                            thickness: properties.thickness !== undefined ? properties.thickness : 0.075,
+                            color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color("black"),
+                            iterations: properties.iterations !== undefined ? properties.iterations : 1,
+                            radius: properties.radius !== undefined ? properties.radius : 8,
+                            rings: properties.rings !== undefined ? properties.rings : 5.625,
+                            lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
+                            depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
+                            normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
+                            samples: properties.samples !== undefined ? properties.samples : 16
                         });
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
@@ -355,12 +365,13 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION:
                     {
                         const definition: IHueSaturationEffectDefinition = this._effectDefinitions[i].definition as IHueSaturationEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new HueSaturationEffect({
-                                blendFunction: definition.blendFunction,
-                                hue: definition.hue,
-                                saturation: definition.saturation
+                                blendFunction: properties.blendFunction,
+                                hue: properties.hue,
+                                saturation: properties.saturation
                             })
                         });
                     }
@@ -369,11 +380,12 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.NOISE:
                     {
                         const definition: INoiseEffectDefinition = this._effectDefinitions[i].definition as INoiseEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new NoiseEffect({
-                                blendFunction: definition.blendFunction,
-                                premultiply: definition.premultiply
+                                blendFunction: properties.blendFunction,
+                                premultiply: properties.premultiply
                             })
                         });
                     }
@@ -382,16 +394,17 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.OUTLINE:
                     {
                         const definition: IOutlineEffectDefinition = this._effectDefinitions[i].definition as IOutlineEffectDefinition;
+                        const properties = definition.properties || {};
                         const outlineEffect = new OutlineEffect(this._renderingEngine.scene, this._renderingEngine.camera, {
-                            blendFunction: definition.blendFunction !== undefined ? definition.blendFunction : BlendFunction.SCREEN,
-                            edgeStrength: definition.edgeStrength,
-                            pulseSpeed: definition.pulseSpeed,
-                            visibleEdgeColor: <any>new THREE.Color(this._converter.toHexColor(definition.visibleEdgeColor).substring(0, 7)),
-                            hiddenEdgeColor: <any>new THREE.Color(this._converter.toHexColor(definition.hiddenEdgeColor).substring(0, 7)),
-                            kernelSize: definition.kernelSize,
-                            blur: definition.blur,
-                            xRay: definition.xRay,
-                            multisampling: definition.multisampling
+                            blendFunction: properties.blendFunction !== undefined ? properties.blendFunction : BlendFunction.SCREEN,
+                            edgeStrength: properties.edgeStrength,
+                            pulseSpeed: properties.pulseSpeed,
+                            visibleEdgeColor: <any>new THREE.Color(this._converter.toHexColor(properties.visibleEdgeColor).substring(0, 7)),
+                            hiddenEdgeColor: <any>new THREE.Color(this._converter.toHexColor(properties.hiddenEdgeColor).substring(0, 7)),
+                            kernelSize: properties.kernelSize,
+                            blur: properties.blur,
+                            xRay: properties.xRay,
+                            multisampling: properties.multisampling
                         })
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
@@ -404,9 +417,10 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
                     {
                         const definition: IPixelationEffectDefinition = this._effectDefinitions[i].definition as IPixelationEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
-                            effect: new PixelationEffect(definition.granularity)
+                            effect: new PixelationEffect(properties.granularity)
                         });
                     }
                     break;
@@ -414,20 +428,21 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
+                        const properties = definition.properties || {};
                         const ssaoEffect = new REALISM_EFFECTS.SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
-                            resolutionScale: definition.resolutionScale !== undefined ? definition.resolutionScale : 1,
-                            spp: definition.spp !== undefined ? definition.spp : 8,
-                            distance: definition.distance !== undefined ? definition.distance : 2,
-                            distancePower: definition.distanceIntensity !== undefined ? definition.distanceIntensity : 1,
-                            power: definition.intensity !== undefined ? definition.intensity : 5,
-                            color: definition.color !== undefined ? new THREE.Color(this._converter.toHexColor(definition.color).substring(0, 7)) : new THREE.Color("black"),
-                            iterations: definition.iterations !== undefined ? definition.iterations : 1,
-                            radius: definition.radius !== undefined ? definition.radius : 8,
-                            rings: definition.rings !== undefined ? definition.rings : 5.625,
-                            lumaPhi: definition.lumaPhi !== undefined ? definition.lumaPhi : 10,
-                            depthPhi: definition.depthPhi !== undefined ? definition.depthPhi : 2,
-                            normalPhi: definition.normalPhi !== undefined ? definition.normalPhi : 3.25,
-                            samples: definition.samples !== undefined ? definition.samples : 16
+                            resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
+                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            distance: properties.distance !== undefined ? properties.distance : 2,
+                            distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
+                            power: properties.intensity !== undefined ? properties.intensity : 5,
+                            color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color("black"),
+                            iterations: properties.iterations !== undefined ? properties.iterations : 1,
+                            radius: properties.radius !== undefined ? properties.radius : 8,
+                            rings: properties.rings !== undefined ? properties.rings : 5.625,
+                            lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
+                            depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
+                            normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
+                            samples: properties.samples !== undefined ? properties.samples : 16
                         });
 
                         this._effects.push({
@@ -440,11 +455,12 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
                     {
                         const definition: IScanlineEffectDefinition = this._effectDefinitions[i].definition as IScanlineEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new ScanlineEffect({
-                                blendFunction: definition.blendFunction,
-                                density: definition.density
+                                blendFunction: properties.blendFunction,
+                                density: properties.density
                             })
                         });
                     }
@@ -453,15 +469,16 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
                     {
                         const definition: ISelectiveBloomEffectDefinition = this._effectDefinitions[i].definition as ISelectiveBloomEffectDefinition;
+                        const properties = definition.properties || {};
                         const selectiveBloomEffect = new SelectiveBloomEffect(this._renderingEngine.scene, this._renderingEngine.camera, {
-                            blendFunction: definition.blendFunction,
-                            mipmapBlur: definition.mipmapBlur,
-                            luminanceThreshold: definition.luminanceThreshold,
-                            luminanceSmoothing: definition.luminanceSmoothing,
-                            intensity: definition.intensity,
-                            kernelSize: definition.kernelSize
+                            blendFunction: properties.blendFunction,
+                            mipmapBlur: properties.mipmapBlur,
+                            luminanceThreshold: properties.luminanceThreshold,
+                            luminanceSmoothing: properties.luminanceSmoothing,
+                            intensity: properties.intensity,
+                            kernelSize: properties.kernelSize
                         });
-                        selectiveBloomEffect.ignoreBackground = definition.ignoreBackground !== undefined ? definition.ignoreBackground : true;
+                        selectiveBloomEffect.ignoreBackground = properties.ignoreBackground !== undefined ? properties.ignoreBackground : true;
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: selectiveBloomEffect
@@ -473,10 +490,11 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SEPIA:
                     {
                         const definition: ISepiaEffectDefinition = this._effectDefinitions[i].definition as ISepiaEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new SepiaEffect({
-                                blendFunction: definition.blendFunction
+                                blendFunction: properties.blendFunction
                             })
                         });
                     }
@@ -485,15 +503,16 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
                     {
                         const definition: ITiltShiftEffectDefinition = this._effectDefinitions[i].definition as ITiltShiftEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new TiltShiftEffect({
-                                blendFunction: definition.blendFunction,
-                                offset: definition.offset,
-                                rotation: definition.rotation,
-                                focusArea: definition.focusArea,
-                                feather: definition.feather,
-                                kernelSize: definition.kernelSize
+                                blendFunction: properties.blendFunction,
+                                offset: properties.offset,
+                                rotation: properties.rotation,
+                                focusArea: properties.focusArea,
+                                feather: properties.feather,
+                                kernelSize: properties.kernelSize
                             })
                         });
                     }
@@ -502,13 +521,14 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.VIGNETTE:
                     {
                         const definition: IVignetteEffectDefinition = this._effectDefinitions[i].definition as IVignetteEffectDefinition;
+                        const properties = definition.properties || {};
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
                             effect: new VignetteEffect({
-                                blendFunction: definition.blendFunction,
-                                technique: definition.technique,
-                                offset: definition.offset,
-                                darkness: definition.darkness,
+                                blendFunction: properties.blendFunction,
+                                technique: properties.technique,
+                                offset: properties.offset,
+                                darkness: properties.darkness,
                             })
                         });
                     }
@@ -550,15 +570,17 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.BLOOM:
                     {
                         const definition: IBloomEffectDefinition = this._effectDefinitions[i].definition as IBloomEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                luminanceThreshold: definition.luminanceThreshold,
-                                luminanceSmoothing: definition.luminanceSmoothing,
-                                mipmapBlur: definition.mipmapBlur,
-                                intensity: definition.intensity,
-                                kernelSize: definition.kernelSize
+                                blendFunction: properties.blendFunction,
+                                luminanceThreshold: properties.luminanceThreshold,
+                                luminanceSmoothing: properties.luminanceSmoothing,
+                                mipmapBlur: properties.mipmapBlur,
+                                intensity: properties.intensity,
+                                kernelSize: properties.kernelSize
                             }
                         });
                     }
@@ -567,13 +589,15 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION:
                     {
                         const definition: IChromaticAberrationEffectDefinition = this._effectDefinitions[i].definition as IChromaticAberrationEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                offset: definition.offset ? { x: definition.offset[0], y: definition.offset[1] } : undefined,
-                                radialModulation: definition.radialModulation,
-                                modulationOffset: definition.modulationOffset
+                                blendFunction: properties.blendFunction,
+                                offset: properties.offset ? Array.isArray(properties.offset) ? { x: properties.offset[0], y: properties.offset[1] } : properties.offset : undefined,
+                                radialModulation: properties.radialModulation,
+                                modulationOffset: properties.modulationOffset
                             }
                         });
                     }
@@ -582,13 +606,15 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
                     {
                         const definition: IDepthOfFieldEffectDefinition = this._effectDefinitions[i].definition as IDepthOfFieldEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                focusDistance: definition.focusDistance,
-                                focusRange: definition.focusRange,
-                                bokehScale: definition.bokehScale
+                                blendFunction: properties.blendFunction,
+                                focusDistance: properties.focusDistance,
+                                focusRange: properties.focusRange,
+                                bokehScale: properties.bokehScale
                             }
                         });
                     }
@@ -597,12 +623,14 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
                     {
                         const definition: IDotScreenEffectDefinition = this._effectDefinitions[i].definition as IDotScreenEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                scale: definition.scale,
-                                angle: definition.angle
+                                blendFunction: properties.blendFunction,
+                                scale: properties.scale,
+                                angle: properties.angle
                             }
                         });
                     }
@@ -611,11 +639,13 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.GRID:
                     {
                         const definition: IGridEffectDefinition = this._effectDefinitions[i].definition as IGridEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.GRID,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                scale: definition.scale
+                                blendFunction: properties.blendFunction,
+                                scale: properties.scale
                             }
                         });
                     }
@@ -624,24 +654,26 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.HBAO:
                     {
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.HBAO,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                resolutionScale: definition.resolutionScale,
-                                spp: definition.spp,
-                                distance: definition.distance,
-                                distanceIntensity: definition.distanceIntensity,
-                                intensity: definition.intensity,
-                                bias: definition.bias,
-                                thickness: definition.thickness,
-                                color: definition.color !== undefined ? this._converter.toHexColor(definition.color) : undefined,
-                                iterations: definition.iterations,
-                                radius: definition.radius,
-                                rings: definition.rings,
-                                lumaPhi: definition.lumaPhi,
-                                depthPhi: definition.depthPhi,
-                                normalPhi: definition.normalPhi,
-                                samples: definition.samples
+                                resolutionScale: properties.resolutionScale,
+                                spp: properties.spp,
+                                distance: properties.distance,
+                                distanceIntensity: properties.distanceIntensity,
+                                intensity: properties.intensity,
+                                bias: properties.bias,
+                                thickness: properties.thickness,
+                                color: properties.color !== undefined ? this._converter.toHexColor(properties.color) : undefined,
+                                iterations: properties.iterations,
+                                radius: properties.radius,
+                                rings: properties.rings,
+                                lumaPhi: properties.lumaPhi,
+                                depthPhi: properties.depthPhi,
+                                normalPhi: properties.normalPhi,
+                                samples: properties.samples
                             }
                         });
                     }
@@ -650,12 +682,14 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION:
                     {
                         const definition: IHueSaturationEffectDefinition = this._effectDefinitions[i].definition as IHueSaturationEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                hue: definition.hue,
-                                saturation: definition.saturation
+                                blendFunction: properties.blendFunction,
+                                hue: properties.hue,
+                                saturation: properties.saturation
                             }
                         });
                     }
@@ -664,11 +698,13 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.NOISE:
                     {
                         const definition: INoiseEffectDefinition = this._effectDefinitions[i].definition as INoiseEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.NOISE,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                premultiply: definition.premultiply
+                                blendFunction: properties.blendFunction,
+                                premultiply: properties.premultiply
                             }
                         });
                     }
@@ -677,10 +713,12 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
                     {
                         const definition: IPixelationEffectDefinition = this._effectDefinitions[i].definition as IPixelationEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.PIXELATION,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                granularity: definition.granularity
+                                granularity: properties.granularity
                             }
                         });
                     }
@@ -689,22 +727,24 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.SSAO,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                resolutionScale: definition.resolutionScale,
-                                spp: definition.spp,
-                                distance: definition.distance,
-                                distanceIntensity: definition.distanceIntensity,
-                                intensity: definition.intensity,
-                                color: definition.color !== undefined ? this._converter.toHexColor(definition.color) : undefined,
-                                iterations: definition.iterations,
-                                radius: definition.radius,
-                                rings: definition.rings,
-                                lumaPhi: definition.lumaPhi,
-                                depthPhi: definition.depthPhi,
-                                normalPhi: definition.normalPhi,
-                                samples: definition.samples
+                                resolutionScale: properties.resolutionScale,
+                                spp: properties.spp,
+                                distance: properties.distance,
+                                distanceIntensity: properties.distanceIntensity,
+                                intensity: properties.intensity,
+                                color: properties.color !== undefined ? this._converter.toHexColor(properties.color) : undefined,
+                                iterations: properties.iterations,
+                                radius: properties.radius,
+                                rings: properties.rings,
+                                lumaPhi: properties.lumaPhi,
+                                depthPhi: properties.depthPhi,
+                                normalPhi: properties.normalPhi,
+                                samples: properties.samples
                             }
                         });
                     }
@@ -713,11 +753,13 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
                     {
                         const definition: IScanlineEffectDefinition = this._effectDefinitions[i].definition as IScanlineEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.SCANLINE,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                density: definition.density
+                                blendFunction: properties.blendFunction,
+                                density: properties.density
                             }
                         });
                     }
@@ -726,10 +768,12 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SEPIA:
                     {
                         const definition: ISepiaEffectDefinition = this._effectDefinitions[i].definition as ISepiaEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.SEPIA,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction
+                                blendFunction: properties.blendFunction
                             }
                         });
                     }
@@ -738,15 +782,17 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
                     {
                         const definition: ITiltShiftEffectDefinition = this._effectDefinitions[i].definition as ITiltShiftEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                offset: definition.offset,
-                                rotation: definition.rotation,
-                                focusArea: definition.focusArea,
-                                feather: definition.feather,
-                                kernelSize: definition.kernelSize
+                                blendFunction: properties.blendFunction,
+                                offset: properties.offset,
+                                rotation: properties.rotation,
+                                focusArea: properties.focusArea,
+                                feather: properties.feather,
+                                kernelSize: properties.kernelSize
                             }
                         });
                     }
@@ -755,13 +801,15 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.VIGNETTE:
                     {
                         const definition: IVignetteEffectDefinition = this._effectDefinitions[i].definition as IVignetteEffectDefinition;
+                        const properties = definition.properties || {};
                         effects.push({
                             type: POST_PROCESSING_EFFECT_TYPE.VIGNETTE,
+                            token: this._effectDefinitions[i].token,
                             properties: {
-                                blendFunction: definition.blendFunction,
-                                technique: definition.technique,
-                                offset: definition.offset,
-                                darkness: definition.darkness,
+                                blendFunction: properties.blendFunction,
+                                technique: properties.technique,
+                                offset: properties.offset,
+                                darkness: properties.darkness,
                             }
                         });
                     }

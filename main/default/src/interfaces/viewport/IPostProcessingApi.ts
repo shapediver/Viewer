@@ -1,5 +1,4 @@
-import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
-import { IPostProcessingEffectsArray } from "@shapediver/viewer.settings";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IPostProcessingApi {
@@ -17,7 +16,7 @@ export interface IPostProcessingApi {
     antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE;
     
     /**
-     * Defines the anti-aliasing technique that is used when the post-processing is active on mobile.
+     * Defines the anti-aliasing technique that is used when the post-processing is active on mobile. (default: ANTI_ALIASING_TECHNIQUE.FXAA)
      * 
      * The various anti-aliasing technique have an impact on the performance and the rendering quality. 
      * The order is as follows: NONE -> FXAA -> SMAA -> SSAA

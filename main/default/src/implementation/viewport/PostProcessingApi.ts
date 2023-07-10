@@ -1,9 +1,8 @@
 import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
-import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { IPostProcessingEffectsArray } from "@shapediver/viewer.settings";
 
 export class PostProcessingApi implements IPostProcessingApi {
     // #region Properties (4)
