@@ -1,4 +1,5 @@
 import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { IPostProcessingEffectsArray } from "@shapediver/viewer.settings";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IPostProcessingApi {
@@ -181,6 +182,11 @@ export interface IPostProcessingApi {
      * @param token 
      */
     getEffect(token: string): Effect;
+
+    /**
+     * Get a description of the post-processing effects that are current applied.
+     */
+    getPostProcessingEffectsArray(): IPostProcessingEffectsArray
 
     /**
      * Remove an effect of the postprocessing pipeline.

@@ -27,8 +27,6 @@ import {
 } from 'postprocessing';
 import {
     Converter,
-    EventEngine,
-    EVENTTYPE,
     SettingsEngine,
     SystemInfo,
     UuidGenerator
@@ -57,7 +55,6 @@ import {
     POST_PROCESSING_EFFECT_TYPE
 } from '../interfaces/IPostProcessingEffectDefinitions';
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { IViewportEvent } from '@shapediver/viewer.shared.types';
 import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
@@ -69,7 +66,6 @@ export class PostProcessingManager implements IManager {
     // #region Properties (19)
 
     private readonly _converter: Converter = Converter.instance;
-    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
@@ -545,55 +541,8 @@ export class PostProcessingManager implements IManager {
     public getEffect(token: string): Effect {
         return this._effects.find(e => e.token === token)!.effect;
     }
-
-    public init(): void {
-        OverrideMaterialManager.workaroundEnabled = true;
-        this._composer = new EffectComposer(this._renderingEngine.renderer);
-        // EffectComposer disables autoClear, we enable/disable this in the postprocessing render loop
-        this._renderingEngine.renderer.autoClear = true;
-
-        // create anti-aliasing effects and passes
-        this._fxaaEffect = new FXAAEffect();
-        this._smaaEffect = new SMAAEffect({ preset: SMAAPreset.ULTRA });
-        this._renderPass = new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
-        this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
-    }
-
-    public removeEffect(token: string): boolean {
-        const effectToRemove = this._effectDefinitions.find(e => e.token === token);
-        if (effectToRemove)
-            this._effectDefinitions.splice(this._effectDefinitions.indexOf(effectToRemove), 1);
-        this.changeEffectPass();
-        return true;
-    }
-
-    public render(deltaTime: number, camera: THREE.Camera) {
-        const currentClearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color())
-        const convertedClearColor = currentClearColor.clone().convertSRGBToLinear();
-        this._renderingEngine.renderer.setClearColor(convertedClearColor);
-        this._renderingEngine.renderer.autoClear = false;
-
-        this._composer.setMainCamera(camera);
-        this._composer.render();
-        
-        this._renderingEngine.renderer.autoClear = true;
-        this._renderingEngine.renderer.setClearColor(currentClearColor)
-    }
-
-    public resize(width: number, height: number) {
-        this._renderPass.setSize(width, height);
-        this._ssaaRenderPass.setSize(width, height);
-        this._effectPass?.setSize(width, height);
-        this._composer.setSize(width, height);
-    }
-
-    public saveSettings(settingsEngine: SettingsEngine) {
-
-        settingsEngine.settings.postprocessing.antiAliasingTechnique = this.antiAliasingTechnique;
-        settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile = this.antiAliasingTechniqueMobile;
-        settingsEngine.settings.postprocessing.enablePostProcessingOnMobile = this.enablePostProcessingOnMobile;
-        settingsEngine.settings.postprocessing.ssaaSampleLevel = this.ssaaSampleLevel;
-
+    
+    public getPostProcessingEffectsArray(): IPostProcessingEffectsArray {
         const effects: IPostProcessingEffectsArray = [];
 
         for (let i = 0; i < this._effectDefinitions.length; i++) {
@@ -822,7 +771,56 @@ export class PostProcessingManager implements IManager {
             }
         }
 
-        settingsEngine.settings.postprocessing.effects = effects;
+        return effects;
+    }
+
+    public init(): void {
+        OverrideMaterialManager.workaroundEnabled = true;
+        this._composer = new EffectComposer(this._renderingEngine.renderer);
+        // EffectComposer disables autoClear, we enable/disable this in the postprocessing render loop
+        this._renderingEngine.renderer.autoClear = true;
+
+        // create anti-aliasing effects and passes
+        this._fxaaEffect = new FXAAEffect();
+        this._smaaEffect = new SMAAEffect({ preset: SMAAPreset.ULTRA });
+        this._renderPass = new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
+        this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
+    }
+
+    public removeEffect(token: string): boolean {
+        const effectToRemove = this._effectDefinitions.find(e => e.token === token);
+        if (effectToRemove)
+            this._effectDefinitions.splice(this._effectDefinitions.indexOf(effectToRemove), 1);
+        this.changeEffectPass();
+        return true;
+    }
+
+    public render(deltaTime: number, camera: THREE.Camera) {
+        const currentClearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color())
+        const convertedClearColor = currentClearColor.clone().convertSRGBToLinear();
+        this._renderingEngine.renderer.setClearColor(convertedClearColor);
+        this._renderingEngine.renderer.autoClear = false;
+
+        this._composer.setMainCamera(camera);
+        this._composer.render();
+        
+        this._renderingEngine.renderer.autoClear = true;
+        this._renderingEngine.renderer.setClearColor(currentClearColor)
+    }
+
+    public resize(width: number, height: number) {
+        this._renderPass.setSize(width, height);
+        this._ssaaRenderPass.setSize(width, height);
+        this._effectPass?.setSize(width, height);
+        this._composer.setSize(width, height);
+    }
+
+    public saveSettings(settingsEngine: SettingsEngine) {
+        settingsEngine.settings.postprocessing.antiAliasingTechnique = this.antiAliasingTechnique;
+        settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile = this.antiAliasingTechniqueMobile;
+        settingsEngine.settings.postprocessing.enablePostProcessingOnMobile = this.enablePostProcessingOnMobile;
+        settingsEngine.settings.postprocessing.ssaaSampleLevel = this.ssaaSampleLevel;
+        settingsEngine.settings.postprocessing.effects = this.getPostProcessingEffectsArray();
     }
 
     public updateEffect(token: string, definition: IPostProcessingEffectDefinition) {
