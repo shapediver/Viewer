@@ -38,7 +38,7 @@ export class PostProcessingApi implements IPostProcessingApi {
     }
 
     public get antiAliasingTechniqueMobile(): ANTI_ALIASING_TECHNIQUE {
-        return this.#renderingEngine.postProcessingManager.antiAliasingTechnique;
+        return this.#renderingEngine.postProcessingManager.antiAliasingTechniqueMobile;
     }
 
     public set antiAliasingTechniqueMobile(value: ANTI_ALIASING_TECHNIQUE) {
