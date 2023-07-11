@@ -1023,7 +1023,10 @@ export class PostProcessingManager implements IManager {
         settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile = this.antiAliasingTechniqueMobile;
         settingsEngine.settings.postprocessing.enablePostProcessingOnMobile = this.enablePostProcessingOnMobile;
         settingsEngine.settings.postprocessing.ssaaSampleLevel = this.ssaaSampleLevel;
-        settingsEngine.settings.postprocessing.effects = this.getPostProcessingEffectsArray();
+        const effects = this.getPostProcessingEffectsArray();
+        // delete the tokens as we don't want to save them
+        effects.forEach(e => delete e.token);
+        settingsEngine.settings.postprocessing.effects = effects;
     }
 
     public updateEffect(token: string, definition: IPostProcessingEffectDefinition) {
