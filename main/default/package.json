@@ -63,7 +63,7 @@
     "@shapediver/viewer.rendering-engine.light-engine": "2.10.0-rc.6",
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.10.0-rc.6",
     "@shapediver/viewer.session-engine.session-engine": "2.10.0-rc.6",
-    "@shapediver/viewer.settings": "0.5.2",
+    "@shapediver/viewer.settings": "0.5.4",
     "@shapediver/viewer.shared.build-data": "2.10.0-rc.6",
     "@shapediver/viewer.shared.math": "2.10.0-rc.6",
     "@shapediver/viewer.shared.node-tree": "2.10.0-rc.6",
