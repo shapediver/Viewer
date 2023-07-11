@@ -1,7 +1,7 @@
 import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
 import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
-import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IPostProcessingEffectDefinition, RenderingEngine as RenderingEngineThreeJs, POST_PROCESSING_EFFECT_TYPE } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export class PostProcessingApi implements IPostProcessingApi {
@@ -129,6 +129,13 @@ export class PostProcessingApi implements IPostProcessingApi {
         this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was called with definition ${definition}.`);
         this.#viewportApi.update();
         return res;
+    }
+
+    public getDefaultEffectProperties(type: POST_PROCESSING_EFFECT_TYPE): Object {
+        const scope = 'getDefaultEffectProperties';
+        this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, type, 'enum', true, Object.values(POST_PROCESSING_EFFECT_TYPE));
+        this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was called with type ${type}.`);
+        return this.#renderingEngine.postProcessingManager.getDefaultEffectProperties(type);
     }
 
     public getEffect(token: string): Effect {

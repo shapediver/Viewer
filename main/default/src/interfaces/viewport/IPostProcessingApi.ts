@@ -1,4 +1,4 @@
-import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition } from "@shapediver/viewer.rendering-engine-threejs.standard";
+import { ANTI_ALIASING_TECHNIQUE, Effect, EffectComposer, IPostProcessingEffectsArray, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IOutlineEffectDefinition, IPostProcessingEffectDefinition, ISSAOEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, POST_PROCESSING_EFFECT_TYPE } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IPostProcessingApi {
@@ -173,6 +173,13 @@ export interface IPostProcessingApi {
      * @see removeEffect
      */
     addEffect(definition: IPostProcessingEffectDefinition): string;
+
+    /**
+     * Get the default settings of an effect by their type.
+     * 
+     * @param type 
+     */
+    getDefaultEffectProperties(type: POST_PROCESSING_EFFECT_TYPE): Object;
 
     /**
      * Get the effect that was created with the specified token.

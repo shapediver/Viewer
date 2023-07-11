@@ -12,6 +12,7 @@ import {
     GodRaysEffect,
     GridEffect,
     HueSaturationEffect,
+    KernelSize,
     NoiseEffect,
     OutlineEffect,
     OverrideMaterialManager,
@@ -23,7 +24,8 @@ import {
     SMAAEffect,
     SMAAPreset,
     TiltShiftEffect,
-    VignetteEffect
+    VignetteEffect,
+    VignetteTechnique
 } from 'postprocessing';
 import {
     Converter,
@@ -558,10 +560,163 @@ export class PostProcessingManager implements IManager {
         }
     }
 
+    public getDefaultEffectProperties(type: POST_PROCESSING_EFFECT_TYPE) {
+        switch (type) {
+            case POST_PROCESSING_EFFECT_TYPE.BLOOM:
+                return {
+                    blendFunction: BlendFunction.ADD,
+                    intensity: 1.0,
+                    kernelSize: KernelSize.LARGE,
+                    luminanceSmoothing: 0.025,
+                    luminanceThreshold: 0.9,
+                    mipmapBlur: false,
+                };
+            case POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                    modulationOffset: 0.15,
+                    offset: [0.001, 0.0005],
+                    radialModulation: false,
+                }
+
+            case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                    bokehScale: 1.0,
+                    focusDistance: 0.0,
+                    focusRange: 0.1,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
+                return {
+                    angle: 1.57,
+                    blendFunction: BlendFunction.NORMAL,
+                    scale: 1.0,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
+                return {
+                    blendFunction: BlendFunction.SCREEN,
+                    blur: true,
+                    clampMax: 1.0,
+                    decay: 0.9,
+                    density: 0.96,
+                    exposure: 0.6,
+                    kernelSize: KernelSize.SMALL,
+                    weight: 0.4,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.GRID:
+                return {
+                    blendFunction: BlendFunction.MULTIPLY,
+                    scale: 1.0,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.HBAO:
+                return {
+                    resolutionScale: 1,
+                    spp: 8,
+                    distance: 2,
+                    distanceIntensity: 1,
+                    intensity: 5,
+                    color: '#000000',
+                    bias: 40,
+                    thickness: 0.075,
+
+                    iterations: 1,
+                    radius: 8,
+                    rings: 5.625,
+                    lumaPhi: 10,
+                    depthPhi: 2,
+                    normalPhi: 3.25,
+                    samples: 16,
+                }
+
+            case POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                    hue: 0.0,
+                    saturation: 0.0,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.NOISE:
+                return {
+                    blendFunction: BlendFunction.SCREEN,
+                    premultiply: false,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.OUTLINE:
+                return {
+                    blendFunction: BlendFunction.SCREEN,
+                    blur: false,
+                    edgeStrength: 1.0,
+                    hiddenEdgeColor: "#22090a",
+                    kernelSize: KernelSize.VERY_SMALL,
+                    multisampling: 0,
+                    pulseSpeed: 0.0,
+                    resolution: 480,
+                    visibleEdgeColor: "#ffffff",
+                    xRay: true,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
+                return {
+                    granularity: 30.0,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.SSAO:
+                return {
+                    resolutionScale: 1,
+                    spp: 8,
+                    distance: 2,
+                    distanceIntensity: 1,
+                    intensity: 5,
+                    color: '#000000',
+
+                    iterations: 1,
+                    radius: 8,
+                    rings: 5.625,
+                    lumaPhi: 10,
+                    depthPhi: 2,
+                    normalPhi: 3.25,
+                    samples: 16,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
+                return {
+                    blendFunction: BlendFunction.OVERLAY,
+                    density: 1.25,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
+                return {
+                    blendFunction: BlendFunction.ADD,
+                    intensity: 1.0,
+                    kernelSize: KernelSize.LARGE,
+                    luminanceSmoothing: 0.025,
+                    luminanceThreshold: 0.9,
+                    mipmapBlur: false,
+                    ignoreBackground: true,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.SEPIA:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                    feather: 0.3,
+                    focusArea: 0.4,
+                    kernelSize: KernelSize.MEDIUM,
+                    offset: 0.0,
+                    rotation: 0.0,
+                }
+            case POST_PROCESSING_EFFECT_TYPE.VIGNETTE:
+                return {
+                    blendFunction: BlendFunction.NORMAL,
+                    darkness: 0.5,
+                    offset: 0.5,
+                    technique: VignetteTechnique.DEFAULT,
+                }
+            default:
+                return {}
+        }
+    }
+
     public getEffect(token: string): Effect {
         return this._effects.find(e => e.token === token)!.effect;
     }
-    
+
     public getPostProcessingEffectsArray(): IPostProcessingEffectsArray {
         const effects: IPostProcessingEffectsArray = [];
 
