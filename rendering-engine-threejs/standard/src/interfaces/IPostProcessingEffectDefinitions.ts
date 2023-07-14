@@ -172,16 +172,16 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
         intensity?: number,
         /** The color of the ambient occlusion. (default: black) */
         color?: Color,
-        /** The bias that is used for the effect in world units. (default: 40) */
+        /** The bias that is used for the effect in world units. (default: 10) */
         bias?: number,
-        /** The thickness if the ambient occlusion effect. (default: 0.075) */
+        /** The thickness if the ambient occlusion effect. (default: 0.5) */
         thickness?: number,
 
         /** The number of iterations of the denoising pass. (default: 1) */
         iterations?: number,
-        /** The radius of the poisson disk. (default: 8) */
+        /** The radius of the poisson disk. (default: 15) */
         radius?: number,
-        /** The rings of the poisson disk. (default: 5.625) */
+        /** The rings of the poisson disk. (default: 4) */
         rings?: number,
         /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
         lumaPhi?: number,
@@ -279,20 +279,20 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
         resolutionScale?: number,
         /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
         spp?: number,
-        /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+        /** Controls the radius/size of the ambient occlusion in world units. (default: 3) */
         distance?: number,
-        /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+        /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 0.5) */
         distanceIntensity?: number,
-        /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+        /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 10) */
         intensity?: number,
         /** The color of the ambient occlusion. (default: black) */
         color?: Color,
 
         /** The number of iterations of the denoising pass. (default: 1) */
         iterations?: number,
-        /** The radius of the poisson disk. (default: 8) */
+        /** The radius of the poisson disk. (default: 15) */
         radius?: number,
-        /** The rings of the poisson disk. (default: 5.625) */
+        /** The rings of the poisson disk. (default: 4) */
         rings?: number,
         /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
         lumaPhi?: number,

@@ -28,38 +28,40 @@ import {
     });
 
     const hbaoEffectDefinition: IHBAOEffectDefinition = {
-        /** The resolution scale of the ambient occlusion. (default: 1) */
-        resolutionScale: 1,
-        /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
-        spp: 8,
-        /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
-        distance: 2,
-        /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
-        distanceIntensity: 1,
-        /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
-        intensity: 5,
-        /** The color of the ambient occlusion. (default: black) */
-        color: "#000000",
-        /** The bias that is used for the effect in world units. (default: 40) */
-        bias: 40,
-        /** The thickness if the ambient occlusion effect. (default: 0.075) */
-        thickness: 0.075,
+        properties: {
 
-        /** The number of iterations of the denoising pass. (default: 1) */
-        iterations: 1,
-        /** The radius of the poisson disk. (default: 8) */
-        radius: 8,
-        /** The rings of the poisson disk. (default: 5.625) */
-        rings: 5.625,
-        /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
-        lumaPhi: 10,
-        /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
-        depthPhi: 2,
-        /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
-        normalPhi: 3.25,
-        /** The samples that are used in the poisson disk. (default: 16) */
-        samples: 16,
+            /** The resolution scale of the ambient occlusion. (default: 1) */
+            resolutionScale: 1,
+            /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+            spp: 8,
+            /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+            distance: 2,
+            /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+            distanceIntensity: 1,
+            /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+            intensity: 5,
+            /** The color of the ambient occlusion. (default: black) */
+            color: "#000000",
+            /** The bias that is used for the effect in world units. (default: 10) */
+            bias: 10,
+            /** The thickness if the ambient occlusion effect. (default: 0.5) */
+            thickness: 0.5,
 
+            /** The number of iterations of the denoising pass. (default: 1) */
+            iterations: 1,
+            /** The radius of the poisson disk. (default: 15) */
+            radius: 15,
+            /** The rings of the poisson disk. (default: 4) */
+            rings: 4,
+            /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
+            lumaPhi: 10,
+            /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
+            depthPhi: 2,
+            /** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
+            normalPhi: 3.25,
+            /** The samples that are used in the poisson disk. (default: 16) */
+            samples: 16
+        },
         type: POST_PROCESSING_EFFECT_TYPE.HBAO
     };
     const hbaoEffectToken = viewport.postProcessing.addEffect(hbaoEffectDefinition)
@@ -70,10 +72,10 @@ import {
             name: "resolutionScale",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.resolutionScale = value;
+                hbaoEffectDefinition.properties!.resolutionScale = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.resolutionScale,
+            value: hbaoEffectDefinition.properties!.resolutionScale,
             min: 0.1,
             max: 1,
             step: 0.1
@@ -83,10 +85,10 @@ import {
             type: "slider",
             onChangeCallback: (value: number) => {
                 console.log(typeof value)
-                hbaoEffectDefinition.spp = +value;
+                hbaoEffectDefinition.properties!.spp = +value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.spp,
+            value: hbaoEffectDefinition.properties!.spp,
             min: 1,
             max: 64,
             step: 1
@@ -95,10 +97,10 @@ import {
             name: "distance",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.distance = value;
+                hbaoEffectDefinition.properties!.distance = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.distance,
+            value: hbaoEffectDefinition.properties!.distance,
             min: 0.1,
             max: 10,
             step: 0.001
@@ -107,10 +109,10 @@ import {
             name: "distanceIntensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.distanceIntensity = value;
+                hbaoEffectDefinition.properties!.distanceIntensity = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.distanceIntensity,
+            value: hbaoEffectDefinition.properties!.distanceIntensity,
             min: 0,
             max: 2,
             step: 0.001
@@ -119,10 +121,10 @@ import {
             name: "intensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.intensity = value;
+                hbaoEffectDefinition.properties!.intensity = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.intensity,
+            value: hbaoEffectDefinition.properties!.intensity,
             min: 0,
             max: 32,
             step: 0.001
@@ -131,10 +133,10 @@ import {
             name: "bias",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.bias = value;
+                hbaoEffectDefinition.properties!.bias = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.bias,
+            value: hbaoEffectDefinition.properties!.bias,
             min: 0,
             max: 100,
             step: 0.001
@@ -143,10 +145,10 @@ import {
             name: "thickness",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.thickness = value;
+                hbaoEffectDefinition.properties!.thickness = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.thickness,
+            value: hbaoEffectDefinition.properties!.thickness,
             min: 0,
             max: 1,
             step: 0.001
@@ -155,19 +157,19 @@ import {
             name: "color",
             type: "color",
             onChangeCallback: (value: string) => {
-                hbaoEffectDefinition.color = value;
+                hbaoEffectDefinition.properties!.color = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.color
+            value: hbaoEffectDefinition.properties!.color
         },
         <ISliderElement>{
             name: "iterations",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.iterations = value;
+                hbaoEffectDefinition.properties!.iterations = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.properties!.iterations,
             min: 0,
             max: 3,
             step: 1
@@ -176,10 +178,10 @@ import {
             name: "radius",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.iterations = value;
+                hbaoEffectDefinition.properties!.radius = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.properties!.radius,
             min: 0,
             max: 32,
             step: 0.001
@@ -188,10 +190,10 @@ import {
             name: "rings",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.iterations = value;
+                hbaoEffectDefinition.properties!.rings = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.iterations,
+            value: hbaoEffectDefinition.properties!.rings,
             min: 0,
             max: 16,
             step: 1
@@ -200,10 +202,10 @@ import {
             name: "lumaPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.lumaPhi = value;
+                hbaoEffectDefinition.properties!.lumaPhi = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.lumaPhi,
+            value: hbaoEffectDefinition.properties!.lumaPhi,
             min: 0,
             max: 20,
             step: 0.001
@@ -213,10 +215,10 @@ import {
             name: "depthPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.depthPhi = value;
+                hbaoEffectDefinition.properties!.depthPhi = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.depthPhi,
+            value: hbaoEffectDefinition.properties!.depthPhi,
             min: 0,
             max: 20,
             step: 0.001
@@ -226,10 +228,10 @@ import {
             name: "normalPhi",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.normalPhi = value;
+                hbaoEffectDefinition.properties!.normalPhi = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.normalPhi,
+            value: hbaoEffectDefinition.properties!.normalPhi,
             min: 0,
             max: 50,
             step: 0.001
@@ -239,10 +241,10 @@ import {
             name: "samples",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hbaoEffectDefinition.samples = value;
+                hbaoEffectDefinition.properties!.samples = value;
                 viewport.postProcessing.updateEffect(hbaoEffectToken, hbaoEffectDefinition);
             },
-            value: hbaoEffectDefinition.samples,
+            value: hbaoEffectDefinition.properties!.samples,
             min: 0,
             max: 32,
             step: 1
