@@ -6,7 +6,6 @@ varying vec3 vViewPosition;
 #endif
 #include <common>
 #include <uv_pars_vertex>
-#include <uv2_pars_vertex>
 #include <displacementmap_pars_vertex>
 #include <color_pars_vertex>
 #include <fog_pars_vertex>
@@ -24,7 +23,6 @@ varying vec3 frag_normal;
 
 void main() {
 	#include <uv_vertex>
-	#include <uv2_vertex>
 	#include <color_vertex>
 	#include <morphcolor_vertex>
 	#include <beginnormal_vertex>
@@ -112,7 +110,6 @@ varying vec3 vViewPosition;
 #include <dithering_pars_fragment>
 #include <color_pars_fragment>
 #include <uv_pars_fragment>
-#include <uv2_pars_fragment>
 #include <map_pars_fragment>
 #include <alphamap_pars_fragment>
 #include <alphatest_pars_fragment>
