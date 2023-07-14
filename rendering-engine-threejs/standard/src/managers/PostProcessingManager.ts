@@ -227,11 +227,10 @@ export class PostProcessingManager implements IManager {
 
         // remove the effects where the tokens are not in the effectDefinitions
         const activeEffectTokens = this._effectDefinitions.map(e => e.token);
-        this._effects = this._effects.filter(e => activeEffectTokens.includes(e.token));
-        for (let i = 0; i < this._effectDefinitions.length; i++) {
-            // if the effect has already been created, skip
-            if (this._effects.find(e => e.token === this._effectDefinitions[i].token)) continue;
+        this._effects.forEach(e => e.effect.dispose());
+        this._effects = [];
 
+        for (let i = 0; i < this._effectDefinitions.length; i++) {
             switch (this._effectDefinitions[i].definition.type) {
                 case POST_PROCESSING_EFFECT_TYPE.BLOOM:
                     {
