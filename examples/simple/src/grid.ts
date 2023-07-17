@@ -25,11 +25,13 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
     });
 
     const gridEffectDefinition: IGridEffectDefinition = {
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
+            blendFunction: BlendFunction.MULTIPLY,
+            /** The scale of the grid pattern. (default: 1.0) */
+            scale: 1.0
+        },
         type: POST_PROCESSING_EFFECT_TYPE.GRID,
-        /** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
-        blendFunction: BlendFunction.MULTIPLY,
-        /** The scale of the grid pattern. (default: 1.0) */
-        scale: 1.0,
     };
     const gridEffectToken = viewport.postProcessing.addEffect(gridEffectDefinition);
 
@@ -38,20 +40,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                gridEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                gridEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(gridEffectToken, gridEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(gridEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(gridEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "scale",
             type: "slider",
             onChangeCallback: (value: number) => {
-                gridEffectDefinition.scale = value;
+                gridEffectDefinition.properties!.scale = value;
                 viewport.postProcessing.updateEffect(gridEffectToken, gridEffectDefinition);
             },
-            value: gridEffectDefinition.scale,
+            value: gridEffectDefinition.properties!.scale,
             min: 0,
             max: 2,
             step: 0.001

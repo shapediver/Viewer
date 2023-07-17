@@ -24,12 +24,14 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
     });
 
     const hueSaturationEffectDefinition: SDV.IHueSaturationEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
-        /** The hue in radians. (default: 0.0) */
-        hue: 0,
-        /** The saturation factor, ranging from -1 to 1, where 0 means no change. (default: 0.0) */
-        saturation: 0,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The hue in radians. (default: 0.0) */
+            hue: 0,
+            /** The saturation factor, ranging from -1 to 1, where 0 means no change. (default: 0.0) */
+            saturation: 0
+        },
         type: POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION
     }
     const hueSaturationEffectToken = viewport.postProcessing.addEffect(hueSaturationEffectDefinition)
@@ -39,20 +41,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                hueSaturationEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                hueSaturationEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(hueSaturationEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(hueSaturationEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "hue",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hueSaturationEffectDefinition.hue = value;
+                hueSaturationEffectDefinition.properties!.hue = value;
                 viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
             },
-            value: hueSaturationEffectDefinition.hue,
+            value: hueSaturationEffectDefinition.properties!.hue,
             min: -3.14,
             max: 3.14,
             step: 0.001
@@ -61,10 +63,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "saturation",
             type: "slider",
             onChangeCallback: (value: number) => {
-                hueSaturationEffectDefinition.saturation = value;
+                hueSaturationEffectDefinition.properties!.saturation = value;
                 viewport.postProcessing.updateEffect(hueSaturationEffectToken, hueSaturationEffectDefinition);
             },
-            value: hueSaturationEffectDefinition.saturation,
+            value: hueSaturationEffectDefinition.properties!.saturation,
             min: -1,
             max: 1,
             step: 0.001

@@ -32,23 +32,25 @@ import {
     });
 
     const godRaysEffectDefinition: IGodRaysEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.SCREEN) */
-        blendFunction: BlendFunction.SCREEN,
-        /** Whether the god rays should be blurred to reduce artifacts. (default: true) */
-        blur: true,
-        /** An upper bound for the saturation of the overall effect. (default: 1.0) */
-        clampMax: 1.0,
-        /** An illumination decay factor. (default: 0.9) */
-        decay: 0.9,
-        /** The density of the light rays. (default: 0.96) */
-        density: 0.96,
-        /** A constant attenuation coefficient. (default: 0.6) */
-        exposure: 0.6,
-        /** The blur kernel size. Has no effect if blur is disabled. (default: KernelSize.SMALL) */
-        kernelSize: KernelSize.SMALL,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.SCREEN) */
+            blendFunction: BlendFunction.SCREEN,
+            /** Whether the god rays should be blurred to reduce artifacts. (default: true) */
+            blur: true,
+            /** An upper bound for the saturation of the overall effect. (default: 1.0) */
+            clampMax: 1.0,
+            /** An illumination decay factor. (default: 0.9) */
+            decay: 0.9,
+            /** The density of the light rays. (default: 0.96) */
+            density: 0.96,
+            /** A constant attenuation coefficient. (default: 0.6) */
+            exposure: 0.6,
+            /** The blur kernel size. Has no effect if blur is disabled. (default: KernelSize.SMALL) */
+            kernelSize: KernelSize.SMALL,
+            /** A light ray weight factor. (default: 0.4) */
+            weight: 0.4
+        },
         type: POST_PROCESSING_EFFECT_TYPE.GOD_RAYS,
-        /** A light ray weight factor. (default: 0.4) */
-        weight: 0.4
     };
     const godRaysEffectToken = viewport.postProcessing.addEffect(godRaysEffectDefinition)
 
@@ -60,32 +62,32 @@ import {
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                godRaysEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                godRaysEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(godRaysEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(godRaysEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "blur",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                godRaysEffectDefinition.blur = value;
+                godRaysEffectDefinition.properties!.blur = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.blur
+            value: godRaysEffectDefinition.properties!.blur
         },
         <ISliderElement>{
             name: "density",
             type: "slider",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.density = value;
+                godRaysEffectDefinition.properties!.density = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.density,
+            value: godRaysEffectDefinition.properties!.density,
             min: 0,
             max: 1,
             step: 0.001
@@ -94,11 +96,11 @@ import {
             name: "decay",
             type: "slider",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.decay = value;
+                godRaysEffectDefinition.properties!.decay = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.decay,
+            value: godRaysEffectDefinition.properties!.decay,
             min: 0,
             max: 1,
             step: 0.001
@@ -107,11 +109,11 @@ import {
             name: "weight",
             type: "slider",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.weight = value;
+                godRaysEffectDefinition.properties!.weight = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.weight,
+            value: godRaysEffectDefinition.properties!.weight,
             min: 0,
             max: 1,
             step: 0.001
@@ -120,11 +122,11 @@ import {
             name: "exposure",
             type: "slider",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.exposure = value;
+                godRaysEffectDefinition.properties!.exposure = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.exposure,
+            value: godRaysEffectDefinition.properties!.exposure,
             min: 0,
             max: 1,
             step: 0.001
@@ -133,11 +135,11 @@ import {
             name: "clampMax",
             type: "slider",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.clampMax = value;
+                godRaysEffectDefinition.properties!.clampMax = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
-            value: godRaysEffectDefinition.clampMax,
+            value: godRaysEffectDefinition.properties!.clampMax,
             min: 0,
             max: 1,
             step: 0.001
@@ -146,12 +148,12 @@ import {
             name: "kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
-                godRaysEffectDefinition.kernelSize = value;
+                godRaysEffectDefinition.properties!.kernelSize = value;
                 viewport.postProcessing.updateEffect(godRaysEffectToken, godRaysEffectDefinition);
                 viewport.postProcessing.godRaysEffects[godRaysEffectToken].setLightSource(output.node!)
             },
             choices: Object.keys(KernelSize),
-            value: godRaysEffectDefinition.kernelSize
+            value: godRaysEffectDefinition.properties!.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

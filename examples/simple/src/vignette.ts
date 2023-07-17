@@ -26,14 +26,16 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
     });
 
     const vignetteEffectDefinition: IVignetteEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
-        /** The Vignette darkness. (default: 0.5) */
-        darkness: 0.5,
-        /** The Vignette offset. (default: 0.5) */
-        offset: 0.5,
-        /** The Vignette technique. (default: VignetteTechnique.DEFAULT) */
-        technique: VignetteTechnique.DEFAULT,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The Vignette darkness. (default: 0.5) */
+            darkness: 0.5,
+            /** The Vignette offset. (default: 0.5) */
+            offset: 0.5,
+            /** The Vignette technique. (default: VignetteTechnique.DEFAULT) */
+            technique: VignetteTechnique.DEFAULT
+        },
         type: POST_PROCESSING_EFFECT_TYPE.VIGNETTE,
     }
     const vignetteEffectToken = viewport.postProcessing.addEffect(vignetteEffectDefinition);
@@ -43,20 +45,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                vignetteEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                vignetteEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(vignetteEffectToken, vignetteEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(vignetteEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(vignetteEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "darkness",
             type: "slider",
             onChangeCallback: (value: number) => {
-                vignetteEffectDefinition.darkness = value;
+                vignetteEffectDefinition.properties!.darkness = value;
                 viewport.postProcessing.updateEffect(vignetteEffectToken, vignetteEffectDefinition);
             },
-            value: vignetteEffectDefinition.darkness,
+            value: vignetteEffectDefinition.properties!.darkness,
             min: 0,
             max: 1,
             step: 0.01
@@ -65,10 +67,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "offset",
             type: "slider",
             onChangeCallback: (value: number) => {
-                vignetteEffectDefinition.offset = value;
+                vignetteEffectDefinition.properties!.offset = value;
                 viewport.postProcessing.updateEffect(vignetteEffectToken, vignetteEffectDefinition);
             },
-            value: vignetteEffectDefinition.offset,
+            value: vignetteEffectDefinition.properties!.offset,
             min: 0,
             max: 1,
             step: 0.01
@@ -77,11 +79,11 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "VignetteTechnique",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                vignetteEffectDefinition.technique = Object.values(VignetteTechnique)[+value] as VignetteTechnique;
+                vignetteEffectDefinition.properties!.technique = Object.values(VignetteTechnique)[+value] as VignetteTechnique;
                 viewport.postProcessing.updateEffect(vignetteEffectToken, vignetteEffectDefinition);
             },
             choices: Object.keys(VignetteTechnique),
-            value: Object.values(VignetteTechnique).indexOf(vignetteEffectDefinition.technique!)
+            value: Object.values(VignetteTechnique).indexOf(vignetteEffectDefinition.properties!.technique!)
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

@@ -26,18 +26,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
     });
     
     const tiltShiftEffectDefinition: ITiltShiftEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
-        /** The softness of the focus area edges. (default: 0.3) */
-        feather: 0.3,
-        /** The relative size of the focus area. (default: 0.4) */
-        focusArea: 0.4,
-        /** The blur kernel size. (default: KernelSize.MEDIUM) */
-        kernelSize: KernelSize.MEDIUM,
-        /** The relative offset of the focus area. (default: 0.0) */
-        offset: 0,
-        /** The rotation of the focus area in radians. (default: 0.0) */
-        rotation: 0,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The softness of the focus area edges. (default: 0.3) */
+            feather: 0.3,
+            /** The relative size of the focus area. (default: 0.4) */
+            focusArea: 0.4,
+            /** The blur kernel size. (default: KernelSize.MEDIUM) */
+            kernelSize: KernelSize.MEDIUM,
+            /** The relative offset of the focus area. (default: 0.0) */
+            offset: 0,
+            /** The rotation of the focus area in radians. (default: 0.0) */
+            rotation: 0
+        },
         type: POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT,
     };
     const tiltShiftEffectToken = viewport.postProcessing.addEffect(tiltShiftEffectDefinition)
@@ -47,20 +49,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                tiltShiftEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                tiltShiftEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(tiltShiftEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(tiltShiftEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "feather",
             type: "slider",
             onChangeCallback: (value: number) => {
-                tiltShiftEffectDefinition.feather = value;
+                tiltShiftEffectDefinition.properties!.feather = value;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
-            value: tiltShiftEffectDefinition.feather,
+            value: tiltShiftEffectDefinition.properties!.feather,
             min: 0,
             max: 1,
             step: 0.01
@@ -69,10 +71,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "focusArea",
             type: "slider",
             onChangeCallback: (value: number) => {
-                tiltShiftEffectDefinition.focusArea = value;
+                tiltShiftEffectDefinition.properties!.focusArea = value;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
-            value: tiltShiftEffectDefinition.focusArea,
+            value: tiltShiftEffectDefinition.properties!.focusArea,
             min: 0,
             max: 10,
             step: 0.01
@@ -81,10 +83,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "offset",
             type: "slider",
             onChangeCallback: (value: number) => {
-                tiltShiftEffectDefinition.offset = value;
+                tiltShiftEffectDefinition.properties!.offset = value;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
-            value: tiltShiftEffectDefinition.offset,
+            value: tiltShiftEffectDefinition.properties!.offset,
             min: 0,
             max: 1,
             step: 0.01
@@ -93,10 +95,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "rotation",
             type: "slider",
             onChangeCallback: (value: number) => {
-                tiltShiftEffectDefinition.rotation = value;
+                tiltShiftEffectDefinition.properties!.rotation = value;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
-            value: tiltShiftEffectDefinition.rotation,
+            value: tiltShiftEffectDefinition.properties!.rotation,
             min: 0,
             max: Math.PI,
             step: 0.01
@@ -105,11 +107,11 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
-                tiltShiftEffectDefinition.kernelSize = value;
+                tiltShiftEffectDefinition.properties!.kernelSize = value;
                 viewport.postProcessing.updateEffect(tiltShiftEffectToken, tiltShiftEffectDefinition);
             },
             choices: Object.keys(KernelSize),
-            value: tiltShiftEffectDefinition.kernelSize
+            value: tiltShiftEffectDefinition.properties!.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

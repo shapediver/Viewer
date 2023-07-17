@@ -25,10 +25,12 @@ import { createCustomUi, IBooleanElement, IDropdownElement } from '@shapediver/v
     });
 
     const noiseEffectDefinition: INoiseEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.SCREEN) */
-        blendFunction: BlendFunction.SCREEN,
-        /** Whether the noise should be multiplied with the input colors prior to blending. (default: false) */
-        premultiply: false,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.SCREEN) */
+            blendFunction: BlendFunction.SCREEN,
+            /** Whether the noise should be multiplied with the input colors prior to blending. (default: false) */
+            premultiply: false
+        },
         type: POST_PROCESSING_EFFECT_TYPE.NOISE
     }
     const noiseEffectToken = viewport.postProcessing.addEffect(noiseEffectDefinition);
@@ -38,20 +40,20 @@ import { createCustomUi, IBooleanElement, IDropdownElement } from '@shapediver/v
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                noiseEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                noiseEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(noiseEffectToken, noiseEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(noiseEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(noiseEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "premultiply",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                noiseEffectDefinition.premultiply = value;
+                noiseEffectDefinition.properties!.premultiply = value;
                 viewport.postProcessing.updateEffect(noiseEffectToken, noiseEffectDefinition);
             },
-            value: noiseEffectDefinition.premultiply
+            value: noiseEffectDefinition.properties!.premultiply
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

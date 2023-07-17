@@ -24,8 +24,10 @@ import {
     });
 
     const pixelationEffectDefinition: IPixelationEffectDefinition = {
-        /** The pixel granularity. (default: 30.0) */
-        granularity: 30.0,
+        properties: {
+            /** The pixel granularity. (default: 30.0) */
+            granularity: 30.0
+        },
         type: POST_PROCESSING_EFFECT_TYPE.PIXELATION
     }
     const pixelationEffectToken = viewport.postProcessing.addEffect(pixelationEffectDefinition)
@@ -35,10 +37,10 @@ import {
             name: "granularity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                pixelationEffectDefinition.granularity = value;
+                pixelationEffectDefinition.properties!.granularity = value;
                 viewport.postProcessing.updateEffect(pixelationEffectToken, pixelationEffectDefinition);
             },
-            value: pixelationEffectDefinition.granularity,
+            value: pixelationEffectDefinition.properties!.granularity,
             min: 0,
             max: 100,
             step: 0.01

@@ -33,20 +33,22 @@ import {
 
     const selectiveBloomEffectDefinition: ISelectiveBloomEffectDefinition = {
         type: POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
-        /** The blend function of this effect. (default: BlendFunction.ADD) */
-        blendFunction: BlendFunction.ADD,
-        /** The bloom intensity. (default: 1.0) */
-        intensity: 1.0,
-        /** The blur kernel size. (default: KernelSize.LARGE) */
-        kernelSize: KernelSize.LARGE,
-        /** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
-        luminanceSmoothing: 0.025,
-        /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
-        luminanceThreshold: 0.9,
-        /** Enables or disables mipmap blur. (default: false) */
-        mipmapBlur: false,
-        /** Enables or disables if the background is evaluated for the bloom calculation. (default: true) */
-        ignoreBackground: true
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.ADD) */
+            blendFunction: BlendFunction.ADD,
+            /** The bloom intensity. (default: 1.0) */
+            intensity: 1.0,
+            /** The blur kernel size. (default: KernelSize.LARGE) */
+            kernelSize: KernelSize.LARGE,
+            /** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
+            luminanceSmoothing: 0.025,
+            /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
+            luminanceThreshold: 0.9,
+            /** Enables or disables mipmap blur. (default: false) */
+            mipmapBlur: false,
+            /** Enables or disables if the background is evaluated for the bloom calculation. (default: true) */
+            ignoreBackground: true
+        }
     }
     const selectiveBloomEffectToken = viewport.postProcessing.addEffect(selectiveBloomEffectDefinition);
     viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
@@ -56,42 +58,42 @@ import {
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                selectiveBloomEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                selectiveBloomEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(selectiveBloomEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(selectiveBloomEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "mipmapBlur",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                selectiveBloomEffectDefinition.mipmapBlur = value;
+                selectiveBloomEffectDefinition.properties!.mipmapBlur = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
-            value: selectiveBloomEffectDefinition.mipmapBlur
+            value: selectiveBloomEffectDefinition.properties!.mipmapBlur
         },
         <IBooleanElement>{
             name: "ignoreBackground",
             type: "boolean",
             onChangeCallback: (value: any) => {
-                selectiveBloomEffectDefinition.ignoreBackground = value;
+                selectiveBloomEffectDefinition.properties!.ignoreBackground = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
-            value: selectiveBloomEffectDefinition.ignoreBackground
+            value: selectiveBloomEffectDefinition.properties!.ignoreBackground
         },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.intensity = value;
+                selectiveBloomEffectDefinition.properties!.intensity = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
-            value: selectiveBloomEffectDefinition.intensity,
+            value: selectiveBloomEffectDefinition.properties!.intensity,
             min: 0,
             max: 10,
             step: 0.01
@@ -100,11 +102,11 @@ import {
             name: "luminanceSmoothing",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.luminanceSmoothing = value;
+                selectiveBloomEffectDefinition.properties!.luminanceSmoothing = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
-            value: selectiveBloomEffectDefinition.luminanceSmoothing,
+            value: selectiveBloomEffectDefinition.properties!.luminanceSmoothing,
             min: 0,
             max: 1,
             step: 0.001
@@ -113,11 +115,11 @@ import {
             name: "luminanceThreshold",
             type: "slider",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.luminanceThreshold = value;
+                selectiveBloomEffectDefinition.properties!.luminanceThreshold = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
-            value: selectiveBloomEffectDefinition.luminanceThreshold,
+            value: selectiveBloomEffectDefinition.properties!.luminanceThreshold,
             min: 0,
             max: 1,
             step: 0.001
@@ -126,12 +128,12 @@ import {
             name: "blur - kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
-                selectiveBloomEffectDefinition.kernelSize = value;
+                selectiveBloomEffectDefinition.properties!.kernelSize = value;
                 viewport.postProcessing.updateEffect(selectiveBloomEffectToken, selectiveBloomEffectDefinition);    
                 viewport.postProcessing.selectiveBloomEffects[selectiveBloomEffectToken].addSelection(session.node!);
             },
             choices: Object.keys(KernelSize),
-            value: selectiveBloomEffectDefinition.kernelSize
+            value: selectiveBloomEffectDefinition.properties!.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

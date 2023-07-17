@@ -5,7 +5,7 @@ import {
     createViewport,
     ISepiaEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
-    } from '@shapediver/viewer';
+} from '@shapediver/viewer';
 import { createCustomUi, IDropdownElement } from '@shapediver/viewer.utils.demo-helper';
 
 (<any>window).SDV = SDV;
@@ -25,8 +25,10 @@ import { createCustomUi, IDropdownElement } from '@shapediver/viewer.utils.demo-
     });
 
     const sepiaEffectDefinition: ISepiaEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+        },
         type: POST_PROCESSING_EFFECT_TYPE.SEPIA,
     }
     const sepiaEffectToken = viewport.postProcessing.addEffect(sepiaEffectDefinition)
@@ -36,11 +38,11 @@ import { createCustomUi, IDropdownElement } from '@shapediver/viewer.utils.demo-
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                sepiaEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                sepiaEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(sepiaEffectToken, sepiaEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(sepiaEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(sepiaEffectDefinition.properties!.blendFunction!)
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

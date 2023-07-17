@@ -29,7 +29,6 @@ import {
 
     const hbaoEffectDefinition: IHBAOEffectDefinition = {
         properties: {
-
             /** The resolution scale of the ambient occlusion. (default: 1) */
             resolutionScale: 1,
             /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */

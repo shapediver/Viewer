@@ -32,25 +32,27 @@ import {
     });
 
     const outlineEffectDefinition: IOutlineEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.SCREEN) */
-        blendFunction: BlendFunction.SCREEN,
-        /** Whether the outline should be blurred. (default: false) */
-        blur: false,
-        /** The edge strength. (default: 1.0) */
-        edgeStrength: 1,
-        /** The color of hidden edges. (default: #22090a) */
-        hiddenEdgeColor: "#22090a",
-        /** The blur kernel size. (default: KernelSize.VERY_SMALL) */
-        kernelSize: KernelSize.VERY_SMALL,
-        /** The number of samples used for multisample antialiasing. Requires WebGL 2. (default: 0) */
-        multisampling: 0,
-        /** The pulse speed. A value of zero disables the pulse effect. (default: 0.0) */
-        pulseSpeed: 0,
-        type: POST_PROCESSING_EFFECT_TYPE.OUTLINE,
-        /** The color of visible edges. (default: #ffffff) */
-        visibleEdgeColor: "#ffffff",
-        /** Whether occluded parts of selected objects should be visible. (default: true) */
-        xRay: true,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.SCREEN) */
+            blendFunction: BlendFunction.SCREEN,
+            /** Whether the outline should be blurred. (default: false) */
+            blur: false,
+            /** The edge strength. (default: 1.0) */
+            edgeStrength: 1,
+            /** The color of hidden edges. (default: #22090a) */
+            hiddenEdgeColor: "#22090a",
+            /** The blur kernel size. (default: KernelSize.VERY_SMALL) */
+            kernelSize: KernelSize.VERY_SMALL,
+            /** The number of samples used for multisample antialiasing. Requires WebGL 2. (default: 0) */
+            multisampling: 0,
+            /** The pulse speed. A value of zero disables the pulse effect. (default: 0.0) */
+            pulseSpeed: 0,
+            /** The color of visible edges. (default: #ffffff) */
+            visibleEdgeColor: "#ffffff",
+            /** Whether occluded parts of selected objects should be visible. (default: true) */
+            xRay: true,
+        },
+        type: POST_PROCESSING_EFFECT_TYPE.OUTLINE
     };
     const outlineEffectToken = viewport.postProcessing.addEffect(outlineEffectDefinition)
     viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
@@ -60,42 +62,42 @@ import {
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                outlineEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                outlineEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(outlineEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(outlineEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "blur",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                outlineEffectDefinition.blur = value;
+                outlineEffectDefinition.properties!.blur = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.blur
+            value: outlineEffectDefinition.properties!.blur
         },
         <IBooleanElement>{
             name: "xRay",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                outlineEffectDefinition.xRay = value;
+                outlineEffectDefinition.properties!.xRay = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.xRay
+            value: outlineEffectDefinition.properties!.xRay
         },
         <ISliderElement>{
             name: "edgeStrength",
             type: "slider",
             onChangeCallback: (value: number) => {
-                outlineEffectDefinition.edgeStrength = value;
+                outlineEffectDefinition.properties!.edgeStrength = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.edgeStrength,
+            value: outlineEffectDefinition.properties!.edgeStrength,
             min: 0,
             max: 100,
             step: 0.01
@@ -104,11 +106,11 @@ import {
             name: "multisampling",
             type: "slider",
             onChangeCallback: (value: number) => {
-                outlineEffectDefinition.multisampling = value;
+                outlineEffectDefinition.properties!.multisampling = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.multisampling,
+            value: outlineEffectDefinition.properties!.multisampling,
             min: 0,
             max: 10,
             step: 1
@@ -117,11 +119,11 @@ import {
             name: "pulseSpeed",
             type: "slider",
             onChangeCallback: (value: number) => {
-                outlineEffectDefinition.pulseSpeed = value;
+                outlineEffectDefinition.properties!.pulseSpeed = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.pulseSpeed,
+            value: outlineEffectDefinition.properties!.pulseSpeed,
             min: 0,
             max: 10,
             step: 0.01
@@ -130,32 +132,32 @@ import {
             name: "visibleEdgeColor",
             type: "color",
             onChangeCallback: (value: string) => {
-                outlineEffectDefinition.visibleEdgeColor = value;
+                outlineEffectDefinition.properties!.visibleEdgeColor = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.visibleEdgeColor
+            value: outlineEffectDefinition.properties!.visibleEdgeColor
         },
         <IColorElement>{
             name: "hiddenEdgeColor",
             type: "color",
             onChangeCallback: (value: string) => {
-                outlineEffectDefinition.hiddenEdgeColor = value;
+                outlineEffectDefinition.properties!.hiddenEdgeColor = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
-            value: outlineEffectDefinition.hiddenEdgeColor
+            value: outlineEffectDefinition.properties!.hiddenEdgeColor
         },
         <IDropdownElement>{
             name: "blur - kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
-                outlineEffectDefinition.kernelSize = value;
+                outlineEffectDefinition.properties!.kernelSize = value;
                 viewport.postProcessing.updateEffect(outlineEffectToken, outlineEffectDefinition);
                 viewport.postProcessing.outlineEffects[outlineEffectToken].addSelection(session.node!);
             },
             choices: Object.keys(KernelSize),
-            value: outlineEffectDefinition.kernelSize
+            value: outlineEffectDefinition.properties!.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();

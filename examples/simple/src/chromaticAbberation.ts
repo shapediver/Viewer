@@ -11,6 +11,7 @@ import {
     IDropdownElement,
     ISliderElement
 } from '@shapediver/viewer.utils.demo-helper';
+import { vec2 } from 'gl-matrix';
 
 (<any>window).SDV = SDV;
 
@@ -29,14 +30,16 @@ import {
     });
 
     const chromaticAberrationEffectDefinition: SDV.IChromaticAberrationEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
-        /** The modulation offset. Only applies if `radialModulation` is enabled. (default: 0.15) */
-        modulationOffset: 0.15,
-        /** The color offset. (default: [0.001, 0.0005]) */
-        offset: [0.001, 0.0005],
-        /** Whether the effect should be modulated with a radial gradient. (default: false) */
-        radialModulation: false,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The modulation offset. Only applies if `radialModulation` is enabled. (default: 0.15) */
+            modulationOffset: 0.15,
+            /** The color offset. (default: [0.001, 0.0005]) */
+            offset: [0.001, 0.0005],
+            /** Whether the effect should be modulated with a radial gradient. (default: false) */
+            radialModulation: false
+        },
         type: POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION
     }
     const chromaticAberrationEffectToken = viewport.postProcessing.addEffect(chromaticAberrationEffectDefinition)
@@ -46,29 +49,29 @@ import {
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                chromaticAberrationEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                chromaticAberrationEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(chromaticAberrationEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(chromaticAberrationEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "radialModulation",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                chromaticAberrationEffectDefinition.radialModulation = value;
+                chromaticAberrationEffectDefinition.properties!.radialModulation = value;
                 viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
             },
-            value: chromaticAberrationEffectDefinition.radialModulation
+            value: chromaticAberrationEffectDefinition.properties!.radialModulation
         },
         <ISliderElement>{
             name: "offset - x",
             type: "slider",
             onChangeCallback: (value: number) => {
-                chromaticAberrationEffectDefinition.offset = [value, chromaticAberrationEffectDefinition.offset![1]];
+                (<vec2>chromaticAberrationEffectDefinition.properties!.offset) = [value, (<vec2>(<vec2>chromaticAberrationEffectDefinition.properties!.offset))![1]];
                 viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
             },
-            value: chromaticAberrationEffectDefinition.offset![0],
+            value: (<vec2>chromaticAberrationEffectDefinition.properties!.offset)![0],
             min: 0,
             max: 1,
             step: 0.0001
@@ -77,10 +80,10 @@ import {
             name: "offset - y",
             type: "slider",
             onChangeCallback: (value: number) => {
-                chromaticAberrationEffectDefinition.offset = [chromaticAberrationEffectDefinition.offset![0], value];
+                (<vec2>chromaticAberrationEffectDefinition.properties!.offset) = [(<vec2>chromaticAberrationEffectDefinition.properties!.offset)![0], value];
                 viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
             },
-            value: chromaticAberrationEffectDefinition.offset![1],
+            value: (<vec2>chromaticAberrationEffectDefinition.properties!.offset)![1],
             min: 0,
             max: 1,
             step: 0.0001
@@ -89,10 +92,10 @@ import {
             name: "modulationOffset",
             type: "slider",
             onChangeCallback: (value: number) => {
-                chromaticAberrationEffectDefinition.modulationOffset = value;
+                chromaticAberrationEffectDefinition.properties!.modulationOffset = value;
                 viewport.postProcessing.updateEffect(chromaticAberrationEffectToken, chromaticAberrationEffectDefinition);
             },
-            value: chromaticAberrationEffectDefinition.modulationOffset,
+            value: chromaticAberrationEffectDefinition.properties!.modulationOffset,
             min: 0,
             max: 1,
             step: 0.0001

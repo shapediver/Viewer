@@ -23,11 +23,13 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
         id: "mySession"
     });
 
-    const scanlineEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.OVERLAY) */
-        blendFunction: BlendFunction.OVERLAY,
-        /** The scanline density. (default: 1.25) */
-        density: 1.25,
+    const scanlineEffectDefinition: SDV.IScanlineEffectDefinition = {
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.OVERLAY) */
+            blendFunction: BlendFunction.OVERLAY,
+            /** The scanline density. (default: 1.25) */
+            density: 1.25
+        },
         type: POST_PROCESSING_EFFECT_TYPE.SCANLINE,
     }
     const scanlineEffectToken = viewport.postProcessing.addEffect(scanlineEffectDefinition);
@@ -37,20 +39,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                scanlineEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                scanlineEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(scanlineEffectToken, scanlineEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(scanlineEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(scanlineEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "density",
             type: "slider",
             onChangeCallback: (value: number) => {
-                scanlineEffectDefinition.density = value;
+                scanlineEffectDefinition.properties!.density = value;
                 viewport.postProcessing.updateEffect(scanlineEffectToken, scanlineEffectDefinition);
             },
-            value: scanlineEffectDefinition.density,
+            value: scanlineEffectDefinition.properties!.density,
             min: 0,
             max: 10,
             step: 0.01

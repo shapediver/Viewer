@@ -24,14 +24,16 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
     });
 
     const depthOfFieldEffectDefinition: SDV.IDepthOfFieldEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.NORMAL) */
-        blendFunction: BlendFunction.NORMAL,
-        /** The scale of the bokeh blur. (default: 1.0) */
-        bokehScale: 1.0,
-        /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
-        focusDistance: 0.0,
-        /** The focus range. Range is [0.0, 1.0]. (default: 0.1) */
-        focusRange: 0.1,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The scale of the bokeh blur. (default: 5.0) */
+            bokehScale: 5.0,
+            /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
+            focusDistance: 0.0,
+            /** The focus range. Range is [0.0, 1.0]. (default: 0.01) */
+            focusRange: 0.01
+        },
         type: POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD
     }
 
@@ -42,20 +44,20 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                depthOfFieldEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                depthOfFieldEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(depthOfFieldEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(depthOfFieldEffectDefinition.properties!.blendFunction!)
         },
         <ISliderElement>{
             name: "bokehScale",
             type: "slider",
             onChangeCallback: (value: number) => {
-                depthOfFieldEffectDefinition.bokehScale = value;
+                depthOfFieldEffectDefinition.properties!.bokehScale = value;
                 viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
             },
-            value: depthOfFieldEffectDefinition.bokehScale,
+            value: depthOfFieldEffectDefinition.properties!.bokehScale,
             min: 0,
             max: 10,
             step: 0.01
@@ -64,10 +66,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "focusDistance",
             type: "slider",
             onChangeCallback: (value: number) => {
-                depthOfFieldEffectDefinition.focusDistance = value;
+                depthOfFieldEffectDefinition.properties!.focusDistance = value;
                 viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
             },
-            value: depthOfFieldEffectDefinition.focusDistance,
+            value: depthOfFieldEffectDefinition.properties!.focusDistance,
             min: 0,
             max: 1,
             step: 0.001
@@ -76,10 +78,10 @@ import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/vi
             name: "focusRange",
             type: "slider",
             onChangeCallback: (value: number) => {
-                depthOfFieldEffectDefinition.focusRange = value;
+                depthOfFieldEffectDefinition.properties!.focusRange = value;
                 viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
             },
-            value: depthOfFieldEffectDefinition.focusRange,
+            value: depthOfFieldEffectDefinition.properties!.focusRange,
             min: 0,
             max: 1,
             step: 0.001

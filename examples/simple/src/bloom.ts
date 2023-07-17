@@ -31,18 +31,20 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
     });
 
     const bloomEffectDefinition: IBloomEffectDefinition = {
-        /** The blend function of this effect. (default: BlendFunction.ADD) */
-        blendFunction: BlendFunction.ADD,
-        /** The bloom intensity. (default: 1.0) */
-        intensity: 1.0,
-        /** The blur kernel size. (default: KernelSize.LARGE) */
-        kernelSize: KernelSize.LARGE,
-        /** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
-        luminanceSmoothing: 0.025,
-        /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
-        luminanceThreshold: 0.9,
-        /** Enables or disables mipmap blur. (default: false) */
-        mipmapBlur: false,
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.ADD) */
+            blendFunction: BlendFunction.ADD,
+            /** The bloom intensity. (default: 1.0) */
+            intensity: 1.0,
+            /** The blur kernel size. (default: KernelSize.LARGE) */
+            kernelSize: KernelSize.LARGE,
+            /** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
+            luminanceSmoothing: 0.025,
+            /** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
+            luminanceThreshold: 0.9,
+            /** Enables or disables mipmap blur. (default: false) */
+            mipmapBlur: false
+        },
         type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
     }
     const bloomEffectToken = viewport.postProcessing.addEffect(bloomEffectDefinition)
@@ -52,29 +54,29 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
             name: "BlendFunction",
             type: "dropdown",
             onChangeCallback: (value: string) => {
-                bloomEffectDefinition.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                bloomEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
             choices: Object.keys(BlendFunction),
-            value: Object.values(BlendFunction).indexOf(bloomEffectDefinition.blendFunction!)
+            value: Object.values(BlendFunction).indexOf(bloomEffectDefinition.properties!.blendFunction!)
         },
         <IBooleanElement>{
             name: "mipmapBlur",
             type: "boolean",
             onChangeCallback: (value: boolean) => {
-                bloomEffectDefinition.mipmapBlur = value;
+                bloomEffectDefinition.properties!.mipmapBlur = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: bloomEffectDefinition.mipmapBlur
+            value: bloomEffectDefinition.properties!.mipmapBlur
         },
         <ISliderElement>{
             name: "intensity",
             type: "slider",
             onChangeCallback: (value: number) => {
-                bloomEffectDefinition.intensity = value;
+                bloomEffectDefinition.properties!.intensity = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: bloomEffectDefinition.intensity,
+            value: bloomEffectDefinition.properties!.intensity,
             min: 0,
             max: 10,
             step: 0.01
@@ -83,10 +85,10 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
             name: "luminanceSmoothing",
             type: "slider",
             onChangeCallback: (value: number) => {
-                bloomEffectDefinition.luminanceSmoothing = value;
+                bloomEffectDefinition.properties!.luminanceSmoothing = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: bloomEffectDefinition.luminanceSmoothing,
+            value: bloomEffectDefinition.properties!.luminanceSmoothing,
             min: 0,
             max: 1,
             step: 0.001
@@ -95,10 +97,10 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
             name: "luminanceThreshold",
             type: "slider",
             onChangeCallback: (value: number) => {
-                bloomEffectDefinition.luminanceThreshold = value;
+                bloomEffectDefinition.properties!.luminanceThreshold = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
-            value: bloomEffectDefinition.luminanceThreshold,
+            value: bloomEffectDefinition.properties!.luminanceThreshold,
             min: 0,
             max: 1,
             step: 0.001
@@ -107,11 +109,11 @@ import { IBloomEffectDefinition } from '@shapediver/viewer';
             name: "blur - kernelSize",
             type: "dropdown",
             onChangeCallback: (value: number) => {
-                bloomEffectDefinition.kernelSize = value;
+                bloomEffectDefinition.properties!.kernelSize = value;
                 viewport.postProcessing.updateEffect(bloomEffectToken, bloomEffectDefinition);
             },
             choices: Object.keys(KernelSize),
-            value: bloomEffectDefinition.kernelSize
+            value: bloomEffectDefinition.properties!.kernelSize
         }
     ], document.getElementById("ui") as HTMLDivElement)
 })();
