@@ -574,7 +574,7 @@ export class PostProcessingManager implements IManager {
                 return {
                     blendFunction: BlendFunction.NORMAL,
                     modulationOffset: 0.15,
-                    offset: [0.001, 0.0005],
+                    offset: { x: 0.001, y: 0.0005 },
                     radialModulation: false,
                 }
 
