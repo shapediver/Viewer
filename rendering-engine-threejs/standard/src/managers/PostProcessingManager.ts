@@ -272,14 +272,21 @@ export class PostProcessingManager implements IManager {
                     {
                         const definition: IDepthOfFieldEffectDefinition = this._effectDefinitions[i].definition as IDepthOfFieldEffectDefinition;
                         const properties = definition.properties || {};
+
+                        const depthOfFieldEffect = new DepthOfFieldEffect(this._renderingEngine.camera, {
+                            blendFunction: properties.blendFunction,
+                            focusDistance: properties.focusDistance !== undefined ? properties.focusDistance : 0,
+                            focusRange: properties.focusRange !== undefined ? properties.focusRange : 0.01,
+                            bokehScale: properties.bokehScale !== undefined ? properties.bokehScale : 5,
+                            resolutionScale: 1
+                        });
+
+                        depthOfFieldEffect.resolution.height = 1080;
+                        depthOfFieldEffect.blurPass.kernelSize = KernelSize.HUGE;
+
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
-                            effect: new DepthOfFieldEffect(this._renderingEngine.camera, {
-                                blendFunction: properties.blendFunction,
-                                focusDistance: properties.focusDistance,
-                                focusRange: properties.focusRange,
-                                bokehScale: properties.bokehScale
-                            })
+                            effect: depthOfFieldEffect
                         });
                     }
                     break;
@@ -581,9 +588,9 @@ export class PostProcessingManager implements IManager {
             case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
                 return {
                     blendFunction: BlendFunction.NORMAL,
-                    bokehScale: 1.0,
+                    bokehScale: 5.0,
                     focusDistance: 0.0,
-                    focusRange: 0.1,
+                    focusRange: 0.01,
                 }
             case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
                 return {

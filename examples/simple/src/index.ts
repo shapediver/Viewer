@@ -1,15 +1,11 @@
 import * as SDV from '@shapediver/viewer';
 import {
+    BlendFunction,
     createSession,
     createViewport,
-    ISSAOEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
 } from '@shapediver/viewer';
-import {
-    createCustomUi,
-    IColorElement,
-    ISliderElement
-} from '@shapediver/viewer.utils.demo-helper';
+import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
 
 (<any>window).SDV = SDV;
 
@@ -26,4 +22,69 @@ import {
         modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
+
+    const depthOfFieldEffectDefinition: SDV.IDepthOfFieldEffectDefinition = {
+        properties: {
+            /** The blend function of this effect. (default: BlendFunction.NORMAL) */
+            blendFunction: BlendFunction.NORMAL,
+            /** The scale of the bokeh blur. (default: 5.0) */
+            bokehScale: 5.0,
+            /** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
+            focusDistance: 0.0,
+            /** The focus range. Range is [0.0, 1.0]. (default: 0.01) */
+            focusRange: 0.01
+        },
+        type: POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD
+    }
+
+    const depthOfFieldEffectToken = viewport.postProcessing.addEffect(depthOfFieldEffectDefinition)
+
+    createCustomUi([
+        <IDropdownElement>{
+            name: "BlendFunction",
+            type: "dropdown",
+            onChangeCallback: (value: string) => {
+                depthOfFieldEffectDefinition.properties!.blendFunction = Object.values(BlendFunction)[+value] as BlendFunction;
+                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
+            },
+            choices: Object.keys(BlendFunction),
+            value: Object.values(BlendFunction).indexOf(depthOfFieldEffectDefinition.properties!.blendFunction!)
+        },
+        <ISliderElement>{
+            name: "bokehScale",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                depthOfFieldEffectDefinition.properties!.bokehScale = value;
+                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
+            },
+            value: depthOfFieldEffectDefinition.properties!.bokehScale,
+            min: 0,
+            max: 100,
+            step: 0.01
+        },
+        <ISliderElement>{
+            name: "focusDistance",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                depthOfFieldEffectDefinition.properties!.focusDistance = value;
+                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
+            },
+            value: depthOfFieldEffectDefinition.properties!.focusDistance,
+            min: 0,
+            max: 1,
+            step: 0.001
+        },
+        <ISliderElement>{
+            name: "focusRange",
+            type: "slider",
+            onChangeCallback: (value: number) => {
+                depthOfFieldEffectDefinition.properties!.focusRange = value;
+                viewport.postProcessing.updateEffect(depthOfFieldEffectToken, depthOfFieldEffectDefinition);
+            },
+            value: depthOfFieldEffectDefinition.properties!.focusRange,
+            min: 0,
+            max: 1,
+            step: 0.001
+        },
+    ], document.getElementById("ui") as HTMLDivElement)
 })();
