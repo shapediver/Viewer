@@ -83,7 +83,7 @@ export class GeometryLoader implements ILoader {
                 return this.loadPrimitive(geometry.primitive);
             } else {
                 this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].counter++;
-                return this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry;
+                return this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry.clone();
             }
         })();
 
