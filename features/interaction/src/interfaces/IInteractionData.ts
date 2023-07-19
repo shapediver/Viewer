@@ -49,6 +49,11 @@ export interface IInteractionData extends ITreeNodeData {
      */
     dragOrigin?: vec3;
     /**
+     * The group id to be able to interact with multiple nodes at once.
+     * If the same group id is specified at the InteractionData of another node, these nodes are treated as being one.
+     */
+    groupId?: string;
+    /**
      * The keys should respond to the ones in the interactionType.
      * They represent the current state of the interactions.
      */
