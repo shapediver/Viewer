@@ -587,7 +587,7 @@ describe('device testing', () => {
                     offset: 0,
                     /** The rotation of the focus area in radians. (default: 0.0) */
                     rotation: 0,
-                }
+                },
                 type: SDV.POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT,
             })
             await new Promise<void>((resolve) => {
