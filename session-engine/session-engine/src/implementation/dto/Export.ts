@@ -150,22 +150,19 @@ export class Export implements IExport {
 
   // #region Public Methods (3)
 
-  public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
+  public async request(parameterValues: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-      this.#logger.debugLow(`Export(${this.#id}).request: Sending export request.`);
-      const currentParameters = this.#sessionEngine.parameterValues;
-      const exportParameters: { [key: string]: string } = {}
+      if(Object.keys(parameterValues).length === 0) {
+        this.#logger.info(`Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(parameterValues)}.`);
+      } else {
+        this.#logger.debugLow(`Export(${this.#id}).request: Sending export request.`);
+      }
 
-      for (let parameter in currentParameters)
-        exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
-
-      this.#logger.info(`Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
-
-      const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters, this.#maxWaitTime);
+      const exportDef = await this.#sessionEngine.requestExport(this.id, parameterValues, this.#maxWaitTime);
       this.updateExportDefinition(exportDef);
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Returning export' };

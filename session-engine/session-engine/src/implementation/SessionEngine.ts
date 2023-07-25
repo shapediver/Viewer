@@ -637,8 +637,9 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.startSection('sessionResponse');
 
             const parameterSet: { [key: string]: string } = {};
-            for (const parameterId in parameterValues)
-                parameterSet[parameterId] = (' ' + parameterValues[parameterId]).slice(1);
+            // the slice here is done as a way for deep copying the string values
+            for (const parameterNameOrId in parameterValues)
+                parameterSet[parameterNameOrId] = (' ' + parameterValues[parameterNameOrId]).slice(1);
 
             this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
             this._performanceEvaluator.endSection('sessionResponse');
@@ -783,8 +784,9 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('export');
         try {
             const parameterSet: { [key: string]: string } = {};
-            for (const parameterId in parameters)
-                parameterSet[parameterId] = (' ' + parameters[parameterId]).slice(1);
+            // the slice here is done as a way for deep copying the string values
+            for (const parameterIdOrName in parameters)
+                parameterSet[parameterIdOrName] = (' ' + parameters[parameterIdOrName]).slice(1);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: parameterSet }, maxWaitTime)
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
