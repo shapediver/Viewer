@@ -226,7 +226,6 @@ export class PostProcessingManager implements IManager {
         }
 
         // remove the effects where the tokens are not in the effectDefinitions
-        const activeEffectTokens = this._effectDefinitions.map(e => e.token);
         this._effects.forEach(e => e.effect.dispose());
         this._effects = [];
 
@@ -344,6 +343,7 @@ export class PostProcessingManager implements IManager {
 
                 case POST_PROCESSING_EFFECT_TYPE.HBAO:
                     {
+                        if(this._systemInfo.isMobile === true) break;
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
                         const properties = definition.properties || {};
                         const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
@@ -435,6 +435,7 @@ export class PostProcessingManager implements IManager {
 
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
+                        if(this._systemInfo.isMobile === true) break;
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
                         const properties = definition.properties || {};
                         const ssaoEffect = new REALISM_EFFECTS.SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
