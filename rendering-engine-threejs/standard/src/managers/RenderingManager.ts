@@ -46,6 +46,7 @@ export class RenderingManager implements IManager {
     private _continuousRendering: boolean = false;
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
+    private _hidden: boolean = true;
     private _lastCameraMatrix: mat4 = mat4.create();
     private _lastSize: {
         adjustedWidth: number,
@@ -373,12 +374,22 @@ export class RenderingManager implements IManager {
             // toggle on logo
             this.toggleLogo(true);
             this.toggleBusyMode(false);
+
+            if(this._hidden === false)
+                this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_HIDDEN, { viewportId: this._renderingEngine.id });
+
+            this._hidden = true;
             return;
         } else {
             // we delay for one render call as some of the postprocessing effects have artefacts in the first call
             if(this._hideLogo === true) {
                 this.toggleLogo(false);
                 this._hideLogo = false;
+
+                if (this._hidden === true)
+                    this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_VISIBLE, { viewportId: this._renderingEngine.id });
+
+                this._hidden = false;
             } else {
                 this._hideLogo = true;
             }

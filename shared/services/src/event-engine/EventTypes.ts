@@ -27,7 +27,9 @@ export enum EVENTTYPE_VIEWPORT {
     VIEWPORT_CREATED = "viewport.created",
     VIEWPORT_UPDATED = "viewport.updated",
     VIEWPORT_CLOSED = "viewport.closed",
-    VIEWPORT_SETTINGS_LOADED = "viewport.settingsLoaded"
+    VIEWPORT_SETTINGS_LOADED = "viewport.settingsLoaded",
+    VIEWPORT_VISIBLE = "viewport.visible",
+    VIEWPORT_HIDDEN = "viewport.hidden",
 }
 
 export enum EVENTTYPE_SESSION {
