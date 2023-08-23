@@ -316,8 +316,8 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
                 currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
-                currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
+                currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
             
                 currentSettings.rendering.shadows = settings.rendering.shadows;
                 currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
