@@ -13,8 +13,7 @@ const sendSlackMessage = async (text: string) => {
     const res = await axios.post(url, {
         channel: '#dev-viewer-3',
         text
-    }, { headers: { authorization: `Bearer ${slackToken}` } });
-    console.log('Done', res.data);
+    }, { headers: { authorization: `Bearer ${slackToken}`, 'Content-type': 'application/json; charset=utf-8' },  });
 }
 
 const processError = async (e: unknown) => {
@@ -24,11 +23,13 @@ const processError = async (e: unknown) => {
 
 (async () => {
     try {
+        sendSlackMessage("Starting build before testing...")
         console.log(await execPromise(`npm run build-current`))
+        sendSlackMessage("Starting deployment of test pages...")
         console.log(await execPromise(`npm run deploy-tests`));
         const res = await execPromise(`npm run test`);
         console.log(res);
-        sendSlackMessage("Tests finished successfully!")
+        sendSlackMessage(res.includes("failed") ? "Tests failed." : "Tests finished successfully!")
     } catch (e) {
         processError(e)
     }
