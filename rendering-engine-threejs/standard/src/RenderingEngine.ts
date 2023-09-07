@@ -50,7 +50,7 @@ import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersec
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
 import { RenderingManager } from './managers/RenderingManager'
-import { MaterialLoader } from './loaders/MaterialLoader'
+import { MaterialLoader, adaptShaders } from './loaders/MaterialLoader'
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'
 import { GeometryLoader } from './loaders/GeometryLoader'
 import { LightLoader } from './loaders/LightLoader'
@@ -183,6 +183,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
+    // adapt some of the three.js shaders according to our needs
+    adaptShaders();
 
     const prop = Object.assign({}, properties);
     const branding = Object.assign({}, prop.branding);
