@@ -316,8 +316,8 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
                 currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
-                currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
+                currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
             
                 currentSettings.rendering.shadows = settings.rendering.shadows;
                 currentSettings.rendering.softShadows = settings.rendering.softShadows;
@@ -800,11 +800,32 @@ export class SessionEngine implements ISessionEngine {
     public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
-            const parameterSet: { [key: string]: string } = {};
-            // the slice here is done as a way for deep copying the string values
-            for (const parameterIdOrName in parameters)
-                parameterSet[parameterIdOrName] = (' ' + parameters[parameterIdOrName]).slice(1);
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: parameterSet }, maxWaitTime)
+            const requestParameterSet: { [key: string]: string } = {};
+
+            // first step, we convert all our names and displaynames to ids
+            for (const parameterIdOrName in parameters) {
+                // we prioritize id, then name and then displayname
+                // if there are two parameters with the same name or displayname, we take the one that is found first (no way for us to evaluate which one the user meant)
+                const parameterObject = Object.values(this._parameters).find(p => p.id === parameterIdOrName || p.name === parameterIdOrName || p.displayname === parameterIdOrName);
+                
+                // in case the key of the key value pair was neither the id, name or displayname, skip
+                if(!parameterObject) continue;
+                
+                // deep copy into new dictionary
+                requestParameterSet[parameterObject.id] = (' ' + parameters[parameterIdOrName]).slice(1);
+            }
+
+            // seconds step, fill all other parameter values that are currently not set
+            const currentParameters = this.parameterValues;
+            for (const parameterId in currentParameters) {
+                // if already set by input values, skip
+                if(requestParameterSet[parameterId] !== undefined) continue;
+                
+                // deep copy into new dictionary
+                requestParameterSet[parameterId] = (' ' + currentParameters[parameterId]).slice(1);
+            }
+
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: requestParameterSet }, maxWaitTime)
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {

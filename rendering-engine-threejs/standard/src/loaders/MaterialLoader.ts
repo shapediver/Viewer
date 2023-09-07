@@ -369,7 +369,7 @@ export class MaterialLoader implements ILoader {
             generalProperties.side = THREE.DoubleSide;
             if(!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) {
                 (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMap = this._envMap;
-                (<THREE.MeshPhysicalMaterialParameters>generalProperties).emissiveIntensity = this._envMapIntensity;
+                (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMapIntensity = this._envMapIntensity;
             }
             return { properties: generalProperties, mapCount };
         }
@@ -493,7 +493,7 @@ export class MaterialLoader implements ILoader {
         }
 
         standardProperties.envMap = this._envMap;
-        standardProperties.emissiveIntensity = this._envMapIntensity;
+        standardProperties.envMapIntensity = this._envMapIntensity;
 
         if (materialData.normalMap !== undefined) {
             standardProperties.normalMap = this.createTexture(materialData.normalMap);

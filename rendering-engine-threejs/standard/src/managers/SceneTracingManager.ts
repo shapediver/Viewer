@@ -5,11 +5,12 @@ import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
+import * as THREE from "three"
 
 export class SceneTracingManager implements IManager {
     // #region Properties (2)
 
-    private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
+    private readonly _raycaster = new THREE.Raycaster()
 
     // #endregion Properties (2)
 
@@ -33,7 +34,25 @@ export class SceneTracingManager implements IManager {
             throw new ShapeDiverViewerViewportError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
-        const tracing = this._intersectionManager.intersect({ origin: camera.position, direction });
+        // should be anchor pos
+        const screenVector = new THREE.Vector3()
+        screenVector.set(p[0], p[1], p[2]);
+
+        this._raycaster.ray.direction.copy(screenVector);
+        this._raycaster.ray.origin.set(0, 0, 0);
+        (camera.threeJsObject[this._renderingEngine.id] as THREE.Camera).localToWorld(this._raycaster.ray.origin);
+        this._raycaster.ray.direction.sub(this._raycaster.ray.origin);
+        this._raycaster.ray.direction.normalize();
+
+        let closestIntersectionDistance = Number.MAX_VALUE;
+        this._renderingEngine.sceneTreeManager.scene.traverseVisible((obj: THREE.Object3D) => {
+            if (obj instanceof THREE.Mesh) {
+                let curIntersections = this._raycaster.intersectObject(obj);
+                if (curIntersections.length)
+                    if (curIntersections[0].distance < closestIntersectionDistance)
+                        closestIntersectionDistance = curIntersections[0].distance;
+            }
+        });
 
         const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
 
@@ -49,7 +68,7 @@ export class SceneTracingManager implements IManager {
         const eps = 0.0001;
 
         return {
-            hidden: tracing.length > 0 && tracing[0].distance + eps < vec3.distance(camera.position, p),
+            hidden: closestIntersectionDistance + eps < vec3.distance(camera.position, p),
             container: vec2.clone(pos),
             client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
             page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
