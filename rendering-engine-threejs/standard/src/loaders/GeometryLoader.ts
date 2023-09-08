@@ -107,7 +107,7 @@ export class GeometryLoader implements ILoader {
 
         if (incomingMaterialData instanceof MaterialGemData) {
             const gemMaterialData = <MaterialGemData>incomingMaterialData;
-            if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
+            threeGeometry.computeBoundingSphere();
 
             let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
 
