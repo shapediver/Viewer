@@ -317,8 +317,8 @@ export class GeometryLoader implements ILoader {
     }
 
     private createCubeNormalMap(geometryData: GeometryData, geometry: THREE.BufferGeometry, resolution = 1024) {
-        if (this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version])
-            return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
+        if (this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version])
+            return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version];
 
         if (!this._gemScene) {
             this._gemScene = new THREE.Scene();
@@ -411,8 +411,8 @@ export class GeometryLoader implements ILoader {
         mesh.geometry.dispose();
         mesh.material.dispose();
 
-        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = this._gemCubeCamera!.renderTarget.texture;
-        return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
+        this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version] = this._gemCubeCamera!.renderTarget.texture;
+        return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version];
     }
 
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
