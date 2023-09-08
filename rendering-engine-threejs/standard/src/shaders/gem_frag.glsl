@@ -124,10 +124,9 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 	
 	GeometricContext currentGeometry;
-	currentGeometry.position = (modelMatrix * vec4(position, 1.0)).xyz;
-	mat3 inverseTransposeModelMatrix = mat3(transpose(inverse(modelMatrix)));
-	currentGeometry.normal = normalize(inverseTransposeModelMatrix * normal);
-	currentGeometry.viewDir = normalize(inverseTransposeModelMatrix * -viewDir);
+	currentGeometry.position = -vViewPosition;
+	currentGeometry.normal = normal;
+	currentGeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );
 
 
     #ifdef USE_CLEARCOAT
@@ -380,11 +379,8 @@ void main() {
 	#endif
 	#include <output_fragment>
 
-    // CUSTOM START
-
-	mat4 inverseMM = inverse( modelMatrix );
-    
-	vec3 initialDirection = normalize( frag_position - (inverseMM*vec4(cameraPosition,1.0)).xyz );
+    // CUSTOM START    
+	vec3 initialDirection = normalize( (modelMatrix * vec4(frag_position, 1.0)).xyz - cameraPosition );
 
 	vec4 outgoingLight2;
 	float r_0 = (1.0-refractionIndex)/(1.0+refractionIndex);
