@@ -121,7 +121,7 @@ export class SessionEngine implements ISessionEngine {
 
     public set automaticSceneUpdate(value: boolean) {
         this._automaticSceneUpdate = value;
-        value ? this.addToSceneTree(this._node) : this.removeFromSceneTree(this._node);
+        value && this._closed === false ? this.addToSceneTree(this._node) : this.removeFromSceneTree(this._node);
     }
 
     public get canUploadGLTF(): boolean {
@@ -428,6 +428,16 @@ export class SessionEngine implements ISessionEngine {
                         const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
                         return new SessionTreeNode();
+                    } else if (this._closed === true) {
+                        for (let r in this._stateEngine.renderingEngines)
+                            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+                        this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
+
+                        const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
+                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
+                        return new SessionTreeNode();
                     }
                 }
             }
@@ -441,6 +451,16 @@ export class SessionEngine implements ISessionEngine {
                 const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
                 this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                return new SessionTreeNode();
+            } else if (this._closed === true) {
+                for (let r in this._stateEngine.renderingEngines)
+                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+                this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
+
+                const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
                 return new SessionTreeNode();
             }
 
@@ -494,6 +514,16 @@ export class SessionEngine implements ISessionEngine {
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
                 this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return newNode;
+            } else if ((this._closed as boolean) === true) { // I get a TS warning here that the type of _closed is "false", I think TS doesn't get that there is a promise inbetween
+                for (let r in this._stateEngine.renderingEngines)
+                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+                this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
+
+                const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
+                return new SessionTreeNode();
             }
 
             // if this is not a call by the goBack or goForward functions, add the parameter values to the history and delete the forward history
@@ -504,7 +534,7 @@ export class SessionEngine implements ISessionEngine {
 
             if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
             this._node = newNode;
-            if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
+            if (this.automaticSceneUpdate && this._closed === false) this.addToSceneTree(this.node);
 
             this._logger.debug(`Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
@@ -760,11 +790,11 @@ export class SessionEngine implements ISessionEngine {
             const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', o, of, taskEventInfo);
             node.data.push(new SessionData(this._responseDto!));
 
-            if (cancelRequest()) return node;            
+            if (cancelRequest()) return node;
 
             if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
             this._node = node;
-            if (this._automaticSceneUpdate) this.addToSceneTree(this._node);
+            if (this._automaticSceneUpdate && this._closed === false) this.addToSceneTree(this._node);
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
@@ -1087,11 +1117,21 @@ export class SessionEngine implements ISessionEngine {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
             this._logger.debug(`Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
             return newNode;
+        } else if (this._closed === true) {
+            for (let r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+            this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
+
+            const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
+            return new SessionTreeNode();
         }
 
         if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
         this._node = newNode;
-        if (this.automaticSceneUpdate) this.addToSceneTree(this.node);
+        if (this.automaticSceneUpdate && this._closed === false) this.addToSceneTree(this.node);
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         

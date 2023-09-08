@@ -43,6 +43,84 @@ export type MaterialSettings = {
     useMorphNormals: boolean
 }
 
+export const adaptShaders = () => {
+    let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
+    if (!shader.includes('PCSS implementation')) {
+        shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
+        shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+    }
+    THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+
+    // set the uniform for the background envmap calculation initially
+    THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: new THREE.Matrix4() };
+
+    // console.log(THREE.ShaderChunk.envmap_common_pars_fragment)
+    if (!THREE.ShaderChunk.cube_uv_reflection_fragment.includes('uniform mat4 envMapRotation;')) {
+        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+            `#ifdef ENVMAP_TYPE_CUBE_UV`,
+            `uniform mat4 envMapRotation;
+            #ifdef ENVMAP_TYPE_CUBE_UV`
+        )
+    }
+
+    // console.log(THREE.ShaderChunk.envmap_fragment.includes(`vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`))
+    THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
+        `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
+        `
+        #ifdef ENVMAP_TYPE_LDR
+            vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.yz, 1.0 ) * envMapRotation;
+            vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
+        #else
+            vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.zy, 1.0 ) * envMapRotation;
+            vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
+        #endif
+        `
+    )
+
+    // console.log(THREE.ShaderChunk.backgroundCube_frag.includes(`vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`))
+    THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
+        `vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`,
+        `
+        vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.zy, 1.0 ) * envMapRotation;
+        vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
+        `
+    )
+    THREE.ShaderLib.backgroundCube.fragmentShader = THREE.ShaderChunk.backgroundCube_frag;
+
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`))
+    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+        `vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`,
+        `
+        vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
+        vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );      
+        `      
+
+    )
+
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`))
+    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+        `vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`,
+        `
+        vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
+        vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );        
+        `
+    )
+
+    if(!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
+        var index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
+        THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
+        `#else
+            #ifdef ENVMAP_TYPE_NONE
+                vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
+                reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
+                vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0);
+                radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
+            #endif
+        #endif
+        ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
+    }
+}
+
 export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
@@ -58,6 +136,9 @@ export class MaterialLoader implements ILoader {
     private _defaultPointsMaterial?: THREE.PointsMaterial;
     private _defaultLineMaterial?: THREE.LineBasicMaterial;
     private _defaultMaterial?: THREE.MeshPhysicalMaterial;
+    private _hiddenRenderTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget();
+    private _hiddenCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
+
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
@@ -79,91 +160,7 @@ export class MaterialLoader implements ILoader {
     }
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
-        if (!shader.includes('PCSS implementation')) {
-            shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
-            shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
-        }
-        THREE.ShaderChunk.shadowmap_pars_fragment = shader;
-
-        // set the uniform for the background envmap calculation initially
-        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
-
-        // console.log(THREE.ShaderChunk.envmap_common_pars_fragment)
-        if (!THREE.ShaderChunk.cube_uv_reflection_fragment.includes('uniform mat4 envMapRotation;')) {
-            THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-                `#ifdef ENVMAP_TYPE_CUBE_UV`,
-                `uniform mat4 envMapRotation;
-                #ifdef ENVMAP_TYPE_CUBE_UV`
-            )
-        }
-
-        // console.log(THREE.ShaderChunk.envmap_fragment.includes(`vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`))
-        THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
-            `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.yz, 1.0 ) * envMapRotation;
-                vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
-            #else
-                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.zy, 1.0 ) * envMapRotation;
-                vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
-            #endif
-            `
-        )
-
-        // console.log(THREE.ShaderChunk.backgroundCube_frag.includes(`vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`))
-        THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
-            `vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.yz, 1.0 ) * envMapRotation;
-                vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
-            #else
-                vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.zy, 1.0 ) * envMapRotation;
-                vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
-            #endif`
-        )
-        
-        // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`))
-        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-            `vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 adjustedEnvReflectVector = vec4(sampleDir, 1.0) * envMapRotation;
-                vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );            
-            #else
-                vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
-                vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );            
-            #endif`
-        )
-
-        // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`))
-        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-            `vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 adjustedEnvReflectVector = vec4(sampleDir, 1.0) * envMapRotation;
-                vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );            
-            #else
-                vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
-                vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );        
-            #endif`
-        )
-
-        if(!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
-            var index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
-            THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
-            `#else
-                #ifdef ENVMAP_TYPE_NONE
-                    vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
-                    reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-                    vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0) * envMapRotation;
-                    radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
-                #endif
-            #endif
-            ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
-        }
+        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this.transformEnvMapRotationMatrix(true) };
     }
 
     // #endregion Constructors (1)
@@ -196,6 +193,8 @@ export class MaterialLoader implements ILoader {
                 }
                 if(material.defines)
                     material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+                
+                this.updateEnvironmentMapRotation(this._renderingEngine.environmentMapRotation)
             }
         }
     }
@@ -240,6 +239,7 @@ export class MaterialLoader implements ILoader {
                     if(material.defines)
                         material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
 
+                    this.updateEnvironmentMapRotation(this._renderingEngine.environmentMapRotation)
                 } else {
                     material.envMap = null;
                     material.needsUpdate = true;
@@ -730,7 +730,8 @@ export class MaterialLoader implements ILoader {
                     before(shader, renderer);
                     shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
                     shader.uniforms.blending = { value: this._blending };
-                    shader.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
+                    const envMapRotationMatrix = this.transformEnvMapRotationMatrix();
+                    shader.uniforms.envMapRotation = { value: envMapRotationMatrix };
                     material.userData.shader = shader;
                 };
 
@@ -740,6 +741,8 @@ export class MaterialLoader implements ILoader {
                     if (materialSettings && materialSettings.useVertexTangents) material.normalScale.y *= - 1;
                     if (materialSettings && materialSettings.useVertexTangents && material instanceof THREE.MeshPhysicalMaterial) material.clearcoatNormalScale.y *= - 1;
                     if (materialSettings && materialSettings.useFlatShading) material.flatShading = true;
+                    
+                    this.updateEnvironmentMapRotation(this._renderingEngine.environmentMapRotation)
                 }
             }
         }
@@ -763,6 +766,7 @@ export class MaterialLoader implements ILoader {
                         if(material.defines)
                             material.defines['ENVMAP_TYPE_'+envMapType.toUpperCase()] = '';
 
+                        this.updateEnvironmentMapRotation(this._renderingEngine.environmentMapRotation)
                         material.needsUpdate = true;
                     });
                 }
@@ -859,18 +863,32 @@ export class MaterialLoader implements ILoader {
 
     public updateEnvironmentMapRotation(quaternion: quat) {
         this._environmentMapRotationMatrix = new THREE.Matrix4().fromArray(mat4.fromQuat(mat4.create(), quaternion)).transpose();
+        const envMapRotationMatrix = this.transformEnvMapRotationMatrix();
+        const envMapRotationMatrixBackground = this.transformEnvMapRotationMatrix(true);
+        
         for(let m in this._materialCache) 
             if(this._materialCache[m].material.userData.shader) {
-                this._materialCache[m].material.userData.shader.uniforms.envMapRotation.value = this._environmentMapRotationMatrix;
+                this._materialCache[m].material.userData.shader.uniforms.envMapRotation.value = envMapRotationMatrix;
             }
 
         // set the new uniform value as the default if the environment is recomputed
-        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this._environmentMapRotationMatrix };
+        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: envMapRotationMatrixBackground };
+
+        // we have to do a hidden render call as sometimes the scene background has not been properly updated
+        this._renderingEngine.renderer.setRenderTarget(this._hiddenRenderTarget)
+        this._renderingEngine.renderer.render(this._renderingEngine.scene, this._hiddenCamera)
+        this._renderingEngine.renderer.setRenderTarget(null)
 
         // the background cube is its own mesh that lives somewhere within three.js
         // therefore our way to change the uniform is to go through the renderer list and set the uniforms there
         const list = this._renderingEngine.renderer.renderLists.get(this._renderingEngine.scene, 0);
-        list.opaque.forEach(element => (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: this._environmentMapRotationMatrix }) )
+        list.opaque.forEach(element => {
+            if((<any>element.material).name === "BackgroundCubeMaterial") {
+                (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrixBackground })
+            } else {
+                (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrix })
+            }
+        })
     }
 
     public updateSoftShadow(lightSizeUV: number, blending: number) {
@@ -949,6 +967,16 @@ export class MaterialLoader implements ILoader {
         texture.flipY = map.flipY;
         texture.needsUpdate = true;
         return texture;
+    }
+
+    private transformEnvMapRotationMatrix(backgroundMaterial: boolean = false): THREE.Matrix4 {
+        // y - z axis change 
+        const matrix = new THREE.Matrix4().fromArray([ 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
+        if(backgroundMaterial === true) {
+            return this._envMapType.toUpperCase() === "LDR" ? this._environmentMapRotationMatrix.clone().invert().multiply(matrix) : this._environmentMapRotationMatrix;
+        } else {
+            return this._envMapType.toUpperCase() === "LDR" ? this._environmentMapRotationMatrix.clone().multiply(matrix) : this._environmentMapRotationMatrix;
+        }
     }
 
     public get maxMapCount(): number {
