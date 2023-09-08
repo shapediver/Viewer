@@ -182,9 +182,18 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 	
 	GeometricContext currentGeometry;
-	currentGeometry.position = -vViewPosition;
-	currentGeometry.normal = normal;
-	currentGeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );
+	currentGeometry.position = (modelMatrix * vec4(position, 1.0)).xyz;
+
+	mat3 normalMatrix;
+	normalMatrix[0] = normalize(modelMatrix[0].xyz);
+	normalMatrix[1] = normalize(modelMatrix[1].xyz);
+	normalMatrix[2] = normalize(modelMatrix[2].xyz);
+	
+	// Calculate the normal vector in world space
+	currentGeometry.normal = normalize(normalMatrix * normal);
+	
+	// Calculate the view direction vector in world space
+	currentGeometry.viewDir = normalize(normalMatrix * -viewDir);
 
     #ifdef USE_CLEARCOAT
         currentGeometry.clearcoatNormal = clearcoatNormal;
@@ -437,7 +446,24 @@ void main() {
 	#include <output_fragment>
 
     // CUSTOM START
-	vec3 initialDirection = normalize( (modelMatrix * vec4(frag_position, 1.0)).xyz - cameraPosition );
+	
+    // Extract the translation part of the model matrix
+	vec3 translation = modelMatrix[3].xyz;
+
+	// Extract the rotation part of the model matrix (3x3 upper-left submatrix)
+	mat3 rotationMatrix = mat3(modelMatrix);
+
+	// Calculate the inverse of the rotation matrix (transpose since it's orthogonal)
+	mat3 inverseRotationMatrix;
+	inverseRotationMatrix[0] = vec3(rotationMatrix[0].x, rotationMatrix[1].x, rotationMatrix[2].x);
+	inverseRotationMatrix[1] = vec3(rotationMatrix[0].y, rotationMatrix[1].y, rotationMatrix[2].y);
+	inverseRotationMatrix[2] = vec3(rotationMatrix[0].z, rotationMatrix[1].z, rotationMatrix[2].z);
+
+	// Calculate the camera position in model space
+	vec3 cameraPositionInModelSpace = inverseRotationMatrix * (cameraPosition - translation);
+
+	// Calculate the initial direction
+	vec3 initialDirection = normalize(frag_position.xyz - cameraPositionInModelSpace);
 
 	vec4 outgoingLight2;
 	float r_0 = (1.0-refractionIndex)/(1.0+refractionIndex);
