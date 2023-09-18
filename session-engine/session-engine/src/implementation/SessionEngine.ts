@@ -406,7 +406,8 @@ export class SessionEngine implements ISessionEngine {
             this._logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
 
             for (let r in this._stateEngine.renderingEngines)
-                this._stateEngine.renderingEngines[r].busy.push(customizationId);
+                if(!this.excludeViewports.includes(r))
+                    this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
@@ -1089,7 +1090,8 @@ export class SessionEngine implements ISessionEngine {
         this._logger.debugLow(`Session(${this.id}).updateOutputs: Updating Outputs.`);
 
         for (let r in this._stateEngine.renderingEngines)
-            this._stateEngine.renderingEngines[r].busy.push(customizationId);
+            if(!this.excludeViewports.includes(r))
+                this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
         const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
