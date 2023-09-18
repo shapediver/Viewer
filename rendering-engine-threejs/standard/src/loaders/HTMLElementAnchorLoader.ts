@@ -73,10 +73,16 @@ export class HTMLElementAnchorLoader implements ILoader {
         this._renderingEngine.canvas.parentNode?.appendChild(this._parentDiv);
     }
 
-    public load(node: ITreeNode, anchor: HTMLElementAnchorData): void {
+    public load(node: ITreeNode, anchor: HTMLElementAnchorData, isVisibleInHierarchy: boolean): void {
         const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
         if (!htmlElement) return;
-        if(this._renderingEngine.show === false) htmlElement.style.display = 'none';
+        
+        // set the display property to "none" if the viewport is not shown or the node is not visible
+        if(this._renderingEngine.show === false || isVisibleInHierarchy === false) htmlElement.style.display = 'none';
+
+        // if the node is not visible return
+        if(isVisibleInHierarchy === false) return;
+
         this._parentDiv.appendChild(htmlElement);
         this._htmlElements[anchor.id + '_' + anchor.version] = {
             node,
@@ -85,6 +91,10 @@ export class HTMLElementAnchorLoader implements ILoader {
     }
 
     public removeData(id: string, version: string) {
+        // since the data object might be there, but no data is loaded for this viewport
+        // this check is needed
+        if(!this._htmlElements[id + '_' + version]) return;
+
         const anchor = this._htmlElements[id + '_' + version].anchor;
         if (anchor && anchor.getViewerHtmlElement(this._renderingEngine.id)) {
             this._parentDiv.removeChild(anchor.getViewerHtmlElement(this._renderingEngine.id)!);
