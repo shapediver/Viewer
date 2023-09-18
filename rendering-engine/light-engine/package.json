@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.light-engine",
-  "version": "2.9.11",
+  "version": "2.10.0-rc.14",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,11 +39,11 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.rendering-engine": "2.9.11",
-    "@shapediver/viewer.settings": "0.4.2",
-    "@shapediver/viewer.shared.node-tree": "2.9.11",
-    "@shapediver/viewer.shared.services": "2.9.11",
-    "@shapediver/viewer.shared.types": "2.9.11",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "2.10.0-rc.14",
+    "@shapediver/viewer.settings": "0.5.5",
+    "@shapediver/viewer.shared.node-tree": "2.10.0-rc.14",
+    "@shapediver/viewer.shared.services": "2.10.0-rc.14",
+    "@shapediver/viewer.shared.types": "2.10.0-rc.14",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"

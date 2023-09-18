@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "removeComments": false,
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+        "target": "ES6",
+        "strict": true,
+        "rootDir": ".",
+        "outDir": "dist",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "node"
+    },
+    "include": [
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "__tests__",
+        "node_modules",
+        "dist",
+        "dist-dev",
+        "dist-prod"
+    ],
+    "paths": {
+        "@shapediver/viewer.shared.node-tree": "./shared/node-tree/src/index.ts",
+        "@shapediver/viewer": "./default/main/src/index.ts",
+    }
+}

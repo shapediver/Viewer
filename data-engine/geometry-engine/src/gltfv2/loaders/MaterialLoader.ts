@@ -94,7 +94,8 @@ export class MaterialLoader {
                 }
 
                 if (pbrSpecularGlossiness.diffuseTexture !== undefined) {
-                    const diffuseTextureOptions = pbrSpecularGlossiness.diffuseTexture.extensions && pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const diffuseTextureOptions = pbrSpecularGlossiness.diffuseTexture.extensions && pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(pbrSpecularGlossiness.diffuseTexture.texCoord !== undefined) diffuseTextureOptions.texCoord = pbrSpecularGlossiness.diffuseTexture.texCoord;
                     specularGlossinessMaterialDataProperties.map = this.loadMap(pbrSpecularGlossiness.diffuseTexture.index, diffuseTextureOptions);
                 }
                 specularGlossinessMaterialDataProperties.emissiveness = '#000000';
@@ -106,7 +107,8 @@ export class MaterialLoader {
                 }
 
                 if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
-                    const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(pbrSpecularGlossiness.specularGlossinessTexture.texCoord !== undefined) specularGlossinessTextureOptions.texCoord = pbrSpecularGlossiness.specularGlossinessTexture.texCoord;
                     specularGlossinessMaterialDataProperties.specularGlossinessMap = this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
                 }
             } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
@@ -120,7 +122,8 @@ export class MaterialLoader {
                         unlitMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                     }
                     if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                        const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                        const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                        if(material.pbrMetallicRoughness.baseColorTexture.texCoord !== undefined) baseColorTextureOptions.texCoord = material.pbrMetallicRoughness.baseColorTexture.texCoord;
                         unlitMaterialDataProperties.map = this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
                     }
                 }
@@ -133,7 +136,8 @@ export class MaterialLoader {
                         standardMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                     }
                     if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                        const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                        const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                        if(material.pbrMetallicRoughness.baseColorTexture.texCoord !== undefined) baseColorTextureOptions.texCoord = material.pbrMetallicRoughness.baseColorTexture.texCoord;
                         standardMaterialDataProperties.map = this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
                     }
                     if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
@@ -143,7 +147,8 @@ export class MaterialLoader {
                         standardMaterialDataProperties.roughness = material.pbrMetallicRoughness.roughnessFactor;
                     }
                     if (material.pbrMetallicRoughness.metallicRoughnessTexture !== undefined) {
-                        const metallicRoughnessTextureOptions = material.pbrMetallicRoughness.metallicRoughnessTexture.extensions && material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                        const metallicRoughnessTextureOptions = material.pbrMetallicRoughness.metallicRoughnessTexture.extensions && material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                        if(material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord !== undefined) metallicRoughnessTextureOptions.texCoord = material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
                         standardMaterialDataProperties.metalnessRoughnessMap = this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index, metallicRoughnessTextureOptions);
                     }
                 }
@@ -154,7 +159,9 @@ export class MaterialLoader {
              */
 
             if (material.normalTexture !== undefined) {
-                const normalTextureOptions = material.normalTexture.extensions && material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                const normalTextureOptions = material.normalTexture.extensions && material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                if(material.normalTexture.texCoord !== undefined) normalTextureOptions.texCoord = material.normalTexture.texCoord;
+
                 materialDataProperties.normalMap = this.loadMap(material.normalTexture.index, normalTextureOptions);
                 materialDataProperties.normalScale = 1;
                 if (material.normalTexture.scale !== undefined) {
@@ -162,14 +169,17 @@ export class MaterialLoader {
                 }
             }
             if (material.occlusionTexture !== undefined) {
-                const occlusionTextureOptions = material.occlusionTexture.extensions && material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                const occlusionTextureOptions = material.occlusionTexture.extensions && material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                if(material.occlusionTexture.texCoord !== undefined) occlusionTextureOptions.texCoord = material.occlusionTexture.texCoord;
+
                 materialDataProperties.aoMap = this.loadMap(material.occlusionTexture.index, occlusionTextureOptions);
                 if (material.occlusionTexture.strength !== undefined) {
                     materialDataProperties.aoMapIntensity = material.occlusionTexture.strength;
                 }
             }
             if (material.emissiveTexture !== undefined) {
-                const emissiveTextureOptions = material.emissiveTexture.extensions && material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                const emissiveTextureOptions = material.emissiveTexture.extensions && material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                if(material.emissiveTexture.texCoord !== undefined) emissiveTextureOptions.texCoord = material.emissiveTexture.texCoord;
                 materialDataProperties.emissiveMap = this.loadMap(material.emissiveTexture.index, emissiveTextureOptions);
             }
 
@@ -213,7 +223,8 @@ export class MaterialLoader {
                 }
 
                 if (clearcoatExtension.clearcoatTexture !== undefined) {
-                    const clearcoatTextureOptions = clearcoatExtension.clearcoatTexture.extensions && clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const clearcoatTextureOptions = clearcoatExtension.clearcoatTexture.extensions && clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(clearcoatExtension.clearcoatTexture.texCoord !== undefined) clearcoatTextureOptions.texCoord = clearcoatExtension.clearcoatTexture.texCoord;
                     standardMaterialDataProperties.clearcoatMap = this.loadMap(clearcoatExtension.clearcoatTexture.index, clearcoatTextureOptions);
                 }
 
@@ -222,12 +233,14 @@ export class MaterialLoader {
                 }
 
                 if (clearcoatExtension.clearcoatRoughnessTexture !== undefined) {
-                    const clearcoatRoughnessTextureOptions = clearcoatExtension.clearcoatRoughnessTexture.extensions && clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const clearcoatRoughnessTextureOptions = clearcoatExtension.clearcoatRoughnessTexture.extensions && clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(clearcoatExtension.clearcoatRoughnessTexture.texCoord !== undefined) clearcoatRoughnessTextureOptions.texCoord = clearcoatExtension.clearcoatRoughnessTexture.texCoord;
                     standardMaterialDataProperties.clearcoatRoughnessMap = this.loadMap(clearcoatExtension.clearcoatRoughnessTexture.index, clearcoatRoughnessTextureOptions);
                 }
 
                 if (clearcoatExtension.clearcoatNormalTexture !== undefined) {
-                    const clearcoatNormalTextureOptions = clearcoatExtension.clearcoatNormalTexture.extensions && clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const clearcoatNormalTextureOptions = clearcoatExtension.clearcoatNormalTexture.extensions && clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(clearcoatExtension.clearcoatNormalTexture.texCoord !== undefined) clearcoatNormalTextureOptions.texCoord = clearcoatExtension.clearcoatNormalTexture.texCoord;
                     standardMaterialDataProperties.clearcoatNormalMap = this.loadMap(clearcoatExtension.clearcoatNormalTexture.index, clearcoatNormalTextureOptions);
                 }
             }
@@ -246,7 +259,8 @@ export class MaterialLoader {
                 }
 
                 if (transmissionExtension.transmissionTexture !== undefined) {
-                    const transmissionTextureOptions = transmissionExtension.transmissionTexture.extensions && transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const transmissionTextureOptions = transmissionExtension.transmissionTexture.extensions && transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(transmissionExtension.transmissionTexture.texCoord !== undefined) transmissionTextureOptions.texCoord = transmissionExtension.transmissionTexture.texCoord;
                     standardMaterialDataProperties.transmissionMap = this.loadMap(transmissionExtension.transmissionTexture.index, transmissionTextureOptions);
                 }
             }
@@ -258,7 +272,8 @@ export class MaterialLoader {
                 }
 
                 if (volumeExtension.thicknessTexture !== undefined) {
-                    const thicknessTextureOptions = volumeExtension.thicknessTexture.extensions && volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const thicknessTextureOptions = volumeExtension.thicknessTexture.extensions && volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(volumeExtension.thicknessTexture.texCoord !== undefined) thicknessTextureOptions.texCoord = volumeExtension.thicknessTexture.texCoord;
                     standardMaterialDataProperties.thicknessMap = this.loadMap(volumeExtension.thicknessTexture.index, thicknessTextureOptions);
                 }
 
@@ -283,12 +298,14 @@ export class MaterialLoader {
                 }
 
                 if (sheenExtension.sheenColorTexture !== undefined) {
-                    const sheenColorTextureOptions = sheenExtension.sheenColorTexture.extensions && sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const sheenColorTextureOptions = sheenExtension.sheenColorTexture.extensions && sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(sheenExtension.sheenColorTexture.texCoord !== undefined) sheenColorTextureOptions.texCoord = sheenExtension.sheenColorTexture.texCoord;
                     standardMaterialDataProperties.sheenColorMap = this.loadMap(sheenExtension.sheenColorTexture.index, sheenColorTextureOptions);
                 }
 
                 if (sheenExtension.sheenRoughnessTexture !== undefined) {
-                    const sheenRoughnessTextureOptions = sheenExtension.sheenRoughnessTexture.extensions && sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const sheenRoughnessTextureOptions = sheenExtension.sheenRoughnessTexture.extensions && sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(sheenExtension.sheenRoughnessTexture.texCoord !== undefined) sheenRoughnessTextureOptions.texCoord = sheenExtension.sheenRoughnessTexture.texCoord;
                     standardMaterialDataProperties.sheenRoughnessMap = this.loadMap(sheenExtension.sheenRoughnessTexture.index, sheenRoughnessTextureOptions);
                 }
             }
@@ -305,12 +322,14 @@ export class MaterialLoader {
                 }
 
                 if (specularExtension.specularColorTexture !== undefined) {
-                    const specularColorTextureOptions = specularExtension.specularColorTexture.extensions && specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const specularColorTextureOptions = specularExtension.specularColorTexture.extensions && specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(specularExtension.specularColorTexture.texCoord !== undefined) specularColorTextureOptions.texCoord = specularExtension.specularColorTexture.texCoord;
                     standardMaterialDataProperties.specularColorMap = this.loadMap(specularExtension.specularColorTexture.index, specularColorTextureOptions);
                 }
 
                 if (specularExtension.specularTexture !== undefined) {
-                    const specularTextureOptions = specularExtension.specularTexture.extensions && specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    const specularTextureOptions = specularExtension.specularTexture.extensions && specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : {};
+                    if(specularExtension.specularTexture.texCoord !== undefined) specularTextureOptions.texCoord = specularExtension.specularTexture.texCoord;
                     standardMaterialDataProperties.specularIntensityMap = this.loadMap(specularExtension.specularTexture.index, specularTextureOptions);
                 }
             }
@@ -325,7 +344,7 @@ export class MaterialLoader {
 
     // #region Private Methods (1)
 
-    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): IMapData {
+    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number, texCoord?: number }): IMapData {
         if (!this._content.textures) throw new Error('Textures not available.')
         const texture = this._content.textures[textureId];
         if (!this._content.images) throw new Error('Images not available.')
@@ -343,8 +362,9 @@ export class MaterialLoader {
             properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined,
             properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined,
             properties && properties.rotation !== undefined ? properties.rotation : 0,
+            properties?.texCoord,            
             false
-        );;
+        );
     }
 
     // #endregion Private Methods (1)

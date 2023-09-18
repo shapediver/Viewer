@@ -1,14 +1,14 @@
 import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, Logger, SettingsEngine, ShapeDiverViewerError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, isViewerError, Logger, SettingsEngine, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
 import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ISettingsV3_4, latestVersion } from "@shapediver/viewer.settings";
+import { ISettings, latestVersion } from "@shapediver/viewer.settings";
 
 export class CreationControlCenter implements ICreationControlCenter {
   // #region Properties (10)
@@ -68,7 +68,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     return new Promise(resolve => Promise.all(promises).then(() => resolve()));
   }
 
-  public applyViewportSettings(viewportId: string, settings: ISettingsV3_4, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
+  public applyViewportSettings(viewportId: string, settings: ISettings, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
     sections = sections || {};
 
     const settingsEngine: SettingsEngine = new SettingsEngine();
@@ -197,10 +197,12 @@ export class CreationControlCenter implements ICreationControlCenter {
         environmentMapLoaded: new StatePromise(),
         settingsAssigned: new StatePromise(),
         boundingBoxCreated: new StatePromise(),
-        busy: []
+        busy: [],
+        update: () => {}
       }
 
       const renderingEngine = new RenderingEngineThreeJs(properties);
+      this.#stateEngine.renderingEngines[renderingEngineId].update = renderingEngine.update.bind(renderingEngine);
       this.renderingEngines[renderingEngineId] = renderingEngine;
 
       renderingEngine.cameraEngine.createDefaultCameras();
@@ -397,7 +399,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       return sessionEngine;
     } catch (e) {
       // special behavior, if this was the only session, display the error on the logo screen
-      if (e instanceof ShapeDiverViewerError) {
+      if (isViewerError(e)) {
         if ((this.sessionEngines[sessionEngineId] && Object.values(this.sessionEngines).length === 1) || (!this.sessionEngines[sessionEngineId] && Object.values(this.sessionEngines).length === 0)) {
           for (let v in this.renderingEngines)
             this.renderingEngines[v].displayErrorMessage(e.message);
@@ -450,7 +452,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  public getViewportSettings(viewportId: string): ISettingsV3_4 {
+  public getViewportSettings(viewportId: string): ISettings {
     let renderingEngine = this.renderingEngines[viewportId];
     if(!renderingEngine)
       throw new ShapeDiverViewerViewportError('Viewport with id ' + viewportId + ' could not be found.');

@@ -15,7 +15,8 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
-import { ISettingsV3_4 } from '@shapediver/viewer.settings'
+import { ISettings } from '@shapediver/viewer.settings'
+import { IPostProcessingApi } from './IPostProcessingApi'
 
 /**
  * The api for viewports.
@@ -71,6 +72,11 @@ export interface IViewportApi {
    * The [light scenes]{@link ILightSceneApi} of the viewport.
    */
   readonly lightScenes: { [key: string]: ILightSceneApi };
+  
+  /**
+   * The [post processing api]{@link IPostProcessingApi} of the viewport. 
+   */
+  readonly postProcessing: IPostProcessingApi;
 
   /**
    * Optional identifier of the session to be used for loading / persisting settings of the viewport.
@@ -120,16 +126,6 @@ export interface IViewportApi {
    * @see {@link arRotation}
    */
   arRotation: vec3;
-
-  /**
-   * Option to enable / disable the ambient occlusion post-processing. (default: false)
-   */
-  ambientOcclusion: boolean;
-
-  /**
-   * The ambient occlusion intensity.
-   */
-  ambientOcclusionIntensity: number;
 
   /**
    * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
@@ -284,6 +280,11 @@ export interface IViewportApi {
   showStatistics: boolean;
 
   /**
+   * Option if the soft shadows should be rendered when the camera is not moving. (default: true)
+   */
+  softShadows: boolean;
+
+  /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
    * 
    * @see {@link outputEncoding}
@@ -377,7 +378,7 @@ export interface IViewportApi {
    * 
    * @throws {@type ShapeDiverViewerError}
    */
-  applyViewportSettings(settings: ISettingsV3_4, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+  applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }): Promise<void>;
 
   /**
    * Assign the camera with the specified id to the viewport.
@@ -403,6 +404,14 @@ export interface IViewportApi {
    * Closes the viewport and will remove all traces of the canvas element.
    */
   close(): Promise<void>;
+
+  /**
+   * Continue the rendering of the scene. 
+   * Can be used with {@link pauseRendering} to continue/pause the rendering at will.
+   * 
+   * @see {@link pauseRendering}
+   */
+  continueRendering(): void;
 
   /**
    * Convert the given 3D position to different 2D coordinates of HTML Elements.
@@ -502,7 +511,7 @@ export interface IViewportApi {
    * Get the current settings object of this viewport.
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
-  getViewportSettings(): ISettingsV3_4;
+  getViewportSettings(): ISettings;
   
   /**
    * Determines if the current device is a mobile device (or tablet) but still doesn't support to view the content in AR.
@@ -525,6 +534,14 @@ export interface IViewportApi {
    * @returns 
    */
   mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 }
+
+  /**
+   * Pause the rendering of the scene. 
+   * Can be used with {@link continueRendering} to continue/pause the rendering at will.
+   * 
+   * @see {@link continueRendering}
+   */
+  pauseRendering(): void;
 
   /**
    * From the provided origin and direction, trace the ray through the scene.

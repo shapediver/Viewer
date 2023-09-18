@@ -15,7 +15,6 @@ let promise: Promise<void>;
 
 (async () => {
     let viewer = await createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/graphics/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
-    viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.physicallyCorrectLights = true;
     viewer.groundPlaneVisibility = false;
@@ -29,6 +28,8 @@ let promise: Promise<void>;
         });
     })
     await promise;
+
+    // await ((<any>window).addGLTF(`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb`));
 })();
 
 

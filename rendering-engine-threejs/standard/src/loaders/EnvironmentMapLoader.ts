@@ -91,7 +91,7 @@ export class EnvironmentMapLoader implements ILoader {
     private _environmentMapName: string = 'null';
     private _environmentMapNameInternal: string = 'null';
     private _isHDRMap: boolean = false;
-    private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
+    private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
     // #endregion Properties (8)
@@ -298,7 +298,7 @@ export class EnvironmentMapLoader implements ILoader {
         for(let e in this._environmentMaps) {
             if(this._environmentMaps[e] && !this._environmentMapHDR.includes(e)) {
                 this._environmentMaps[e]?.dispose();
-                this._environmentMaps[e]!.encoding = this._textureEncoding;
+                this._environmentMaps[e]!.colorSpace = this._textureEncoding;
                 this._environmentMaps[e]!.needsUpdate = true;
             }
         }
@@ -334,7 +334,7 @@ export class EnvironmentMapLoader implements ILoader {
 
                     new THREE.CubeTextureLoader().load(urls,
                         (map: THREE.CubeTexture) => {
-                            map.encoding = THREE.sRGBEncoding;
+                            map.colorSpace = THREE.SRGBColorSpace;
                             map.format = THREE.RGBAFormat;
                             map.mapping = THREE.CubeReflectionMapping;
                             this._environmentMaps[name] = map;
@@ -351,11 +351,11 @@ export class EnvironmentMapLoader implements ILoader {
         })
     }
 
-    public get textureEncoding(): THREE.TextureEncoding {
+    public get textureEncoding(): THREE.ColorSpace {
         return this._textureEncoding;
     }
     
-    public set textureEncoding(value: THREE.TextureEncoding) {
+    public set textureEncoding(value: THREE.ColorSpace) {
         this._textureEncoding = value;
         this.assignTextureEncoding();
     }

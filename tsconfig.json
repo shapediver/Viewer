@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "es6",
         "removeComments": false,
         "esModuleInterop": true,
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "target": "ES6",
+        "target": "es2015",
         "strict": true,
         "rootDir": ".",
         "outDir": "dist",

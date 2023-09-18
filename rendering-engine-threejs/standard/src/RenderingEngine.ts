@@ -55,18 +55,16 @@ import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'
 import { GeometryLoader } from './loaders/GeometryLoader'
 import { LightLoader } from './loaders/LightLoader'
 import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
-import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { SDColor } from './objects/SDColor'
+import { PostProcessingManager } from './managers/PostProcessingManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
 
-  // managers
-  private readonly _beautyRenderingManager: BeautyRenderingManager;
   // engines
   private readonly _cameraEngine: CameraEngine;
   private readonly _cameraManager: CameraManager;
@@ -100,6 +98,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _logger: Logger = Logger.instance;
   private readonly _materialLoader: MaterialLoader;
   private readonly _renderingManager: RenderingManager;
+  private readonly _postProcessingManager: PostProcessingManager
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = StateEngine.instance;
@@ -108,8 +107,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _visibility: VISIBILITY_MODE;
 
   // settings
-  private _ambientOcclusion: boolean = true;
-  private _ambientOcclusionIntensity: number = 0.1;
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
@@ -138,6 +135,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
+  private _pause: boolean = false;
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
@@ -146,6 +144,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
+  private _softShadows: boolean = true;
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
@@ -183,6 +182,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
+    THREE.ColorManagement.enabled = false;
+    
     // adapt some of the three.js shaders according to our needs
     adaptShaders();
 
@@ -211,12 +212,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)
-    this._beautyRenderingManager = new BeautyRenderingManager(this);
     this._cameraManager = new CameraManager(this);
     this._environmentGeometryManager = new EnvironmentGeometryManager(this);
     this._sceneTracingManager = new SceneTracingManager(this);
     this._sceneTreeManager = new SceneTreeManager(this);
     this._renderingManager = new RenderingManager(this);
+    this._postProcessingManager = new PostProcessingManager(this);
 
     // loaders
     this._environmentMapLoader = new EnvironmentMapLoader(this);
@@ -231,12 +232,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
-    this._beautyRenderingManager.init();
     this._cameraManager.init();
     this._environmentGeometryManager.init();
     this._sceneTracingManager.init();
     this._sceneTreeManager.init();
     this._renderingManager.init();
+    this._postProcessingManager.init();
 
     // loaders
     this._environmentMapLoader.init();
@@ -253,29 +254,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
       this.environmentMap = 'photo_studio';
-      this.ambientOcclusion = false;
     }
   }
 
   // #endregion Constructors (1)
 
   // #region Public Accessors (103)
-
-  public get ambientOcclusion(): boolean {
-    return this._ambientOcclusion;
-  }
-
-  public set ambientOcclusion(value: boolean) {
-    this._ambientOcclusion = value;
-  }
-
-  public get ambientOcclusionIntensity(): number {
-    return this._ambientOcclusionIntensity;
-  }
-
-  public set ambientOcclusionIntensity(value: number) {
-    this._ambientOcclusionIntensity = value;
-  }
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -336,10 +320,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._beautyRenderDelay = value;
   }
 
-  public get beautyRenderingManager(): BeautyRenderingManager {
-    return this._beautyRenderingManager;
-  }
-
   public get busy(): boolean {
     return this._busy;
   }
@@ -364,6 +344,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     spinnerPositioning: SPINNER_POSITIONING
   } {
     return this._branding;
+  }
+
+  public get camera(): THREE.Camera {
+    return this._cameraManager.camera;
   }
 
   public get cameraEngine(): CameraEngine {
@@ -628,10 +612,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get outputEncoding(): TEXTURE_ENCODING {
-    switch (this._renderer.outputEncoding) {
-      case (THREE.sRGBEncoding):
+    switch (this._renderer.outputColorSpace) {
+      case (THREE.SRGBColorSpace):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.LinearEncoding):
+      case (THREE.LinearSRGBColorSpace):
       default:
         return TEXTURE_ENCODING.LINEAR;
     }
@@ -640,23 +624,29 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set outputEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
-        this._renderer.outputEncoding = THREE.sRGBEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        this._renderer.outputColorSpace = THREE.SRGBColorSpace;
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
-        this._renderer.outputEncoding = THREE.LinearEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.LinearEncoding);
+        this._renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
         break;
     }
   }
 
+  public get pause(): boolean {
+    return this._pause;
+  }
+
+  public set pause(value: boolean) {
+    this._pause = value;
+  }
+
   public get physicallyCorrectLights(): boolean {
-    return this._renderer.physicallyCorrectLights;
+    return !this._renderer.useLegacyLights;
   }
 
   public set physicallyCorrectLights(value: boolean) {
-    this._renderer.physicallyCorrectLights = value;
+    this._renderer.useLegacyLights = !value;
   }
 
   public get pointSize(): number {
@@ -666,6 +656,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set pointSize(value: number) {
     this._pointSize = value;
     this.materialLoader.assignPointSize(value)
+  }
+
+  public get postProcessingManager(): PostProcessingManager {
+    return this._postProcessingManager;
   }
 
   public get renderer(): THREE.WebGLRenderer {
@@ -736,6 +730,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._showStatistics = value;
   }
 
+  public get softShadows(): boolean {
+    return this._softShadows;
+  }
+
+  public set softShadows(value: boolean) {
+    this._softShadows = value;
+  }
+
   public get spinnerDivElement(): HTMLDivElement {
     return this._spinnerDivElement;
   }
@@ -746,9 +748,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
-      case (THREE.sRGBEncoding):
+      case (THREE.SRGBColorSpace):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.LinearEncoding):
+      case (THREE.LinearSRGBColorSpace):
       default:
         return TEXTURE_ENCODING.LINEAR;
     }
@@ -757,13 +759,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set textureEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
-        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
-        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
+        this.environmentMapLoader.textureEncoding = THREE.SRGBColorSpace;
+        this.materialLoader.textureEncoding = THREE.SRGBColorSpace;
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
-        this.environmentMapLoader.textureEncoding = THREE.LinearEncoding;
-        this.materialLoader.textureEncoding = THREE.LinearEncoding;
+        this.environmentMapLoader.textureEncoding = THREE.LinearSRGBColorSpace;
+        this.materialLoader.textureEncoding = THREE.LinearSRGBColorSpace;
     }
   }
 
@@ -859,14 +861,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       camera?: boolean,
       light?: boolean,
       environment?: boolean,
-      general?: boolean
+      general?: boolean,
+      postprocessing?: boolean
     } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
-      general: true
+      general: true,
+      postprocessing: true
     },
     settingsEngine?: SettingsEngine
   ): Promise<void> {
@@ -902,6 +906,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.applySyncSettings(sections, settingsEngine)
       this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
     }
+  }
+
+  public continueRendering(): void {
+    this._pause = false;
   }
 
   public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
@@ -1048,6 +1056,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTracingManager.mouseEventToRay(event);
   }
 
+  public pauseRendering(): void {
+    this._pause = true;
+  }
+
   public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
     const intersect = this._intersectionManager.intersect({ origin, direction }, undefined, undefined, root);
     return intersect.map(i => {
@@ -1102,6 +1114,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
     (<CameraEngine>this.cameraEngine).saveSettings(settingsEngine);
+    (<PostProcessingManager>this.postProcessingManager).saveSettings(settingsEngine);
 
     settingsEngine.ar.enable = this.enableAR;
 
@@ -1127,8 +1140,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
     settingsEngine.general.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
 
-    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
-    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
     settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
@@ -1139,7 +1150,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
     settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
     settingsEngine.rendering.shadows = this.shadows;
-    
+    settingsEngine.rendering.softShadows = this.softShadows;
   }
   
   public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
@@ -1238,14 +1249,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     camera?: boolean,
     light?: boolean,
     environment?: boolean,
-    general?: boolean
+    general?: boolean,
+    postprocessing?: boolean
   } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
-      general: true
+      general: true,
+      postprocessing: true
     },
     settingsEngine?: SettingsEngine) {
       
@@ -1268,7 +1281,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.groundPlaneShadowVisibility = settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
       this.shadows = settingsEngine.rendering.shadows;
-      this.ambientOcclusion = settingsEngine.rendering.ambientOcclusion;
+      this.softShadows = settingsEngine.rendering.softShadows;
       this.lights = settingsEngine.rendering.lights;
 
       this.automaticColorAdjustment = settingsEngine.rendering.automaticColorAdjustment;
@@ -1286,6 +1299,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (sections.light) (<LightEngine>this.lightEngine).applySettings(settingsEngine);
     if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(settingsEngine);
+    if (sections.postprocessing) (<PostProcessingManager>this.postProcessingManager).applySettings(settingsEngine);
+
+    // call adjust camera to load the three.js camera objects
+    this.cameraManager.adjustCamera(1);
+    
     this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
     this.update('RenderingEngine.applySyncSettings');
   }

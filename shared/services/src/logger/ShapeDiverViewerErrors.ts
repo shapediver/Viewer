@@ -62,7 +62,7 @@ export class ShapeDiverViewerViewportError extends ShapeDiverViewerError {
         public readonly message: string,
         public readonly errorObject?: Error | unknown
     ) {
-        super(ShapeDiverViewerErrorType.SESSION_ERROR, 'An error occurred while working with the viewport.', message);
+        super(ShapeDiverViewerErrorType.VIEWPORT_ERROR, 'An error occurred while working with the viewport.', message);
     }
 }
 
@@ -81,15 +81,6 @@ export class ShapeDiverViewerCameraError extends ShapeDiverViewerError {
         public readonly errorObject?: Error | unknown
     ) {
         super(ShapeDiverViewerErrorType.CAMERA_ERROR, 'An error occurred while working with the cameras.', message);
-    }
-}
-
-export class ShapeDiverViewerGeneralError extends ShapeDiverViewerError {
-    constructor(
-        public readonly message: string,
-        public readonly errorObject?: Error | unknown
-    ) {
-        super(ShapeDiverViewerErrorType.GENERAL_VIEWPORT_ERROR, 'An error occurred while working with the viewer.', message);
     }
 }
 

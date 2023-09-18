@@ -581,7 +581,7 @@ export class GLTFConverter {
                             standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
                         );
                         const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
-                        materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY)) }
+                        materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.texCoord, m.flipY)) }
                         resolve();
                     } catch(e) {
                         reject(e);

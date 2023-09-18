@@ -146,7 +146,7 @@ export class MaterialLoader implements ILoader {
     private _height: number = 1020;
     private _lightSizeUV: number = 0.025;
     private _pointSize: number = 1.0;
-    private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
+    private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _maxMapCount: number = 0;
     private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
     private _environmentMapRotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
@@ -266,11 +266,11 @@ export class MaterialLoader implements ILoader {
             if(this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial) {
                 const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m].material;
                 if(material.emissiveMap) {
-                    material.emissiveMap!.encoding = this._textureEncoding;
+                    material.emissiveMap!.colorSpace = this._textureEncoding;
                     material.emissiveMap!.needsUpdate = true;
                 }
                 if(material.map) {
-                    material.map!.encoding = this._textureEncoding;
+                    material.map!.colorSpace = this._textureEncoding;
                     material.map!.needsUpdate = true;
                 }
                 material.needsUpdate = true;
@@ -454,7 +454,7 @@ export class MaterialLoader implements ILoader {
 
         if (materialData.map !== undefined) {
             basicProperties.map = this.createTexture(materialData.map);
-            basicProperties.map.encoding = this._textureEncoding;
+            basicProperties.map.colorSpace = this._textureEncoding;
             mapCount++;
         }
 
@@ -488,7 +488,7 @@ export class MaterialLoader implements ILoader {
 
         if (materialData.emissiveMap !== undefined) {
             standardProperties.emissiveMap = this.createTexture(materialData.emissiveMap);
-            standardProperties.emissiveMap.encoding = this._textureEncoding;
+            standardProperties.emissiveMap.colorSpace = this._textureEncoding;
             mapCount++;
         }
 
@@ -516,14 +516,14 @@ export class MaterialLoader implements ILoader {
             specularGlossinessProperties.glossiness = materialData.glossiness;
 
             if (materialData.specularGlossinessMap !== undefined) {
-                specularGlossinessProperties.specularMap = this.createTexture(materialData.specularGlossinessMap);
-                specularGlossinessProperties.specularMap.encoding = THREE.sRGBEncoding;
-                specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap;
+                specularGlossinessProperties.specularMap2 = this.createTexture(materialData.specularGlossinessMap);
+                specularGlossinessProperties.specularMap2.colorSpace = THREE.SRGBColorSpace;
+                specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap2;
                 mapCount++;
             } else {
                 if (materialData.specularMap !== undefined) {
-                    specularGlossinessProperties.specularMap = this.createTexture(materialData.specularMap);
-                    specularGlossinessProperties.specularMap.encoding = THREE.sRGBEncoding;
+                    specularGlossinessProperties.specularMap2 = this.createTexture(materialData.specularMap);
+                    specularGlossinessProperties.specularMap2.colorSpace = THREE.SRGBColorSpace;
                     mapCount++;
                 }
                 if (materialData.glossinessMap !== undefined) {
@@ -962,6 +962,7 @@ export class MaterialLoader implements ILoader {
         texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
         texture.rotation = map.rotation;
+        if(map.texCoord !== undefined) texture.channel = map.texCoord;
 
         texture.flipY = map.flipY;
         texture.needsUpdate = true;
@@ -986,11 +987,11 @@ export class MaterialLoader implements ILoader {
         this._maxMapCount = value;
     }
 
-    public get textureEncoding(): THREE.TextureEncoding {
+    public get textureEncoding(): THREE.ColorSpace {
         return this._textureEncoding;
     }
     
-    public set textureEncoding(value: THREE.TextureEncoding) {
+    public set textureEncoding(value: THREE.ColorSpace) {
         this._textureEncoding = value;
         this.assignTextureEncoding();
     }

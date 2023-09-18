@@ -7,7 +7,7 @@ export interface SpecularGlossinessMaterialParameters extends MeshStandardMateri
     glossiness?: number | undefined;
     glossinessMap?: THREE.Texture | null | undefined;
     specular?: THREE.ColorRepresentation | undefined;
-    specularMap?: THREE.Texture | null | undefined;
+    specularMap2?: THREE.Texture | null | undefined;
 
     // #endregion Properties (4)
 }
@@ -27,9 +27,9 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
         this.isGLTFSpecularGlossinessMaterial = true;
 
         //various chunks that need replacing
-        const specularMapParsFragmentChunk = [
-            '#ifdef USE_SPECULARMAP',
-            '	uniform sampler2D specularMap;',
+        const specularMap2ParsFragmentChunk = [
+            '#ifdef USE_SPECULARMAP2',
+            '	uniform sampler2D specularMap2;',
             '#endif'
         ].join('\n');
 
@@ -39,10 +39,10 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
             '#endif'
         ].join('\n');
 
-        const specularMapFragmentChunk = [
+        const specularMap2FragmentChunk = [
             'vec3 specularFactor = specular;',
-            '#ifdef USE_SPECULARMAP',
-            '	vec4 texelSpecular = texture2D( specularMap, vUv );',
+            '#ifdef USE_SPECULARMAP2',
+            '	vec4 texelSpecular = texture2D( specularMap2, vUv );',
             '	// reads channel RGB, compatible with a glTF Specular-Glossiness (RGBA) texture',
             '	specularFactor *= texelSpecular.rgb;',
             '#endif'
@@ -71,7 +71,7 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
         const uniforms: { [key: string]: { value: any } } = {
             specular: { value: new THREE.Color().setHex(0xffffff) },
             glossiness: { value: 1 },
-            specularMap: { value: null },
+            specularMap2: { value: null },
             glossinessMap: { value: null }
         };
 
@@ -85,9 +85,9 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
             shader.fragmentShader = shader.fragmentShader
                 .replace('uniform float roughness;', 'uniform vec3 specular;')
                 .replace('uniform float metalness;', 'uniform float glossiness;')
-                .replace('#include <roughnessmap_pars_fragment>', specularMapParsFragmentChunk)
+                .replace('#include <roughnessmap_pars_fragment>', specularMap2ParsFragmentChunk)
                 .replace('#include <metalnessmap_pars_fragment>', glossinessMapParsFragmentChunk)
-                .replace('#include <roughnessmap_fragment>', specularMapFragmentChunk)
+                .replace('#include <roughnessmap_fragment>', specularMap2FragmentChunk)
                 .replace('#include <metalnessmap_fragment>', glossinessMapFragmentChunk)
                 .replace('#include <lights_physical_fragment>', lightPhysicalFragmentChunk);
 
@@ -104,19 +104,19 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
                 }
             },
 
-            specularMap: {
+            specularMap2: {
                 get: function () {
-                    return uniforms.specularMap.value;
+                    return uniforms.specularMap2.value;
 
                 },
                 set: function (v) {
-                    uniforms.specularMap.value = v;
+                    uniforms.specularMap2.value = v;
 
                     if (v) {
-                        this.defines.USE_SPECULARMAP = ''; // USE_UV is set by the renderer for specular maps
+                        this.defines.USE_SPECULARMAP2 = ''; // USE_UV is set by the renderer for specular maps
 
                     } else {
-                        delete this.defines.USE_SPECULARMAP;
+                        delete this.defines.USE_SPECULARMAP2;
                     }
                 }
             },
@@ -167,7 +167,7 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
     public copy(source: SpecularGlossinessMaterial) {
         super.copy(source);
 
-        (<any>this).specularMap = (<any>source).specularMap;
+        (<any>this).specularMap2 = (<any>source).specularMap2;
         (<any>this).specular.copy((<any>source).specular);
         (<any>this).glossinessMap = (<any>source).glossinessMap;
         (<any>this).glossiness = (<any>source).glossiness;

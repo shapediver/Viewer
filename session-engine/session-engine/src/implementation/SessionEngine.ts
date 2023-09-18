@@ -5,7 +5,7 @@ import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
-import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
@@ -18,7 +18,7 @@ import { Parameter } from './dto/Parameter'
 import { vec3 } from 'gl-matrix'
 import { Export } from './dto/Export'
 import { Output } from './dto/Output'
-import { convert, ISettingsV3_4, latestVersion, validate, versions } from '@shapediver/viewer.settings'
+import { convert, ISettings, latestVersion, validate, versions } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (43)
@@ -235,7 +235,7 @@ export class SessionEngine implements ISessionEngine {
             if (sections.session.export === undefined)
                 sections.session.export = { displayname: false, order: false, hidden: false };
             if (sections.viewport === undefined)
-                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false };
+                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false, postprocessing: false };
 
             let config: object;
             if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
@@ -250,7 +250,7 @@ export class SessionEngine implements ISessionEngine {
                 throw new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
             }
 
-            const settings = <ISettingsV3_4>convert(config, latestVersion);
+            const settings = <ISettings>convert(config, latestVersion);
 
             const exportMappingUid: { [key: string]: string | undefined } = {};
             if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -320,7 +320,7 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
             
                 currentSettings.rendering.shadows = settings.rendering.shadows;
-                currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+                currentSettings.rendering.softShadows = settings.rendering.softShadows;
 
                 currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
                 currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
@@ -335,6 +335,10 @@ export class SessionEngine implements ISessionEngine {
                 currentSettings.general.commitParameters = settings.general.commitParameters;
                 currentSettings.general.pointSize = settings.general.pointSize;
             }
+
+            // apply postprocessing settings
+            if (sections.viewport.postprocessing) 
+                currentSettings.postprocessing = settings.postprocessing;
 
             // apply environment settings
             if (sections.viewport.environment) {
@@ -537,8 +541,6 @@ export class SessionEngine implements ISessionEngine {
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-
-            if (this._updateCallback) this._updateCallback(newNode, oldNode);
                 
             // set the output content to what has been updated
             for (const outputId in this.outputs)
@@ -565,6 +567,21 @@ export class SessionEngine implements ISessionEngine {
 
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+            // update the viewports
+            for (let r in this._stateEngine.renderingEngines)
+                if(!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+
+            // call the update callback function on the session
+            if (this._updateCallback) this._updateCallback(newNode, oldNode);
+
+            // call the update callback functions on the outputs
+            for (const outputId in this.outputs)
+                this.outputs[outputId].triggerUpdateCallback(
+                    newNode.children.find(c => c.name === outputId)!,
+                    oldNode.children.find(c => c.name === outputId)!
+                );
 
             return this.node;
         } catch (e) {
@@ -863,7 +880,7 @@ export class SessionEngine implements ISessionEngine {
             if (sections.session.export === undefined)
                 sections.session.export = { displayname: true, order: true, hidden: true };
             if (sections.viewport === undefined)
-                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true };
+                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true, postprocessing: true };
 
             return this.applySettings(this._responseDto, sections);
     }
@@ -1118,8 +1135,6 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
         
-        if (this._updateCallback) this._updateCallback(newNode, oldNode);
-
         // set the output content to what has been updated
         for (const outputId in this.outputs) {
             this.outputs[outputId].updateOutput(
@@ -1145,6 +1160,21 @@ export class SessionEngine implements ISessionEngine {
             const eventEnd: ITaskEvent = { type: eventType, id: eventId, progress: 1, data: eventData, status: 'Outputs updated' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         }
+
+        // update the viewports
+        for (let r in this._stateEngine.renderingEngines)
+            if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+
+        // call the update callback function on the session
+        if (this._updateCallback) this._updateCallback(newNode, oldNode);
+
+        // call the update callback functions on the outputs
+        for (const outputId in this.outputs)
+            this.outputs[outputId].triggerUpdateCallback(
+                newNode.children.find(c => c.name === outputId)!,
+                oldNode.children.find(c => c.name === outputId)!
+            );
 
         return this.node;
     }
@@ -1300,7 +1330,7 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async handleError(e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, retry = false) {
-        if (e instanceof ShapeDiverResponseError) {
+        if (isGBResponseError(e)) {
             if (e.error === ShapeDiverResponseErrorType.SESSION_GONE_ERROR) {
                 // case 1: the session is no longer available
                 // we try to re-initialize the session 3 times, if that does not work, we close it
