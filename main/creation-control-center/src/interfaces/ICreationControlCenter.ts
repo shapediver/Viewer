@@ -5,9 +5,9 @@ import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ISettings } from "@shapediver/viewer.settings";
 
 export type SessionCreationDefinition = {
-  /** The ticket for direct embedding of the model represented by the session. This identifies the model on the Geometry Backend. If none was provided, a {@link guid} has to be provided instead. */
+  /** The ticket for direct embedding of the model represented by the session. This identifies the model on the Geometry Backend. If no ticket was provided, a {@link guid} has to be provided instead. */
   ticket?: string,
-  /** The geometry backend model id (guid). This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication. If none was provided, a {@link ticket} has to be provided instead. */
+  /** The geometry backend model id (guid). This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication. If no guid was provided, a {@link ticket} has to be provided instead. */
   guid?: string,
   /** The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model. */
   modelViewUrl: string,
