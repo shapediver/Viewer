@@ -75,6 +75,8 @@ export interface IViewportApi {
   
   /**
    * The [post processing api]{@link IPostProcessingApi} of the viewport. 
+   * 
+   * Note: The post-processing API is still WIP. Breaking changes are to be expected.
    */
   readonly postProcessing: IPostProcessingApi;
 
