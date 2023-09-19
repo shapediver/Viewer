@@ -119,6 +119,10 @@ export class SessionApi implements ISessionApi {
         return this.#exports;
     }
 
+    public get guid(): string | undefined {
+        return this.#sessionEngine.guid;
+    }
+
     public get id(): string {
         return this.#sessionEngine.id;
     }
@@ -173,7 +177,7 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
     }
 
-    public get ticket(): string {
+    public get ticket(): string | undefined {
         return this.#sessionEngine.ticket;
     }
 

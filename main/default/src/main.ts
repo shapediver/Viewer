@@ -2,10 +2,10 @@ import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILI
 import { ITree, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
 import { IViewportApi } from './interfaces/viewport/IViewportApi';
-import { EventEngine, IEvent, LOGGING_LEVEL, MainEventTypes, SettingsEngine, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { EventEngine, IEvent, LOGGING_LEVEL, MainEventTypes, SettingsEngine, ShapeDiverViewerSessionError, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { Logger } from '@shapediver/viewer.shared.services';
 import { InputValidator } from '@shapediver/viewer.shared.services';
-import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
+import { CreationControlCenter, ICreationControlCenter, SessionCreationDefinition, ViewportCreationDefinition } from '@shapediver/viewer.main.creation-control-center';
 import { ViewportApi } from './implementation/viewport/ViewportApi';
 import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { SessionApi } from './implementation/session/SessionApi';
@@ -192,7 +192,7 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
 /**
  * Create and initialize a session with a model hosted on a 
  * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}, 
- * using the provided ticket and modelViewUrl. 
+ * using the provided ticket/guid and modelViewUrl. 
  * Returns a session api object allowing to control the session.
  * 
  * A JWT can be specified for authorizing the API calls to the Geometry Backend. 
@@ -203,7 +203,8 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
  * An optional identifier for the session can be provided. This identifier can be used to retrieve the  
  * api object from {@link sessions}. In case no identifier is provided, a unique one will be generated.
  * 
- * @param properties.ticket The ticket for direct embedding of the model to create a session for. This identifies the model on the Geometry Backend.
+ * @param properties.ticket The ticket for direct embedding of the model represented by the session. This identifies the model on the Geometry Backend. If no ticket was provided, a {@link guid} has to be provided instead.
+ * @param properties.guid The geometry backend model id (guid). This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication. If no guid was provided, a {@link ticket} has to be provided instead.
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.
@@ -213,22 +214,14 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
-export const createSession = async (properties: {
-    ticket: string,
-    modelViewUrl: string,
-    jwtToken?: string,
-    id?: string,
-    waitForOutputs?: boolean,
-    loadOutputs?: boolean,
-    excludeViewports?: string[],
-    initialParameterValues?: { [key: string]: string }
-}): Promise<ISessionApi> => {
+export const createSession = async (properties: SessionCreationDefinition): Promise<ISessionApi> => {
     if(createdConsoleMessage === false) showConsoleMessage();
 
     logger.info(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
     inputValidator.validateAndError(`createSession`, properties, 'object');
-    inputValidator.validateAndError(`createSession`, properties.ticket, 'string');
+    inputValidator.validateAndError(`createSession`, properties.ticket, 'string', false);
+    inputValidator.validateAndError(`createSession`, properties.guid, 'string', false);
     inputValidator.validateAndError(`createSession`, properties.modelViewUrl, 'string');
     inputValidator.validateAndError(`createSession`, properties.jwtToken, 'string', false);
     inputValidator.validateAndError(`createSession`, properties.id, 'string', false);
@@ -239,6 +232,18 @@ export const createSession = async (properties: {
     if (properties.initialParameterValues)
         for (let p in properties.initialParameterValues)
             inputValidator.validateAndError(`createSession`, properties.initialParameterValues[p], 'string');
+
+    // we either expect a ticket or guid + jwtToken, error if we get both
+    if (properties.ticket !== undefined && properties.guid !== undefined)
+        throw new ShapeDiverViewerSessionError(`createSession: A ticket and a guid were provided for the session creation. Please only provide one or the other. The session was not created.`);
+
+    // we either expect a ticket or guid + jwtToken, error if we get none
+    if (properties.ticket === undefined && properties.guid === undefined)
+        throw new ShapeDiverViewerSessionError(`createSession: Neither a ticket nor a guid were provided for the session creation. Please provide one or the other. The session was not created.`);
+        
+    // we either expect a guid + jwtToken, error if the jwtToken is missing
+    if (properties.guid !== undefined && properties.jwtToken === undefined)
+        throw new ShapeDiverViewerSessionError(`createSession: When creating a session with a guid, a jwtToken is required, please provide one. The session was not created.`);
 
     if (properties.waitForOutputs === undefined) properties.waitForOutputs = true;
     if (properties.loadOutputs === undefined) properties.loadOutputs = true;
@@ -267,42 +272,7 @@ export const createSession = async (properties: {
  * @param properties.sessionSettingsMode Allows to control which session to use for loading / persisting settings of the viewport. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
  * @returns 
  */
-export const createViewport = async (properties?: {
-    canvas?: HTMLCanvasElement,
-    id?: string,
-    branding?: {
-        /** 
-         * Optional URL to a logo to be displayed while the viewport is hidden. 
-         * A default logo will be used if none is provided. 
-         * Supply null to display no logo at all.
-         */
-        logo?: string | null,
-        /** 
-         * Optional background color to show while the viewport is hidden, can include alpha channel. 
-         * A default color will be used if none is provided.
-         */
-        backgroundColor?: string,
-        /** 
-         * Optional URL to a logo to be displayed while the viewport is in busy mode. 
-         * A default logo will be used if none is provided. 
-         * The positioning of the spinner can be influenced via {@link SPINNER_POSITIONING}.
-         */
-        busyModeSpinner?: string,
-        /**
-         * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
-         * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWPORT.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWPORT.BUSY_MODE_OFF} will be emitted.
-         */
-        busyModeDisplay?: BUSY_MODE_DISPLAY,
-        /**
-         * Where the spinner that is specified by {@link BUSY_MODE_DISPLAY} is desplayed on the screen. (default: BUSY_MODE_DISPLAY.BOTTOM_RIGHT)
-         */
-        spinnerPositioning?: SPINNER_POSITIONING
-
-    },
-    sessionSettingsId?: string,
-    sessionSettingsMode?: SESSION_SETTINGS_MODE,
-    visibility?: VISIBILITY_MODE,
-}): Promise<IViewportApi> => {
+export const createViewport = async (properties?: ViewportCreationDefinition): Promise<IViewportApi> => {
     if(createdConsoleMessage === false) showConsoleMessage();
 
     inputValidator.validateAndError('createViewport', properties, 'object', false);

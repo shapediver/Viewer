@@ -34,6 +34,7 @@ import { SessionApiData } from "./implementation/session/data/SessionApiData";
 import { IOutputApiData } from "./interfaces/session/data/IOutputApiData";
 import { ISessionApiData } from "./interfaces/session/data/ISessionApiData";
 import { ANTI_ALIASING_TECHNIQUE } from "@shapediver/viewer.rendering-engine-threejs.standard/dist/interfaces/IPostProcessingEffectDefinitions";
+import { SessionCreationDefinition, ViewportCreationDefinition } from "@shapediver/viewer.main.creation-control-center";
 
 export {
     createViewport, createSession, addListener, removeListener,
@@ -43,7 +44,7 @@ export {
     version
 }
 
-export { IGeneralOptions, IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }
+export { IGeneralOptions, IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, SessionCreationDefinition, ViewportCreationDefinition }
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi }
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING }

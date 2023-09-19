@@ -106,6 +106,7 @@ export interface ISessionEngine {
   readonly jwtToken?: string;
   canUploadGLTF: boolean;
   exports: { [key: string]: IExport };
+  guid?: string;
   id: string;
   initialized: boolean;
   modelViewUrl: string;
@@ -113,7 +114,7 @@ export interface ISessionEngine {
   parameters: { [key: string]: IParameter<any> };
   refreshJwtToken: (() => Promise<string>) | undefined;
   settingsEngine: SettingsEngine;
-  ticket: string;
+  ticket?: string;
   updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
   // #endregion Properties (11)
