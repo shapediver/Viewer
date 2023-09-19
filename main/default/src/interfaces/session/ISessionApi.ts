@@ -45,7 +45,12 @@ export interface ISessionApi {
      * This object maps parameter ids to parameter definitions.
      */
     readonly parameters: { [key: string]: IParameterApi<any>; };
-
+     
+    /**
+     * The geometry backend model id (guid). 
+     * This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication.
+     */
+    readonly guid?: string;
 
     /**
      * The unique identifier of the session that was specified
@@ -64,14 +69,12 @@ export interface ISessionApi {
      * The ticket for direct embedding of the model represented by the session. 
      * This identifies the model on the Geometry Backend.
      */
-    readonly ticket: string;
-
+    readonly ticket?: string;
 
     /**
      * The node of the session in the [scene tree]{@link ITree}.
      */
     readonly node: ITreeNode;
-
 
     /**
      * The JWT used for authorizing API calls to the Geometry Backend.

@@ -3,7 +3,7 @@ import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@sha
 import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, isViewerError, Logger, SettingsEngine, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
-import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
+import { ICreationControlCenter, SessionCreationDefinition, ViewportCreationDefinition } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
@@ -161,20 +161,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
   }
 
-  public async createRenderingEngineThreeJs(properties: {
-    canvas?: HTMLCanvasElement,
-    id?: string,
-    branding?: {
-      logo?: string | null,
-      backgroundColor?: string,
-      busyModeSpinner?: string,
-      busyModeDisplay?: BUSY_MODE_DISPLAY,
-      spinnerPositioning?: SPINNER_POSITIONING
-    },
-    sessionSettingsId?: string,
-    sessionSettingsMode?: SESSION_SETTINGS_MODE,
-    visibility?: VISIBILITY_MODE,
-  }): Promise<RenderingEngineThreeJs> {
+  public async createRenderingEngineThreeJs(properties: ViewportCreationDefinition): Promise<RenderingEngineThreeJs> {
     const eventId = this.#uuidGenerator.create();
     let renderingEngineId = properties.id || this.#uuidGenerator.create();
     properties.id = renderingEngineId;
@@ -284,16 +271,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  public async createSessionEngine(properties: {
-    ticket: string,
-    modelViewUrl: string,
-    jwtToken?: string,
-    id?: string,
-    waitForOutputs?: boolean,
-    loadOutputs?: boolean,
-    excludeViewports?: string[],
-    initialParameterValues?: { [key: string]: string }
-  }): Promise<SessionEngine> {
+  public async createSessionEngine(properties: SessionCreationDefinition): Promise<SessionEngine> {
     const eventId = this.#uuidGenerator.create();
     let sessionEngineId = properties.id || this.#uuidGenerator.create();
     properties.id = sessionEngineId;
@@ -320,6 +298,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       // create the actual session 
       const sessionEngine = new SessionEngine({
         id: sessionEngineId,
+        guid: properties.guid,
         ticket: properties.ticket,
         modelViewUrl: properties.modelViewUrl,
         excludeViewports: properties.excludeViewports,

@@ -1,6 +1,7 @@
 import { CreationControlCenter } from "./implementation/CreationControlCenter";
-import { ICreationControlCenter } from "./interfaces/ICreationControlCenter";
+import { ICreationControlCenter, SessionCreationDefinition, ViewportCreationDefinition } from "./interfaces/ICreationControlCenter";
 
 export {
-    ICreationControlCenter, CreationControlCenter
+    ICreationControlCenter, CreationControlCenter,
+    SessionCreationDefinition, ViewportCreationDefinition
 }

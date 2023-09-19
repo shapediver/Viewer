@@ -1,8 +1,7 @@
 import * as SDV from '@shapediver/viewer';
 import {
     createSession,
-    createViewport,
-    POST_PROCESSING_EFFECT_TYPE
+    createViewport
 } from '@shapediver/viewer';
 
 (<any>window).SDV = SDV;
@@ -15,37 +14,8 @@ import {
     });
     // create a session
     const session = await createSession({
-        ticket:
-            "95aa45115f2bfa0e9501127bf9c9f392c977792e44c62c6b2a5575133426c4066ead20626932b8c199eec88594bbc03a80854a6d06f3db775880a00df465c8bd3e53dd290464b51c69f4afad03e8bbe80f0a70b7dc9896a43ca4c75eaa97dc11713e1bacd650d1-6c09ff8204f1fce099cde4b86dd74ba5",
+        ticket:"50eb2a26ddaa432ca18288b8a120ef194fa35bb813e4f43ae89d657991a865f9deaa20a1c840e47cdf6dbc019cd16ae15a9a6b3a7d91722455299d6bd29b1f26b3ff3b7adaac1df3d50f3ba4d010a560180dff8f745c946dadb41167a3431e223d69b32743f167-5b9465f92a0cf9c235b8ea315aab0cd5",
         modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
         id: "mySession"
     });
-
-    const hbaoEffectToken = viewport.postProcessing.addEffect({
-        properties: {
-            intensity: 7
-        },
-        type: POST_PROCESSING_EFFECT_TYPE.HBAO
-    })
-
-    const bloomEffectToken = viewport.postProcessing.addEffect({
-        properties: {
-            intensity: 1.5,
-            luminanceThreshold: 0.5,
-            kernelSize: SDV.KernelSize.HUGE
-        },
-        type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
-    })
-
-    const hueSaturationEffectToken = viewport.postProcessing.addEffect({
-        properties: {
-            saturation: -1
-        },
-        type: POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION
-    })
-    
-    const vignetteEffectToken = viewport.postProcessing.addEffect({
-        type: POST_PROCESSING_EFFECT_TYPE.VIGNETTE,
-    });
-
 })();

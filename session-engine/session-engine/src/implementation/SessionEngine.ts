@@ -25,6 +25,7 @@ export class SessionEngine implements ISessionEngine {
 
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
+    private readonly _guid?: string;
     private readonly _httpClient: HttpClient = HttpClient.instance;
     private readonly _id: string;
     private readonly _logger: Logger = Logger.instance;
@@ -39,7 +40,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _sessionEngineId = (UuidGenerator.instance).create();
     private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
     private readonly _stateEngine: StateEngine = StateEngine.instance;
-    private readonly _ticket: string;
+    private readonly _ticket?: string;
     private readonly _uuidGenerator = UuidGenerator.instance;
 
     #customizationProcess!: string;
@@ -89,12 +90,13 @@ export class SessionEngine implements ISessionEngine {
     // #region Constructors (1)
 
     /**
-     * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
+     * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[] }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[] }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
+        this._guid = properties.guid;
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
         this._excludeViewports = properties.excludeViewports || [];
@@ -154,6 +156,10 @@ export class SessionEngine implements ISessionEngine {
         return this._exports;
     }
 
+    public get guid(): string | undefined {
+        return this._guid;
+    }
+
     public get id(): string {
         return this._id;
     }
@@ -202,7 +208,7 @@ export class SessionEngine implements ISessionEngine {
         return this._settingsEngine;
     }
 
-    public get ticket(): string {
+    public get ticket(): string | undefined {
         return this._ticket;
     }
 
@@ -689,7 +695,14 @@ export class SessionEngine implements ISessionEngine {
             for (const parameterNameOrId in parameterValues)
                 parameterSet[parameterNameOrId] = (' ' + parameterValues[parameterNameOrId]).slice(1);
 
-            this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
+            if(this._ticket) {
+                this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
+            } else if(this._guid) {
+                this._responseDto = await this._sdk.session.initForModel(this._guid, parameterSet);
+            } else {
+                // we should never get here
+                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. Neither a ticket nor a guid are available.`)
+            }
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
