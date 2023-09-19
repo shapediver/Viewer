@@ -203,8 +203,8 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
  * An optional identifier for the session can be provided. This identifier can be used to retrieve the  
  * api object from {@link sessions}. In case no identifier is provided, a unique one will be generated.
  * 
- * @param properties.ticket The ticket for direct embedding of the model represented by the session. This identifies the model on the Geometry Backend. If none was provided, a {@link guid} has to be provided instead.
- * @param properties.guid The geometry backend model id (guid). This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication. If none was provided, a {@link ticket} has to be provided instead.
+ * @param properties.ticket The ticket for direct embedding of the model represented by the session. This identifies the model on the Geometry Backend. If no ticket was provided, a {@link guid} has to be provided instead.
+ * @param properties.guid The geometry backend model id (guid). This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication. If no guid was provided, a {@link ticket} has to be provided instead.
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.
