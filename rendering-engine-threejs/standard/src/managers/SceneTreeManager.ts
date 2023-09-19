@@ -107,7 +107,7 @@ export class SceneTreeManager implements IManager {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter, skeleton?: THREE.Skeleton): void {
+    public updateData(node: ITreeNode, obj: SDObject, data: ITreeNodeData, filter: UpdateFilter, isVisibleInHierarchy: boolean, skeleton?: THREE.Skeleton): void {
         let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
         let newChild = false;
 
@@ -172,7 +172,7 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
-                if (filter.transformationOnly === false) this._renderingEngine.htmlElementAnchorLoader.load(node, <HTMLElementAnchorData>data);
+                if (filter.transformationOnly === false) this._renderingEngine.htmlElementAnchorLoader.load(node, <HTMLElementAnchorData>data, isVisibleInHierarchy);
                 break;
             case data instanceof AnimationData:
                 dataChild.SDtype = SD_DATA_TYPE.ANIMATION;
@@ -217,7 +217,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }, skeleton?: THREE.Skeleton) {
+    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }, visibleInHierarchy: boolean = true, skeleton?: THREE.Skeleton) {
         const convertedObject = <SDObject>obj;
 
         // reset the general bounding box of the current node
@@ -267,10 +267,13 @@ export class SceneTreeManager implements IManager {
             skeleton = new THREE.Skeleton(bones, boneInverses)
         }
 
+        const isVisible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
+        const isVisibleInHierarchy = visibleInHierarchy && isVisible;
+
         // convert all data items of the current node
         // old versions will be replaced by new ones
         for (let i = 0, len = node.data.length; i < len; i++)
-            this.updateData(node, convertedObject, node.data[i], filter, skeleton);
+            this.updateData(node, convertedObject, node.data[i], filter, isVisibleInHierarchy, skeleton);
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -284,13 +287,13 @@ export class SceneTreeManager implements IManager {
                 if (nodeChild.updateCallbackThreeJsObject)
                     nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
                 convertedObject.add(newChild);
-                this.updateNode(nodeChild, newChild, filter, skeleton);
+                this.updateNode(nodeChild, newChild, filter, isVisibleInHierarchy, skeleton);
             } else if (objChild.SDversion !== nodeChild.version) {
                 // if the version is different, update the child
-                this.updateNode(nodeChild, objChild, filter, skeleton);
+                this.updateNode(nodeChild, objChild, filter, isVisibleInHierarchy, skeleton);
                 objChild.SDversion = nodeChild.version;
             } else {
-                this.updateNode(nodeChild, objChild, filter, skeleton);
+                this.updateNode(nodeChild, objChild, filter, isVisibleInHierarchy, skeleton);
             }
 
             // adjust the general BB
@@ -303,9 +306,8 @@ export class SceneTreeManager implements IManager {
                 // 1. visible
                 // 2. no included in the "excludeViewports"
                 // 3. if there are "restrictViewports", it needs to be in them
-                if (node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id))) {
+                if (isVisible)
                     node.boundingBoxViewport[this._renderingEngine.id].union(nodeChild.boundingBoxViewport[this._renderingEngine.id]);
-                }
             }
         }
 
