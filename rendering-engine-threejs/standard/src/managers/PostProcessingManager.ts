@@ -62,7 +62,7 @@ import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
-const REALISM_EFFECTS: any = require('realism-effects');
+import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
 
 
 export class PostProcessingManager implements IManager {
@@ -346,27 +346,27 @@ export class PostProcessingManager implements IManager {
                         if(this._systemInfo.isMobile === true) break;
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
                         const properties = definition.properties || {};
-                        const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
-                            resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
-                            spp: properties.spp !== undefined ? properties.spp : 8,
-                            distance: properties.distance !== undefined ? properties.distance : 2,
-                            distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
-                            power: properties.intensity !== undefined ? properties.intensity : 5,
-                            bias: properties.bias !== undefined ? properties.bias : 10,
-                            thickness: properties.thickness !== undefined ? properties.thickness : 0.5,
-                            color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color("black"),
-                            iterations: properties.iterations !== undefined ? properties.iterations : 1,
-                            radius: properties.radius !== undefined ? properties.radius : 15,
-                            rings: properties.rings !== undefined ? properties.rings : 4,
-                            lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
-                            depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
-                            normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
-                            samples: properties.samples !== undefined ? properties.samples : 16
-                        });
-                        this._effects.push({
-                            token: this._effectDefinitions[i].token,
-                            effect: hbaoEffect
-                        });
+                        // const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+                        //     resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
+                        //     spp: properties.spp !== undefined ? properties.spp : 8,
+                        //     distance: properties.distance !== undefined ? properties.distance : 2,
+                        //     distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
+                        //     power: properties.intensity !== undefined ? properties.intensity : 5,
+                        //     bias: properties.bias !== undefined ? properties.bias : 10,
+                        //     thickness: properties.thickness !== undefined ? properties.thickness : 0.5,
+                        //     color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color("black"),
+                        //     iterations: properties.iterations !== undefined ? properties.iterations : 1,
+                        //     radius: properties.radius !== undefined ? properties.radius : 15,
+                        //     rings: properties.rings !== undefined ? properties.rings : 4,
+                        //     lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
+                        //     depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
+                        //     normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
+                        //     samples: properties.samples !== undefined ? properties.samples : 16
+                        // });
+                        // this._effects.push({
+                        //     token: this._effectDefinitions[i].token,
+                        //     effect: hbaoEffect
+                        // });
                     }
                     break;
 
@@ -438,7 +438,7 @@ export class PostProcessingManager implements IManager {
                         if(this._systemInfo.isMobile === true) break;
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
                         const properties = definition.properties || {};
-                        const ssaoEffect = new REALISM_EFFECTS.SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+                        const ssaoEffect = new SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
                             spp: properties.spp !== undefined ? properties.spp : 8,
                             distance: properties.distance !== undefined ? properties.distance : 3,
