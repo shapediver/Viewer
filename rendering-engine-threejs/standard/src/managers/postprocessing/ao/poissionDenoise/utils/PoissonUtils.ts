@@ -1,6 +1,6 @@
 import { Vector2 } from "three"
 
-export function generateDenoiseSamples(numSamples, numRings, r, texelSize) {
+export function generateDenoiseSamples(numSamples: number, numRings: number, r: number, texelSize: Vector2) {
 	const angleStep = (2 * Math.PI * numRings) / numSamples
 	const invNumSamples = 1.0 / numSamples
 	const radiusStep = invNumSamples
@@ -22,7 +22,7 @@ export function generateDenoiseSamples(numSamples, numRings, r, texelSize) {
 	return samples
 }
 
-export function generatePoissonDiskConstant(poissonDisk) {
+export function generatePoissonDiskConstant(poissonDisk: Vector2[]) {
 	const samples = poissonDisk.length
 
 	let glslCode = "const vec2 poissonDisk[samples] = vec2[samples](\n"

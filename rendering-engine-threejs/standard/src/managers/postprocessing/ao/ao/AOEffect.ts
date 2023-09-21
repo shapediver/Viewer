@@ -1,8 +1,9 @@
-import { Effect, NormalPass } from "postprocessing"
-import { Color, Uniform } from "three"
+import { Effect, EffectComposer, NormalPass } from "postprocessing"
+import { Camera, Color, Scene, ShaderMaterial, Uniform, WebGLRenderer } from "three"
 import { PoissionDenoisePass } from "../poissionDenoise/PoissionDenoisePass"
 // eslint-disable-next-line camelcase
 import { ao_compose } from "./shader/ao_compose"
+import { AOPass } from "./AOPass"
 
 const defaultAOOptions = {
 	resolutionScale: 1,
@@ -15,20 +16,25 @@ const defaultAOOptions = {
 	color: new Color("black"),
 	useNormalPass: false,
 	velocityDepthNormalPass: null,
-	normalTexture: null,
 	...PoissionDenoisePass.DefaultOptions
 }
 
 class AOEffect extends Effect {
 	lastSize = { width: 0, height: 0, resolutionScale: 0 }
+	composer: EffectComposer
+	aoPass: AOPass
+	normalPass?: NormalPass
+	poissionDenoisePass: PoissionDenoisePass
+	resolutionScale: number = 1;
 
-	constructor(composer, camera, scene, aoPass, options = defaultAOOptions) {
+	static DefaultOptions = defaultAOOptions
+
+	constructor(composer: EffectComposer, camera: Camera, scene: Scene, aoPass: AOPass, options = defaultAOOptions) {
 		super("AOEffect", ao_compose, {
-			type: "FinalAOMaterial",
 			uniforms: new Map([
 				["inputTexture", new Uniform(null)],
 				["depthTexture", new Uniform(null)],
-				["power", new Uniform(0)],
+				["power", (new Uniform(0) as Uniform)],
 				["color", new Uniform(new Color("black"))]
 			])
 		})
@@ -37,28 +43,29 @@ class AOEffect extends Effect {
 		this.aoPass = aoPass
 		options = { ...defaultAOOptions, ...options }
 
+		console.log(composer)
 		// set up depth texture
-		if (!composer.depthTexture) composer.createDepthTexture()
+		if (!(composer as any).depthTexture) (composer as any).createDepthTexture();
 
-		this.aoPass.fullscreenMaterial.uniforms.depthTexture.value = composer.depthTexture
-		this.uniforms.get("depthTexture").value = composer.depthTexture
+		(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.depthTexture.value = (composer as any).depthTexture;
+		this.uniforms.get("depthTexture")!.value = (composer as any).depthTexture
 
 		// set up optional normal texture
 		if (options.useNormalPass || options.normalTexture) {
 			if (options.useNormalPass) this.normalPass = new NormalPass(scene, camera)
 
-			const normalTexture = options.normalTexture ?? this.normalPass.texture
+			const normalTexture = options.normalTexture ?? this.normalPass?.texture;
 
-			this.aoPass.fullscreenMaterial.uniforms.normalTexture.value = normalTexture
-			this.aoPass.fullscreenMaterial.defines.useNormalTexture = ""
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.normalTexture.value = normalTexture;
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.useNormalTexture = "";
 		}
 
-		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, composer.depthTexture)
+		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, (composer as any).depthTexture)
 
 		this.makeOptionsReactive(options)
 	}
 
-	makeOptionsReactive(options) {
+	makeOptionsReactive(options: { [key: string]: any }) {
 		for (const key of Object.keys(options)) {
 			Object.defineProperty(this, key, {
 				get() {
@@ -71,13 +78,13 @@ class AOEffect extends Effect {
 
 					switch (key) {
 						case "spp":
-							this.aoPass.fullscreenMaterial.defines.spp = value.toFixed(0)
+							(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.spp = value.toFixed(0);
 
-							this.aoPass.fullscreenMaterial.needsUpdate = true
+							(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
 							break
 
 						case "distance":
-							this.aoPass.fullscreenMaterial.uniforms.aoDistance.value = value
+							(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.aoDistance.value = value;
 							break
 
 						case "resolutionScale":
@@ -107,20 +114,20 @@ class AOEffect extends Effect {
 							break
 
 						default:
-							if (key in this.aoPass.fullscreenMaterial.uniforms) {
-								this.aoPass.fullscreenMaterial.uniforms[key].value = value
+							if (key in (this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms) {
+								(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms[key].value = value;
 							}
 					}
 				},
 				configurable: true
-			})
+			});
 
 			// apply all uniforms and defines
-			this[key] = options[key]
+			(this as any)[key] = options[key]
 		}
 	}
 
-	setSize(width, height) {
+	setSize(width: number, height: number) {
 		if (width === undefined || height === undefined) return
 		if (
 			width === this.lastSize.width &&
@@ -142,33 +149,31 @@ class AOEffect extends Effect {
 		}
 	}
 
-	update(renderer) {
+	update(renderer: WebGLRenderer) {
 		// check if TRAA is being used so we can animate the noise
 		const hasTRAA = false;
 
 		// set animated noise depending on TRAA
-		if (hasTRAA && !("animatedNoise" in this.aoPass.fullscreenMaterial.defines)) {
-			this.aoPass.fullscreenMaterial.defines.animatedNoise = ""
-			this.aoPass.fullscreenMaterial.needsUpdate = true
-		} else if (!hasTRAA && "animatedNoise" in this.aoPass.fullscreenMaterial.defines) {
-			delete this.aoPass.fullscreenMaterial.defines.animatedNoise
-			this.aoPass.fullscreenMaterial.needsUpdate = true
+		if (hasTRAA && !("animatedNoise" in (this.aoPass.fullscreenMaterial as ShaderMaterial).defines)) {
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.animatedNoise = "";
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
+		} else if (!hasTRAA && "animatedNoise" in (this.aoPass.fullscreenMaterial as ShaderMaterial).defines) {
+			delete (this.aoPass.fullscreenMaterial as ShaderMaterial).defines.animatedNoise;
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
 		}
 
 		// set input texture
-		if (this.iterations > 0) {
-			this.uniforms.get("inputTexture").value = this.poissionDenoisePass.texture
+		if (this.poissionDenoisePass.iterations > 0) {
+			this.uniforms.get("inputTexture")!.value = this.poissionDenoisePass.texture;
 		} else {
-			this.uniforms.get("inputTexture").value = this.aoPass.texture
+			this.uniforms.get("inputTexture")!.value = this.aoPass.texture;
 		}
 
-		this.normalPass?.render(renderer)
+		this.normalPass?.render(renderer, null, null)
 		this.aoPass.render(renderer)
 
 		this.poissionDenoisePass.render(renderer)
 	}
 }
-
-AOEffect.DefaultOptions = defaultAOOptions
 
 export { AOEffect }

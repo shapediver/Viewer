@@ -1,6 +1,6 @@
 import { Vector3 } from "three"
 
-export function getPointsOnSphere(n) {
+export function getPointsOnSphere(n: number) {
 	const points = []
 	const inc = Math.PI * (3 - Math.sqrt(5))
 	const off = 2 / n

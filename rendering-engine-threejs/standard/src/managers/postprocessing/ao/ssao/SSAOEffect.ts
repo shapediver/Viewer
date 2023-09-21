@@ -1,9 +1,14 @@
+import { EffectComposer } from "postprocessing"
 import { AOEffect } from "../ao/AOEffect"
 import { SSAOPass } from "./SSAOPass"
 import { getPointsOnSphere } from "./utils/ssaoUtils"
+import { Camera, Scene } from "three"
 
 class SSAOEffect extends AOEffect {
-	constructor(composer, camera, scene, options = {}) {
+	spp: number = 16;
+	constructor(composer: EffectComposer, camera: Camera, scene: Scene, options?: any) {
+		super(composer, camera, scene, new SSAOPass(camera, scene), options)
+
 		SSAOEffect.DefaultOptions = {
 			...AOEffect.DefaultOptions,
 			...{
@@ -19,12 +24,9 @@ class SSAOEffect extends AOEffect {
 			...options
 		}
 
-		const aoPass = new SSAOPass(camera, scene)
-
-		super(composer, camera, scene, aoPass, options)
 	}
 
-	makeOptionsReactive(options) {
+	makeOptionsReactive(options: { [key: string]: any }) {
 		super.makeOptionsReactive(options)
 
 		for (const key of ["spp"]) {
