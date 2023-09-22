@@ -9,6 +9,7 @@ uniform mat4 cameraMatrixWorld;
 uniform float lumaPhi;
 uniform float depthPhi;
 uniform float normalPhi;
+uniform float distance;
 uniform sampler2D blueNoiseTexture;
 uniform vec2 blueNoiseRepeat;
 uniform int index;
@@ -106,7 +107,7 @@ void main() {
 #endif
         float lumaSimilarity = max(1.0 - lumaDiff / lumaPhi, 0.0);
 
-        float depthDiff = 1. - distToPlane(worldPos, worldPosSample, normal);
+        float depthDiff = 1. - (distToPlane(worldPos, worldPosSample, normal) / distance);
         float depthSimilarity = max(depthDiff / depthPhi, 0.);
 
         float w = lumaSimilarity * depthSimilarity * normalSimilarity;

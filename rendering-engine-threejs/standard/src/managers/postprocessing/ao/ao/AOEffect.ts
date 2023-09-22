@@ -8,7 +8,6 @@ import { AOPass } from "./AOPass"
 const defaultAOOptions = {
 	resolutionScale: 1,
 	spp: 8,
-	distance: 2,
 	distancePower: 1,
 	power: 2,
 	bias: 40,
@@ -85,6 +84,7 @@ class AOEffect extends Effect {
 
 						case "distance":
 							(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.aoDistance.value = value;
+							this.poissionDenoisePass.fullscreenMaterial.uniforms["distance"].value = Math.max(value, 0.0001)
 							break
 
 						case "resolutionScale":
