@@ -1,9 +1,8 @@
-import { Effect, EffectComposer, NormalPass } from "postprocessing"
-import { Camera, Color, Scene, ShaderMaterial, Uniform, WebGLRenderer } from "three"
-import { PoissionDenoisePass } from "../poissionDenoise/PoissionDenoisePass"
-// eslint-disable-next-line camelcase
-import { ao_compose } from "./shader/ao_compose"
-import { AOPass } from "./AOPass"
+import { Effect, EffectComposer, NormalPass } from 'postprocessing';
+import { Camera, Color, Scene, ShaderMaterial, Uniform, WebGLRenderer } from 'three';
+import { PoissionDenoisePass } from '../poissionDenoise/PoissionDenoisePass';
+import { AOPass } from './AOPass';
+import { ao_compose } from './shader/ao_compose';
 
 const defaultAOOptions = {
 	resolutionScale: 1,
@@ -12,106 +11,119 @@ const defaultAOOptions = {
 	power: 2,
 	bias: 40,
 	thickness: 0.075,
-	color: new Color("black"),
+	color: new Color('black'),
 	useNormalPass: false,
 	velocityDepthNormalPass: null,
 	...PoissionDenoisePass.DefaultOptions
-}
+};
 
 class AOEffect extends Effect {
-	lastSize = { width: 0, height: 0, resolutionScale: 0 }
-	composer: EffectComposer
-	aoPass: AOPass
-	normalPass?: NormalPass
-	poissionDenoisePass: PoissionDenoisePass
-	resolutionScale: number = 1;
+	// #region Properties (7)
 
-	static DefaultOptions = defaultAOOptions
+	public static DefaultOptions = defaultAOOptions;
 
-	constructor(composer: EffectComposer, camera: Camera, scene: Scene, aoPass: AOPass, options = defaultAOOptions) {
-		super("AOEffect", ao_compose, {
+	public aoPass: AOPass;
+	public composer: EffectComposer;
+	public lastSize = { width: 0, height: 0, resolutionScale: 0 };
+	normalPass?: NormalPass;
+	public poissionDenoisePass: PoissionDenoisePass;
+	public resolutionScale = 1;
+
+	// #endregion Properties (7)
+
+	// #region Constructors (1)
+
+	constructor(composer: EffectComposer, camera: Camera, scene: Scene, aoPass: AOPass, options: { [key: string]: unknown } = defaultAOOptions) {
+		super('AOEffect', ao_compose, {
 			uniforms: new Map([
-				["inputTexture", new Uniform(null)],
-				["depthTexture", new Uniform(null)],
-				["power", (new Uniform(0) as Uniform)],
-				["color", new Uniform(new Color("black"))]
+				['inputTexture', new Uniform(null)],
+				['depthTexture', new Uniform(null)],
+				['power', (new Uniform(0) as Uniform)],
+				['color', new Uniform(new Color('black'))]
 			])
-		})
+		});
 
-		this.composer = composer
-		this.aoPass = aoPass
-		options = { ...defaultAOOptions, ...options }
+		this.composer = composer;
+		this.aoPass = aoPass;
+		options = { ...defaultAOOptions, ...options };
 
-		console.log(composer)
 		// set up depth texture
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!(composer as any).depthTexture) (composer as any).createDepthTexture();
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.depthTexture.value = (composer as any).depthTexture;
-		this.uniforms.get("depthTexture")!.value = (composer as any).depthTexture
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.uniforms.get('depthTexture')!.value = (composer as any).depthTexture;
 
 		// set up optional normal texture
 		if (options.useNormalPass || options.normalTexture) {
-			if (options.useNormalPass) this.normalPass = new NormalPass(scene, camera)
+			if (options.useNormalPass) this.normalPass = new NormalPass(scene, camera);
 
 			const normalTexture = options.normalTexture ?? this.normalPass?.texture;
 
 			(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.normalTexture.value = normalTexture;
-			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.useNormalTexture = "";
+			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.useNormalTexture = '';
 		}
 
-		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, (composer as any).depthTexture)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, (composer as any).depthTexture);
 
-		this.makeOptionsReactive(options)
+		this.makeOptionsReactive(options);
 	}
 
-	makeOptionsReactive(options: { [key: string]: any }) {
+	// #endregion Constructors (1)
+
+	// #region Public Methods (3)
+
+	public makeOptionsReactive(options: { [key: string]: unknown }) {
 		for (const key of Object.keys(options)) {
 			Object.defineProperty(this, key, {
 				get() {
-					return options[key]
+					return options[key];
 				},
 				set(value) {
-					if (value === null || value === undefined) return
+					if (value === null || value === undefined) return;
 
-					options[key] = value
+					options[key] = value;
 
 					switch (key) {
-						case "spp":
+						case 'spp':
 							(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.spp = value.toFixed(0);
 
 							(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
-							break
+							break;
 
-						case "distance":
+						case 'distance':
 							(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.aoDistance.value = value;
-							this.poissionDenoisePass.fullscreenMaterial.uniforms["distance"].value = Math.max(value, 0.0001)
-							break
+							this.poissionDenoisePass.fullscreenMaterial.uniforms['distance'].value = Math.max(value, 0.0001);
+							break;
 
-						case "resolutionScale":
-							this.setSize(this.lastSize.width, this.lastSize.height)
-							break
+						case 'resolutionScale':
+							this.setSize(this.lastSize.width, this.lastSize.height);
+							break;
 
-						case "power":
-							this.uniforms.get("power").value = value
-							break
+						case 'power':
+							this.uniforms.get('power').value = value;
+							break;
 
-						case "color":
-							this.uniforms.get("color").value.copy(new Color(value))
-							break
+						case 'color':
+							this.uniforms.get('color').value.copy(new Color(value));
+							break;
 
 						// denoiser
-						case "iterations":
-						case "radius":
-						case "rings":
-						case "samples":
-							this.poissionDenoisePass[key] = value
-							break
+						case 'iterations':
+						case 'radius':
+						case 'rings':
+						case 'samples':
+							this.poissionDenoisePass[key] = value;
+							break;
 
-						case "lumaPhi":
-						case "depthPhi":
-						case "normalPhi":
-							this.poissionDenoisePass.fullscreenMaterial.uniforms[key].value = Math.max(value, 0.0001)
-							break
+						case 'lumaPhi':
+						case 'depthPhi':
+						case 'normalPhi':
+							this.poissionDenoisePass.fullscreenMaterial.uniforms[key].value = Math.max(value, 0.0001);
+							break;
 
 						default:
 							if (key in (this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms) {
@@ -123,57 +135,53 @@ class AOEffect extends Effect {
 			});
 
 			// apply all uniforms and defines
-			(this as any)[key] = options[key]
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(this as any)[key] = options[key];
 		}
 	}
 
-	setSize(width: number, height: number) {
-		if (width === undefined || height === undefined) return
+	public setSize(width: number, height: number) {
+		if (width === undefined || height === undefined) return;
 		if (
 			width === this.lastSize.width &&
 			height === this.lastSize.height &&
 			this.resolutionScale === this.lastSize.resolutionScale
 		) {
-			return
+			return;
 		}
 
-		this.normalPass?.setSize(width, height)
-		this.aoPass.setSize(width * this.resolutionScale, height * this.resolutionScale)
+		this.normalPass?.setSize(width, height);
+		this.aoPass.setSize(width * this.resolutionScale, height * this.resolutionScale);
 
-		this.poissionDenoisePass.setSize(width, height)
+		this.poissionDenoisePass.setSize(width, height);
 
 		this.lastSize = {
 			width,
 			height,
 			resolutionScale: this.resolutionScale
-		}
+		};
 	}
 
-	update(renderer: WebGLRenderer) {
-		// check if TRAA is being used so we can animate the noise
-		const hasTRAA = false;
-
-		// set animated noise depending on TRAA
-		if (hasTRAA && !("animatedNoise" in (this.aoPass.fullscreenMaterial as ShaderMaterial).defines)) {
-			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.animatedNoise = "";
-			(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
-		} else if (!hasTRAA && "animatedNoise" in (this.aoPass.fullscreenMaterial as ShaderMaterial).defines) {
+	public update(renderer: WebGLRenderer) {
+		if ('animatedNoise' in (this.aoPass.fullscreenMaterial as ShaderMaterial).defines) {
 			delete (this.aoPass.fullscreenMaterial as ShaderMaterial).defines.animatedNoise;
 			(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
 		}
 
 		// set input texture
 		if (this.poissionDenoisePass.iterations > 0) {
-			this.uniforms.get("inputTexture")!.value = this.poissionDenoisePass.texture;
+			this.uniforms.get('inputTexture')!.value = this.poissionDenoisePass.texture;
 		} else {
-			this.uniforms.get("inputTexture")!.value = this.aoPass.texture;
+			this.uniforms.get('inputTexture')!.value = this.aoPass.texture;
 		}
 
-		this.normalPass?.render(renderer, null, null)
-		this.aoPass.render(renderer)
+		this.normalPass?.render(renderer, null, null);
+		this.aoPass.render(renderer);
 
-		this.poissionDenoisePass.render(renderer)
+		this.poissionDenoisePass.render(renderer);
 	}
+
+	// #endregion Public Methods (3)
 }
 
-export { AOEffect }
+export { AOEffect };

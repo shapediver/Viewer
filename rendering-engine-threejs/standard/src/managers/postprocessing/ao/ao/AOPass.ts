@@ -1,39 +1,47 @@
-import { Pass } from "postprocessing"
+import { Pass } from 'postprocessing';
 import {
+	Camera,
 	HalfFloatType,
-	NoColorSpace,
 	Matrix4,
 	NearestFilter,
 	NoBlending,
+	NoColorSpace,
+	PerspectiveCamera,
 	RepeatWrapping,
+	Scene,
 	ShaderMaterial,
 	TextureLoader,
 	Vector2,
 	WebGLRenderTarget,
-	PerspectiveCamera,
-	Scene,
-	WebGLRenderer,
-	Camera
-} from "three"
-import { basic as vertexShader} from "../utils/shader/basic"
-import {sampleBlueNoise} from "../utils/shader/sampleBlueNoise"
+	WebGLRenderer
+} from 'three';
+import { basic as vertexShader } from '../utils/shader/basic';
+import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
 
 // a general AO pass that can be used for any AO algorithm
 class AOPass extends Pass {
-	private _camera: PerspectiveCamera
-	private _scene: Scene
-	renderTarget: WebGLRenderTarget
+	// #region Properties (3)
+
+	private _camera: PerspectiveCamera;
+	private _scene: Scene;
+
+	public renderTarget: WebGLRenderTarget;
+
+	// #endregion Properties (3)
+
+	// #region Constructors (1)
+
 	constructor(camera: Camera, scene: Scene, fragmentShader: string) {
-		super()
+		super();
 		this._camera = camera as PerspectiveCamera;
-		this._scene = scene
+		this._scene = scene;
 
 		this.renderTarget = new WebGLRenderTarget(1, 1, {
 			type: HalfFloatType,
 			depthBuffer: false
-		})
+		});
 
-		const finalFragmentShader = fragmentShader.replace("#include <sampleBlueNoise>", sampleBlueNoise)
+		const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>', sampleBlueNoise);
 
 		this.fullscreenMaterial = new ShaderMaterial({
 			fragmentShader: finalFragmentShader,
@@ -63,30 +71,32 @@ class AOPass extends Pass {
 			depthWrite: false,
 			depthTest: false,
 			toneMapped: false
-		})
+		});
 
-		new TextureLoader().load("https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png", blueNoiseTexture => {
-			blueNoiseTexture.minFilter = NearestFilter
-			blueNoiseTexture.magFilter = NearestFilter
-			blueNoiseTexture.wrapS = RepeatWrapping
-			blueNoiseTexture.wrapT = RepeatWrapping
+		new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
+			blueNoiseTexture.minFilter = NearestFilter;
+			blueNoiseTexture.magFilter = NearestFilter;
+			blueNoiseTexture.wrapS = RepeatWrapping;
+			blueNoiseTexture.wrapT = RepeatWrapping;
 			blueNoiseTexture.colorSpace = NoColorSpace;
 
-			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = blueNoiseTexture
-		})
+			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = blueNoiseTexture;
+		});
 	}
 
-	get texture() {
-		return this.renderTarget.texture
+	// #endregion Constructors (1)
+
+	// #region Public Accessors (1)
+
+	public get texture() {
+		return this.renderTarget.texture;
 	}
 
-	setSize(width: number, height: number) {
-		this.renderTarget.setSize(width, height);
+	// #endregion Public Accessors (1)
 
-		(this.fullscreenMaterial as ShaderMaterial).uniforms.texSize.value.set(this.renderTarget.width, this.renderTarget.height)
-	}
+	// #region Public Methods (2)
 
-	render(renderer: WebGLRenderer) {
+	public render(renderer: WebGLRenderer) {
 		const spp = +(this.fullscreenMaterial as ShaderMaterial).defines.spp;
 
 		(this.fullscreenMaterial as ShaderMaterial).uniforms.frame.value = ((this.fullscreenMaterial as ShaderMaterial).uniforms.frame.value + spp) % 65536;
@@ -106,12 +116,20 @@ class AOPass extends Pass {
 			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseRepeat.value.set(
 				this.renderTarget.width / width,
 				this.renderTarget.height / height
-			)
+			);
 		}
 
-		renderer.setRenderTarget(this.renderTarget)
-		renderer.render(this.scene, this.camera)
+		renderer.setRenderTarget(this.renderTarget);
+		renderer.render(this.scene, this.camera);
 	}
+
+	public setSize(width: number, height: number) {
+		this.renderTarget.setSize(width, height);
+
+		(this.fullscreenMaterial as ShaderMaterial).uniforms.texSize.value.set(this.renderTarget.width, this.renderTarget.height);
+	}
+
+	// #endregion Public Methods (2)
 }
 
-export { AOPass }
+export { AOPass };
