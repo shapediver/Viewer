@@ -35,10 +35,10 @@ import {
       spp: 8,
       /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
       distance: 1,
-      /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 0.5) */
-      distanceIntensity: 0.5,
-      /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 10) */
-      intensity: 10,
+      /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
+      distanceIntensity: 1,
+      /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
+      intensity: 5,
       /** The color of the ambient occlusion. (default: black) */
       color: "#000000",
 

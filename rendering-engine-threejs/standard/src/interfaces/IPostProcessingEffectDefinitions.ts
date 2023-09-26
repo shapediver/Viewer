@@ -281,9 +281,9 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
         spp?: number,
         /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
         distance?: number,
-        /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 0.5) */
+        /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
         distanceIntensity?: number,
-        /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 10) */
+        /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */
         intensity?: number,
         /** The color of the ambient occlusion. (default: black) */
         color?: Color,
