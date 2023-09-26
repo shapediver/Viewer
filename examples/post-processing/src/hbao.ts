@@ -33,8 +33,8 @@ import {
             resolutionScale: 1,
             /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
             spp: 8,
-            /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
-            distance: 2,
+            /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
+            distance: 1,
             /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
             distanceIntensity: 1,
             /** A purely artistic control for the intensity of the AO - runs the ao through the function pow(ao, intensity), which has the effect of darkening areas with more ambient occlusion. (default: 5) */

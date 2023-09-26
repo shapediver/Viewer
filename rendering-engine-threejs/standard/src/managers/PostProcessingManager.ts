@@ -29,6 +29,9 @@ import {
 } from 'postprocessing';
 import {
     Converter,
+    EventEngine,
+    EVENTTYPE,
+    IEvent,
     SettingsEngine,
     SystemInfo,
     UuidGenerator
@@ -62,13 +65,17 @@ import { OutlineManager } from './postprocessing/OutlineManager';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
-const REALISM_EFFECTS: any = require('realism-effects');
+import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
+import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
+import { ISceneEvent } from '@shapediver/viewer.shared.types';
+import { vec3 } from 'gl-matrix';
 
 
 export class PostProcessingManager implements IManager {
     // #region Properties (19)
 
     private readonly _converter: Converter = Converter.instance;
+    private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
@@ -99,12 +106,21 @@ export class PostProcessingManager implements IManager {
     } = {};
     private _smaaEffect!: SMAAEffect;
     private _ssaaRenderPass!: SSAARenderPass;
+    private _sceneExtents = 0;
 
     // #endregion Properties (19)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) { }
+    constructor(private readonly _renderingEngine: RenderingEngine) {
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
+            const viewerEvent = <ISceneEvent>e;
+            if (viewerEvent.viewportId === this._renderingEngine.id) {
+                this._sceneExtents = vec3.distance(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
+                this.changeEffectPass();
+            }
+        });
+    }
 
     // #endregion Constructors (1)
 
@@ -346,10 +362,15 @@ export class PostProcessingManager implements IManager {
                         if(this._systemInfo.isMobile === true) break;
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
                         const properties = definition.properties || {};
-                        const hbaoEffect = new REALISM_EFFECTS.HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+
+                        // we adjust the scene size slightly to make the factor fit our requirements
+                        // with this adjusted factor, a distance value of 1 fits well as a default
+                        const sceneSizeFactor = this._sceneExtents / 10.0;
+
+                        const hbaoEffect = new HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
                             spp: properties.spp !== undefined ? properties.spp : 8,
-                            distance: properties.distance !== undefined ? properties.distance : 2,
+                            distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
                             power: properties.intensity !== undefined ? properties.intensity : 5,
                             bias: properties.bias !== undefined ? properties.bias : 10,
@@ -438,10 +459,15 @@ export class PostProcessingManager implements IManager {
                         if(this._systemInfo.isMobile === true) break;
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
                         const properties = definition.properties || {};
-                        const ssaoEffect = new REALISM_EFFECTS.SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
+
+                        // we adjust the scene size slightly to make the factor fit our requirements
+                        // with this adjusted factor, a distance value of 1 fits well as a default
+                        const sceneSizeFactor = this._sceneExtents / 50.0;
+
+                        const ssaoEffect = new SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
                             spp: properties.spp !== undefined ? properties.spp : 8,
-                            distance: properties.distance !== undefined ? properties.distance : 3,
+                            distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 0.5,
                             power: properties.intensity !== undefined ? properties.intensity : 10,
                             color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color("black"),
@@ -619,7 +645,7 @@ export class PostProcessingManager implements IManager {
                 return {
                     resolutionScale: 1,
                     spp: 8,
-                    distance: 2,
+                    distance: 1,
                     distanceIntensity: 1,
                     intensity: 5,
                     color: '#000000',
@@ -667,7 +693,7 @@ export class PostProcessingManager implements IManager {
                 return {
                     resolutionScale: 1,
                     spp: 8,
-                    distance: 3,
+                    distance: 1,
                     distanceIntensity: 0.5,
                     intensity: 10,
                     color: '#000000',

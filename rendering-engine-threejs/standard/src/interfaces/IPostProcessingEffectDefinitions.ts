@@ -164,7 +164,7 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
         resolutionScale?: number,
         /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
         spp?: number,
-        /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
+        /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
         distance?: number,
         /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
         distanceIntensity?: number,
@@ -279,7 +279,7 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
         resolutionScale?: number,
         /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
         spp?: number,
-        /** Controls the radius/size of the ambient occlusion in world units. (default: 3) */
+        /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
         distance?: number,
         /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 0.5) */
         distanceIntensity?: number,
