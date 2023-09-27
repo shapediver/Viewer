@@ -12,7 +12,7 @@ export class OutlineManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _outlineEffect: OutlineEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine, private _outlineEffect: OutlineEffect) { }
 
     // #endregion Constructors (1)
 
@@ -35,6 +35,11 @@ export class OutlineManager {
 
         this.updateOutlineEffectObjects();
         return index !== -1;
+    }
+
+    public setEffect(outlineEffect: OutlineEffect) {
+        outlineEffect.selection = this._outlineEffect.selection;
+        this._outlineEffect = outlineEffect;
     }
 
     public updateOutlineEffectObjects() {

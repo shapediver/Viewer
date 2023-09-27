@@ -344,7 +344,12 @@ export class PostProcessingManager implements IManager {
                             token: this._effectDefinitions[i].token,
                             effect: godRaysEffect
                         });
-                        this._godRaysManagers[this._effectDefinitions[i].token] = new GodRaysManager(this._renderingEngine, godRaysEffect);
+
+                        if(!this._godRaysManagers[this._effectDefinitions[i].token]) {
+                            this._godRaysManagers[this._effectDefinitions[i].token] = new GodRaysManager(this._renderingEngine, godRaysEffect);
+                        } else {
+                            this._godRaysManagers[this._effectDefinitions[i].token].setEffect(godRaysEffect);
+                        }
                     }
                     break;
 
@@ -443,7 +448,12 @@ export class PostProcessingManager implements IManager {
                             token: this._effectDefinitions[i].token,
                             effect: outlineEffect
                         });
-                        this._outlineManagers[this._effectDefinitions[i].token] = new OutlineManager(this._renderingEngine, outlineEffect);
+
+                        if(!this._outlineManagers[this._effectDefinitions[i].token]) {
+                            this._outlineManagers[this._effectDefinitions[i].token] = new OutlineManager(this._renderingEngine, outlineEffect);
+                        } else {
+                            this._outlineManagers[this._effectDefinitions[i].token].setEffect(outlineEffect);
+                        }
                     }
                     break;
 
@@ -521,7 +531,12 @@ export class PostProcessingManager implements IManager {
                             token: this._effectDefinitions[i].token,
                             effect: selectiveBloomEffect
                         });
-                        this._selectiveBloomManagers[this._effectDefinitions[i].token] = new SelectiveBloomManager(this._renderingEngine, selectiveBloomEffect);
+
+                        if(!this._selectiveBloomManagers[this._effectDefinitions[i].token]) {
+                            this._selectiveBloomManagers[this._effectDefinitions[i].token] = new SelectiveBloomManager(this._renderingEngine, selectiveBloomEffect);
+                        } else {
+                            this._selectiveBloomManagers[this._effectDefinitions[i].token].setEffect(selectiveBloomEffect);
+                        }
                     }
                     break;
 

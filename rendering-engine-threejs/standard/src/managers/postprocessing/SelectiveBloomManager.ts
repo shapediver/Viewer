@@ -12,7 +12,7 @@ export class SelectiveBloomManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _selectiveBloomEffect: SelectiveBloomEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine, private _selectiveBloomEffect: SelectiveBloomEffect) { }
 
     // #endregion Constructors (1)
 
@@ -35,6 +35,11 @@ export class SelectiveBloomManager {
 
         this.updateSelectiveBloomEffectObjects();
         return index !== -1;
+    }
+
+    public setEffect(selectiveBloomEffect: SelectiveBloomEffect) {
+        selectiveBloomEffect.selection = this._selectiveBloomEffect.selection;
+        this._selectiveBloomEffect = selectiveBloomEffect;
     }
 
     public updateSelectiveBloomEffectObjects() {

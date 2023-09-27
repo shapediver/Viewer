@@ -7,11 +7,16 @@ export class GodRaysManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _godRaysEffect: GodRaysEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine, private _godRaysEffect: GodRaysEffect) { }
 
     // #endregion Constructors (1)
 
     // #region Public Methods (4)
+
+    public setEffect(godRaysEffect: GodRaysEffect) {
+        godRaysEffect.lightSource = this._godRaysEffect.lightSource;
+        this._godRaysEffect = godRaysEffect;
+    }
 
     public setLightSource(node: ITreeNode): void {
         let lightSource: THREE.Mesh | THREE.Points | null = null;
