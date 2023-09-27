@@ -1,6 +1,6 @@
 export const ao_compose = `
 uniform sampler2D inputTexture;
-uniform sampler2D depthTexture;
+uniform highp sampler2D depthTexture;
 uniform float power;
 uniform vec3 color;
 
