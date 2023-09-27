@@ -2,7 +2,7 @@ export const poissionDenoise = `
 varying vec2 vUv;
 
 uniform sampler2D inputTexture;
-uniform sampler2D depthTexture;
+uniform highp sampler2D depthTexture;
 uniform sampler2D normalTexture;
 uniform mat4 projectionMatrixInverse;
 uniform mat4 cameraMatrixWorld;
