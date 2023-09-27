@@ -107,6 +107,7 @@ export class PostProcessingManager implements IManager {
     private _smaaEffect!: SMAAEffect;
     private _ssaaRenderPass!: SSAARenderPass;
     private _sceneExtents = 0;
+    private _suspendEffectPassUpdate = false;
 
     // #endregion Properties (19)
 
@@ -208,6 +209,8 @@ export class PostProcessingManager implements IManager {
     }
 
     public applySettings(settingsEngine: SettingsEngine) {
+        this._suspendEffectPassUpdate = true;
+
         this.antiAliasingTechnique = settingsEngine.settings.postprocessing.antiAliasingTechnique as ANTI_ALIASING_TECHNIQUE;
         this.antiAliasingTechniqueMobile = settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile as ANTI_ALIASING_TECHNIQUE;
         this.enablePostProcessingOnMobile = settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
@@ -225,10 +228,12 @@ export class PostProcessingManager implements IManager {
                 }
             });
         }
+        this._suspendEffectPassUpdate = false;
         this.changeEffectPass();
     }
 
     public changeEffectPass() {
+        if (this._suspendEffectPassUpdate === true) return;
         if (this._systemInfo.isMobile === true && this._enablePostProcessingOnMobile === false) return;
         if (this._manualPostProcessing) return;
 

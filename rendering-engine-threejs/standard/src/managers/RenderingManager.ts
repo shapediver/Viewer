@@ -382,7 +382,7 @@ export class RenderingManager implements IManager {
             return;
         } else {
             // we delay for one render call as some of the postprocessing effects have artefacts in the first call
-            if(this._hideLogo === true) {
+            if(this._hideLogo === true && this._hidden === true) {
                 this.toggleLogo(false);
                 this._hideLogo = false;
 
@@ -392,6 +392,8 @@ export class RenderingManager implements IManager {
                 this._hidden = false;
             } else {
                 this._hideLogo = true;
+                if(this._hidden === true)
+                    this._renderingEngine.postProcessingManager.changeEffectPass();
             }
         }
 
