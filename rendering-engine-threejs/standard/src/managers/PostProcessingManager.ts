@@ -369,6 +369,9 @@ export class PostProcessingManager implements IManager {
 
                 case POST_PROCESSING_EFFECT_TYPE.HBAO:
                     {
+                        // we currently do not support devices with WebGL 1: https://shapediver.atlassian.net/browse/SS-7069
+                        if(this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
+                        
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
                         const properties = definition.properties || {};
 
@@ -470,6 +473,9 @@ export class PostProcessingManager implements IManager {
 
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
+                        // we currently do not support devices with WebGL 1: https://shapediver.atlassian.net/browse/SS-7069
+                        if(this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
+                        
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
                         const properties = definition.properties || {};
 
