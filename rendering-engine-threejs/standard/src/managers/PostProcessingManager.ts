@@ -121,6 +121,15 @@ export class PostProcessingManager implements IManager {
                 this.changeEffectPass();
             }
         });
+
+        const token = this._uuidGenerator.create();
+        this._effectDefinitions.push({
+            token,
+            definition: {
+                type: POST_PROCESSING_EFFECT_TYPE.SSAO,
+                properties: this.getDefaultEffectProperties(POST_PROCESSING_EFFECT_TYPE.SSAO)
+            }
+        });
     }
 
     // #endregion Constructors (1)
@@ -216,6 +225,7 @@ export class PostProcessingManager implements IManager {
         this.enablePostProcessingOnMobile = settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
         this.ssaaSampleLevel = settingsEngine.settings.postprocessing.ssaaSampleLevel;
 
+        this._effectDefinitions = [];
         const effects = settingsEngine.settings.postprocessing.effects;
         for(let i = 0; i < effects.length; i++) {
             const token = this._uuidGenerator.create();
