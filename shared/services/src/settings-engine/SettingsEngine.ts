@@ -97,7 +97,7 @@ export class SettingsEngine {
         this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
 
-            const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2', '3.3', '3.4'];
+            const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0'];
             for(let i = 0; i < prevVersions.length; i++) {
                 const v = prevVersions[i];
 

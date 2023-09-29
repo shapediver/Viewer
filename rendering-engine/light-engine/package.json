@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.10.1-rc.2",
-    "@shapediver/viewer.settings": "0.5.5",
+    "@shapediver/viewer.settings": "0.5.6",
     "@shapediver/viewer.shared.node-tree": "2.10.1-rc.2",
     "@shapediver/viewer.shared.services": "2.10.1-rc.2",
     "@shapediver/viewer.shared.types": "2.10.1-rc.2",
