@@ -135,7 +135,6 @@ export class PoissionDenoisePass extends Pass {
 	// #region Public Methods (4)
 
 	public generateDenoiseSamples(numSamples: number, numRings: number, r: number, texelSize: Vector2) {
-
 		const angleStep = (2 * Math.PI * numRings) / numSamples;
 		const invNumSamples = 1.0 / numSamples;
 		const radiusStep = invNumSamples;
@@ -153,7 +152,6 @@ export class PoissionDenoisePass extends Pass {
 			radius += radiusStep;
 			angle += angleStep;
 		}
-		console.log("DEBUG OUTPUT: Poission Disk", samples, numSamples, numRings, r, texelSize);
 
 		return samples;
 	}
