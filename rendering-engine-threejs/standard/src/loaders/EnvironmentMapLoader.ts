@@ -2,9 +2,9 @@ import * as THREE from 'three'
 import { Logger, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
-import { RGBELoader } from '../three/loaders/RGBELoader';
 import { ILoader } from '../interfaces/ILoader'
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 
 export enum ENVIRONMENT_MAP_CUBE {
     DEFAULT = 'default', 
