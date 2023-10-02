@@ -36,7 +36,7 @@ export interface IPostProcessingApi {
      * 
      * Note: The post-processing API is still WIP. Breaking changes are to be expected.
      */
-    readonly effectComposer: EffectComposer;
+    readonly effectComposer: EffectComposer  | undefined;
 
     /**
      * If the post-processing effects should be enabled on mobile. (default: true)
@@ -212,6 +212,12 @@ export interface IPostProcessingApi {
      * @param token 
      */
     getEffect(token: string): Effect;
+
+    /**
+     * Get all currently specified effects in a dictionary with the token as a key and 
+     * the type as a value.
+     */
+    getEffectTokens(): { [key: string]: POST_PROCESSING_EFFECT_TYPE};
 
     /**
      * Get a description of the post-processing effects that are current applied.
