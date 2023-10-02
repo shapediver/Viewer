@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.421.0",
     "@types/chromedriver": "^81.0.1",
     "@types/jest": "^27.4.1",
     "@types/jest-image-snapshot": "^4.3.1",
@@ -11,7 +12,6 @@
     "@types/selenium-webdriver": "^4.0.19",
     "@typescript-eslint/parser": "^5.57.0",
     "@typescript-eslint/eslint-plugin":  "^5.57.0",
-    "aws-sdk": "^2.1121.0",
     "chargebee-typescript": "^2.8.0",
     "chromedriver": "^116.0.0",
     "chromium": "^3.0.3",

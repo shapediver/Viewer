@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import * as fs from 'fs';
-import AWS from 'aws-sdk';
+import { S3 } from '@aws-sdk/client-s3';
 import pako from 'pako';
 
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 const recursiveReadSync = require('recursive-readdir-sync');
-const s3 = new AWS.S3({ maxRetries: 5 });
+const s3 = new S3({ maxAttempts: 5, region: 'us-east-1' });
 const readline = require('readline');
 const bucketName = 'shapediverviewer';
 const prefixLatest = 'v3/latest';
@@ -20,7 +21,7 @@ export const execPromise = (cmd: string): Promise<string> => {
             console.log(data); 
         });
     });
-}
+};
 
 export const getDirectories = async (source: string) =>
     (await fs.promises.readdir(source, { withFileTypes: true }))
@@ -42,7 +43,7 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
                 CacheControl: 'max-age=3600',
                 ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
+            }, (err) => { if (err) console.log(err); });
         });
     }
 
@@ -58,10 +59,10 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
                 CacheControl: 'max-age=3600',
                 ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
+            }, (err) => { if (err) console.log(err); });
         });
     }
-}
+};
 
 export const readAnswer = async (question: string): Promise<string> => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -71,7 +72,7 @@ export const readAnswer = async (question: string): Promise<string> => {
             resolve(answer);
         });
     });
-} 
+}; 
 
 export const readAnswerOptions = async (question: string, options: string[]): Promise<string> => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -81,8 +82,8 @@ export const readAnswerOptions = async (question: string, options: string[]): Pr
             if (options.includes(answer)) {
                 resolve(answer);
             } else {
-                reject('Not a valid example.')
+                reject('Not a valid example.');
             }    
         });
     });
-} 
+}; 
