@@ -49,7 +49,7 @@ export class PostProcessingApi implements IPostProcessingApi {
         this.#viewportApi.update();
     }
 
-    public get effectComposer(): EffectComposer {
+    public get effectComposer(): EffectComposer | undefined {
         return this.#renderingEngine.postProcessingManager.effectComposer;
     }
     
@@ -143,6 +143,10 @@ export class PostProcessingApi implements IPostProcessingApi {
         this.#inputValidator.validateAndError(`PostProcessingApi.${scope}`, token, 'string');
         this.#logger.debug(`PostProcessingApi.${scope}: ${scope} was called with token ${token}.`);
         return this.#renderingEngine.postProcessingManager.getEffect(token);
+    }
+
+    public getEffectTokens(): { [key: string]: POST_PROCESSING_EFFECT_TYPE} {
+        return this.#renderingEngine.postProcessingManager.getEffectTokens();
     }
 
     public getPostProcessingEffectsArray(): IPostProcessingEffectsArray {
