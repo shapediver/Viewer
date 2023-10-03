@@ -56,6 +56,7 @@
     "publish": "ts-node ./scripts/publishing/publish.ts",
     "publish-no-tests": "ts-node ./scripts/publishing/publish-no-tests.ts",
     "deploy-doc-version": "ts-node ./scripts/deploying/deploy-doc-version.ts",
+    "deploy-example": "ts-node ./scripts/deploying/deploy-example.ts",
     "deploy-tests": "ts-node ./scripts/deploying/deploy-tests.ts",
     "deploy-and-test": "ts-node ./scripts/testing/deploy-and-test.ts",
     "doc": "lerna run doc",
