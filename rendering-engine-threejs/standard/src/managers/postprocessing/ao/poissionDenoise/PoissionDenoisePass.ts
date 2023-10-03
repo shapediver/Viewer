@@ -148,6 +148,12 @@ export class PoissionDenoisePass extends Pass {
 				.multiply(texelSize)
 				.multiplyScalar(r);
 
+			if(isNaN(v.x) || v.x === Infinity || v.x === -Infinity)
+				v.x = 0;
+
+			if(isNaN(v.y) || v.y === Infinity || v.y === -Infinity)
+				v.y = 0;
+
 			samples.push(v);
 			radius += radiusStep;
 			angle += angleStep;
