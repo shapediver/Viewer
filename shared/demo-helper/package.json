@@ -1,6 +1,6 @@
 {
-  "name": "@shapediver/viewer.utils.texture-unifier",
-  "version": "1.0.4",
+  "name": "@shapediver/viewer.shared.demo-helper",
+  "version": "2.10.1-rc.4",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,9 +38,8 @@
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
-  "dependencies": {
-    "@types/three": "0.152.0",
-    "three": "0.152.2"
+  "peerDependencies": {
+    "@shapediver/viewer": "2.10.1-rc.4"
   },
   "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
 }
