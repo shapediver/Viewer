@@ -4,8 +4,8 @@ import { HttpClient, Logger, Converter, StateEngine, ShapeDiverViewerDataProcess
 import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData, PRIMITIVE_MODE } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from './three/geometries/TextGeometry'
+import { Font } from './three/loaders/FontLoader';
 import { font } from './font'
 
 export class Tag3dEngine {
