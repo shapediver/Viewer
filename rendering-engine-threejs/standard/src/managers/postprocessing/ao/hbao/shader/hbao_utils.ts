@@ -44,18 +44,40 @@ vec3 slerp(const vec3 a, const vec3 b, const float t) {
     return (a * t1) + (b * t2);
 }
 
+vec2 getTextureSize(sampler2D tex) {
+    float w = float(texture2D(tex, vec2(0.5, 0)).r);
+    float h = float(texture2D(tex, vec2(0, 0.5)).r);
+    return vec2(w, h);
+}
+
 vec3 computeWorldNormal() {
-    vec2 size = vec2(textureSize(depthTexture, 0));
-    ivec2 p = ivec2(vUv * size);
-    float c0 = texelFetch(depthTexture, p, 0).x;
-    float l2 = texelFetch(depthTexture, p - ivec2(2, 0), 0).x;
-    float l1 = texelFetch(depthTexture, p - ivec2(1, 0), 0).x;
-    float r1 = texelFetch(depthTexture, p + ivec2(1, 0), 0).x;
-    float r2 = texelFetch(depthTexture, p + ivec2(2, 0), 0).x;
-    float b2 = texelFetch(depthTexture, p - ivec2(0, 2), 0).x;
-    float b1 = texelFetch(depthTexture, p - ivec2(0, 1), 0).x;
-    float t1 = texelFetch(depthTexture, p + ivec2(0, 1), 0).x;
-    float t2 = texelFetch(depthTexture, p + ivec2(0, 2), 0).x;
+    
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        vec2 size = vec2(textureSize(depthTexture, 0));
+        ivec2 p = ivec2(vUv * size);
+        float c0 = texelFetch(depthTexture, p, 0).x;
+        float l2 = texelFetch(depthTexture, p - ivec2(2, 0), 0).x;
+        float l1 = texelFetch(depthTexture, p - ivec2(1, 0), 0).x;
+        float r1 = texelFetch(depthTexture, p + ivec2(1, 0), 0).x;
+        float r2 = texelFetch(depthTexture, p + ivec2(2, 0), 0).x;
+        float b2 = texelFetch(depthTexture, p - ivec2(0, 2), 0).x;
+        float b1 = texelFetch(depthTexture, p - ivec2(0, 1), 0).x;
+        float t1 = texelFetch(depthTexture, p + ivec2(0, 1), 0).x;
+        float t2 = texelFetch(depthTexture, p + ivec2(0, 2), 0).x;
+    #else // GLSL 1.0
+        vec2 size = getTextureSize(depthTexture);
+        vec2 p = vec2(vUv * size);
+        float c0 = texture2D(depthTexture, p).x;
+        float l2 = texture2D(depthTexture, p - vec2(2, 0)).x;
+        float l1 = texture2D(depthTexture, p - vec2(1, 0)).x;
+        float r1 = texture2D(depthTexture, p + vec2(1, 0)).x;
+        float r2 = texture2D(depthTexture, p + vec2(2, 0)).x;
+        float b2 = texture2D(depthTexture, p - vec2(0, 2)).x;
+        float b1 = texture2D(depthTexture, p - vec2(0, 1)).x;
+        float t1 = texture2D(depthTexture, p + vec2(0, 1)).x;
+        float t2 = texture2D(depthTexture, p + vec2(0, 2)).x;
+    #endif
+
     float dl = abs((2.0 * l1 - l2) - c0);
     float dr = abs((2.0 * r1 - r2) - c0);
     float db = abs((2.0 * b1 - b2) - c0);
@@ -92,4 +114,4 @@ vec3 cosineSampleHemisphere(const vec3 n, const vec2 u) {
     return normalize(r * sin(theta) * b + sqrt(1.0 - u.x) * n + r * cos(theta) * t);
 }
 
-`
+`;

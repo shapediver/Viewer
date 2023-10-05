@@ -36,7 +36,7 @@ vec3 getNormal(vec2 uv, vec4 texel) {
     // in case the normal is stored in the RGB channels of the texture
     return texel.rgb;
 #else
-    return normalize(textureLod(normalTexture, uv, 0.).xyz * 2.0 - 1.0);
+    return normalize(texture2D(normalTexture, uv).xyz * 2.0 - 1.0);
 #endif
 }
 
@@ -48,14 +48,26 @@ float distToPlane(const vec3 worldPos, const vec3 neighborWorldPos, const vec3 w
 }
 
 void main() {
-    vec4 depthTexel = textureLod(depthTexture, vUv, 0.);
+    #if __VERSION__ < 130
+        initializePoissonDisk();
+    #endif
+
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        vec4 depthTexel = textureLod(depthTexture, vUv, 0.);
+    #else // GLSL 1.0
+        vec4 depthTexel = texture2D(depthTexture, vUv);
+    #endif
 
     if (depthTexel.r == 1.0 || dot(depthTexel.rgb, depthTexel.rgb) == 0.) {
         discard;
         return;
     }
 
-    vec4 texel = textureLod(inputTexture, vUv, 0.0);
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        vec4 texel = textureLod(inputTexture, vUv, 0.0);
+    #else // GLSL 1.0
+        vec4 texel = texture2D(inputTexture, vUv);
+    #endif
 
     vec3 normal = getNormal(vUv, texel);
 
@@ -73,7 +85,21 @@ void main() {
     float totalWeight = 1.0;
 
     vec4 blueNoise = sampleBlueNoise(blueNoiseTexture, 0, blueNoiseRepeat, resolution);
-    float angle = blueNoise[index];
+
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        float angle = blueNoise[index];
+    #else // GLSL 1.0
+        float angle;
+        if (index == 0) {
+            angle = blueNoise[0];
+        } else if (index == 1) {
+            angle = blueNoise[1];
+        } else if (index == 2) {
+            angle = blueNoise[2];
+        } else if (index == 3) {
+            angle = blueNoise[3];
+        }
+    #endif
 
     float s = sin(angle), c = cos(angle);
 
@@ -83,7 +109,11 @@ void main() {
         vec2 offset = rotationMatrix * poissonDisk[i];
         vec2 neighborUv = vUv + offset;
 
-        vec4 neighborTexel = textureLod(inputTexture, neighborUv, 0.0);
+        #if __VERSION__ >= 130 // GLSL 3.0 or higher
+            vec4 neighborTexel = textureLod(inputTexture, neighborUv, 0.0);
+        #else // GLSL 1.0
+            vec4 neighborTexel = texture2D(inputTexture, neighborUv);
+        #endif
 
         vec3 neighborNormal = getNormal(neighborUv, neighborTexel);
 #ifdef NORMAL_IN_RGB
@@ -92,7 +122,11 @@ void main() {
         vec3 neighborColor = neighborTexel.rgb;
 #endif
 
-        float sampleDepth = textureLod(depthTexture, neighborUv, 0.0).x;
+        #if __VERSION__ >= 130 // GLSL 3.0 or higher
+            float sampleDepth = textureLod(depthTexture, neighborUv, 0.0).x;
+        #else // GLSL 1.0
+            float sampleDepth = texture2D(depthTexture, neighborUv).x;
+        #endif
 
         vec3 worldPosSample = getWorldPos(sampleDepth, neighborUv);
         float tangentPlaneDist = abs(dot(worldPos - worldPosSample, normal));
@@ -124,4 +158,4 @@ void main() {
     gl_FragColor = vec4(denoised, 1.);
 #endif
 }
-`
+`;

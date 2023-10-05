@@ -21,7 +21,11 @@ vec4 sampleBlueNoise(sampler2D texture, int seed, vec2 repeat, vec2 texSize) {
     vec2 blueNoiseUv = vUv * repeat;
 
     // fetch blue noise for this pixel
-    vec4 blueNoise = textureLod(texture, blueNoiseUv, 0.);
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        vec4 blueNoise = textureLod(texture, blueNoiseUv, 0.);
+    #else // GLSL 1.0
+        vec4 blueNoise = texture2D(texture, blueNoiseUv);
+    #endif
 
     // animate blue noise
     if (seed != 0) {
@@ -35,4 +39,4 @@ vec4 sampleBlueNoise(sampler2D texture, int seed, vec2 repeat, vec2 texSize) {
 
     return blueNoise;
 }
-`
+`;

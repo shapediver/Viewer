@@ -32,7 +32,11 @@ float getOcclusion(const vec3 cameraPosition, const vec3 worldPos, const vec3 wo
     sampleUv.xy = sampleUv.xy * 0.5 + 0.5;
 
     // Get the depth of the sample position
-    float sampleDepth = textureLod(depthTexture, sampleUv.xy, 0.0).r;
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        float sampleDepth = textureLod(depthTexture, sampleUv.xy, 0.0).r;
+    #else // GLSL 1.0
+        float sampleDepth = texture2D(depthTexture, sampleUv.xy).r;
+    #endif
 
     // Compute the horizon line
     float deltaDepth = depth - sampleDepth;
@@ -63,7 +67,11 @@ float getOcclusion(const vec3 cameraPosition, const vec3 worldPos, const vec3 wo
 }
 
 void main() {
-    float depth = textureLod(depthTexture, vUv, 0.0).r;
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        float depth = textureLod(depthTexture, vUv, 0.0).r;
+    #else // GLSL 1.0
+        float depth = texture2D(depthTexture, vUv).r;
+    #endif
 
     // filter out background
     if (depth == 1.0) {
@@ -95,4 +103,4 @@ void main() {
 
     gl_FragColor = vec4(worldNormal, ao);
 }
-`
+`;

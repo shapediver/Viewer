@@ -165,22 +165,45 @@ export class PoissionDenoisePass extends Pass {
 	public generatePoissonDiskConstant(poissonDisk: Vector2[]) {
 		const samples = poissonDisk.length;
 
-		let glslCode = 'const vec2 poissonDisk[samples] = vec2[samples](\n';
+		/**
+		 * Code for GLSL 1
+		 */
+		
+		let glsl1Code = `vec2 poissonDisk[${this.samples}];\n\nvoid initializePoissonDisk() {\n`;
 
 		for (let i = 0; i < samples; i++) {
 			const sample = poissonDisk[i];
-			glslCode += `    vec2(${sample.x}, ${sample.y})`;
-
-			if (i < samples - 1) {
-				glslCode += ',';
-			}
-
-			glslCode += '\n';
+			glsl1Code += `\tpoissonDisk[${i}] = vec2(${sample.x}, ${sample.y});\n`;
 		}
 
-		glslCode += ');';
+		glsl1Code += '}';
 
-		return glslCode;
+		/**
+		 * Code for GLSL 3
+		 */
+
+		let glsl3Code = 'const vec2 poissonDisk[samples] = vec2[samples](\n';
+
+		for (let i = 0; i < samples; i++) {
+			const sample = poissonDisk[i];
+			glsl3Code += `    vec2(${sample.x}, ${sample.y})`;
+
+			if (i < samples - 1) {
+				glsl3Code += ',';
+			}
+
+			glsl3Code += '\n';
+		}
+
+		glsl3Code += ');';
+
+		return `
+		#if __VERSION__ >= 130 // GLSL 3.0 or higher
+            ${glsl3Code}
+        #else // GLSL 1.0
+			${glsl1Code}
+        #endif
+		`;
 	}
 
 	public render(renderer: WebGLRenderer) {

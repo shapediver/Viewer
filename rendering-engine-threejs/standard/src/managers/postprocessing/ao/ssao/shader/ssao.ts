@@ -37,18 +37,38 @@ vec3 getWorldPos(const float depth, const vec2 coord) {
     return worldSpacePosition.xyz;
 }
 
+vec2 getTextureSize(sampler2D tex) {
+    float w = float(texture2D(tex, vec2(0.5, 0)).r);
+    float h = float(texture2D(tex, vec2(0, 0.5)).r);
+    return vec2(w, h);
+}
+
 vec3 computeNormal(vec3 worldPos, vec2 vUv) {
-    vec2 size = vec2(textureSize(depthTexture, 0));
-    ivec2 p = ivec2(vUv * size);
-    float c0 = texelFetch(depthTexture, p, 0).x;
-    float l2 = texelFetch(depthTexture, p - ivec2(2, 0), 0).x;
-    float l1 = texelFetch(depthTexture, p - ivec2(1, 0), 0).x;
-    float r1 = texelFetch(depthTexture, p + ivec2(1, 0), 0).x;
-    float r2 = texelFetch(depthTexture, p + ivec2(2, 0), 0).x;
-    float b2 = texelFetch(depthTexture, p - ivec2(0, 2), 0).x;
-    float b1 = texelFetch(depthTexture, p - ivec2(0, 1), 0).x;
-    float t1 = texelFetch(depthTexture, p + ivec2(0, 1), 0).x;
-    float t2 = texelFetch(depthTexture, p + ivec2(0, 2), 0).x;
+    vec2 size = getTextureSize(depthTexture);
+
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        ivec2 p = ivec2(vUv * size);
+        float c0 = texelFetch(depthTexture, p, 0).x;
+        float l2 = texelFetch(depthTexture, p - ivec2(2, 0), 0).x;
+        float l1 = texelFetch(depthTexture, p - ivec2(1, 0), 0).x;
+        float r1 = texelFetch(depthTexture, p + ivec2(1, 0), 0).x;
+        float r2 = texelFetch(depthTexture, p + ivec2(2, 0), 0).x;
+        float b2 = texelFetch(depthTexture, p - ivec2(0, 2), 0).x;
+        float b1 = texelFetch(depthTexture, p - ivec2(0, 1), 0).x;
+        float t1 = texelFetch(depthTexture, p + ivec2(0, 1), 0).x;
+        float t2 = texelFetch(depthTexture, p + ivec2(0, 2), 0).x;
+    #else // GLSL 1.0
+        vec2 p = vec2(vUv * size);
+        float c0 = texture2D(depthTexture, p).x;
+        float l2 = texture2D(depthTexture, p - vec2(2, 0)).x;
+        float l1 = texture2D(depthTexture, p - vec2(1, 0)).x;
+        float r1 = texture2D(depthTexture, p + vec2(1, 0)).x;
+        float r2 = texture2D(depthTexture, p + vec2(2, 0)).x;
+        float b2 = texture2D(depthTexture, p - vec2(0, 2)).x;
+        float b1 = texture2D(depthTexture, p - vec2(0, 1)).x;
+        float t1 = texture2D(depthTexture, p + vec2(0, 1)).x;
+        float t2 = texture2D(depthTexture, p + vec2(0, 2)).x;
+    #endif
     float dl = abs((2.0 * l1 - l2) - c0);
     float dr = abs((2.0 * r1 - r2) - c0);
     float db = abs((2.0 * b1 - b2) - c0);
@@ -66,8 +86,12 @@ highp float linearize_depth(highp float d, highp float zNear, highp float zFar) 
     return 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
 }
 
-void main() {
-    float depth = textureLod(depthTexture, vUv, 0.).x;
+void main() {    
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        float depth = textureLod(depthTexture, vUv, 0.).x;
+    #else // GLSL 1.0
+        float depth = texture2D(depthTexture, vUv).r;
+    #endif
 
     // filter out background
     if (depth == 1.0) {
@@ -111,7 +135,11 @@ void main() {
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
 
-        float sampleDepth = textureLod(depthTexture, offset.xy, 0.0).x;
+        #if __VERSION__ >= 130 // GLSL 3.0 or higher
+            float sampleDepth = textureLod(depthTexture, offset.xy, 0.0).x;
+        #else // GLSL 1.0
+            float sampleDepth = texture2D(depthTexture, offset.xy).x;
+        #endif
 
         float distSample = linearize_depth(sampleDepth, cameraNear, cameraFar);
         float distWorld = linearize_depth(offset.z, cameraNear, cameraFar);
@@ -127,4 +155,4 @@ void main() {
     float occ = clamp(1.0 - occluded / totalWeight, 0.0, 1.0);
     gl_FragColor = vec4(normal, occ);
 }
-`
+`;
