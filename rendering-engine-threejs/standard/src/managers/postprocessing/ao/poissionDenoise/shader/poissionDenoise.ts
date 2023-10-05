@@ -36,7 +36,11 @@ vec3 getNormal(vec2 uv, vec4 texel) {
     // in case the normal is stored in the RGB channels of the texture
     return texel.rgb;
 #else
-    return normalize(texture2D(normalTexture, uv).xyz * 2.0 - 1.0);
+    #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        return normalize(textureLod(normalTexture, uv, 0.).xyz * 2.0 - 1.0);
+    #else // GLSL 1.0
+        return normalize(texture2D(normalTexture, uv).xyz * 2.0 - 1.0);
+    #endif
 #endif
 }
 

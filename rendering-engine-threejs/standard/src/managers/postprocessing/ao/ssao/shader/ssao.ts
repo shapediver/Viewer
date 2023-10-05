@@ -38,15 +38,15 @@ vec3 getWorldPos(const float depth, const vec2 coord) {
 }
 
 vec2 getTextureSize(sampler2D tex) {
-    float w = float(texture2D(tex, vec2(0.5, 0)).r);
-    float h = float(texture2D(tex, vec2(0, 0.5)).r);
+    float w = float(texture2D(tex, vec2(0.5, 0)).x);
+    float h = float(texture2D(tex, vec2(0, 0.5)).x);
     return vec2(w, h);
 }
 
 vec3 computeNormal(vec3 worldPos, vec2 vUv) {
-    vec2 size = getTextureSize(depthTexture);
-
     #if __VERSION__ >= 130 // GLSL 3.0 or higher
+        vec2 size = getTextureSize(depthTexture);
+        //vec2 size = vec2(textureSize(depthTexture, 0));
         ivec2 p = ivec2(vUv * size);
         float c0 = texelFetch(depthTexture, p, 0).x;
         float l2 = texelFetch(depthTexture, p - ivec2(2, 0), 0).x;
@@ -58,6 +58,7 @@ vec3 computeNormal(vec3 worldPos, vec2 vUv) {
         float t1 = texelFetch(depthTexture, p + ivec2(0, 1), 0).x;
         float t2 = texelFetch(depthTexture, p + ivec2(0, 2), 0).x;
     #else // GLSL 1.0
+        vec2 size = getTextureSize(normalTexture);
         vec2 p = vec2(vUv * size);
         float c0 = texture2D(depthTexture, p).x;
         float l2 = texture2D(depthTexture, p - vec2(2, 0)).x;
