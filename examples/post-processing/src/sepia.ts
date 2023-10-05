@@ -6,7 +6,7 @@ import {
     ISepiaEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
 } from '@shapediver/viewer';
-import { createCustomUi, IDropdownElement } from '@shapediver/viewer.utils.demo-helper';
+import { createCustomUi, IDropdownElement } from '@shapediver/viewer.shared.demo-helper';
 
 (<any>window).SDV = SDV;
 

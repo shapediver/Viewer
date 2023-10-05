@@ -38,8 +38,8 @@
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
-  "peerDependencies": {
-    "@shapediver/viewer": "2.10.1-rc.4"
+  "dependencies": {
+    "@shapediver/viewer": "2.10.1-rc.5"
   },
   "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
 }

@@ -6,7 +6,7 @@ import {
     IGridEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
 } from '@shapediver/viewer';
-import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
+import { createCustomUi, IDropdownElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
 
 (<any>window).SDV = SDV;
 

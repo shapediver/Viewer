@@ -1,5 +1,5 @@
 import * as SDV from '@shapediver/viewer';
-import { createCustomUi, ISliderElement } from '@shapediver/viewer.utils.demo-helper';
+import { createCustomUi, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
 import {
     createSession,
     createViewport,

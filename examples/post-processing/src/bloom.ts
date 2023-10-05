@@ -11,7 +11,7 @@ import {
     IBooleanElement,
     IDropdownElement,
     ISliderElement
-} from '@shapediver/viewer.utils.demo-helper';
+} from '@shapediver/viewer.shared.demo-helper';
 import { IBloomEffectDefinition } from '@shapediver/viewer';
 
 (<any>window).SDV = SDV;

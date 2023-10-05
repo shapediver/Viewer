@@ -39,7 +39,7 @@ import {
     ITaskEvent,
     TASK_TYPE,
 } from '@shapediver/viewer.shared.types'
-import { combineTextures } from "@shapediver/viewer.utils.texture-unifier"
+import { combineTextures } from "@shapediver/viewer.shared.texture-unifier"
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
