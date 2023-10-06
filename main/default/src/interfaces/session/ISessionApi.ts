@@ -1,4 +1,4 @@
-import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ISettingsSections } from '@shapediver/viewer.session-engine.session-engine';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
@@ -346,14 +346,16 @@ export interface ISessionApi {
     /**
      * Request one or multiple exports.
      * 
-     * @param exports The ids of the exports that will be requested.
-     * @param parameters Parameter values to be used for this export request. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
-     * @param outputs @alex need formulation help
-     * @param maxWaitTime Maximum amount of milliseconds to wait for completion of export request before responding.
+     * @param body The body of the export request.
+     * @param body.parameters Parameter values to be used for this export request. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * @param body.exports The ids of the exports to request.
+     * @param body.outputs The ids of the outputs to request.
+     * @param body.max_wait_time Maximum amount of milliseconds to wait for completion of export request before responding.
+     * @param maxWaitTime Maximum amount of milliseconds to wait for completion of the complete request.
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    requestExports(exports: { id: string; } | string[], parameters?: { [key: string]: string }, outputs?: string[], maxWaitTime?: number): Promise<ShapeDiverResponseDto>;
+    requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
 
     /**
      * Reset the parameters to their stored default values and customize the scene.

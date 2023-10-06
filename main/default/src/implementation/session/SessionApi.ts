@@ -1,4 +1,4 @@
-import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
 import { FileParameter, ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
@@ -289,13 +289,11 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.goForward();
     }
 
-    public async requestExports(exports: { id: string; } | string[], parameters: { [key: string]: string } = {}, outputs?: string[], maxWaitTime?: number): Promise<ShapeDiverResponseDto> {
+    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
         const scope = 'requestExports';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters, 'object');
-        for (const p in parameters)
-            this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters[p], 'string');
-
-        return this.#sessionEngine.requestExports(exports, parameters, outputs, maxWaitTime);
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, body, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, maxWaitMsec, 'number', false);
+        return this.#sessionEngine.requestExports(body, maxWaitMsec);
     }
 
     public resetParameterValues(force: boolean = false): Promise<ITreeNode> {

@@ -1,4 +1,4 @@
-import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
 import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
@@ -137,8 +137,8 @@ export interface ISessionEngine {
   init(parameterValues?: { [key: string]: string; }): Promise<void>;
   loadOutputs(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
-  requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
-  requestExports(exports: { id: string; } | string[], parameters: { [key: string]: string }, outputs?: string[], maxWaitTime?: number): Promise<ShapeDiverResponseDto>;
+  requestExport(exportId: string, parameters: ShapeDiverRequestCustomization, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
+  requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
   resetSettings(sections?: ISettingsSections): void;
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;

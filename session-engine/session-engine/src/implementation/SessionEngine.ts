@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestConfigure, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseErrorType, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput, ShapeDiverSdk, ShapeDiverSdkConfigType, create, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestConfigure, ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseErrorType, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput, ShapeDiverSdk, ShapeDiverSdkConfigType, create, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ISettings, convert, latestVersion, validate, versions } from '@shapediver/viewer.settings';
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { EVENTTYPE, EventEngine, HttpClient, HttpResponse, Logger, PerformanceEvaluator, SettingsEngine, ShapeDiverViewerError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, StateEngine, SystemInfo, UuidGenerator } from '@shapediver/viewer.shared.services';
@@ -853,16 +853,16 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async requestExports(exports: { id: string; } | string[], parameters: { [key: string]: string }, outputs?: string[], maxWaitTime?: number, retry = false): Promise<ShapeDiverResponseDto> {
+    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
         this.checkAvailability('export');
         try {
-            const requestParameterSet = this.cleanExportParameters(parameters);
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports, parameters: requestParameterSet, outputs, max_wait_time: maxWaitTime }, maxWaitTime);
+            const requestParameterSet = this.cleanExportParameters(body.parameters);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time}, maxWaitMsec);
             this.updateResponseDto(responseDto);
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
-            return await this.requestExports(exports, parameters, outputs, maxWaitTime, true);
+            return await this.requestExports(body, maxWaitMsec, true);
         }
     }
 
@@ -1312,8 +1312,8 @@ export class SessionEngine implements ISessionEngine {
             throw new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
     }
 
-    private cleanExportParameters(parameters: { [key: string]: string }): { [key: string]: string } {
-        const requestParameterSet: { [key: string]: string } = {};
+    private cleanExportParameters(parameters: ShapeDiverRequestCustomization): ShapeDiverRequestCustomization {
+        const requestParameterSet: ShapeDiverRequestCustomization = {};
 
         // first step, we convert all our names and displaynames to ids
         for (const parameterIdOrName in parameters) {
@@ -1324,8 +1324,8 @@ export class SessionEngine implements ISessionEngine {
             // in case the key of the key value pair was neither the id, name or displayname, skip
             if (!parameterObject) continue;
 
-            // deep copy into new dictionary
-            requestParameterSet[parameterObject.id] = (' ' + parameters[parameterIdOrName]).slice(1);
+            // copy into new dictionary
+            requestParameterSet[parameterObject.id] = parameters[parameterIdOrName];
         }
 
         // seconds step, fill all other parameter values that are currently not set
