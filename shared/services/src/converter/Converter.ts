@@ -1,5 +1,5 @@
-import { vec3, vec4 } from 'gl-matrix'
-import { TinyColor } from '@ctrl/tinycolor'
+import { vec3 } from 'gl-matrix';
+import { ColorInput, TinyColor } from '@ctrl/tinycolor';
 import { HttpClient } from '../http-client/HttpClient';
 import { HttpResponse } from '../http-client/HttpResponse';
 
@@ -29,22 +29,22 @@ export class Converter {
             reader.onerror = reject;
             reader.readAsDataURL(blob);
         });
-        data = data.replace('data:image/svg+xml;base64,', '')
+        data = data.replace('data:image/svg+xml;base64,', '');
         data = atob(data);
 
-        let svgC = document.createElement('DIV');
+        const svgC = document.createElement('DIV');
         svgC.id = 'svgc';
         svgC.innerHTML = <string>data;
 
         // now we can access the svg element as a DOM object
-        let svgE = svgC.getElementsByTagName('svg');
-        let childImageURIs: string[] = [];
+        const svgE = svgC.getElementsByTagName('svg');
+        const childImageURIs: string[] = [];
         let styleURIs: string[] = [];
 
         // collect image urls
         for (let i = 0; i < svgE.length; ++i) {
             for (let j = 0; j < 2; ++j) {
-                let childImages = <HTMLCollectionOf<SVGImageElement>>svgE[i].getElementsByTagName(['image', 'img'][j]);
+                const childImages = <HTMLCollectionOf<SVGImageElement>>svgE[i].getElementsByTagName(['image', 'img'][j]);
                 for (let k = 0; k < childImages.length; ++k) {
                     if (childImages[k].href.baseVal.substring(0, 5) != 'data:') {
                         childImageURIs.push(childImages[k].href.baseVal);
@@ -54,9 +54,9 @@ export class Converter {
             // collect potential font definitions
             // we assume styles are imported using the following syntax:
             // @import url(CSS_URL);
-            let styleElements = <HTMLCollectionOf<HTMLStyleElement>>svgE[i].getElementsByTagName('style');
+            const styleElements = <HTMLCollectionOf<HTMLStyleElement>>svgE[i].getElementsByTagName('style');
             for (let j = 0; j < styleElements.length; ++j) {
-                let regex = /@import\x20url\(\s*(.*?)\s*\);/g;
+                const regex = /@import\x20url\(\s*(.*?)\s*\);/g;
                 let m;
                 while ((m = regex.exec(styleElements[j].innerHTML)) !== null) {
                     styleURIs.push(m[1]);
@@ -71,17 +71,18 @@ export class Converter {
         }
 
         // creating a promise for each image which needs to be converted to a data URI
-        let replacementPromises = [];
-        let createImagePromise = async (uri: string) => {
+        const replacementPromises = [];
+        const createImagePromise = async (uri: string) => {
             if (uri.length > 0) {
-                const response = await this._httpClient.loadTexture(uri);
-                let uInt8Array = new Uint8Array(response.data), i = uInt8Array.length;
-                let biStr = []; //new Array(i);
+                const response = await this._httpClient.get(uri, undefined, true) as HttpResponse<ArrayBuffer>;
+                const uInt8Array = new Uint8Array(response.data as ArrayBuffer);
+                let i = uInt8Array.length;
+                const biStr = []; //new Array(i);
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                let base64Data = window.btoa(biStr.join(''));
-                let imgDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
+                const base64Data = window.btoa(biStr.join(''));
+                const imgDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
 
                 // replace url in SVG string
                 // CAUTION theoretically this could cause unwanted replacements
@@ -93,34 +94,35 @@ export class Converter {
             replacementPromises.push(createImagePromise(childImageURIs[i]));
 
         // now we create promises for the google fonts to be imported
-        let createStylePromise = async (styleUrl: string) => {
+        const createStylePromise = async (styleUrl: string) => {
             const response = await this._httpClient.get(
                 styleUrl,
                 { responseType: 'text' }
-            );
-            let cssString = response.data;
+            ) as HttpResponse<ArrayBuffer>;
+            let cssString = response.data as unknown as string;
             // we assume that fonts are imported using the following syntax:
             // url(FONT_URI);
-            let fontURLs = [];
-            let regex = /url\(\s*(.*?)\s*\)/g;
+            const fontURLs = [];
+            const regex = /url\(\s*(.*?)\s*\)/g;
             let m;
             while ((m = regex.exec(cssString)) !== null) {
                 fontURLs.push(m[1]);
             }
 
-            let fontPromises = [];
-            let createFontPromise = async (fUrl: string) => {
+            const fontPromises = [];
+            const createFontPromise = async (fUrl: string) => {
                 const response = await this._httpClient.get(
                     fUrl,
                     { responseType: 'arraybuffer' }
-                );
-                let uInt8Array = new Uint8Array(response.data), i = uInt8Array.length;
-                let biStr = []; //new Array(i);
+                ) as HttpResponse<ArrayBuffer>;
+                const uInt8Array = new Uint8Array(response.data as ArrayBuffer);
+                let i = uInt8Array.length;
+                const biStr = []; //new Array(i);
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                let base64Data = window.btoa(biStr.join(''));
-                let fontDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
+                const base64Data = window.btoa(biStr.join(''));
+                const fontDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
                 if (fUrl.length > 0)
                     cssString = cssString.replace(fUrl, fontDataUrl);
             };
@@ -137,19 +139,20 @@ export class Converter {
 
         await Promise.all(replacementPromises);
 
-        let du = 'data:image/svg+xml,' + encodeURIComponent(data);
-        let img = new Image(); // same as document.createElement('img')
+        const du = 'data:image/svg+xml,' + encodeURIComponent(data);
+        const img = new Image(); // same as document.createElement('img')
         img.crossOrigin = 'Anonymous';
         const promise = new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
             img.onerror = reject;
-        })
+        });
         img.src = du;
         await promise;
         return img;
     }
 
-    public async responseToImage(response: HttpResponse<ArrayBuffer>): Promise<HTMLImageElement> {
+    public async responseToImage(response: HttpResponse<ArrayBuffer | HTMLImageElement>): Promise<HTMLImageElement> {
+        if(response.data instanceof HTMLImageElement) return response.data;
         const arrayBufferView = new Uint8Array( response.data );
         const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
         if (response.headers['content-type'] === 'image/svg+xml') {
@@ -160,8 +163,8 @@ export class Converter {
             const promise = new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
                 img.onerror = reject;
-            })
-            img.crossOrigin = "anonymous";
+            });
+            img.crossOrigin = 'anonymous';
             img.src = URL.createObjectURL(blob);
             await promise;
             URL.revokeObjectURL(img.src);
@@ -169,17 +172,17 @@ export class Converter {
         }
     }
 
-    public toAlpha(color: any): number {
+    public toAlpha(color: unknown): number {
         const c = this.toHexColor(color);
         if (c.length <= 8) return 1;
         return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
     }
 
-    public toColorArray(color: any): number[] {
-        if(typeof color !== 'string' || !color.startsWith("#"))
+    public toColorArray(color: unknown): number[] {
+        if(typeof color !== 'string' || !color.startsWith('#'))
             color = this.toHexColor(color);
-        const tColor = new TinyColor(color);
-        const rgb = tColor.toRgb()
+        const tColor = new TinyColor(color as ColorInput | undefined);
+        const rgb = tColor.toRgb();
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
     }
 
@@ -187,7 +190,7 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toHex8Color(color: any, defColorString: string = '#000'): string {
+    public toHex8Color(color: unknown, defColorString: string = '#000'): string {
         const c = this.toHexColor(color, defColorString);
         const tColor = new TinyColor(c);
         const cH8 = tColor.toHex8String();
@@ -201,13 +204,13 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toHexColor(color: any, defColorString: string = '#000'): string {
+    public toHexColor(color: unknown, defColorString: string = '#000'): string {
         if (!color || color === 'default') return defColorString;
 
-        if (color.constructor === Float32Array)
-            color = Array.from(color);
+        if ((color as Float32Array).constructor === Float32Array)
+            color = Array.from(color as Float32Array);
 
-        const tColor = new TinyColor(color);
+        const tColor = new TinyColor(color as TinyColor | undefined);
 
         if (color instanceof TinyColor)
             return this.tinyColorToString(tColor);
@@ -215,17 +218,17 @@ export class Converter {
         // check if we got a number
         if (typeof color === 'number') {
             let cs = color.toString(16);
-            let cl = cs.length;
+            const cl = cs.length;
             if (cl < 3) cs = cs.padStart(3, '0');
             else if (cl < 6) cs = cs.padStart(6, '0');
             else if (cl < 8) cs = cs.padEnd(8, '0');
-            let tc = new TinyColor(cs);
+            const tc = new TinyColor(cs);
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // check if the input is a THREE.Color
-        if (color.isColor && typeof color.getHexString == 'function') {
-            let tc = new TinyColor(color.getHexString());
+        if ((color as THREE.Color).isColor && typeof (color as THREE.Color).getHexString == 'function') {
+            const tc = new TinyColor((color as THREE.Color).getHexString());
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
@@ -241,13 +244,13 @@ export class Converter {
             if (!isRGBArray)
                 return defColorString;
 
-            let tc = new TinyColor({
+            const tc = new TinyColor({
                 r: Math.max(0, Math.min(color[0], 255)),
                 g: Math.max(0, Math.min(color[1], 255)),
                 b: Math.max(0, Math.min(color[2], 255))
             });
             if (color.length == 4) {
-                let a = parseFloat(color[3]);
+                const a = parseFloat(color[3]);
                 if (!isNaN(a)) {
                     tc.setAlpha(Math.max(0, Math.min(a, 255)) / 255);
                 }
@@ -258,50 +261,52 @@ export class Converter {
         // if we got something other than a string, check if
         // tinycolor can work with it
         if (typeof color !== 'string') {
-            let tc = new TinyColor(color);
+            const tc = new TinyColor(color as string);
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // tinycolor doesn't like 0x
-        let tmpColor = color.replace('0x', '#');
+        const tmpColor = color.replace('0x', '#');
 
         // if we got no alpha value, add full opacity
         if (tmpColor.match(/^#[a-f0-9]{6}$/i) !== null) {
-            let tc = new TinyColor(tmpColor + 'ff');
+            const tc = new TinyColor(tmpColor + 'ff');
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // standard case
         if (tmpColor.match(/^#[a-f0-9]{8}$/i) !== null) {
-            let tc = new TinyColor(tmpColor);
+            const tc = new TinyColor(tmpColor);
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // correct number which have the alpha value defined as a single hex digit
         if (tmpColor.match(/^#[a-f0-9]{7}$/i) !== null) {
-            let tc = new TinyColor(tmpColor.slice(0, 7) + '0' + tmpColor.slice(-1));
+            const tc = new TinyColor(tmpColor.slice(0, 7) + '0' + tmpColor.slice(-1));
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // check if tinycolor understands the string
-        let tc = new TinyColor(tmpColor);
+        const tc = new TinyColor(tmpColor);
         return tc.isValid ? this.tinyColorToString(tc) : defColorString;
     }
 
-    public toThreeJsColorInput(color: any): string {
+    public toThreeJsColorInput(color: unknown): string {
         const c = this.toHexColor(color);
         return c.slice(0, c.length - 2);
     }
 
-    public toVec3(point: any): vec3 {
+    public toVec3(point: vec3 | { x: number, y: number, z: number} | { X: number, Y: number, Z: number}): vec3 {
         if (Array.isArray(point) && point.length >= 3 && typeof point[0] === 'number' && typeof point[1] === 'number' && typeof point[2] === 'number')
             return vec3.fromValues(point[0], point[1], point[2]);
 
-        if (((point.x || point.x === 0) && typeof point.x === 'number') && ((point.y || point.y === 0) && typeof point.y === 'number') && ((point.z || point.z === 0) && typeof point.z === 'number'))
-            return vec3.fromValues(point.x, point.y, point.z);
+        const pointCast1 = point as { x: number, y: number, z: number};
+        if (((pointCast1.x || pointCast1.x === 0) && typeof pointCast1.x === 'number') && ((pointCast1.y || pointCast1.y === 0) && typeof pointCast1.y === 'number') && ((pointCast1.z || pointCast1.z === 0) && typeof pointCast1.z === 'number'))
+            return vec3.fromValues(pointCast1.x, pointCast1.y, pointCast1.z);
 
-        if (((point.X || point.X === 0) && typeof point.X === 'number') && ((point.Y || point.Y === 0) && typeof point.Y === 'number') && ((point.Z || point.Z === 0) && typeof point.Z === 'number'))
-            return vec3.fromValues(point.X, point.Y, point.Z);
+        const pointCast2 = point as { X: number, Y: number, Z: number};
+        if (((pointCast2.X || pointCast2.X === 0) && typeof pointCast2.X === 'number') && ((pointCast2.Y || pointCast2.Y === 0) && typeof pointCast2.Y === 'number') && ((pointCast2.Z || pointCast2.Z === 0) && typeof pointCast2.Z === 'number'))
+            return vec3.fromValues(pointCast2.X, pointCast2.Y, pointCast2.Z);
 
         return vec3.create();
     }

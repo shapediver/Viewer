@@ -1,10 +1,10 @@
-import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
-import { Converter, HttpClient } from '@shapediver/viewer.shared.services'
+import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types';
+import { Converter, HttpClient } from '@shapediver/viewer.shared.services';
 
-import { BufferViewLoader } from './BufferViewLoader'
+import { BufferViewLoader } from './BufferViewLoader';
 
 export class TextureLoader {
-    // #region Properties (4)
+    // #region Properties (3)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _httpClient: HttpClient = HttpClient.instance;
@@ -13,7 +13,7 @@ export class TextureLoader {
         [key: string]: HTMLImageElement
     } = {};
 
-    // #endregion Properties (4)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -24,45 +24,45 @@ export class TextureLoader {
     // #region Public Methods (2)
 
     public getTexture(textureId: number): HTMLImageElement {
-        if (!this._content.textures) throw new Error('TextureLoader.getTexture: Textures not available.')
-        if (!this._content.textures[textureId]) throw new Error('TextureLoader.getTexture: Texture not available.')
-        if (!this._loaded[textureId]) throw new Error('TextureLoader.getTexture: Texture not loaded.')
+        if (!this._content.textures) throw new Error('TextureLoader.getTexture: Textures not available.');
+        if (!this._content.textures[textureId]) throw new Error('TextureLoader.getTexture: Texture not available.');
+        if (!this._loaded[textureId]) throw new Error('TextureLoader.getTexture: Texture not loaded.');
         return this._loaded[textureId];
     }
 
     public async load(): Promise<void> {
         if (!this._content.textures) return;
 
-        let promises: Promise<void>[] = [];
-        for(let i = 0; i < this._content.textures.length; i++) {
+        const promises: Promise<void>[] = [];
+        for (let i = 0; i < this._content.textures.length; i++) {
             const textureId = i;
             const texture = this._content.textures[textureId];
-            if (!this._content.images) throw new Error('TextureLoader.load: Images not available.')
+            if (!this._content.images) throw new Error('TextureLoader.load: Images not available.');
             const image = this._content.images[texture.source];
-    
+
             const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
             const HTTPS_URI_REGEX = /^https:\/\//;
-    
+
             if (image.bufferView !== undefined) {
                 const bufferView = this._bufferViewLoader.getBufferView(image.bufferView);
                 const dataView = new DataView(bufferView);
                 const array: Array<number> = [];
                 for (let i = 0; i < dataView.byteLength; i += 1)
                     array[i] = dataView.getUint8(i);
-    
+
                 const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
                 const dataUri = URL.createObjectURL(blob);
-    
+
                 promises.push(
                     new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(dataUri)
                             .then(response => {
-                                this._converter.responseToImage(response).then(img => {
-                                    this._loaded[textureId] = img;
-                                    URL.revokeObjectURL(dataUri)
-                                    resolve()
-                                }).catch(e => reject(e));
+                                this._loaded[textureId] = response.data;
+                                URL.revokeObjectURL(dataUri);
+                                resolve();
+
                             })
+                            .catch(e => reject(e));
                     })
                 );
             } else {
@@ -71,11 +71,10 @@ export class TextureLoader {
                     new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(url!)
                             .then(response => {
-                                this._converter.responseToImage(response).then(img => {
-                                    this._loaded[textureId] = img;
-                                    resolve()
-                                });
-                            }).catch(e => reject(e));
+                                this._loaded[textureId] = response.data;
+                                resolve();
+                            })
+                            .catch(e => reject(e));
                     })
                 );
             }

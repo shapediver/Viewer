@@ -1,13 +1,24 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { ShapeDiverError as ShapeDiverBackendError, isGBResponseError, isGBRequestError, isGBError } from '@shapediver/sdk.geometry-api-sdk-v2'
+import axios, { AxiosRequestConfig } from 'axios';
+import { ShapeDiverError as ShapeDiverBackendError, isGBResponseError, isGBRequestError, isGBError } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
+import { Converter } from '../converter/Converter';
 
 export class HttpClient {
-    // #region Properties (2)
-
+    // #region Properties (7)
     private static _instance: HttpClient;
 
+    private _dataCache: Map<
+        string,
+        {
+            value: Promise<HttpResponse<unknown>>,
+            timestamp: number,
+            resolved: boolean,
+            size?: number
+        }> = new Map();
+    private _enableCaching: boolean = true;
+    private _excludedQueryParameters: string[] = ['Expires', 'Signature', 'Key-Pair-Id'];
+    private _maxCacheSize: number = 1024 * 1024 * 1024;
     private _sessionLoading: {
         [key: string]: {
             getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -15,10 +26,11 @@ export class HttpClient {
         }
     } = {};
 
-    // #endregion Properties (2)
+    // #endregion Properties (7)
 
     // #region Constructors (1)
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     private constructor() { }
 
     // #endregion Constructors (1)
@@ -30,6 +42,36 @@ export class HttpClient {
     }
 
     // #endregion Public Static Accessors (1)
+
+    // #region Public Accessors (6)
+
+    public get enableCaching(): boolean {
+        return this._enableCaching;
+    }
+
+    public set enableCaching(value: boolean) {
+        this._enableCaching = value;
+        if (this._enableCaching === false)
+            this._dataCache.clear();
+    }
+
+    public get excludedQueryParameters(): string[] {
+        return this._excludedQueryParameters;
+    }
+
+    public set excludedQueryParameters(value: string[]) {
+        this._excludedQueryParameters = value;
+    }
+
+    public get maxCacheSize(): number {
+        return this._maxCacheSize;
+    }
+
+    public set maxCacheSize(value: number) {
+        this._maxCacheSize = value;
+    }
+
+    // #endregion Public Accessors (6)
 
     // #region Public Methods (5)
 
@@ -53,13 +95,18 @@ export class HttpClient {
         if (isGBResponseError(e)) {
             throw new ShapeDiverGeometryBackendResponseError(e.message, e.status, e.error, e.desc);
         } else if (isGBRequestError(e)) {
-            throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc)
-        } else if(isGBError(e)) {
-            throw new ShapeDiverGeometryBackendError(e.message)
+            throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc);
+        } else if (isGBError(e)) {
+            throw new ShapeDiverGeometryBackendError(e.message);
         }
     }
 
-    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
+    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false, textureConversion: boolean = false): Promise<HttpResponse<unknown>> {
+        const dataKey = this.hrefToDataKey(href);
+
+        // return element if it exists in cache
+        if (this._dataCache.has(dataKey)) return this.getFromCache(dataKey);
+
         // try to get sessionId from href
         let sessionId = this.getSessionId(href);
 
@@ -75,35 +122,66 @@ export class HttpClient {
         if (sessionId)
             sessionLoading = this._sessionLoading[sessionId];
 
+        let loadingPromise;
+
         // separation texture vs everything else
         if (textureLoading) {
             // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
             if (sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
                 // take first session to load a texture that is not session related
-                return new Promise<HttpResponse<any>>((resolve, reject) => {
-                    sessionLoading!.downloadTexture(sessionId!, href).then((result) => {
-                        resolve({
-                            data: result[0],
-                            headers: {
-                                'content-type': result[1]
-                            }
-                        })
-                    }).catch(e => reject(e))
-                }).catch(e => { throw this.convertError(e) });
+                loadingPromise = new Promise<HttpResponse<ArrayBuffer | HTMLImageElement>>((resolve, reject) => {
+                    sessionLoading!.downloadTexture(sessionId!, href).then(async (result) => {
+                        if (textureConversion) {
+                            const image = await Converter.instance.responseToImage({
+                                data: result[0],
+                                headers: {
+                                    'content-type': result[1]
+                                }
+                            });
+                            resolve({
+                                data: image,
+                                size: result[0].byteLength,
+                                headers: {
+                                    'content-type': result[1]
+                                }
+                            });
+                        } else {
+                            resolve({
+                                data: result[0],
+                                headers: {
+                                    'content-type': result[1]
+                                }
+                            });
+                        }
+
+                    }).catch(e => reject(e));
+                }).catch(e => { throw this.convertError(e); });
             } else {
                 // we can load blobs and data urls directly
                 // or load it directly if we don't have a session
-                return axios(href, Object.assign({ method: 'get' }, config))
-                    .catch(e => { throw this.convertError(e) });
+                loadingPromise = axios(href, Object.assign({ method: 'get' }, config))
+                    .then(async (result) => {
+                        if (textureConversion) {
+                            const image = await Converter.instance.responseToImage(result);
+                            return {
+                                data: image,
+                                size: result.data.byteLength,
+                                headers: result.headers
+                            };
+                        } else {
+                            return result;
+                        }
+                    })
+                    .catch(e => { throw this.convertError(e); });
             }
         } else {
             if (!sessionLoading) {
                 // if there is no session to load from, we use the fallback option
-                return axios(href, Object.assign({ method: 'get' }, config))
-                    .catch(e => { throw this.convertError(e) });
+                loadingPromise = axios(href, Object.assign({ method: 'get' }, config))
+                    .catch(e => { throw this.convertError(e); });
             } else {
                 // all data links where we could somehow find a session to load it with
-                return new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
+                loadingPromise = new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
                     sessionLoading!.getAsset(href)
                         .then((result) => {
                             resolve({
@@ -111,21 +189,26 @@ export class HttpClient {
                                 headers: {
                                     'content-type': result[1]
                                 }
-                            })
+                            });
                         })
                         .catch(() => {
                             // if this fails, we just load it directly
                             const axiosPromise = axios(href, Object.assign({ method: 'get' }, config));
-                            axiosPromise.catch(e => reject(e))
+                            axiosPromise.catch(e => reject(e));
                             resolve(axiosPromise);
                         });
-                }).catch(e => { throw this.convertError(e) });
+                }).catch(e => { throw this.convertError(e); });
             }
         }
+
+        if (this.enableCaching)
+            this.addToCache(dataKey, loadingPromise);
+
+        return loadingPromise;
     }
 
-    public async loadTexture(href: string): Promise<HttpResponse<ArrayBuffer>> {
-        return this.get(href, undefined, true);
+    public async loadTexture(href: string): Promise<HttpResponse<HTMLImageElement>> {
+        return this.get(href, undefined, true, true) as Promise<HttpResponse<HTMLImageElement>>;
     }
 
     public removeDataLoading(sessionId: string) {
@@ -134,7 +217,39 @@ export class HttpClient {
 
     // #endregion Public Methods (5)
 
-    // #region Private Methods (1)
+    // #region Private Methods (5)
+
+    private addToCache(key: string, value: Promise<HttpResponse<unknown>>) {
+        if (this.calculateCacheSize() >= Infinity) {
+            // Remove the oldest entry if the cache is full
+            const oldestKey = this._dataCache.keys().next().value;
+            this._dataCache.delete(oldestKey);
+        }
+
+        const timestamp = Date.now();
+        this._dataCache.set(key, { value, timestamp, resolved: false });
+        // set resolved and size properties once the promise has been resolved
+
+        value.then((promiseResult) => {
+            const size = promiseResult.size ? promiseResult.size : (promiseResult.data as ArrayBuffer).byteLength;
+            this._dataCache.set(key, { value, timestamp, resolved: true, size });
+        }).catch(e => { throw this.convertError(e); });
+    }
+
+    private calculateCacheSize() {
+        let size = 0;
+        this._dataCache.forEach(value => {
+            if (value.resolved === true)
+                size += value.size!;
+        });
+        return size;
+    }
+
+    private getFromCache(key: string): Promise<HttpResponse<unknown>> {
+        const cachedObject = this._dataCache.get(key)!;
+        this._dataCache.set(key, { value: cachedObject.value, timestamp: Date.now(), resolved: cachedObject.resolved, size: cachedObject.size });
+        return cachedObject.value;
+    }
 
     private getSessionId(href: string): string | undefined {
         // searching for "/session/SESSION_ID/{'output' | 'export' | 'texture'}/ASSET_DATA"
@@ -151,5 +266,22 @@ export class HttpClient {
         return;
     }
 
-    // #endregion Private Methods (1)
+    private hrefToDataKey(href: string) {
+        const url = new URL(href);
+
+        // Create a URLSearchParams object from the existing query parameters
+        const params = new URLSearchParams(url.search);
+
+        for (let i = 0; i < this._excludedQueryParameters.length; i++)
+            // Remove specific query parameters
+            params.delete(this._excludedQueryParameters[i]);
+
+        // Reconstruct the URL with the modified query parameters
+        url.search = params.toString();
+
+        const hrefAsKey = url.toString();
+        return window.btoa(hrefAsKey);
+    }
+
+    // #endregion Private Methods (5)
 }

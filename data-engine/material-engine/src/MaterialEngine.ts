@@ -1,17 +1,18 @@
-import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+/* eslint-disable no-prototype-builtins */
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { Converter, HttpClient, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
 import {
     MapData,
     MATERIAL_SIDE,
     MaterialStandardData,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
-} from '@shapediver/viewer.shared.types'
-import { vec2, vec3, vec4 } from 'gl-matrix'
+} from '@shapediver/viewer.shared.types';
+import { vec2, vec4 } from 'gl-matrix';
 
-import { materialDatabase } from './materialDatabase'
-import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types'
+import { materialDatabase } from './materialDatabase';
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types';
 
 export class MaterialEngine {
     // #region Properties (4)
@@ -42,7 +43,7 @@ export class MaterialEngine {
        */
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode(content.name || 'material');
-        if (!content) 
+        if (!content)
             throw new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
 
         let material = new MaterialStandardData();
@@ -71,7 +72,7 @@ export class MaterialEngine {
         } else {
             throw new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
         }
-        
+
         node.data.push(material);
         return node;
     }
@@ -79,16 +80,16 @@ export class MaterialEngine {
     public async loadMap(url: string, id?: string): Promise<MapData | null> {
         let image: HTMLImageElement;
         if (!id) {
-            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(url));
+            image = <HTMLImageElement>(await this._httpClient.loadTexture(url)).data;
         } else {
-            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
+            image = <HTMLImageElement>(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url)).data;
         }
         return new MapData(image);
     }
 
     public async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
-        let image: HTMLImageElement = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(texture.href!));
-        
+        const image: HTMLImageElement = <HTMLImageElement>(await this._httpClient.loadTexture(texture.href!)).data;
+
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const center = texture.center ? vec2.fromValues(texture.center[0], texture.center[1]) : vec2.fromValues(0, 0);
@@ -123,18 +124,18 @@ export class MaterialEngine {
         if (data.bitmaptexture)
             presetData.bitmaptexture = {
                 href: data.bitmaptexture
-            }
+            };
 
         if (data.bumptexture)
             presetData.bumptexture = {
                 href: data.bumptexture
-            } 
+            };
 
         if (data.transparencytexture)
             presetData.transparencytexture = {
                 href: data.transparencytexture
-            }
-            
+            };
+
         return presetData;
     }
 
@@ -161,33 +162,33 @@ export class MaterialEngine {
         if (data.bitmaptexture)
             presetData.bitmaptexture = {
                 href: data.bitmaptexture
-            }
+            };
 
         if (data.metalnesstexture)
             presetData.metalnesstexture = {
                 href: data.metalnesstexture
-            }
+            };
 
         if (data.roughnesstexture)
             presetData.roughnesstexture = {
                 href: data.roughnesstexture
-            }
+            };
 
         if (data.bumptexture)
             presetData.bumptexture = {
                 href: data.bumptexture
-            }
+            };
 
         if (data.normaltexture)
             presetData.normaltexture = {
                 href: data.normaltexture
-            }
+            };
 
         if (data.transparencytexture)
             presetData.transparencytexture = {
                 href: data.transparencytexture
-            }
-            
+            };
+
         return presetData;
     }
 
@@ -268,7 +269,7 @@ export class MaterialEngine {
                     if (map) material.map = map;
                     return map;
                 })
-            )
+            );
         }
 
         if (data.metalnesstexture) {
@@ -277,7 +278,7 @@ export class MaterialEngine {
                     if (map) material.metalnessMap = map;
                     return map;
                 })
-            )
+            );
         }
 
         if (data.roughnesstexture) {
@@ -286,7 +287,7 @@ export class MaterialEngine {
                     if (map) material.roughnessMap = map;
                     return map;
                 })
-            )
+            );
         }
 
         if (data.bumptexture) {
@@ -295,7 +296,7 @@ export class MaterialEngine {
                     if (map) material.bumpMap = map;
                     return map;
                 })
-            )
+            );
         }
 
         if (data.normaltexture) {
@@ -304,7 +305,7 @@ export class MaterialEngine {
                     if (map) material.normalMap = map;
                     return map;
                 })
-            )
+            );
         }
 
         if (data.transparencytexture) {
@@ -313,7 +314,7 @@ export class MaterialEngine {
                     if (map) material.alphaMap = map;
                     return map;
                 })
-            )
+            );
         }
 
         // line material https://shapediver.atlassian.net/browse/SS-2272
@@ -347,57 +348,55 @@ export class MaterialEngine {
     // #region Private Methods (3)
 
     private assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
-        const promises: Promise<MapData | null>[] = [];
-
         if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture)
             definition.transparencytexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.transparencytexture
-            }
+            };
 
         if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold'))
             definition.alphaThreshold = generalDefinition.alphaThreshold;
 
-        if (generalDefinition.bumptexture && !specificDefinition.bumptexture) 
+        if (generalDefinition.bumptexture && !specificDefinition.bumptexture)
             definition.bumptexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bumptexture
-            }
-        
-        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) 
+            };
+
+        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude'))
             definition.bumpAmplitude = generalDefinition.bumpAmplitude!;
 
-        if (generalDefinition.color && !specificDefinition.color) 
+        if (generalDefinition.color && !specificDefinition.color)
             definition.color = generalDefinition.color;
 
         if (generalDefinition.bitmaptexture && !specificDefinition.bitmaptexture)
             definition.bitmaptexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bitmaptexture
-            }
-        
-        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) 
+            };
+
+        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness'))
             definition.metalness = generalDefinition.metalness!;
-        
+
         if (generalDefinition.metalnesstexture && !specificDefinition.metalnesstexture)
             definition.metalnesstexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.metalnesstexture
-            }
-       
+            };
+
         if (generalDefinition.normaltexture && !specificDefinition.normaltexture)
             definition.normaltexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.normaltexture
-            }
+            };
 
-        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) 
+        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency'))
             definition.transparency = generalDefinition.transparency;
-            
-        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) 
+
+        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness'))
             definition.roughness = generalDefinition.roughness!;
 
-        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture) 
+        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture)
             definition.roughnesstexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.roughnesstexture
-            }
+            };
 
-        if (generalDefinition.side && !specificDefinition.side) 
+        if (generalDefinition.side && !specificDefinition.side)
             definition.side = generalDefinition.side;
     }
 
@@ -405,7 +404,7 @@ export class MaterialEngine {
         if (specificDefinition.transparencytexture)
             definition.transparencytexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.transparencytexture
-            }
+            };
 
         if (specificDefinition.hasOwnProperty('alphaThreshold'))
             definition.alphaThreshold = specificDefinition.alphaThreshold!;
@@ -413,18 +412,18 @@ export class MaterialEngine {
         if (specificDefinition.bumptexture)
             definition.bumptexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bumptexture
-            }
+            };
 
-        if (specificDefinition.hasOwnProperty('bumpAmplitude')) 
+        if (specificDefinition.hasOwnProperty('bumpAmplitude'))
             definition.bumpAmplitude = specificDefinition.bumpAmplitude!;
 
-        if (specificDefinition.color) 
+        if (specificDefinition.color)
             definition.color = specificDefinition.color;
 
         if (specificDefinition.bitmaptexture)
             definition.bitmaptexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bitmaptexture
-            }
+            };
 
         if (specificDefinition.hasOwnProperty('metalness'))
             definition.metalness = specificDefinition.metalness!;
@@ -432,25 +431,25 @@ export class MaterialEngine {
         if (specificDefinition.metalnesstexture)
             definition.metalnesstexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.metalnesstexture
-            }
-            
+            };
+
         if (specificDefinition.normaltexture)
             definition.normaltexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.normaltexture
-            }
+            };
 
-        if (specificDefinition.hasOwnProperty('transparency')) 
+        if (specificDefinition.hasOwnProperty('transparency'))
             definition.transparency = specificDefinition.transparency!;
 
-        if (specificDefinition.hasOwnProperty('roughness')) 
+        if (specificDefinition.hasOwnProperty('roughness'))
             definition.roughness = specificDefinition.roughness!;
 
         if (specificDefinition.roughnesstexture)
             definition.roughnesstexture = {
                 href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.roughnesstexture
-            }
+            };
 
-        if (specificDefinition.side) 
+        if (specificDefinition.side)
             definition.side = specificDefinition.side;
     }
 
@@ -462,7 +461,7 @@ export class MaterialEngine {
         if (id < 10) id *= 100;
 
         const cast = (id: number): string => {
-            let idString = String(id);
+            const idString = String(id);
             return idString.padStart(2, '0').slice(0, 2);
         };
 
