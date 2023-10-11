@@ -8,6 +8,7 @@ export class PerformanceEvaluator {
         section: {
             [key: string]: {
                 start: number;
+                continued?: number;
                 end?: number;
                 duration?: number;
             };
@@ -26,7 +27,21 @@ export class PerformanceEvaluator {
 
     // #endregion Public Static Accessors (1)
 
-    // #region Public Methods (6)
+    // #region Public Methods (8)
+
+    /**
+     * Continue the performance evaluation.
+     * 
+     * @param id 
+     */
+    public continueSection(sectionId: string): void {
+        if (!this._eval) return;
+        if (this._eval.end) return;
+        if (!this._eval.section[sectionId]) return;
+        if (this._eval.section[sectionId].end) return;
+
+        this._eval.section[sectionId].continued = performance.now();
+    }
 
     /**
      * End the performance evaluation and calculate the duration.
@@ -54,7 +69,7 @@ export class PerformanceEvaluator {
 
         this._eval.section[sectionId].end = performance.now();
 
-        this._eval.section[sectionId].duration = this._eval.section[sectionId].end! - this._eval.section[sectionId].start;
+        this._eval.section[sectionId].duration = (this._eval.section[sectionId].duration || 0) + (this._eval.section[sectionId].end! - (this._eval.section[sectionId].continued || this._eval.section[sectionId].start));
     }
 
     /**
@@ -67,6 +82,7 @@ export class PerformanceEvaluator {
         section: {
             [key: string]: {
                 start: number,
+                continued?: number,
                 end?: number,
                 duration?: number
             }
@@ -85,6 +101,20 @@ export class PerformanceEvaluator {
     public getEvaluationToString(): string {
         const e = this._eval;
         return `Performance Evaluation: ${e!.duration}ms\n`;
+    }
+
+    /**
+     * Pause the performance evaluation.
+     * 
+     * @param id 
+     */
+    public pauseSection(sectionId: string): void {
+        if (!this._eval) return;
+        if (this._eval.end) return;
+        if (!this._eval.section[sectionId]) return;
+        if (this._eval.section[sectionId].end) return;
+
+        this._eval.section[sectionId].duration = (this._eval.section[sectionId].duration || 0) + performance.now() - (this._eval.section[sectionId].continued || this._eval.section[sectionId].start);
     }
 
     /**
@@ -112,5 +142,5 @@ export class PerformanceEvaluator {
         }
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (8)
 }
