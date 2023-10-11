@@ -39,7 +39,7 @@ export interface IOutput extends ShapeDiverResponseOutput {
     
     triggerUpdateCallback(newNode?: ITreeNode, oldNode?: ITreeNode): void;
     updateOutput(newNode?: ITreeNode, oldNode?: ITreeNode): void;
-    updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean): Promise<ITreeNode | undefined>;
+    updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode | undefined>;
     updateOutputDefinition(outputDef: ShapeDiverResponseOutput): void;
 
     // #endregion Public Methods (1)
