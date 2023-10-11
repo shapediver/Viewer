@@ -18,7 +18,7 @@ export class HttpClient {
         }> = new Map();
     private _enableCaching: boolean = true;
     private _excludedQueryParameters: string[] = ['Expires', 'Signature', 'Key-Pair-Id'];
-    private _maxCacheSize: number = 1024 * 1024 * 1024;
+    private _maxCacheSize: number = 1024 * 1024 * 32;
     private _sessionLoading: {
         [key: string]: {
             getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
@@ -220,7 +220,7 @@ export class HttpClient {
     // #region Private Methods (5)
 
     private addToCache(key: string, value: Promise<HttpResponse<unknown>>) {
-        if (this.calculateCacheSize() >= Infinity) {
+        while (this.calculateCacheSize() >= this._maxCacheSize) {
             // Remove the oldest entry if the cache is full
             const oldestKey = this._dataCache.keys().next().value;
             this._dataCache.delete(oldestKey);
