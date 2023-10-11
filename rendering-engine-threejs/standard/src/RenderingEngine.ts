@@ -1,11 +1,26 @@
-import * as THREE from 'three'
-import { quat, vec2, vec3 } from 'gl-matrix'
+import * as THREE from 'three';
+import { adaptShaders, MaterialLoader } from './loaders/MaterialLoader';
+import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
+import { CameraManager } from './managers/CameraManager';
+import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
+import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager';
+import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
+import { GeometryLoader } from './loaders/GeometryLoader';
+import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
+import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine';
+import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
+import { LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
+import { LightLoader } from './loaders/LightLoader';
+import { PostProcessingManager } from './managers/PostProcessingManager';
+import { quat, vec2, vec3 } from 'gl-matrix';
+import { RenderingManager } from './managers/RenderingManager';
+import { SceneTracingManager } from './managers/SceneTracingManager';
+import { SceneTreeManager } from './managers/SceneTreeManager';
+import { SDColor } from './objects/SDColor';
 import {
   CameraEngine,
-} from '@shapediver/viewer.rendering-engine.camera-engine'
-import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
-import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
-import { LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+} from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
   BUSY_MODE_DISPLAY,
   FLAG_TYPE,
@@ -15,7 +30,7 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE,
-} from '@shapediver/viewer.rendering-engine.rendering-engine'
+} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import {
   Converter,
   DomEventEngine,
@@ -28,9 +43,8 @@ import {
   StateEngine,
   SystemInfo,
   UuidGenerator,
-} from '@shapediver/viewer.shared.services'
+} from '@shapediver/viewer.shared.services';
 import {
-  AnimationData,
   ISDTFOverviewData,
   ISDTFAttributeVisualizationData,
   ISDTFOverview,
@@ -42,47 +56,15 @@ import {
   IGeometryData,
   Color,
   IViewportEvent,
-} from '@shapediver/viewer.shared.types'
-import {
-  AnimationEngine
-} from "@shapediver/viewer.rendering-engine.animation-engine"
-import { IntersectionEngine } from '@shapediver/viewer.rendering-engine.intersection-engine'
-
-import { SceneTreeManager } from './managers/SceneTreeManager'
-import { RenderingManager } from './managers/RenderingManager'
-import { MaterialLoader, adaptShaders } from './loaders/MaterialLoader'
-import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'
-import { GeometryLoader } from './loaders/GeometryLoader'
-import { LightLoader } from './loaders/LightLoader'
-import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
-import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
-import { SceneTracingManager } from './managers/SceneTracingManager'
-import { CameraManager } from './managers/CameraManager'
-import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
-import { SDColor } from './objects/SDColor'
-import { PostProcessingManager } from './managers/PostProcessingManager'
+} from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (61)
+  // #region Properties (74)
 
-  // engines
-  private readonly _cameraEngine: CameraEngine;
-  private readonly _cameraManager: CameraManager;
-  // viewer essentials
-  private readonly _canvas: ICanvas;
-  private readonly _canvasEngine: CanvasEngine = CanvasEngine.instance;
+  readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
+  readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
+  readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
   private readonly _animationEngine: AnimationEngine = AnimationEngine.instance;
-  // utils
-  private readonly _converter: Converter = Converter.instance;
-  private readonly _domEventEngine: DomEventEngine;
-  private readonly _environmentGeometryManager: EnvironmentGeometryManager;
-  private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
-  private readonly _systemInfo: SystemInfo = SystemInfo.instance;
-  // loaders
-  private readonly _environmentMapLoader: EnvironmentMapLoader;
-  private readonly _eventEngine: EventEngine = EventEngine.instance;
-  private readonly _geometryLoader: GeometryLoader;
-  private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   // constructor properties
   private readonly _branding: {
     logo: string | null,
@@ -91,21 +73,46 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     busyModeDisplay: BUSY_MODE_DISPLAY,
     spinnerPositioning: SPINNER_POSITIONING
   };
+  // engines
+  private readonly _cameraEngine: CameraEngine;
+  private readonly _cameraManager: CameraManager;
+  // viewer essentials
+  private readonly _canvas: ICanvas;
+  private readonly _canvasEngine: CanvasEngine = CanvasEngine.instance;
   private readonly _colorCache: SDColor[] = [];
+  // utils
+  private readonly _converter: Converter = Converter.instance;
+  private readonly _domEventEngine: DomEventEngine;
+  private readonly _environmentGeometryManager: EnvironmentGeometryManager;
+  // loaders
+  private readonly _environmentMapLoader: EnvironmentMapLoader;
+  private readonly _eventEngine: EventEngine = EventEngine.instance;
+  private readonly _geometryLoader: GeometryLoader;
+  private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   private readonly _id: string;
+  private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
   private readonly _logger: Logger = Logger.instance;
   private readonly _materialLoader: MaterialLoader;
+  private readonly _postProcessingManager: PostProcessingManager;
   private readonly _renderingManager: RenderingManager;
-  private readonly _postProcessingManager: PostProcessingManager
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = StateEngine.instance;
+  private readonly _systemInfo: SystemInfo = SystemInfo.instance;
   private readonly _tree: ITree = Tree.instance;
   private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
   private readonly _visibility: VISIBILITY_MODE;
 
+  #animations: {
+    [key: string]: IAnimationData
+  } = {};
+  #flags: { [key: string]: string[] } = {
+    [FLAG_TYPE.CAMERA_FREEZE]: [],
+    [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
+    [FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE]: [],
+  };
   // settings
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
@@ -120,18 +127,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _defaultMaterialColor: Color = "#199b9b";
+  private _defaultMaterialColor: Color = '#199b9b';
   private _enableAR: boolean = true;
   private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapBlurriness: number = 0;
+  private _environmentMapForUnlitMaterials: boolean = false;
   private _environmentMapIntensity: number = 1;
   private _environmentMapResolution: string = '1024';
-  private _environmentMapForUnlitMaterials: boolean = false;
   private _environmentMapRotation: quat = quat.create();
   private _gridVisibility: boolean = true;
-  private _groundPlaneVisibility: boolean = true;
   private _groundPlaneShadowVisibility: boolean = false;
+  private _groundPlaneVisibility: boolean = true;
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
@@ -149,20 +156,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
-  readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
-  readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
-
-  #animations: {
-    [key: string]: IAnimationData
-  } = {};
-  #flags: { [key: string]: string[] } = {
-    [FLAG_TYPE.CAMERA_FREEZE]: [],
-    [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
-    [FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE]: [],
-  };
-
-  // #endregion Properties (61)
+  // #endregion Properties (74)
 
   // #region Constructors (1)
 
@@ -183,7 +177,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
     THREE.ColorManagement.enabled = false;
-    
+
     // adapt some of the three.js shaders according to our needs
     adaptShaders();
 
@@ -246,11 +240,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._htmlElementAnchorLoader.init();
     this._lightLoader.init();
 
-    this._renderingManager.start()
+    this._renderingManager.start();
 
     this._stateEngine.renderingEngines[this.id].boundingBoxCreated.then(() => {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
-    })
+    });
 
     if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
       this.environmentMap = 'photo_studio';
@@ -259,7 +253,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (103)
+  // #region Public Accessors (123)
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -290,7 +284,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set automaticColorAdjustment(value: boolean) {
-    if(this._automaticColorAdjustment === value) return;
+    if (this._automaticColorAdjustment === value) return;
     this._automaticColorAdjustment = value;
     this._colorCache.forEach(c => c.colorCorrection(value));
     this._materialLoader.assignColorCorrection(value);
@@ -320,6 +314,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._beautyRenderDelay = value;
   }
 
+  public get branding(): {
+    logo: string | null;
+    backgroundColor: string;
+    busyModeSpinner: string;
+    busyModeDisplay: BUSY_MODE_DISPLAY;
+    spinnerPositioning: SPINNER_POSITIONING
+  } {
+    return this._branding;
+  }
+
   public get busy(): boolean {
     return this._busy;
   }
@@ -334,16 +338,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set busyModeDisplay(value: BUSY_MODE_DISPLAY) {
     this._busyModeDisplay = value;
-  }
-
-  public get branding(): {
-    logo: string | null;
-    backgroundColor: string;
-    busyModeSpinner: string;
-    busyModeDisplay: BUSY_MODE_DISPLAY;
-    spinnerPositioning: SPINNER_POSITIONING
-  } {
-    return this._branding;
   }
 
   public get camera(): THREE.Camera {
@@ -450,7 +444,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set environmentMapBlurriness(value: number) {
     this._environmentMapBlurriness = value;
-    this._sceneTreeManager.scene.backgroundBlurriness = this._environmentMapBlurriness
+    this._sceneTreeManager.scene.backgroundBlurriness = this._environmentMapBlurriness;
+  }
+
+  public get environmentMapForUnlitMaterials(): boolean {
+    return this._environmentMapForUnlitMaterials;
+  }
+
+  public set environmentMapForUnlitMaterials(value: boolean) {
+    this._environmentMapForUnlitMaterials = value;
+    this._materialLoader.assignEnvironmentMapForUnlitMaterials(value);
   }
 
   public get environmentMapIntensity(): number {
@@ -474,15 +477,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set environmentMapResolution(value: string) {
     this._environmentMapResolution = value;
     this._environmentMapLoader.load(this.environmentMap);
-  }
-
-  public get environmentMapForUnlitMaterials(): boolean {
-    return this._environmentMapForUnlitMaterials;
-  }
-
-  public set environmentMapForUnlitMaterials(value: boolean) {
-    this._environmentMapForUnlitMaterials = value;
-    this._materialLoader.assignEnvironmentMapForUnlitMaterials(value);
   }
 
   public get environmentMapRotation(): quat {
@@ -527,15 +521,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._environmentGeometryManager.groundPlaneColor = value;
   }
 
-  public get groundPlaneVisibility(): boolean {
-    return this._groundPlaneVisibility;
-  }
-
-  public set groundPlaneVisibility(value: boolean) {
-    if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
-    this._groundPlaneVisibility = value;
-  }
-
   public get groundPlaneShadowColor(): Color {
     return this._environmentGeometryManager.groundPlaneShadowColor;
   }
@@ -551,6 +536,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set groundPlaneShadowVisibility(value: boolean) {
     if (this._environmentGeometryManager.groundPlaneShadow) this._environmentGeometryManager.groundPlaneShadow.visible = value;
     this._groundPlaneShadowVisibility = value;
+  }
+
+  public get groundPlaneVisibility(): boolean {
+    return this._groundPlaneVisibility;
+  }
+
+  public set groundPlaneVisibility(value: boolean) {
+    if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
+    this._groundPlaneVisibility = value;
   }
 
   public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
@@ -569,20 +563,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._lightLoader;
   }
 
-  public get lights(): boolean {
-    return this._lights;
-  }
-
-  public set lights(value: boolean) {
-    this._lights = value;
-  }
-
   public get lightScene(): string {
     return this.lightEngine.lightScene ? this.lightEngine.lightScene.id : '';
   }
 
   public get lightSceneId(): string {
     return this.lightEngine.lightScene ? this.lightEngine.lightScene.id : '';
+  }
+
+  public get lights(): boolean {
+    return this._lights;
+  }
+
+  public set lights(value: boolean) {
+    this._lights = value;
   }
 
   public get logoDivElement(): HTMLDivElement {
@@ -655,7 +649,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set pointSize(value: number) {
     this._pointSize = value;
-    this.materialLoader.assignPointSize(value)
+    this.materialLoader.assignPointSize(value);
   }
 
   public get postProcessingManager(): PostProcessingManager {
@@ -820,7 +814,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set type(value: RENDERER_TYPE) {
     this._type = value;
-    this.update('RenderingEngine.type')
+    this.update('RenderingEngine.type');
   }
 
   public get usingSwiftShader(): boolean {
@@ -839,9 +833,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Accessors (103)
+  // #endregion Public Accessors (123)
 
-  // #region Public Methods (16)
+  // #region Public Methods (25)
 
   public addFlag(flag: FLAG_TYPE): string {
     const token = this._uuidGenerator.create();
@@ -864,18 +858,17 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       general?: boolean,
       postprocessing?: boolean
     } = {
-      ar: true,
-      scene: true,
-      camera: true,
-      light: true,
-      environment: true,
-      general: true,
-      postprocessing: true
-    },
+        ar: true,
+        scene: true,
+        camera: true,
+        light: true,
+        environment: true,
+        general: true,
+        postprocessing: true
+      },
     settingsEngine?: SettingsEngine
   ): Promise<void> {
-
-    settingsEngine = settingsEngine || this._settingsEngine
+    settingsEngine = settingsEngine || this._settingsEngine;
     if (!settingsEngine) return;
 
     if (sections.environment) {
@@ -891,29 +884,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
             this.environmentMapBlurriness = settingsEngine.environment.blurriness;
             this.environmentMapIntensity = settingsEngine.environment.intensity;
             this.applySyncSettings(sections, settingsEngine);
-  
+
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
             resolve();
-          } catch(e) {
+          } catch (e) {
             reject(e);
           }
-        }).catch(e => reject(e))
-        
+        }).catch(e => reject(e));
+
         // set it like this to not trigger the loading
         this.environmentMap = settingsEngine!.environment.map;
-      })
+      });
     } else {
-      this.applySyncSettings(sections, settingsEngine)
+      this.applySyncSettings(sections, settingsEngine);
       this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
     }
-  }
-
-  public continueRendering(): void {
-    this._pause = false;
-  }
-
-  public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
-    return this.sceneTracingManager.convert3Dto2D(p)
   }
 
   public async close(): Promise<void> {
@@ -929,11 +914,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas.reset();
   }
 
+  public continueRendering(): void {
+    this._pause = false;
+  }
+
+  public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
+    return this.sceneTracingManager.convert3Dto2D(p);
+  }
+
   public createSDTFOverview(node: ITreeNode): ISDTFOverview {
     const out: ISDTFOverviewData = new SDTFOverviewData({});
     for (let i = 0, len = node.data.length; i < len; i++)
       if (node.data[i] instanceof SDTFOverviewData)
-        out.merge(<ISDTFOverviewData>node.data[i])
+        out.merge(<ISDTFOverviewData>node.data[i]);
 
     for (let i = 0, len = node.children.length; i < len; i++)
       out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
@@ -1067,14 +1060,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         distance: i.distance,
         node: i.node,
         data: i.geometryData
-      }
-    })
+      };
+    });
   }
 
   public removeFlag(token: string): boolean {
     let success = false;
     const Flags = Object.values(FLAG_TYPE);
-    for (let f of Flags) {
+    for (const f of Flags) {
       if (f === FLAG_TYPE.BUSY_MODE) {
         if (this.stateEngine.renderingEngines[this.id].busy.includes(token)) {
           this.stateEngine.renderingEngines[this.id].busy.splice(this.stateEngine.renderingEngines[this.id].busy.indexOf(token), 1);
@@ -1100,7 +1093,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     this._stateEngine.renderingEngines[this.id].boundingBoxCreated.then(() => {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
-    })
+    });
   }
 
   public resize(width: number, height: number): void {
@@ -1109,7 +1102,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public saveSettings(settingsEngine?: SettingsEngine) {
-    settingsEngine = settingsEngine || this._settingsEngine
+    settingsEngine = settingsEngine || this._settingsEngine;
     if (!settingsEngine) return;
 
     (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
@@ -1152,22 +1145,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.shadows = this.shadows;
     settingsEngine.rendering.softShadows = this.softShadows;
   }
-  
-  public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
-    return this._sceneTracingManager.touchToRay(event);
-  }
 
   public touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 } {
     return this._sceneTracingManager.touchEventToRay(event);
   }
 
+  public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.touchToRay(event);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public update(id: string): void {
-    if(this.closed) return;
-    this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+    if (this.closed) return;
+    this._sceneTreeManager.updateSceneTree(this._tree.root);
     this._renderingManager.updateShadowMap();
     this._animationEngine.updateAnimationData();
     this._renderingManager.render();
-    this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this.id })
+    this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this.id });
   }
 
   public updateEnvironmentGeometry(): void {
@@ -1187,23 +1181,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
 
     const arScale = options.arScale !== 'auto' ? 'fixed' : 'auto';
-    const arPlacement = options.arPlacement !== 'wall' ? 'floor' : 'wall';
-    const xrEnvironment = options.xrEnvironment !== true ? false : true;
+    // const arPlacement = options.arPlacement !== 'wall' ? 'floor' : 'wall';
+    // const xrEnvironment = options.xrEnvironment !== true ? false : true;
 
-    let arEnvironment = '';
-    const envMapUrl = this.getEnvironmentMapImageUrl();
-    if (envMapUrl !== '') {
-      if (envMapUrl.endsWith('.hdr')) {
-        arEnvironment = 'skybox-image=' + envMapUrl;
-      } else {
-        arEnvironment = 'environment-image=' + envMapUrl;
-      }
-    }
+    // let arEnvironment = '';
+    // const envMapUrl = this.getEnvironmentMapImageUrl();
+    // if (envMapUrl !== '') {
+    //   if (envMapUrl.endsWith('.hdr')) {
+    //     arEnvironment = 'skybox-image=' + envMapUrl;
+    //   } else {
+    //     arEnvironment = 'environment-image=' + envMapUrl;
+    //   }
+    // }
 
     if (this._systemInfo.isIOS) {
       // create the link and click it
       const a = document.createElement('a');
-      a.href = file + (arScale === 'fixed' ? '.usdz_allowsContentScaling=0' : '.usdz')
+      a.href = file + (arScale === 'fixed' ? '.usdz_allowsContentScaling=0' : '.usdz');
       a.rel = 'ar';
       const img = document.createElement('img');
       img.src = this.#defaultLogoStatic;
@@ -1211,7 +1205,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       a.click();
     } else {
       const a = document.createElement('a');
-      a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${arScale === 'fixed' ? 'false' : 'true'}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`
+      a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${arScale === 'fixed' ? 'false' : 'true'}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
       a.click();
     }
 
@@ -1239,7 +1233,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return true;
   }
 
-  // #endregion Public Methods (16)
+  // #endregion Public Methods (25)
 
   // #region Private Methods (1)
 
@@ -1261,10 +1255,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       postprocessing: true
     },
     settingsEngine?: SettingsEngine) {
-      
-    settingsEngine = settingsEngine || this._settingsEngine
+    settingsEngine = settingsEngine || this._settingsEngine;
     if (!settingsEngine) return;
-    
+
     if (sections.ar) {
       this.enableAR = settingsEngine.ar.enable;
       this.arScale = [settingsEngine.general.transformation.scale.x, settingsEngine.general.transformation.scale.y, settingsEngine.general.transformation.scale.z];
@@ -1303,7 +1296,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // call adjust camera to load the three.js camera objects
     this.cameraManager.adjustCamera(1);
-    
+
     this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
     this.update('RenderingEngine.applySyncSettings');
   }

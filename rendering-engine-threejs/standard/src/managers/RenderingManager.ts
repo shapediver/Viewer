@@ -1,53 +1,50 @@
-import * as TWEEN from '@tweenjs/tween.js'
-import * as Stats from 'stats.js'
-import * as THREE from 'three'
+import * as Stats from 'stats.js';
+import * as THREE from 'three';
+import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
+import { AnimationFrameEngine } from '@shapediver/viewer.rendering-engine.animation-frame-engine';
+import {
+    BUSY_MODE_DISPLAY,
+    IManager,
+    RENDERER_TYPE,
+    SPINNER_POSITIONING
+    } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types';
+import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
+import { RenderingEngine } from '../RenderingEngine';
+import { SceneTreeManager } from './SceneTreeManager';
 import {
     CAMERA_TYPE,
     PerspectiveCamera,
     PerspectiveCameraControls,
-} from '@shapediver/viewer.rendering-engine.camera-engine'
+} from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
     Converter,
     EventEngine,
     EVENTTYPE,
     EVENTTYPE_VIEWPORT,
     Logger,
-    ShapeDiverViewerWebGLError,
-    StateEngine,
     SystemInfo,
-} from '@shapediver/viewer.shared.services'
-import { mat4, vec3 } from 'gl-matrix'
-import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types'
-import { BUSY_MODE_DISPLAY, IManager, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+} from '@shapediver/viewer.shared.services';
 
-import { RenderingEngine } from '../RenderingEngine'
-import { SceneTreeManager } from './SceneTreeManager'
-import { ITree, Tree } from '@shapediver/viewer.shared.node-tree'
-import { AnimationFrameEngine } from '@shapediver/viewer.rendering-engine.animation-frame-engine'
-import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine'
 
 export class RenderingManager implements IManager {
-    // #region Properties (28)
+    // #region Properties (30)
 
     private readonly _animationEngine: AnimationEngine = AnimationEngine.instance;
     private readonly _animationFrameEngine: AnimationFrameEngine = AnimationFrameEngine.instance;
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _logger: Logger = Logger.instance;
-    private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
     private readonly _tree: ITree = Tree.instance;
 
     private _activeRendering: boolean = true;
-    private _softShadowRenderingActive: boolean = false;
-    private _softShadowRenderingDurationActive: number = 0;
-    private _softShadowRenderingTimeout: NodeJS.Timeout | null = null;
     private _cameraChanged: boolean = false;
     private _continuousRendering: boolean = false;
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _hidden: boolean = true;
-    private _lastCameraMatrix: mat4 = mat4.create();
+    private _hideLogo: boolean = false;
     private _lastSize: {
         adjustedWidth: number,
         adjustedHeight: number,
@@ -66,12 +63,15 @@ export class RenderingManager implements IManager {
     private _noWebGL: boolean = false;
     private _runningAnimation: boolean = false;
     private _sizeChanged: boolean = false;
+    private _softShadowRenderingActive: boolean = false;
+    private _softShadowRenderingDurationActive: number = 0;
+    private _softShadowRenderingTimeout: NodeJS.Timeout | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
-    private _hideLogo: boolean = false
 
-    // #endregion Properties (28)
+    // #endregion Properties (30)
 
     // #region Constructors (1)
 
@@ -132,7 +132,7 @@ export class RenderingManager implements IManager {
             img.style.maxHeight = 'calc(100% * 0.5)';
             img.style.transform = 'translateX(-50%) translateY(-50%)';
             img.src = branding.logo;
-            logoDivElement.appendChild(img)
+            logoDivElement.appendChild(img);
         }
 
         return logoDivElement;
@@ -162,33 +162,33 @@ export class RenderingManager implements IManager {
             img.src = branding.busyModeSpinner;
             img.style.position = 'absolute';
 
-            if(branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
+            if (branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
                 img.style.top = '50%';
                 img.style.left = '50%';
                 img.style.transform = 'translateX(-50%) translateY(-50%)';
             } else {
-                if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
+                if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
                     img.style.right = 'calc(100% * 0.01)';
                     img.style.bottom = 'calc(100% * 0.01)';
                     img.style.float = 'right';
-                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
+                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
                     img.style.left = 'calc(100% * 0.01)';
                     img.style.bottom = 'calc(100% * 0.01)';
                     img.style.float = 'left';
-                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
                     img.style.right = 'calc(100% * 0.01)';
                     img.style.top = 'calc(100% * 0.01)';
                     img.style.float = 'right';
-                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
                     img.style.left = 'calc(100% * 0.01)';
                     img.style.top = 'calc(100% * 0.01)';
                     img.style.float = 'left';
                 }
             }
-            
+
             img.style.maxWidth = 'calc(100% * 0.15)';
             img.style.maxHeight = 'calc(100% * 0.15)';
-            spinnerDivElement.appendChild(img)
+            spinnerDivElement.appendChild(img);
         }
 
         return spinnerDivElement;
@@ -209,17 +209,17 @@ export class RenderingManager implements IManager {
 
         const context = renderer.getContext();
 
-        if (renderer.extensions.has("WEBGL_debug_renderer_info")) {
-            const debugInfo = renderer.extensions.get("WEBGL_debug_renderer_info");
-            const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+        if (renderer.extensions.has('WEBGL_debug_renderer_info')) {
+            const debugInfo = renderer.extensions.get('WEBGL_debug_renderer_info');
+            // const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
             const rendererInfo = context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            if (rendererInfo === "Google SwiftShader") {
+            if (rendererInfo === 'Google SwiftShader') {
                 this._usingSwiftShader = true;
                 this._logger.warn('RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
             }
         }
 
-        if (!renderer.extensions.has("EXT_shader_texture_lod"))
+        if (!renderer.extensions.has('EXT_shader_texture_lod'))
             this._minimalRendering = true;
 
         renderer.useLegacyLights = true;
@@ -233,12 +233,12 @@ export class RenderingManager implements IManager {
         renderer.setSize(canvas.width, canvas.height);
         renderer.setClearColor(new THREE.Color('#ffffff'), 1);
         this._maxTextureUnits = renderer.getContext().getParameter(renderer.getContext().MAX_TEXTURE_IMAGE_UNITS);
-        return renderer
+        return renderer;
     }
 
     public evaluateTextureUnitCount(value: number) {
         if (value > this._maxTextureUnits) {
-            this._logger.warn(`RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
+            this._logger.warn('RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.');
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
             this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
         } else {
@@ -262,12 +262,12 @@ export class RenderingManager implements IManager {
                 const viewerEvent = <ICameraEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id)
                     this.startRendering();
-            })
+            });
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 const viewerEvent = <ICameraEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id)
                     this.stopRendering();
-            })
+            });
 
             window.onresize = () => { this.render(); };
             this._renderingEngine.canvas.onresize = () => { this.render(); };
@@ -303,7 +303,7 @@ export class RenderingManager implements IManager {
             };
         } catch (e) {
             this._noWebGL = true;
-            throw e
+            throw e;
         }
     }
 
@@ -319,7 +319,7 @@ export class RenderingManager implements IManager {
      * Must only be called once by the RenderingEngine!
      */
     public start() {
-        this._animationFrameEngine.addAnimationFrameCallback(this.animate.bind(this))
+        this._animationFrameEngine.addAnimationFrameCallback(this.animate.bind(this));
         this.startAndStopRendering();
     }
 
@@ -345,11 +345,11 @@ export class RenderingManager implements IManager {
 
         // update if needed
         if (this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion) {
-            this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root, this._renderingEngine.lightEngine);
+            this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root);
             this.updateShadowMap();
             this._animationEngine.updateAnimationData();
             this.render();
-            this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id })
+            this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id });
         }
 
         if (runningAnimation !== this._runningAnimation) this.render();
@@ -375,14 +375,14 @@ export class RenderingManager implements IManager {
             this.toggleLogo(true);
             this.toggleBusyMode(false);
 
-            if(this._hidden === false)
+            if (this._hidden === false)
                 this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_HIDDEN, { viewportId: this._renderingEngine.id });
 
             this._hidden = true;
             return;
         } else {
             // we delay for one render call as some of the postprocessing effects have artefacts in the first call
-            if(this._hideLogo === true && this._hidden === true) {
+            if (this._hideLogo === true && this._hidden === true) {
                 this.toggleLogo(false);
                 this._hideLogo = false;
 
@@ -392,7 +392,7 @@ export class RenderingManager implements IManager {
                 this._hidden = false;
             } else {
                 this._hideLogo = true;
-                if(this._hidden === true)
+                if (this._hidden === true)
                     this._renderingEngine.postProcessingManager.changeEffectPass();
             }
         }
@@ -429,8 +429,7 @@ export class RenderingManager implements IManager {
         // enable / disable the shadow map
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
         this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader || this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES ? false : this._renderingEngine.shadows;
-        if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
-
+        if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials();
         let threeJsLightObject, oldLightVisibility = true;
         // enable / disable lights
         if (this._renderingEngine.lights === false) {
@@ -459,7 +458,6 @@ export class RenderingManager implements IManager {
         // animation loop - part 12: actual rendering separation
         if (states.softShadowRendering === true) {
             this.setShaderProperties();
-
 
             if (renderPostProcessing) {
                 this._renderingEngine.postProcessingManager.render(deltaTime, camera);
@@ -494,6 +492,25 @@ export class RenderingManager implements IManager {
         if (threeJsLightObject)
             threeJsLightObject.visible = oldLightVisibility;
 
+        if (this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate === true) {
+            this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate = false;
+            const envMapRotationMatrix = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix();
+            const envMapRotationMatrixBackground = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix(true);
+            // the background cube is its own mesh that lives somewhere within three.js
+            // therefore our way to change the uniform is to go through the renderer list and set the uniforms there
+            const list = this._renderingEngine.renderer.renderLists.get(this._renderingEngine.scene, 0);
+            list.opaque.forEach(element => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((<any>element.material).name === 'BackgroundCubeMaterial') {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrixBackground });
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrix });
+                }
+            });
+        }
+
         this._stats.end();
     }
 
@@ -520,7 +537,7 @@ export class RenderingManager implements IManager {
         return {
             width, adjustedWidth,
             height, adjustedHeight
-        }
+        };
     }
 
     private deactivateBeautyRenderShaders() {
@@ -582,12 +599,12 @@ export class RenderingManager implements IManager {
     }
 
     private setShaderProperties() {
-        if(this._renderingEngine.softShadows === false) {
+        if (this._renderingEngine.softShadows === false) {
             this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0);
             return 0;
         }
 
-        const deltaTime = Math.min(this._softShadowRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
+        const deltaTime = Math.min(this._softShadowRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration);
         const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 
         if (percentage < 0.25) {
@@ -605,10 +622,10 @@ export class RenderingManager implements IManager {
     private showStatistics() {
         if (this._renderingEngine.showStatistics) {
             for (let i = 0; i < this._stats.stats.length; i++)
-                this._stats.stats[i].dom.style.display = ''
+                this._stats.stats[i].dom.style.display = '';
         } else {
             for (let i = 0; i < this._stats.stats.length; i++)
-                this._stats.stats[i].dom.style.display = 'none'
+                this._stats.stats[i].dom.style.display = 'none';
         }
     }
 
