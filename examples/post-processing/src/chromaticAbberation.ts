@@ -10,7 +10,7 @@ import {
     IBooleanElement,
     IDropdownElement,
     ISliderElement
-} from '@shapediver/viewer.utils.demo-helper';
+} from '@shapediver/viewer.shared.demo-helper';
 import { vec2 } from 'gl-matrix';
 
 (<any>window).SDV = SDV;

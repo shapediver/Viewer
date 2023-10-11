@@ -1,33 +1,32 @@
-import { ShapeDiverResponseDto } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { FileParameter, IParameter, ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
-import { IExportApi } from "../../interfaces/session/IExportApi";
-import { IOutputApi } from "../../interfaces/session/IOutputApi";
-import { IParameterApi } from "../../interfaces/session/IParameterApi";
-import { ISessionApi } from "../../interfaces/session/ISessionApi";
-import { InputValidator, Logger, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
-import { OutputApi } from "./OutputApi";
-import { ExportApi } from "./ExportApi";
-import { ParameterApi } from "./ParameterApi";
-import { FileParameterApi } from "./FileParameterApi";
-import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
-import { SessionApiData } from "./data/SessionApiData";
+import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
+import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
+import { FileParameter, ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { InputValidator, Logger, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services';
+import { IExportApi } from '../../interfaces/session/IExportApi';
+import { IOutputApi } from '../../interfaces/session/IOutputApi';
+import { IParameterApi } from '../../interfaces/session/IParameterApi';
+import { ISessionApi } from '../../interfaces/session/ISessionApi';
+import { ExportApi } from './ExportApi';
+import { FileParameterApi } from './FileParameterApi';
+import { OutputApi } from './OutputApi';
+import { ParameterApi } from './ParameterApi';
+import { SessionApiData } from './data/SessionApiData';
 
 export class SessionApi implements ISessionApi {
-    // #region Properties (2)
+    // #region Properties (8)
 
     readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
-    readonly #sessionEngine: SessionEngine;
-    readonly #logger: Logger = Logger.instance;
-    readonly #inputValidator: InputValidator = InputValidator.instance;
-    readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
-
-    readonly #outputs: { [key: string]: IOutputApi; } = {};
-    readonly #parameters: { [key: string]: IParameterApi<any>; } = {};
     readonly #exports: { [key: string]: IExportApi; } = {};
+    readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
+    readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #logger: Logger = Logger.instance;
+    readonly #outputs: { [key: string]: IOutputApi; } = {};
+    readonly #parameters: { [key: string]: IParameterApi<unknown>; } = {};
+    readonly #sessionEngine: SessionEngine;
 
-    // #endregion Properties (2)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -36,19 +35,19 @@ export class SessionApi implements ISessionApi {
         if (!this.#sessionEngine.initialized)
             throw new ShapeDiverViewerSessionError('Session could not be initialized.');
 
-        this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+        this.#sessionEngine.updateCallback = (newNode: ITreeNode) => {
             if (newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
                 newNode.addData(new SessionApiData(this));
         };
-        this.#sessionEngine.updateCallback(this.node, this.node)
+        this.#sessionEngine.updateCallback(this.node, this.node);
 
-        for (let o in this.#sessionEngine.outputs)
+        for (const o in this.#sessionEngine.outputs)
             this.#outputs[o] = new OutputApi(this.#sessionEngine.outputs[o]);
 
-        for (let e in this.#sessionEngine.exports)
+        for (const e in this.#sessionEngine.exports)
             this.#exports[e] = new ExportApi(this.#sessionEngine.exports[e]);
 
-        for (let p in this.#sessionEngine.parameters) {
+        for (const p in this.#sessionEngine.parameters) {
             if (this.#sessionEngine.parameters[p] instanceof FileParameter) {
                 this.#parameters[p] = new FileParameterApi(<FileParameter>this.#sessionEngine.parameters[p]);
             } else {
@@ -56,9 +55,10 @@ export class SessionApi implements ISessionApi {
             }
         }
     }
+
     // #endregion Constructors (1)
 
-    // #region Public Accessors (26)
+    // #region Public Accessors (24)
 
     public get automaticSceneUpdate(): boolean {
         return this.#sessionEngine.automaticSceneUpdate;
@@ -147,23 +147,8 @@ export class SessionApi implements ISessionApi {
         return this.#outputs;
     }
 
-    public get parameters(): { [key: string]: IParameterApi<any>; } {
+    public get parameters(): { [key: string]: IParameterApi<unknown>; } {
         return this.#parameters;
-    }
-
-    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
-        return this.#sessionEngine.updateCallback;
-    }
-
-    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
-        const scope = 'updateCallback';
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'function', false);
-        this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
-            if (newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
-                newNode.addData(new SessionApiData(this));
-            if (value) value(newNode, oldNode);
-        };
-        this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
     public get refreshJwtToken(): (() => Promise<string>) | undefined {
@@ -181,9 +166,24 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (26)
+    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+        return this.#sessionEngine.updateCallback;
+    }
 
-    // #region Public Methods (21)
+    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+        const scope = 'updateCallback';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'function', false);
+        this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+            if (newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
+                newNode.addData(new SessionApiData(this));
+            if (value) value(newNode, oldNode);
+        };
+        this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
+    }
+
+    // #endregion Public Accessors (24)
+
+    // #region Public Methods (26)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -205,7 +205,7 @@ export class SessionApi implements ISessionApi {
     }
 
     public async convertToGlTF(): Promise<Blob> {
-        for (let r in this.#creationControlCenter.renderingEngines)
+        for (const r in this.#creationControlCenter.renderingEngines)
             this.#creationControlCenter.renderingEngines[r].update('SessionApi.convertToGlTF');
 
         const result = await this.#gltfConverter.convert(this.node, false);
@@ -221,7 +221,7 @@ export class SessionApi implements ISessionApi {
     public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
         const scope = 'customizeParallel';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object');
-        for (let p in parameterValues)
+        for (const p in parameterValues)
             this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues[p], 'string');
 
         return this.#sessionEngine.customizeParallel(parameterValues);
@@ -263,19 +263,19 @@ export class SessionApi implements ISessionApi {
         return Object.values(this.#outputs).filter(o => o.name === name);
     }
 
-    public getParameterById(id: string): IParameterApi<any> | null {
+    public getParameterById(id: string): IParameterApi<unknown> | null {
         const scope = 'getParameterById';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, id, 'string');
         return this.#parameters[id];
     }
 
-    public getParameterByName(name: string): IParameterApi<any>[] {
+    public getParameterByName(name: string): IParameterApi<unknown>[] {
         const scope = 'getParameterByName';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, name, 'string');
         return Object.values(this.#parameters).filter(p => p.name === name);
     }
 
-    public getParameterByType(type: string): IParameterApi<any>[] {
+    public getParameterByType(type: string): IParameterApi<unknown>[] {
         const scope = 'getParameterByType';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, type, 'string');
         return Object.values(this.#parameters).filter(p => p.type === type);
@@ -289,9 +289,16 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.goForward();
     }
 
+    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
+        const scope = 'requestExports';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, body, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, maxWaitMsec, 'number', false);
+        return this.#sessionEngine.requestExports(body, maxWaitMsec);
+    }
+
     public resetParameterValues(force: boolean = false): Promise<ITreeNode> {
         const scope = 'resetParameterValues';
-        for (let p in this.parameters)
+        for (const p in this.parameters)
             this.parameters[p].value = this.parameters[p].defval;
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, force, 'boolean', false);
         return this.#sessionEngine.customize(force);
@@ -329,5 +336,5 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.updateOutputs();
     }
 
-    // #endregion Public Methods (21)
+    // #endregion Public Methods (26)
 }

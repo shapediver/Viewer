@@ -1,10 +1,10 @@
-import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ITree, ITreeNode } from '@shapediver/viewer.shared.node-tree'
-import { ISettingsSections } from '@shapediver/viewer.session-engine.session-engine'
+import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ISettingsSections } from '@shapediver/viewer.session-engine.session-engine';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
-import { IExportApi } from './IExportApi'
-import { IOutputApi } from './IOutputApi'
-import { IParameterApi } from './IParameterApi'
+import { IExportApi } from './IExportApi';
+import { IOutputApi } from './IOutputApi';
+import { IParameterApi } from './IParameterApi';
 
 /**
  * The api for sessions.
@@ -33,19 +33,19 @@ export interface ISessionApi {
      * This object maps export ids to export definitions. 
      */
     readonly exports: { [key: string]: IExportApi; };
-    
+
     /**
      * The [outputs]{@link IOutputApi} defined by the model.
      * This object maps output ids to output definitions.
      */
-     readonly outputs: { [key: string]: IOutputApi; };
-     
+    readonly outputs: { [key: string]: IOutputApi; };
+
     /**
      * The [parameters]{@link IParameterApi} defined by the model.
      * This object maps parameter ids to parameter definitions.
      */
-    readonly parameters: { [key: string]: IParameterApi<any>; };
-     
+    readonly parameters: { [key: string]: IParameterApi<unknown>; };
+
     /**
      * The geometry backend model id (guid). 
      * This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication.
@@ -57,14 +57,14 @@ export interface ISessionApi {
      * or automatically chosen on creation of the session.
      */
     readonly id: string;
-    
+
     /**
      * The modelViewUrl of the 
      * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
      * hosting the model.
      */
     readonly modelViewUrl: string;
-     
+
     /**
      * The ticket for direct embedding of the model represented by the session. 
      * This identifies the model on the Geometry Backend.
@@ -115,7 +115,7 @@ export interface ISessionApi {
      * The ids of the viewports in which the session's scene tree {@link node} should not be shown.
      */
     excludeViewports: string[];
-    
+
     /**
      * A callback that is executed whenever a session's {@link node} is to be replaced
      * due to an update of the session's content.
@@ -184,11 +184,11 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     close(): Promise<void>;
-    
+
     /**
      * Convert the session into a glTF file.
      * 
-     * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+     * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
      * 
      * @throws {@type ShapeDiverViewerError}
      */
@@ -297,7 +297,7 @@ export interface ISessionApi {
      * 
      * @param id The id of the parameters.
      */
-    getParameterById(id: string): IParameterApi<any> | null;
+    getParameterById(id: string): IParameterApi<unknown> | null;
 
     /**
      * Get parameter definitions by name.
@@ -305,7 +305,7 @@ export interface ISessionApi {
      * 
      * @param name The name of the parameters.
      */
-    getParameterByName(name: string): IParameterApi<any>[];
+    getParameterByName(name: string): IParameterApi<unknown>[];
 
     /**
      * Get parameter definitions by type.
@@ -313,7 +313,7 @@ export interface ISessionApi {
      * 
      * @param type The type of the parameters.
      */
-    getParameterByType(type: string): IParameterApi<any>[];
+    getParameterByType(type: string): IParameterApi<unknown>[];
 
     /**
      * Go back to the previous recorded state of parameter values.
@@ -342,7 +342,21 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     goForward(): Promise<ITreeNode>;
-    
+
+    /**
+     * Request one or multiple exports.
+     * 
+     * @param body The body of the export request.
+     * @param body.parameters Parameter values to be used for this export request. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * @param body.exports The ids of the exports to request.
+     * @param body.outputs The ids of the outputs to request.
+     * @param body.max_wait_time Maximum amount of milliseconds to wait for completion of export request before responding.
+     * @param maxWaitTime Maximum amount of milliseconds to wait for completion of the complete request.
+     * 
+     * @throws {@type ShapeDiverViewerError}
+     */
+    requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
+
     /**
      * Reset the parameters to their stored default values and customize the scene.
      * 
@@ -370,7 +384,7 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     saveDefaultParameterValues(): Promise<boolean>;
-    
+
     /**
      * Save UI-related properties of parameter, output, and export definitions (displayname, order, hidden and tooltip, etc).
      * 
@@ -379,7 +393,7 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     saveUiProperties(): Promise<boolean>;
-    
+
     /**
      * Save the 3D viewport related settings of this session to the model hosted on the Geometry Backend.
      * 
@@ -403,7 +417,7 @@ export interface ISessionApi {
      * @param token 
      */
     setJwtToken(token: string): Promise<void>;
-    
+
     /**
      * Update the current available outputs.
      * Calling this function makes sense if you have updated one of

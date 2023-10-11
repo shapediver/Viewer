@@ -1,24 +1,24 @@
-import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendRequestError } from '@shapediver/viewer.shared.services'
-
-import { OutputDelayException } from './OutputDelayException'
-import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader'
-import { SessionTreeNode } from './SessionTreeNode'
-import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
-import { SessionData } from './SessionData'
-import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus, ShapeDiverRequestError, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
-import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
-import { FileParameter } from './dto/FileParameter'
-import { IFileParameter } from '../interfaces/dto/IFileParameter'
-import { IExport } from '../interfaces/dto/IExport'
-import { IParameter } from '../interfaces/dto/IParameter'
-import { IOutput } from '../interfaces/dto/IOutput'
-import { Parameter } from './dto/Parameter'
-import { vec3 } from 'gl-matrix'
-import { Export } from './dto/Export'
-import { Output } from './dto/Output'
-import { convert, ISettings, latestVersion, validate, versions } from '@shapediver/viewer.settings'
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestConfigure, ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseErrorType, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput, ShapeDiverSdk, ShapeDiverSdkConfigType, create, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ISettings, convert, latestVersion, validate, versions } from '@shapediver/viewer.settings';
+import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { EVENTTYPE, EventEngine, HttpClient, HttpResponse, Logger, PerformanceEvaluator, SettingsEngine, ShapeDiverViewerError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, StateEngine, SystemInfo, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { vec3 } from 'gl-matrix';
+import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
+import { IExport } from '../interfaces/dto/IExport';
+import { IFileParameter } from '../interfaces/dto/IFileParameter';
+import { IOutput } from '../interfaces/dto/IOutput';
+import { IParameter } from '../interfaces/dto/IParameter';
+import { OutputDelayException } from './OutputDelayException';
+import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader';
+import { SessionData } from './SessionData';
+import { SessionTreeNode } from './SessionTreeNode';
+import { Export } from './dto/Export';
+import { FileParameter } from './dto/FileParameter';
+import { Output } from './dto/Output';
+import { Parameter } from './dto/Parameter';
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (43)
@@ -34,7 +34,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _outputs: { [key: string]: IOutput; } = {};
     private readonly _outputsFreeze: { [key: string]: boolean; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
-    private readonly _parameters: { [key: string]: IParameter<any>; } = {};
+    private readonly _parameters: { [key: string]: IParameter<unknown>; } = {};
     private readonly _performanceEvaluator = PerformanceEvaluator.instance;
     private readonly _sceneTree: ITree = Tree.instance;
     private readonly _sessionEngineId = (UuidGenerator.instance).create();
@@ -46,14 +46,14 @@ export class SessionEngine implements ISessionEngine {
     #customizationProcess!: string;
     #parameterHistory: {
         [key: string]: {
-            value: any,
+            value: unknown,
             valueString: string
         }
     }[] = [];
     #parameterHistoryCall = false;
     #parameterHistoryForward: {
         [key: string]: {
-            value: any,
+            value: unknown,
             valueString: string
         }
     }[] = [];
@@ -62,14 +62,14 @@ export class SessionEngine implements ISessionEngine {
     private _closed: boolean = false;
     private _customizeOnParameterChange: boolean = false;
     private _dataCache: {
-        [key: string]: Promise<HttpResponse<any>>
+        [key: string]: Promise<HttpResponse<unknown>>
     } = {};
     private _excludeViewports: string[] = [];
     private _headers = {
-        "X-ShapeDiver-Origin": (SystemInfo.instance).origin,
-        "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
-        "X-ShapeDiver-BuildVersion": '',
-        "X-ShapeDiver-BuildDate": ''
+        'X-ShapeDiver-Origin': (SystemInfo.instance).origin,
+        'X-ShapeDiver-SessionEngineId': this._sessionEngineId,
+        'X-ShapeDiver-BuildVersion': '',
+        'X-ShapeDiver-BuildDate': ''
     };
     private _initialized: boolean = false;
     private _jwtToken?: string;
@@ -115,7 +115,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (24)
+    // #region Public Accessors (25)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -192,7 +192,7 @@ export class SessionEngine implements ISessionEngine {
         return this._parameterValues;
     }
 
-    public get parameters(): { [key: string]: IParameter<any>; } {
+    public get parameters(): { [key: string]: IParameter<unknown>; } {
         return this._parameters;
     }
 
@@ -213,149 +213,149 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
-      return this._updateCallback;
+        return this._updateCallback;
     }
 
     public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
-      this._updateCallback = value;
+        this._updateCallback = value;
     }
 
     public get viewerSettings(): object | undefined {
         return this._viewerSettings;
     }
 
-    // #endregion Public Accessors (24)
+    // #endregion Public Accessors (25)
 
-    // #region Public Methods (24)
+    // #region Public Methods (25)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
-            sections = sections || {};
-            if (sections.session === undefined) {
-                sections.session = {
-                    parameter: { displayname: false, order: false, hidden: false },
-                    export: { displayname: false, order: false, hidden: false }
-                };
-            }
-            if (sections.session.parameter === undefined)
-                sections.session.parameter = { displayname: false, order: false, hidden: false, value: false };
-            if (sections.session.export === undefined)
-                sections.session.export = { displayname: false, order: false, hidden: false };
-            if (sections.viewport === undefined)
-                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false, postprocessing: false };
+        sections = sections || {};
+        if (sections.session === undefined) {
+            sections.session = {
+                parameter: { displayname: false, order: false, hidden: false },
+                export: { displayname: false, order: false, hidden: false }
+            };
+        }
+        if (sections.session.parameter === undefined)
+            sections.session.parameter = { displayname: false, order: false, hidden: false, value: false };
+        if (sections.session.export === undefined)
+            sections.session.export = { displayname: false, order: false, hidden: false };
+        if (sections.viewport === undefined)
+            sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false, postprocessing: false };
 
-            let config: object;
-            if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
-                config = (<ShapeDiverResponseDto>response).viewer!.config;
-            } else {
-                throw new ShapeDiverViewerSettingsError('Session.applySettings: No config object available.');
-            }
+        let config: object;
+        if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
+            config = (<ShapeDiverResponseDto>response).viewer!.config;
+        } else {
+            throw new ShapeDiverViewerSettingsError('Session.applySettings: No config object available.');
+        }
 
-            try {
-                validate(config)
-            } catch (e) {
-                throw new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
-            }
+        try {
+            validate(config);
+        } catch (e) {
+            throw new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
+        }
 
-            const settings = <ISettings>convert(config, latestVersion);
+        const settings = <ISettings>convert(config, latestVersion);
 
-            const exportMappingUid: { [key: string]: string | undefined } = {};
-            if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
-                if (response.exports)
-                    for (let exportId in response.exports)
-                        if (response.exports[exportId].uid !== undefined)
-                            exportMappingUid[response.exports[exportId].uid!] = exportId;
+        const exportMappingUid: { [key: string]: string | undefined } = {};
+        if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
+            if (response.exports)
+                for (const exportId in response.exports)
+                    if (response.exports[exportId].uid !== undefined)
+                        exportMappingUid[response.exports[exportId].uid!] = exportId;
 
-            const currentSettings = this._settingsEngine.settings;
+        const currentSettings = this._settingsEngine.settings;
 
-            // apply parameter settings
-            if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden || sections.session.parameter.value) {
-                for (let p in this.parameters) {
-                    if (settings.session[p]) {
-                        if (sections.session.parameter.displayname) this.parameters[p].displayname = settings.session[p].displayname;
-                        if (sections.session.parameter.order) this.parameters[p].order = settings.session[p].order;
-                        if (sections.session.parameter.hidden) this.parameters[p].hidden = settings.session[p].hidden || false;
-                    }
+        // apply parameter settings
+        if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden || sections.session.parameter.value) {
+            for (const p in this.parameters) {
+                if (settings.session[p]) {
+                    if (sections.session.parameter.displayname) this.parameters[p].displayname = settings.session[p].displayname;
+                    if (sections.session.parameter.order) this.parameters[p].order = settings.session[p].order;
+                    if (sections.session.parameter.hidden) this.parameters[p].hidden = settings.session[p].hidden || false;
+                }
 
-                    if (response.parameters && response.parameters[p]) {
-                        if (sections.session.parameter.value) this.parameters[p].value = response.parameters[p].defval !== undefined ? response.parameters[p].defval : this.parameters[p].value;
-                    }
+                if (response.parameters && response.parameters[p]) {
+                    if (sections.session.parameter.value) this.parameters[p].value = response.parameters[p].defval !== undefined ? response.parameters[p].defval : this.parameters[p].value;
                 }
             }
+        }
 
-            // apply export settings
-            if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden) {
-                for (let p in this.exports) {
-                    let idForSettings = '';
-                    if (settings.session[p]) {
-                        idForSettings = p;
-                    } else {
-                        const uid = this.exports[p].uid;
-                        if (!uid) continue;
-                        if (!exportMappingUid[uid]) continue;
-                        idForSettings = exportMappingUid[uid]!;
-                    }
-                    if (settings.session[idForSettings]) {
-                        if (sections.session.export.displayname) this.exports[p].displayname = settings.session[idForSettings].displayname;
-                        if (sections.session.export.order) this.exports[p].order = settings.session[idForSettings].order;
-                        if (sections.session.export.hidden) this.exports[p].hidden = settings.session[idForSettings].hidden || false;
-                    }
+        // apply export settings
+        if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden) {
+            for (const p in this.exports) {
+                let idForSettings = '';
+                if (settings.session[p]) {
+                    idForSettings = p;
+                } else {
+                    const uid = this.exports[p].uid;
+                    if (!uid) continue;
+                    if (!exportMappingUid[uid]) continue;
+                    idForSettings = exportMappingUid[uid]!;
+                }
+                if (settings.session[idForSettings]) {
+                    if (sections.session.export.displayname) this.exports[p].displayname = settings.session[idForSettings].displayname;
+                    if (sections.session.export.order) this.exports[p].order = settings.session[idForSettings].order;
+                    if (sections.session.export.hidden) this.exports[p].hidden = settings.session[idForSettings].hidden || false;
                 }
             }
+        }
 
-            // apply ar settings
-            if (sections.viewport.ar) {
-                currentSettings.ar = settings.ar;
-                currentSettings.general.transformation = settings.general.transformation;
-            }
+        // apply ar settings
+        if (sections.viewport.ar) {
+            currentSettings.ar = settings.ar;
+            currentSettings.general.transformation = settings.general.transformation;
+        }
 
-            // apply camera settings
-            if (sections.viewport.camera)
-                currentSettings.camera = settings.camera;
+        // apply camera settings
+        if (sections.viewport.camera)
+            currentSettings.camera = settings.camera;
 
-            // apply light settings
-            if (sections.viewport.light)
-                currentSettings.light = settings.light;
+        // apply light settings
+        if (sections.viewport.light)
+            currentSettings.light = settings.light;
 
-            // apply scene settings
-            if (sections.viewport.scene) {
-                currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
-                currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
-                currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
-                currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
-                currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
-                currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
-            
-                currentSettings.rendering.shadows = settings.rendering.shadows;
-                currentSettings.rendering.softShadows = settings.rendering.softShadows;
+        // apply scene settings
+        if (sections.viewport.scene) {
+            currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
+            currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
+            currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
+            currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+            currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
+            currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
 
-                currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
-                currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
-                currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
-                currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
-                currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
-                currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
-            }
+            currentSettings.rendering.shadows = settings.rendering.shadows;
+            currentSettings.rendering.softShadows = settings.rendering.softShadows;
 
-            if (sections.viewport.general) {
-                currentSettings.general.defaultMaterialColor = settings.general.defaultMaterialColor;
-                currentSettings.general.commitParameters = settings.general.commitParameters;
-                currentSettings.general.pointSize = settings.general.pointSize;
-            }
+            currentSettings.rendering.automaticColorAdjustment = settings.rendering.automaticColorAdjustment;
+            currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
+            currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
+            currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
+            currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
+            currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
+        }
 
-            // apply postprocessing settings
-            if (sections.viewport.postprocessing) 
-                currentSettings.postprocessing = settings.postprocessing;
+        if (sections.viewport.general) {
+            currentSettings.general.defaultMaterialColor = settings.general.defaultMaterialColor;
+            currentSettings.general.commitParameters = settings.general.commitParameters;
+            currentSettings.general.pointSize = settings.general.pointSize;
+        }
 
-            // apply environment settings
-            if (sections.viewport.environment) {
-                currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
-                currentSettings.environment.clearColor = settings.environment.clearColor;
-                currentSettings.environment.map = settings.environment.map;
-                currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
-                currentSettings.environment.rotation = settings.environment.rotation;
-                currentSettings.environment.blurriness = settings.environment.blurriness;
-                currentSettings.environment.intensity = settings.environment.intensity;
-            }
+        // apply postprocessing settings
+        if (sections.viewport.postprocessing)
+            currentSettings.postprocessing = settings.postprocessing;
+
+        // apply environment settings
+        if (sections.viewport.environment) {
+            currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
+            currentSettings.environment.clearColor = settings.environment.clearColor;
+            currentSettings.environment.map = settings.environment.map;
+            currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+            currentSettings.environment.rotation = settings.environment.rotation;
+            currentSettings.environment.blurriness = settings.environment.blurriness;
+            currentSettings.environment.intensity = settings.environment.intensity;
+        }
     }
 
     public canGoBack(): boolean {
@@ -372,7 +372,7 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('close');
 
         try {
-            this._httpClient.removeDataLoading(this._sessionId!)
+            this._httpClient.removeDataLoading(this._sessionId!);
             await this._sdk.session.close(this._sessionId!);
             if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
 
@@ -399,7 +399,7 @@ export class SessionEngine implements ISessionEngine {
                 for (const parameterId in this.parameters)
                     if (this.parameters[parameterId].sessionValue !== this.parameters[parameterId].value)
                         changes = true;
-                if(changes === false)
+                if (changes === false)
                     return this.node;
             }
 
@@ -411,14 +411,14 @@ export class SessionEngine implements ISessionEngine {
 
             this._logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
 
-            for (let r in this._stateEngine.renderingEngines)
-                if(!this.excludeViewports.includes(r))
+            for (const r in this._stateEngine.renderingEngines)
+                if (!this.excludeViewports.includes(r))
                     this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
 
-            const fileParameterIds: { [key: string]: string } = {}
+            const fileParameterIds: { [key: string]: string } = {};
             // load file parameter first
             for (const parameterId in this.parameters) {
                 if (this.parameters[parameterId] instanceof FileParameter) {
@@ -426,7 +426,7 @@ export class SessionEngine implements ISessionEngine {
 
                     // OPTION TO SKIP - PART 1a
                     if (this.#customizationProcess !== customizationId) {
-                        for (let r in this._stateEngine.renderingEngines)
+                        for (const r in this._stateEngine.renderingEngines)
                             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -436,7 +436,7 @@ export class SessionEngine implements ISessionEngine {
                         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
                         return new SessionTreeNode();
                     } else if (this._closed === true) {
-                        for (let r in this._stateEngine.renderingEngines)
+                        for (const r in this._stateEngine.renderingEngines)
                             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -451,7 +451,7 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 1b
             if (this.#customizationProcess !== customizationId) {
-                for (let r in this._stateEngine.renderingEngines)
+                for (const r in this._stateEngine.renderingEngines)
                     if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -460,7 +460,7 @@ export class SessionEngine implements ISessionEngine {
                 this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return new SessionTreeNode();
             } else if (this._closed === true) {
-                for (let r in this._stateEngine.renderingEngines)
+                for (const r in this._stateEngine.renderingEngines)
                     if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -477,7 +477,7 @@ export class SessionEngine implements ISessionEngine {
 
             const parameterSet: {
                 [key: string]: {
-                    value: any,
+                    value: unknown,
                     valueString: string
                 }
             } = {};
@@ -487,7 +487,7 @@ export class SessionEngine implements ISessionEngine {
                 parameterSet[parameterId] = {
                     value: this.parameters[parameterId].value,
                     valueString: this.parameters[parameterId].stringify()
-                }
+                };
             }
 
             // update the session engine parameter values if everything succeeded
@@ -513,7 +513,7 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 2
             if (this.#customizationProcess !== customizationId) {
-                for (let r in this._stateEngine.renderingEngines)
+                for (const r in this._stateEngine.renderingEngines)
                     if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -522,7 +522,7 @@ export class SessionEngine implements ISessionEngine {
                 this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return newNode;
             } else if ((this._closed as boolean) === true) { // I get a TS warning here that the type of _closed is "false", I think TS doesn't get that there is a promise inbetween
-                for (let r in this._stateEngine.renderingEngines)
+                for (const r in this._stateEngine.renderingEngines)
                     if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -547,8 +547,8 @@ export class SessionEngine implements ISessionEngine {
 
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
-                (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-                
+                (<unknown>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
+
             // set the output content to what has been updated
             for (const outputId in this.outputs)
                 this.outputs[outputId].updateOutput(
@@ -564,7 +564,7 @@ export class SessionEngine implements ISessionEngine {
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
-            for (let r in this._stateEngine.renderingEngines)
+            for (const r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -576,8 +576,8 @@ export class SessionEngine implements ISessionEngine {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
             // update the viewports
-            for (let r in this._stateEngine.renderingEngines)
-                if(!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+            for (const r in this._stateEngine.renderingEngines)
+                if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
                     this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
 
             // call the update callback function on the session
@@ -595,7 +595,7 @@ export class SessionEngine implements ISessionEngine {
             const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
 
-            for (let r in this._stateEngine.renderingEngines)
+            for (const r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -604,33 +604,33 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
-            const eventId = this._uuidGenerator.create();
+        const eventId = this._uuidGenerator.create();
 
-            const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+        const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
-            const parameterSet: {
-                [key: string]: string
-            } = {};
+        const parameterSet: {
+            [key: string]: string
+        } = {};
 
-            // create a set of the current validated parameter values
-            for (const parameterId in this.parameters)
-                parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
+        // create a set of the current validated parameter values
+        for (const parameterId in this.parameters)
+            parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify();
 
-            const newNode = await this.customizeSession(parameterSet, () => false, {
-                eventId,
-                type: TASK_TYPE.SESSION_CUSTOMIZATION,
-                progressRange: {
-                    min: 0.0,
-                    max: 1
-                },
-                data: { sessionId: this.id }
-            }, true);
-            newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
-            
-            const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-            return newNode;
+        const newNode = await this.customizeSession(parameterSet, () => false, {
+            eventId,
+            type: TASK_TYPE.SESSION_CUSTOMIZATION,
+            progressRange: {
+                min: 0.0,
+                max: 1
+            },
+            data: { sessionId: this.id }
+        }, true);
+        newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
+
+        const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+        return newNode;
     }
 
     public async goBack(): Promise<ITreeNode> {
@@ -684,7 +684,7 @@ export class SessionEngine implements ISessionEngine {
     public async init(parameterValues?: {
         [key: string]: string;
     }, retry = false): Promise<void> {
-        if (this._initialized === true) 
+        if (this._initialized === true)
             throw new ShapeDiverViewerSessionError('Session.init: Session already initialized.');
 
         try {
@@ -695,13 +695,13 @@ export class SessionEngine implements ISessionEngine {
             for (const parameterNameOrId in parameterValues)
                 parameterSet[parameterNameOrId] = (' ' + parameterValues[parameterNameOrId]).slice(1);
 
-            if(this._ticket) {
+            if (this._ticket) {
                 this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
-            } else if(this._guid) {
+            } else if (this._guid) {
                 this._responseDto = await this._sdk.session.initForModel(this._guid, parameterSet);
             } else {
                 // we should never get here
-                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. Neither a ticket nor a guid are available.`)
+                throw new ShapeDiverViewerSessionError('Session.init: Initialization of session failed. Neither a ticket nor a guid are available.');
             }
             this._performanceEvaluator.endSection('sessionResponse');
 
@@ -709,81 +709,24 @@ export class SessionEngine implements ISessionEngine {
             this._viewerSettingsVersionBackend = this._responseDto.viewerSettingsVersion || latestVersion;
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
-            
+
             this._httpClient.addDataLoading(this._sessionId!, {
                 getAsset: this._sdk.asset.getAsset.bind(this._sdk.asset),
                 downloadTexture: this._sdk.asset.downloadImage.bind(this._sdk.asset),
-            })
+            });
 
             this._settingsEngine.loadSettings(this._viewerSettings);
-            
+
             if (!this._sessionId)
-                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a sessionId.`)
+                throw new ShapeDiverViewerSessionError('Session.init: Initialization of session failed. ResponseDto did not have a sessionId.');
             if (!this._modelId)
-                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a model.id.`)
+                throw new ShapeDiverViewerSessionError('Session.init: Initialization of session failed. ResponseDto did not have a model.id.');
 
             this.updateResponseDto(this._responseDto, parameterSet);
             this._initialized = true;
         } catch (e) {
             await this.handleError(e, retry);
             return await this.init(parameterValues, true);
-        }
-    }
-
-    
-    /**
-     * Load the outputs and return the scene graph node of the result.
-     * In case the outputs have a delay property, another customization request with the parameter set is sent.
-     * 
-     * @param parameters the parameter set to update the session 
-     * @param outputs the outputs to load
-     * @returns promise with a scene graph node
-     */
-    public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
-        this.checkAvailability();
-
-        let outputs: {
-            [key: string]: IOutput;
-        } = {}
-        let outputsFreeze: {
-            [key: string]: boolean;
-        } = {}
-        
-        for (let outputId in responseDto.outputs) {
-            responseDto.outputs[outputId].id = outputId;
-            if (this.outputsFreeze[outputId] === undefined) outputsFreeze[outputId] = false;
-            outputs[outputId] = new Output(<ShapeDiverResponseOutput>responseDto.outputs[outputId], this);
-        }
-
-        try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, outputsFreeze, taskEventInfo);
-            node.data.push(new SessionData(responseDto));      
-            return node;
-        }
-        catch (e) {
-            if (e instanceof OutputDelayException) {
-                await this.timeout(e.delay);
-            } else {
-                await this.handleError(e, retry);
-                if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
-            }
-
-            if (cancelRequest()) return new SessionTreeNode();
-            let outputMapping: { [key: string]: string } = {};
-            for (let output in outputs)
-                outputMapping[output] = outputs[output].version;
-
-            try {
-                const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
-                if (cancelRequest()) return new SessionTreeNode();
-                this.updateResponseDto(responseDto);
-                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
-            } catch (e) {
-                await this.handleError(e, retry);
-                if (cancelRequest()) return new SessionTreeNode();
-                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
-            }
         }
     }
 
@@ -824,8 +767,8 @@ export class SessionEngine implements ISessionEngine {
             }
 
             if (cancelRequest()) return new SessionTreeNode();
-            let outputMapping: { [key: string]: string } = {};
-            for (let output in o)
+            const outputMapping: { [key: string]: string } = {};
+            for (const output in o)
                 outputMapping[output] = o[output].version;
 
             try {
@@ -841,35 +784,67 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    /**
+     * Load the outputs and return the scene graph node of the result.
+     * In case the outputs have a delay property, another customization request with the parameter set is sent.
+     * 
+     * @param parameters the parameter set to update the session 
+     * @param outputs the outputs to load
+     * @returns promise with a scene graph node
+     */
+    public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, taskEventInfo: OutputLoaderTaskEventInfo, retry = false): Promise<ISessionTreeNode> {
+        this.checkAvailability();
+
+        const outputs: {
+            [key: string]: IOutput;
+        } = {};
+        const outputsFreeze: {
+            [key: string]: boolean;
+        } = {};
+
+        for (const outputId in responseDto.outputs) {
+            responseDto.outputs[outputId].id = outputId;
+            if (this.outputsFreeze[outputId] === undefined) outputsFreeze[outputId] = false;
+            outputs[outputId] = new Output(<ShapeDiverResponseOutput>responseDto.outputs[outputId], this);
+        }
+
+        try {
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, outputsFreeze, taskEventInfo);
+            node.data.push(new SessionData(responseDto));
+            return node;
+        }
+        catch (e) {
+            if (e instanceof OutputDelayException) {
+                await this.timeout(e.delay);
+            } else {
+                await this.handleError(e, retry);
+                if (cancelRequest()) return new SessionTreeNode();
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
+            }
+
+            if (cancelRequest()) return new SessionTreeNode();
+            const outputMapping: { [key: string]: string } = {};
+            for (const output in outputs)
+                outputMapping[output] = outputs[output].version;
+
+            try {
+                const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
+                if (cancelRequest()) return new SessionTreeNode();
+                this.updateResponseDto(responseDto);
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
+            } catch (e) {
+                await this.handleError(e, retry);
+                if (cancelRequest()) return new SessionTreeNode();
+                return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
+            }
+        }
+    }
+
     public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
-            const requestParameterSet: { [key: string]: string } = {};
-
-            // first step, we convert all our names and displaynames to ids
-            for (const parameterIdOrName in parameters) {
-                // we prioritize id, then name and then displayname
-                // if there are two parameters with the same name or displayname, we take the one that is found first (no way for us to evaluate which one the user meant)
-                const parameterObject = Object.values(this._parameters).find(p => p.id === parameterIdOrName || p.name === parameterIdOrName || p.displayname === parameterIdOrName);
-                
-                // in case the key of the key value pair was neither the id, name or displayname, skip
-                if(!parameterObject) continue;
-                
-                // deep copy into new dictionary
-                requestParameterSet[parameterObject.id] = (' ' + parameters[parameterIdOrName]).slice(1);
-            }
-
-            // seconds step, fill all other parameter values that are currently not set
-            const currentParameters = this.parameterValues;
-            for (const parameterId in currentParameters) {
-                // if already set by input values, skip
-                if(requestParameterSet[parameterId] !== undefined) continue;
-                
-                // deep copy into new dictionary
-                requestParameterSet[parameterId] = (' ' + currentParameters[parameterId]).slice(1);
-            }
-
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: requestParameterSet }, maxWaitTime)
+            const requestParameterSet = this.cleanExportParameters(parameters);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: requestParameterSet }, maxWaitTime);
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
@@ -878,42 +853,55 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
+        this.checkAvailability('export');
+        try {
+            const requestParameterSet = this.cleanExportParameters(body.parameters);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time}, maxWaitMsec);
+            this.updateResponseDto(responseDto);
+            return responseDto;
+        } catch (e) {
+            await this.handleError(e, retry);
+            return await this.requestExports(body, maxWaitMsec, true);
+        }
+    }
+
     public resetSettings(sections?: ISettingsSections): void {
         if (!this._responseDto)
-            throw new ShapeDiverViewerSessionError(`Session.resetSettings: responseDto not available.`);
+            throw new ShapeDiverViewerSessionError('Session.resetSettings: responseDto not available.');
 
-            sections = sections || {};
-            if (sections.session === undefined) {
-                sections.session = {
-                    parameter: { displayname: true, order: true, hidden: true },
-                    export: { displayname: true, order: true, hidden: true }
-                };
-            }
-            if (sections.session.parameter === undefined)
-                sections.session.parameter = { displayname: true, order: true, hidden: true, value: true };
-            if (sections.session.export === undefined)
-                sections.session.export = { displayname: true, order: true, hidden: true };
-            if (sections.viewport === undefined)
-                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true, postprocessing: true };
+        sections = sections || {};
+        if (sections.session === undefined) {
+            sections.session = {
+                parameter: { displayname: true, order: true, hidden: true },
+                export: { displayname: true, order: true, hidden: true }
+            };
+        }
+        if (sections.session.parameter === undefined)
+            sections.session.parameter = { displayname: true, order: true, hidden: true, value: true };
+        if (sections.session.export === undefined)
+            sections.session.export = { displayname: true, order: true, hidden: true };
+        if (sections.viewport === undefined)
+            sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true, postprocessing: true };
 
-            return this.applySettings(this._responseDto, sections);
+        return this.applySettings(this._responseDto, sections);
     }
 
     public async saveDefaultParameterValues(): Promise<boolean> {
-            this._logger.debugLow(`Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
-            const response = await this.saveDefaultParameters();
-            if (response) {
-                this._logger.debug(`Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
-            } else {
-                throw new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
-            }
-            return response;
+        this._logger.debugLow(`Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
+        const response = await this.saveDefaultParameters();
+        if (response) {
+            this._logger.debug(`Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
+        } else {
+            throw new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
+        }
+        return response;
     }
 
     public async saveDefaultParameters(retry = false): Promise<boolean> {
         this.checkAvailability('defaultparam', true);
         try {
-            await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues)
+            await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues);
             return true;
         } catch (e) {
             await this.handleError(e, retry);
@@ -993,22 +981,22 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async saveSettings(json: any, retry = false): Promise<boolean> {
+    public async saveSettings(json: unknown, retry = false): Promise<boolean> {
         this.checkAvailability('configure', true);
-        
+
         try {
-            validate(json, <versions>this._viewerSettingsVersion)
-            
+            validate(json, <versions>this._viewerSettingsVersion);
+
             // if viewer settings version is higher than backend settings version
             // convert to backend settings version
-            if(+this._viewerSettingsVersion > +this._viewerSettingsVersionBackend) 
-                json = convert(json, <versions>this._viewerSettingsVersionBackend)
+            if (+this._viewerSettingsVersion > +this._viewerSettingsVersionBackend)
+                json = convert(json, <versions>this._viewerSettingsVersionBackend);
         } catch (e) {
             throw new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
-        } 
-        
-        try {        
-            await this._sdk.model.updateConfig(this._modelId!, json);
+        }
+
+        try {
+            await this._sdk.model.updateConfig(this._modelId!, json as ShapeDiverRequestConfigure);
             return true;
         } catch (e) {
             await this.handleError(e, retry);
@@ -1017,60 +1005,60 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public async saveUiProperties(saveInSettings: boolean = true): Promise<boolean> {
-            this._logger.debugLow(`Session(${this.id}).saveSessionProperties: Saving session properties.`);
+        this._logger.debugLow(`Session(${this.id}).saveSessionProperties: Saving session properties.`);
 
-            // settings saving 
-            this._saveSessionSettings();
+        // settings saving 
+        this._saveSessionSettings();
 
-            let properties: {
-                [key: string]: {
-                    displayname: string,
-                    hidden: boolean,
-                    order: number,
-                    tooltip: string
-                }
-            } = {};
-            for (let p in this.parameters) {
-                properties[p] = {
-                    displayname: this.parameters[p].displayname !== undefined ? this.parameters[p].displayname! : '',
-                    hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
-                    order: this.parameters[p].order !== undefined ? this.parameters[p].order! : 0,
-                    tooltip: this.parameters[p].tooltip !== undefined ? this.parameters[p].tooltip! : '',
-                };
+        let properties: {
+            [key: string]: {
+                displayname: string,
+                hidden: boolean,
+                order: number,
+                tooltip: string
             }
-            const responseP = Object.values(properties).length !== 0 ? await this.saveParameterProperties(properties) : true;
+        } = {};
+        for (const p in this.parameters) {
+            properties[p] = {
+                displayname: this.parameters[p].displayname !== undefined ? this.parameters[p].displayname! : '',
+                hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
+                order: this.parameters[p].order !== undefined ? this.parameters[p].order! : 0,
+                tooltip: this.parameters[p].tooltip !== undefined ? this.parameters[p].tooltip! : '',
+            };
+        }
+        const responseP = Object.values(properties).length !== 0 ? await this.saveParameterProperties(properties) : true;
 
-            properties = {};
-            for (let e in this.exports) {
-                properties[e] = {
-                    displayname: this.exports[e].displayname !== undefined ? this.exports[e].displayname! : '',
-                    hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
-                    order: this.exports[e].order !== undefined ? this.exports[e].order! : 0,
-                    tooltip: this.exports[e].tooltip !== undefined ? this.exports[e].tooltip! : '',
-                };
-            }
-            const responseE = Object.values(properties).length !== 0 ? await this.saveExportProperties(properties) : true;
+        properties = {};
+        for (const e in this.exports) {
+            properties[e] = {
+                displayname: this.exports[e].displayname !== undefined ? this.exports[e].displayname! : '',
+                hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
+                order: this.exports[e].order !== undefined ? this.exports[e].order! : 0,
+                tooltip: this.exports[e].tooltip !== undefined ? this.exports[e].tooltip! : '',
+            };
+        }
+        const responseE = Object.values(properties).length !== 0 ? await this.saveExportProperties(properties) : true;
 
-            properties = {};
-            for (let o in this.outputs) {
-                properties[o] = {
-                    displayname: this.outputs[o].displayname !== undefined ? this.outputs[o].displayname! : '',
-                    hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
-                    order: this.outputs[o].order !== undefined ? this.outputs[o].order! : 0,
-                    tooltip: this.outputs[o].tooltip !== undefined ? this.outputs[o].tooltip! : '',
-                };
-            }
-            const responseO = Object.values(properties).length !== 0 ? await this.saveOutputProperties(properties) : true;
+        properties = {};
+        for (const o in this.outputs) {
+            properties[o] = {
+                displayname: this.outputs[o].displayname !== undefined ? this.outputs[o].displayname! : '',
+                hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
+                order: this.outputs[o].order !== undefined ? this.outputs[o].order! : 0,
+                tooltip: this.outputs[o].tooltip !== undefined ? this.outputs[o].tooltip! : '',
+            };
+        }
+        const responseO = Object.values(properties).length !== 0 ? await this.saveOutputProperties(properties) : true;
 
-            // save partial settings
-            const response = saveInSettings ? await this.saveSettings(this._settingsEngine.settings) : true;
+        // save partial settings
+        const response = saveInSettings ? await this.saveSettings(this._settingsEngine.settings) : true;
 
-            if (response && responseP && responseO && responseE) {
-                this._logger.debug(`Session(${this.id}).saveSessionProperties: Saved session properties.`);
-            } else {
-                this._logger.warn(`Session(${this.id}).saveSessionProperties: Could not save session properties.`);
-            }
-            return response && responseP && responseO && responseE;
+        if (response && responseP && responseO && responseE) {
+            this._logger.debug(`Session(${this.id}).saveSessionProperties: Saved session properties.`);
+        } else {
+            this._logger.warn(`Session(${this.id}).saveSessionProperties: Could not save session properties.`);
+        }
+        return response && responseP && responseO && responseE;
     }
 
     public async setJwtToken(value: string) {
@@ -1080,7 +1068,7 @@ export class SessionEngine implements ISessionEngine {
         try {
             this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
             const responseDto = await this._sdk.session.default(this._sessionId!);
-            if(this._responseDto) this._responseDto.actions = responseDto.actions;
+            if (this._responseDto) this._responseDto.actions = responseDto.actions;
         } catch (e) {
             throw this._httpClient.convertError(e);
         }
@@ -1091,7 +1079,7 @@ export class SessionEngine implements ISessionEngine {
         const eventType = taskEventInfo ? taskEventInfo.type : TASK_TYPE.SESSION_OUTPUTS_UPDATE;
         const eventData = taskEventInfo ? taskEventInfo.data : { sessionId: this.id };
 
-        if(!taskEventInfo) {
+        if (!taskEventInfo) {
             const eventStart: ITaskEvent = { type: eventType, id: eventId, progress: 0, data: eventData, status: 'Updating outputs' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
         }
@@ -1102,8 +1090,8 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debugLow(`Session(${this.id}).updateOutputs: Updating Outputs.`);
 
-        for (let r in this._stateEngine.renderingEngines)
-            if(!this.excludeViewports.includes(r))
+        for (const r in this._stateEngine.renderingEngines)
+            if (!this.excludeViewports.includes(r))
                 this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
         const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
@@ -1124,7 +1112,7 @@ export class SessionEngine implements ISessionEngine {
 
         // OPTION TO SKIP - PART 1
         if (this.#customizationProcess !== customizationId) {
-            for (let r in this._stateEngine.renderingEngines)
+            for (const r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -1133,7 +1121,7 @@ export class SessionEngine implements ISessionEngine {
             this._logger.debug(`Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
             return newNode;
         } else if (this._closed === true) {
-            for (let r in this._stateEngine.renderingEngines)
+            for (const r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
@@ -1149,7 +1137,7 @@ export class SessionEngine implements ISessionEngine {
         if (this.automaticSceneUpdate && this._closed === false) this.addToSceneTree(this.node);
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
-        
+
         // set the output content to what has been updated
         for (const outputId in this.outputs) {
             this.outputs[outputId].updateOutput(
@@ -1165,19 +1153,19 @@ export class SessionEngine implements ISessionEngine {
         this._warningCreator();
         this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
-        for (let r in this._stateEngine.renderingEngines)
+        for (const r in this._stateEngine.renderingEngines)
             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updated outputs.`);
-        
-        if(!taskEventInfo) {
+
+        if (!taskEventInfo) {
             const eventEnd: ITaskEvent = { type: eventType, id: eventId, progress: 1, data: eventData, status: 'Outputs updated' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         }
 
         // update the viewports
-        for (let r in this._stateEngine.renderingEngines)
+        for (const r in this._stateEngine.renderingEngines)
             if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
                 this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
 
@@ -1199,14 +1187,14 @@ export class SessionEngine implements ISessionEngine {
         try {
             const responseDto = await this._sdk.file.requestUpload(this._sessionId!, {
                 [parameterId]: { size: data.size, format: type }
-            })
+            });
 
             if (responseDto && responseDto.asset && responseDto.asset.file && responseDto.asset.file[parameterId]) {
                 const fileAsset = responseDto.asset.file[parameterId];
                 await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type);
                 return fileAsset.id;
             } else {
-                throw new ShapeDiverViewerSessionError(`Session.uploadFile: Upload reply has not the required format.`);
+                throw new ShapeDiverViewerSessionError('Session.uploadFile: Upload reply has not the required format.');
             }
         } catch (e) {
             await this.handleError(e, retry);
@@ -1218,8 +1206,8 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('gltf-upload');
         try {
             const responseDto = await this._sdk.gltf.upload(this._sessionId!, await blob.arrayBuffer(), 'model/gltf-binary', conversion);
-            if (!responseDto || !responseDto.gltf || !responseDto.gltf.href) 
-                throw new ShapeDiverViewerSessionError(`Session.uploadGLTF: Upload reply has not the required format.`);
+            if (!responseDto || !responseDto.gltf || !responseDto.gltf.href)
+                throw new ShapeDiverViewerSessionError('Session.uploadGLTF: Upload reply has not the required format.');
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
@@ -1227,9 +1215,9 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (24)
+    // #endregion Public Methods (25)
 
-    // #region Private Methods (10)
+    // #region Private Methods (11)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1242,26 +1230,26 @@ export class SessionEngine implements ISessionEngine {
                 hidden: boolean;
             }
         } = {};
-        for (let p in parameters) {
+        for (const p in parameters) {
             sessionProperties[p] = {
                 order: parameters[p].order || 0,
                 displayname: parameters[p].displayname || '',
                 hidden: parameters[p].hidden
-            }
+            };
         }
-        for (let e in exports) {
+        for (const e in exports) {
             sessionProperties[e] = {
                 order: exports[e].order || 0,
                 displayname: exports[e].displayname || '',
                 hidden: exports[e].hidden
-            }
+            };
         }
         this._settingsEngine.session = sessionProperties;
 
         let orderedOutputs: IOutput[] = [];
-        for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
+        for (const o in this.outputs) orderedOutputs.push(this.outputs[o]);
         orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-        let zerosOutputs = orderedOutputs.filter(x => x.order === 0);
+        const zerosOutputs = orderedOutputs.filter(x => x.order === 0);
         orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
         orderedOutputs = zerosOutputs.concat(orderedOutputs);
 
@@ -1308,20 +1296,49 @@ export class SessionEngine implements ISessionEngine {
 
     private checkAvailability(action?: string, checkForModelId = false) {
         if (!this._responseDto)
-            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: responseDto not available.`);
+            throw new ShapeDiverViewerSessionError('Session.checkAvailability: responseDto not available.');
 
         if (!this._sessionId)
-            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: sessionId not available.`);
+            throw new ShapeDiverViewerSessionError('Session.checkAvailability: sessionId not available.');
 
         if (checkForModelId && !this._modelId)
-            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: modelId not available.`);
+            throw new ShapeDiverViewerSessionError('Session.checkAvailability: modelId not available.');
 
         if (action && !this._responseDto.actions)
-            throw new ShapeDiverViewerSessionError(`Session.checkAvailability: actions not available.`);
+            throw new ShapeDiverViewerSessionError('Session.checkAvailability: actions not available.');
 
         const responseDtoAction = this._responseDto.actions?.find(a => a.name === action);
         if (action && !responseDtoAction)
             throw new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
+    }
+
+    private cleanExportParameters(parameters: ShapeDiverRequestCustomization): ShapeDiverRequestCustomization {
+        const requestParameterSet: ShapeDiverRequestCustomization = {};
+
+        // first step, we convert all our names and displaynames to ids
+        for (const parameterIdOrName in parameters) {
+            // we prioritize id, then name and then displayname
+            // if there are two parameters with the same name or displayname, we take the one that is found first (no way for us to evaluate which one the user meant)
+            const parameterObject = Object.values(this._parameters).find(p => p.id === parameterIdOrName || p.name === parameterIdOrName || p.displayname === parameterIdOrName);
+
+            // in case the key of the key value pair was neither the id, name or displayname, skip
+            if (!parameterObject) continue;
+
+            // copy into new dictionary
+            requestParameterSet[parameterObject.id] = parameters[parameterIdOrName];
+        }
+
+        // seconds step, fill all other parameter values that are currently not set
+        const currentParameters = this.parameterValues;
+        for (const parameterId in currentParameters) {
+            // if already set by input values, skip
+            if (requestParameterSet[parameterId] !== undefined) continue;
+
+            // deep copy into new dictionary
+            requestParameterSet[parameterId] = (' ' + currentParameters[parameterId]).slice(1);
+        }
+
+        return requestParameterSet;
     }
 
     private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
@@ -1334,7 +1351,7 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if (cancelRequest()) return new SessionTreeNode();            
+            if (cancelRequest()) return new SessionTreeNode();
             if (parallel === false) this.updateResponseDto(responseDto);
             return parallel === false ? this.loadOutputs(cancelRequest, taskEventInfo) : this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
         } catch (e) {
@@ -1350,8 +1367,8 @@ export class SessionEngine implements ISessionEngine {
                 // case 1: the session is no longer available
                 // we try to re-initialize the session 3 times, if that does not work, we close it
 
-                this._logger.warn(`The session has been closed, trying to re-initialize.`);
-                if(this._sessionId) this._httpClient.removeDataLoading(this._sessionId)
+                this._logger.warn('The session has been closed, trying to re-initialize.');
+                if (this._sessionId) this._httpClient.removeDataLoading(this._sessionId);
 
                 if (this._retryCounter < 3) {
                     // we retry this 3 times, the `retry` option in the init function is set to true and passed on 
@@ -1361,6 +1378,7 @@ export class SessionEngine implements ISessionEngine {
                 } else {
                     // the retries were exceeded, we close the session
                     this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    // eslint-disable-next-line no-empty
                     try { await this._closeOnFailure(); } catch (e) { }
                     throw this._httpClient.convertError(e);
                 }
@@ -1375,12 +1393,14 @@ export class SessionEngine implements ISessionEngine {
                     } else {
                         // no bearer tokens are supplied, we close the session
                         this._logger.warn('No retry possible, no new bearer token was supplied. Closing Session.');
+                        // eslint-disable-next-line no-empty
                         try { await this._closeOnFailure(); } catch (e) { }
                         throw this._httpClient.convertError(e);
                     }
                 } else {
                     // the retries were exceeded, we close the session
                     this._logger.warn('Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    // eslint-disable-next-line no-empty
                     try { await this._closeOnFailure(); } catch (e) { }
                     throw this._httpClient.convertError(e);
                 }
@@ -1403,7 +1423,7 @@ export class SessionEngine implements ISessionEngine {
      * @param ms the milliseconds
      * @returns promise that resolve after specified milliseconds
      */
-    private async timeout(ms: number): Promise<any> {
+    private async timeout(ms: number): Promise<unknown> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
@@ -1417,7 +1437,7 @@ export class SessionEngine implements ISessionEngine {
 
         // convert parameters
         if (responseDto.parameters) {
-            for (let parameterId in responseDto.parameters) {
+            for (const parameterId in responseDto.parameters) {
                 this._responseDto.parameters = this._responseDto.parameters || {};
                 this._responseDto.parameters[parameterId] = this._responseDto.parameters[parameterId] || responseDto.parameters[parameterId];
             }
@@ -1425,7 +1445,7 @@ export class SessionEngine implements ISessionEngine {
 
         // convert outputs
         if (responseDto.outputs) {
-            for (let outputId in responseDto.outputs) {
+            for (const outputId in responseDto.outputs) {
                 this._responseDto.outputs = this._responseDto.outputs || {};
                 if ('version' in responseDto.outputs[outputId] || !(this._responseDto.outputs[outputId] && 'version' in this._responseDto.outputs[outputId]))
                     this._responseDto.outputs[outputId] = responseDto.outputs[outputId];
@@ -1434,7 +1454,7 @@ export class SessionEngine implements ISessionEngine {
 
         // convert exports
         if (responseDto.exports) {
-            for (let exportId in responseDto.exports) {
+            for (const exportId in responseDto.exports) {
                 this._responseDto.exports = this._responseDto.exports || {};
                 if ('version' in responseDto.exports[exportId] || !(this._responseDto.exports[exportId] && 'version' in this._responseDto.exports[exportId]))
                     this._responseDto.exports[exportId] = responseDto.exports[exportId];
@@ -1443,12 +1463,12 @@ export class SessionEngine implements ISessionEngine {
 
         const parameterSet: {
             [key: string]: {
-                value: any,
+                value: unknown,
                 valueString: string
             }
         } = {};
 
-        for (let parameterId in this._responseDto.parameters) {
+        for (const parameterId in this._responseDto.parameters) {
             if (this.parameters[parameterId]) continue;
             this._responseDto.parameters[parameterId].id = parameterId;
 
@@ -1471,15 +1491,15 @@ export class SessionEngine implements ISessionEngine {
             }
 
             // we don't have to do larger restrictions for this as the backend would have already thrown an error if the values were not correct
-            if(initialParameters) {
+            if (initialParameters) {
                 // check if the id is within the initial parameters
-                if(initialParameters[parameterId] !== undefined) {
-                    this.parameters[parameterId].value = initialParameters[parameterId] 
-                } 
+                if (initialParameters[parameterId] !== undefined) {
+                    this.parameters[parameterId].value = initialParameters[parameterId];
+                }
                 // check if the name is within the initial parameters
-                else if(initialParameters[this.parameters[parameterId].name] !== undefined) {
+                else if (initialParameters[this.parameters[parameterId].name] !== undefined) {
                     this.parameters[parameterId].value = initialParameters[this.parameters[parameterId].name];
-                } 
+                }
                 // NOTE: At some point the checking may also be done with the displayname, this is the code for it
                 // // check if the displayname is within the initial parameters
                 // else if(this.parameters[parameterId].displayname && initialParameters[this.parameters[parameterId].displayname!] !== undefined) {
@@ -1490,7 +1510,7 @@ export class SessionEngine implements ISessionEngine {
             parameterSet[parameterId] = {
                 value: this.parameters[parameterId].value,
                 valueString: this.parameters[parameterId].stringify()
-            }
+            };
 
             if (!this.initialized)
                 this.parameterValues[parameterId] = parameterSet[parameterId].valueString;
@@ -1500,27 +1520,27 @@ export class SessionEngine implements ISessionEngine {
         if (!this.initialized)
             this.#parameterHistory.push(parameterSet);
 
-        for (let exportId in this._responseDto.exports) {
+        for (const exportId in this._responseDto.exports) {
             if (this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
-                if(!this.exports[exportId]) {
+                if (!this.exports[exportId]) {
                     this._responseDto.exports[exportId].id = exportId;
                     this.exports[exportId] = new Export(this._responseDto.exports[exportId], this);
                 } else {
-                    this.exports[exportId].updateExportDefinition(this._responseDto.exports[exportId])
+                    this.exports[exportId].updateExportDefinition(this._responseDto.exports[exportId]);
                 }
             }
         }
 
-        for (let outputId in this._responseDto.outputs) {
-            if(!this.outputs[outputId]) {
+        for (const outputId in this._responseDto.outputs) {
+            if (!this.outputs[outputId]) {
                 this._responseDto.outputs[outputId].id = outputId;
                 if (this.outputsFreeze[outputId] === undefined) this.outputsFreeze[outputId] = false;
                 this.outputs[outputId] = new Output(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId], this);
             } else {
-                this.outputs[outputId].updateOutputDefinition(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId])
+                this.outputs[outputId].updateOutputDefinition(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId]);
             }
         }
     }
 
-    // #endregion Private Methods (10)
+    // #endregion Private Methods (11)
 }

@@ -9,7 +9,7 @@ import {
   createCustomUi,
   IColorElement,
   ISliderElement
-} from '@shapediver/viewer.utils.demo-helper';
+} from '@shapediver/viewer.shared.demo-helper';
 
 (<any>window).SDV = SDV;
 
