@@ -366,10 +366,16 @@ export class SceneTreeManager implements IManager {
          */
 
         // we initialize all texture and then clear the cache
-        const initializedTextures = Object.values(this._renderingEngine.materialLoader.initializedTextures);
-        for (let i = 0; i < initializedTextures.length; i++)
-            this._renderingEngine.renderer.initTexture(initializedTextures[i]);
-        this._renderingEngine.materialLoader.initializedTextures = {};
+        const threeJsTextureCache = this._renderingEngine.materialLoader.threeJsTextureCache;
+        for (const key in threeJsTextureCache) {
+            if(threeJsTextureCache[key].usage === 0) {
+                threeJsTextureCache[key].texture.dispose();
+                delete threeJsTextureCache[key];
+            } else if(threeJsTextureCache[key].initialized === false) {
+                this._renderingEngine.renderer.initTexture(threeJsTextureCache[key].texture);
+                threeJsTextureCache[key].initialized = true;
+            }
+        }
 
         // we compile the shaders
         this._renderingEngine.renderer.compile(this._renderingEngine.scene, this._hiddenCamera);
@@ -437,21 +443,38 @@ export class SceneTreeManager implements IManager {
     }
 
     private removeData(dataObject: SDData) {
+        if(dataObject.userData.removed === true) return;
+        dataObject.userData.removed = true;
+
         switch (true) {
             case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
                 dataObject.traverse((o) => {
+                    if(dataObject.id !== o.id && o.userData.removed === true) return;
+                    o.userData.removed = true;
+
                     if (o instanceof THREE.Mesh) {
                         this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion);
                         this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
                         this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion);
 
+                        const texturesToRemove: THREE.Texture[] = [];
                         for (const t in o.material) {
                             if (o.material[t] instanceof THREE.Texture) {
-                                if (t !== 'envMap')
-                                    o.material[t].dispose();
+                                if (t !== 'envMap') {
+                                    if(!texturesToRemove.includes(o.material[t]))
+                                        texturesToRemove.push(o.material[t]);
+                                }
                             }
                         }
 
+                        for(const texture of texturesToRemove) {
+                            if(texture.userData.cacheKey) {
+                                this._renderingEngine.materialLoader.threeJsTextureCache[texture.userData.cacheKey].usage--;
+                            } else {
+                                texture.dispose();
+                            }
+                        }
+                        
                         o.material.dispose();
                     }
                 });

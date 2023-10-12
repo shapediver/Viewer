@@ -27,7 +27,6 @@ import {
     GeometryData,
 } from '@shapediver/viewer.shared.types';
 
-
 export enum MATERIAL_TYPE {
     POINT = 'point',
     LINE = 'line',
@@ -121,8 +120,14 @@ export const adaptShaders = () => {
     }
 };
 
+type ThreeJsTextureCacheObject = {
+    texture: THREE.Texture,
+    usage: number,
+    initialized: boolean
+}
+
 export class MaterialLoader implements ILoader {
-    // #region Properties (20)
+    // #region Properties (17)
 
     private readonly _converter: Converter = Converter.instance;
 
@@ -135,7 +140,6 @@ export class MaterialLoader implements ILoader {
     private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
     private _environmentMapRotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
     private _height: number = 1020;
-    private _initializedTextures: { [key: string]: THREE.Texture } = {};
     private _lightSizeUV: number = 0.025;
     private _materialCache: {
         [key: string]: {
@@ -148,8 +152,9 @@ export class MaterialLoader implements ILoader {
     private _pointSize: number = 1.0;
     private _sceneBackgroundNeedsUpdate: boolean = false;
     private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
+    private _threeJsTextureCache: { [key: string]: ThreeJsTextureCacheObject } = {};
 
-    // #endregion Properties (20)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -160,14 +165,6 @@ export class MaterialLoader implements ILoader {
     // #endregion Constructors (1)
 
     // #region Public Accessors (8)
-
-    public get initializedTextures(): { [key: string]: THREE.Texture } {
-        return this._initializedTextures;
-    }
-
-    public set initializedTextures(value: { [key: string]: THREE.Texture }) {
-        this._initializedTextures = value;
-    }
 
     public get maxMapCount(): number {
         return this._maxMapCount;
@@ -192,6 +189,14 @@ export class MaterialLoader implements ILoader {
     public set textureEncoding(value: THREE.ColorSpace) {
         this._textureEncoding = value;
         this.assignTextureEncoding();
+    }
+
+    public get threeJsTextureCache(): { [key: string]: ThreeJsTextureCacheObject } {
+        return this._threeJsTextureCache;
+    }
+
+    public set threeJsTextureCache(value: { [key: string]: ThreeJsTextureCacheObject }) {
+        this._threeJsTextureCache = value;
     }
 
     // #endregion Public Accessors (8)
@@ -840,9 +845,6 @@ export class MaterialLoader implements ILoader {
             return material;
         }
 
-        if (this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type])
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
-
         const material = this.createMaterial(type, incomingData, materialData, materialSettings);
 
         if (this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) {
@@ -931,7 +933,7 @@ export class MaterialLoader implements ILoader {
     }
 
     private createDataKeyFromMap(map: IMapData): string {
-        return `${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`;
+        return window.btoa(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
     }
 
     private createTexture(map: IMapData): THREE.Texture {
@@ -940,7 +942,10 @@ export class MaterialLoader implements ILoader {
         // texture in this structure are only stored until the next scene tree update call
         // therefore no cache management is needed, as these textures need to be created either way
         // the cache is cleared in updateSceneTree
-        if (this._initializedTextures[key]) return this._initializedTextures[key];
+        if (this._threeJsTextureCache[key]) {
+            this._threeJsTextureCache[key].usage++;
+            return this._threeJsTextureCache[key].texture;
+        }
 
         const texture = new THREE.Texture(map.image);
         texture.format = THREE.RGBAFormat;
@@ -1001,8 +1006,15 @@ export class MaterialLoader implements ILoader {
 
         texture.flipY = map.flipY;
         texture.needsUpdate = true;
-        this._initializedTextures[key] = texture;
-        return this._initializedTextures[key];
+
+        texture.userData.cacheKey = key;
+
+        this._threeJsTextureCache[key] = {
+            texture,
+            usage: 1,
+            initialized: false
+        };
+        return this._threeJsTextureCache[key].texture;
     }
 
     // #endregion Private Methods (3)
