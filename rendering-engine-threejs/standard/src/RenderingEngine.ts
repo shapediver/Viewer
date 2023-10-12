@@ -866,7 +866,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         general: true,
         postprocessing: true
       },
-    settingsEngine?: SettingsEngine
+    settingsEngine?: SettingsEngine,
+    updateViewport: boolean = true
   ): Promise<void> {
     settingsEngine = settingsEngine || this._settingsEngine;
     if (!settingsEngine) return;
@@ -883,7 +884,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
             this.environmentMapRotation = [settingsEngine.environment.rotation.x, settingsEngine.environment.rotation.y, settingsEngine.environment.rotation.z, settingsEngine.environment.rotation.w];
             this.environmentMapBlurriness = settingsEngine.environment.blurriness;
             this.environmentMapIntensity = settingsEngine.environment.intensity;
-            this.applySyncSettings(sections, settingsEngine);
+            this.applySyncSettings(sections, settingsEngine, updateViewport);
 
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
             resolve();
@@ -896,7 +897,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.environmentMap = settingsEngine!.environment.map;
       });
     } else {
-      this.applySyncSettings(sections, settingsEngine);
+      this.applySyncSettings(sections, settingsEngine, updateViewport);
       this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
     }
   }
@@ -1254,7 +1255,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       general: true,
       postprocessing: true
     },
-    settingsEngine?: SettingsEngine) {
+    settingsEngine?: SettingsEngine,
+    updateViewport: boolean = true) {
     settingsEngine = settingsEngine || this._settingsEngine;
     if (!settingsEngine) return;
 
@@ -1298,7 +1300,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this.cameraManager.adjustCamera(1);
 
     this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
-    this.update('RenderingEngine.applySyncSettings');
+    if(updateViewport) this.update('RenderingEngine.applySyncSettings');
   }
 
   // #endregion Private Methods (1)
