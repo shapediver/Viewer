@@ -19,6 +19,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
     'quotes': ['warn', 'single'],
     'semi': ['warn', 'always']
   }
