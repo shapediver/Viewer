@@ -130,7 +130,7 @@ export interface ISessionEngine {
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
-  customize(force: boolean): Promise<ITreeNode>;
+  customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode>;
   customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
@@ -144,7 +144,7 @@ export interface ISessionEngine {
   saveSettings(viewportId?: string): Promise<boolean>;
   saveUiProperties(): Promise<boolean>;
   setJwtToken(token: string): Promise<void>;
-  updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
+  updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo, waitForViewportUpdate?: boolean): Promise<ITreeNode>;
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 

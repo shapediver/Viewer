@@ -1,55 +1,57 @@
-import * as THREE from 'three'
-import { Logger, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable no-async-promise-executor */
+import * as THREE from 'three';
+import { Logger, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services';
 
-import { RenderingEngine } from '..'
+import { RenderingEngine } from '..';
 import { RGBELoader } from '../three/loaders/RGBELoader';
-import { ILoader } from '../interfaces/ILoader'
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
+import { ILoader } from '../interfaces/ILoader';
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 
 export enum ENVIRONMENT_MAP_CUBE {
-    DEFAULT = 'default', 
-    DEFAULT_BW = 'default_bw', 
-    BLURRED_LIGHTS = 'blurred_lights', 
-    GEORGENTOR = 'georgentor', 
-    GEORGENTOR_BLUR = 'georgentor_blur', 
-    GEORGENTOR_BLUE_BLUR = 'georgentor_blue_blur', 
-    GEORGENTOR_BW_BLUR = 'georgentor_bw_blur', 
-    LEVELSETS = 'levelsets', 
-    LYTHWOOD_FIELD = 'lythwood_field', 
-    MOUNTAINS = 'mountains', 
-    OCEAN = 'ocean', 
-    PIAZZA_SAN_MARCO = 'piazza_san_marco', 
-    RESIDENTIAL_GARDEN = 'residential_garden', 
-    ROOM_ABSTRACT_1 = 'room_abstract_1', 
-    SKY = 'sky', 
-    STORAGE_ROOM = 'storage_room', 
-    STORM = 'storm', 
-    SUBWAY_ENTRANCE = 'subway_entrance', 
-    SUBWAY_ENTRANCE_BW_BLUR = 'subway_entrance_bw_blur', 
-    WHITE = 'white', 
+    DEFAULT = 'default',
+    DEFAULT_BW = 'default_bw',
+    BLURRED_LIGHTS = 'blurred_lights',
+    GEORGENTOR = 'georgentor',
+    GEORGENTOR_BLUR = 'georgentor_blur',
+    GEORGENTOR_BLUE_BLUR = 'georgentor_blue_blur',
+    GEORGENTOR_BW_BLUR = 'georgentor_bw_blur',
+    LEVELSETS = 'levelsets',
+    LYTHWOOD_FIELD = 'lythwood_field',
+    MOUNTAINS = 'mountains',
+    OCEAN = 'ocean',
+    PIAZZA_SAN_MARCO = 'piazza_san_marco',
+    RESIDENTIAL_GARDEN = 'residential_garden',
+    ROOM_ABSTRACT_1 = 'room_abstract_1',
+    SKY = 'sky',
+    STORAGE_ROOM = 'storage_room',
+    STORM = 'storm',
+    SUBWAY_ENTRANCE = 'subway_entrance',
+    SUBWAY_ENTRANCE_BW_BLUR = 'subway_entrance_bw_blur',
+    WHITE = 'white',
     YOKOHAMA = 'yokohama',
 }
 
 export enum ENVIRONMENT_MAP {
-    ANNIVERSARY_LOUNGE = 'anniversary_lounge', 
-    BALLROOM = 'ballroom', 
-    CANNON_EXTERIOR = 'cannon_exterior', 
-    CAPE_HILL = 'cape_hill', 
-    CHRISTMAS_PHOTO_STUDIO = 'christmas_photo_studio', 
-    CIRCUS_MAXIMUS = 'circus_maximus', 
-    COLORFUL_STUDIO = 'colorful_studio', 
-    COMBINATION_ROOM = 'combination_room', 
-    GREEN_POINT_PARK = 'green_point_park', 
-    HILLTOP_CONSTRUCTION = 'hilltop_construction', 
-    LARGE_CORRIDOR = 'large_corridor', 
-    LYTHWOOD_LOUNGE = 'lythwood_lounge', 
-    NEUTRAL = 'neutral', 
-    OBERER_KUHBERG = 'oberer_kuhberg', 
-    OLD_HALL = 'old_hall', 
-    PAUL_LOBE_HAUS = 'paul_lobe_haus', 
-    PHOTO_STUDIO = 'photo_studio', 
-    PHOTO_STUDIO_BROADWAY_HALL = 'photo_studio_broadway_hall', 
-    SNOWY_FIELD = 'snowy_field', 
+    ANNIVERSARY_LOUNGE = 'anniversary_lounge',
+    BALLROOM = 'ballroom',
+    CANNON_EXTERIOR = 'cannon_exterior',
+    CAPE_HILL = 'cape_hill',
+    CHRISTMAS_PHOTO_STUDIO = 'christmas_photo_studio',
+    CIRCUS_MAXIMUS = 'circus_maximus',
+    COLORFUL_STUDIO = 'colorful_studio',
+    COMBINATION_ROOM = 'combination_room',
+    GREEN_POINT_PARK = 'green_point_park',
+    HILLTOP_CONSTRUCTION = 'hilltop_construction',
+    LARGE_CORRIDOR = 'large_corridor',
+    LYTHWOOD_LOUNGE = 'lythwood_lounge',
+    NEUTRAL = 'neutral',
+    OBERER_KUHBERG = 'oberer_kuhberg',
+    OLD_HALL = 'old_hall',
+    PAUL_LOBE_HAUS = 'paul_lobe_haus',
+    PHOTO_STUDIO = 'photo_studio',
+    PHOTO_STUDIO_BROADWAY_HALL = 'photo_studio_broadway_hall',
+    SNOWY_FIELD = 'snowy_field',
     STUDIO_SMALL = 'studio_small',
     SUNFLOWERS = 'sunflowers',
     TABLE_MOUNTAIN = 'table_mountain',
@@ -70,39 +72,37 @@ export enum ENVIRONMENT_MAP_TYPE {
 }
 
 export class EnvironmentMapLoader implements ILoader {
-    // #region Properties (8)
+    // #region Properties (18)
 
-    private readonly _converter: Converter = Converter.instance;
-    private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
+    private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny'];
     private readonly _environmentMapHDR: string[] = [];
-    private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[]
+    private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[];
     private readonly _environmentMapNamesHDRKhronos = ['cannon_exterior', 'colorful_studio', 'neutral', 'wide_street'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
     private readonly _eventEngine: EventEngine = EventEngine.instance;
-    private readonly _stateEngine: StateEngine = StateEngine.instance;
-    private readonly _logger: Logger = Logger.instance;
     private readonly _httpClient: HttpClient = HttpClient.instance;
+    private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
-    private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'null';
     private _environmentMapNameInternal: string = 'null';
     private _isHDRMap: boolean = false;
+    private _pmremGenerator!: THREE.PMREMGenerator;
     private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
-    // #endregion Properties (8)
+    // #endregion Properties (18)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+    // #region Public Accessors (4)
 
     public get environmentMap(): THREE.CubeTexture | THREE.Texture | null {
         return this._environmentMaps[this._environmentMapName];
@@ -112,30 +112,49 @@ export class EnvironmentMapLoader implements ILoader {
         return this._isHDRMap;
     }
 
-    // #endregion Public Accessors (1)
+    public get textureEncoding(): THREE.ColorSpace {
+        return this._textureEncoding;
+    }
 
-    // #region Public Methods (2)
+    public set textureEncoding(value: THREE.ColorSpace) {
+        this._textureEncoding = value;
+        this.assignTextureEncoding();
+    }
+
+    // #endregion Public Accessors (4)
+
+    // #region Public Methods (4)
+
+    public getEnvironmentMapImageUrl(name: string | string[]): string {
+        if (Array.isArray(name)) return '';
+
+        if (this._environmentMapNamesHDR.indexOf(name) >= 0) {
+            let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name + '_1k.hdr';
+            if (this._environmentMapNamesHDRKhronos.indexOf(name) >= 0)
+                url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name + '.hdr';
+
+            return url_hdr;
+        } else if (name.startsWith('https://') || name.startsWith('http://')) {
+            if (name.endsWith('.hdr') || name.endsWith('.jpg') || name.endsWith('.png')) {
+                return name;
+            }
+        }
+        return '';
+    }
 
     public init(): void {
         this._environmentMaps['null'] = null;
         this._environmentMaps['none'] = null;
-            
+
         this._pmremGenerator = new THREE.PMREMGenerator(this._renderingEngine.renderer);
         this._pmremGenerator.compileEquirectangularShader();
     }
 
-    private notify(eventId: string, failed = false) {
-
-        let event: ITaskEvent;
-        if(failed) {
-            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loading of EnvironmentMap failed` };
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
-        } else {
-            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loaded EnvironmentMap` };
-            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded.resolve(true);
-            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event);
-        }
+    public async load(name: string | string[]): Promise<boolean> {
+        const eventId = this._uuidGenerator.create();
+        const res = await this.loadEnvMap(name, eventId);
+        this.assignEnvironmentMap(res.name, res.type, eventId);
+        return Promise.resolve(true);
     }
 
     public async loadEnvMap(name: string | string[], eId?: string): Promise<{
@@ -144,10 +163,9 @@ export class EnvironmentMapLoader implements ILoader {
         type: ENVIRONMENT_MAP_TYPE
     }> {
         const eventId = eId || this._uuidGenerator.create();
-        const event: ITaskEvent = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: `Loading EnvironmentMap` };
+        const event: ITaskEvent = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: 'Loading EnvironmentMap' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
-        
-        const name_original = name;
+
         if (name === 'none') {
             this._environmentMapNameInternal = name;
             return {
@@ -155,7 +173,7 @@ export class EnvironmentMapLoader implements ILoader {
                 map: this._environmentMaps[name],
                 type: ENVIRONMENT_MAP_TYPE.NONE
             };
-        };
+        }
 
         if (name === 'null') {
             this._environmentMapNameInternal = name;
@@ -164,7 +182,7 @@ export class EnvironmentMapLoader implements ILoader {
                 map: this._environmentMaps[name],
                 type: ENVIRONMENT_MAP_TYPE.NULL
             };
-        };
+        }
 
         let name_internal: string, name_caching: string, url: string[];
 
@@ -190,7 +208,7 @@ export class EnvironmentMapLoader implements ILoader {
         this._environmentMapNameInternal = name_internal;
 
         // check if environment map is already cached
-        for (let environmentMap in this._environmentMaps)
+        for (const environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
                 return {
                     name: environmentMap,
@@ -204,12 +222,12 @@ export class EnvironmentMapLoader implements ILoader {
             if (!Array.isArray(name)) {
                 url = [];
                 let i;
-                if(this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
+                if (this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
                     let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name_internal + '_1k.hdr';
-                    if(this._environmentMapNamesHDRKhronos.indexOf(name_internal) >= 0)
+                    if (this._environmentMapNamesHDRKhronos.indexOf(name_internal) >= 0)
                         url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name_internal + '.hdr';
 
-                    this._environmentMapHDR.push(url_hdr)
+                    this._environmentMapHDR.push(url_hdr);
                     await this.loadEnvironmentMap(url_hdr, [], eventId);
                     return {
                         name: url_hdr,
@@ -222,7 +240,7 @@ export class EnvironmentMapLoader implements ILoader {
                         url.push('https://viewer.shapediver.com/v2/envmaps/' + this._renderingEngine.environmentMapResolution + '/' + name_internal + '/' + this._environmentMapFilenames[i] + '.jpg');
                 } else if (name.startsWith('https://') || name.startsWith('http://')) {
                     if (name.endsWith('.hdr')) {
-                        this._environmentMapHDR.push(name)
+                        this._environmentMapHDR.push(name);
                         await this.loadEnvironmentMap(name, [], eventId);
                         return {
                             name: name,
@@ -231,7 +249,7 @@ export class EnvironmentMapLoader implements ILoader {
                         };
                     } else {
                         if (!name.endsWith('/'))
-                        name += '/';
+                            name += '/';
 
                         for (i = 0; i < this._environmentMapFilenames.length; i++)
                             url.push(name + this._environmentMapFilenames[i] + '.jpg');
@@ -258,36 +276,12 @@ export class EnvironmentMapLoader implements ILoader {
         }
     }
 
-    public async load(name: string | string[]): Promise<boolean> {
-        const eventId = this._uuidGenerator.create();
-        const res = await this.loadEnvMap(name, eventId);
-        this.assignEnvironmentMap(res.name, res.type, eventId);
-        return Promise.resolve(true);
-    }
+    // #endregion Public Methods (4)
 
-    public getEnvironmentMapImageUrl(name: string | string[]): string {
-        if(Array.isArray(name)) return '';
-        
-        if(this._environmentMapNamesHDR.indexOf(name) >= 0) {
-            let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name + '_1k.hdr';
-            if(this._environmentMapNamesHDRKhronos.indexOf(name) >= 0)
-                url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name + '.hdr';
-
-            return url_hdr;
-        }else if (name.startsWith('https://') || name.startsWith('http://')) {
-            if (name.endsWith('.hdr') || name.endsWith('.jpg') || name.endsWith('.png')) {
-                return name;
-            }
-        }
-        return '';
-    }
-
-    // #endregion Public Methods (2)
-
-    // #region Private Methods (2)
+    // #region Private Methods (4)
 
     private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE, eventId: string) {
-        if(name in this._environmentMaps === false) return;
+        if (name in this._environmentMaps === false) return;
         this._type = type;
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
@@ -295,8 +289,8 @@ export class EnvironmentMapLoader implements ILoader {
     }
 
     private assignTextureEncoding() {
-        for(let e in this._environmentMaps) {
-            if(this._environmentMaps[e] && !this._environmentMapHDR.includes(e)) {
+        for (const e in this._environmentMaps) {
+            if (this._environmentMaps[e] && !this._environmentMapHDR.includes(e)) {
                 this._environmentMaps[e]?.dispose();
                 this._environmentMaps[e]!.colorSpace = this._textureEncoding;
                 this._environmentMaps[e]!.needsUpdate = true;
@@ -308,7 +302,7 @@ export class EnvironmentMapLoader implements ILoader {
         return new Promise<void>(async (resolve, reject) => {
             try {
                 if (name.endsWith('.hdr')) {
-                    const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadTexture(name);
+                    const response: HttpResponse<ArrayBuffer> = await this._httpClient.get(name, undefined, true) as HttpResponse<ArrayBuffer>;
                     const arrayBufferView = new Uint8Array(response.data);
                     const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
                     const blobUrl = URL.createObjectURL(blob);
@@ -323,7 +317,7 @@ export class EnvironmentMapLoader implements ILoader {
                         (error) => reject(error));
                 } else {
                     const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
-                    url.forEach(u => promises.push(this._httpClient.loadTexture(u)));
+                    url.forEach(u => promises.push(this._httpClient.get(u, undefined, true) as Promise<HttpResponse<ArrayBuffer>>));
                     const responses = await Promise.all(promises);
 
                     const urls = responses.map(response => {
@@ -348,17 +342,21 @@ export class EnvironmentMapLoader implements ILoader {
                 this.notify(eventId, true);
                 throw e;
             }
-        })
+        });
     }
 
-    public get textureEncoding(): THREE.ColorSpace {
-        return this._textureEncoding;
-    }
-    
-    public set textureEncoding(value: THREE.ColorSpace) {
-        this._textureEncoding = value;
-        this.assignTextureEncoding();
+    private notify(eventId: string, failed = false) {
+        let event: ITaskEvent;
+        if (failed) {
+            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: 'Loading of EnvironmentMap failed' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
+        } else {
+            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: 'Loaded EnvironmentMap' };
+            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded.resolve(true);
+            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event);
+        }
     }
 
-    // #endregion Private Methods (2)
+    // #endregion Private Methods (4)
 }

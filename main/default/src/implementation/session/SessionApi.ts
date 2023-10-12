@@ -212,10 +212,11 @@ export class SessionApi implements ISessionApi {
         return new Blob([result], { type: 'application/octet-stream' });
     }
 
-    public customize(force: boolean = false): Promise<ITreeNode> {
+    public customize(force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         const scope = 'customize';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, force, 'boolean', false);
-        return this.#sessionEngine.customize(force);
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, waitForViewportUpdate, 'boolean', false);
+        return this.#sessionEngine.customize(force, waitForViewportUpdate);
     }
 
     public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
@@ -296,12 +297,12 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.requestExports(body, maxWaitMsec);
     }
 
-    public resetParameterValues(force: boolean = false): Promise<ITreeNode> {
+    public resetParameterValues(force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         const scope = 'resetParameterValues';
         for (const p in this.parameters)
             this.parameters[p].value = this.parameters[p].defval;
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, force, 'boolean', false);
-        return this.#sessionEngine.customize(force);
+        return this.#sessionEngine.customize(force, waitForViewportUpdate);
     }
 
     public resetSettings(sections?: ISettingsSections): Promise<void> {
@@ -332,8 +333,8 @@ export class SessionApi implements ISessionApi {
         return;
     }
 
-    public updateOutputs(): Promise<ITreeNode> {
-        return this.#sessionEngine.updateOutputs();
+    public updateOutputs(waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
+        return this.#sessionEngine.updateOutputs(undefined, waitForViewportUpdate);
     }
 
     // #endregion Public Methods (26)

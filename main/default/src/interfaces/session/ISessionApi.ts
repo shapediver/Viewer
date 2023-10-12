@@ -218,10 +218,11 @@ export interface ISessionApi {
      *     {@link IOutputApi.freeze} is true will be skipped).
      * 
      * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
+     * @param waitForViewportUpdate If waitForViewportUpdate is set to true, the promise will only resolve when the geometry was processed by the viewport(s) and is visible in the scene. (Default: false)
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    customize(force?: boolean): Promise<ITreeNode>;
+    customize(force?: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode>;
 
     /**
      * Customize the session, parallel mode.
@@ -423,9 +424,11 @@ export interface ISessionApi {
      * Calling this function makes sense if you have updated one of
      * the outputs manually by calling {@link IOutputApi.updateOutputContent}.
      * 
+     * @param waitForViewportUpdate If waitForViewportUpdate is set to true, the promise will only resolve when the geometry was processed by the viewport(s) and is visible in the scene. (Default: false)
+     * 
      * @throws {@type ShapeDiverViewerError}
      */
-    updateOutputs(): Promise<ITreeNode>;
+    updateOutputs(waitForViewportUpdate?: boolean): Promise<ITreeNode>;
 
     // #endregion Public Methods (21)
 }

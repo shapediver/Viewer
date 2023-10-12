@@ -1,53 +1,50 @@
-import * as THREE from 'three'
+/* eslint-disable @typescript-eslint/no-empty-function */
+import * as THREE from 'three';
+import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { AbstractLight, DirectionalLight } from '@shapediver/viewer.rendering-engine.light-engine';
 import {
-    IMaterialAbstractData,
-    IAnimationData,
-    IGeometryData,
-    IHTMLElementAnchorData,
-    IMaterialStandardData,
-    SDTFOverviewData,
-    SDTFItemData,
-    GeometryData,
     AbstractMaterialData,
-    HTMLElementAnchorData,
     AnimationData,
-    MaterialStandardData,
+    BoneData,
+    GeometryData,
+    HTMLElementAnchorData,
+    IMaterialAbstractData,
     ISDTFOverview,
-    BoneData
-} from '@shapediver/viewer.shared.types'
-import { ITree, ITreeNode, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
+    MaterialStandardData,
+    SDTFItemData,
+    SDTFOverviewData
+    } from '@shapediver/viewer.shared.types';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { IManager, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import {
-    Converter,
+    ITree,
+    ITreeNode,
+    ITreeNodeData,
+    Tree
+    } from '@shapediver/viewer.shared.node-tree';
+import { mat4, vec3 } from 'gl-matrix';
+import { RenderingEngine } from '../RenderingEngine';
+import { SD_DATA_TYPE, SDData } from '../objects/SDData';
+import { SDBone } from '../objects/SDBone';
+import { SDObject } from '../objects/SDObject';
+import { ThreejsData } from '../types/ThreejsData';
+import {
     EventEngine,
     EVENTTYPE,
     InputValidator,
-    Logger,
     StateEngine,
-} from '@shapediver/viewer.shared.services'
-import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { mat4, quat, vec3 } from 'gl-matrix'
-import { IManager, ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+} from '@shapediver/viewer.shared.services';
 
-import { ThreejsData } from '../types/ThreejsData'
-import { RenderingEngine } from '../RenderingEngine'
-import { Bone } from 'three'
-import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { SDData, SD_DATA_TYPE } from '../objects/SDData'
-import { SDObject } from '../objects/SDObject'
-import { SDBone } from '../objects/SDBone'
 
 type UpdateFilter = {
     transformationOnly: boolean
 }
 
 export class SceneTreeManager implements IManager {
-    // #region Properties (13)
+    // #region Properties (15)
 
-    private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _inputValidator: InputValidator = InputValidator.instance;
-    private readonly _logger: Logger = Logger.instance;
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _tree: ITree = Tree.instance;
@@ -58,11 +55,12 @@ export class SceneTreeManager implements IManager {
         dataChild: SDData
     }[] = [];
     private _currentSDTFOverview!: ISDTFOverview;
+    private _hiddenCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
     private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
     private _lastRootVersion: string = '';
     private _mainNode!: SDObject;
 
-    // #endregion Properties (13)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -122,40 +120,42 @@ export class SceneTreeManager implements IManager {
 
         switch (true) {
             case data instanceof GeometryData:
-                dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
+                {
+                    dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
 
-                if (filter.transformationOnly === false) 
-                    this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton);
+                    if (filter.transformationOnly === false)
+                        this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton);
 
-                const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix)
+                    const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix);
 
-                // adjust the general BB
-                node.boundingBox.union(bb);
+                    // adjust the general BB
+                    node.boundingBox.union(bb);
 
-                // create the specific BB if it doesn't exist yet
-                if (!node.boundingBoxViewport[this._renderingEngine.id])
-                    node.boundingBoxViewport[this._renderingEngine.id] = new Box();
+                    // create the specific BB if it doesn't exist yet
+                    if (!node.boundingBoxViewport[this._renderingEngine.id])
+                        node.boundingBoxViewport[this._renderingEngine.id] = new Box();
 
-                // adjust the specific BB
-                node.boundingBoxViewport[this._renderingEngine.id].union(bb);
-
+                    // adjust the specific BB
+                    node.boundingBoxViewport[this._renderingEngine.id].union(bb);
+                }
                 break;
             case data instanceof ThreejsData:
-                dataChild.SDtype = SD_DATA_TYPE.THREEJS;
-                dataChild.add(<SDData>(<ThreejsData>data).obj);
+                {
+                    dataChild.SDtype = SD_DATA_TYPE.THREEJS;
+                    dataChild.add(<SDData>(<ThreejsData>data).obj);
 
-                const bbThree = new THREE.Box3().setFromObject((<ThreejsData>data).obj);
+                    const bbThree = new THREE.Box3().setFromObject((<ThreejsData>data).obj);
 
-                // adjust the general BB
-                node.boundingBox.union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
+                    // adjust the general BB
+                    node.boundingBox.union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
 
-                // create the specific BB if it doesn't exist yet
-                if (!node.boundingBoxViewport[this._renderingEngine.id])
-                    node.boundingBoxViewport[this._renderingEngine.id] = new Box();
+                    // create the specific BB if it doesn't exist yet
+                    if (!node.boundingBoxViewport[this._renderingEngine.id])
+                        node.boundingBoxViewport[this._renderingEngine.id] = new Box();
 
-                // adjust the specific BB
-                node.boundingBoxViewport[this._renderingEngine.id].union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
-
+                    // adjust the specific BB
+                    node.boundingBoxViewport[this._renderingEngine.id].union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
+                }
                 break;
             case data instanceof AbstractMaterialData:
                 dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
@@ -164,7 +164,7 @@ export class SceneTreeManager implements IManager {
                 dataChild.SDtype = SD_DATA_TYPE.LIGHT;
                 if (filter.transformationOnly === false) this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
                 if (data instanceof DirectionalLight && (<DirectionalLight>data).useNodeData === false)
-                    this._boundingBoxSensitiveData.push({ data: <AbstractLight>data, dataChild })
+                    this._boundingBoxSensitiveData.push({ data: <AbstractLight>data, dataChild });
                 break;
             case data instanceof AbstractCamera:
                 dataChild.SDtype = SD_DATA_TYPE.CAMERA;
@@ -189,7 +189,7 @@ export class SceneTreeManager implements IManager {
         for (let i = 0, len = node.data.length; i < len; i++) {
             if (node.data[i] instanceof GeometryData) {
                 const data: GeometryData = <GeometryData>node.data[i];
-                let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
+                const dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
                 if (dataChild)
                     dataChild.traverse(o => {
                         if (o instanceof THREE.Points ||
@@ -198,7 +198,7 @@ export class SceneTreeManager implements IManager {
                             o instanceof THREE.Line ||
                             o instanceof THREE.Mesh)
                             o.morphTargetInfluences = data.morphWeights;
-                    })
+                    });
             }
         }
 
@@ -237,9 +237,9 @@ export class SceneTreeManager implements IManager {
             const dataIds = node.data.map(d => d.id);
             const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) || !(node.data.find(d => d.id === oc.SDid)!.version === oc.SDversion) : false);
             dataToRemove.forEach(dTR => {
-                this.removeData(<SDData>dTR)
+                this.removeData(<SDData>dTR);
                 convertedObject.remove(dTR);
-            })
+            });
 
             // remove all child nodes in the transformed object that do not exist anymore
             // the filter goes also through the data items as they were already added
@@ -249,13 +249,13 @@ export class SceneTreeManager implements IManager {
                 cTR.traverse(o => {
                     if (o instanceof SDData)
                         this.removeData(o);
-                })
+                });
                 convertedObject.remove(cTR);
             });
         }
 
         // create the skeleton if the node is marked as the skin node (root node of the skeleton)
-        if(node.skinNode === true) { 
+        if (node.skinNode === true) {
             const bones: THREE.Bone[] = [];
             for (let i = 0; i < node.bones.length; i++)
                 bones.push(this.getBone(node.bones[i]));
@@ -264,7 +264,7 @@ export class SceneTreeManager implements IManager {
             for (let i = 0; i < node.boneInverses.length; i++)
                 boneInverses.push(new THREE.Matrix4().fromArray(node.boneInverses[i]));
 
-            skeleton = new THREE.Skeleton(bones, boneInverses)
+            skeleton = new THREE.Skeleton(bones, boneInverses);
         }
 
         const isVisible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
@@ -285,7 +285,7 @@ export class SceneTreeManager implements IManager {
                 const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
                 nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
                 if (nodeChild.updateCallbackThreeJsObject)
-                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
+                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id);
                 convertedObject.add(newChild);
                 this.updateNode(nodeChild, newChild, filter, isVisibleInHierarchy, skeleton);
             } else if (objChild.SDversion !== nodeChild.version) {
@@ -315,7 +315,7 @@ export class SceneTreeManager implements IManager {
         convertedObject.applyTransformation(node.nodeMatrix);
     }
 
-    public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
+    public updateSceneTree(root: ITreeNode): void {
         if (this._tree.root.version === this._lastRootVersion && this._renderingEngine.type === RENDERER_TYPE.STANDARD) return;
         this._lastRootVersion = this._tree.root.version;
         this._lastRendererType = this._renderingEngine.type;
@@ -330,7 +330,7 @@ export class SceneTreeManager implements IManager {
             const oldObj = root.threeJsObject[this._renderingEngine.id];
             root.threeJsObject[this._renderingEngine.id] = this._mainNode;
             if (root.updateCallbackThreeJsObject)
-                root.updateCallbackThreeJsObject(this._mainNode, oldObj, this._renderingEngine.id)
+                root.updateCallbackThreeJsObject(this._mainNode, oldObj, this._renderingEngine.id);
             this._scene.add(this._mainNode);
         }
 
@@ -341,7 +341,7 @@ export class SceneTreeManager implements IManager {
         this._boundingBox = root.boundingBoxViewport[this._renderingEngine.id].clone();
 
         for (let i = 0; i < this._boundingBoxSensitiveData.length; i++)
-            this._renderingEngine.lightLoader.adjustToBoundingBox(this._boundingBoxSensitiveData[i].data, this._boundingBoxSensitiveData[i].dataChild, this._boundingBox)
+            this._renderingEngine.lightLoader.adjustToBoundingBox(this._boundingBoxSensitiveData[i].data, this._boundingBoxSensitiveData[i].dataChild, this._boundingBox);
 
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] &&
             this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {
@@ -357,6 +357,22 @@ export class SceneTreeManager implements IManager {
         }
 
         this._renderingEngine.renderingManager.evaluateTextureUnitCount(this._renderingEngine.lightLoader.shadowMapCount + this._renderingEngine.materialLoader.maxMapCount);
+
+        /**
+         * 
+         * Three.js texture upload and compiling
+         * This step is needed as three.js would compile the shaders and initialize the texture on the first render call instead.
+         * 
+         */
+
+        // we initialize all texture and then clear the cache
+        const initializedTextures = Object.values(this._renderingEngine.materialLoader.initializedTextures);
+        for (let i = 0; i < initializedTextures.length; i++)
+            this._renderingEngine.renderer.initTexture(initializedTextures[i]);
+        this._renderingEngine.materialLoader.initializedTextures = {};
+
+        // we compile the shaders
+        this._renderingEngine.renderer.compile(this._renderingEngine.scene, this._hiddenCamera);
     }
 
     // #endregion Public Methods (6)
@@ -376,7 +392,7 @@ export class SceneTreeManager implements IManager {
         const out: SDTFOverviewData = new SDTFOverviewData({});
         for (let i = 0, len = node.data.length; i < len; i++)
             if (node.data[i] instanceof SDTFOverviewData)
-                out.merge(<SDTFOverviewData>node.data[i])
+                out.merge(<SDTFOverviewData>node.data[i]);
 
         for (let i = 0, len = node.children.length; i < len; i++)
             out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
@@ -395,7 +411,7 @@ export class SceneTreeManager implements IManager {
 
     private injectAttributeData(node: ITreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);
-        let visData: {
+        const visData: {
             material: IMaterialAbstractData,
             matrix: mat4
         } = {
@@ -405,16 +421,16 @@ export class SceneTreeManager implements IManager {
 
         if (this._renderingEngine.visualizeAttributes) {
             const userVisData = this._renderingEngine.visualizeAttributes(this._currentSDTFOverview, itemData);
-            this._inputValidator.validateAndError(`Viewer.visualizeAttributes`, userVisData, 'object', true);
-            this._inputValidator.validateAndError(`Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
+            this._inputValidator.validateAndError('Viewer.visualizeAttributes', userVisData, 'object', true);
+            this._inputValidator.validateAndError('Viewer.visualizeAttributes', userVisData.matrix, 'mat4', true);
             visData.material = userVisData.material;
-            visData.matrix = visData.matrix;
+            visData.matrix = userVisData.matrix;
         }
 
         node.addTransformation({
             id: 'sdtf',
             matrix: visData.matrix
-        })
+        });
 
         if (data instanceof GeometryData)
             data.attributeMaterial = visData.material;
@@ -425,11 +441,11 @@ export class SceneTreeManager implements IManager {
             case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
                 dataObject.traverse((o) => {
                     if (o instanceof THREE.Mesh) {
-                        this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
-                        this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion)
-                        this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                        this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion);
+                        this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
+                        this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion);
 
-                        for (let t in o.material) {
+                        for (const t in o.material) {
                             if (o.material[t] instanceof THREE.Texture) {
                                 if (t !== 'envMap')
                                     o.material[t].dispose();

@@ -6,8 +6,8 @@ import {
 	DataUtils,
 	FloatType,
 	HalfFloatType,
-	LinearEncoding,
 	LinearFilter,
+	LinearSRGBColorSpace,
 	LoadingManager,
 	PixelFormat,
 	TextureDataType
@@ -459,13 +459,13 @@ class RGBELoader extends DataTextureLoader {
 
 	load( url: string, onLoad: { (texture: any, texData: any): void; (texture: any): void; (arg0: any, arg1: any): void; }, onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined, onError: ((event: ErrorEvent) => void) | undefined ) {
 
-		function onLoadCallback( texture: { type: any; encoding: number; minFilter: number; magFilter: number; generateMipmaps: boolean; flipY: boolean; }, texData: any ) {
+		function onLoadCallback( texture: { type: any; colorSpace: string; minFilter: number; magFilter: number; generateMipmaps: boolean; flipY: boolean; }, texData: any ) {
 
 			switch ( texture.type ) {
 
 				case FloatType:
 
-					texture.encoding = LinearEncoding;
+					texture.colorSpace = LinearSRGBColorSpace;
 					texture.minFilter = LinearFilter;
 					texture.magFilter = LinearFilter;
 					texture.generateMipmaps = false;
@@ -474,7 +474,7 @@ class RGBELoader extends DataTextureLoader {
 
 				case HalfFloatType:
 
-					texture.encoding = LinearEncoding;
+					texture.colorSpace = LinearSRGBColorSpace;
 					texture.minFilter = LinearFilter;
 					texture.magFilter = LinearFilter;
 					texture.generateMipmaps = false;

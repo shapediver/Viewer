@@ -1,24 +1,65 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-import { ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestConfigure, ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseErrorType, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput, ShapeDiverSdk, ShapeDiverSdkConfigType, create, isGBResponseError } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { ISettings, convert, latestVersion, validate, versions } from '@shapediver/viewer.settings';
-import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { EVENTTYPE, EventEngine, HttpClient, HttpResponse, Logger, PerformanceEvaluator, SettingsEngine, ShapeDiverViewerError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, StateEngine, SystemInfo, UuidGenerator } from '@shapediver/viewer.shared.services';
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
-import { vec3 } from 'gl-matrix';
-import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
-import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
+import {
+    convert,
+    ISettings,
+    latestVersion,
+    validate,
+    versions
+    } from '@shapediver/viewer.settings';
+import {
+    create,
+    isGBResponseError,
+    ShapeDiverError as ShapeDiverBackendError,
+    ShapeDiverRequestConfigure,
+    ShapeDiverRequestCustomization,
+    ShapeDiverRequestExport,
+    ShapeDiverRequestGltfUploadQueryConversion,
+    ShapeDiverResponseDto,
+    ShapeDiverResponseErrorType,
+    ShapeDiverResponseExport,
+    ShapeDiverResponseExportDefinitionType,
+    ShapeDiverResponseModelComputationStatus,
+    ShapeDiverResponseOutput,
+    ShapeDiverSdk,
+    ShapeDiverSdkConfigType
+    } from '@shapediver/sdk.geometry-api-sdk-v2';
+import {
+    EventEngine,
+    EVENTTYPE,
+    HttpClient,
+    HttpResponse,
+    Logger,
+    PerformanceEvaluator,
+    SettingsEngine,
+    ShapeDiverViewerError,
+    ShapeDiverViewerSessionError,
+    ShapeDiverViewerSettingsError,
+    StateEngine,
+    SystemInfo,
+    UuidGenerator
+    } from '@shapediver/viewer.shared.services';
+import { Export } from './dto/Export';
+import { FileParameter } from './dto/FileParameter';
 import { IExport } from '../interfaces/dto/IExport';
 import { IFileParameter } from '../interfaces/dto/IFileParameter';
 import { IOutput } from '../interfaces/dto/IOutput';
 import { IParameter } from '../interfaces/dto/IParameter';
+import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import {
+    ITree,
+    ITreeNode,
+    Tree,
+    TreeNode
+    } from '@shapediver/viewer.shared.node-tree';
+import { Output } from './dto/Output';
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader';
+import { Parameter } from './dto/Parameter';
 import { SessionData } from './SessionData';
 import { SessionTreeNode } from './SessionTreeNode';
-import { Export } from './dto/Export';
-import { FileParameter } from './dto/FileParameter';
-import { Output } from './dto/Output';
-import { Parameter } from './dto/Parameter';
+import { vec3 } from 'gl-matrix';
+/* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (43)
@@ -389,7 +430,7 @@ export class SessionEngine implements ISessionEngine {
      * @param parameters the parameter set to update the session
      * @returns promise with a scene graph node
      */
-    public async customize(force: boolean = false): Promise<ITreeNode> {
+    public async customize(force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         const eventId = this._uuidGenerator.create();
         const customizationId = this._uuidGenerator.create();
         try {
@@ -576,9 +617,10 @@ export class SessionEngine implements ISessionEngine {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
             // update the viewports
-            for (const r in this._stateEngine.renderingEngines)
-                if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+            if (waitForViewportUpdate)
+                for (const r in this._stateEngine.renderingEngines)
+                    if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                        this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
 
             // call the update callback function on the session
             if (this._updateCallback) this._updateCallback(newNode, oldNode);
@@ -857,7 +899,7 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('export');
         try {
             const requestParameterSet = this.cleanExportParameters(body.parameters);
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time}, maxWaitMsec);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
             return responseDto;
         } catch (e) {
@@ -1074,7 +1116,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo): Promise<ITreeNode> {
+    public async updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         const eventId = taskEventInfo ? taskEventInfo.eventId : this._uuidGenerator.create();
         const eventType = taskEventInfo ? taskEventInfo.type : TASK_TYPE.SESSION_OUTPUTS_UPDATE;
         const eventData = taskEventInfo ? taskEventInfo.data : { sessionId: this.id };
@@ -1165,9 +1207,10 @@ export class SessionEngine implements ISessionEngine {
         }
 
         // update the viewports
-        for (const r in this._stateEngine.renderingEngines)
-            if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+        if (waitForViewportUpdate)
+            for (const r in this._stateEngine.renderingEngines)
+                if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
 
         // call the update callback function on the session
         if (this._updateCallback) this._updateCallback(newNode, oldNode);

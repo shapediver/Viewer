@@ -1,12 +1,13 @@
-import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, ShapeDiverViewerDataProcessingError, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+/* eslint-disable no-prototype-builtins */
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { HttpClient, PerformanceEvaluator, UuidGenerator, Logger, ShapeDiverViewerDataProcessingError, EventEngine, EVENTTYPE, HttpResponse } from '@shapediver/viewer.shared.services';
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
   IGLTF_v1,
   IGLTF_v1_Material,
-} from '@shapediver/viewer.data-engine.shared-types'
-import { mat4, vec3, vec4 } from 'gl-matrix'
+} from '@shapediver/viewer.data-engine.shared-types';
+import { mat4, vec3, vec4 } from 'gl-matrix';
 import {
   AttributeData,
   GeometryData,
@@ -16,9 +17,9 @@ import {
   ITaskEvent,
   TASK_TYPE,
   PRIMITIVE_MODE,
-} from '@shapediver/viewer.shared.types'
+} from '@shapediver/viewer.shared.types';
 
-import { SDGTFLoader } from './SDGTFLoader'
+import { SDGTFLoader } from './SDGTFLoader';
 
 export class GLTFLoader {
     // #region Properties (5)
@@ -36,7 +37,7 @@ export class GLTFLoader {
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v1;
-    private _eventId: string = "";
+    private _eventId: string = '';
     private _numberOfNodes = 0;
     private _numberOfConvertedNodes = 0;
     private _progressTimer = 0;
@@ -80,12 +81,11 @@ export class GLTFLoader {
 
     public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
-        let binaryGeometry: ArrayBuffer;
 
         this._performanceEvaluator.startSection('loadGltf.' + url);
-        binaryGeometry = (await this._httpClient.get(url!, {
+        const binaryGeometry = (await this._httpClient.get(url!, {
             responseType: 'arraybuffer'
-        })).data;
+        }) as HttpResponse<ArrayBuffer>).data;
         this._performanceEvaluator.endSection('loadGltf.' + url);
 
         // create header data
@@ -96,7 +96,7 @@ export class GLTFLoader {
             length: headerDataView.getUint32(8, true),
             contentLength: headerDataView.getUint32(12, true),
             contentFormat: headerDataView.getUint32(16, true)
-        }
+        };
         if (header.magic != 'glTF') 
             throw new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: glTF magic wrong.');
 
@@ -140,7 +140,7 @@ export class GLTFLoader {
     }
 
     private async loadAccessor(accessorName: string): Promise<AttributeData> {
-        if (!this._content.accessors![accessorName]) throw new Error('Accessor not available.')
+        if (!this._content.accessors![accessorName]) throw new Error('Accessor not available.');
         const accessor = this._content.accessors![accessorName];
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
@@ -155,15 +155,15 @@ export class GLTFLoader {
         const normalized = false;
         const target = this._content.bufferViews![accessor.bufferView] ? this._content.bufferViews![accessor.bufferView].target : undefined;
 
-        const min = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.min || [] : [];
-        const max = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.max || [] : [];
+        const min = this._content.asset && this._content.asset?.generator === 'ShapeDiverGltfV1Writer' ? accessor.min || [] : [];
+        const max = this._content.asset && this._content.asset?.generator === 'ShapeDiverGltfV1Writer' ? accessor.max || [] : [];
 
         // The buffer is not interleaved if the stride is the item size in bytes.
         return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, min, max, byteStride, target);
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
-        if (!this._content.buffers![bufferName]) throw new Error('Buffer not available.')
+        if (!this._content.buffers![bufferName]) throw new Error('Buffer not available.');
         const buffer = this._content.buffers![bufferName];
 
         if (bufferName === 'binary_glTF')
@@ -172,7 +172,7 @@ export class GLTFLoader {
         if (buffer.type === 'arraybuffer') {
             const binaryGeometry: ArrayBuffer = (await this._httpClient.get(buffer.uri!, {
                 responseType: 'arraybuffer'
-            })).data;
+            }) as HttpResponse<ArrayBuffer>).data;
             return binaryGeometry;
         }
         if(!this._body) throw new Error('Buffer not available.');
@@ -180,7 +180,7 @@ export class GLTFLoader {
     }
 
     private async loadBufferView(bufferViewName: string): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews![bufferViewName]) throw new Error('Buffer View not available.')
+        if (!this._content.bufferViews![bufferViewName]) throw new Error('Buffer View not available.');
         const bufferView = this._content.bufferViews![bufferViewName];
         const buffer: ArrayBuffer = await this.loadBuffer(bufferView.buffer!);
         const byteLength = bufferView.byteLength !== undefined ? bufferView.byteLength : 0;
@@ -190,14 +190,14 @@ export class GLTFLoader {
 
 
     private async loadMaterial(materialName: string): Promise<MaterialStandardData> {
-        if(!this._content.materials![materialName]) throw new Error('Material not available.')
+        if(!this._content.materials![materialName]) throw new Error('Material not available.');
         const material: IGLTF_v1_Material = this._content.materials![materialName];
         const materialData = new MaterialStandardData();
         if(material.name !== undefined) materialData.name = material.name;
 
         if(material.extensions && material.extensions.KHR_materials_common) {
             const technique = material.extensions.KHR_materials_common.technique;
-            if(technique && technique !== 'BLINN') this._logger.warn('The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            if(technique && technique !== 'BLINN') this._logger.warn('The technique ' + technique + ' is not supported. Trying to load the material either way.');
             const values = material.extensions.KHR_materials_common.values;
 
             if (values.hasOwnProperty('doubleSided')) 
@@ -209,7 +209,7 @@ export class GLTFLoader {
                 materialData.color = diffuseScaled;
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse')) {
-                this._logger.warn('GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
+                this._logger.warn('GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.');
             }
             
             if (!values.hasOwnProperty('diffuse') && values.hasOwnProperty('ambient')) {
@@ -220,7 +220,7 @@ export class GLTFLoader {
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
                 materialData.emissiveness = values.emission;
             } else if (values.hasOwnProperty('emission')) {
-                this._logger.warn('GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
+                this._logger.warn('GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.');
             }
 
             if (values.hasOwnProperty('shininess')) {
@@ -244,7 +244,7 @@ export class GLTFLoader {
     }
 
     private async loadMesh(meshName: string): Promise<ITreeNode> {
-        if (!this._content.meshes![meshName]) throw new Error('Mesh not available.')
+        if (!this._content.meshes![meshName]) throw new Error('Mesh not available.');
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
 
@@ -253,16 +253,16 @@ export class GLTFLoader {
             const primitiveNode = new TreeNode('primitive_' + i);
             meshNode.addChild(primitiveNode);
             
-            let primitive = mesh.primitives![i];
+            const primitive = mesh.primitives![i];
             const attributes: {
                 [key: string]: AttributeData
             } = {};
 
-            for (let attribute in primitive.attributes) {
+            for (const attribute in primitive.attributes) {
                 // attribute name conversion to be consistent witg gltf
                 let attributeName = attribute;
                 if(/\d/.test(attributeName) && !attributeName.includes('_')) {
-                    const index = attributeName.search(/\d/)
+                    const index = attributeName.search(/\d/);
                     attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
                 } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
                     attributeName += '_0';
@@ -272,7 +272,7 @@ export class GLTFLoader {
 
                 attributes[attributeName] = await this.loadAccessor(primitive.attributes[attribute]);
                 if(attributeName.startsWith('COLOR'))
-                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride, attributes[attributeName].target)
+                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride, attributes[attributeName].target);
             }
 
             let material: MaterialStandardData | undefined;
@@ -286,7 +286,7 @@ export class GLTFLoader {
     }
 
     private async loadNode(nodeName: string): Promise<ITreeNode> {
-        if (!this._content.nodes![nodeName]) throw new Error('Node not available.')
+        if (!this._content.nodes![nodeName]) throw new Error('Node not available.');
         const node = this._content.nodes![nodeName];
         const nodeDef = new TreeNode(nodeName);
 
@@ -337,15 +337,15 @@ export class GLTFLoader {
     }
 
     private async loadScene(): Promise<ITreeNode> {
-        if (!this._content.scene) throw new Error('No scene.')
-        if (!this._content.scenes![this._content.scene!]) throw new Error('Scene not available.')
+        if (!this._content.scene) throw new Error('No scene.');
+        if (!this._content.scenes![this._content.scene!]) throw new Error('Scene not available.');
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
-        if(this._content.asset && this._content.asset?.generator !== "ShapeDiverGltfWriter" && this._content.asset?.generator !== "ShapeDiverGltfV1Writer") {
+        if(this._content.asset && this._content.asset?.generator !== 'ShapeDiverGltfWriter' && this._content.asset?.generator !== 'ShapeDiverGltfV1Writer') {
             sceneDef.addTransformation({
                 id: this._uuidGenerator.create(),
                 matrix: this._globalTransformation
-            })
+            });
         }
         if(scene.nodes)
             for (let i = 0, len = scene.nodes!.length; i < len; i++)

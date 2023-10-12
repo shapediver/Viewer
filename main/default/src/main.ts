@@ -1,20 +1,38 @@
-import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { ITree, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { ISessionApi } from './interfaces/session/ISessionApi';
-import { IViewportApi } from './interfaces/viewport/IViewportApi';
-import { EventEngine, IEvent, LOGGING_LEVEL, MainEventTypes, SettingsEngine, ShapeDiverViewerSessionError, ShapeDiverViewerValidationError, UuidGenerator } from '@shapediver/viewer.shared.services';
-import { Logger } from '@shapediver/viewer.shared.services';
-import { InputValidator } from '@shapediver/viewer.shared.services';
-import { CreationControlCenter, ICreationControlCenter, SessionCreationDefinition, ViewportCreationDefinition } from '@shapediver/viewer.main.creation-control-center';
-import { ViewportApi } from './implementation/viewport/ViewportApi';
-import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
-import { SessionApi } from './implementation/session/SessionApi';
-import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
 import { build_data } from '@shapediver/viewer.shared.build-data';
+import {
+    BUSY_MODE_DISPLAY,
+    SESSION_SETTINGS_MODE,
+    SPINNER_POSITIONING,
+    VISIBILITY_MODE
+    } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import {
+    CreationControlCenter,
+    ICreationControlCenter,
+    SessionCreationDefinition,
+    ViewportCreationDefinition
+    } from '@shapediver/viewer.main.creation-control-center';
+import {
+    EventEngine,
+    HttpClient,
+    IEvent,
+    LOGGING_LEVEL,
+    MainEventTypes,
+    ShapeDiverViewerSessionError,
+    ShapeDiverViewerValidationError
+    } from '@shapediver/viewer.shared.services';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
-
+import { InputValidator } from '@shapediver/viewer.shared.services';
+import { ISessionApi } from './interfaces/session/ISessionApi';
+import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from './interfaces/viewport/IViewportApi';
+import { Logger } from '@shapediver/viewer.shared.services';
+import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
+import { SessionApi } from './implementation/session/SessionApi';
+import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { ViewportApi } from './implementation/viewport/ViewportApi';
 
 const creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+const httpClient: HttpClient = HttpClient.instance;
 const inputValidator: InputValidator = InputValidator.instance;
 const logger: Logger = Logger.instance;
 const eventEngine: EventEngine = EventEngine.instance;
@@ -23,61 +41,72 @@ const geometryEngine: GeometryEngine = GeometryEngine.instance;
 let createdConsoleMessage = false, consoleBranding = true;
 
 export interface IGeneralOptions {
-    /**
-     * The logging level that is used.
-     */
-    loggingLevel: LOGGING_LEVEL;
+    // #region Properties (5)
 
     /**
-     * Option to show/hide messages in the browser console.
+     * Caching options.
      */
-    showMessages: boolean;
-    
-    /**
-     * The number of glTFs that are downloaded and processed at the same time.
-     * Restricting this number might help if too much data is downloaded at the same time.
-     * (default: Infinity)
-     */
-    parallelGlTFProcessing: number;
+    caching: {
+        /**
+         * Option to enable/disable the caching. (default: true)
+         */
+        enable: boolean;
+
+        /**
+         * Query parameters that are excluded when creating the key that is used for the comparison of data entries in the cache. (default: ['Expires', 'Signature', 'Key-Pair-Id'])
+         * Example: by the addition of 'Expires' the URLs https://link.example?Expires=0 and https://link.example?Expires=1 are both reduced to https://link.example for caching.
+         */
+        excludedQueryParameters: string[];
+
+        /**
+         * The maximum size of the cache in bytes. (default: 1024^3)
+         */
+        maxCacheSize: number;
+    }
 
     /**
      * When set to false, the branding in the viewer console will be limited to a single line.
      * This will only include the viewer version. (default: true)
      */
     consoleBranding: boolean;
+    /**
+     * The logging level that is used.
+     */
+    loggingLevel: LOGGING_LEVEL;
+    /**
+     * The number of glTFs that are downloaded and processed at the same time.
+     * Restricting this number might help if too much data is downloaded at the same time.
+     * (default: Infinity)
+     */
+    parallelGlTFProcessing: number;
+    /**
+     * Option to show/hide messages in the browser console.
+     */
+    showMessages: boolean;
+
+    // #endregion Properties (5)
 }
 
 class GeneralOptions {
-    // #region Public Accessors (4)
+    // #region Public Accessors (10)
 
-    public get loggingLevel(): LOGGING_LEVEL {
-        return logger.loggingLevel;
+    public get caching(): { enable: boolean, excludedQueryParameters: string[], maxCacheSize: number } {
+        return {
+            enable: httpClient.enableCaching,
+            excludedQueryParameters: httpClient.excludedQueryParameters,
+            maxCacheSize: httpClient.maxCacheSize
+        };
     }
 
-    public set loggingLevel(value: LOGGING_LEVEL) {
-        inputValidator.validateAndError('loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
-        logger.loggingLevel = value;
-        logger.debug(`loggingLevel: LoggingLevel was set to: ${value}`);
-    }
-
-    public get showMessages(): boolean {
-        return logger.showMessages;
-    }
-
-    public set showMessages(value: boolean) {
-        inputValidator.validateAndError('showMessages', value, 'boolean');
-        logger.showMessages = value;
-        logger.debug(`showMessages: ShowMessages was set to: ${value}`);
-    }
-    
-    public get parallelGlTFProcessing(): number {
-        return geometryEngine.parallelGlTFProcessing;
-    }
-
-    public set parallelGlTFProcessing(value: number) {
-        inputValidator.validateAndError('parallelGlTFProcessing', value, 'number');
-        geometryEngine.parallelGlTFProcessing = value;
-        logger.debug(`parallelGlTFProcessing: ParallelGlTFProcessing was set to: ${value}`);
+    public set caching(value: { enable: boolean, excludedQueryParameters: string[], maxCacheSize: number }) {
+        inputValidator.validateAndError('caching', value, 'object', true);
+        inputValidator.validateAndError('caching', value.enable, 'boolean');
+        inputValidator.validateAndError('caching', value.excludedQueryParameters, 'stringArray');
+        inputValidator.validateAndError('caching', value.maxCacheSize, 'number');
+        if (value.enable !== undefined) httpClient.enableCaching = value.enable;
+        if (value.excludedQueryParameters !== undefined) httpClient.excludedQueryParameters = value.excludedQueryParameters;
+        if (value.maxCacheSize !== undefined) httpClient.maxCacheSize = value.maxCacheSize;
+        logger.debug(`caching: CoggingLevel was set to: ${value}`);
     }
 
     public get consoleBranding(): boolean {
@@ -90,7 +119,37 @@ class GeneralOptions {
         logger.debug(`consoleBranding: ConsoleBranding was set to: ${value}`);
     }
 
-    // #endregion Public Accessors (4)
+    public get loggingLevel(): LOGGING_LEVEL {
+        return logger.loggingLevel;
+    }
+
+    public set loggingLevel(value: LOGGING_LEVEL) {
+        inputValidator.validateAndError('loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
+        logger.loggingLevel = value;
+        logger.debug(`loggingLevel: LoggingLevel was set to: ${value}`);
+    }
+
+    public get parallelGlTFProcessing(): number {
+        return geometryEngine.parallelGlTFProcessing;
+    }
+
+    public set parallelGlTFProcessing(value: number) {
+        inputValidator.validateAndError('parallelGlTFProcessing', value, 'number');
+        geometryEngine.parallelGlTFProcessing = value;
+        logger.debug(`parallelGlTFProcessing: ParallelGlTFProcessing was set to: ${value}`);
+    }
+
+    public get showMessages(): boolean {
+        return logger.showMessages;
+    }
+
+    public set showMessages(value: boolean) {
+        inputValidator.validateAndError('showMessages', value, 'boolean');
+        logger.showMessages = value;
+        logger.debug(`showMessages: ShowMessages was set to: ${value}`);
+    }
+
+    // #endregion Public Accessors (10)
 }
 
 /**
@@ -101,8 +160,8 @@ class GeneralOptions {
  * @returns 
  */
 export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) => void): string => {
-    inputValidator.validateAndError(`addListener`, type, 'string');
-    inputValidator.validateAndError(`addListener`, cb, 'function');
+    inputValidator.validateAndError('addListener', type, 'string');
+    inputValidator.validateAndError('addListener', cb, 'function');
     logger.debug(`addListener: Event Listener was registered for ${type}.`);
     return eventEngine.addListener(type, cb);
 };
@@ -114,7 +173,7 @@ export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) =
  * @returns 
  */
 export const removeListener = (id: string): boolean => {
-    inputValidator.validateAndError(`removeListener`, id, 'string');
+    inputValidator.validateAndError('removeListener', id, 'string');
     logger.debug(`removeListener: Removing event listener with id ${id}.`);
     return eventEngine.removeListener(id);
 };
@@ -146,27 +205,27 @@ creationControlCenter.update = (
     sessionEngines: { [key: string]: SessionEngine; },
     renderingEngines: { [key: string]: RenderingEngineThreeJs; }
 ) => {
-    for (let s in sessionEngines)
+    for (const s in sessionEngines)
         if (!sessions[s])
             sessions[s] = new SessionApi(sessionEngines[s]);
 
-    for (let s in sessions)
+    for (const s in sessions)
         if (!sessionEngines[s])
             delete sessions[s];
 
-    for (let v in renderingEngines)
+    for (const v in renderingEngines)
         if (!viewports[v])
             viewports[v] = new ViewportApi(renderingEngines[v]);
 
-    for (let v in viewports) {
+    for (const v in viewports) {
         if (!renderingEngines[v])
             delete viewports[v];
     }
-}
+};
 
 const showConsoleMessage = () => {
     createdConsoleMessage = true;
-    if(consoleBranding === true) {
+    if (consoleBranding === true) {
         console.log(`Powered by:
    _____  __                         ____   _                   
   / ___/ / /_   ____ _ ____   ___   / __ \\ (_)_   __ ___   _____
@@ -180,12 +239,15 @@ Visit us at https://shapediver.com/ and find out more!
     } else {
         console.log(`ShapeDiver Viewer 3, Version ${build_data.build_version.replace('3.', '')}`);
     }
-}
+};
 
 /**
  * General Viewer options that are used everywhere.
  * - loggingLevel: The logging level that is used.
  * - showMessages: Option to show/hide messages in the browser console.
+ * - parallelGlTFProcessing: The number of glTFs that are downloaded and processed at the same time.
+ * - consoleBranding: When set to false, the branding in the viewer console will be limited to a single line.
+ * - caching: Caching Options.
  */
 export const generalOptions: IGeneralOptions = new GeneralOptions();
 
@@ -209,41 +271,41 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
- * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISessioncustomize}. (default: true)
- * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISessionexcludeViewports}.
+ * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true)
+ * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}.
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
 export const createSession = async (properties: SessionCreationDefinition): Promise<ISessionApi> => {
-    if(createdConsoleMessage === false) showConsoleMessage();
+    if (createdConsoleMessage === false) showConsoleMessage();
 
     logger.info(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
-    inputValidator.validateAndError(`createSession`, properties, 'object');
-    inputValidator.validateAndError(`createSession`, properties.ticket, 'string', false);
-    inputValidator.validateAndError(`createSession`, properties.guid, 'string', false);
-    inputValidator.validateAndError(`createSession`, properties.modelViewUrl, 'string');
-    inputValidator.validateAndError(`createSession`, properties.jwtToken, 'string', false);
-    inputValidator.validateAndError(`createSession`, properties.id, 'string', false);
-    inputValidator.validateAndError(`createSession`, properties.waitForOutputs, 'boolean', false);
-    inputValidator.validateAndError(`createSession`, properties.loadOutputs, 'boolean', false);
-    inputValidator.validateAndError(`createSession`, properties.excludeViewports, 'stringArray', false);
-    inputValidator.validateAndError(`createSession`, properties.initialParameterValues, 'object', false);
+    inputValidator.validateAndError('createSession', properties, 'object');
+    inputValidator.validateAndError('createSession', properties.ticket, 'string', false);
+    inputValidator.validateAndError('createSession', properties.guid, 'string', false);
+    inputValidator.validateAndError('createSession', properties.modelViewUrl, 'string');
+    inputValidator.validateAndError('createSession', properties.jwtToken, 'string', false);
+    inputValidator.validateAndError('createSession', properties.id, 'string', false);
+    inputValidator.validateAndError('createSession', properties.waitForOutputs, 'boolean', false);
+    inputValidator.validateAndError('createSession', properties.loadOutputs, 'boolean', false);
+    inputValidator.validateAndError('createSession', properties.excludeViewports, 'stringArray', false);
+    inputValidator.validateAndError('createSession', properties.initialParameterValues, 'object', false);
     if (properties.initialParameterValues)
-        for (let p in properties.initialParameterValues)
-            inputValidator.validateAndError(`createSession`, properties.initialParameterValues[p], 'string');
+        for (const p in properties.initialParameterValues)
+            inputValidator.validateAndError('createSession', properties.initialParameterValues[p], 'string');
 
     // we either expect a ticket or guid + jwtToken, error if we get both
     if (properties.ticket !== undefined && properties.guid !== undefined)
-        throw new ShapeDiverViewerSessionError(`createSession: A ticket and a guid were provided for the session creation. Please only provide one or the other. The session was not created.`);
+        throw new ShapeDiverViewerSessionError('createSession: A ticket and a guid were provided for the session creation. Please only provide one or the other. The session was not created.');
 
     // we either expect a ticket or guid + jwtToken, error if we get none
     if (properties.ticket === undefined && properties.guid === undefined)
-        throw new ShapeDiverViewerSessionError(`createSession: Neither a ticket nor a guid were provided for the session creation. Please provide one or the other. The session was not created.`);
-        
+        throw new ShapeDiverViewerSessionError('createSession: Neither a ticket nor a guid were provided for the session creation. Please provide one or the other. The session was not created.');
+
     // we either expect a guid + jwtToken, error if the jwtToken is missing
     if (properties.guid !== undefined && properties.jwtToken === undefined)
-        throw new ShapeDiverViewerSessionError(`createSession: When creating a session with a guid, a jwtToken is required, please provide one. The session was not created.`);
+        throw new ShapeDiverViewerSessionError('createSession: When creating a session with a guid, a jwtToken is required, please provide one. The session was not created.');
 
     if (properties.waitForOutputs === undefined) properties.waitForOutputs = true;
     if (properties.loadOutputs === undefined) properties.loadOutputs = true;
@@ -273,29 +335,29 @@ export const createSession = async (properties: SessionCreationDefinition): Prom
  * @returns 
  */
 export const createViewport = async (properties?: ViewportCreationDefinition): Promise<IViewportApi> => {
-    if(createdConsoleMessage === false) showConsoleMessage();
+    if (createdConsoleMessage === false) showConsoleMessage();
 
     inputValidator.validateAndError('createViewport', properties, 'object', false);
 
     const prop = Object.assign({}, properties);
-    inputValidator.validateAndError(`createViewport`, prop.canvas, 'HTMLCanvasElement', false);
-    inputValidator.validateAndError(`createViewport`, prop.id, 'string', false);
-    inputValidator.validateAndError(`createViewport`, prop.sessionSettingsId, 'string', false);
-    inputValidator.validateAndError(`createViewport`, prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
-    inputValidator.validateAndError(`createViewport`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
+    inputValidator.validateAndError('createViewport', prop.canvas, 'HTMLCanvasElement', false);
+    inputValidator.validateAndError('createViewport', prop.id, 'string', false);
+    inputValidator.validateAndError('createViewport', prop.sessionSettingsId, 'string', false);
+    inputValidator.validateAndError('createViewport', prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
+    inputValidator.validateAndError('createViewport', prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
 
     inputValidator.validateAndError('createViewport', prop.branding, 'object', false);
     const branding = Object.assign({}, prop.branding);
-    if (branding.logo !== null) inputValidator.validateAndError(`createViewport`, branding.logo, 'string', false);
-    inputValidator.validateAndError(`createViewport`, branding.backgroundColor, 'string', false);
-    inputValidator.validateAndError(`createViewport`, branding.busyModeSpinner, 'string', false);
-    inputValidator.validateAndError(`createViewport`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
-    inputValidator.validateAndError(`createViewport`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
+    if (branding.logo !== null) inputValidator.validateAndError('createViewport', branding.logo, 'string', false);
+    inputValidator.validateAndError('createViewport', branding.backgroundColor, 'string', false);
+    inputValidator.validateAndError('createViewport', branding.busyModeSpinner, 'string', false);
+    inputValidator.validateAndError('createViewport', branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
+    inputValidator.validateAndError('createViewport', branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
 
     prop.sessionSettingsMode = prop.sessionSettingsMode !== undefined ? prop.sessionSettingsMode : SESSION_SETTINGS_MODE.FIRST;
 
     if (prop.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && !prop.sessionSettingsId)
-        throw new ShapeDiverViewerValidationError(`createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL`, prop.sessionSettingsId, 'string');
+        throw new ShapeDiverViewerValidationError('createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL', prop.sessionSettingsId, 'string');
 
     const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
 

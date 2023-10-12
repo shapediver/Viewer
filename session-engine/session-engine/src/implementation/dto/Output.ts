@@ -1,8 +1,8 @@
-import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InputValidator, UuidGenerator, Logger } from "@shapediver/viewer.shared.services";
-import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "../../interfaces/dto/IOutput";
-import { SessionEngine } from "../SessionEngine";
+import { InputValidator, Logger, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { IOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputContent } from '../../interfaces/dto/IOutput';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { SessionEngine } from '../SessionEngine';
+import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class Output implements IOutput {
   // #region Properties (23)
@@ -47,7 +47,7 @@ export class Output implements IOutput {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (28)
+  // #region Public Accessors (30)
 
   public get bbmax(): number[] | undefined {
     return this.#bbmax;
@@ -169,10 +169,15 @@ export class Output implements IOutput {
     this.#version = value;
   }
 
-  // #endregion Public Accessors (28)
+  // #endregion Public Accessors (30)
 
-  // #region Public Methods (3)
+  // #region Public Methods (4)
 
+  public triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
+    if (this.#updateCallback) this.#updateCallback(newNode, oldNode);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public updateOutput(newNode?: TreeNode, oldNode?: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
     this.updateOutputDefinition(outputDef);
@@ -187,14 +192,10 @@ export class Output implements IOutput {
     }
   }
 
-  public triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
-    if (this.#updateCallback) this.#updateCallback(newNode, oldNode);
-  }
-
-  public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<ITreeNode | undefined> {
+  public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode | undefined> {
     this.#sessionEngine.outputs[this.id].content = outputContent;
     this.#sessionEngine.outputs[this.id].version = this.#uuidGenerator.create();
-    if (!preventUpdate) await this.#sessionEngine.updateOutputs();
+    if (!preventUpdate) await this.#sessionEngine.updateOutputs(undefined, waitForViewportUpdate);
     return this.node;
   }
 
@@ -218,5 +219,5 @@ export class Output implements IOutput {
     this.#hidden = outputDef.hidden;
   }
 
-  // #endregion Public Methods (3)
+  // #endregion Public Methods (4)
 }
