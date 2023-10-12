@@ -1,5 +1,5 @@
 
-import { build_data } from '@shapediver/viewer.shared.build-data'
+import { build_data } from '@shapediver/viewer.shared.build-data';
 
 (() => {
     const p = document.createElement('p');
@@ -8,7 +8,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
     p.style.fontWeight = '400';
     p.style.fontSize = '20px';
 
-    document.body.appendChild(p)
+    document.body.appendChild(p);
     p.innerText = `${build_data.build_version.replace('3.', '')}`;
-})()
+})();
 

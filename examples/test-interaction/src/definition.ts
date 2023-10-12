@@ -1,5 +1,5 @@
-import { IOutputApi, IParameterApi } from "@shapediver/viewer";
-import { mat4, vec3 } from "gl-matrix";
+import { IOutputApi, IParameterApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 
 export type ShelfDefinition = {
     matrices: {
@@ -23,7 +23,7 @@ export type ShelfDefinition = {
     }[];
 };
 
-export let bottomShelf: ShelfDefinition = {
+export const bottomShelf: ShelfDefinition = {
     matrices: [{
         transformation: mat4.create(),
         rotation: mat4.create(),
@@ -128,7 +128,7 @@ export let bottomShelf: ShelfDefinition = {
         }
     ]
 };
-export let topShelf: ShelfDefinition = {
+export const topShelf: ShelfDefinition = {
     matrices: [{
         transformation: mat4.create(),
         rotation: mat4.create(),

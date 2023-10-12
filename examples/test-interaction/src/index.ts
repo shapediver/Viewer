@@ -14,7 +14,7 @@ import {
     removeListener,
     sceneTree,
     VISIBILITY_MODE
-} from "@shapediver/viewer";
+} from '@shapediver/viewer';
 import {
     InteractionEngine,
     HoverManager,
@@ -24,11 +24,11 @@ import {
     InteractionData,
     LineConstraint,
     PlaneConstraint
-} from "@shapediver/viewer.features.interaction";
-import { mat4, quat, vec3 } from "gl-matrix";
+} from '@shapediver/viewer.features.interaction';
+import { mat4, quat, vec3 } from 'gl-matrix';
 
-import * as SDV from "@shapediver/viewer";
-import { bottomShelf, ShelfDefinition, topShelf } from "./definition";
+import * as SDV from '@shapediver/viewer';
+import { bottomShelf, ShelfDefinition, topShelf } from './definition';
 (<any>window).SDV = SDV;
 
 // monitor if the mouse is up or down
@@ -62,8 +62,8 @@ const activateInteractionsToken: {
     start: string;
     end: string;
 } = {
-    start: "",
-    end: ""
+    start: '',
+    end: ''
 };
 
 const updateParameter = async (def: ShelfDefinition) => {
@@ -71,11 +71,11 @@ const updateParameter = async (def: ShelfDefinition) => {
     const stringMatrixArray: string[] = [];
 
     def.matrices.forEach((m) =>
-        stringMatrixArray.push("[" + m.transformation.toString() + "]")
+        stringMatrixArray.push('[' + m.transformation.toString() + ']')
     );
     def.parameter!.value =
         stringMatrixArray.length === 0
-            ? "{}"
+            ? '{}'
             : `{matrices:[${stringMatrixArray.join()}]}`;
     await session.customize();
 };
@@ -84,7 +84,7 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean }) => {
     const shelves = [topShelf, bottomShelf];
     for (let i = 0; i < shelves.length; i++) {
         for (let j = 0; j < shelves[i].counter; j++) {
-            const node = shelves[i].output!.node?.getNodesByName(shelves[i].output!.name + "_" + j)[0]!;
+            const node = shelves[i].output!.node!.getNodesByName(shelves[i].output!.name + '_' + j)[0]!;
             if (!node) continue;
 
             // we enable dragging for this node
@@ -152,7 +152,7 @@ const activateInteractions = () => {
             if(customizationInProgress) {
                 dragManager.removeNode();
                 return;
-            };
+            }
             const dragEvent = <IDragEvent>e;
 
             dragLineConstraintsIDs.forEach((d) =>
@@ -204,7 +204,7 @@ const activateInteractions = () => {
                     const number = dragEvent.node
                         .getPath()
                         .substring(
-                            dragEvent.node.getPath().lastIndexOf("_") + 1,
+                            dragEvent.node.getPath().lastIndexOf('_') + 1,
                             dragEvent.node.getPath().length
                         );
                     mat4.multiply(
@@ -231,7 +231,7 @@ const activateInteractions = () => {
                     customizationInProgress = true;
                     await updateParameter(def);
 
-                    const node = def.output!.node?.getNodesByName(def.output!.name + "_" + (def.counter - 1))[0]!;
+                    const node = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
                     node.visible = false;
                     node.updateVersion();
                     viewport.update();            
@@ -279,7 +279,7 @@ const addShelf = async (def: ShelfDefinition) => {
     );
 
     // find the node with the last id, this one is currently hidden
-    const newNode = def.output!.node?.getNodesByName(def.output!.name + "_" + (def.counter - 1))[0]!;
+    const newNode = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
 
     // we enable dragging for this node
     const data = new InteractionData({ drag: true });
@@ -340,7 +340,7 @@ const addShelf = async (def: ShelfDefinition) => {
         customizationInProgress = true;
         await updateParameter(def);
 
-        const node = def.output!.node?.getNodesByName(def.output!.name + "_" + (def.counter - 1))[0]!;
+        const node = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
         node.visible = false;
         node.updateVersion();
         viewport.update();
@@ -362,15 +362,15 @@ const addShelf = async (def: ShelfDefinition) => {
 (async () => {
     customizationInProgress = true;
     viewport = await createViewport({
-        canvas: <HTMLCanvasElement>document.getElementById("canvas"),
-        id: "myViewport",
+        canvas: <HTMLCanvasElement>document.getElementById('canvas'),
+        id: 'myViewport',
         visibility: VISIBILITY_MODE.MANUAL
     });
     session = await createSession({
         ticket:
-            "0d547cd66556b390b5184d53386064d05eadb0b553dfd455a37f1ed8de2a688bf3c4bba1c1d977f5bece5ad6ce669782e4cc01b376e28f29db0488f022a0e7d64c72509db437511b30080f3534d7a7a7b045d53bd49d5fcdc4d5c9af3ad5bd1ab16d6317af5999-0dbbcdc5c2ebf524aa59dbdce0b99712",
-        modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
-        id: "mySession"
+            '0d547cd66556b390b5184d53386064d05eadb0b553dfd455a37f1ed8de2a688bf3c4bba1c1d977f5bece5ad6ce669782e4cc01b376e28f29db0488f022a0e7d64c72509db437511b30080f3534d7a7a7b045d53bd49d5fcdc4d5c9af3ad5bd1ab16d6317af5999-0dbbcdc5c2ebf524aa59dbdce0b99712',
+        modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
+        id: 'mySession'
     });
 
     // we change some light properties as this scene is quite big
@@ -378,18 +378,18 @@ const addShelf = async (def: ShelfDefinition) => {
     directionalLight.shadowMapResolution = 4096;
     directionalLight.shadowMapBias = -0.0005;
 
-    topShelf.output = session.getOutputByName("topShelf")[0];
-    bottomShelf.output = session.getOutputByName("bottomShelf")[0];
+    topShelf.output = session.getOutputByName('topShelf')[0];
+    bottomShelf.output = session.getOutputByName('bottomShelf')[0];
 
-    topShelf.parameter = session.getParameterByName("topShelfMatrices")[0];
-    bottomShelf.parameter = session.getParameterByName("bottomShelfMatrices")[0];
+    topShelf.parameter = session.getParameterByName('topShelfMatrices')[0] as IParameterApi<string>;
+    bottomShelf.parameter = session.getParameterByName('bottomShelfMatrices')[0] as IParameterApi<string>;
 
     await updateParameter(topShelf);
     await updateParameter(bottomShelf);
     const shelves = [topShelf, bottomShelf];
 
     for (let i = 0; i < shelves.length; i++) {
-        const node = shelves[i].output!.node?.getNodesByName(shelves[i].output!.name + "_0")[0]!;
+        const node = shelves[i].output!.node!.getNodesByName(shelves[i].output!.name + '_0')[0]!;
         node.visible = false;
         node.updateVersion();
     }
@@ -400,10 +400,10 @@ const addShelf = async (def: ShelfDefinition) => {
     // create the interaction engine and the managers
     const interactionEngine = new InteractionEngine(viewport);
     hoverManager = new HoverManager();
-    hoverManager.effectMaterial = new MaterialStandardData({ color: "#dddddd" });
+    hoverManager.effectMaterial = new MaterialStandardData({ color: '#dddddd' });
     interactionEngine.addInteractionManager(hoverManager);
     dragManager = new DragManager();
-    dragManager.effectMaterial = new MaterialStandardData({ color: "#dddddd" });
+    dragManager.effectMaterial = new MaterialStandardData({ color: '#dddddd' });
     interactionEngine.addInteractionManager(dragManager);
 
     // create a default plane where objects are dragged

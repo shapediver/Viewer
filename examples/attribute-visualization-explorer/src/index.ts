@@ -1,10 +1,10 @@
-import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, ISessionApi, IViewportApi, MaterialUnlitData } from "@shapediver/viewer";
-import { HoverManager, IHoverEvent, InteractionData, InteractionEngine, ISelectEvent, SelectManager } from "@shapediver/viewer.features.interaction";
-import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
-import * as  SDV from "@shapediver/viewer";
-import { SDTF_TYPEHINT } from "@shapediver/viewer";
-import { INumberAttribute, ATTRIBUTE_VISUALIZATION } from "@shapediver/viewer.features.attribute-visualization";
-import { mat4, vec3 } from "gl-matrix";
+import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, ISessionApi, IViewportApi, MaterialUnlitData } from '@shapediver/viewer';
+import { HoverManager, IHoverEvent, InteractionData, InteractionEngine, ISelectEvent, SelectManager } from '@shapediver/viewer.features.interaction';
+import { AttributeVisualizationEngine } from '@shapediver/viewer.features.attribute-visualization';
+import * as  SDV from '@shapediver/viewer';
+import { SDTF_TYPEHINT } from '@shapediver/viewer';
+import { INumberAttribute, ATTRIBUTE_VISUALIZATION } from '@shapediver/viewer.features.attribute-visualization';
+import { mat4, vec3 } from 'gl-matrix';
 
 let viewport: IViewportApi;
 let interactionEngine: InteractionEngine;
@@ -50,11 +50,11 @@ activationBox.onclick = () => {
         interactionEngine.removeInteractionManager(attributeHoverManagerToken);
         removeInteractionDataFromSDTFItems();
     }
-}
+};
 
 addListener(EVENTTYPE.INTERACTION.SELECT_OFF, (e) => {
     const selectEvent = <ISelectEvent>e;
-    console.log("SELECT_OFF")
+    console.log('SELECT_OFF');
 });
 
 addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
@@ -63,10 +63,9 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
     const itemData = <SDTFItemData | undefined>selectEvent.node.data.find(d => d instanceof SDTFItemData);
     if (!itemData) return;
 
-    console.log("SELECT_ON")
-    console.log(itemData.attributes)
+    console.log('SELECT_ON');
+    console.log(itemData.attributes);
 });
-
 
 // addListener(EVENTTYPE.INTERACTION.HOVER_OFF, (e) => {
 //     const hoverEvent = <IHoverEvent>e;
@@ -82,22 +81,21 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
 
 (async () => {
     viewport = await createViewport({
-        canvas: <HTMLCanvasElement>document.getElementById("canvas"),
-        id: "myViewport"
+        canvas: <HTMLCanvasElement>document.getElementById('canvas'),
+        id: 'myViewport'
     });
 
     const promises = [];
 
     for(let i = 0; i < 11; i++) {
-
         const session = await createSession({
             ticket:
-                "1c435edaf9425ed63ce9e3fcb11048ada9d83a1108e22bc153cfb27c33b00936b8a1e2e97315fa3cde5dd5cda839e4bfbeb6c076e9716737b13a3b17a24198d61e519978d9b93e7fb328e9727b92ed0e8c74a83f42f6f1e8006f2fc28a399f40b6065acebf5143-cb17ee872b8abab457e8b6669c996ffa",
-            modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
-            id: "mySession" + i
+                '1c435edaf9425ed63ce9e3fcb11048ada9d83a1108e22bc153cfb27c33b00936b8a1e2e97315fa3cde5dd5cda839e4bfbeb6c076e9716737b13a3b17a24198d61e519978d9b93e7fb328e9727b92ed0e8c74a83f42f6f1e8006f2fc28a399f40b6065acebf5143-cb17ee872b8abab457e8b6669c996ffa',
+            modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
+            id: 'mySession' + i
         });
     
-        session.node.addTransformation({ id: "abc", matrix: mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, i*25))})
+        session.node.addTransformation({ id: 'abc', matrix: mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, i*25))});
     }
 
     // attributeVisualizationEngine = new AttributeVisualizationEngine(viewport);
@@ -131,5 +129,5 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
     // attributeHoverManagerToken = interactionEngine.addInteractionManager(attributeHoverManager);
     // addInteractionDataToSDTFItems(sceneTree.root);
 
-    viewport.update()
+    viewport.update();
 })();
