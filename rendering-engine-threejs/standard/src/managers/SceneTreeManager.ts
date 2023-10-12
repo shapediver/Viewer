@@ -358,11 +358,20 @@ export class SceneTreeManager implements IManager {
 
         this._renderingEngine.renderingManager.evaluateTextureUnitCount(this._renderingEngine.lightLoader.shadowMapCount + this._renderingEngine.materialLoader.maxMapCount);
 
+        /**
+         * 
+         * Three.js texture upload and compiling
+         * This step is needed as three.js would compile the shaders and initialize the texture on the first render call instead.
+         * 
+         */
+
+        // we initialize all texture and then clear the cache
         const initializedTextures = Object.values(this._renderingEngine.materialLoader.initializedTextures);
         for (let i = 0; i < initializedTextures.length; i++)
             this._renderingEngine.renderer.initTexture(initializedTextures[i]);
         this._renderingEngine.materialLoader.initializedTextures = {};
 
+        // we compile the shaders
         this._renderingEngine.renderer.compile(this._renderingEngine.scene, this._hiddenCamera);
     }
 

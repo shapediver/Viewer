@@ -75,6 +75,12 @@ export class HttpClient {
 
     // #region Public Methods (5)
 
+    /**
+     * Add the data loading options from a session.
+     * 
+     * @param sessionId 
+     * @param callbacks 
+     */
     public addDataLoading(sessionId: string, callbacks: {
         getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
         downloadTexture: (sessionId: string, url: string) => Promise<[ArrayBuffer, string]>,
@@ -101,6 +107,18 @@ export class HttpClient {
         }
     }
 
+    /**
+     * Get the requested resource either as a download or from the cache.
+     * If available, the registered session loading is used for download.
+     * Textures are downloaded via a specific endpoint and can be converted in this step as well.
+     * Depending on the provided caching options, the requested resource might already be cached.
+     * 
+     * @param href 
+     * @param config 
+     * @param textureLoading 
+     * @param textureConversion 
+     * @returns 
+     */
     public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false, textureConversion: boolean = false): Promise<HttpResponse<unknown>> {
         const dataKey = this.hrefToDataKey(href);
 
@@ -207,10 +225,21 @@ export class HttpClient {
         return loadingPromise;
     }
 
+    /**
+     * Get the requested texture either as a download or from the cache.
+     * 
+     * @param href 
+     * @returns 
+     */
     public async loadTexture(href: string): Promise<HttpResponse<HTMLImageElement>> {
         return this.get(href, undefined, true, true) as Promise<HttpResponse<HTMLImageElement>>;
     }
 
+    /**
+     * Add the data loading options from a session.
+     * 
+     * @param sessionId 
+     */
     public removeDataLoading(sessionId: string) {
         delete this._sessionLoading[sessionId];
     }
@@ -219,7 +248,15 @@ export class HttpClient {
 
     // #region Private Methods (5)
 
+    /**
+     * Add 
+     * 
+     * @param key 
+     * @param value 
+     */
     private addToCache(key: string, value: Promise<HttpResponse<unknown>>) {
+        // Remove items from the cache until the cache size is smaller than the maximum cache size.
+        // Only resolved promises are evaluated, as unresolved promises don't add any size.
         while (this.calculateCacheSize() >= this._maxCacheSize) {
             // Remove the oldest entry if the cache is full
             const oldestKey = this._dataCache.keys().next().value;
@@ -228,14 +265,19 @@ export class HttpClient {
 
         const timestamp = Date.now();
         this._dataCache.set(key, { value, timestamp, resolved: false });
-        // set resolved and size properties once the promise has been resolved
 
+        // once the promise resolves, set resolved and size properties
         value.then((promiseResult) => {
             const size = promiseResult.size ? promiseResult.size : (promiseResult.data as ArrayBuffer).byteLength;
             this._dataCache.set(key, { value, timestamp, resolved: true, size });
         }).catch(e => { throw this.convertError(e); });
     }
 
+    /**
+     * Calculate the current cache size from all resolved promises.
+     * 
+     * @returns 
+     */
     private calculateCacheSize() {
         let size = 0;
         this._dataCache.forEach(value => {
@@ -245,12 +287,24 @@ export class HttpClient {
         return size;
     }
 
+    /**
+     * Get the value of an object from the cache.
+     * 
+     * @param key 
+     * @returns 
+     */
     private getFromCache(key: string): Promise<HttpResponse<unknown>> {
         const cachedObject = this._dataCache.get(key)!;
         this._dataCache.set(key, { value: cachedObject.value, timestamp: Date.now(), resolved: cachedObject.resolved, size: cachedObject.size });
         return cachedObject.value;
     }
 
+    /**
+     * Get the session id of the provided href.
+     * 
+     * @param href 
+     * @returns 
+     */
     private getSessionId(href: string): string | undefined {
         // searching for "/session/SESSION_ID/{'output' | 'export' | 'texture'}/ASSET_DATA"
         const parts = href.split('/');
@@ -266,6 +320,13 @@ export class HttpClient {
         return;
     }
 
+    /**
+     * Convert the provided href to a data cache key.
+     * In this conversion the excludedQueryParameters are removed from the href.
+     * 
+     * @param href 
+     * @returns 
+     */
     private hrefToDataKey(href: string) {
         const url = new URL(href);
 

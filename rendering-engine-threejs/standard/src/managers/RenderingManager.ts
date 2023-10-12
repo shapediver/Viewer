@@ -492,6 +492,9 @@ export class RenderingManager implements IManager {
         if (threeJsLightObject)
             threeJsLightObject.visible = oldLightVisibility;
 
+        // as the scene background is not easily reachable we have to adjust properties of it within the list of rendered objects
+        // therefore, whenever the sceneBackgroundNeedsUpdate flag is set, the list of elements is traversed to adjust the scene background
+        // this currently only happens when the environment map rotation changed
         if (this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate === true) {
             this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate = false;
             const envMapRotationMatrix = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix();

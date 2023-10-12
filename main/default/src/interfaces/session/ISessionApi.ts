@@ -424,6 +424,8 @@ export interface ISessionApi {
      * Calling this function makes sense if you have updated one of
      * the outputs manually by calling {@link IOutputApi.updateOutputContent}.
      * 
+     * @param waitForViewportUpdate If waitForViewportUpdate is set to true, the promise will only resolve when the geometry was processed by the viewport(s) and is visible in the scene. (Default: false)
+     * 
      * @throws {@type ShapeDiverViewerError}
      */
     updateOutputs(waitForViewportUpdate?: boolean): Promise<ITreeNode>;

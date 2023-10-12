@@ -937,6 +937,9 @@ export class MaterialLoader implements ILoader {
     private createTexture(map: IMapData): THREE.Texture {
         const key = this.createDataKeyFromMap(map);
 
+        // texture in this structure are only stored until the next scene tree update call
+        // therefore no cache management is needed, as these textures need to be created either way
+        // the cache is cleared in updateSceneTree
         if (this._initializedTextures[key]) return this._initializedTextures[key];
 
         const texture = new THREE.Texture(map.image);
