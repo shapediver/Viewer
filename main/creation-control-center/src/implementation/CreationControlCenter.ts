@@ -214,13 +214,13 @@ export class CreationControlCenter implements ICreationControlCenter {
           throw new ShapeDiverViewerViewportError('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.');
         const sessionSettingsId = properties.sessionSettingsId;
         if (this.sessionEngines[sessionSettingsId]) {
-          await this.assignSettings(renderingEngine, sessionSettingsId);
+          await this.assignSettings(renderingEngine, sessionSettingsId, true);
         } else {
           // in createSession
         }
       } else if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
         if (this.#firstSessionEngine) {
-          await this.assignSettings(renderingEngine, this.#firstSessionEngine.id);
+          await this.assignSettings(renderingEngine, this.#firstSessionEngine.id, true);
         } else {
           // in createSession
         }
@@ -496,16 +496,16 @@ export class CreationControlCenter implements ICreationControlCenter {
 
   // #region Private Methods (1)
 
-  private async assignSettings(renderingEngine: RenderingEngineThreeJs, sessionId: string) {
+  private async assignSettings(renderingEngine: RenderingEngineThreeJs, sessionId: string, updateViewport: boolean = false) {
     if (this.#stateEngine.sessionEngines[sessionId].initialized.resolved === true) {
       // immediate
       renderingEngine.settingsEngine = this.sessionEngines[sessionId].settingsEngine;
-      await renderingEngine.applySettings(undefined, undefined, false);
+      await renderingEngine.applySettings(undefined, undefined, updateViewport);
     } else {
       await new Promise<void>(resolve => {
         this.#stateEngine.sessionEngines[sessionId].initialized.then(async () => {
           renderingEngine.settingsEngine = this.sessionEngines[sessionId].settingsEngine;
-          await renderingEngine.applySettings(undefined, undefined, false);
+          await renderingEngine.applySettings(undefined, undefined, updateViewport);
           resolve();
         });
       });

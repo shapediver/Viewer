@@ -214,6 +214,28 @@ export class PostProcessingManager implements IManager {
     public addEffect(definition: IPostProcessingEffectDefinition, t?: string): string {
         const token = t || this._uuidGenerator.create();
         this._effectDefinitions.push({ token, definition });
+
+        switch (definition.type) {
+            case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
+                if(!this._godRaysManagers[token]) 
+                    this._godRaysManagers[token] = new GodRaysManager(this._renderingEngine);
+                break;
+
+            case POST_PROCESSING_EFFECT_TYPE.OUTLINE:
+                if(!this._outlineManagers[token]) 
+                    this._outlineManagers[token] = new OutlineManager(this._renderingEngine);
+                break;
+                
+
+            case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
+                if(!this._selectiveBloomManagers[token]) 
+                    this._selectiveBloomManagers[token] = new SelectiveBloomManager(this._renderingEngine);
+                break;
+
+            default:
+        }
+                
+
         this.changeEffectPass();
         return token;
     }
@@ -357,11 +379,7 @@ export class PostProcessingManager implements IManager {
                             effect: godRaysEffect
                         });
 
-                        if(!this._godRaysManagers[this._effectDefinitions[i].token]) {
-                            this._godRaysManagers[this._effectDefinitions[i].token] = new GodRaysManager(this._renderingEngine, godRaysEffect);
-                        } else {
-                            this._godRaysManagers[this._effectDefinitions[i].token].setEffect(godRaysEffect);
-                        }
+                        this._godRaysManagers[this._effectDefinitions[i].token].setEffect(godRaysEffect);
                     }
                     break;
 
@@ -463,12 +481,7 @@ export class PostProcessingManager implements IManager {
                             token: this._effectDefinitions[i].token,
                             effect: outlineEffect
                         });
-
-                        if(!this._outlineManagers[this._effectDefinitions[i].token]) {
-                            this._outlineManagers[this._effectDefinitions[i].token] = new OutlineManager(this._renderingEngine, outlineEffect);
-                        } else {
-                            this._outlineManagers[this._effectDefinitions[i].token].setEffect(outlineEffect);
-                        }
+                        this._outlineManagers[this._effectDefinitions[i].token].setEffect(outlineEffect);
                     }
                     break;
 
@@ -549,11 +562,7 @@ export class PostProcessingManager implements IManager {
                             effect: selectiveBloomEffect
                         });
 
-                        if(!this._selectiveBloomManagers[this._effectDefinitions[i].token]) {
-                            this._selectiveBloomManagers[this._effectDefinitions[i].token] = new SelectiveBloomManager(this._renderingEngine, selectiveBloomEffect);
-                        } else {
-                            this._selectiveBloomManagers[this._effectDefinitions[i].token].setEffect(selectiveBloomEffect);
-                        }
+                        this._selectiveBloomManagers[this._effectDefinitions[i].token].setEffect(selectiveBloomEffect);
                     }
                     break;
 
@@ -1074,7 +1083,7 @@ export class PostProcessingManager implements IManager {
                             this.changeEffectPass();
                             this._eventEngine.removeListener(token);
                         }, 0);
-                    }
+                }
                 }
             });
         } else {
