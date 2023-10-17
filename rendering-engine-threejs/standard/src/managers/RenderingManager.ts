@@ -188,6 +188,8 @@ export class RenderingManager implements IManager {
 
             img.style.maxWidth = 'calc(100% * 0.15)';
             img.style.maxHeight = 'calc(100% * 0.15)';
+            img.style.mixBlendMode = 'difference';
+            img.style.filter = 'invert(1) grayscale(100%)';
             spinnerDivElement.appendChild(img);
         }
 
