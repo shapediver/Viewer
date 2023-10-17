@@ -84,7 +84,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _ticket?: string;
     private readonly _uuidGenerator = UuidGenerator.instance;
 
-    #customizationProcess!: string;
+    #customizationProcess?: string;
     #parameterHistory: {
         [key: string]: {
             value: unknown,
@@ -397,6 +397,10 @@ export class SessionEngine implements ISessionEngine {
             currentSettings.environment.blurriness = settings.environment.blurriness;
             currentSettings.environment.intensity = settings.environment.intensity;
         }
+    }
+
+    public cancelCustomization() {
+        this.#customizationProcess = undefined;
     }
 
     public canGoBack(): boolean {

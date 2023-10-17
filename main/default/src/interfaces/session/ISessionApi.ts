@@ -149,6 +149,12 @@ export interface ISessionApi {
     applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void>;
 
     /**
+     * Cancel the current customization if there is one in progress.
+     * Requests that were already sent will still be received, but not further processed.
+     */
+    cancelCustomization(): void;
+
+    /**
      * Check if the session's history allows to go back to a previous state of parameter values.
      * The session history is recorded whenever {@link customize} is called.
      * 

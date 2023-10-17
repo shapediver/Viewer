@@ -192,6 +192,10 @@ export class SessionApi implements ISessionApi {
         return this.#creationControlCenter.applySettings(this.id, response, sections);
     }
 
+    public cancelCustomization(): void {
+        this.#sessionEngine.cancelCustomization();
+    }
+
     public canGoBack(): boolean {
         return this.#sessionEngine.canGoBack();
     }
