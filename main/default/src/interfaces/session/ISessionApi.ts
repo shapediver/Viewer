@@ -249,6 +249,24 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+    
+    /**
+     * Customize the session and only receive the result of the customization call.
+     * 
+     * Use this instead of {@link customize} in case you want to run 
+     * _customizations_ and only work with the data of the customization result
+     * 
+     * Calls to this function will not update the session's {@link node}
+     * nor the outputs' {@link IOutputApi.node|nodes}, and also not update 
+     * {@link IParameterApi.sessionValue} of the parameters.
+     * Note that {@link IOutputApi.updateCallback} will not be called, and 
+     * {@link IOutputApi.freeze} will be ignored.
+     * 
+     * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * 
+     * @throws {@type ShapeDiverViewerError}
+     */
+    customizeResult(parameterValues: { [key: string]: string; }): Promise<ShapeDiverResponseDto>;
 
     /**
      * Get an export definition by id.

@@ -649,7 +649,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+    public async customizeParallel(parameterValues: { [key: string]: string }, loadOutputs = true): Promise<ISessionTreeNode | ShapeDiverResponseDto> {
         const eventId = this._uuidGenerator.create();
 
         const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
@@ -663,7 +663,7 @@ export class SessionEngine implements ISessionEngine {
         for (const parameterId in this.parameters)
             parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify();
 
-        const newNode = await this.customizeSession(parameterSet, () => false, {
+        const result = await this.customizeSession(parameterSet, () => false, {
             eventId,
             type: TASK_TYPE.SESSION_CUSTOMIZATION,
             progressRange: {
@@ -671,12 +671,14 @@ export class SessionEngine implements ISessionEngine {
                 max: 1
             },
             data: { sessionId: this.id }
-        }, true);
-        newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
+        }, true, loadOutputs);
+
+        if(result instanceof SessionTreeNode)
+            result.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
         const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-        return newNode;
+        return result;
     }
 
     public async goBack(): Promise<ITreeNode> {
@@ -1389,22 +1391,33 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
-        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo);
+        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo) as Promise<ISessionTreeNode>;
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, retry = false): Promise<ISessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, loadOutputs = true, retry = false): Promise<ISessionTreeNode | ShapeDiverResponseDto> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if (cancelRequest()) return new SessionTreeNode();
-            if (parallel === false) this.updateResponseDto(responseDto);
-            return parallel === false ? this.loadOutputs(cancelRequest, taskEventInfo) : this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
+            if(loadOutputs === true) {
+                if (cancelRequest()) return new SessionTreeNode();
+                if (parallel === true) {
+                    // special case, we load the outputs put don't add them to the scene
+                    return this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo);
+                } else {
+                    // default case, we load the outputs and return the nodes
+                    this.updateResponseDto(responseDto);
+                    return this.loadOutputs(cancelRequest, taskEventInfo);
+                }
+            } else {
+                // special case, we don't load the outputs and only return the responseDto
+                return responseDto;
+            }
         } catch (e) {
             await this.handleError(e, retry);
             if (cancelRequest()) return new SessionTreeNode();
-            return await this.customizeSession(parameters, cancelRequest, taskEventInfo, parallel, true);
+            return await this.customizeSession(parameters, cancelRequest, taskEventInfo, parallel, loadOutputs, true);
         }
     }
 

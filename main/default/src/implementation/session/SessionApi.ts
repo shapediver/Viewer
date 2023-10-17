@@ -229,7 +229,16 @@ export class SessionApi implements ISessionApi {
         for (const p in parameterValues)
             this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues[p], 'string');
 
-        return this.#sessionEngine.customizeParallel(parameterValues);
+        return this.#sessionEngine.customizeParallel(parameterValues) as Promise<ITreeNode>;
+    }
+
+    public customizeResult(parameterValues: { [key: string]: string; }): Promise<ShapeDiverResponseDto> {
+        const scope = 'customizeResult';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object');
+        for (const p in parameterValues)
+            this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues[p], 'string');
+
+        return this.#sessionEngine.customizeParallel(parameterValues, false) as Promise<ShapeDiverResponseDto>;
     }
 
     public getExportById(id: string): IExportApi | null {
