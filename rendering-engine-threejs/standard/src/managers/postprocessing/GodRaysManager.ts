@@ -4,14 +4,23 @@ import * as THREE from "three";
 import { RenderingEngine } from "../../RenderingEngine";
 
 export class GodRaysManager {
+    // #region Properties (1)
+
+    private _godRaysEffect!: GodRaysEffect;
+
+    // #endregion Properties (1)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private _godRaysEffect: GodRaysEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (3)
+
+    public removeLightSource(): void {
+        this._godRaysEffect.lightSource = new THREE.Mesh();
+    }
 
     public setEffect(godRaysEffect: GodRaysEffect) {
         godRaysEffect.lightSource = this._godRaysEffect.lightSource;
@@ -38,10 +47,5 @@ export class GodRaysManager {
         this._godRaysEffect.lightSource = lightSource;
     }
 
-    public removeLightSource(): void {
-        this._godRaysEffect.lightSource = new THREE.Mesh();
-    }
-
-
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (3)
 }

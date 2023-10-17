@@ -4,19 +4,20 @@ import * as THREE from "three";
 import { RenderingEngine } from "../../RenderingEngine";
 
 export class SelectiveBloomManager {
-    // #region Properties (1)
+    // #region Properties (2)
 
+    private _selectiveBloomEffect!: SelectiveBloomEffect;
     private _selectiveBloomNodes: ITreeNode[] = [];
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private _selectiveBloomEffect: SelectiveBloomEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     public addSelection(node: ITreeNode): void {
         this._selectiveBloomNodes.push(node);
@@ -53,5 +54,5 @@ export class SelectiveBloomManager {
         }
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 }

@@ -4,19 +4,20 @@ import * as THREE from "three";
 import { RenderingEngine } from "../../RenderingEngine";
 
 export class OutlineManager {
-    // #region Properties (1)
+    // #region Properties (2)
 
+    private _outlineEffect!: OutlineEffect;
     private _outlineNodes: ITreeNode[] = [];
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private _outlineEffect: OutlineEffect) { }
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     public addSelection(node: ITreeNode): void {
         this._outlineNodes.push(node);
@@ -53,5 +54,5 @@ export class OutlineManager {
         }
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 }
