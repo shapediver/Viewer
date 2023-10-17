@@ -10,7 +10,7 @@ import { ShapeDiverResponseExport } from "@shapediver/sdk.geometry-api-sdk-v2";
  * The export can be requested by calling its {@link request} method.
  * 
  * Only the properties of {@link ShapeDiverResponseExportDefinition} will stay constant over the lifetime of a session.
- * All addition properties that are added via the extension to {@link ShapeDiverResponseExport} can change according to
+ * All additional properties that are added via the extension to {@link ShapeDiverResponseExport} can change according to
  * the last export request.
  */
 export interface IExportApi extends ShapeDiverResponseExport {
