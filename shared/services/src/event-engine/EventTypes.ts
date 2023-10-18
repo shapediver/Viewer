@@ -9,7 +9,8 @@ export enum EVENTTYPE_RENDERING {
 }
 
 export enum EVENTTYPE_SCENE {
-    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange"
+    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange",
+    SCENE_BOUNDING_BOX_EMPTY = "scene.boundingBoxEmpty"
 }
 
 // VIEWPORT
