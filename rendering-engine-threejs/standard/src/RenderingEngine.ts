@@ -222,8 +222,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
-    this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
     this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
+    this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
     this._cameraManager.init();

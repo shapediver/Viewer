@@ -371,11 +371,13 @@ export class RenderingManager implements IManager {
         // animation loop - part 4: evaluating state
         const states = this.evaluateRenderingState();
 
+        // toggle the blurring
+        this.toggleBusyMode(states.busyMode);
+
         // animation loop - part 5: the scene is not even shown
         if (states.showScene === false) {
             // toggle on logo
             this.toggleLogo(true);
-            this.toggleBusyMode(false);
 
             if (this._hidden === false)
                 this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_HIDDEN, { viewportId: this._renderingEngine.id });
@@ -406,9 +408,6 @@ export class RenderingManager implements IManager {
         // do the things that have to be done for standard and beauty rendering in the same way
         this._stats.begin();
         this.showStatistics();
-
-        // toggle the blurring
-        this.toggleBusyMode(states.busyMode);
 
         // animation loop - part 8: calculate the current size
         const currentSize = new THREE.Vector2();

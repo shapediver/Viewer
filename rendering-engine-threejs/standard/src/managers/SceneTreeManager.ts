@@ -354,6 +354,10 @@ export class SceneTreeManager implements IManager {
                     max: vec3.clone(this._boundingBox.max),
                 }
             });
+        } else {
+            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_EMPTY, {
+                viewportId: this._renderingEngine.id
+            });
         }
 
         this._renderingEngine.renderingManager.evaluateTextureUnitCount(this._renderingEngine.lightLoader.shadowMapCount + this._renderingEngine.materialLoader.maxMapCount);
