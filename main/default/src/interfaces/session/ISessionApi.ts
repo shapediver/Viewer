@@ -47,6 +47,26 @@ export interface ISessionApi {
     readonly parameters: { [key: string]: IParameterApi<unknown>; };
 
     /**
+     * The parameter values that are the defaults of the session.
+     * Changing these values does not have any affect. The values in this dictionary only reflect the _defval_ of the [parameters]{@link IParameterApi}.
+     */
+    readonly parameterDefaultValues: { [key: string]: unknown };
+
+    /**
+     * The parameter values that were used in the last session customization.
+     * These values may not reflect the current state in the [parameters]{@link IParameterApi} if there was a change in parameters after the last customization call.
+     * Changing these values does not have any affect. The values in this dictionary only reflect the _sessionValue_ of the [parameters]{@link IParameterApi}.
+     */
+    readonly parameterSessionValues: { [key: string]: unknown };
+
+    /**
+     * The parameter values that are currently set in the API.
+     * These values may not reflect the current state in the scene if there was a change in parameters after the last customization call.
+     * Changing these values does not have any affect. The values in this dictionary only reflect the _value_ of the [parameters]{@link IParameterApi}.
+     */
+    readonly parameterValues: { [key: string]: unknown };
+
+    /**
      * The geometry backend model id (guid). 
      * This identifies the model on the Geometry Backend. A {@link jwtToken} is needed for authentication.
      */
