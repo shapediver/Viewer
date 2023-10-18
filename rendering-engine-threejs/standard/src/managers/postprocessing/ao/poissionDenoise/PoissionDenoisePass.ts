@@ -35,6 +35,13 @@ export class PoissionDenoisePass extends Pass {
 	// #region Properties (9)
 
 	public static DefaultOptions = defaultPoissonBlurOptions;
+	public static blueNoiseTexture = new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
+		blueNoiseTexture.minFilter = NearestFilter;
+		blueNoiseTexture.magFilter = NearestFilter;
+		blueNoiseTexture.wrapS = RepeatWrapping;
+		blueNoiseTexture.wrapT = RepeatWrapping;
+		blueNoiseTexture.colorSpace = NoColorSpace;
+	});
 
 	public index = 0;
 	public inputTexture: Texture;
@@ -111,15 +118,7 @@ export class PoissionDenoisePass extends Pass {
 			});
 		}
 
-		new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
-			blueNoiseTexture.minFilter = NearestFilter;
-			blueNoiseTexture.magFilter = NearestFilter;
-			blueNoiseTexture.wrapS = RepeatWrapping;
-			blueNoiseTexture.wrapT = RepeatWrapping;
-			blueNoiseTexture.colorSpace = NoColorSpace;
-
-			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = blueNoiseTexture;
-		});
+		(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 	}
 
 	// #endregion Constructors (1)

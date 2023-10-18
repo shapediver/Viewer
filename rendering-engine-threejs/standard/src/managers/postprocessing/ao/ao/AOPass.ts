@@ -17,6 +17,7 @@ import {
 } from 'three';
 import { basic as vertexShader } from '../utils/shader/basic';
 import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
+import { PoissionDenoisePass } from '../poissionDenoise/PoissionDenoisePass';
 
 // a general AO pass that can be used for any AO algorithm
 class AOPass extends Pass {
@@ -72,16 +73,8 @@ class AOPass extends Pass {
 			depthTest: false,
 			toneMapped: false
 		});
-
-		new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
-			blueNoiseTexture.minFilter = NearestFilter;
-			blueNoiseTexture.magFilter = NearestFilter;
-			blueNoiseTexture.wrapS = RepeatWrapping;
-			blueNoiseTexture.wrapT = RepeatWrapping;
-			blueNoiseTexture.colorSpace = NoColorSpace;
-
-			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = blueNoiseTexture;
-		});
+			
+		(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 	}
 
 	// #endregion Constructors (1)

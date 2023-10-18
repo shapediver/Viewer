@@ -478,8 +478,6 @@ export class SceneTreeManager implements IManager {
                                 texture.dispose();
                             }
                         }
-                        
-                        o.material.dispose();
                     }
                 });
                 break;
