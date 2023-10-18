@@ -130,8 +130,8 @@ export interface ISessionEngine {
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
-  customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+  customize(force: boolean, waitForViewportUpdate?: boolean):Promise<ITreeNode | ShapeDiverResponseDto>;
+  customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: { [key: string]: string; }): Promise<void>;
