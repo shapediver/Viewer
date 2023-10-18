@@ -369,6 +369,18 @@ export interface ISessionApi {
     goForward(): Promise<ITreeNode>;
 
     /**
+     * Load cached outputs to be able to insert them into the scene manually.
+     * 
+     * Only outputs that are cached on the backend are loaded. 
+     * If an output is not cached, undefined is returned instead.
+     * 
+     * @param outputs The set of outputs. Map from output id to output version. 
+     * 
+     * @throws {@type ShapeDiverViewerError}
+     */
+    loadCachedOutputs(outputs: { [key: string]: string }): Promise<{ [key: string]: ITreeNode | undefined }>;
+
+    /**
      * Request one or multiple exports.
      * 
      * @param body The body of the export request.
