@@ -216,8 +216,16 @@ export class SessionApi implements ISessionApi {
         return new Blob([result], { type: 'application/octet-stream' });
     }
 
-    public customize(force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
+    public customize(parameterValues?: { [key: string]: unknown; }, force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         const scope = 'customize';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
+
+        // if there are parameter values specified, we set them directly
+        // the validation happens in the setter of the ParameterApi
+        if(parameterValues)
+            for (const p in parameterValues)
+                this.parameters[p].value = parameterValues[p];
+
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, force, 'boolean', false);
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, waitForViewportUpdate, 'boolean', false);
         return this.#sessionEngine.customize(force, waitForViewportUpdate);
