@@ -151,6 +151,27 @@ export class SessionApi implements ISessionApi {
         return this.#parameters;
     }
 
+    public get parameterDefaultValues(): { [key: string]: unknown; } {
+        const parameterDefaultValues: { [key: string]: unknown; } = {};
+        for (const key in this.parameters)
+            parameterDefaultValues[key] = this.parameters[key].defval;
+        return parameterDefaultValues;
+    }
+
+    public get parameterSessionValues(): { [key: string]: unknown; } {
+        const parameterSessionValues: { [key: string]: unknown; } = {};
+        for (const key in this.parameters)
+            parameterSessionValues[key] = this.parameters[key].sessionValue;
+        return parameterSessionValues;
+    }
+
+    public get parameterValues(): { [key: string]: unknown; } {
+        const parameterValues: { [key: string]: unknown; } = {};
+        for (const key in this.parameters)
+            parameterValues[key] = this.parameters[key].value;
+        return parameterValues;
+    }
+
     public get refreshJwtToken(): (() => Promise<string>) | undefined {
         return this.#sessionEngine.refreshJwtToken;
     }
