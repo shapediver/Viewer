@@ -267,7 +267,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Accessors (25)
 
-    // #region Public Methods (25)
+    // #region Public Methods (27)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -399,10 +399,6 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public cancelCustomization() {
-        this.#customizationProcess = undefined;
-    }
-
     public canGoBack(): boolean {
         // the first entry is always the one from the init call
         // all additional entries can be undone
@@ -411,6 +407,10 @@ export class SessionEngine implements ISessionEngine {
 
     public canGoForward(): boolean {
         return this.#parameterHistoryForward.length > 0;
+    }
+
+    public cancelCustomization() {
+        this.#customizationProcess = undefined;
     }
 
     public async close(retry = false): Promise<void> {
@@ -775,6 +775,63 @@ export class SessionEngine implements ISessionEngine {
         } catch (e) {
             await this.handleError(e, retry);
             return await this.init(parameterValues, true);
+        }
+    }
+
+    public async loadCachedOutputsParallel(outputMapping: { [key: string]: string }, taskEventInfo?: OutputLoaderTaskEventInfo, retry = false): Promise<{ [key: string]: ITreeNode | undefined }> {
+        this.checkAvailability();
+        // if there is already task event info, use it
+        // this happens after a retry
+        const eventId = taskEventInfo ? taskEventInfo.eventId : this._uuidGenerator.create();
+        const eventType = taskEventInfo ? taskEventInfo.type : TASK_TYPE.SESSION_OUTPUTS_LOADING;
+        const eventData = taskEventInfo ? taskEventInfo.data : { sessionId: this.id };
+
+        taskEventInfo = taskEventInfo ? taskEventInfo : {
+            eventId,
+            type: eventType,
+            progressRange: {
+                min: 0,
+                max: 1
+            },
+            data: eventData
+        };
+
+        try {
+            // send start event if this function was called initially
+            if (!taskEventInfo) {
+                const eventStart: ITaskEvent = { type: eventType, id: eventId, progress: 0, data: eventData, status: 'Loading cached outputs' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+            }
+            
+            // get the cached outputs
+            const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
+
+            // create atomic output api objects for them
+            const outputs: {
+                [key: string]: IOutput;
+            } = {};
+            for (const outputId in responseDto.outputs) {
+                responseDto.outputs[outputId].id = outputId;
+                outputs[outputId] = new Output(<ShapeDiverResponseOutput>responseDto.outputs[outputId], this);
+            }
+
+            // process the output data
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, {}, taskEventInfo, false);
+
+            // send the end event once done
+            const eventEnd: ITaskEvent = { type: eventType, id: eventId, progress: 1, data: eventData, status: 'Loaded cached outputs' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+            // create a mapping with a dictionary for the id of the outputs
+            const outputNodeMapping: { [key: string]: ITreeNode | undefined } = {};
+            for (const outputId in outputMapping) 
+                outputNodeMapping[outputId] = node.children.find(n => n.name === outputId);
+
+            return outputNodeMapping;
+        }
+        catch (e) {
+            await this.handleError(e, retry);
+            return await this.loadCachedOutputsParallel(outputMapping, taskEventInfo, true);
         }
     }
 
@@ -1264,7 +1321,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (25)
+    // #endregion Public Methods (27)
 
     // #region Private Methods (11)
 

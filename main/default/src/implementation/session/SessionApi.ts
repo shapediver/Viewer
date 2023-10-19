@@ -332,6 +332,10 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.goForward();
     }
 
+    public async loadCachedOutputs(outputs: { [key: string]: string; }): Promise<{ [key: string]: ITreeNode | undefined }> {
+        return await this.#sessionEngine.loadCachedOutputsParallel(outputs);
+    }
+
     public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
         const scope = 'requestExports';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, body, 'object');

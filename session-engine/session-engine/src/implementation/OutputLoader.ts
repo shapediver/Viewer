@@ -57,7 +57,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo): Promise<SessionTreeNode> {
+     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
         let currentNodes: { 
@@ -132,7 +132,7 @@ export class OutputLoader {
             }
         }
 
-        if(maxDelay)
+        if(maxDelay && throwDelay)
             throw new OutputDelayException(maxDelay);
 
         /**
