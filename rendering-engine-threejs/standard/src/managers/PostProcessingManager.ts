@@ -271,6 +271,8 @@ export class PostProcessingManager implements IManager {
         if (this._systemInfo.isMobile === true && this._enablePostProcessingOnMobile === false) return;
         if (this._manualPostProcessing) return;
 
+        for(let i = 0; i < this._composer.passes.length; i++)
+            this._composer.passes[i].dispose();
         this._composer.removeAllPasses();
 
         const antiAliasingTechnique = this._systemInfo.isMobile === true ? this._antiAliasingTechniqueMobile : this._antiAliasingTechnique;
