@@ -53,7 +53,7 @@ export interface ISessionApi {
     readonly parameterDefaultValues: { [key: string]: unknown };
 
     /**
-     * The parameter values that were used in the last session customization.
+     * The parameter values that were used in the last successful session customization.
      * These values may not reflect the current state in the [parameters]{@link IParameterApi} if there was a change in parameters after the last customization call.
      * Changing these values does not have any affect. The values in this dictionary only reflect the _sessionValue_ of the [parameters]{@link IParameterApi}.
      */
