@@ -56,7 +56,8 @@ export class Tag3dEngine {
             for (let i = 0; i < content.data.length; i++) {
                 const tag3dInfo: ITag3D = content.data[i];
                 tag3dInfo.size = tag3dInfo.size ? +tag3dInfo.size : 1;
-                tag3dInfo.text = tag3dInfo.text || '';
+                if(tag3dInfo.text === undefined || tag3dInfo.text === '' || /^[ \t\n\r]*$/.test(tag3dInfo.text))
+                    continue;
 
                 const tagLines = tag3dInfo.text.split(/\r\n|\r|\n/g);
                 let lineArray = [];
