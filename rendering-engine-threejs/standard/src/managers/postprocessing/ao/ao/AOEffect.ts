@@ -1,8 +1,9 @@
-import { Effect, EffectComposer, NormalPass } from 'postprocessing';
+import { Effect, EffectComposer } from 'postprocessing';
 import { Camera, Color, Scene, ShaderMaterial, Uniform, WebGLRenderer } from 'three';
 import { PoissionDenoisePass } from '../poissionDenoise/PoissionDenoisePass';
 import { AOPass } from './AOPass';
 import { ao_compose } from './shader/ao_compose';
+import { NormalPass } from '../../utils/NormalPass';
 
 const defaultAOOptions = {
 	resolutionScale: 1,
@@ -47,27 +48,19 @@ class AOEffect extends Effect {
 		this.aoPass = aoPass;
 		options = { ...defaultAOOptions, ...options };
 
-		// set up depth texture
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		if (!(composer as any).depthTexture) (composer as any).createDepthTexture();
+		this.normalPass = new NormalPass(scene, camera);
+		const normalTexture = options.normalTexture ?? this.normalPass?.texture;
+
+		(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.normalTexture.value = normalTexture;
+		(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.useNormalTexture = '';
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.depthTexture.value = (composer as any).depthTexture;
+		(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.depthTexture.value = this.normalPass.depthTexture;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		this.uniforms.get('depthTexture')!.value = (composer as any).depthTexture;
-
-		// set up optional normal texture
-		if (options.useNormalPass || options.normalTexture) {
-			if (options.useNormalPass) this.normalPass = new NormalPass(scene, camera);
-
-			const normalTexture = options.normalTexture ?? this.normalPass?.texture;
-
-			(this.aoPass.fullscreenMaterial as ShaderMaterial).uniforms.normalTexture.value = normalTexture;
-			(this.aoPass.fullscreenMaterial as ShaderMaterial).defines.useNormalTexture = '';
-		}
+		this.uniforms.get('depthTexture')!.value = this.normalPass.depthTexture;
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, (composer as any).depthTexture);
+		this.poissionDenoisePass = new PoissionDenoisePass(camera, this.aoPass.texture, this.normalPass.depthTexture!);
 
 		this.makeOptionsReactive(options);
 	}
@@ -175,7 +168,7 @@ class AOEffect extends Effect {
 			this.uniforms.get('inputTexture')!.value = this.aoPass.texture;
 		}
 
-		this.normalPass?.render(renderer, null, null);
+		this.normalPass?.render(renderer);
 		this.aoPass.render(renderer);
 
 		this.poissionDenoisePass.render(renderer);
