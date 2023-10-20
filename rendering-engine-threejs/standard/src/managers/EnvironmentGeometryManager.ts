@@ -191,6 +191,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneShadow.receiveShadow = true;
         this._groundPlaneShadow.visible = this._renderingEngine.groundPlaneShadowVisibility;
         this._groundPlaneShadowObject.add(this._groundPlaneShadow);
+        this._groundPlaneShadowObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._groundPlaneShadowObject);
 
         let eps = 0.005;
