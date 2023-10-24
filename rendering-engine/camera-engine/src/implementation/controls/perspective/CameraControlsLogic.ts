@@ -57,8 +57,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         autoRotationSpeed: 1.0,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 1.5,
-        rotationSpeed: 2.0,
+        panSpeed: 2.0,
+        rotationSpeed: 4.0,
         zoomSpeed: 100.0,
     };
 
