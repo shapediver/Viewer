@@ -46,8 +46,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
   private _touchAdjustments = {
     damping: 1.0,
     movementSmoothness: 1.0,
-    panSpeed: 2.0,
-    zoomSpeed: 50.0,
+    panSpeed: 3.0,
+    zoomSpeed: 100.0,
   };
 
   // #endregion Properties (16)
