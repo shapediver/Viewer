@@ -181,12 +181,12 @@ export class CreationControlCenter implements ICreationControlCenter {
     const renderingEngineId = properties.id || this.#uuidGenerator.create();
     properties.id = renderingEngineId;
     try {
-      const eventStart: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0, status: 'Creating viewport' };
+      const eventStart: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0, status: 'Creating viewport', data: { viewportId: renderingEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
       // check if the given id is valid
       if (this.renderingEngines[renderingEngineId]) {
-        const eventClose: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.1, status: 'Closing viewport with same id' };
+        const eventClose: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.1, status: 'Closing viewport with same id', data: { viewportId: renderingEngineId } };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
         this.#logger.warn(`CreationControlCenter.createViewport: Viewer with this id (${renderingEngineId}) already exists. Closing initial instance.`);
@@ -266,7 +266,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       this.#logger.debug(`CreationControlCenter.createViewport: Viewport(${renderingEngineId}) created.`);
 
-      const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created' };
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created', data: { viewportId: renderingEngineId } };
 
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
 
@@ -274,12 +274,12 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
       return <RenderingEngineThreeJs>this.renderingEngines[renderingEngineId];
     } catch (e) {
-      const eventCancel1: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.9, status: 'Viewport created failed, closing viewport' };
+      const eventCancel1: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.9, status: 'Viewport created failed, closing viewport', data: { viewportId: renderingEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
       try { await this.closeRenderingEngine(renderingEngineId); } catch { /* empty */ }
 
-      const eventCancel2: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created failed, exiting' };
+      const eventCancel2: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created failed, exiting', data: { viewportId: renderingEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
       throw e;
@@ -292,12 +292,12 @@ export class CreationControlCenter implements ICreationControlCenter {
     properties.id = sessionEngineId;
 
     try {
-      const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0, status: 'Creating session' };
+      const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0, status: 'Creating session', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
       // check if the given id is valid
       if (this.sessionEngines[sessionEngineId]) {
-        const eventClose: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.1, status: 'Closing session with same id' };
+        const eventClose: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.1, status: 'Closing session with same id', data: { sessionId: sessionEngineId } };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
         this.#logger.warn(`CreationControlCenter.createSession: Session with this id (${sessionEngineId}) already exists. Closing initial instance.`);
@@ -307,6 +307,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.#stateEngine.sessionEngines[sessionEngineId] = {
         id: sessionEngineId,
         initialized: new StatePromise(),
+        initialOutputsLoaded: new StatePromise(),
         settingsRegistered: new StatePromise()
       };
 
@@ -322,7 +323,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         jwtToken: properties.jwtToken
       });
 
-      const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session.' };
+      const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session.', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
       await sessionEngine.init(properties.initialParameterValues);
@@ -336,8 +337,9 @@ export class CreationControlCenter implements ICreationControlCenter {
               min: 0.25,
               max: 0.9
             },
-            data: undefined
+            data: { sessionId: sessionEngineId }
           });
+          this.#stateEngine.sessionEngines[sessionEngineId].initialOutputsLoaded.resolve(true);
           this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
         } else {
           sessionEngine.updateOutputs({
@@ -347,8 +349,9 @@ export class CreationControlCenter implements ICreationControlCenter {
               min: 0.25,
               max: 0.9
             },
-            data: undefined
+            data: { sessionId: sessionEngineId }
           }).then(() => {
+            this.#stateEngine.sessionEngines[sessionEngineId].initialOutputsLoaded.resolve(true);
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
             for (const r in this.renderingEngines)
@@ -384,7 +387,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
 
-      const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId: sessionEngineId });
       return sessionEngine;
@@ -397,12 +400,12 @@ export class CreationControlCenter implements ICreationControlCenter {
         }
       }
 
-      const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.9, status: 'Session created failed, closing session' };
+      const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.9, status: 'Session created failed, closing session', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
       await this.closeSessionEngine(sessionEngineId);
 
-      const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created failed' };
+      const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created failed', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
       throw e;

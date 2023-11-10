@@ -19,6 +19,7 @@ export class StateEngine {
         [key: string]: {
             id: string,
             initialized: StatePromise<boolean>,
+            initialOutputsLoaded: StatePromise<boolean>,
             settingsRegistered: StatePromise<boolean>,
         }
     } = {};
@@ -67,6 +68,7 @@ export class StateEngine {
         [key: string]: {
             id: string,
             initialized: StatePromise<boolean>,
+            initialOutputsLoaded: StatePromise<boolean>,
             settingsRegistered: StatePromise<boolean>,
         }
     } {
