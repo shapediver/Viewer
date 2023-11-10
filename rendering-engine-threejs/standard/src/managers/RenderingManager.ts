@@ -149,6 +149,8 @@ export class RenderingManager implements IManager {
         spinnerDivElement.style.position = 'absolute';
         spinnerDivElement.style.height = '100%';
         spinnerDivElement.style.width = '100%';
+        spinnerDivElement.style.top = '0';
+        spinnerDivElement.style.left = '0';
 
         spinnerDivElement.style.userSelect = 'none';
         spinnerDivElement.style.cursor = 'default';
