@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.main.creation-control-center",
-  "version": "2.12.0-rc.0",
+  "version": "2.12.0-rc.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,16 +40,16 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.6.0",
-    "@shapediver/viewer.rendering-engine-threejs.standard": "2.12.0-rc.0",
-    "@shapediver/viewer.rendering-engine.camera-engine": "2.12.0-rc.0",
-    "@shapediver/viewer.rendering-engine.rendering-engine": "2.12.0-rc.0",
-    "@shapediver/viewer.session-engine.session-engine": "2.12.0-rc.0",
+    "@shapediver/viewer.rendering-engine-threejs.standard": "2.12.0-rc.1",
+    "@shapediver/viewer.rendering-engine.camera-engine": "2.12.0-rc.1",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "2.12.0-rc.1",
+    "@shapediver/viewer.session-engine.session-engine": "2.12.0-rc.1",
     "@shapediver/viewer.settings": "0.5.7",
-    "@shapediver/viewer.shared.build-data": "2.12.0-rc.0",
-    "@shapediver/viewer.shared.math": "2.12.0-rc.0",
-    "@shapediver/viewer.shared.node-tree": "2.12.0-rc.0",
-    "@shapediver/viewer.shared.services": "2.12.0-rc.0",
-    "@shapediver/viewer.shared.types": "2.12.0-rc.0",
+    "@shapediver/viewer.shared.build-data": "2.12.0-rc.1",
+    "@shapediver/viewer.shared.math": "2.12.0-rc.1",
+    "@shapediver/viewer.shared.node-tree": "2.12.0-rc.1",
+    "@shapediver/viewer.shared.services": "2.12.0-rc.1",
+    "@shapediver/viewer.shared.types": "2.12.0-rc.1",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
