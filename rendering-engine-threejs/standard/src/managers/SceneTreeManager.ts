@@ -124,9 +124,13 @@ export class SceneTreeManager implements IManager {
                     dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
 
                     if (filter.transformationOnly === false)
-                        this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton);
+                        this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton).clone();
 
-                    const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix);
+                    // compute worldMatrix adjusted bb
+                    const clone = dataChild.clone();
+                    clone.applyTransformation(node.worldMatrix);
+                    const threeBox = new THREE.Box3().setFromObject(clone, true);
+                    const bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
 
                     // adjust the general BB
                     node.boundingBox.union(bb);
