@@ -3,11 +3,9 @@ import * as SDV from '@shapediver/viewer';
 (<any>window).SDV = SDV;
 
 (async () => {
-    const viewer = await SDV.createViewport({
-        id: 'myViewer',
-        canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-        visibility: SDV.VISIBILITY_MODE.INSTANT,
-        branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
+    const viewport = await SDV.createViewport({
+        id: 'myViewport',
+        canvas: <HTMLCanvasElement>document.getElementById('canvas')
     });
     const session = await SDV.createSession({
         id: 'mySession',
