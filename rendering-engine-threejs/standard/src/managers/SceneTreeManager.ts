@@ -126,11 +126,20 @@ export class SceneTreeManager implements IManager {
                     if (filter.transformationOnly === false)
                         this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton).clone();
 
-                    // compute worldMatrix adjusted bb
-                    const clone = dataChild.clone();
-                    clone.applyTransformation(node.worldMatrix);
-                    const threeBox = new THREE.Box3().setFromObject(clone, true);
-                    const bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
+                    let bb: IBox = new Box();
+                    if(skeleton) {
+                        bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix);
+                    } else {
+                        if(mat4.equals(node.nodeMatrix, mat4.create())) {
+                            const threeBox = new THREE.Box3().setFromObject(dataChild, true);
+                            bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
+                        } else {
+                            const clone = dataChild.clone();
+                            clone.applyTransformation(node.worldMatrix);
+                            const threeBox = new THREE.Box3().setFromObject(clone, true);
+                            bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
+                        }
+                    }
 
                     // adjust the general BB
                     node.boundingBox.union(bb);
