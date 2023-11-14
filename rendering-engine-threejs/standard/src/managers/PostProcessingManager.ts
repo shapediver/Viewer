@@ -1080,12 +1080,10 @@ export class PostProcessingManager implements IManager {
                 const viewerEvent = <ISceneEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id) {
                     if(vec3.distance(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max) > 0) {
-                        setTimeout(() => {
-                            initComposer();
-                            this.changeEffectPass();
-                            this._eventEngine.removeListener(token);
-                        }, 0);
-                }
+                        initComposer();
+                        this.changeEffectPass();
+                        this._eventEngine.removeListener(token);
+                    }
                 }
             });
         } else {

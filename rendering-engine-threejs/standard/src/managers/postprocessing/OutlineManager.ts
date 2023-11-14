@@ -39,8 +39,8 @@ export class OutlineManager {
     }
 
     public setEffect(outlineEffect: OutlineEffect) {
-        outlineEffect.selection = this._outlineEffect.selection;
         this._outlineEffect = outlineEffect;
+        this.updateOutlineEffectObjects();
     }
 
     public updateOutlineEffectObjects() {

@@ -39,8 +39,8 @@ export class SelectiveBloomManager {
     }
 
     public setEffect(selectiveBloomEffect: SelectiveBloomEffect) {
-        selectiveBloomEffect.selection = this._selectiveBloomEffect.selection;
         this._selectiveBloomEffect = selectiveBloomEffect;
+        this.updateSelectiveBloomEffectObjects();
     }
 
     public updateSelectiveBloomEffectObjects() {
