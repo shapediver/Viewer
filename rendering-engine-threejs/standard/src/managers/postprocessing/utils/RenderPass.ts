@@ -7,6 +7,7 @@
 
 import { Pass, ClearPass, OverrideMaterialManager } from "postprocessing";
 import { Scene, Camera, Material, WebGLRenderer, WebGLRenderTarget, Object3D, Line, LineLoop, LineSegments, Mesh, MeshPhysicalMaterial } from "three";
+import { GemMaterial } from "../../../materials/GemMaterial";
 
 export class RenderPass extends Pass {
     clearPass: ClearPass;
@@ -289,7 +290,7 @@ export class RenderPass extends Pass {
         this.scene.traverse(function (object) {
             if (object.visible === true) {
                 if (object instanceof Mesh && object.material) {
-                    if (object.material instanceof MeshPhysicalMaterial && object.material.transparent) {
+                    if (object.material instanceof MeshPhysicalMaterial && !(object.material instanceof GemMaterial) && object.material.transparent) {
                         materialsNotRenderer.push(object);
                         object.visible = false;
                     }
