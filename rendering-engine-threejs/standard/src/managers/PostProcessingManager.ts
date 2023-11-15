@@ -1106,6 +1106,7 @@ export class PostProcessingManager implements IManager {
         const currentClearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
         const convertedClearColor = currentClearColor.clone().convertSRGBToLinear();
         this._renderingEngine.renderer.setClearColor(convertedClearColor);
+        this._renderingEngine.renderer.setClearAlpha(this._renderingEngine.clearAlpha);
         this._renderingEngine.renderer.autoClear = false;
 
         this._composer.setMainCamera(camera);
