@@ -130,15 +130,10 @@ export class SceneTreeManager implements IManager {
                     if(skeleton) {
                         bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix);
                     } else {
-                        if(mat4.equals(node.nodeMatrix, mat4.create())) {
-                            const threeBox = new THREE.Box3().setFromObject(dataChild, true);
-                            bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
-                        } else {
-                            const clone = dataChild.clone();
-                            clone.applyTransformation(node.worldMatrix);
-                            const threeBox = new THREE.Box3().setFromObject(clone, true);
-                            bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
-                        }
+                        const clone = dataChild.clone();
+                        clone.applyTransformation(node.worldMatrix);
+                        const threeBox = new THREE.Box3().setFromObject(clone, true);
+                        bb = new Box(vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z), vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z));
                     }
 
                     // adjust the general BB
