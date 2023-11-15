@@ -42,6 +42,7 @@ import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/
 import { MaterialShadowData } from './implementation/material/MaterialShadowData'
 import { IMaterialShadowData, IMaterialShadowDataProperties } from './interfaces/data/material/IMaterialShadowData'
 import { Color } from './types'
+import { IOutputEvent } from './interfaces/events/IOutputEvent'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
@@ -66,7 +67,7 @@ export {
 }
 
 export {
-  EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, ISceneEvent, ITaskEvent, TASK_TYPE
+  EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, TASK_TYPE
 }
 
 export {

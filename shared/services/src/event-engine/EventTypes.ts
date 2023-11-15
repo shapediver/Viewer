@@ -40,6 +40,10 @@ export enum EVENTTYPE_SESSION {
     SESSION_INITIAL_OUTPUTS_LOADED = 'session.initialOutputsLoaded'
 }
 
+export enum EVENTTYPE_OUTPUT {
+    OUTPUT_UPDATED = "output.updated"
+}
+
 export enum EVENTTYPE_TASK {
     TASK_START = "task.start",
     TASK_PROCESS = "task.process",
@@ -59,6 +63,7 @@ export enum EVENTTYPE_INTERACTION {
 
 export const EVENTTYPE = { 
     CAMERA: EVENTTYPE_CAMERA, 
+    OUTPUT: EVENTTYPE_OUTPUT,
     RENDERING: EVENTTYPE_RENDERING, 
     SCENE: EVENTTYPE_SCENE, 
     SESSION: EVENTTYPE_SESSION,
@@ -67,4 +72,4 @@ export const EVENTTYPE = {
     TASK: EVENTTYPE_TASK
 };
 
-export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_TASK;
+export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_OUTPUT | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_TASK;

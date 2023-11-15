@@ -45,7 +45,7 @@ import { IOutput } from '../interfaces/dto/IOutput';
 import { IParameter } from '../interfaces/dto/IParameter';
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { IOutputEvent, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import {
     ITree,
     ITreeNode,
@@ -543,6 +543,8 @@ export class SessionEngine implements ISessionEngine {
             const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Sending customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
+            const oldOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
             const newNode = await this.customizeInternal(() => this.#customizationProcess !== customizationId, {
                 eventId,
                 type: TASK_TYPE.SESSION_CUSTOMIZATION,
@@ -552,6 +554,8 @@ export class SessionEngine implements ISessionEngine {
                 },
                 data: { sessionId: this.id }
             });
+
+            const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
 
             const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.9, data: { sessionId: this.id }, status: 'Updating scene' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
@@ -620,6 +624,17 @@ export class SessionEngine implements ISessionEngine {
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
+            for (const outputId in this.outputs) {
+                if(oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                    this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, <IOutputEvent>{ 
+                        outputId: outputId,
+                        outputVersion: newOutputVersions[outputId],
+                        newNode: newNode.children.find(c => c.name === outputId)!,
+                        oldNode: oldNode.children.find(c => c.name === outputId)!
+                    });
+                }
+            }
+
             // update the viewports
             if (waitForViewportUpdate)
                 for (const r in this._stateEngine.renderingEngines)
@@ -630,11 +645,14 @@ export class SessionEngine implements ISessionEngine {
             if (this._updateCallback) this._updateCallback(newNode, oldNode);
 
             // call the update callback functions on the outputs
-            for (const outputId in this.outputs)
-                this.outputs[outputId].triggerUpdateCallback(
-                    newNode.children.find(c => c.name === outputId)!,
-                    oldNode.children.find(c => c.name === outputId)!
-                );
+            for (const outputId in this.outputs) {
+                if(oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                    this.outputs[outputId].triggerUpdateCallback(
+                        newNode.children.find(c => c.name === outputId)!,
+                        oldNode.children.find(c => c.name === outputId)!
+                    );
+                }
+            }
 
             return this.node;
         } catch (e) {
@@ -1202,6 +1220,8 @@ export class SessionEngine implements ISessionEngine {
         const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
+        const oldOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
         const newNode = await this.loadOutputs(() => this.#customizationProcess !== customizationId, {
             eventId,
             type: eventType,
@@ -1211,6 +1231,8 @@ export class SessionEngine implements ISessionEngine {
             },
             data: eventData
         });
+        
+        const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
 
         const eventSceneUpdate: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.9 + taskEventInfo.progressRange.min : 0.9, data: eventData, status: 'Updating scene' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
@@ -1269,6 +1291,17 @@ export class SessionEngine implements ISessionEngine {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         }
 
+        for (const outputId in this.outputs) {
+            if(oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, { 
+                    outputId: outputId,
+                    outputVersion: newOutputVersions[outputId],
+                    newNode: newNode.children.find(c => c.name === outputId)!,
+                    oldNode: oldNode.children.find(c => c.name === outputId)!
+                });
+            }
+        }
+
         // update the viewports
         if (waitForViewportUpdate)
             for (const r in this._stateEngine.renderingEngines)
@@ -1279,11 +1312,14 @@ export class SessionEngine implements ISessionEngine {
         if (this._updateCallback) this._updateCallback(newNode, oldNode);
 
         // call the update callback functions on the outputs
-        for (const outputId in this.outputs)
-            this.outputs[outputId].triggerUpdateCallback(
-                newNode.children.find(c => c.name === outputId)!,
-                oldNode.children.find(c => c.name === outputId)!
-            );
+        for (const outputId in this.outputs) {
+            if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                this.outputs[outputId].triggerUpdateCallback(
+                    newNode.children.find(c => c.name === outputId)!,
+                    oldNode.children.find(c => c.name === outputId)!
+                );
+            }
+        } 
 
         return this.node;
     }
