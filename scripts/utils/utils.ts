@@ -41,7 +41,7 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-                CacheControl: 'max-age=3600',
+                CacheControl: name && name.startsWith('test') ? 'max-age=0' : 'max-age=3600',
                 ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err); });
         });
@@ -57,7 +57,7 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-                CacheControl: 'max-age=3600',
+                CacheControl: name && name.startsWith('test') ? 'max-age=0' : 'max-age=3600',
                 ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err); });
         });
