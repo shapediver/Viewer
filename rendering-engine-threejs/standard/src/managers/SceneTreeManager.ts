@@ -362,7 +362,9 @@ export class SceneTreeManager implements IManager {
                     max: vec3.clone(this._boundingBox.max),
                 }
             });
-        } else if(this._boundingBox.isEmpty()) {
+        } 
+        
+        if(this._boundingBox.isEmpty()) {
             // check if all outputs that should be loaded at the start of a session are loaded
             // if the bounding box is empty then, emit the event
             if(Object.values(this._stateEngine.sessionEngines).every(s => s.initialOutputsLoaded.resolved === true)) {
