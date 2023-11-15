@@ -410,6 +410,11 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public cancelCustomization() {
+        if(this.#customizationProcess) {
+            for (const r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(this.#customizationProcess))
+                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(this.#customizationProcess), 1);
+        }
         this.#customizationProcess = undefined;
     }
 
