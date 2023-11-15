@@ -44,6 +44,8 @@ export class RenderingManager implements IManager {
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _hidden: boolean = true;
+    private _hiddenRenderTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget();
+    private _hiddenCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
     private _hideLogo: boolean = false;
     private _lastSize: {
         adjustedWidth: number,
@@ -499,6 +501,14 @@ export class RenderingManager implements IManager {
         // therefore, whenever the sceneBackgroundNeedsUpdate flag is set, the list of elements is traversed to adjust the scene background
         // this currently only happens when the environment map rotation changed
         if (this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate === true) {
+            // in case of post-processing we have to append a hidden render call
+            // as otherwise the background is not rendered into the render list
+            if(renderPostProcessing) {
+                this._renderingEngine.renderer.setRenderTarget(this._hiddenRenderTarget)
+                this._renderingEngine.renderer.render(this._renderingEngine.scene, this._hiddenCamera)
+                this._renderingEngine.renderer.setRenderTarget(null)
+            }
+
             this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate = false;
             const envMapRotationMatrix = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix();
             const envMapRotationMatrixBackground = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix(true);
