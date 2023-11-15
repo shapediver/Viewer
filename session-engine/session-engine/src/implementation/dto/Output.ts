@@ -173,8 +173,8 @@ export class Output implements IOutput {
 
   // #region Public Methods (4)
 
-  public triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
-    if (this.#updateCallback) this.#updateCallback(newNode, oldNode);
+  public async triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
+    if (this.#updateCallback) await Promise.resolve(this.#updateCallback(newNode, oldNode));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
