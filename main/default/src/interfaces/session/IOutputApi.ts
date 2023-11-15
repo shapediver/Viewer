@@ -61,8 +61,9 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
      * A callback that is executed whenever an output's {@link node} is to be replaced
      * due to an update of the output's content.
      * Provides the new scene tree node and the old one, so that data can be carried over.
+     * If the callback is a promise it will be awaited in the execution chain.
      */
-    updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null;
+    updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null;
 
     // #endregion Properties (3)
 

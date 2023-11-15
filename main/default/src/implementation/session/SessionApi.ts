@@ -187,11 +187,11 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.ticket;
     }
 
-    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null {
         return this.#sessionEngine.updateCallback;
     }
 
-    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null) {
         const scope = 'updateCallback';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'function', false);
         this.#sessionEngine.updateCallback = async (newNode: ITreeNode, oldNode: ITreeNode) => {

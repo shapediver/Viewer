@@ -144,11 +144,11 @@ export class OutputApi implements IOutputApi {
         return this.#output.uid;
     }
 
-    public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null {
+    public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null {
         return this.#output.updateCallback;
     }
 
-    public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null) {
+    public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null) {
         const scope = 'updateCallback';
         this.#inputValidator.validateAndError(`OutputApi.${scope}`, value, 'function', false);
         this.#output.updateCallback = async (newNode?: ITreeNode, oldNode?: ITreeNode) => {
