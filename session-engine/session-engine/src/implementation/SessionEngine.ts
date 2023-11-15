@@ -641,6 +641,14 @@ export class SessionEngine implements ISessionEngine {
                     oldNode.children.find(c => c.name === outputId)!
                 );
 
+            if (!waitForViewportUpdate) {
+                setTimeout(() => {
+                    for (const r in this._stateEngine.renderingEngines)
+                        if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
+                            this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+                }, 0);
+            }
+
             return this.node;
         } catch (e) {
             const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
