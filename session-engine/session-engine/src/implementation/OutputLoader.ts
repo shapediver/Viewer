@@ -31,7 +31,9 @@ export class OutputLoader {
         }; 
     } = {};
     private readonly _lastOutputNodes: { 
-        [key: string]: ISessionTreeNode
+        [key: string]: {
+            [key: string]: ISessionTreeNode
+        }; 
     } = {};
     private readonly _performanceEvaluator: PerformanceEvaluator = PerformanceEvaluator.instance;
 
@@ -57,7 +59,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {
+     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {        
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
         let currentNodes: { 
@@ -111,7 +113,7 @@ export class OutputLoader {
                 this._loadedOutputNodes[outputID] = {};
              
             if(outputsFreeze[outputID]) {
-                currentNodes[outputID][outputInfo[outputID].version] = this._lastOutputNodes[outputID];
+                currentNodes[outputID][outputInfo[outputID].version] = this._lastOutputNodes[outputID][outputInfo[outputID].version];
                 // no loading necessary, progress done
                 progress[outputID] = 1;
             } else if(outputs[outputID].delay) {
@@ -159,7 +161,8 @@ export class OutputLoader {
             if(!currentNodes[outputID][outputInfo[outputID].version]) continue;
             this._loadedOutputNodes[outputID] = {};
             this._loadedOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
-            this._lastOutputNodes[outputID] = currentNodes[outputID][outputInfo[outputID].version];
+            this._lastOutputNodes[outputID] = {};
+            this._lastOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
         }
 
         for (let outputID in outputInfo) {
@@ -177,6 +180,14 @@ export class OutputLoader {
         this.assignMaterials(node);
         this._performanceEvaluator.endSection('outputLoading');
         return node;
+    }
+
+    public getCurrentOutputVersions(): { [key: string]: string } {
+        const versions: { [key: string]: string } = {};
+        for(const o in this._lastOutputNodes)
+            versions[o] = Object.keys(this._lastOutputNodes[o])[0];
+
+        return versions;
     }
 
     // #endregion Public Methods (1)

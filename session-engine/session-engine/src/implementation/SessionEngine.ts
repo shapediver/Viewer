@@ -4,7 +4,7 @@ import {
     latestVersion,
     validate,
     versions
-    } from '@shapediver/viewer.settings';
+} from '@shapediver/viewer.settings';
 import {
     create,
     isGBResponseError,
@@ -21,7 +21,7 @@ import {
     ShapeDiverResponseOutput,
     ShapeDiverSdk,
     ShapeDiverSdkConfigType
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
     EventEngine,
     EVENTTYPE,
@@ -36,7 +36,7 @@ import {
     StateEngine,
     SystemInfo,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { Export } from './dto/Export';
 import { FileParameter } from './dto/FileParameter';
 import { IExport } from '../interfaces/dto/IExport';
@@ -45,13 +45,13 @@ import { IOutput } from '../interfaces/dto/IOutput';
 import { IParameter } from '../interfaces/dto/IParameter';
 import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { IOutputEvent, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import {
     ITree,
     ITreeNode,
     Tree,
     TreeNode
-    } from '@shapediver/viewer.shared.node-tree';
+} from '@shapediver/viewer.shared.node-tree';
 import { Output } from './dto/Output';
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader';
@@ -475,51 +475,14 @@ export class SessionEngine implements ISessionEngine {
                     fileParameterIds[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload();
 
                     // OPTION TO SKIP - PART 1a
-                    if (this.#customizationProcess !== customizationId) {
-                        for (const r in this._stateEngine.renderingEngines)
-                            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
-
-                        this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
-
-                        const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
-                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
-                        return new SessionTreeNode();
-                    } else if (this._closed === true) {
-                        for (const r in this._stateEngine.renderingEngines)
-                            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
-
-                        this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
-
-                        const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
-                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
-                        return new SessionTreeNode();
-                    }
+                    const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
+                    if (cancelResult) return cancelResult;
                 }
             }
 
             // OPTION TO SKIP - PART 1b
-            if (this.#customizationProcess !== customizationId) {
-                for (const r in this._stateEngine.renderingEngines)
-                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
-
-                const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
-                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
-                this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
-                return new SessionTreeNode();
-            } else if (this._closed === true) {
-                for (const r in this._stateEngine.renderingEngines)
-                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
-
-                this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
-
-                const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
-                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
-                return new SessionTreeNode();
-            }
+            const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
+            if (cancelResult) return cancelResult;
 
             // assign the uploaded parameters
             for (const parameterId in fileParameterIds)
@@ -548,6 +511,8 @@ export class SessionEngine implements ISessionEngine {
             const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Sending customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
+            const oldOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
             const newNode = await this.customizeInternal(() => this.#customizationProcess !== customizationId, {
                 eventId,
                 type: TASK_TYPE.SESSION_CUSTOMIZATION,
@@ -558,29 +523,32 @@ export class SessionEngine implements ISessionEngine {
                 data: { sessionId: this.id }
             });
 
+            // OPTION TO SKIP - PART 2
+            const cancelResult2 = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
+            if (cancelResult2) return cancelResult2;
+
+            const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
             const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.9, data: { sessionId: this.id }, status: 'Updating scene' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
-            // OPTION TO SKIP - PART 2
-            if (this.#customizationProcess !== customizationId) {
-                for (const r in this._stateEngine.renderingEngines)
-                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+            // call the update callbacks
+            if (waitForViewportUpdate === false) {
+                for (const outputId in this.outputs) {
+                    if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                        this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, <IOutputEvent>{
+                            outputId: outputId,
+                            outputVersion: newOutputVersions[outputId],
+                            newNode: newNode.children.find(c => c.name === outputId)!,
+                            oldNode: oldNode.children.find(c => c.name === outputId)!
+                        });
+                    }
+                }
 
-                const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
-                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
-                this._logger.debug(`Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
-                return newNode;
-            } else if ((this._closed as boolean) === true) { // I get a TS warning here that the type of _closed is "false", I think TS doesn't get that there is a promise inbetween
-                for (const r in this._stateEngine.renderingEngines)
-                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+                await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
 
-                this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
-
-                const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
-                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
-                return new SessionTreeNode();
+                const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
+                if (cancelResult) return cancelResult;
             }
 
             // if this is not a call by the goBack or goForward functions, add the parameter values to the history and delete the forward history
@@ -626,20 +594,29 @@ export class SessionEngine implements ISessionEngine {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
             // update the viewports
-            if (waitForViewportUpdate)
+            if (waitForViewportUpdate) {
                 for (const r in this._stateEngine.renderingEngines)
                     if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
                         this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
 
-            // call the update callback function on the session
-            if (this._updateCallback) this._updateCallback(newNode, oldNode);
+                        
+                for (const outputId in this.outputs) {
+                    if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                        this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, <IOutputEvent>{
+                            outputId: outputId,
+                            outputVersion: newOutputVersions[outputId],
+                            newNode: newNode.children.find(c => c.name === outputId)!,
+                            oldNode: oldNode.children.find(c => c.name === outputId)!
+                        });
+                    }
+                }
 
-            // call the update callback functions on the outputs
-            for (const outputId in this.outputs)
-                this.outputs[outputId].triggerUpdateCallback(
-                    newNode.children.find(c => c.name === outputId)!,
-                    oldNode.children.find(c => c.name === outputId)!
-                );
+                // call the update callbacks
+                await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
+
+                const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
+                if (cancelResult) return cancelResult;
+            }
 
             if (!waitForViewportUpdate) {
                 setTimeout(() => {
@@ -686,7 +663,7 @@ export class SessionEngine implements ISessionEngine {
             data: { sessionId: this.id }
         }, true, loadOutputs);
 
-        if(result instanceof SessionTreeNode)
+        if (result instanceof SessionTreeNode)
             result.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
         const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
@@ -815,7 +792,7 @@ export class SessionEngine implements ISessionEngine {
                 const eventStart: ITaskEvent = { type: eventType, id: eventId, progress: 0, data: eventData, status: 'Loading cached outputs' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
             }
-            
+
             // get the cached outputs
             const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
 
@@ -837,7 +814,7 @@ export class SessionEngine implements ISessionEngine {
 
             // create a mapping with a dictionary for the id of the outputs
             const outputNodeMapping: { [key: string]: ITreeNode | undefined } = {};
-            for (const outputId in outputMapping) 
+            for (const outputId in outputMapping)
                 outputNodeMapping[outputId] = node.children.find(n => n.name === outputId);
 
             return outputNodeMapping;
@@ -864,15 +841,8 @@ export class SessionEngine implements ISessionEngine {
         try {
             const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', o, of, taskEventInfo);
             node.data.push(new SessionData(this._responseDto!));
-
             if (cancelRequest()) return node;
-
-            if (this._automaticSceneUpdate) this.removeFromSceneTree(this._node);
-            this._node = node;
-            if (this._automaticSceneUpdate && this._closed === false) this.addToSceneTree(this._node);
-
-            this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
-
+            node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
             return node;
         }
         catch (e) {
@@ -1215,6 +1185,8 @@ export class SessionEngine implements ISessionEngine {
         const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
+        const oldOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
         const newNode = await this.loadOutputs(() => this.#customizationProcess !== customizationId, {
             eventId,
             type: eventType,
@@ -1225,29 +1197,33 @@ export class SessionEngine implements ISessionEngine {
             data: eventData
         });
 
+        const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
+
         const eventSceneUpdate: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.9 + taskEventInfo.progressRange.min : 0.9, data: eventData, status: 'Updating scene' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
         // OPTION TO SKIP - PART 1
-        if (this.#customizationProcess !== customizationId) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+        const cancelResult = this.cancelProcess(customizationId, eventId, eventType, taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 1 + taskEventInfo.progressRange.min : 1, eventData, newNode);
+        if (cancelResult) return cancelResult;
 
-            const eventCancel1: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 1 + taskEventInfo.progressRange.min : 1, data: eventData, status: 'Output updating was exceeded by other customization request' };
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
-            this._logger.debug(`Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
-            return newNode;
-        } else if (this._closed === true) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+        // call the update callbacks
+        if (waitForViewportUpdate === false) {            
+            for (const outputId in this.outputs) {
+                if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                    this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, {
+                        outputId: outputId,
+                        outputVersion: newOutputVersions[outputId],
+                        newNode: newNode.children.find(c => c.name === outputId)!,
+                        oldNode: oldNode.children.find(c => c.name === outputId)!
+                    });
+                }
+            }
+            
+            await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
 
-            this._logger.debug(`Session(${this.id}).customize: Session was closed during customization request.`);
-
-            const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session was closed during customization request' };
-            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
-            return new SessionTreeNode();
+            // OPTION TO SKIP - PART 2
+            const cancelResult = this.cancelProcess(customizationId, eventId, eventType, taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 1 + taskEventInfo.progressRange.min : 1, eventData, newNode);
+            if (cancelResult) return cancelResult;
         }
 
         if (this.automaticSceneUpdate) this.removeFromSceneTree(this.node);
@@ -1283,20 +1259,28 @@ export class SessionEngine implements ISessionEngine {
         }
 
         // update the viewports
-        if (waitForViewportUpdate)
+        if (waitForViewportUpdate) {
             for (const r in this._stateEngine.renderingEngines)
                 if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
                     this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
 
-        // call the update callback function on the session
-        if (this._updateCallback) this._updateCallback(newNode, oldNode);
+            for (const outputId in this.outputs) {
+                if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                    this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, {
+                        outputId: outputId,
+                        outputVersion: newOutputVersions[outputId],
+                        newNode: newNode.children.find(c => c.name === outputId)!,
+                        oldNode: oldNode.children.find(c => c.name === outputId)!
+                    });
+                }
+            }
 
-        // call the update callback functions on the outputs
-        for (const outputId in this.outputs)
-            this.outputs[outputId].triggerUpdateCallback(
-                newNode.children.find(c => c.name === outputId)!,
-                oldNode.children.find(c => c.name === outputId)!
-            );
+            await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
+
+            // OPTION TO SKIP - PART 3
+            const cancelResult = this.cancelProcess(customizationId, eventId, eventType, taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 1 + taskEventInfo.progressRange.min : 1, eventData, newNode);
+            if (cancelResult) return cancelResult;
+        }
 
         return this.node;
     }
@@ -1336,7 +1320,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Methods (27)
 
-    // #region Private Methods (11)
+    // #region Private Methods (13)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1413,6 +1397,35 @@ export class SessionEngine implements ISessionEngine {
         this._sceneTree.root.updateVersion();
     }
 
+    private cancelProcess(customizationId: string, eventId: string, eventType: TASK_TYPE, eventProgress: number, eventData: unknown, newNode: ITreeNode = new SessionTreeNode()): ITreeNode | undefined {
+        if (this.#customizationProcess !== customizationId) {
+            for (const r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+            const eventCancel: ITaskEvent = {
+                type: eventType,
+                id: eventId,
+                progress: eventProgress,
+                data: eventData,
+                status: 'The request was exceeded by another customization request'
+            };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+            this._logger.debug(`Session(${this.id}).cancelProcess: The request was was exceeded by another request.`);
+            return newNode;
+        } else if ((this._closed as boolean) === true) {
+            for (const r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
+            this._logger.debug(`Session(${this.id}).cancelProcess: The session was closed during the request.`);
+
+            const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'The session was closed during the request.' };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+            return new SessionTreeNode();
+        }
+    }
+
     private checkAvailability(action?: string, checkForModelId = false) {
         if (!this._responseDto)
             throw new ShapeDiverViewerSessionError('Session.checkAvailability: responseDto not available.');
@@ -1470,7 +1483,7 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if(loadOutputs === true) {
+            if (loadOutputs === true) {
                 if (cancelRequest()) return new SessionTreeNode();
                 if (parallel === true) {
                     // special case, we load the outputs put don't add them to the scene
@@ -1672,5 +1685,24 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Private Methods (11)
+    private async waitForUpdateCallbacks(newOutputVersions: { [key: string]: string }, oldOutputVersions: { [key: string]: string }, newNode: ITreeNode, oldNode: ITreeNode) {
+        // call the update callback function on the session
+        if (this._updateCallback) await Promise.resolve(this._updateCallback(newNode, oldNode));
+
+        const promises = [];
+        // call the update callback functions on the outputs
+        for (const outputId in this.outputs) {
+            if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
+                promises.push(
+                    this.outputs[outputId].triggerUpdateCallback(
+                        newNode.children.find(c => c.name === outputId)!,
+                        oldNode.children.find(c => c.name === outputId)!
+                    )
+                );
+            }
+        }
+        await Promise.all(promises);
+    }
+
+    // #endregion Private Methods (13)
 }

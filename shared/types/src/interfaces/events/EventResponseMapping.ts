@@ -1,14 +1,16 @@
-import { EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT } from "@shapediver/viewer.shared.services";
+import { EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT } from "@shapediver/viewer.shared.services";
 import { ICameraEvent } from "./ICameraEvent";
 import { ISceneEvent } from "./ISceneEvent";
 import { ISessionEvent } from "./ISessionEvent";
 import { ITaskEvent } from "./ITaskEvent";
 import { IViewportEvent } from "./IViewportEvent";
+import { IOutputEvent } from "./IOutputEvent";
 
 export type EventResponseMapping = {
     [EVENTTYPE_CAMERA.CAMERA_START]: ICameraEvent,
     [EVENTTYPE_CAMERA.CAMERA_MOVE]: ICameraEvent,
     [EVENTTYPE_CAMERA.CAMERA_END]: ICameraEvent,
+    [EVENTTYPE_OUTPUT.OUTPUT_UPDATED]: IOutputEvent,
     [EVENTTYPE_RENDERING.BEAUTY_RENDERING_FINISHED]: IViewportEvent,
     [EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_CHANGE]: ISceneEvent,
     [EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_EMPTY]: ISceneEvent,

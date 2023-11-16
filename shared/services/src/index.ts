@@ -1,5 +1,5 @@
 import { EventEngine } from './event-engine/EventEngine'
-import { EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT, MainEventTypes } from './event-engine/EventTypes'
+import { EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT, MainEventTypes } from './event-engine/EventTypes'
 import { SettingsEngine } from './settings-engine/SettingsEngine'
 import { StateEngine } from './state-engine/StateEngine'
 import { SystemInfo } from './system-info/SystemInfo'
@@ -23,7 +23,7 @@ import { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isVie
 
 export {
   EventEngine, EVENTTYPE, MainEventTypes, IEvent,
-  EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_TASK
+  EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_TASK
 }
 
 export {
