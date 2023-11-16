@@ -411,10 +411,11 @@ export class MaterialLoader implements ILoader {
             if (materialData.envMap !== undefined) {
                 const envMapInput = (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>materialData).envMap;
                 if (envMapInput !== undefined) {
-                    this._renderingEngine.environmentMapLoader.loadEnvMap(envMapInput).then(envMapResult => {
+                    const envMapResult = this._renderingEngine.environmentMapLoader.loadEnvMap(envMapInput);
+                    envMapResult.map.then(envMap => {
                         if (material instanceof THREE.MeshBasicMaterial && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
 
-                        (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap = envMapResult.map;
+                        (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap = envMap;
 
                         const envMapType = (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR;
                         for (const d in material.defines) {

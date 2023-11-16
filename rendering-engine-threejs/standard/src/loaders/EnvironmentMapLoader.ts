@@ -72,7 +72,7 @@ export enum ENVIRONMENT_MAP_TYPE {
 }
 
 export class EnvironmentMapLoader implements ILoader {
-    // #region Properties (18)
+    // #region Properties (15)
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny'];
     private readonly _environmentMapHDR: string[] = [];
@@ -80,21 +80,25 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _environmentMapNamesHDRKhronos = ['cannon_exterior', 'colorful_studio', 'neutral', 'wide_street'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
-        [key: string]: THREE.CubeTexture | THREE.Texture | null
+        [key: string]: {
+            name: string,
+            map: Promise<THREE.CubeTexture | THREE.Texture | null>,
+            type: ENVIRONMENT_MAP_TYPE,
+            resolved?: boolean
+        }
     } = {};
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _httpClient: HttpClient = HttpClient.instance;
     private readonly _stateEngine: StateEngine = StateEngine.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    private _environmentMapName: string = 'null';
-    private _environmentMapNameInternal: string = 'null';
+    private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
     private _isHDRMap: boolean = false;
     private _pmremGenerator!: THREE.PMREMGenerator;
     private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
-    // #endregion Properties (18)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -105,7 +109,7 @@ export class EnvironmentMapLoader implements ILoader {
     // #region Public Accessors (4)
 
     public get environmentMap(): THREE.CubeTexture | THREE.Texture | null {
-        return this._environmentMaps[this._environmentMapName];
+        return this._envMap;
     }
 
     public get isHDRMap(): boolean {
@@ -143,8 +147,16 @@ export class EnvironmentMapLoader implements ILoader {
     }
 
     public init(): void {
-        this._environmentMaps['null'] = null;
-        this._environmentMaps['none'] = null;
+        this._environmentMaps['null'] = {
+            name: 'null',
+            map: Promise.resolve(null),
+            type: ENVIRONMENT_MAP_TYPE.NULL
+        };
+        this._environmentMaps['none'] = {
+            name: 'none',
+            map: Promise.resolve(null),
+            type: ENVIRONMENT_MAP_TYPE.NONE
+        };
 
         this._pmremGenerator = new THREE.PMREMGenerator(this._renderingEngine.renderer);
         this._pmremGenerator.compileEquirectangularShader();
@@ -152,37 +164,22 @@ export class EnvironmentMapLoader implements ILoader {
 
     public async load(name: string | string[]): Promise<boolean> {
         const eventId = this._uuidGenerator.create();
-        const res = await this.loadEnvMap(name, eventId);
-        this.assignEnvironmentMap(res.name, res.type, eventId);
+        const res = this.loadEnvMap(name, eventId);
+        await this.assignEnvironmentMap(res.name, res.type, eventId);
         return Promise.resolve(true);
     }
 
-    public async loadEnvMap(name: string | string[], eId?: string): Promise<{
+    public loadEnvMap(name: string | string[], eId?: string): {
         name: string,
-        map: THREE.CubeTexture | THREE.Texture | null,
+        map: Promise<THREE.CubeTexture | THREE.Texture | null>,
         type: ENVIRONMENT_MAP_TYPE
-    }> {
+    } {
         const eventId = eId || this._uuidGenerator.create();
         const event: ITaskEvent = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: 'Loading EnvironmentMap' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-        if (name === 'none') {
-            this._environmentMapNameInternal = name;
-            return {
-                name: name,
-                map: this._environmentMaps[name],
-                type: ENVIRONMENT_MAP_TYPE.NONE
-            };
-        }
-
-        if (name === 'null') {
-            this._environmentMapNameInternal = name;
-            return {
-                name: name,
-                map: this._environmentMaps[name],
-                type: ENVIRONMENT_MAP_TYPE.NULL
-            };
-        }
+        if (name === 'none' || name === 'null')
+            return this._environmentMaps[name];
 
         let name_internal: string, name_caching: string, url: string[];
 
@@ -205,17 +202,11 @@ export class EnvironmentMapLoader implements ILoader {
             name_internal = JSON.stringify(name, null, 0);
             name_caching = name_internal;
         }
-        this._environmentMapNameInternal = name_internal;
 
         // check if environment map is already cached
         for (const environmentMap in this._environmentMaps)
-            if (environmentMap === name_caching) {
-                return {
-                    name: environmentMap,
-                    map: this._environmentMaps[environmentMap],
-                    type: this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
-                };
-            }
+            if (environmentMap === name_caching)
+                return this._environmentMaps[environmentMap];
 
         try {
             // define urls for 6 cube images ourselves
@@ -228,12 +219,7 @@ export class EnvironmentMapLoader implements ILoader {
                         url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name_internal + '.hdr';
 
                     this._environmentMapHDR.push(url_hdr);
-                    await this.loadEnvironmentMap(url_hdr, [], eventId);
-                    return {
-                        name: url_hdr,
-                        map: this._environmentMaps[url_hdr],
-                        type: this._environmentMaps[url_hdr] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
-                    };
+                    return this.loadEnvironmentMap(name_caching, url_hdr, eventId);
                 } else if (this._environmentMapNamesJPG.indexOf(name_internal) >= 0) {
                     // found in list of available environment maps with file type jpg
                     for (i = 0; i < this._environmentMapFilenames.length; i++)
@@ -241,12 +227,7 @@ export class EnvironmentMapLoader implements ILoader {
                 } else if (name.startsWith('https://') || name.startsWith('http://')) {
                     if (name.endsWith('.hdr')) {
                         this._environmentMapHDR.push(name);
-                        await this.loadEnvironmentMap(name, [], eventId);
-                        return {
-                            name: name,
-                            map: this._environmentMaps[name],
-                            type: this._environmentMaps[name] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
-                        };
+                        return this.loadEnvironmentMap(name_caching, name, eventId);
                     } else {
                         if (!name.endsWith('/'))
                             name += '/';
@@ -263,12 +244,7 @@ export class EnvironmentMapLoader implements ILoader {
                 url = name;
             }
 
-            await this.loadEnvironmentMap(name_caching, url, eventId);
-            return {
-                name: name_caching,
-                map: this._environmentMaps[name_caching],
-                type: this._environmentMaps[name_caching] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
-            };
+            return this.loadEnvironmentMap(name_caching, url, eventId);
         }
         catch (e) {
             this.notify(eventId, true);
@@ -280,69 +256,86 @@ export class EnvironmentMapLoader implements ILoader {
 
     // #region Private Methods (4)
 
-    private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE, eventId: string) {
+    private async assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE, eventId: string) {
         if (name in this._environmentMaps === false) return;
         this._type = type;
-        this._environmentMapName = name;
-        this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
+        const map = await this._environmentMaps[name].map;
+        this._renderingEngine.materialLoader.assignEnvironmentMap(map, type);
+        this._envMap = map;
         this.notify(eventId);
     }
 
     private assignTextureEncoding() {
         for (const e in this._environmentMaps) {
-            if (this._environmentMaps[e] && !this._environmentMapHDR.includes(e)) {
-                this._environmentMaps[e]?.dispose();
-                this._environmentMaps[e]!.colorSpace = this._textureEncoding;
-                this._environmentMaps[e]!.needsUpdate = true;
+            if (this._environmentMaps[e]) {
+                if (this._environmentMaps[e].resolved === true) {
+                    this._environmentMaps[e].map.then(m => {
+                        if (m instanceof THREE.Texture) {
+                            m.dispose();
+                            m.colorSpace = this._textureEncoding;
+                            m.needsUpdate = true;
+                        }
+                    });
+                }
             }
         }
     }
 
-    private async loadEnvironmentMap(name: string, url: string[], eventId: string) {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                if (name.endsWith('.hdr')) {
-                    const response: HttpResponse<ArrayBuffer> = await this._httpClient.get(name, undefined, true) as HttpResponse<ArrayBuffer>;
-                    const arrayBufferView = new Uint8Array(response.data);
-                    const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
-                    const blobUrl = URL.createObjectURL(blob);
-                    new RGBELoader().load(blobUrl, (texture) => {
-                        const map = this._pmremGenerator.fromEquirectangular(texture).texture;
-                        this._pmremGenerator.dispose();
-                        this._environmentMaps[name] = map;
-                        URL.revokeObjectURL(blobUrl);
-                        resolve();
-                    },
-                        () => { },
-                        (error) => reject(error));
-                } else {
-                    const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
-                    url.forEach(u => promises.push(this._httpClient.get(u, undefined, true) as Promise<HttpResponse<ArrayBuffer>>));
-                    const responses = await Promise.all(promises);
-
-                    const urls = responses.map(response => {
+    private loadEnvironmentMap(name: string, url: string | string[], eventId: string): {
+        name: string,
+        map: Promise<THREE.CubeTexture | THREE.Texture | null>,
+        type: ENVIRONMENT_MAP_TYPE
+    } {
+        this._environmentMaps[name] = {
+            name,
+            type: !Array.isArray(url) ? ENVIRONMENT_MAP_TYPE.HDR : ENVIRONMENT_MAP_TYPE.LDR,
+            map: new Promise<THREE.CubeTexture | THREE.Texture | null>(async (resolve, reject) => {
+                try {
+                    if (!Array.isArray(url)) {
+                        const response: HttpResponse<ArrayBuffer> = await this._httpClient.get(url, undefined, true) as HttpResponse<ArrayBuffer>;
                         const arrayBufferView = new Uint8Array(response.data);
                         const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
-                        return URL.createObjectURL(blob);
-                    });
-
-                    new THREE.CubeTextureLoader().load(urls,
-                        (map: THREE.CubeTexture) => {
-                            map.colorSpace = THREE.SRGBColorSpace;
-                            map.format = THREE.RGBAFormat;
-                            map.mapping = THREE.CubeReflectionMapping;
-                            this._environmentMaps[name] = map;
-                            urls.forEach(u => URL.revokeObjectURL(u));
-                            resolve();
+                        const blobUrl = URL.createObjectURL(blob);
+                        new RGBELoader().load(blobUrl, (texture) => {
+                            const map = this._pmremGenerator.fromEquirectangular(texture).texture;
+                            this._pmremGenerator.dispose();
+                            map;
+                            URL.revokeObjectURL(blobUrl);
+                            this._environmentMaps[name].resolved = true;
+                            resolve(map);
                         },
-                        () => { },
-                        (error) => reject(error));
+                            () => { },
+                            (error) => reject(error));
+                    } else {
+                        const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
+                        url.forEach(u => promises.push(this._httpClient.get(u, undefined, true) as Promise<HttpResponse<ArrayBuffer>>));
+                        const responses = await Promise.all(promises);
+
+                        const urls = responses.map(response => {
+                            const arrayBufferView = new Uint8Array(response.data);
+                            const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
+                            return URL.createObjectURL(blob);
+                        });
+
+                        new THREE.CubeTextureLoader().load(urls,
+                            (map: THREE.CubeTexture) => {
+                                map.colorSpace = THREE.SRGBColorSpace;
+                                map.format = THREE.RGBAFormat;
+                                map.mapping = THREE.CubeReflectionMapping;
+                                urls.forEach(u => URL.revokeObjectURL(u));
+                                this._environmentMaps[name].resolved = true;
+                                resolve(map);
+                            },
+                            () => { },
+                            (error) => reject(error));
+                    }
+                } catch (e) {
+                    this.notify(eventId, true);
+                    throw e;
                 }
-            } catch (e) {
-                this.notify(eventId, true);
-                throw e;
-            }
-        });
+            })
+        };
+        return this._environmentMaps[name];
     }
 
     private notify(eventId: string, failed = false) {
