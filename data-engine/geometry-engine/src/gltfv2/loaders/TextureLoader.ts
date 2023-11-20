@@ -53,18 +53,21 @@ export class TextureLoader {
                 const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
                 const dataUri = URL.createObjectURL(blob);
 
+                const img = new Image();
+
                 promises.push(
                     new Promise<void>((resolve, reject) => {
-                        this._httpClient.loadTexture(dataUri)
-                            .then(response => {
-                                this._loaded[textureId] = response.data;
-                                URL.revokeObjectURL(dataUri);
-                                resolve();
-
-                            })
-                            .catch(e => reject(e));
+                        img.onload = () => {
+                            this._loaded[textureId] = img;
+                            URL.revokeObjectURL(dataUri);
+                            resolve();
+                        };
+                        img.onerror = reject;
                     })
                 );
+
+                img.crossOrigin = 'anonymous';
+                img.src = dataUri;
             } else {
                 const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
                 promises.push(
