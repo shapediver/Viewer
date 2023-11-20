@@ -119,7 +119,7 @@ export class HttpClient {
      * @param textureConversion 
      * @returns 
      */
-    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false, textureConversion: boolean = false): Promise<HttpResponse<unknown>> {
+    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<unknown>> {        
         const dataKey = this.hrefToDataKey(href);
 
         // return element if it exists in cache
@@ -147,31 +147,14 @@ export class HttpClient {
             // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
             if (sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
                 // take first session to load a texture that is not session related
-                loadingPromise = new Promise<HttpResponse<ArrayBuffer | HTMLImageElement>>((resolve, reject) => {
+                loadingPromise = new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
                     sessionLoading!.downloadTexture(sessionId!, href).then(async (result) => {
-                        if (textureConversion) {
-                            const image = await Converter.instance.responseToImage({
-                                data: result[0],
-                                headers: {
-                                    'content-type': result[1]
-                                }
-                            });
-                            resolve({
-                                data: image,
-                                size: result[0].byteLength,
-                                headers: {
-                                    'content-type': result[1]
-                                }
-                            });
-                        } else {
-                            resolve({
-                                data: result[0],
-                                headers: {
-                                    'content-type': result[1]
-                                }
-                            });
-                        }
-
+                        resolve({
+                            data: result[0],
+                            headers: {
+                                'content-type': result[1]
+                            }
+                        });
                     }).catch(e => reject(e));
                 }).catch(e => { throw this.convertError(e); });
             } else {
@@ -179,16 +162,7 @@ export class HttpClient {
                 // or load it directly if we don't have a session
                 loadingPromise = axios(href, Object.assign({ method: 'get' }, config))
                     .then(async (result) => {
-                        if (textureConversion) {
-                            const image = await Converter.instance.responseToImage(result);
-                            return {
-                                data: image,
-                                size: result.data.byteLength,
-                                headers: result.headers
-                            };
-                        } else {
-                            return result;
-                        }
+                        return result;
                     })
                     .catch(e => { throw this.convertError(e); });
             }
@@ -231,8 +205,19 @@ export class HttpClient {
      * @param href 
      * @returns 
      */
-    public async loadTexture(href: string): Promise<HttpResponse<HTMLImageElement>> {
-        return this.get(href, undefined, true, true) as Promise<HttpResponse<HTMLImageElement>>;
+    public async loadTexture(href: string): Promise<HttpResponse<{ image: HTMLImageElement, blob: Blob }>> {
+        const response = await (this.get(href, undefined, true) as Promise<HttpResponse<ArrayBuffer>>);
+        const arrayBufferView = new Uint8Array( response.data );
+        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
+        const image = await Converter.instance.responseToImage(response, blob);
+        return {
+            data: {
+                image,
+                blob
+            },
+            size: response.data.byteLength,
+            headers: response.headers
+        };
     }
 
     /**

@@ -1,11 +1,12 @@
-import { vec2 } from "gl-matrix";
-import { AbstractTreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "../../interfaces/data/material/IMapData";
-import { Color } from "../../types";
+import { vec2 } from 'gl-matrix';
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from '../../interfaces/data/material/IMapData';
+import { Color } from '../../types';
 
 export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Properties (11)
 
+    #blob?: Blob;
     #center: vec2 = vec2.fromValues(0, 0);
     #color?: Color;
     #flipY: boolean = true;
@@ -25,38 +26,50 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 
     constructor(
       image: HTMLImageElement,
-      wrapS: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
-      wrapT: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
-      minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
-      magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
-      center: vec2 = vec2.fromValues(0, 0),
-      color?: Color,
-      offset: vec2 = vec2.fromValues(0, 0),
-      repeat: vec2 = vec2.fromValues(1, 1),
-      rotation: number = 0,
-      texCoord?: number,
-      flipY: boolean = true,
+      properties?: {
+        blob?: Blob,
+        wrapS?: TEXTURE_WRAPPING,
+        wrapT?: TEXTURE_WRAPPING,
+        minFilter?: TEXTURE_FILTERING,
+        magFilter?: TEXTURE_FILTERING,
+        center?: vec2,
+        color?: Color,
+        offset?: vec2,
+        repeat?: vec2,
+        rotation?: number,
+        texCoord?: number,
+        flipY?: boolean,
+      },
       id?: string,
       version?: string
     ) {
       super(id, version);
       this.#image = image;
-      this.#wrapS = wrapS;
-      this.#wrapT = wrapT;
-      this.#minFilter = minFilter;
-      this.#magFilter = magFilter;
-      this.#center = center;
-      this.#color = color;
-      this.#offset = offset;
-      this.#repeat = repeat;
-      this.#rotation = rotation;
-      this.#texCoord = texCoord;
-      this.#flipY = flipY;
+      this.#blob = properties ? properties.blob : undefined;
+      this.#wrapS = properties && properties.wrapS !== undefined ? properties.wrapS : TEXTURE_WRAPPING.REPEAT;
+      this.#wrapT = properties && properties.wrapT !== undefined ? properties.wrapT : TEXTURE_WRAPPING.REPEAT;
+      this.#minFilter = properties && properties.minFilter !== undefined ? properties.minFilter : TEXTURE_FILTERING.NONE;
+      this.#magFilter = properties && properties.magFilter !== undefined ? properties.magFilter : TEXTURE_FILTERING.NONE;
+      this.#center = properties && properties.center !== undefined ? properties.center : vec2.fromValues(0, 0);
+      this.#color = properties ? properties.color : undefined;
+      this.#offset = properties && properties.offset !== undefined ? properties.offset : vec2.fromValues(0, 0);
+      this.#repeat = properties && properties.repeat !== undefined ? properties.repeat : vec2.fromValues(1, 1);
+      this.#rotation = properties && properties.rotation !== undefined ? properties.rotation : 0;
+      this.#texCoord = properties ? properties.texCoord : undefined;
+      this.#flipY = properties && properties.flipY !== undefined ? properties.flipY : true;
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (11)
+
+    public get blob(): Blob | undefined {
+      return this.#blob;
+    }
+
+    public set blob(value: Blob | undefined) {
+      this.#blob = value;
+    }
 
     public get center(): vec2 {
       return this.#center;
@@ -159,7 +172,22 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Public Methods (1)
 
     public clone(): IMapData {
-      return new MapData(<HTMLImageElement>this.image, this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.texCoord, this.flipY, this.id, this.version);
+      return new MapData(
+        <HTMLImageElement>this.image, 
+        {
+          blob: this.blob, 
+          wrapS: this.wrapS, 
+          wrapT: this.wrapT, 
+          minFilter: this.minFilter, 
+          magFilter: this.magFilter, 
+          center: this.center, 
+          color: this.color, 
+          offset: this.offset, 
+          repeat: this.repeat, 
+          rotation: this.rotation, 
+          texCoord: this.texCoord, 
+          flipY: this.flipY
+        }, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

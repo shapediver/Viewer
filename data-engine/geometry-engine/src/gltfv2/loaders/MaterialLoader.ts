@@ -1,11 +1,11 @@
-import { Converter, HttpClient } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient } from '@shapediver/viewer.shared.services';
 import {
   IGLTF_v2,
   IGLTF_v2_Material,
   IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
   ISHAPEDIVER_materials_preset,
-} from '@shapediver/viewer.data-engine.shared-types'
-import { vec2 } from 'gl-matrix'
+} from '@shapediver/viewer.data-engine.shared-types';
+import { vec2 } from 'gl-matrix';
 import {
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
@@ -19,11 +19,13 @@ import {
   IMaterialUnlitDataProperties,
   MapData,
   IMapData,
-} from '@shapediver/viewer.shared.types'
-import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
+  TEXTURE_WRAPPING,
+  TEXTURE_FILTERING,
+} from '@shapediver/viewer.shared.types';
+import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 
-import { GLTF_EXTENSIONS } from '../GLTFLoader'
-import { TextureLoader } from './TextureLoader'
+import { GLTF_EXTENSIONS } from '../GLTFLoader';
+import { TextureLoader } from './TextureLoader';
 
 export class MaterialLoader {
     // #region Properties (4)
@@ -44,9 +46,9 @@ export class MaterialLoader {
     // #region Public Methods (2)
 
     public getMaterial(materialId: number): IMaterialAbstractData {
-        if (!this._content.materials) throw new Error('MaterialLoader.getMaterial: Materials not available.')
-        if (!this._content.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not available.')
-        if (!this._loaded[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.')
+        if (!this._content.materials) throw new Error('MaterialLoader.getMaterial: Materials not available.');
+        if (!this._content.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not available.');
+        if (!this._loaded[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.');
         return this._loaded[materialId];
     }
 
@@ -54,7 +56,7 @@ export class MaterialLoader {
         this._loaded = {};
         if (!this._content.materials) return;
 
-        let promises: Promise<void>[] = [];
+        const promises: Promise<void>[] = [];
         for (let i = 0; i < this._content.materials.length; i++) {
             const materialId = i;
             const material: IGLTF_v2_Material = this._content.materials[materialId];
@@ -66,18 +68,21 @@ export class MaterialLoader {
             if (materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
                 const materialPreset: ISHAPEDIVER_materials_preset = materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET];
                 promises.push(
-                    new Promise<void>(async (resolve, reject) => {
+                    new Promise<void>((resolve, reject) => {
                         try {
-                            const materialData = await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset);
-                            materialData.name = material.name;
-                            materialData.color = materialPreset.color;
-                            this._loaded[materialId] = materialData;
-                            resolve();
+                            this._materialEngine.loadPresetMaterial(materialPreset.materialpreset)
+                                .then(materialData => {
+                                    materialData.name = material.name;
+                                    materialData.color = materialPreset.color;
+                                    this._loaded[materialId] = materialData;
+                                    resolve();
+                                })
+                                .catch(reject);
                         } catch (e) {
                             reject(e);
                         }
                     })
-                )
+                );
                 continue;
             }
 
@@ -345,25 +350,26 @@ export class MaterialLoader {
     // #region Private Methods (1)
 
     private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number, texCoord?: number }): IMapData {
-        if (!this._content.textures) throw new Error('Textures not available.')
+        if (!this._content.textures) throw new Error('Textures not available.');
         const texture = this._content.textures[textureId];
-        if (!this._content.images) throw new Error('Images not available.')
+        if (!this._content.images) throw new Error('Images not available.');
         const sampler = this._content.samplers && texture.sampler && this._content.samplers[texture.sampler] ? this._content.samplers[texture.sampler] : {};
-        const htmlImage = this._textureLoader.getTexture(textureId);
+        const loadedTexture = this._textureLoader.getTexture(textureId);
 
         return new MapData(
-            htmlImage,
-            sampler.wrapS,
-            sampler.wrapT,
-            sampler.minFilter,
-            sampler.magFilter,
-            undefined,
-            undefined,
-            properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined,
-            properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined,
-            properties && properties.rotation !== undefined ? properties.rotation : 0,
-            properties?.texCoord,            
-            false
+            loadedTexture.image,
+            {
+                blob: loadedTexture.blob,
+                wrapS: sampler.wrapS as TEXTURE_WRAPPING,
+                wrapT: sampler.wrapT as TEXTURE_WRAPPING,
+                minFilter: sampler.minFilter as TEXTURE_FILTERING,
+                magFilter: sampler.magFilter as TEXTURE_FILTERING,
+                offset: properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : vec2.create(),
+                repeat: properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : vec2.fromValues(1, 1),
+                rotation: properties && properties.rotation !== undefined ? properties.rotation : 0,
+                texCoord: properties?.texCoord,            
+                flipY: false
+            }
         );
     }
 
