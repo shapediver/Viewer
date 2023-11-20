@@ -473,13 +473,8 @@ export class GLTFConverter {
             ctx.scale(1, - 1);
         }
 
-        let mimeType = 'image/png';
-        if (data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
-            mimeType = 'image/jpeg';
-
-        imageDef.mimeType = mimeType;
-
         if(data.blob) {
+            imageDef.mimeType = data.blob.type;
             this._promises.push(new Promise<void>((resolve, reject) => {
                 try {
                     this.convertBufferViewImage(data.blob!).then(bufferViewIndex => {
@@ -491,6 +486,12 @@ export class GLTFConverter {
                 }
             }));            
         } else {
+            let mimeType = 'image/png';
+            if (data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
+                mimeType = 'image/jpeg';
+            
+            imageDef.mimeType = mimeType;
+
             const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
             if (DATA_URI_REGEX.test(data.image.src)) {
                 const byteString = atob(data.image.src.split(',')[1]);
