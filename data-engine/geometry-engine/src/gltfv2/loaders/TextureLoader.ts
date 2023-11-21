@@ -10,7 +10,10 @@ export class TextureLoader {
     private readonly _httpClient: HttpClient = HttpClient.instance;
 
     private _loaded: {
-        [key: string]: HTMLImageElement
+        [key: string]: {
+            image: HTMLImageElement,
+            blob: Blob
+        }
     } = {};
 
     // #endregion Properties (3)
@@ -23,7 +26,10 @@ export class TextureLoader {
 
     // #region Public Methods (2)
 
-    public getTexture(textureId: number): HTMLImageElement {
+    public getTexture(textureId: number): {
+        image: HTMLImageElement,
+        blob: Blob
+    } {
         if (!this._content.textures) throw new Error('TextureLoader.getTexture: Textures not available.');
         if (!this._content.textures[textureId]) throw new Error('TextureLoader.getTexture: Texture not available.');
         if (!this._loaded[textureId]) throw new Error('TextureLoader.getTexture: Texture not loaded.');
@@ -53,18 +59,24 @@ export class TextureLoader {
                 const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
                 const dataUri = URL.createObjectURL(blob);
 
+                const img = new Image();
+
                 promises.push(
                     new Promise<void>((resolve, reject) => {
-                        this._httpClient.loadTexture(dataUri)
-                            .then(response => {
-                                this._loaded[textureId] = response.data;
-                                URL.revokeObjectURL(dataUri);
-                                resolve();
-
-                            })
-                            .catch(e => reject(e));
+                        img.onload = () => {
+                            this._loaded[textureId] = {
+                                image: img,
+                                blob
+                            };
+                            URL.revokeObjectURL(dataUri);
+                            resolve();
+                        };
+                        img.onerror = reject;
                     })
                 );
+
+                img.crossOrigin = 'anonymous';
+                img.src = dataUri;
             } else {
                 const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
                 promises.push(

@@ -151,12 +151,10 @@ export class Converter {
         return img;
     }
 
-    public async responseToImage(response: HttpResponse<ArrayBuffer | HTMLImageElement>): Promise<HTMLImageElement> {
+    public async responseToImage(response: HttpResponse<ArrayBuffer | HTMLImageElement>, blob: Blob): Promise<HTMLImageElement> {
         // if we already receive and image, this conversion already happened
         if(response.data instanceof HTMLImageElement) return response.data;
         
-        const arrayBufferView = new Uint8Array( response.data );
-        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
         if (response.headers['content-type'] === 'image/svg+xml') {
             const img = await this.processSVG(blob);
             return img;

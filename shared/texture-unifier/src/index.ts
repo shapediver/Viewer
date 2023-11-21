@@ -1,4 +1,4 @@
-import * as THREE from "three"
+import * as THREE from 'three';
 
 let mergeShader: THREE.ShaderMaterial;
 let quadCamera: THREE.OrthographicCamera;
@@ -86,24 +86,24 @@ const createThreeJsUtils = () => {
     quadScene.add(quad);
     
     renderer = new THREE.WebGLRenderer();
-}
+};
 
-export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement): Promise<HTMLImageElement> => {
+export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement): Promise<{ image: HTMLImageElement, blob: Blob }> => {
     if (!red && !green && !blue)
-        throw new Error('No maps supplied.')
+        throw new Error('No maps supplied.');
 
     if(!renderer)
-        createThreeJsUtils()
+        createThreeJsUtils();
 
     let width = 0, height = 0;
     const textures = [red, green, blue];
-    for (let t of textures) {
+    for (const t of textures) {
         if (t) {
             if (width === 0 && height === 0) {
                 width = t.width;
                 height = t.height;
             } else if (t.width !== width && t.height !== height) {
-                throw new Error('Maps have different sizes. Combining not supported.')
+                throw new Error('Maps have different sizes. Combining not supported.');
             }
         }
     }
@@ -142,16 +142,16 @@ export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageE
         format: THREE.RGBAFormat
     });
     renderTarget.texture.name = 'target.rt';
-    renderer.setRenderTarget(renderTarget)
+    renderer.setRenderTarget(renderTarget);
 
     renderer.render(quadScene, quadCamera);
 
     const buffer = new Uint8ClampedArray(4 * width * height);
-    renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer)
+    renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer);
 
-    let imageData = new ImageData(buffer, width, height);
-    var canvas = document.createElement('canvas');
-    var ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
+    const imageData = new ImageData(buffer, width, height);
+    const canvas = document.createElement('canvas');
+    const ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
     canvas.width = imageData.width;
     canvas.height = imageData.height;
     ctx.putImageData(imageData, 0, 0);
@@ -160,11 +160,11 @@ export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageE
     const promise = new Promise<void>((resolve, reject) => {
         imageOut.onload = () => resolve();
         imageOut.onerror = reject;
-    })
-    imageOut.crossOrigin = "anonymous";
-    imageOut.src = canvas.toDataURL("image/jpeg", 1.0);
+    });
+    imageOut.crossOrigin = 'anonymous';
+    imageOut.src = canvas.toDataURL('image/jpeg', 1.0);
 
     await promise;
 
-    return imageOut;
-}
+    return { image: imageOut, blob: new Blob([buffer]) };
+};

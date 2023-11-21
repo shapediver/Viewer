@@ -78,17 +78,17 @@ export class MaterialEngine {
     }
 
     public async loadMap(url: string, id?: string): Promise<MapData | null> {
-        let image: HTMLImageElement;
+        let imageData;
         if (!id) {
-            image = <HTMLImageElement>(await this._httpClient.loadTexture(url)).data;
+            imageData = (await this._httpClient.loadTexture(url)).data;
         } else {
-            image = <HTMLImageElement>(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url)).data;
+            imageData = (await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url)).data;
         }
-        return new MapData(image);
+        return new MapData(imageData.image, { blob: imageData.blob });
     }
 
     public async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
-        const image: HTMLImageElement = <HTMLImageElement>(await this._httpClient.loadTexture(texture.href!)).data;
+        const imageData = (await this._httpClient.loadTexture(texture.href!)).data;
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
@@ -97,7 +97,7 @@ export class MaterialEngine {
         const offset = texture.offset ? vec2.fromValues(texture.offset[0], texture.offset[1]) : vec2.fromValues(0, 0);
         const repeat = texture.repeat ? vec2.fromValues(texture.repeat[0], texture.repeat[1]) : vec2.fromValues(1, 1);
 
-        return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, color, offset, repeat, texture.rotation || 0);
+        return new MapData(imageData.image, { blob: imageData.blob, wrapS, wrapT, minFilter: TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, magFilter: TEXTURE_FILTERING.LINEAR, center, color, offset, repeat, rotation: texture.rotation || 0 });
     }
 
     public loadMaterialDefinitionV1(data: IMaterialContentDataV1, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
