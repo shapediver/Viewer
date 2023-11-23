@@ -1,20 +1,18 @@
-import * as detectIt from 'detect-it'
-import { vec2, vec3 } from 'gl-matrix'
+import * as detectIt from 'detect-it';
+import { vec2, vec3 } from 'gl-matrix';
 import {
-    DomEventEngine,
     EventEngine,
     EVENTTYPE,
-    IEvent,
     SettingsEngine,
     StateEngine,
-} from '@shapediver/viewer.shared.services'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
-import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree'
+} from '@shapediver/viewer.shared.services';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
-import { ICameraControls } from '../../interfaces/controls/ICameraControls'
-import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
-import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { ICameraControls } from '../../interfaces/controls/ICameraControls';
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera';
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (23)
@@ -29,21 +27,21 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     #name?: string;
     #near: number = 1;
     #node?: ITreeNode;
-    #useNodeData: boolean = false;
     #order?: number;
     #revertAtMouseUp: boolean = false;
     #revertAtMouseUpDuration: number = 800;
+    #sceneRotation: vec2 = vec2.create();
+    #useNodeData: boolean = false;
     #zoomExtentsFactor: number = 1;
 
     protected readonly _eventEngine: EventEngine = EventEngine.instance;
     protected readonly _stateEngine: StateEngine = StateEngine.instance;
 
     protected _boundingBox: IBox = new Box();
+    protected abstract _controls: ICameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
     protected _viewportId?: string;
-
-    protected abstract _controls: ICameraControls;
 
     // #endregion Properties (23)
 
@@ -55,7 +53,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (39)
+    // #region Public Accessors (41)
 
     public get active(): boolean {
         return this.#active;
@@ -149,14 +147,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this.#node = value;
     }
 
-    public get useNodeData(): boolean {
-        return this.#useNodeData;
-    }
-
-    public set useNodeData(value: boolean) {
-        this.#useNodeData = value;
-    }
-
     public get order(): number | undefined {
         return this.#order;
     }
@@ -190,6 +180,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this.#revertAtMouseUpDuration = value;
     }
 
+    public get sceneRotation(): vec2 {
+        return this.#sceneRotation;
+    }
+
+    public set sceneRotation(value: vec2) {
+        this.#sceneRotation = value;
+    }
+
     public get target(): vec3 {
         return this._target;
     }
@@ -201,6 +199,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public get type(): CAMERA_TYPE {
         return this._type;
+    }
+
+    public get useNodeData(): boolean {
+        return this.#useNodeData;
+    }
+
+    public set useNodeData(value: boolean) {
+        this.#useNodeData = value;
     }
 
     public get viewportId(): string | undefined {
@@ -215,7 +221,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this.#zoomExtentsFactor = value;
     }
 
-    // #endregion Public Accessors (39)
+    // #endregion Public Accessors (41)
 
     // #region Public Methods (5)
 
@@ -256,22 +262,23 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public update(time: number): boolean {
-        if(this.useNodeData && this.node && this._viewportId) {
+        if (this.useNodeData && this.node && this._viewportId) {
             return true;
         } else {
-            const { position, target } = this._controls.update(time);
+            const { position, target, sceneRotation } = this._controls.update(time);
             let changed = true;
-            if (vec3.equals(position, this.position) && vec3.equals(target, this.target)) 
+            if (vec3.equals(position, this.position) && vec3.equals(target, this.target))
                 changed = false;
-            
+
             this.position = vec3.clone(position);
             this.target = vec3.clone(target);
+            this.sceneRotation = vec2.clone(sceneRotation);
             return changed;
         }
     }
 
     public zoomTo(zoomTarget?: Box, options?: ICameraOptions): Promise<boolean> {
-        const { position, target } = this.calculateZoomTo(zoomTarget)
+        const { position, target } = this.calculateZoomTo(zoomTarget);
         return this.set(position, target, options);
     }
 
@@ -291,24 +298,24 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     protected assignViewerInternal(viewportId: string, canvas: HTMLCanvasElement) {
         this._viewportId = viewportId;
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async (e: IEvent) => {
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async () => {
             if (this.#autoAdjust === true) {
-                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async (e: IEvent) => {
+                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async () => {
                     this.zoomTo();
-                    this._eventEngine.removeListener(innerListenerToken)
-                })
+                    this._eventEngine.removeListener(innerListenerToken);
+                });
             }
         });
         const revert = () => {
             if (this.#revertAtMouseUp === true)
                 this.reset({ duration: this.#revertAtMouseUpDuration });
         };
-        canvas.addEventListener("mouseup", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener("mouseout", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener("touchend", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        canvas.addEventListener('mouseup', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        canvas.addEventListener('mouseout', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        canvas.addEventListener('touchend', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
 
         let zoomResizeTimeout: NodeJS.Timeout;
-        let mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? "DOMMouseScroll" : "mousewheel"; //FF doesn't recognize mousewheel as of FF3.x
+        const mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? 'DOMMouseScroll' : 'mousewheel'; //FF doesn't recognize mousewheel as of FF3.x
         canvas.addEventListener(mouseWheelEvent,
             () => {
                 clearTimeout(zoomResizeTimeout);

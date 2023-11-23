@@ -7,7 +7,7 @@ import {
     IManager,
     RENDERER_TYPE,
     SPINNER_POSITIONING
-    } from '@shapediver/viewer.rendering-engine.rendering-engine';
+} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine } from '../RenderingEngine';
@@ -26,7 +26,6 @@ import {
     SystemInfo,
 } from '@shapediver/viewer.shared.services';
 
-
 export class RenderingManager implements IManager {
     // #region Properties (30)
 
@@ -44,8 +43,8 @@ export class RenderingManager implements IManager {
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _hidden: boolean = true;
-    private _hiddenRenderTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget();
     private _hiddenCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
+    private _hiddenRenderTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget();
     private _hideLogo: boolean = false;
     private _lastSize: {
         adjustedWidth: number,
@@ -425,7 +424,26 @@ export class RenderingManager implements IManager {
         }
 
         // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
-        const camera = this._renderingEngine.cameraManager.adjustCamera(aspect);
+        const { camera, matrix } = this._renderingEngine.cameraManager.adjustCamera(aspect);
+
+        // if a matrix is provided after a camera adjustment
+        // that means that the turntable controls are activated
+        if (matrix) {
+            for (let i = 0; i < this._tree.root.children.length; i++) {
+                if (!(<any>this._tree.root.children[i]).sessionNode || this._tree.root.children[i].excludeViewports.includes(this._renderingEngine.id)) continue;
+                const transform = this._tree.root.children[i].transformations.find(t => t.id === 'turntableRotation');
+                if (transform) {
+                    transform.matrix = matrix;
+                } else {
+                    this._tree.root.children[i].addTransformation({
+                        id: 'turntableRotation',
+                        matrix
+                    });
+                }
+            }
+            states.updateShadowMap = true;
+            this._renderingEngine.sceneTreeManager.updateNode(undefined, undefined, { transformationOnly: true });
+        }
 
         // animation loop - part 10: adjust the anchor elements
         this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
@@ -503,10 +521,10 @@ export class RenderingManager implements IManager {
         if (this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate === true) {
             // in case of post-processing we have to append a hidden render call
             // as otherwise the background is not rendered into the render list
-            if(renderPostProcessing) {
-                this._renderingEngine.renderer.setRenderTarget(this._hiddenRenderTarget)
-                this._renderingEngine.renderer.render(this._renderingEngine.scene, this._hiddenCamera)
-                this._renderingEngine.renderer.setRenderTarget(null)
+            if (renderPostProcessing) {
+                this._renderingEngine.renderer.setRenderTarget(this._hiddenRenderTarget);
+                this._renderingEngine.renderer.render(this._renderingEngine.scene, this._hiddenCamera);
+                this._renderingEngine.renderer.setRenderTarget(null);
             }
 
             this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate = false;
