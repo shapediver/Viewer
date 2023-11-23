@@ -1,15 +1,15 @@
-import { mat4, vec3 } from 'gl-matrix'
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { mat4, vec2, vec3 } from 'gl-matrix';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 
-import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
-import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
-import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
-import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager'
-import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution'
-import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic'
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera';
+import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage';
+import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager';
+import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution';
+import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic';
 
 export class AbstractCameraControls implements ICameraControlsUsage {
-    // #region Properties (11)
+    // #region Properties (15)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -25,6 +25,10 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             matrix?: mat4,
             vector?: vec3
         }[],
+        sceneRotation: {
+            theta: number,
+            phi: number
+        }[]
     };
     private _moving: boolean = false;
     private _movingDuration: number = 0;
@@ -38,15 +42,20 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             matrix?: mat4,
             vector?: vec3
         }[],
+        sceneRotation: {
+            theta: number,
+            phi: number
+        }[]
     };
     private _position: vec3 = vec3.create();
+    private _sceneRotation: vec2 = vec2.create();
     private _target: vec3 = vec3.create();
     private _viewportId?: string;
 
     protected _cameraControlsEventDistribution!: ICameraControlsEventDistribution;
     protected _cameraLogic!: ICameraControlsLogic;
 
-    // #endregion Properties (11)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -56,17 +65,20 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         type: CAMERA_TYPE
     ) {
         this._cameraInterpolationManager = new CameraInterpolationManager(this._camera, this);
-        this._manualInteractionTransformations = { position: [], target: [] };
-        this._nonmanualInteractionTransformations = { position: [], target: [] };
+        this._manualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
+        this._nonmanualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
+    // #region Public Accessors (13)
 
-    public assignViewer(viewportId: string, canvas: HTMLCanvasElement) {
-        this._canvas = canvas;
-        this._viewportId = viewportId;
+    public get camera(): ICamera {
+        return this._camera;
+    }
+
+    public set camera(value: ICamera) {
+        this._camera = value;
     }
 
     public get cameraControlsEventDistribution(): ICameraControlsEventDistribution {
@@ -88,22 +100,14 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     public set enabled(value: boolean) {
         if (!value) {
             this._manualInteraction = false;
-            this._manualInteractionTransformations = { position: [], target: [] };
+            this._manualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
             this._nonmanualInteraction = false;
-            this._nonmanualInteractionTransformations = { position: [], target: [] };
+            this._nonmanualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
 
             this._cameraControlsEventDistribution.reset();
             this._cameraLogic.reset();
         }
         this._enabled = value;
-    }
-
-    public get camera(): ICamera {
-        return this._camera;
-    }
-
-    public set camera(value: ICamera) {
-        this._camera = value;
     }
 
     public get position(): vec3 {
@@ -114,6 +118,14 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         this._position = value;
     }
 
+    public get sceneRotation(): vec2 {
+        return this._sceneRotation;
+    }
+
+    public set sceneRotation(value: vec2) {
+        this._sceneRotation = value;
+    }
+
     public get target(): vec3 {
         return this._target;
     }
@@ -122,72 +134,87 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         this._target = value;
     }
 
-    // #endregion Public Accessors (9)
+    // #endregion Public Accessors (13)
 
-    // #region Public Methods (10)
+    // #region Public Methods (16)
 
     public animate(path: { position: vec3, target: vec3 }[], options: ICameraOptions): Promise<boolean> {
-        if(options && options.duration === 0) {
-            this._position = path[path.length-1].position;
-            this._target = path[path.length-1].target;
+        if (options && options.duration === 0) {
+            this._position = path[path.length - 1].position;
+            this._target = path[path.length - 1].target;
             return new Promise<boolean>(resolve => resolve(true));
         }
-    
+
         this._manualInteraction = false;
-        this._manualInteractionTransformations = { position: [], target: [] };
+        this._manualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
         return this._cameraInterpolationManager.interpolate(path, options);
-    }
-
-    public applyPositionVector(vector: vec3, manualInteraction?: boolean | undefined): void {
-        if (this._manualInteraction || manualInteraction) {
-            this._manualInteraction = true;
-            this._manualInteractionTransformations.position.push({vector});
-        } else {
-            this._nonmanualInteraction = true;
-            this._nonmanualInteractionTransformations.position.push({vector});
-        }
-    }
-
-    public applyTargetVector(vector: vec3, manualInteraction?: boolean | undefined): void {
-        if (this._manualInteraction || manualInteraction) {
-            this._manualInteraction = true;
-            this._manualInteractionTransformations.target.push({vector});
-        } else {
-            this._nonmanualInteraction = true;
-            this._nonmanualInteractionTransformations.target.push({vector});
-        }
     }
 
     public applyPositionMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void {
         if (this._manualInteraction || manualInteraction) {
             this._manualInteraction = true;
-            this._manualInteractionTransformations.position.push({matrix});
+            this._manualInteractionTransformations.position.push({ matrix });
         } else {
             this._nonmanualInteraction = true;
-            this._nonmanualInteractionTransformations.position.push({matrix});
+            this._nonmanualInteractionTransformations.position.push({ matrix });
+        }
+    }
+
+    public applyPositionVector(vector: vec3, manualInteraction?: boolean | undefined): void {
+        if (this._manualInteraction || manualInteraction) {
+            this._manualInteraction = true;
+            this._manualInteractionTransformations.position.push({ vector });
+        } else {
+            this._nonmanualInteraction = true;
+            this._nonmanualInteractionTransformations.position.push({ vector });
+        }
+    }
+
+    public applyRotation(vector: vec2, manualInteraction?: boolean | undefined): void {
+        if (this._manualInteraction || manualInteraction) {
+            this._manualInteraction = true;
+            this._manualInteractionTransformations.sceneRotation.push({ theta: vector[0], phi: vector[1] });
+        } else {
+            this._nonmanualInteraction = true;
+            this._nonmanualInteractionTransformations.sceneRotation.push({ theta: vector[0], phi: vector[1] });
         }
     }
 
     public applyTargetMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void {
         if (this._manualInteraction || manualInteraction) {
             this._manualInteraction = true;
-            this._manualInteractionTransformations.target.push({matrix});
+            this._manualInteractionTransformations.target.push({ matrix });
         } else {
             this._nonmanualInteraction = true;
-            this._nonmanualInteractionTransformations.target.push({matrix});
+            this._nonmanualInteractionTransformations.target.push({ matrix });
+        }
+    }
+
+    public applyTargetVector(vector: vec3, manualInteraction?: boolean | undefined): void {
+        if (this._manualInteraction || manualInteraction) {
+            this._manualInteraction = true;
+            this._manualInteractionTransformations.target.push({ vector });
+        } else {
+            this._nonmanualInteraction = true;
+            this._nonmanualInteractionTransformations.target.push({ vector });
         }
     }
 
     public applyUpMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void {
         // https://shapediver.atlassian.net/browse/SS-2949
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
+    }
+
+    public assignViewer(viewportId: string, canvas: HTMLCanvasElement) {
+        this._canvas = canvas;
+        this._viewportId = viewportId;
     }
 
     public getPositionWithManualUpdates(): vec3 {
         let position = vec3.clone(this._position);
         if (this._manualInteraction) {
             for (let i = this._manualInteractionTransformations.position.length - 1; i >= 0; i--) {
-                if(this._manualInteractionTransformations.position[i].matrix) {
+                if (this._manualInteractionTransformations.position[i].matrix) {
                     position = vec3.transformMat4(position, position, this._manualInteractionTransformations.position[i].matrix!);
                 } else {
                     position = vec3.add(position, position, this._manualInteractionTransformations.position[i].vector!);
@@ -197,11 +224,15 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         return position;
     }
 
+    public getPositionWithUpdates(): vec3 {
+        return this.getPosition();
+    }
+
     public getTargetWithManualUpdates(): vec3 {
         let target = vec3.clone(this._target);
         if (this._manualInteraction) {
             for (let i = this._manualInteractionTransformations.target.length - 1; i >= 0; i--) {
-                if(this._manualInteractionTransformations.target[i].matrix) {
+                if (this._manualInteractionTransformations.target[i].matrix) {
                     target = vec3.transformMat4(target, target, this._manualInteractionTransformations.target[i].matrix!);
                 } else {
                     target = vec3.add(target, target, this._manualInteractionTransformations.target[i].vector!);
@@ -209,10 +240,6 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             }
         }
         return target;
-    }
-
-    public getPositionWithUpdates(): vec3 {
-        return this.getPosition();
     }
 
     public getTargetWithUpdates(): vec3 {
@@ -232,59 +259,61 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         this._cameraLogic.reset();
     }
 
-    public update(time: number): { position: vec3, target: vec3 } {
-        if (!this._enabled) 
-            return { position: vec3.clone(this._position), target: vec3.clone(this._target) };
+    public update(time: number): { position: vec3, target: vec3, sceneRotation: vec2 } {
+        if (!this._enabled)
+            return { position: vec3.clone(this._position), target: vec3.clone(this._target), sceneRotation: vec2.clone(this._sceneRotation) };
 
         // reset all values
-        if(this._manualInteraction === true && this._cameraInterpolationManager.active())
-            this._cameraInterpolationManager.stop()
+        if (this._manualInteraction === true && this._cameraInterpolationManager.active())
+            this._cameraInterpolationManager.stop();
 
-        let { position, target } = this._cameraLogic.restrict(this.getPosition(), this.getTarget());
+        const { position, target, sceneRotation } = this._cameraLogic.restrict(this.getPosition(), this.getTarget(), this.getSceneRotation());
         this._position = vec3.clone(position);
         this._target = vec3.clone(target);
+        this._sceneRotation = sceneRotation ? vec2.clone(sceneRotation) : vec2.create();
 
         this._manualInteraction = false;
-        this._manualInteractionTransformations = { position: [], target: [] };
+        this._manualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
         this._nonmanualInteraction = this._cameraInterpolationManager.active();
-        this._nonmanualInteractionTransformations = { position: [], target: [] };
+        this._nonmanualInteractionTransformations = { position: [], target: [], sceneRotation: [] };
 
         this._cameraLogic.update(time, this._nonmanualInteraction);
 
         const oldMovement = this._moving;
         const cameraDefinition = {
             position: vec3.clone(this._position),
-            target: vec3.clone(this._target)
+            target: vec3.clone(this._target),
+            sceneRotation: vec2.clone(this._sceneRotation)
         };
 
         this._movingDuration += time;
         this._moving = (this._manualInteraction || this._nonmanualInteraction);
 
-        switch(true) {
+        switch (true) {
             case oldMovement !== this._moving && this._moving === true:
                 this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewportId: this._viewportId, cameraId: this.camera.id });
                 break;
             case oldMovement !== this._moving && this._moving === false:
                 this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { viewportId: this._viewportId, cameraId: this.camera.id });
                 break;
-            default: 
+            default:
                 this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { viewportId: this._viewportId, cameraId: this.camera.id });
         }
-        
+
         if (!this._moving) this._movingDuration = 0;
 
         return cameraDefinition;
     }
 
-    // #endregion Public Methods (10)
+    // #endregion Public Methods (16)
 
-    // #region Private Methods (2)
+    // #region Private Methods (3)
 
     private getPosition(): vec3 {
         let position = vec3.clone(this._position);
         if (this._manualInteraction) {
             for (let i = this._manualInteractionTransformations.position.length - 1; i >= 0; i--) {
-                if(this._manualInteractionTransformations.position[i].matrix) {
+                if (this._manualInteractionTransformations.position[i].matrix) {
                     position = vec3.transformMat4(position, position, this._manualInteractionTransformations.position[i].matrix!);
                 } else {
                     position = vec3.add(position, position, this._manualInteractionTransformations.position[i].vector!);
@@ -292,7 +321,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             }
         } else if (this._nonmanualInteraction) {
             for (let i = this._nonmanualInteractionTransformations.position.length - 1; i >= 0; i--) {
-                if(this._nonmanualInteractionTransformations.position[i].matrix) {
+                if (this._nonmanualInteractionTransformations.position[i].matrix) {
                     position = vec3.transformMat4(position, position, this._nonmanualInteractionTransformations.position[i].matrix!);
                 } else {
                     position = vec3.add(position, position, this._nonmanualInteractionTransformations.position[i].vector!);
@@ -302,11 +331,25 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         return position;
     }
 
+    private getSceneRotation(): vec2 {
+        let sceneRotation = vec2.clone(this._sceneRotation);
+        if (this._manualInteraction) {
+            for (let i = this._manualInteractionTransformations.sceneRotation.length - 1; i >= 0; i--) {
+                sceneRotation = vec2.add(sceneRotation, sceneRotation, vec2.fromValues(this._manualInteractionTransformations.sceneRotation[i].theta, this._manualInteractionTransformations.sceneRotation[i].phi));
+            }
+        } else if (this._nonmanualInteraction) {
+            for (let i = this._nonmanualInteractionTransformations.sceneRotation.length - 1; i >= 0; i--) {
+                sceneRotation = vec2.add(sceneRotation, sceneRotation, vec2.fromValues(this._nonmanualInteractionTransformations.sceneRotation[i].theta, this._nonmanualInteractionTransformations.sceneRotation[i].phi));
+            }
+        }
+        return sceneRotation;
+    }
+
     private getTarget(): vec3 {
         let target = vec3.clone(this._target);
         if (this._manualInteraction) {
             for (let i = this._manualInteractionTransformations.target.length - 1; i >= 0; i--) {
-                if(this._manualInteractionTransformations.target[i].matrix) {
+                if (this._manualInteractionTransformations.target[i].matrix) {
                     target = vec3.transformMat4(target, target, this._manualInteractionTransformations.target[i].matrix!);
                 } else {
                     target = vec3.add(target, target, this._manualInteractionTransformations.target[i].vector!);
@@ -314,7 +357,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             }
         } else if (this._nonmanualInteraction) {
             for (let i = this._nonmanualInteractionTransformations.target.length - 1; i >= 0; i--) {
-                if(this._nonmanualInteractionTransformations.target[i].matrix) {
+                if (this._nonmanualInteractionTransformations.target[i].matrix) {
                     target = vec3.transformMat4(target, target, this._nonmanualInteractionTransformations.target[i].matrix!);
                 } else {
                     target = vec3.add(target, target, this._nonmanualInteractionTransformations.target[i].vector!);
@@ -324,5 +367,5 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         return target;
     }
 
-    // #endregion Private Methods (2)
+    // #endregion Private Methods (3)
 }

@@ -1,20 +1,23 @@
-import * as THREE from 'three'
-import { mat4, vec3 } from 'gl-matrix'
+import * as THREE from 'three';
+import { mat4, vec3 } from 'gl-matrix';
 import {
-  AbstractCamera,
-  CAMERA_TYPE,
-  OrthographicCamera,
-  PerspectiveCamera,
-} from '@shapediver/viewer.rendering-engine.camera-engine'
+    AbstractCamera,
+    CAMERA_TYPE,
+    OrthographicCamera,
+    PerspectiveCamera,
+} from '@shapediver/viewer.rendering-engine.camera-engine';
 
-import { RenderingEngine } from '../RenderingEngine'
-import { SDData } from '../objects/SDData'
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RenderingEngine } from '../RenderingEngine';
+import { SDData } from '../objects/SDData';
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export class CameraManager implements IManager {
+    // #region Properties (2)
 
     #camera: THREE.Camera = new THREE.PerspectiveCamera();
     #cameraCache: { [key: string]: THREE.Camera } = {};
+
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
@@ -22,79 +25,22 @@ export class CameraManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (2)
+    // #region Public Accessors (1)
 
     public get camera(): THREE.Camera {
         return this.#camera;
     }
 
-    public updateCamera(time: number, aspect: number): boolean {
-        if(this._renderingEngine.cameraEngine.camera?.type === 'perspective') 
-            (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).aspect = aspect;
-        return (<AbstractCamera>this._renderingEngine.cameraEngine.camera)!.update(time);
+    // #endregion Public Accessors (1)
 
-    }
+    // #region Public Methods (4)
 
-    public load(camera: AbstractCamera, dataChild?: SDData) {
-        let threeCamera: THREE.Camera | null = this.#cameraCache[camera.id];
-
-        if(camera instanceof PerspectiveCamera) {
-            if(!threeCamera) {
-                threeCamera = new THREE.PerspectiveCamera();
-                this.#cameraCache[camera.id] = threeCamera;
-                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
-                if(dataChild)
-                    dataChild.add(threeCamera);
-            } else {
-                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
-                if(dataChild && !dataChild.children.find(t => t === threeCamera))
-                    dataChild.add(threeCamera);
-            }
-            const perspectiveCamera = <PerspectiveCamera>camera;
-            const threePerspectiveCamera = <THREE.PerspectiveCamera>threeCamera;
-
-            threePerspectiveCamera.up.set(0, 0, 1);
-            if(perspectiveCamera.useNodeData) {
-                threePerspectiveCamera.fov = perspectiveCamera.fov;
-                threePerspectiveCamera.aspect = perspectiveCamera.aspect!;
-                threePerspectiveCamera.far = perspectiveCamera.far;
-                threePerspectiveCamera.near = perspectiveCamera.near;
-                threePerspectiveCamera.updateProjectionMatrix();
-            }
-
-        } else {
-            if(!threeCamera) {
-                threeCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
-                this.#cameraCache[camera.id] = threeCamera;
-                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
-                if(dataChild)
-                    dataChild.add(threeCamera);
-            } else {
-                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
-                if(dataChild && !dataChild.children.find(t => t === threeCamera))
-                    dataChild.add(threeCamera);
-            }
-            const orthographicCamera = <OrthographicCamera>camera;
-            const threeOrthographicCamera = <THREE.OrthographicCamera>threeCamera;
-
-            threeOrthographicCamera.up.set(orthographicCamera.up[0], orthographicCamera.up[1], orthographicCamera.up[2]);
-            if(orthographicCamera.useNodeData) {
-                threeOrthographicCamera.left = orthographicCamera.left;
-                threeOrthographicCamera.bottom = orthographicCamera.bottom;
-                threeOrthographicCamera.right = orthographicCamera.right;
-                threeOrthographicCamera.top = orthographicCamera.top;
-                threeOrthographicCamera.near = orthographicCamera.near;
-                threeOrthographicCamera.far = orthographicCamera.far;
-                threeOrthographicCamera.updateProjectionMatrix();
-            }
-        }
-    }
-
-    public adjustCamera(aspect: number): THREE.Camera {
+    public adjustCamera(aspect: number): { camera: THREE.Camera, matrix?: mat4 } {
         let cameraThree: THREE.Camera;
+        let matrix;
 
         const camera = this._renderingEngine.cameraEngine.camera!;
-        if(camera.useNodeData) {
+        if (camera.useNodeData) {
             const sdCameraNode = camera.node!.threeJsObject[this._renderingEngine.id];
             const sdCameraData = sdCameraNode.children[0];
             cameraThree = <THREE.Camera>sdCameraData.children[0];
@@ -102,7 +48,7 @@ export class CameraManager implements IManager {
             if (this._renderingEngine.cameraEngine.camera!.type === CAMERA_TYPE.ORTHOGRAPHIC) {
                 const orthographicCameraData = <OrthographicCamera>camera;
                 let orthographicCameraThreeJs = orthographicCameraData.threeJsObject[this._renderingEngine.id];
-                if(!orthographicCameraThreeJs) this.load(orthographicCameraData)
+                if (!orthographicCameraThreeJs) this.load(orthographicCameraData);
                 orthographicCameraThreeJs = orthographicCameraData.threeJsObject[this._renderingEngine.id];
 
                 const distance = vec3.distance(orthographicCameraData.position, orthographicCameraData.target) / 2;
@@ -120,7 +66,7 @@ export class CameraManager implements IManager {
             } else {
                 const perspectiveCameraData = <PerspectiveCamera>camera;
                 let perspectiveCameraThreeJs = perspectiveCameraData.threeJsObject[this._renderingEngine.id];
-                if(!perspectiveCameraThreeJs) this.load(perspectiveCameraData)
+                if (!perspectiveCameraThreeJs) this.load(perspectiveCameraData);
                 perspectiveCameraThreeJs = perspectiveCameraData.threeJsObject[this._renderingEngine.id];
 
                 perspectiveCameraThreeJs.up.set(0, 0, 1);
@@ -134,15 +80,83 @@ export class CameraManager implements IManager {
                 perspectiveCameraThreeJs.position.set(perspectiveCameraData.position[0], perspectiveCameraData.position[1], perspectiveCameraData.position[2]);
                 perspectiveCameraThreeJs.lookAt(perspectiveCameraData.target[0], perspectiveCameraData.target[1], perspectiveCameraData.target[2]);
                 perspectiveCameraThreeJs.updateProjectionMatrix();
+
+                if (perspectiveCameraData.controls.enableTurntableControls === true) {
+                    matrix = mat4.create();
+                    mat4.rotateZ(matrix, matrix, -perspectiveCameraData.sceneRotation[1]);
+                    mat4.translate(matrix, matrix, perspectiveCameraData.controls.turntableCenter);
+                }
+
                 cameraThree = perspectiveCameraThreeJs;
             }
         }
-        
+
         this.#camera = cameraThree;
-        return cameraThree;
+        return { camera: cameraThree, matrix };
     }
 
-    public init(): void {}
+    public init(): void { }
 
-    // #endregion Public Methods (2)
+    public load(camera: AbstractCamera, dataChild?: SDData) {
+        let threeCamera: THREE.Camera | null = this.#cameraCache[camera.id];
+
+        if (camera instanceof PerspectiveCamera) {
+            if (!threeCamera) {
+                threeCamera = new THREE.PerspectiveCamera();
+                this.#cameraCache[camera.id] = threeCamera;
+                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
+                if (dataChild)
+                    dataChild.add(threeCamera);
+            } else {
+                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
+                if (dataChild && !dataChild.children.find(t => t === threeCamera))
+                    dataChild.add(threeCamera);
+            }
+            const perspectiveCamera = <PerspectiveCamera>camera;
+            const threePerspectiveCamera = <THREE.PerspectiveCamera>threeCamera;
+
+            threePerspectiveCamera.up.set(0, 0, 1);
+            if (perspectiveCamera.useNodeData) {
+                threePerspectiveCamera.fov = perspectiveCamera.fov;
+                threePerspectiveCamera.aspect = perspectiveCamera.aspect!;
+                threePerspectiveCamera.far = perspectiveCamera.far;
+                threePerspectiveCamera.near = perspectiveCamera.near;
+                threePerspectiveCamera.updateProjectionMatrix();
+            }
+
+        } else {
+            if (!threeCamera) {
+                threeCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
+                this.#cameraCache[camera.id] = threeCamera;
+                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
+                if (dataChild)
+                    dataChild.add(threeCamera);
+            } else {
+                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
+                if (dataChild && !dataChild.children.find(t => t === threeCamera))
+                    dataChild.add(threeCamera);
+            }
+            const orthographicCamera = <OrthographicCamera>camera;
+            const threeOrthographicCamera = <THREE.OrthographicCamera>threeCamera;
+
+            threeOrthographicCamera.up.set(orthographicCamera.up[0], orthographicCamera.up[1], orthographicCamera.up[2]);
+            if (orthographicCamera.useNodeData) {
+                threeOrthographicCamera.left = orthographicCamera.left;
+                threeOrthographicCamera.bottom = orthographicCamera.bottom;
+                threeOrthographicCamera.right = orthographicCamera.right;
+                threeOrthographicCamera.top = orthographicCamera.top;
+                threeOrthographicCamera.near = orthographicCamera.near;
+                threeOrthographicCamera.far = orthographicCamera.far;
+                threeOrthographicCamera.updateProjectionMatrix();
+            }
+        }
+    }
+
+    public updateCamera(time: number, aspect: number): boolean {
+        if (this._renderingEngine.cameraEngine.camera?.type === 'perspective')
+            (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).aspect = aspect;
+        return (<AbstractCamera>this._renderingEngine.cameraEngine.camera)!.update(time);
+    }
+
+    // #endregion Public Methods (4)
 }
