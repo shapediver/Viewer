@@ -106,7 +106,7 @@ export const createUi = (
             parameterInputElement.setAttribute("type", "range");
             parameterInputElement.setAttribute("min", parameterObject.min + "");
             parameterInputElement.setAttribute("max", parameterObject.max + "");
-            parameterInputElement.setAttribute("value", parameterObject.value);
+            parameterInputElement.setAttribute("value", parameterObject.value as string);
             if (parameterObject.type === PARAMETER_TYPE.INT) {
                 parameterInputElement.setAttribute("step", "1");
             } else if (parameterObject.type === PARAMETER_TYPE.EVEN || parameterObject.type === PARAMETER_TYPE.ODD) {
@@ -164,7 +164,7 @@ export const createUi = (
             parameterInputElement.setAttribute("name", "inputElement");
             parameterInputElement.setAttribute("id", parameterObject.id);
             parameterInputElement.setAttribute("type", "text");
-            parameterInputElement.setAttribute("value", parameterObject.value);
+            parameterInputElement.setAttribute("value", parameterObject.value as string);
             parameterInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
             paramDiv.appendChild(parameterInputElement);
 
@@ -242,7 +242,7 @@ export const createUi = (
                 option.setAttribute("name", parameterObject.choices![j]);
                 option.innerHTML = parameterObject.choices![j];
                 option.classList.value = "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-gray-300";
-                if (+parameterObject.value == j) option.setAttribute("selected", "");
+                if (+(parameterObject.value as string) == j) option.setAttribute("selected", "");
                 parameterInputElement.appendChild(option);
             }
             parameterInputElement.classList.value = "w-full mb-2 mt-2 right-5 text-gray-300 bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-1 py-0.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800";

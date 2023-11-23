@@ -111,6 +111,17 @@
           if (menuElement.onInputCallback) menuElement.onInputCallback(sliderInputElement.value);
         };
   
+        valueInputElement.onchange = () => {
+          if(+valueInputElement.value > sliderElement.max)
+            valueInputElement.value = sliderElement.max + "";
+
+          if(+valueInputElement.value < sliderElement.min)
+            valueInputElement.value = sliderElement.min + "";
+
+          sliderInputElement.value = valueInputElement.value + "";
+          if (menuElement.onChangeCallback) menuElement.onChangeCallback(sliderInputElement.value);
+        };
+  
       } else if (menuElement.type === "boolean") {
         const booleanElement = menuElement as IBooleanElement;
         
