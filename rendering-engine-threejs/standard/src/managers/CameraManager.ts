@@ -83,8 +83,8 @@ export class CameraManager implements IManager {
 
                 if (perspectiveCameraData.controls.enableTurntableControls === true) {
                     matrix = mat4.create();
-                    mat4.translate(matrix, matrix, perspectiveCameraData.controls.turntableCenter);
                     mat4.rotateZ(matrix, matrix, -perspectiveCameraData.sceneRotation[1]);
+                    mat4.translate(matrix, matrix, perspectiveCameraData.controls.turntableCenter);
                 }
 
                 cameraThree = perspectiveCameraThreeJs;
