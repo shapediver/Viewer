@@ -1,9 +1,9 @@
-import { mat4, quat, vec2, vec3 } from 'gl-matrix'
-import { Box, Sphere, Spherical } from '@shapediver/viewer.shared.math'
+import { mat4, quat, vec2, vec3 } from 'gl-matrix';
+import { Box, Sphere, Spherical } from '@shapediver/viewer.shared.math';
 
-import { PerspectiveCameraControls } from '../PerspectiveCameraControls'
-import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic'
-import { PerspectiveCamera } from '../../camera/PerspectiveCamera'
+import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
+import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic';
+import { PerspectiveCamera } from '../../camera/PerspectiveCamera';
 
 export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Properties (15)
@@ -76,7 +76,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Public Methods (7)
 
     public isWithinRestrictions(position: vec3, target: vec3): boolean {
-        let pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
+        const pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
             pSphere = new Sphere(this._controls.spherePositionRestriction.center, this._controls.spherePositionRestriction.radius),
             tBox = new Box(this._controls.cubeTargetRestriction.min, this._controls.cubeTargetRestriction.max),
             tSphere = new Sphere(this._controls.sphereTargetRestriction.center, this._controls.sphereTargetRestriction.radius);
@@ -84,10 +84,10 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         if (!(pBox.containsPoint(position) && pSphere.containsPoint(position))) return false;
         if (!(tBox.containsPoint(target) && tSphere.containsPoint(target))) return false;
 
-        let currentDistance = vec3.distance(position, target);
+        const currentDistance = vec3.distance(position, target);
         if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) return false;
 
-        let minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
+        const minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
             maxPolarAngle = this._controls.rotationRestriction.maxPolarAngle * (Math.PI / 180),
             minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
             maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
@@ -96,7 +96,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             maxAzimuthAngle !== Infinity ||
             minPolarAngle !== 0 ||
             maxPolarAngle !== 180) {
-            let offset = vec3.sub(vec3.create(), position, target);
+            const offset = vec3.sub(vec3.create(), position, target);
             vec3.transformQuat(offset, offset, this._quat);
             const spherical = new Spherical().fromVec3(offset);
 
@@ -127,7 +127,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             vec2.copy(this._panStart, this._panEnd);
 
             const adjustedPanSpeed = this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0);
-            let offset = this.panDeltaToOffset(vec2.mul(vec2.create(), this._panDelta, vec2.fromValues(adjustedPanSpeed, adjustedPanSpeed)));
+            const offset = this.panDeltaToOffset(vec2.mul(vec2.create(), this._panDelta, vec2.fromValues(adjustedPanSpeed, adjustedPanSpeed)));
 
             if (this._damping.pan.duration > 0) {
                 if (offset[0] < 0) {
@@ -147,11 +147,11 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 }
             }
 
-            let damping = 1 - Math.max(0.01, Math.min(0.99, this._adjustedSettings.damping()));
+            const damping = 1 - Math.max(0.01, Math.min(0.99, this._adjustedSettings.damping()));
 
-            let framesOffsetX = (Math.log(1 / Math.abs(offset[0])) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetY = (Math.log(1 / Math.abs(offset[1])) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetZ = (Math.log(1 / Math.abs(offset[2])) - 5 * Math.log(10)) / (Math.log(damping));
+            const framesOffsetX = (Math.log(1 / Math.abs(offset[0])) - 5 * Math.log(10)) / (Math.log(damping));
+            const framesOffsetY = (Math.log(1 / Math.abs(offset[1])) - 5 * Math.log(10)) / (Math.log(damping));
+            const framesOffsetZ = (Math.log(1 / Math.abs(offset[2])) - 5 * Math.log(10)) / (Math.log(damping));
             this._damping.pan.time = 0;
             this._damping.pan.duration = Math.max(framesOffsetX, Math.max(framesOffsetY, framesOffsetZ)) * 16.6666;
             this._damping.pan.offset = vec3.clone(offset);
@@ -194,8 +194,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         this._rotateStart = vec2.create();
     }
 
-    public restrict(position: vec3, target: vec3): { position: vec3, target: vec3 } {
-        let pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
+    public restrict(position: vec3, target: vec3, sceneRotation: vec2): { position: vec3, target: vec3, sceneRotation: vec2 } {
+        const pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
             pSphere = new Sphere(this._controls.spherePositionRestriction.center, this._controls.spherePositionRestriction.radius),
             tBox = new Box(this._controls.cubeTargetRestriction.min, this._controls.cubeTargetRestriction.max),
             tSphere = new Sphere(this._controls.sphereTargetRestriction.center, this._controls.sphereTargetRestriction.radius);
@@ -213,15 +213,15 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             target = tSphere.clampPoint(target);
 
         // zoom restrictions
-        let currentDistance = vec3.distance(position, target);
+        const currentDistance = vec3.distance(position, target);
         if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) {
-            let direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), position, target))
-            let distance = Math.max(this._controls.zoomRestriction.minDistance, Math.min(this._controls.zoomRestriction.maxDistance, currentDistance));
+            const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), position, target));
+            const distance = Math.max(this._controls.zoomRestriction.minDistance, Math.min(this._controls.zoomRestriction.maxDistance, currentDistance));
             vec3.add(position, vec3.multiply(position, direction, vec3.fromValues(distance, distance, distance)), target);
         }
 
         // angle restrictions
-        let minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
+        const minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
             maxPolarAngle = this._controls.rotationRestriction.maxPolarAngle * (Math.PI / 180),
             minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
             maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
@@ -229,7 +229,10 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         if (minAzimuthAngle !== -Infinity ||
             maxAzimuthAngle !== Infinity ||
             minPolarAngle !== 0 ||
-            maxPolarAngle !== 180) {
+            maxPolarAngle !== 180 ||
+            this._controls.enableAzimuthRotation === false ||
+            this._controls.enablePolarRotation === false
+        ) {
             let offset = vec3.subtract(vec3.create(), position, target);
             vec3.transformQuat(offset, offset, this._quat);
 
@@ -238,17 +241,40 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             if (spherical.theta < minAzimuthAngle ||
                 spherical.theta > maxAzimuthAngle ||
                 spherical.phi < minPolarAngle ||
-                spherical.phi > maxPolarAngle) {
+                spherical.phi > maxPolarAngle ||
+                this._controls.enableAzimuthRotation === false ||
+                this._controls.enablePolarRotation === false
+            ) {
                 spherical.theta = Math.max(minAzimuthAngle, Math.min(maxAzimuthAngle, spherical.theta));
                 spherical.phi = Math.max(minPolarAngle, Math.min(maxPolarAngle, spherical.phi));
+
+                if (this._controls.enableAzimuthRotation === false || this._controls.enablePolarRotation === false) {
+                    const defaultOffset = vec3.subtract(vec3.create(), this._controls.camera.defaultPosition, this._controls.camera.defaultTarget);
+                    vec3.transformQuat(defaultOffset, defaultOffset, this._quat);
+
+                    const defaultSpherical = new Spherical().fromVec3(defaultOffset);
+                    if (this._controls.enableAzimuthRotation === false) spherical.theta = defaultSpherical.theta;
+                    if (this._controls.enablePolarRotation === false) spherical.phi = defaultSpherical.phi;
+                }
+
                 spherical.makeSafe();
                 offset = spherical.toVec3();
                 vec3.transformQuat(offset, offset, this._quatInverse);
                 vec3.add(position, offset, target);
             }
+
+            if (sceneRotation[1] < minAzimuthAngle ||
+                sceneRotation[1] > maxAzimuthAngle ||
+                sceneRotation[0] < minPolarAngle ||
+                sceneRotation[0] > maxPolarAngle ||
+                this._controls.enableAzimuthRotation === false ||
+                this._controls.enablePolarRotation === false) {
+                sceneRotation[1] = this._controls.enableAzimuthRotation === false ? 0 : Math.max(minAzimuthAngle, Math.min(maxAzimuthAngle, sceneRotation[1]));
+                sceneRotation[0] = this._controls.enablePolarRotation === false ? 0 : Math.max(minPolarAngle, Math.min(maxPolarAngle, sceneRotation[0]));
+            }
         }
 
-        return { position, target };
+        return { position, target, sceneRotation };
     }
 
     public rotate(x: number, y: number, active: boolean, touch: boolean): void {
@@ -258,33 +284,33 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         }
 
         if (!active) {
-            this._rotateStart = vec2.fromValues(x, y)
+            this._rotateStart = vec2.fromValues(x, y);
         } else {
-            this._rotateEnd = vec2.fromValues(x, y)
-            vec2.subtract(this._rotateDelta, this._rotateEnd, this._rotateStart)
-            vec2.copy(this._rotateStart, this._rotateEnd)
+            this._rotateEnd = vec2.fromValues(x, y);
+            vec2.subtract(this._rotateDelta, this._rotateEnd, this._rotateStart);
+            vec2.copy(this._rotateStart, this._rotateEnd);
 
             if (!this._controls.canvas) return;
             if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
 
             const spherical = new Spherical();
-            let rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
+            const rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
             spherical.theta -= rotationSpeed * this._rotateDelta[0];
             spherical.phi -= rotationSpeed * this._rotateDelta[1];
 
             if (this._damping.rotation.duration > 0) {
-                let thetaDelta = this._damping.rotation.theta - spherical.theta;
+                const thetaDelta = this._damping.rotation.theta - spherical.theta;
                 spherical.theta += thetaDelta * this._adjustedSettings.movementSmoothness();
 
-                let phiDelta = this._damping.rotation.phi - spherical.phi;
+                const phiDelta = this._damping.rotation.phi - spherical.phi;
                 spherical.phi += phiDelta * this._adjustedSettings.movementSmoothness();
             }
 
-            let offset = this.rotationSphericalToOffset(spherical);
+            const offset = this.rotationSphericalToOffset(this._controls.enableTurntableControls ? new Spherical(1.0, spherical.phi, 0) : spherical);
 
-            let damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
-            let framesTheta = (Math.log(1 / Math.abs(spherical.theta)) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesPhi = (Math.log(1 / Math.abs(spherical.phi)) - 5 * Math.log(10)) / (Math.log(damping));
+            const damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
+            const framesTheta = (Math.log(1 / Math.abs(spherical.theta)) - 5 * Math.log(10)) / (Math.log(damping));
+            const framesPhi = (Math.log(1 / Math.abs(spherical.phi)) - 5 * Math.log(10)) / (Math.log(damping));
 
             this._damping.rotation.time = 0;
             this._damping.rotation.duration = Math.max(framesTheta, framesPhi) * 16.6666;
@@ -295,6 +321,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.zoom.duration = 0;
 
             this._controls.applyPositionVector(offset, true);
+            if (this._controls.enableTurntableControls) this._controls.applyRotation([0, spherical.theta], true);
         }
     }
 
@@ -305,7 +332,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.rotation.duration = 0;
         }
 
-        let damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
+        const damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
 
         if (this._damping.pan.duration > 0) {
             if (this._damping.pan.time + time > this._damping.pan.duration) {
@@ -314,9 +341,9 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             } else {
                 this._damping.pan.time += time;
 
-                let frameSinceStart = this._damping.pan.time / 16.6666;
-                let dampingFrames = Math.pow(damping, frameSinceStart);
-                let offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
+                const frameSinceStart = this._damping.pan.time / 16.6666;
+                const dampingFrames = Math.pow(damping, frameSinceStart);
+                const offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
                 this._controls.applyTargetVector(offset);
                 this._controls.applyPositionVector(offset);
             }
@@ -331,12 +358,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             } else {
                 this._damping.rotation.time += time;
 
-                let frameSinceStart = this._damping.rotation.time / 16.6666;
-                let spherical = new Spherical();
+                const frameSinceStart = this._damping.rotation.time / 16.6666;
+                const spherical = new Spherical();
                 spherical.theta = this._damping.rotation.theta * Math.pow(damping, frameSinceStart);
                 spherical.phi = this._damping.rotation.phi * Math.pow(damping, frameSinceStart);
-                let offset = this.rotationSphericalToOffset(spherical);
+                const offset = this.rotationSphericalToOffset(this._controls.enableTurntableControls ? new Spherical(1.0, spherical.phi, 0) : spherical);
                 this._controls.applyPositionVector(offset);
+                if (this._controls.enableTurntableControls) this._controls.applyRotation([0, spherical.theta]);
             }
         } else {
             this._damping.rotation.time = 0;
@@ -349,9 +377,9 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             } else {
                 this._damping.zoom.time += time;
 
-                let frameSinceStart = this._damping.zoom.time / 16.6666;
-                let delta = this._damping.zoom.delta * Math.pow(damping, frameSinceStart);
-                let offset = this.zoomDistanceToOffset(delta);
+                const frameSinceStart = this._damping.zoom.time / 16.6666;
+                const delta = this._damping.zoom.delta * Math.pow(damping, frameSinceStart);
+                const offset = this.zoomDistanceToOffset(delta);
                 this._controls.applyPositionVector(offset);
             }
         } else {
@@ -359,14 +387,15 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         }
 
         if (this._controls.enableAutoRotation) {
-            let spherical = new Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
-            let offset = this.rotationSphericalToOffset(spherical);
+            const spherical = new Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
+            const offset = this.rotationSphericalToOffset(this._controls.enableTurntableControls ? new Spherical(1.0, spherical.phi, 0) : spherical);
             this._controls.applyPositionVector(offset);
+            if (this._controls.enableTurntableControls) this._controls.applyRotation([0, spherical.theta]);
         }
     }
 
     public zoom(x: number, y: number, active: boolean, touch: boolean): void {
-        var distance = Math.sqrt(x * x + y * y);
+        let distance = Math.sqrt(x * x + y * y);
 
         if (touch)
             distance = distance / window.devicePixelRatio;
@@ -386,10 +415,10 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 }
             }
 
-            let delta = - this._dollyDelta * this._adjustedSettings.zoomSpeed() * (touch ? this._touchAdjustments.zoomSpeed : 1.0);
+            const delta = - this._dollyDelta * this._adjustedSettings.zoomSpeed() * (touch ? this._touchAdjustments.zoomSpeed : 1.0);
 
-            let damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
-            let framesDelta = (Math.log(1 / Math.abs(this._dollyDelta)) - 5 * Math.log(10)) / (Math.log(damping));
+            const damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
+            const framesDelta = (Math.log(1 / Math.abs(this._dollyDelta)) - 5 * Math.log(10)) / (Math.log(damping));
             this._damping.zoom.time = 0;
             this._damping.zoom.duration = framesDelta * 16.6666;
             this._damping.zoom.delta = delta;
@@ -397,7 +426,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.rotation.duration = 0;
             this._damping.pan.duration = 0;
 
-            let offset = this.zoomDistanceToOffset(delta);
+            const offset = this.zoomDistanceToOffset(delta);
             this._controls.applyPositionVector(offset, true);
         }
     }
@@ -407,12 +436,12 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Private Methods (3)
 
     private panDeltaToOffset(panDelta: vec2): vec3 {
-        let offset = vec3.create();
-        let panOffset = vec3.create();
+        const offset = vec3.create();
+        const panOffset = vec3.create();
 
         // perspective
         vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
-        var targetDistance = vec3.length(offset);
+        let targetDistance = vec3.length(offset);
 
         // half of the fov is center to top of screen
         targetDistance *= Math.tan((((<PerspectiveCamera>this._controls.camera).fov / 2) * Math.PI) / 180.0);
@@ -427,7 +456,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         vec3.add(panOffset, panOffset, v1);
 
         // // up
-        const v2 = vec3.fromValues(mat[4], mat[5], mat[6])
+        const v2 = vec3.fromValues(mat[4], mat[5], mat[6]);
         const scalar2 = 2 * panDelta[1] * targetDistance;
         vec3.multiply(v2, v2, vec3.fromValues(scalar2, scalar2, scalar2));
         vec3.add(panOffset, panOffset, v2);
@@ -439,13 +468,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         let offset = vec3.create();
         vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
         vec3.transformQuat(offset, offset, this._quat);
-        let spherical = new Spherical().fromVec3(offset);
+        const spherical = new Spherical().fromVec3(offset);
 
         spherical.theta += s.theta;
         spherical.phi += s.phi;
 
-        let minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
-        maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
+        const minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
+            maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
 
         if (spherical.theta > Math.PI) {
             spherical.theta -= 2 * Math.PI;
@@ -462,17 +491,16 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         spherical.makeSafe();
         offset = spherical.toVec3();
         offset = vec3.transformQuat(vec3.create(), offset, this._quatInverse);
-        offset = vec3.add(vec3.create(), offset, this._controls.getTargetWithManualUpdates())
+        offset = vec3.add(vec3.create(), offset, this._controls.getTargetWithManualUpdates());
         offset = vec3.subtract(vec3.create(), offset, this._controls.getPositionWithManualUpdates());
         return vec3.clone(offset);
-
     }
 
     private zoomDistanceToOffset(distance: number): vec3 {
-        let offset = vec3.create();
+        const offset = vec3.create();
         vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
         return vec3.multiply(vec3.create(), offset, vec3.fromValues(distance, distance, distance));
     }
 
     // #endregion Private Methods (3)
-};
+}

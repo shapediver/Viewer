@@ -1,19 +1,19 @@
-import { vec3, vec2 } from "gl-matrix";
-import { IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { IPerspectiveCameraApi } from "../../../interfaces/viewport/camera/IPerspectiveCameraApi";
-import { AbstractCameraApi } from "./AbstractCameraApi";
-import { InputValidator, Logger } from "@shapediver/viewer.shared.services";
-import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
+import { vec3, vec2 } from 'gl-matrix';
+import { IPerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { IPerspectiveCameraApi } from '../../../interfaces/viewport/camera/IPerspectiveCameraApi';
+import { AbstractCameraApi } from './AbstractCameraApi';
+import { InputValidator, Logger } from '@shapediver/viewer.shared.services';
+import { IViewportApi } from '../../../interfaces/viewport/IViewportApi';
 
 export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspectiveCameraApi {
-    // #region Properties (1)
+    // #region Properties (4)
 
     readonly #camera: IPerspectiveCamera;
     readonly #inputValidator: InputValidator = InputValidator.instance;
     readonly #logger: Logger = Logger.instance;
     readonly #viewportApi: IViewportApi;
 
-    // #endregion Properties (1)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -26,7 +26,7 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (38)
+    // #region Public Accessors (46)
 
     public get autoRotationSpeed(): number {
         return this.#camera.controls.autoRotationSpeed;
@@ -92,6 +92,18 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
         this.#viewportApi.update();
     }
 
+    public get enableAzimuthRotation(): boolean {
+        return this.#camera.controls.enableAzimuthRotation;
+    }
+
+    public set enableAzimuthRotation(value: boolean) {
+        const scope = 'enableAzimuthRotation';
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
+        this.#camera.controls.enableAzimuthRotation = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
+
     public get enableKeyPan(): boolean {
         return this.#camera.controls.enableKeyPan;
     }
@@ -116,6 +128,18 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
         this.#viewportApi.update();
     }
 
+    public get enablePolarRotation(): boolean {
+        return this.#camera.controls.enablePolarRotation;
+    }
+
+    public set enablePolarRotation(value: boolean) {
+        const scope = 'enablePolarRotation';
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
+        this.#camera.controls.enablePolarRotation = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
+
     public get enableRotation(): boolean {
         return this.#camera.controls.enableRotation;
     }
@@ -124,6 +148,18 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
         const scope = 'enableRotation';
         this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
         this.#camera.controls.enableRotation = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
+
+    public get enableTurntableControls(): boolean {
+        return this.#camera.controls.enableTurntableControls;
+    }
+
+    public set enableTurntableControls(value: boolean) {
+        const scope = 'enableTurntableControls';
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
+        this.#camera.controls.enableTurntableControls = value;
         this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
         this.#viewportApi.update();
     }
@@ -244,6 +280,18 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
         this.#viewportApi.update();
     }
 
+    public get turntableCenter(): vec3 {
+        return this.#camera.controls.turntableCenter;
+    }
+
+    public set turntableCenter(value: vec3) {
+        const scope = 'turntableCenter';
+        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'vec3');
+        this.#camera.controls.turntableCenter = value;
+        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        this.#viewportApi.update();
+    }
+
     public get zoomRestriction(): { minDistance: number; maxDistance: number; } {
         return this.#camera.controls.zoomRestriction;
     }
@@ -270,5 +318,5 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
         this.#viewportApi.update();
     }
 
-    // #endregion Public Accessors (38)
+    // #endregion Public Accessors (46)
 }
