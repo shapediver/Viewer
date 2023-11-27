@@ -28,7 +28,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     private _enableRotation: boolean = true;
     private _enableTurntableControls: boolean = false;
     private _enableZoom: boolean = true;
-    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 3 }, };
+    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 2 }, };
     private _keyPanSpeed: number = 0.5;
     private _movementSmoothness: number = 0.5;
     private _panSpeed: number = 0.5;
@@ -254,7 +254,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
         this.enablePan = controlsSettings.enablePan;
         this.enableRotation = controlsSettings.enableRotation;
         this.enableZoom = controlsSettings.enableZoom;
-        this.input = controlsSettings.input;
+        // this.input = controlsSettings.input;
         this.keyPanSpeed = controlsSettings.keyPanSpeed;
         this.movementSmoothness = controlsSettings.movementSmoothness;
         this.rotationSpeed = controlsSettings.rotationSpeed;
