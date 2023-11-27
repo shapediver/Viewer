@@ -1,13 +1,13 @@
-import { IOrthographicControlsSettingsV3 } from '@shapediver/viewer.settings'
-import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { IOrthographicControlsSettingsV3 } from '@shapediver/viewer.settings';
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
 
-import { CAMERA_TYPE, ICamera } from '../..'
-import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
-import { AbstractCameraControls } from './AbstractCameraControls'
+import { CAMERA_TYPE, ICamera } from '../..';
+import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls';
+import { AbstractCameraControls } from './AbstractCameraControls';
 import {
   CameraControlsEventDistribution as OrthographicCameraControlsEventDistribution,
-} from './orthographic/CameraControlsEventDistribution'
-import { CameraControlsLogic as OrthographicCameraControlsLogic } from './orthographic/CameraControlsLogic'
+} from './orthographic/CameraControlsEventDistribution';
+import { CameraControlsLogic as OrthographicCameraControlsLogic } from './orthographic/CameraControlsLogic';
 
 export class OrthographicCameraControls extends AbstractCameraControls implements IOrthographicCameraControls {
     // #region Properties (9)
@@ -16,7 +16,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     private _enableKeyPan: boolean = false;
     private _enablePan: boolean = true;
     private _enableZoom: boolean = true;
-    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 3 }, };
+    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 2 }, };
     private _keyPanSpeed: number = 0.5;
     private _movementSmoothness: number = 0.5;
     private _panSpeed: number = 0.5;
@@ -43,7 +43,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
         this.enableKeyPan = controlsSettings.enableKeyPan;
         this.enablePan = controlsSettings.enablePan;
         this.enableZoom = controlsSettings.enableZoom;
-        this.input = controlsSettings.input;
+        // this.input = controlsSettings.input;
         this.keyPanSpeed = controlsSettings.keyPanSpeed;
         this.movementSmoothness = controlsSettings.movementSmoothness;
         this.panSpeed = controlsSettings.panSpeed;

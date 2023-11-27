@@ -1,19 +1,18 @@
-import { CameraControlsLogic } from './CameraControlsLogic'
-import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution'
-import { PerspectiveCameraControls } from '../PerspectiveCameraControls'
+import { CameraControlsLogic } from './CameraControlsLogic';
+import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution';
+import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
-  // #region Properties (1)
+  // #region Properties (2)
 
   private _active = {
     rotation: false,
     zoom: false,
     pan: false
   };
-
   private _activeEvents = true;
 
-  // #endregion Properties (1)
+  // #endregion Properties (2)
 
   // #region Constructors (1)
 
@@ -21,7 +20,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (16)
+  // #region Public Methods (20)
 
   public activateCameraEvents(): void {
     this._activeEvents = true;
@@ -29,46 +28,46 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   public deactivateCameraEvents(): void {
     this._activeEvents = false;
-    this.reset()
+    this.reset();
   }
 
-  public onDown(event: MouseEvent|TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-    let {x,y} = this.convertInput(event);
+  public onDown(event: MouseEvent | TouchEvent): void {
+    if (this._controls.camera.active === false) return;
+    const { x, y } = this.convertInput(event);
 
-    let input = window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
-    let mapping = window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
+    const input = window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
+    const mapping = window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
 
     if (input === mapping.rotate && this._controls.enableRotation) {
       this._cameraLogic.rotate(x, y, this._active.rotation, window.TouchEvent && event instanceof TouchEvent);
       this._active.rotation = true;
-      this._active.pan = false;
-      this._active.zoom = false;
+    } else {
+      this._active.rotation = false;
     }
 
     if (input === mapping.pan && this._controls.enablePan) {
       this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
-      this._active.rotation = false;
       this._active.pan = true;
-      this._active.zoom = false;    
+    } else {
+      this._active.pan = false;
     }
 
     if (input === mapping.zoom && this._controls.enableZoom) {
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
-        x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
-        y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
+      if (window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
+        x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
+        y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
       }
       this._cameraLogic.zoom(x1, y1, this._active.zoom, window.TouchEvent && event instanceof TouchEvent);
-      this._active.rotation = false;
-      this._active.pan = false;
       this._active.zoom = true;
+    } else {
+      this._active.zoom = false;
     }
   }
 
   public onKey(event: KeyboardEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._controls.enableKeyPan) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._controls.enableKeyPan) return;
     switch (event.keyCode) {
       case this._controls.input.keys.up:
         this._cameraLogic.pan(0, 0, false, false);
@@ -101,46 +100,46 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   }
 
   public onKeyDown(event: KeyboardEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
-    this.onKey(event)
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+    this.onKey(event);
   }
 
   public onMouseDown(event: MouseEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
     this.onDown(event);
   }
 
-  public onMouseMove(event: MouseEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
-    this.onMove(event);
-  }
-
   public onMouseEnd(event: MouseEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
     this.onUp(event);
   }
 
-  public onMouseWheel(event: WheelEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
-    this.onWheel(event);
-  }
-  
-  public onMouseUp(event: WheelEvent): void {
-    if(this._controls.camera.active === false) return;
+  public onMouseMove(event: MouseEvent): void {
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+    this.onMove(event);
   }
 
   public onMouseOut(event: WheelEvent): void {
-    if(this._controls.camera.active === false) return;
+    if (this._controls.camera.active === false) return;
   }
 
-  public onMove(event: MouseEvent|TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-    let {x,y} = this.convertInput(event);
+  public onMouseUp(event: WheelEvent): void {
+    if (this._controls.camera.active === false) return;
+  }
+
+  public onMouseWheel(event: WheelEvent): void {
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+    this.onWheel(event);
+  }
+
+  public onMove(event: MouseEvent | TouchEvent): void {
+    if (this._controls.camera.active === false) return;
+    const { x, y } = this.convertInput(event);
 
     if (this._controls.enableRotation && this._active.rotation)
       this._cameraLogic.rotate(x, y, this._active.rotation, window.TouchEvent && event instanceof TouchEvent);
@@ -148,63 +147,63 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if (this._controls.enablePan && this._active.pan)
       this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
 
-    if (this._controls.enableZoom && this._active.zoom){
+    if (this._controls.enableZoom && this._active.zoom) {
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
-        x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
-        y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
+      if (window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
+        x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
+        y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
       }
       this._cameraLogic.zoom(x1, y1, this._active.zoom, window.TouchEvent && event instanceof TouchEvent);
     }
   }
 
+  public onTouchCancel(event: TouchEvent): void {
+    if (this._controls.camera.active === false) return;
+  }
+
   public onTouchEnd(event: TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
     this.onUp(event);
   }
 
   public onTouchMove(event: TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
     this.onMove(event);
   }
 
   public onTouchStart(event: TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
     this.onDown(event);
   }
 
-  public onTouchCancel(event: TouchEvent): void {
-    if(this._controls.camera.active === false) return;
-  }
-
   public onTouchUp(event: TouchEvent): void {
-    if(this._controls.camera.active === false) return;
+    if (this._controls.camera.active === false) return;
   }
 
-  public onUp(event: MouseEvent|TouchEvent): void {
-    if(this._controls.camera.active === false) return;
+  public onUp(event: MouseEvent | TouchEvent): void {
+    if (this._controls.camera.active === false) return;
     this._active.rotation = false;
     this._active.zoom = false;
     this._active.pan = false;
   }
 
   public onWheel(event: WheelEvent): void {
-    if(this._controls.camera.active === false) return;
-    if(!this._activeEvents) return;
-    if(!this._controls.enableZoom) return;
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+    if (!this._controls.enableZoom) return;
     let delta = 0;
-    if (event.deltaY  !== undefined) {
+    if (event.deltaY !== undefined) {
       // WebKit / Opera / Explorer 9
-      delta = -event.deltaY ;
+      delta = -event.deltaY;
     } else if (event.detail !== undefined) {
       // Firefox
       delta = -event.detail;
     }
     // convert to 2 screen coordinates that are far enough
-    if(Math.sign(delta) > 0) {
+    if (Math.sign(delta) > 0) {
       this._cameraLogic.zoom(0, 0, false, false);
       this._cameraLogic.zoom(1, 0, true, false);
     } else {
@@ -221,23 +220,27 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     };
   }
 
-  // #endregion Public Methods (16)
+  // #endregion Public Methods (20)
 
   // #region Private Methods (1)
 
-  private convertInput(event: MouseEvent|TouchEvent): {x: number, y: number} {
-    let aspect = window.innerWidth / window.innerHeight;
+  private convertInput(event: MouseEvent | TouchEvent): { x: number, y: number } {
     if (event instanceof MouseEvent) {
       return {
-        x: event.clientX / window.innerWidth * aspect,
-        y: event.clientY / window.innerHeight
-      }
+        x: event.clientX,
+        y: event.clientY
+      };
     } else {
-      if(event.touches.length < 1) return { x: 0, y: 0 };
+      if (event.touches.length < 1) return { x: 0, y: 0 };
+      if (event.touches.length === 1)
+        return {
+          x: event.touches[0].pageX,
+          y: event.touches[0].pageY
+        };
       return {
-        x: event.touches[0].pageX / window.innerWidth * aspect,
-        y: event.touches[0].pageY / window.innerHeight
-      }
+        x: (event.touches[0].pageX + event.touches[1].pageX) / 2,
+        y: (event.touches[0].pageY + event.touches[1].pageY) / 2
+      };
     }
   }
 

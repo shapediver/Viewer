@@ -49,16 +49,16 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         autoRotationSpeed: 2 * Math.PI / 60 / 60,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 2.0,
-        rotationSpeed: Math.PI,
+        panSpeed: 4.0,
+        rotationSpeed: 2.0*Math.PI,
         zoomSpeed: 0.025,
     };
     private _touchAdjustments = {
         autoRotationSpeed: 1.0,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 2.0,
-        rotationSpeed: 4.0,
+        panSpeed: 1.0,
+        rotationSpeed: 0.5,
         zoomSpeed: 100.0,
     };
 
@@ -112,10 +112,6 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     }
 
     public pan(x: number, y: number, active: boolean, touch: boolean): void {
-        if (touch) {
-            x = x / window.devicePixelRatio;
-            y = y / window.devicePixelRatio;
-        }
 
         if (!active) {
             this._panStart = vec2.fromValues(x, y);
@@ -123,6 +119,12 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._panEnd = vec2.fromValues(x, y);
             vec2.sub(this._panDelta, this._panEnd, this._panStart);
             if (this._panDelta[0] === 0 && this._panDelta[1] === 0) return;
+
+            if (!this._controls.canvas) return;
+            if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
+
+            this._panDelta[0] = this._panDelta[0] / this._controls.canvas.clientWidth;
+            this._panDelta[1] = this._panDelta[1] / this._controls.canvas.clientHeight;
 
             vec2.copy(this._panStart, this._panEnd);
 
@@ -278,10 +280,6 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     }
 
     public rotate(x: number, y: number, active: boolean, touch: boolean): void {
-        if (touch) {
-            x = x / window.devicePixelRatio;
-            y = y / window.devicePixelRatio;
-        }
 
         if (!active) {
             this._rotateStart = vec2.fromValues(x, y);
@@ -295,8 +293,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
             const spherical = new Spherical();
             const rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
-            spherical.theta -= rotationSpeed * this._rotateDelta[0];
-            spherical.phi -= rotationSpeed * this._rotateDelta[1];
+            spherical.theta -= rotationSpeed * (this._rotateDelta[0] / this._controls.canvas.clientWidth);
+            spherical.phi -= rotationSpeed * (this._rotateDelta[1] / this._controls.canvas.clientHeight);
 
             if (this._damping.rotation.duration > 0) {
                 const thetaDelta = this._damping.rotation.theta - spherical.theta;
@@ -395,10 +393,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     }
 
     public zoom(x: number, y: number, active: boolean, touch: boolean): void {
-        let distance = Math.sqrt(x * x + y * y);
-
-        if (touch)
-            distance = distance / window.devicePixelRatio;
+        const distance = Math.sqrt(x * x + y * y);
 
         if (!active) {
             this._dollyStart = distance;
