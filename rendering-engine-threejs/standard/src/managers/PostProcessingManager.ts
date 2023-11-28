@@ -108,6 +108,7 @@ export class PostProcessingManager implements IManager {
     private _ssaaRenderPass?: SSAARenderPass;
     private _sceneExtents = 0;
     private _suspendEffectPassUpdate = false;
+    private _currentCameraType: string = 'PerspectiveCamera';
 
     // #endregion Properties (19)
 
@@ -1102,6 +1103,11 @@ export class PostProcessingManager implements IManager {
 
     public render(deltaTime: number, camera: THREE.Camera) {
         if(!this._composer) return;
+
+        if(camera.type !== this._currentCameraType) {
+            this._currentCameraType = camera.type;
+            this.changeEffectPass();
+        }
 
         const currentClearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
         const convertedClearColor = currentClearColor.clone().convertSRGBToLinear();
