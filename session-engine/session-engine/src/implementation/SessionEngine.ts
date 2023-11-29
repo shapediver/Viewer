@@ -317,7 +317,7 @@ export class SessionEngine implements ISessionEngine {
                     if (sections.session.parameter.hidden) this.parameters[p].hidden = settings.session[p].hidden || false;
                 }
 
-                if (response.parameters && response.parameters[p] && !(this.parameters[p] instanceof FileParameter)) {
+                if (response.parameters && response.parameters[p] && !((this.parameters[p] instanceof FileParameter) || this.parameters[p].type.startsWith('s'))) {
                     if (sections.session.parameter.value) this.parameters[p].value = response.parameters[p].defval !== undefined ? response.parameters[p].defval : this.parameters[p].value;
                 }
             }
