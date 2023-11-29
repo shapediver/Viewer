@@ -49,7 +49,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         autoRotationSpeed: 2 * Math.PI / 60 / 60,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 4.0,
+        panSpeed: 3.5,
         rotationSpeed: 2.0*Math.PI,
         zoomSpeed: 0.025,
     };
@@ -57,7 +57,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         autoRotationSpeed: 1.0,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 0.25,
+        panSpeed: 1.0 / 3.5,
         rotationSpeed: 0.5,
         zoomSpeed: 100.0,
     };
@@ -122,9 +122,10 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
             if (!this._controls.canvas) return;
             if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
-
-            this._panDelta[0] = this._panDelta[0] / this._controls.canvas.clientWidth;
-            this._panDelta[1] = this._panDelta[1] / this._controls.canvas.clientHeight;
+            
+            const maxSide = Math.max(this._controls.canvas.clientWidth, this._controls.canvas.clientHeight);
+            this._panDelta[0] = this._panDelta[0] / maxSide;
+            this._panDelta[1] = this._panDelta[1] / maxSide;
 
             vec2.copy(this._panStart, this._panEnd);
 
@@ -293,8 +294,9 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
             const spherical = new Spherical();
             const rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
-            spherical.theta -= rotationSpeed * (this._rotateDelta[0] / this._controls.canvas.clientWidth);
-            spherical.phi -= rotationSpeed * (this._rotateDelta[1] / this._controls.canvas.clientHeight);
+            const maxSide = Math.max(this._controls.canvas.clientWidth, this._controls.canvas.clientHeight);
+            spherical.theta -= rotationSpeed * (this._rotateDelta[0] / maxSide);
+            spherical.phi -= rotationSpeed * (this._rotateDelta[1] / maxSide);
 
             if (this._damping.rotation.duration > 0) {
                 const thetaDelta = this._damping.rotation.theta - spherical.theta;
