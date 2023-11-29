@@ -40,6 +40,8 @@
   },
   "dependencies": {
     "@shapediver/viewer": "*",
+    "@shapediver/viewer.shared.services": "*",
+    "@shapediver/viewer.utils.demo-helper": "1.0.3",
     "gl-matrix": "3.3.0"
   }
 }
