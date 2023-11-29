@@ -150,13 +150,13 @@ export class OutputApi implements IOutputApi {
 
     public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null) {
         const scope = 'updateCallback';
-        this.#inputValidator.validateAndError(`OutputApi.${scope}`, value, 'function', false);
+        if(value) this.#inputValidator.validateAndError(`OutputApi.${scope}`, value, 'function', false);
         this.#output.updateCallback = async (newNode?: ITreeNode, oldNode?: ITreeNode) => {
             if (newNode && newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
                 newNode.addData(new OutputApiData(this));
             if (value) await Promise.resolve(value(newNode, oldNode));
         };
-        this.#logger.debug(`OutputApi.${scope}: ${scope} was updated to ${this.#output.updateCallback}.`);
+        this.#logger.debug(`OutputApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
     public get version(): string {
