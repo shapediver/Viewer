@@ -40,13 +40,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
   private _settingsAdjustments = {
     damping: 1.0,
     movementSmoothness: 1.0,
-    panSpeed: 4.0,
+    panSpeed: 3.5,
     zoomSpeed: 0.025,
   };
   private _touchAdjustments = {
     damping: 1.0,
     movementSmoothness: 1.0,
-    panSpeed: 1.0,
+    panSpeed: 4.0/3.5,
     zoomSpeed: 100.0,
   };
 
@@ -75,8 +75,9 @@ export class CameraControlsLogic implements ICameraControlsLogic {
       if (!this._controls.canvas) return;
       if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
 
-      this._panDelta[0] = this._panDelta[0] / this._controls.canvas.clientWidth;
-      this._panDelta[1] = this._panDelta[1] / this._controls.canvas.clientHeight;
+      const maxSide = Math.max(this._controls.canvas.clientWidth, this._controls.canvas.clientHeight);
+      this._panDelta[0] = this._panDelta[0] / maxSide;
+      this._panDelta[1] = this._panDelta[1] / maxSide;
 
       vec2.copy(this._panStart, this._panEnd);
 
