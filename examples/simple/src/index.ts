@@ -1,15 +1,107 @@
-import * as SDV from '@shapediver/viewer';
+import { addListener, createViewport, ITaskEvent, IViewportApi, TASK_TYPE, VISIBILITY_MODE } from '@shapediver/viewer';
+import { EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { addGLTF, createMenu, fetchPendants, Option } from './utils';
+import * as SHAPEDIVERVIEWER from '@shapediver/viewer';
+import { resolve } from 'path';
 
-(<any>window).SDV = SDV;
+(<any>window).SDV = SHAPEDIVERVIEWER;
+
+export let viewport: IViewportApi;
+
+export const modelOptions: {
+    [pendantGroup: string]: {
+        [color: string]: {
+            [variation: string]: Option[]
+        }
+    }
+} = {};
 
 (async () => {
-    const viewport = await SDV.createViewport({
-        id: 'myViewport',
-        canvas: <HTMLCanvasElement>document.getElementById('canvas')
+    const options = await fetchPendants();
+    // options.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+    for(let i = 0; i < options.length; i++) {
+        const o = options[i];
+        const o_removedPath = o.label.replace('configurator/models/pendants/', '');
+        const pendantGroup = o_removedPath.substring(0, o_removedPath.indexOf('/'));
+
+        if(pendantGroup === 'optimized') continue;
+
+        if(!modelOptions[pendantGroup]) 
+            modelOptions[pendantGroup] = {};
+
+        const variationIndex = o_removedPath.indexOf('_Var') + 1;
+
+        if(variationIndex === 0) {
+            if(!modelOptions[pendantGroup]['color']) 
+                modelOptions[pendantGroup]['color'] = {};
+
+            if(!modelOptions[pendantGroup]['color']['variation'])
+                modelOptions[pendantGroup]['color']['variation'] = [];
+
+            modelOptions[pendantGroup]['color']['variation'].push(o);
+        } else {
+            const variation = o_removedPath.substring(variationIndex, o_removedPath.indexOf('_', variationIndex));
+
+            const nextUnderscoreIndex = o_removedPath.indexOf('_', variationIndex)+1;
+            const color = o_removedPath.substring(nextUnderscoreIndex, o_removedPath.indexOf('_', nextUnderscoreIndex));
+
+            if(!modelOptions[pendantGroup][color]) 
+                modelOptions[pendantGroup][color] = {};
+
+            if(!modelOptions[pendantGroup][color][variation])
+                modelOptions[pendantGroup][color][variation] = [];
+
+            modelOptions[pendantGroup][color][variation].push(o);
+        }
+
+    }
+
+    // create a viewport
+    viewport = await createViewport({
+        canvas: <HTMLCanvasElement>document.getElementById('canvas'),
+        id: 'myViewer',
+        visibility: VISIBILITY_MODE.MANUAL,
+        branding: { backgroundColor: '#efefef' }
     });
-    const session = await SDV.createSession({
-        id: 'mySession',
-        ticket: '7d6061acf274727aff4710230595ff9e58fbd019a1e173ccd5f2342ecc697fd2397ab08cadc3014b2760f858d18b4aade0aade39fd73a5c1b44fef4d5a457739c1fe28ec6b44ef593a41f6c0cccc78fb3f62234080db167d60c23886b32c759068cdff6af5a8e3-853d465964df80e5db72abe9655cedee',
-        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
-    });
+
+    Object.keys(viewport.postProcessing.getEffectTokens()).forEach(e => viewport.postProcessing.removeEffect(e));
+
+    // adjust some of the settings
+    viewport.groundPlaneVisibility = false;
+    viewport.gridVisibility = false;
+    // viewport.ambientOcclusion = false;
+    viewport.shadows = false;
+    viewport.clearColor = '#efefef';
+
+    viewport.environmentMap = SHAPEDIVERVIEWER.ENVIRONMENT_MAP.NEUTRAL;
+    viewport.createLightScene();
+    viewport.automaticColorAdjustment = false;
+
+    // wait for the environment map to load
+    const promises = [];
+    promises.push(new Promise<void>((resolve) => {
+        addListener(EVENTTYPE.TASK.TASK_END, (e) => {
+            const taskEvent = e as ITaskEvent;
+            if (taskEvent.type === TASK_TYPE.ENVIRONMENT_MAP_LOADING) resolve();
+        });
+    }));
+
+    // create the main menu
+    const menuDiv = document.getElementById('menu') as HTMLDivElement;
+    menuDiv.style.visibility = 'hidden';
+    createMenu();
+
+    await Promise.all(promises);
+
+    // once everything is loaded, show it
+    viewport.show = true;
+    menuDiv.style.visibility = '';
+
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    const gltf = await viewport.convertToGlTF();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(gltf);
+    a.click();
 })();
