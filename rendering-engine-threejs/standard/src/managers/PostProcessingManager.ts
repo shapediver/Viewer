@@ -1104,8 +1104,9 @@ export class PostProcessingManager implements IManager {
     public render(deltaTime: number, camera: THREE.Camera) {
         if(!this._composer) return;
 
-        if(camera.type !== this._currentCameraType) {
-            this._currentCameraType = camera.type;
+        const cameraType = camera.type + (camera.type === 'PerspectiveCamera' ? '' : camera.up.toArray().toString());
+        if(cameraType !== this._currentCameraType) {
+            this._currentCameraType = cameraType;
             this.changeEffectPass();
         }
 
