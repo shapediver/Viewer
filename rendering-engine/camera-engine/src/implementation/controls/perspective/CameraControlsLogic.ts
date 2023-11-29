@@ -49,16 +49,16 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         autoRotationSpeed: 2 * Math.PI / 60 / 60,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 3.5,
-        rotationSpeed: 2.0*Math.PI,
+        panSpeed: 1.75,
+        rotationSpeed: Math.PI,
         zoomSpeed: 0.025,
     };
     private _touchAdjustments = {
         autoRotationSpeed: 1.0,
         damping: 1.0,
         movementSmoothness: 1.0,
-        panSpeed: 1.0 / 3.5,
-        rotationSpeed: 0.5,
+        panSpeed: 1.0 / 1.75,
+        rotationSpeed: 1.5,
         zoomSpeed: 100.0,
     };
 
@@ -119,14 +119,6 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._panEnd = vec2.fromValues(x, y);
             vec2.sub(this._panDelta, this._panEnd, this._panStart);
             if (this._panDelta[0] === 0 && this._panDelta[1] === 0) return;
-
-            if (!this._controls.canvas) return;
-            if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
-            
-            const maxSide = Math.max(this._controls.canvas.clientWidth, this._controls.canvas.clientHeight);
-            this._panDelta[0] = this._panDelta[0] / maxSide;
-            this._panDelta[1] = this._panDelta[1] / maxSide;
-
             vec2.copy(this._panStart, this._panEnd);
 
             const adjustedPanSpeed = this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0);
@@ -294,9 +286,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
             const spherical = new Spherical();
             const rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
-            const maxSide = Math.max(this._controls.canvas.clientWidth, this._controls.canvas.clientHeight);
-            spherical.theta -= rotationSpeed * (this._rotateDelta[0] / maxSide);
-            spherical.phi -= rotationSpeed * (this._rotateDelta[1] / maxSide);
+            spherical.theta -= rotationSpeed * this._rotateDelta[0] / this._controls.canvas.clientHeight;
+            spherical.phi -= rotationSpeed * this._rotateDelta[1] / this._controls.canvas.clientHeight;
 
             if (this._damping.rotation.duration > 0) {
                 const thetaDelta = this._damping.rotation.theta - spherical.theta;
@@ -435,6 +426,9 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     private panDeltaToOffset(panDelta: vec2): vec3 {
         const offset = vec3.create();
         const panOffset = vec3.create();
+        
+        if (!this._controls.canvas) return offset;
+        if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return offset;
 
         // perspective
         vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
@@ -448,13 +442,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         const mat = mat4.targetTo(mat4.create(), this._controls.camera.position, this._controls.camera.target, vec3.fromValues(0, 0, 1));
 
         const v1 = vec3.fromValues(mat[0], mat[1], mat[2]);
-        const scalar1 = -(2 * panDelta[0] * targetDistance);
+        const scalar1 = -(2 * panDelta[0] * targetDistance / this._controls.canvas?.clientHeight);
         vec3.multiply(v1, v1, vec3.fromValues(scalar1, scalar1, scalar1));
         vec3.add(panOffset, panOffset, v1);
 
         // // up
         const v2 = vec3.fromValues(mat[4], mat[5], mat[6]);
-        const scalar2 = 2 * panDelta[1] * targetDistance;
+        const scalar2 = 2 * panDelta[1] * targetDistance / this._controls.canvas?.clientHeight;
         vec3.multiply(v2, v2, vec3.fromValues(scalar2, scalar2, scalar2));
         vec3.add(panOffset, panOffset, v2);
 
