@@ -243,7 +243,25 @@ export class SceneTreeManager implements IManager {
         if (filter.transformationOnly === false) {
             // remove all data items that do not exist anymore
             const dataIds = node.data.map(d => d.id);
-            const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) || !(node.data.find(d => d.id === oc.SDid)!.version === oc.SDversion) : false);
+            const dataToRemove = convertedObject.children.filter(oc => {
+                if(oc instanceof SDData) {
+                    if(dataIds.includes(oc.SDid)) {
+                        const data = node.data.find(d => d.id === oc.SDid);
+                            if(data && data.version !== oc.SDversion) {
+                                // version is different
+                                return true;
+                            } else {
+                                return false;
+                            }
+                    } else {
+                        // id not included anymore
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            });
+
             dataToRemove.forEach(dTR => {
                 this.removeData(<SDData>dTR);
                 convertedObject.remove(dTR);
@@ -252,7 +270,24 @@ export class SceneTreeManager implements IManager {
             // remove all child nodes in the transformed object that do not exist anymore
             // the filter goes also through the data items as they were already added
             const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
-            const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject && !(oc instanceof SDData) ? !nodeIds.includes(oc.SDid) : false);
+            const childrenToRemove = convertedObject.children.filter(oc => {
+                if(oc instanceof SDObject && !(oc instanceof SDData)) {
+                    if(nodeIds.includes(oc.SDid)) {
+                        const child = node.children.find(d => d.id === oc.SDid);
+                            if(child && child.version !== oc.SDversion) {
+                                // version is different
+                                return true;
+                            } else {
+                                return false;
+                            }
+                    } else {
+                        // id not included anymore
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            });
             childrenToRemove.forEach(cTR => {
                 cTR.traverse(o => {
                     if (o instanceof SDData)
@@ -471,6 +506,7 @@ export class SceneTreeManager implements IManager {
                     o.userData.removed = true;
 
                     if (o instanceof THREE.Mesh) {
+                        this.scene.remove(o);
                         this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion);
                         this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
                         this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion);
@@ -478,6 +514,7 @@ export class SceneTreeManager implements IManager {
                         const texturesToRemove: THREE.Texture[] = [];
                         for (const t in o.material) {
                             if (o.material[t] instanceof THREE.Texture) {
+                                o.material[t].name = t;
                                 if (t !== 'envMap') {
                                     if(!texturesToRemove.includes(o.material[t]))
                                         texturesToRemove.push(o.material[t]);
@@ -489,7 +526,12 @@ export class SceneTreeManager implements IManager {
                             if(texture.userData.cacheKey) {
                                 this._renderingEngine.materialLoader.threeJsTextureCache[texture.userData.cacheKey].usage--;
                             } else {
-                                texture.dispose();
+                                if(texture.name === "sphericalNormalMap") {
+                                    this._renderingEngine.geometryLoader.removeFromGemSphericalMapsCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
+                                    texture.dispose();
+                                } else {
+                                    texture.dispose();
+                                }
                             }
                         }
                     }
