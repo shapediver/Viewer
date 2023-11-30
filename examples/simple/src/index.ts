@@ -103,6 +103,10 @@ import { Converter } from '@shapediver/viewer.shared.services';
     session.getParameterByName("His and Hers Secret Stones")[0].value = true;
     await session.customize();
 
+
+    const size = session.getParameterByName('Approximate Carat Weight')[0];
+    
+
     console.log(gemMaterials)
     for(let i = 0; i < 12; i++) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -113,7 +117,9 @@ import { Converter } from '@shapediver/viewer.shared.services';
         viewport.update();
         for(let j = 0; j < 12; j++) {
 
-
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            size.value = String(j);
+            await session.customize();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             gemMaterials["secretStones_0"].materialSettings.colorTransferBegin = Converter.instance.toHexColor(`hsl(${360*(j/12)}, 100%, 50%)`);
