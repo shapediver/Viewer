@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from 'three';
 import {
     AttributeData,
     GeometryData,
@@ -7,21 +7,17 @@ import {
     PRIMITIVE_MODE,
     IPrimitiveData,
     IAttributeData,
-    MaterialGemData,
-    MaterialStandardData,
-} from '@shapediver/viewer.shared.types'
-import { IBox } from '@shapediver/viewer.shared.math'
-import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+    MaterialGemData
+} from '@shapediver/viewer.shared.types';
+import { IBox } from '@shapediver/viewer.shared.math';
+import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
+import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
-import { RenderingEngine } from '../RenderingEngine'
-import { ILoader } from '../interfaces/ILoader'
-import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
-import { MaterialSettings } from './MaterialLoader'
-import { GemMaterial } from '../materials/GemMaterial'
-import { mat4, mat3, vec3 } from 'gl-matrix'
-import { SDData } from '../objects/SDData'
-import { SDObject } from '../objects/SDObject'
+import { RenderingEngine } from '../RenderingEngine';
+import { ILoader } from '../interfaces/ILoader';
+import { GemMaterial } from '../materials/GemMaterial';
+import { vec3 } from 'gl-matrix';
+import { SDData } from '../objects/SDData';
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -30,14 +26,7 @@ export class GeometryLoader implements ILoader {
         [key: string]: {
             counter: number,
             threeGeometry: THREE.BufferGeometry,
-            materialSettings: {
-                mode: PRIMITIVE_MODE,
-                useVertexTangents: boolean,
-                useVertexColors: boolean,
-                useFlatShading: boolean,
-                useMorphTargets: boolean,
-                useMorphNormals: boolean
-            }
+            clones: THREE.BufferGeometry[]
         }
     } = {};
     private _geometryCache: {
@@ -47,12 +36,16 @@ export class GeometryLoader implements ILoader {
     } = {};
     private _logger: Logger = Logger.instance;
     private _gemSphericalMapsCache: {
-        [key: string]: THREE.CubeTexture
+        [key: string]: {
+            texture: THREE.CubeTexture,
+            renderTarget: THREE.WebGLCubeRenderTarget,
+            counter: number
+        }
     } = {};
     private _gemNormalMaterial?: THREE.ShaderMaterial;
     private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
     private _gemScene?: THREE.Scene;
-    private _gemCubeCamera?: THREE.CubeCamera
+    private _gemCubeCamera?: THREE.CubeCamera;
 
     // #endregion Properties (3)
 
@@ -83,13 +76,15 @@ export class GeometryLoader implements ILoader {
                 return this.loadPrimitive(geometry.primitive);
             } else {
                 this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].counter++;
-                return this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry.clone();
+                const clone = this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry.clone();
+                this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].clones.push(clone);
+                return clone;
             }
         })();
 
         let incomingMaterialData: IMaterialAbstractData | null;
         if (geometry.effectMaterials.length > 0) {
-            incomingMaterialData = geometry.effectMaterials[geometry.effectMaterials.length - 1].material
+            incomingMaterialData = geometry.effectMaterials[geometry.effectMaterials.length - 1].material;
         } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
             incomingMaterialData = geometry.attributeMaterial;
         } else {
@@ -103,15 +98,15 @@ export class GeometryLoader implements ILoader {
             useFlatShading: threeGeometry.attributes.normal === undefined,
             useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
             useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-        }
+        };
 
         if (incomingMaterialData instanceof MaterialGemData) {
             const gemMaterialData = <MaterialGemData>incomingMaterialData;
             threeGeometry.computeBoundingSphere();
 
-            let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
+            const sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
 
-            let center = threeGeometry.boundingSphere!.center,
+            const center = threeGeometry.boundingSphere!.center,
                 radius = threeGeometry.boundingSphere!.radius;
 
             gemMaterialData.side = MATERIAL_SIDE.FRONT;
@@ -144,10 +139,10 @@ export class GeometryLoader implements ILoader {
                     o instanceof THREE.Line ||
                     o instanceof THREE.Mesh)
                     o.material = material;
-            })
+            });
         } else {
             obj = new SDData(geometry.id, geometry.version);
-            this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
+            this.createMesh(obj, geometry, threeGeometry, material, skeleton);
             this._geometryCache[geometry.id + '_' + geometry.version] = { obj };
             parent.add(obj);
         }
@@ -163,11 +158,11 @@ export class GeometryLoader implements ILoader {
     }
 
     public loadPrimitive(primitive: IPrimitiveData): THREE.BufferGeometry {
-        let geometry = new THREE.BufferGeometry();
+        const geometry = new THREE.BufferGeometry();
         if (primitive.indices)
             geometry.setIndex(new THREE.BufferAttribute(primitive.indices!.array, primitive.indices!.itemSize));
 
-        for (let attributeId in primitive.attributes) {
+        for (const attributeId in primitive.attributes) {
             const buffer = this.loadAttribute(primitive.attributes[attributeId], attributeId);
             const attributeName = this.getAttributeName(attributeId);
 
@@ -175,7 +170,7 @@ export class GeometryLoader implements ILoader {
                 if (this.checkNormals(primitive, attributeId, buffer, geometry))
                     continue;
 
-            geometry.setAttribute(attributeName, buffer)
+            geometry.setAttribute(attributeName, buffer);
 
             const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
             if (morphAttributeData.length > 0) {
@@ -191,7 +186,7 @@ export class GeometryLoader implements ILoader {
             // this allows for the usage of AO and light maps that share this coordinate set
             const attributeIdUV2 = 'TEXCOORD_1', attributeNameUV2 = 'uv1';
             if (attributeName === 'uv' && !primitive.attributes[attributeIdUV2]) {
-                geometry.setAttribute(attributeNameUV2, buffer)
+                geometry.setAttribute(attributeNameUV2, buffer);
 
                 const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
                 if (morphAttributeData.length > 0) {
@@ -204,6 +199,8 @@ export class GeometryLoader implements ILoader {
             }
         }
         primitive.threeJsObject[this._renderingEngine.id] = geometry;
+
+        this._primitiveCache[primitive.id + '_' + primitive.version] = { threeGeometry: geometry, counter: 1, clones: [] };
         return geometry;
     }
 
@@ -212,13 +209,32 @@ export class GeometryLoader implements ILoader {
             delete this._geometryCache[id];
     }
 
+    public removeFromGemSphericalMapsCache(id: string) {
+        if (this._gemSphericalMapsCache[id]) {
+            if(this._gemSphericalMapsCache[id].counter === 1) {
+                this._gemSphericalMapsCache[id].renderTarget.dispose();
+                this._gemSphericalMapsCache[id].texture.dispose();
+                delete this._gemSphericalMapsCache[id];
+            } else {
+                this._gemSphericalMapsCache[id].counter--;
+            }
+        }
+    }
+
     public removeFromPrimitiveCache(id: string) {
         if (this._primitiveCache[id]) {
             if(this._primitiveCache[id].counter === 1) {
+                this._primitiveCache[id].threeGeometry.dispose();
                 for (const key in this._primitiveCache[id].threeGeometry.attributes)
                     this._primitiveCache[id].threeGeometry.deleteAttribute(key);
                 this._primitiveCache[id].threeGeometry.setIndex(null);
-                this._primitiveCache[id].threeGeometry.dispose();
+
+                this._primitiveCache[id].clones.forEach(c => {
+                    c.dispose();
+                    for (const key in c.attributes)
+                        c.deleteAttribute(key);
+                    c.setIndex(null);
+                });
 
                 delete this._primitiveCache[id];
             } else {
@@ -281,12 +297,12 @@ export class GeometryLoader implements ILoader {
                 geometry.setIndex(indices);
                 index = geometry.getIndex();
             } else {
-                throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.`);
+                throw new ShapeDiverViewerDataProcessingError('GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.');
             }
         }
 
         if (index === null)
-            throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.`);
+            throw new ShapeDiverViewerDataProcessingError('GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.');
 
         const numberOfTriangles = index.count - 2;
         const newIndices = [];
@@ -311,18 +327,20 @@ export class GeometryLoader implements ILoader {
         }
 
         if ((newIndices.length / 3) !== numberOfTriangles)
-            throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.`);
+            throw new ShapeDiverViewerDataProcessingError('GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.');
 
         geometry.setIndex(newIndices);
     }
 
     private createCubeNormalMap(geometryData: GeometryData, geometry: THREE.BufferGeometry, resolution = 1024) {
-        if (this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version])
-            return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version];
+        if (this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version]) {
+            this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].counter++;
+            return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].texture;
+        }
 
         if (!this._gemScene) {
             this._gemScene = new THREE.Scene();
-            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter });
             this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
             this._gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
             this._gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
@@ -330,7 +348,7 @@ export class GeometryLoader implements ILoader {
             this._gemCubeCamera = new THREE.CubeCamera(0.001, 10000, this._gemCubeCameraRenderTarget);
             this._gemScene.add(this._gemCubeCamera);
         } else {
-            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter });
             this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
             this._gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
             this._gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
@@ -339,7 +357,7 @@ export class GeometryLoader implements ILoader {
         }
 
         if (!this._gemNormalMaterial) {
-            let _normalShader = {
+            const _normalShader = {
                 defines: {},
                 uniforms: THREE.UniformsUtils.merge([
                     THREE.UniformsLib.common]),
@@ -402,7 +420,7 @@ export class GeometryLoader implements ILoader {
             this._gemScene.overrideMaterial = this._gemNormalMaterial;
         }
 
-        let mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);
+        const mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);
         mesh.geometry.center();
         this._gemScene.add(mesh);
 
@@ -411,11 +429,16 @@ export class GeometryLoader implements ILoader {
         mesh.geometry.dispose();
         mesh.material.dispose();
 
-        this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version] = this._gemCubeCamera!.renderTarget.texture;
-        return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version];
+        this._gemCubeCamera!.renderTarget.texture.userData = {
+            SDid: geometryData.primitive.id,
+            SDversion: geometryData.primitive.version
+        };
+
+        this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version] = { texture: this._gemCubeCameraRenderTarget.texture, renderTarget: this._gemCubeCameraRenderTarget, counter: 1 };
+        return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].texture;
     }
 
-    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
+    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton) {
         if (geometry.mode === PRIMITIVE_MODE.POINTS) {
             const points = new THREE.Points(threeGeometry, material);
             geometry.threeJsObject[this._renderingEngine.id] = points;
@@ -433,7 +456,7 @@ export class GeometryLoader implements ILoader {
             geometry.threeJsObject[this._renderingEngine.id] = line;
             obj.add(line);
         } else if (geometry.mode === PRIMITIVE_MODE.TRIANGLES || geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
-            let bufferGeometry = threeGeometry;
+            const bufferGeometry = threeGeometry;
             if (geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
                 this.convertToTriangleMode(bufferGeometry, geometry.mode);
 
@@ -469,8 +492,6 @@ export class GeometryLoader implements ILoader {
                 (<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
             }
         });
-
-        this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version] = { threeGeometry, materialSettings, counter: 1 };
     }
 
     private getAttributeName(attributeId: string): string {
@@ -531,7 +552,7 @@ export class GeometryLoader implements ILoader {
                 if (bufferAttribute.itemSize >= 2) buffer.setY(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 1]);
                 if (bufferAttribute.itemSize >= 3) buffer.setZ(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 2]);
                 if (bufferAttribute.itemSize >= 4) buffer.setW(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 3]);
-                if (bufferAttribute.itemSize >= 5) throw new ShapeDiverViewerDataProcessingError(`GeometryLoader.loadPrimitive: Unsupported itemSize in sparse BufferAttribute.`);
+                if (bufferAttribute.itemSize >= 5) throw new ShapeDiverViewerDataProcessingError('GeometryLoader.loadPrimitive: Unsupported itemSize in sparse BufferAttribute.');
             }
         }
         return buffer;
