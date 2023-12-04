@@ -264,7 +264,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
         return boundingBox;
       } else if(mat4.equals(matrix, mat4.create())) {
         const boundingBox = new Box();
-        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes, matrix);
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes);
         this.#boundingBoxes.push({
           boundingBox,
           matrix: mat4.clone(matrix)
