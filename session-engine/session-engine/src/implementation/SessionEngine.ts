@@ -62,7 +62,7 @@ import { vec3 } from 'gl-matrix';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (43)
+    // #region Properties (44)
 
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
@@ -84,6 +84,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _ticket?: string;
     private readonly _uuidGenerator = UuidGenerator.instance;
 
+    #customizationBusyModes: string[] = [];
     #customizationProcess?: string;
     #parameterHistory: {
         [key: string]: {
@@ -126,7 +127,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (43)
+    // #endregion Properties (44)
 
     // #region Constructors (1)
 
@@ -410,11 +411,17 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public cancelCustomization() {
-        if(this.#customizationProcess) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(this.#customizationProcess))
-                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(this.#customizationProcess), 1);
+        if (this.#customizationProcess)
+            this.removeBusyMode(this.#customizationProcess);
+
+        for (const busyId of this.#customizationBusyModes) {
+            for (const r in this._stateEngine.renderingEngines) {
+                if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+            }
         }
+
+        this.#customizationBusyModes = [];
         this.#customizationProcess = undefined;
     }
 
@@ -461,9 +468,7 @@ export class SessionEngine implements ISessionEngine {
 
             this._logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
 
-            for (const r in this._stateEngine.renderingEngines)
-                if (!this.excludeViewports.includes(r))
-                    this._stateEngine.renderingEngines[r].busy.push(customizationId);
+            this.addBusyMode(customizationId);
 
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
@@ -582,9 +587,7 @@ export class SessionEngine implements ISessionEngine {
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+            this.removeBusyMode(customizationId);
 
             this._logger.debug(`Session(${this.id}).customize: Session customized.`);
 
@@ -599,7 +602,6 @@ export class SessionEngine implements ISessionEngine {
                     if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
                         this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
 
-                        
                 for (const outputId in this.outputs) {
                     if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
                         this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, <IOutputEvent>{
@@ -631,9 +633,7 @@ export class SessionEngine implements ISessionEngine {
             const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
 
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+            this.removeBusyMode(customizationId);
 
             throw this._httpClient.convertError(e);
         }
@@ -1178,9 +1178,7 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debugLow(`Session(${this.id}).updateOutputs: Updating Outputs.`);
 
-        for (const r in this._stateEngine.renderingEngines)
-            if (!this.excludeViewports.includes(r))
-                this._stateEngine.renderingEngines[r].busy.push(customizationId);
+        this.addBusyMode(customizationId);
 
         const eventRequest: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.1 + taskEventInfo.progressRange.min : 0.1, data: eventData, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
@@ -1207,7 +1205,7 @@ export class SessionEngine implements ISessionEngine {
         if (cancelResult) return cancelResult;
 
         // call the update callbacks
-        if (waitForViewportUpdate === false) {            
+        if (waitForViewportUpdate === false) {
             for (const outputId in this.outputs) {
                 if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
                     this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, {
@@ -1218,7 +1216,7 @@ export class SessionEngine implements ISessionEngine {
                     });
                 }
             }
-            
+
             await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
 
             // OPTION TO SKIP - PART 2
@@ -1247,9 +1245,7 @@ export class SessionEngine implements ISessionEngine {
         this._warningCreator();
         this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
-        for (const r in this._stateEngine.renderingEngines)
-            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+        this.removeBusyMode(customizationId);
 
         this._logger.debug(`Session(${this.id}).updateOutputs: Updated outputs.`);
 
@@ -1320,7 +1316,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Methods (27)
 
-    // #region Private Methods (13)
+    // #region Private Methods (15)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1392,6 +1388,15 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    private addBusyMode(busyId: string) {
+        for (const r in this._stateEngine.renderingEngines) {
+            if (!this.excludeViewports.includes(r)) {
+                this._stateEngine.renderingEngines[r].busy.push(busyId);
+                this.#customizationBusyModes.push(busyId);
+            }
+        }
+    }
+
     private addToSceneTree(node: ITreeNode) {
         this._sceneTree.addNode(node);
         this._sceneTree.root.updateVersion();
@@ -1399,9 +1404,7 @@ export class SessionEngine implements ISessionEngine {
 
     private cancelProcess(customizationId: string, eventId: string, eventType: TASK_TYPE, eventProgress: number, eventData: unknown, newNode: ITreeNode = new SessionTreeNode()): ITreeNode | undefined {
         if (this.#customizationProcess !== customizationId) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+            this.removeBusyMode(customizationId);
 
             const eventCancel: ITaskEvent = {
                 type: eventType,
@@ -1414,9 +1417,7 @@ export class SessionEngine implements ISessionEngine {
             this._logger.debug(`Session(${this.id}).cancelProcess: The request was was exceeded by another request.`);
             return newNode;
         } else if ((this._closed as boolean) === true) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+            this.removeBusyMode(customizationId);
 
             this._logger.debug(`Session(${this.id}).cancelProcess: The session was closed during the request.`);
 
@@ -1552,6 +1553,16 @@ export class SessionEngine implements ISessionEngine {
             }
         } else {
             throw this._httpClient.convertError(e);
+        }
+    }
+
+    private removeBusyMode(busyId: string) {
+        for (const r in this._stateEngine.renderingEngines) {
+            if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
+                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+
+            if (this.#customizationBusyModes.includes(busyId))
+                this.#customizationBusyModes.splice(this.#customizationBusyModes.indexOf(busyId), 1);
         }
     }
 
@@ -1704,5 +1715,5 @@ export class SessionEngine implements ISessionEngine {
         await Promise.all(promises);
     }
 
-    // #endregion Private Methods (13)
+    // #endregion Private Methods (15)
 }
