@@ -133,21 +133,38 @@ export class Box implements IBox {
         return point;
     }
 
-    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, stride?: number, bytes?: number, matrix: mat4 = mat4.create()): IBox {
-        let transformedArray = [];
+    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, stride?: number, bytes?: number, matrix?: mat4): IBox {
         const length = (Math.floor(array.length / 3) * 3);
         const byteStride = (stride && stride !== bytes) ? +stride : 3;
+
+        const min = [Infinity, Infinity, Infinity];
+        const max = [-Infinity, -Infinity, -Infinity];
+
+        let x, y, z;
+        const point = vec4.create();
         for (let i = 0; i < length; i += byteStride) {
-            let point = vec4.transformMat4(vec4.create(), vec4.fromValues(array[i], array[i + 1], array[i + 2], 1), matrix);
-            transformedArray.push([point[0] / point[3], point[1] / point[3], point[2] / point[3]]);
+            if(matrix) {
+                vec4.transformMat4(point, [array[i], array[i + 1], array[i + 2], 1], matrix);
+                x = point[0] / point[3];
+                y = point[1] / point[3];
+                z = point[2] / point[3];
+            } else {
+                x = array[i];
+                y = array[i + 1];
+                z = array[i + 2];
+            }
+
+            min[0] = Math.min(min[0], x);
+            min[1] = Math.min(min[1], y);
+            min[2] = Math.min(min[2], z);
+
+            max[0] = Math.max(max[0], x);
+            max[1] = Math.max(max[1], y);
+            max[2] = Math.max(max[2], z);
         }
-        let x_coords = transformedArray.map(p => p[0]);
-        let y_coords = transformedArray.map(p => p[1]);
-        let z_coords = transformedArray.map(p => p[2]);
 
-
-        this.min = vec3.fromValues(Math.min(...x_coords), Math.min(...y_coords), Math.min(...z_coords));
-        this.max = vec3.fromValues(Math.max(...x_coords), Math.max(...y_coords), Math.max(...z_coords));
+        this.min = vec3.fromValues(min[0], min[1], min[2]);
+        this.max = vec3.fromValues(max[0], max[1], max[2]);
         
         return this;
     }
