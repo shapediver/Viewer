@@ -279,7 +279,7 @@ export const generalOptions: IGeneralOptions = new GeneralOptions();
 export const createSession = async (properties: SessionCreationDefinition): Promise<ISessionApi> => {
     if (createdConsoleMessage === false) showConsoleMessage();
 
-    logger.info(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+    logger.debug(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
     inputValidator.validateAndError('createSession', properties, 'object');
     inputValidator.validateAndError('createSession', properties.ticket, 'string', false);
