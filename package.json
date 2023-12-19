@@ -61,6 +61,7 @@
     "deploy-and-test": "ts-node ./scripts/testing/deploy-and-test.ts",
     "doc": "lerna run doc",
     "lerna-publish-github": "lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/",
-    "lerna-publish-npm": "lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/"
+    "lerna-publish-npm": "lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/",
+    "v2-doc": "ts-node ./scripts/other/v2_doc_update.ts"
   }
 }
