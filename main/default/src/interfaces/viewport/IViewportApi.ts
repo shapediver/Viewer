@@ -10,6 +10,9 @@ import {
   ISDTFItemData,
   IGeometryData,
   Color,
+  MaterialStandardData,
+  MaterialLineData,
+  MaterialPointData,
 } from '@shapediver/viewer.shared.types'
 import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
@@ -32,7 +35,7 @@ import { IPostProcessingApi } from './IPostProcessingApi'
  * {@link ISessionApi}.
  */
 export interface IViewportApi {
-  // #region Properties (34)
+  // #region Properties (52)
 
   /**
    * A dictionary of all animations that are currently present in the parts of
@@ -42,17 +45,6 @@ export interface IViewportApi {
     [key: string]: IAnimationData
   }
 
-  /**
-   * The canvas that is used to render the viewport.
-   */
-  readonly canvas: HTMLCanvasElement;
-
-  /**
-   * The id of the viewport.
-   */
-  readonly id: string;
-
-  
   /**
    * The current [camera]{@link ICameraApi}. 
    */
@@ -64,6 +56,34 @@ export interface IViewportApi {
   readonly cameras: { [key: string]: ICameraApi };
 
   /**
+   * The canvas that is used to render the viewport.
+   */
+  readonly canvas: HTMLCanvasElement;
+
+  /**
+   * The default line material that is used for line geometry without a specified material.
+   * Please use {@link updateDefaultLineMaterial} to update the material.
+   */
+  readonly defaultLineMaterial: MaterialLineData;
+
+  /**
+   * The default material that is used for geometry without a specified material.
+   * Please use {@link updateDefaultMaterial} to update the material.
+   */
+  readonly defaultMaterial: MaterialStandardData;
+
+  /**
+   * The default point material that is used for point geometry without a specified material.
+   * Please use {@link updateDefaultPointMaterial} to update the material.
+   */
+  readonly defaultPointMaterial: MaterialPointData;
+
+  /**
+   * The id of the viewport.
+   */
+  readonly id: string;
+
+  /**
    * The current [light scene]{@link ILightSceneApi}. 
    */
   readonly lightScene: ILightSceneApi | null;
@@ -72,7 +92,7 @@ export interface IViewportApi {
    * The [light scenes]{@link ILightSceneApi} of the viewport.
    */
   readonly lightScenes: { [key: string]: ILightSceneApi };
-  
+
   /**
    * The [post processing api]{@link IPostProcessingApi} of the viewport. 
    * 
@@ -94,10 +114,13 @@ export interface IViewportApi {
   readonly sessionSettingsMode?: SESSION_SETTINGS_MODE;
 
   /**
-   * Option to enable / disable the AR (Augmented Reality) functionality for this viewport. (default: true)
-   * This setting is used purely for UI purposes, it does not have any influence on the viewport itself.
+   * The rotation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
+   * 
+   * @see {@link arScale}
+   * @see {@link arTranslation}
+   * @see {@link arRotation}
    */
-  enableAR: boolean;
+  arRotation: vec3;
 
   /**
    * The scaling factor that is used when exporting the scene for AR (Augmented Reality).
@@ -110,7 +133,7 @@ export interface IViewportApi {
    * @see {@link arRotation}
    */
   arScale: vec3;
-  
+
   /**
    * The translation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
    * 
@@ -119,15 +142,6 @@ export interface IViewportApi {
    * @see {@link arRotation}
    */
   arTranslation: vec3;
-  
-  /**
-   * The rotation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
-   * 
-   * @see {@link arScale}
-   * @see {@link arTranslation}
-   * @see {@link arRotation}
-   */
-  arRotation: vec3;
 
   /**
    * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
@@ -167,6 +181,12 @@ export interface IViewportApi {
   defaultMaterialColor: Color;
 
   /**
+   * Option to enable / disable the AR (Augmented Reality) functionality for this viewport. (default: true)
+   * This setting is used purely for UI purposes, it does not have any influence on the viewport itself.
+   */
+  enableAR: boolean;
+
+  /**
    * The environment map used by the viewport.
    * You can either use the HDR maps at {@link ENVIRONMENT_MAP} or the LDR legacy maps at {@link ENVIRONMENT_MAP_CUBE}.
    * Additionally, you can specify your own maps. For HDR maps, provide a link to a .hdr file, for LDR provide the folder where the six cube map images are located.
@@ -182,6 +202,12 @@ export interface IViewportApi {
    * The amount of which the environment map is blurred. (default: 0)
    */
   environmentMapBlurriness: number;
+
+  /**
+   * Option to set the environment map for unlit materials. (default: false)
+   * For unlit materials, which use the three.js MeshBasicMaterial, per default we don't set the environment map to keep the colors as realistic as possible.
+   */
+  environmentMapForUnlitMaterials: boolean;
 
   /**
    * Scales how much the environment map effects the materials. (default: 1)
@@ -200,12 +226,6 @@ export interface IViewportApi {
   environmentMapRotation: quat;
 
   /**
-   * Option to set the environment map for unlit materials. (default: false)
-   * For unlit materials, which use the three.js MeshBasicMaterial, per default we don't set the environment map to keep the colors as realistic as possible.
-   */
-  environmentMapForUnlitMaterials: boolean;
-
-  /**
    * The color of the grid.
    */
   gridColor: Color;
@@ -221,11 +241,6 @@ export interface IViewportApi {
   groundPlaneColor: Color;
 
   /**
-   * Option to enable / disable the ground plane. (default: true)
-   */
-  groundPlaneVisibility: boolean;
-
-  /**
    * The color of the ground plane shadow.
    */
   groundPlaneShadowColor: Color;
@@ -234,6 +249,11 @@ export interface IViewportApi {
    * Option to enable / disable the ground plane shadow. (default: false)
    */
   groundPlaneShadowVisibility: boolean;
+
+  /**
+   * Option to enable / disable the ground plane. (default: true)
+   */
+  groundPlaneVisibility: boolean;
 
   /**
    * Option to enable / disable lights. (default: true)
@@ -304,7 +324,7 @@ export interface IViewportApi {
     renderer: THREE.WebGLRenderer,
     camera: THREE.Camera
   };
-  
+
   /**
    * The tone mapping that is used. (default: TONE_MAPPING.NONE)
    */
@@ -329,9 +349,9 @@ export interface IViewportApi {
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  // #endregion Properties (34)
+  // #endregion Properties (52)
 
-  // #region Public Methods (30)
+  // #region Public Methods (41)
 
   /**
    * Add an event listener that receives all canvas events.
@@ -345,31 +365,6 @@ export interface IViewportApi {
    * If you want to stop this again call {@link removeFlag} with the returned token.
    */
   addFlag(flag: FLAG_TYPE): string;
-  
-
-  /**
-   * Restrict events.
-   * This can be used to disable events for a viewport.
-   * 
-   * Example use case: If you don't want to allow mouse wheel events for a specific viewport so that users can scroll past the viewport.
-   * 
-   * Be aware that this might cause some issues with the the camera controls if the mouse / touch events are disabled only partially.
-   * 
-   * @param allowedListeners 
-   */
-  restrictEventListeners(allowedListeners: {
-    mousewheel?: boolean,
-    mousedown?: boolean,
-    mousemove?: boolean,
-    mouseup?: boolean,
-    mouseout?: boolean,
-    touchstart?: boolean,
-    touchmove?: boolean,
-    touchend?: boolean,
-    touchcancel?: boolean,
-    keydown?: boolean,
-    contextmenu?: boolean,
-  }): void;
 
   /**
    * Apply the settings of a viewport manually. You can get the settings via {@link getViewportSettings}.
@@ -381,7 +376,7 @@ export interface IViewportApi {
    * @throws {@type ShapeDiverViewerError}
    */
   applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }): Promise<void>;
-
+  
   /**
    * Assign the camera with the specified id to the viewport.
    * This will make the given camera the current one. 
@@ -514,7 +509,7 @@ export interface IViewportApi {
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
   getViewportSettings(): ISettings;
-  
+
   /**
    * Determines if the current device is a mobile device (or tablet) but still doesn't support to view the content in AR.
    * 
@@ -526,7 +521,7 @@ export interface IViewportApi {
    *  - Instagram in App browser
    */
   isMobileDeviceWithoutBrowserARSupport(): boolean;
-  
+
   /**
    * Calculate the ray that is created by the mouse event and the camera.
    * 
@@ -558,7 +553,7 @@ export interface IViewportApi {
    * @param direction 
    * @param root 
    */
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData }[]; 
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData }[];
 
   /**
    * Remove the camera with the specified id and destroys it.
@@ -610,14 +605,28 @@ export interface IViewportApi {
   resize(width: number, height: number): void;
 
   /**
-   * Create the ray that is created by the touch and the camera.
+   * Restrict events.
+   * This can be used to disable events for a viewport.
    * 
-   * @see {@link mouseEventToRay}
-   * @see {@link touchEventToRay}
-   * @param event 
-   * @returns 
+   * Example use case: If you don't want to allow mouse wheel events for a specific viewport so that users can scroll past the viewport.
+   * 
+   * Be aware that this might cause some issues with the the camera controls if the mouse / touch events are disabled only partially.
+   * 
+   * @param allowedListeners 
    */
-  touchToRay(event: Touch): { origin: vec3, direction: vec3 }
+  restrictEventListeners(allowedListeners: {
+    mousewheel?: boolean,
+    mousedown?: boolean,
+    mousemove?: boolean,
+    mouseup?: boolean,
+    mouseout?: boolean,
+    touchstart?: boolean,
+    touchmove?: boolean,
+    touchend?: boolean,
+    touchcancel?: boolean,
+    keydown?: boolean,
+    contextmenu?: boolean,
+  }): void;
 
   /**
    * Create the ray that is created by the touch event and the camera.
@@ -630,11 +639,42 @@ export interface IViewportApi {
   touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 }
 
   /**
+   * Create the ray that is created by the touch and the camera.
+   * 
+   * @see {@link mouseEventToRay}
+   * @see {@link touchEventToRay}
+   * @param event 
+   * @returns 
+   */
+  touchToRay(event: Touch): { origin: vec3, direction: vec3 }
+
+  /**
    * Update the viewport with the current changes of the complete scene tree.
    * This carries out preparations for rendering. Call it after doing 
    * direct changes to the scene tree. 
    */
   update(): void;
+
+  /**
+   * Update the default line material of the viewport.
+   * 
+   * @param value The new default line material.
+   */
+  updateDefaultLineMaterial(value: MaterialLineData): void;
+
+  /**
+   * Update the default materials of the viewport.
+   * 
+   * @param value The new default material.
+   */
+  updateDefaultMaterial(value: MaterialStandardData): void;
+
+  /**
+   * Update the default point material of the viewport.
+   * 
+   * @param value The new default point material.
+   */
+  updateDefaultPointMaterial(value: MaterialPointData): void;
 
   /**
    * Update the position of the environment geometry (grid, groundplane, etc) to the current viewport bounding box.
@@ -674,7 +714,7 @@ export interface IViewportApi {
    * @throws {@type ShapeDiverViewerError}
    */
   viewInAR(node?: ITreeNode): Promise<void>;
-  
+
   /**
    * Determines if the current device supports viewing in AR.
    * 
@@ -683,5 +723,5 @@ export interface IViewportApi {
    */
   viewableInAR(): boolean;
 
-  // #endregion Public Methods (30)
+  // #endregion Public Methods (41)
 }

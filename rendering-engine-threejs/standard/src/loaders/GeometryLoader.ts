@@ -18,6 +18,9 @@ import { ILoader } from '../interfaces/ILoader';
 import { GemMaterial } from '../materials/GemMaterial';
 import { vec3 } from 'gl-matrix';
 import { SDData } from '../objects/SDData';
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry"
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial"
+import { Line2 } from "three/examples/jsm/lines/Line2"
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -438,21 +441,31 @@ export class GeometryLoader implements ILoader {
         return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].texture;
     }
 
+    public recomputeLineDistances() {
+        for (const key in this._geometryCache) {
+            const obj = this._geometryCache[key].obj;
+            obj.traverse(o => {
+                if (o instanceof Line2)
+                    o.computeLineDistances();
+            });
+        }
+    }
+
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton) {
         if (geometry.mode === PRIMITIVE_MODE.POINTS) {
             const points = new THREE.Points(threeGeometry, material);
             geometry.threeJsObject[this._renderingEngine.id] = points;
             obj.add(points);
-        } else if (geometry.mode === PRIMITIVE_MODE.LINES) {
-            const lineSegments = new THREE.LineSegments(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
-            obj.add(lineSegments);
-        } else if (geometry.mode === PRIMITIVE_MODE.LINE_LOOP) {
-            const lineLoop = new THREE.LineLoop(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = lineLoop;
-            obj.add(lineLoop);
-        } else if (geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            const line = new THREE.Line(threeGeometry, material);
+        } else if (geometry.mode === PRIMITIVE_MODE.LINES || geometry.mode === PRIMITIVE_MODE.LINE_LOOP || geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
+            const nonIndexThreeGeometry = threeGeometry.toNonIndexed();
+            const positionAttribute = nonIndexThreeGeometry.getAttribute('position');
+
+            const line2Geometry = new LineGeometry();
+            line2Geometry.setPositions(positionAttribute.array as Float32Array);
+
+            const line = new Line2( line2Geometry, material as LineMaterial);
+            line.computeLineDistances();
+
             geometry.threeJsObject[this._renderingEngine.id] = line;
             obj.add(line);
         } else if (geometry.mode === PRIMITIVE_MODE.TRIANGLES || geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {

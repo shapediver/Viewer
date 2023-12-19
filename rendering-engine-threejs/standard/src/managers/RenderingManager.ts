@@ -318,6 +318,8 @@ export class RenderingManager implements IManager {
 
     public resize(width: number, height: number) {
         this._width = width, this._height = height;
+        this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
+        this._renderingEngine.materialLoader.assignLineSize();
     }
 
     /**
@@ -421,6 +423,7 @@ export class RenderingManager implements IManager {
             this._renderingEngine.renderer.domElement.style.width = width + 'px';
             this._renderingEngine.renderer.domElement.style.height = height + 'px';
             this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
+            this._renderingEngine.materialLoader.assignLineSize();
         }
 
         // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
