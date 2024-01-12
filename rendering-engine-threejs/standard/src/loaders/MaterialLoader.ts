@@ -837,7 +837,7 @@ export class MaterialLoader implements ILoader {
                 this._defaultMaterial = <THREE.MeshPhysicalMaterial>material;
             }
 
-            this._materialCache[type + '_' + type] = {
+            this._materialCache[type + '_' + JSON.stringify(materialSettings)] = {
                 material,
                 materialData,
                 materialSettings
@@ -848,12 +848,12 @@ export class MaterialLoader implements ILoader {
 
         const material = this.createMaterial(type, incomingData, materialData, materialSettings);
 
-        if (this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) {
-            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material.copy(material);
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
+        if (this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)]) {
+            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)].material.copy(material);
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)].material;
         }
 
-        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = {
+        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)] = {
             material,
             materialData,
             materialSettings
