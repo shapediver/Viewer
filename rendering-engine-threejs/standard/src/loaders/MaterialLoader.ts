@@ -26,6 +26,7 @@ import {
     MaterialShadowData,
     GeometryData,
 } from '@shapediver/viewer.shared.types';
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 
 export enum MATERIAL_TYPE {
     POINT = 'point',
@@ -233,9 +234,9 @@ export class MaterialLoader implements ILoader {
             }
         };
 
-        for (const m in this._materialCache) {
+        for (const cacheKey in this._materialCache) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const material: any = this._materialCache[m].material;
+            const material: any = this._materialCache[cacheKey].material;
 
             if (material.color) material.color = convertColor(material.color, value);
             if (material.specular) material.specular = convertColor(material.specular, value);
@@ -251,8 +252,8 @@ export class MaterialLoader implements ILoader {
     }
 
     public assignDefaultMaterialColor() {
-        for (const m in this._materialCache) {
-            const { material, materialData, materialSettings } = this._materialCache[m];
+        for (const cacheKey in this._materialCache) {
+            const { material, materialData, materialSettings } = this._materialCache[cacheKey];
 
             // if there is no materialData stored in the cache that means that the default material was used
             if (!materialData && !(materialSettings !== undefined && materialSettings.useVertexColors))
@@ -263,20 +264,20 @@ export class MaterialLoader implements ILoader {
     public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null, type: ENVIRONMENT_MAP_TYPE) {
         this._envMap = e;
         this._envMapType = type;
-        for (const m in this._materialCache) {
-            if ((this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial || this._materialCache[m].material instanceof THREE.MeshBasicMaterial)) {
-                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[m].material;
-                if (this._materialCache[m].materialData &&
+        for (const cacheKey in this._materialCache) {
+            if ((this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshStandardMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshBasicMaterial)) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[cacheKey].material;
+                if (this._materialCache[cacheKey].materialData &&
                     (
-                        this._materialCache[m].materialData instanceof MaterialStandardData ||
-                        this._materialCache[m].materialData instanceof MaterialGemData ||
-                        this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
-                        this._materialCache[m].materialData instanceof MaterialUnlitData
+                        this._materialCache[cacheKey].materialData instanceof MaterialStandardData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialGemData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialSpecularGlossinessData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialUnlitData
                     ) &&
-                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[cacheKey].materialData).envMap !== undefined
                 ) continue;
 
-                if (this._materialCache[m].materialData instanceof MaterialUnlitData && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
+                if (this._materialCache[cacheKey].materialData instanceof MaterialUnlitData && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
 
                 material.envMap = e;
                 material.needsUpdate = true;
@@ -293,12 +294,12 @@ export class MaterialLoader implements ILoader {
     }
 
     public assignEnvironmentMapForUnlitMaterials(toggle: boolean) {
-        for (const m in this._materialCache) {
-            if (this._materialCache[m].material instanceof THREE.MeshBasicMaterial) {
-                const material: THREE.MeshBasicMaterial = <THREE.MeshBasicMaterial>this._materialCache[m].material;
-                if (this._materialCache[m].materialData &&
-                    this._materialCache[m].materialData instanceof MaterialUnlitData &&
-                    (<MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+        for (const cacheKey in this._materialCache) {
+            if (this._materialCache[cacheKey].material instanceof THREE.MeshBasicMaterial) {
+                const material: THREE.MeshBasicMaterial = <THREE.MeshBasicMaterial>this._materialCache[cacheKey].material;
+                if (this._materialCache[cacheKey].materialData &&
+                    this._materialCache[cacheKey].materialData instanceof MaterialUnlitData &&
+                    (<MaterialUnlitData>this._materialCache[cacheKey].materialData).envMap !== undefined
                 ) continue;
 
                 if (toggle) {
@@ -322,17 +323,17 @@ export class MaterialLoader implements ILoader {
 
     public assignEnvironmentMapIntensity(value: number) {
         this._envMapIntensity = value;
-        for (const m in this._materialCache) {
-            if ((this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial)) {
-                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m].material;
-                if (this._materialCache[m].materialData &&
+        for (const cacheKey in this._materialCache) {
+            if ((this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshStandardMaterial)) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[cacheKey].material;
+                if (this._materialCache[cacheKey].materialData &&
                     (
-                        this._materialCache[m].materialData instanceof MaterialStandardData ||
-                        this._materialCache[m].materialData instanceof MaterialGemData ||
-                        this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
-                        this._materialCache[m].materialData instanceof MaterialUnlitData
+                        this._materialCache[cacheKey].materialData instanceof MaterialStandardData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialGemData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialSpecularGlossinessData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialUnlitData
                     ) &&
-                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[cacheKey].materialData).envMap !== undefined
                 ) continue;
 
                 material.envMapIntensity = value;
@@ -346,10 +347,10 @@ export class MaterialLoader implements ILoader {
         if (height === this._height && p * (this._height / 1080) === this._pointSize) return;
         this._height = height;
         this._pointSize = p * (this._height / 1080);
-        for (const m in this._materialCache) {
-            if (this._materialCache[m].material instanceof THREE.PointsMaterial) {
-                (<THREE.PointsMaterial>this._materialCache[m].material).size = this._pointSize;
-                (<THREE.PointsMaterial>this._materialCache[m].material).needsUpdate = true;
+        for (const cacheKey in this._materialCache) {
+            if (this._materialCache[cacheKey].material instanceof THREE.PointsMaterial) {
+                (<THREE.PointsMaterial>this._materialCache[cacheKey].material).size = this._pointSize;
+                (<THREE.PointsMaterial>this._materialCache[cacheKey].material).needsUpdate = true;
             }
         }
     }
@@ -837,7 +838,8 @@ export class MaterialLoader implements ILoader {
                 this._defaultMaterial = <THREE.MeshPhysicalMaterial>material;
             }
 
-            this._materialCache[type + '_' + JSON.stringify(materialSettings)] = {
+            const cacheKey = this.createDataKeyFromMaterial(undefined, type, materialSettings);
+            this._materialCache[cacheKey] = {
                 material,
                 materialData,
                 materialSettings
@@ -848,12 +850,13 @@ export class MaterialLoader implements ILoader {
 
         const material = this.createMaterial(type, incomingData, materialData, materialSettings);
 
-        if (this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)]) {
-            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)].material.copy(material);
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)].material;
+        const cacheKey = this.createDataKeyFromMaterial(incomingData, type, materialSettings);
+        if (this._materialCache[cacheKey]) {
+            this._materialCache[cacheKey].material.copy(material);
+            return this._materialCache[cacheKey].material;
         }
 
-        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type + '_' + JSON.stringify(materialSettings)] = {
+        this._materialCache[cacheKey] = {
             material,
             materialData,
             materialSettings
@@ -863,9 +866,10 @@ export class MaterialLoader implements ILoader {
     }
 
     public removeFromMaterialCache(id: string) {
-        for (const m in this._materialCache) {
-            if (m.startsWith(id)) {
-                delete this._materialCache[m];
+        for (const cacheKey in this._materialCache) {
+            const decodedCacheKey = window.atob(cacheKey);
+            if (decodedCacheKey.startsWith(id)) {
+                delete this._materialCache[cacheKey];
             }
         }
     }
@@ -885,9 +889,9 @@ export class MaterialLoader implements ILoader {
         const envMapRotationMatrix = this.transformEnvMapRotationMatrix();
         const envMapRotationMatrixBackground = this.transformEnvMapRotationMatrix(true);
 
-        for (const m in this._materialCache)
-            if (this._materialCache[m].material.userData.shader) {
-                this._materialCache[m].material.userData.shader.uniforms.envMapRotation.value = envMapRotationMatrix;
+        for (const cacheKey in this._materialCache)
+            if (this._materialCache[cacheKey].material.userData.shader) {
+                this._materialCache[cacheKey].material.userData.shader.uniforms.envMapRotation.value = envMapRotationMatrix;
             }
 
         // set the new uniform value as the default if the environment is recomputed
@@ -897,17 +901,17 @@ export class MaterialLoader implements ILoader {
     }
 
     public updateMaterials(): void {
-        for (const m in this._materialCache)
-            this._materialCache[m].material.needsUpdate = true;
+        for (const cacheKey in this._materialCache)
+            this._materialCache[cacheKey].material.needsUpdate = true;
     }
 
     public updateSoftShadow(lightSizeUV: number, blending: number) {
         this._lightSizeUV = lightSizeUV;
         this._blending = blending;
-        for (const m in this._materialCache) {
-            if (this._materialCache[m].material.userData.shader) {
-                this._materialCache[m].material.userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
-                this._materialCache[m].material.userData.shader.uniforms.blending.value = blending;
+        for (const cacheKey in this._materialCache) {
+            if (this._materialCache[cacheKey].material.userData.shader) {
+                this._materialCache[cacheKey].material.userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
+                this._materialCache[cacheKey].material.userData.shader.uniforms.blending.value = blending;
             }
         }
     }
@@ -917,9 +921,9 @@ export class MaterialLoader implements ILoader {
     // #region Private Methods (3)
 
     private assignTextureEncoding() {
-        for (const m in this._materialCache) {
-            if (this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial) {
-                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m].material;
+        for (const cacheKey in this._materialCache) {
+            if (this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshStandardMaterial) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[cacheKey].material;
                 if (material.emissiveMap) {
                     material.emissiveMap!.colorSpace = this._textureEncoding;
                     material.emissiveMap!.needsUpdate = true;
@@ -933,6 +937,10 @@ export class MaterialLoader implements ILoader {
         }
     }
 
+    private createDataKeyFromMaterial(data: ITreeNodeData | undefined, type: MATERIAL_TYPE, materialSettings?: MaterialSettings): string {
+        return data ? window.btoa(data.id + '_' + data.version + '_' + type + '_' + JSON.stringify(materialSettings)) : window.btoa(type + '_' + JSON.stringify(materialSettings));
+    } 
+        
     private createDataKeyFromMap(map: IMapData): string {
         return window.btoa(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
     }
