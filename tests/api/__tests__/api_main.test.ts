@@ -216,18 +216,16 @@ describe('device testing', () => {
             viewer.environmentMap = SDV.ENVIRONMENT_MAP.PHOTO_STUDIO;
             viewer.environmentMapAsBackground = true;
 
-            await Promise.all([
-                new Promise<void>(resolve => {
-                    SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
-                        const taskEvent = e as any;
-                        if (taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
-                            resolve();
-                    });
-                }),
-                new Promise<void>((resolve) => {
-                    SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
-            ]);
+            await new Promise<void>(resolve => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+                    const taskEvent = e as any;
+                    if (taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+                        resolve();
+                });
+            });
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, materialPresetsTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/envMapRotationHDR_Default');
