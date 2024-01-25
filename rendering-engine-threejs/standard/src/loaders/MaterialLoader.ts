@@ -26,9 +26,11 @@ import {
     MaterialShadowData,
     GeometryData,
     MaterialPointData,
-    MaterialLineData
+    MaterialLineData,
+    MaterialMultiPointData
 } from '@shapediver/viewer.shared.types';
 import { LineMaterial, LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial"
+import { MultiPointsMaterial, MultiPointsMaterialParameters } from '../materials/MultiPointsMaterial';
 
 export enum MATERIAL_TYPE {
     POINT = 'point',
@@ -129,6 +131,11 @@ type ThreeJsTextureCacheObject = {
     initialized: boolean
 }
 
+type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | LineMaterial | THREE.ShadowMaterial;
+type ThreeJsMeshMaterialTypes = THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial;
+type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | LineMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
+type MaterialDataMeshTypes = MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData;
+
 export class MaterialLoader implements ILoader {
     // #region Properties (17)
 
@@ -149,8 +156,8 @@ export class MaterialLoader implements ILoader {
     private _lightSizeUV: number = 0.025;
     private _materialCache: {
         [key: string]: {
-            materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | MaterialShadowData | null,
-            material: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | LineMaterial | THREE.ShadowMaterial),
+            materialData: IMaterialAbstractData | null,
+            material: ThreeJsMaterialTypes,
             materialSettings?: MaterialSettings
         }
     } = {};
@@ -329,7 +336,7 @@ export class MaterialLoader implements ILoader {
         this._envMapType = type;
         for (const m in this._materialCache) {
             if ((this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial || this._materialCache[m].material instanceof THREE.MeshBasicMaterial)) {
-                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[m].material;
+                const material: ThreeJsMeshMaterialTypes = <ThreeJsMeshMaterialTypes>this._materialCache[m].material;
                 if (this._materialCache[m].materialData &&
                     (
                         this._materialCache[m].materialData instanceof MaterialStandardData ||
@@ -337,7 +344,7 @@ export class MaterialLoader implements ILoader {
                         this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
                         this._materialCache[m].materialData instanceof MaterialUnlitData
                     ) &&
-                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                    (<MaterialDataMeshTypes>this._materialCache[m].materialData).envMap !== undefined
                 ) continue;
 
                 if (this._materialCache[m].materialData instanceof MaterialUnlitData && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
@@ -396,7 +403,7 @@ export class MaterialLoader implements ILoader {
                         this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
                         this._materialCache[m].materialData instanceof MaterialUnlitData
                     ) &&
-                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                    (<MaterialDataMeshTypes>this._materialCache[m].materialData).envMap !== undefined
                 ) continue;
 
                 material.envMapIntensity = value;
@@ -413,13 +420,50 @@ export class MaterialLoader implements ILoader {
 
 
         for (const m in this._materialCache) {
-            if(this._materialCache[m].material instanceof THREE.PointsMaterial) {
-                if(this._materialCache[m].material.userData.customPointSizeEnabled && this._materialCache[m].material.userData.customPointSizeEnabled === true) {
-                    (<THREE.PointsMaterial>this._materialCache[m].material).size = this._pointSize * this._materialCache[m].material.userData.customPointSize;
-                    (<THREE.PointsMaterial>this._materialCache[m].material).needsUpdate = true;
+            if(this._materialCache[m].material instanceof MultiPointsMaterial) {
+                const material: MultiPointsMaterial = <MultiPointsMaterial>this._materialCache[m].material;
+
+                if(this._materialCache[m].material.userData.customPointSize_0Enabled && this._materialCache[m].material.userData.customPointSize_0Enabled === true) {
+                    material.size_0 = this._pointSize * this._materialCache[m].material.userData.customPointSize_0;
+                    material.needsUpdate = true;
                 } else {
-                    (<THREE.PointsMaterial>this._materialCache[m].material).size = this._pointSize;
-                    (<THREE.PointsMaterial>this._materialCache[m].material).needsUpdate = true;
+                    material.size_0 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_1Enabled && this._materialCache[m].material.userData.customPointSize_1Enabled === true) {
+                    material.size_1 = this._pointSize * this._materialCache[m].material.userData.customPointSize_1;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_1 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_2Enabled && this._materialCache[m].material.userData.customPointSize_2Enabled === true) {
+                    material.size_2 = this._pointSize * this._materialCache[m].material.userData.customPointSize_2;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_2 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_3Enabled && this._materialCache[m].material.userData.customPointSize_3Enabled === true) {
+                    material.size_3 = this._pointSize * this._materialCache[m].material.userData.customPointSize_3;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_3 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+                
+            } else if(this._materialCache[m].material instanceof THREE.PointsMaterial) {
+                const material: THREE.PointsMaterial = <THREE.PointsMaterial>this._materialCache[m].material;
+
+                if(this._materialCache[m].material.userData.customPointSizeEnabled && this._materialCache[m].material.userData.customPointSizeEnabled === true) {
+                    material.size = this._pointSize * this._materialCache[m].material.userData.customPointSize;
+                    material.needsUpdate = true;
+                } else {
+                    material.size = this._pointSize;
+                    material.needsUpdate = true;
                 }
             }
         }
@@ -439,16 +483,20 @@ export class MaterialLoader implements ILoader {
 
     public createMaterial(
         type: MATERIAL_TYPE,
-        incomingData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | GeometryData,
-        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null,
+        incomingData: IMaterialAbstractData | GeometryData,
+        materialData: IMaterialAbstractData | null,
         materialSettings?: MaterialSettings
     ) {
         const { properties, mapCount } = this.getMaterialProperties(materialData, type, materialSettings);
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
-        let material: THREE.PointsMaterial | LineMaterial | THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.ShadowMaterial;
+        let material: ThreeJsMaterialTypes;
         if (type === MATERIAL_TYPE.POINT) {
-            material = new THREE.PointsMaterial(properties);
+            if (materialData instanceof MaterialMultiPointData) {
+                material = new MultiPointsMaterial(properties);
+            } else {
+                material = new THREE.PointsMaterial(properties);
+            }
         } else if (type === MATERIAL_TYPE.LINE) {
             material = new LineMaterial(properties as LineMaterialParameters);
         } else {
@@ -488,15 +536,15 @@ export class MaterialLoader implements ILoader {
 
         if (materialData instanceof MaterialStandardData || materialData instanceof MaterialGemData || materialData instanceof MaterialSpecularGlossinessData || materialData instanceof MaterialUnlitData) {
             if (materialData.envMap !== undefined) {
-                const envMapInput = (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>materialData).envMap;
+                const envMapInput = (<MaterialDataMeshTypes>materialData).envMap;
                 if (envMapInput !== undefined) {
                     const envMapResult = this._renderingEngine.environmentMapLoader.loadEnvMap(envMapInput);
                     envMapResult.map.then(envMap => {
                         if (material instanceof THREE.MeshBasicMaterial && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
 
-                        (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap = envMap;
+                        (<ThreeJsMeshMaterialTypes>material).envMap = envMap;
 
-                        const envMapType = (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR;
+                        const envMapType = (<ThreeJsMeshMaterialTypes>material).envMap instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR;
                         for (const d in material.defines) {
                             if (d.startsWith('ENVMAP_TYPE_'))
                                 delete material.defines[d];
@@ -533,14 +581,14 @@ export class MaterialLoader implements ILoader {
     }
 
     public getMaterialProperties(
-        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | MaterialShadowData | null,
+        materialData: IMaterialAbstractData | null,
         type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
-        properties: THREE.PointsMaterialParameters | LineMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters,
+        properties: ThreeJsMaterialParameterTypes,
         mapCount: number
     } {
-        const generalProperties: THREE.PointsMaterialParameters | LineMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters = {};
+        const generalProperties: ThreeJsMaterialParameterTypes = {};
 
         let mapCount = 0;
 
@@ -596,40 +644,154 @@ export class MaterialLoader implements ILoader {
 
         if(type === MATERIAL_TYPE.POINT) {
             if(materialData instanceof MaterialPointData) {
-                (<THREE.PointsMaterialParameters>generalProperties).size = materialData.size !== undefined ? materialData.size : this._pointSize;
-                (<THREE.PointsMaterialParameters>generalProperties).userData = {
+                const pointMaterialProperties: THREE.PointsMaterialParameters = generalProperties;
+
+                pointMaterialProperties.size = materialData.size !== undefined ? materialData.size : this._pointSize;
+                pointMaterialProperties.userData = {
                     customPointSizeEnabled: materialData.size !== undefined,
                     customPointSize: materialData.size
                 };
-                (<THREE.PointsMaterialParameters>generalProperties).sizeAttenuation = materialData.sizeAttenuation !== undefined ? materialData.sizeAttenuation : true;
+                pointMaterialProperties.sizeAttenuation = materialData.sizeAttenuation !== undefined ? materialData.sizeAttenuation : true;
 
                 if (materialData.map !== undefined) {
-                    (<THREE.PointsMaterialParameters>generalProperties).map = this.createTexture(materialData.map);
+                    pointMaterialProperties.map = this.createTexture(materialData.map);
                     mapCount++;
                 }
 
                 if (materialData.alphaMap !== undefined) {
-                    (<THREE.PointsMaterialParameters>generalProperties).alphaMap = this.createTexture(materialData.alphaMap);
-                    (<THREE.PointsMaterialParameters>generalProperties).transparent = true;
-                    (<THREE.PointsMaterialParameters>generalProperties).depthWrite = false;
+                    pointMaterialProperties.alphaMap = this.createTexture(materialData.alphaMap);
+                    pointMaterialProperties.transparent = true;
+                    pointMaterialProperties.depthWrite = false;
                     mapCount++;
                 }
 
+            } else if(materialData instanceof MaterialMultiPointData) {
+                const multiPointMaterialProperties: MultiPointsMaterialParameters = generalProperties;
+
+                if(materialData.materialIndexDataMap) {
+                    multiPointMaterialProperties.materialIndexDataTexture = this.createTexture(materialData.materialIndexDataMap) as THREE.DataTexture;
+                } else {
+                    multiPointMaterialProperties.materialIndexDataTexture =
+                        new THREE.DataTexture(
+                            new Uint8Array(multiPointMaterialProperties.materialIndexDataTextureSize || 1024),
+                            multiPointMaterialProperties.materialIndexDataTextureSize || 1024,
+                            1,
+                            THREE.RedIntegerFormat,
+                            THREE.UnsignedIntType
+                        );
+                    multiPointMaterialProperties.materialIndexDataTexture.internalFormat = 'R32UI';
+                }
+
+                multiPointMaterialProperties.size_0 = materialData.size_0 !== undefined ? materialData.size_0 : this._pointSize;
+                multiPointMaterialProperties.size_1 = materialData.size_1 !== undefined ? materialData.size_1 : this._pointSize;
+                multiPointMaterialProperties.size_2 = materialData.size_2 !== undefined ? materialData.size_2 : this._pointSize;
+                multiPointMaterialProperties.size_3 = materialData.size_3 !== undefined ? materialData.size_3 : this._pointSize;
+
+                multiPointMaterialProperties.userData = {
+                    customPointSize_0Enabled: materialData.size_0 !== undefined,
+                    customPointSize_1Enabled: materialData.size_1 !== undefined,
+                    customPointSize_2Enabled: materialData.size_2 !== undefined,
+                    customPointSize_3Enabled: materialData.size_3 !== undefined,
+                    customPointSize_0: materialData.size_0,
+                    customPointSize_1: materialData.size_1,
+                    customPointSize_2: materialData.size_2,
+                    customPointSize_3: materialData.size_3
+                };
+
+                multiPointMaterialProperties.sizeAttenuation_0 = materialData.sizeAttenuation_0 !== undefined ? materialData.sizeAttenuation_0 : true;
+                multiPointMaterialProperties.sizeAttenuation_1 = materialData.sizeAttenuation_1 !== undefined ? materialData.sizeAttenuation_1 : true;
+                multiPointMaterialProperties.sizeAttenuation_2 = materialData.sizeAttenuation_2 !== undefined ? materialData.sizeAttenuation_2 : true;
+                multiPointMaterialProperties.sizeAttenuation_3 = materialData.sizeAttenuation_3 !== undefined ? materialData.sizeAttenuation_3 : true;
+
+                if (materialData.map_0 !== undefined) {
+                    multiPointMaterialProperties.map_0 = this.createTexture(materialData.map_0);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_1 !== undefined) {
+                    multiPointMaterialProperties.map_1 = this.createTexture(materialData.map_1);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_2 !== undefined) {
+                    multiPointMaterialProperties.map_2 = this.createTexture(materialData.map_2);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_3 !== undefined) {
+                    multiPointMaterialProperties.map_3 = this.createTexture(materialData.map_3);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_0 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_0 = this.createTexture(materialData.alphaMap_0);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_1 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_1 = this.createTexture(materialData.alphaMap_1);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_2 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_2 = this.createTexture(materialData.alphaMap_2);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_3 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_3 = this.createTexture(materialData.alphaMap_3);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.color_0 !== undefined) {
+                    multiPointMaterialProperties.color_0 = this._renderingEngine.createThreeJsColor(materialData.color_0);
+                }
+
+                if (materialData.color_1 !== undefined) {
+                    multiPointMaterialProperties.color_1 = this._renderingEngine.createThreeJsColor(materialData.color_1);
+                }
+
+                if (materialData.color_2 !== undefined) {
+                    multiPointMaterialProperties.color_2 = this._renderingEngine.createThreeJsColor(materialData.color_2);
+                }
+
+                if (materialData.color_3 !== undefined) {
+                    multiPointMaterialProperties.color_3 = this._renderingEngine.createThreeJsColor(materialData.color_3);
+                }
             } else {
-                (<THREE.PointsMaterialParameters>generalProperties).size = this._pointSize;
+                const pointMaterialProperties: THREE.PointsMaterialParameters = generalProperties;
+                pointMaterialProperties.size = this._pointSize;
             }
             return { properties: generalProperties, mapCount };
         } else if(type === MATERIAL_TYPE.LINE) {
             if(materialData instanceof MaterialLineData) {
-                (<LineMaterialParameters>generalProperties).alphaToCoverage = materialData.alphaToCoverage !== undefined ? materialData.alphaToCoverage : false;
-                (<LineMaterialParameters>generalProperties).dashOffset = materialData.dashOffset !== undefined ? materialData.dashOffset : 0;
-                (<LineMaterialParameters>generalProperties).dashScale = materialData.dashScale !== undefined ? materialData.dashScale : 1;
-                (<LineMaterialParameters>generalProperties).dashSize = materialData.dashSize !== undefined ? materialData.dashSize : 1;
-                (<LineMaterialParameters>generalProperties).dashed = materialData.dashed !== undefined ? materialData.dashed : false;
-                (<LineMaterialParameters>generalProperties).gapSize = materialData.gapSize !== undefined ? materialData.gapSize : 1;
-                (<LineMaterialParameters>generalProperties).linewidth = materialData.lineWidth !== undefined ? materialData.lineWidth : 1;
-                (<LineMaterialParameters>generalProperties).resolution = this._renderingEngine.renderer.getSize(new THREE.Vector2());
-                (<LineMaterialParameters>generalProperties).worldUnits = materialData.worldUnits !== undefined ? materialData.worldUnits : false;
+                const lineMaterialProperties: LineMaterialParameters = generalProperties as LineMaterialParameters;
+
+                lineMaterialProperties.alphaToCoverage = materialData.alphaToCoverage !== undefined ? materialData.alphaToCoverage : false;
+                lineMaterialProperties.dashOffset = materialData.dashOffset !== undefined ? materialData.dashOffset : 0;
+                lineMaterialProperties.dashScale = materialData.dashScale !== undefined ? materialData.dashScale : 1;
+                lineMaterialProperties.dashSize = materialData.dashSize !== undefined ? materialData.dashSize : 1;
+                lineMaterialProperties.dashed = materialData.dashed !== undefined ? materialData.dashed : false;
+                lineMaterialProperties.gapSize = materialData.gapSize !== undefined ? materialData.gapSize : 1;
+                lineMaterialProperties.linewidth = materialData.lineWidth !== undefined ? materialData.lineWidth : 1;
+                lineMaterialProperties.resolution = this._renderingEngine.renderer.getSize(new THREE.Vector2());
+                lineMaterialProperties.worldUnits = materialData.worldUnits !== undefined ? materialData.worldUnits : false;
                 return { properties: generalProperties, mapCount };
             } else {
                 return { properties: generalProperties, mapCount };
@@ -919,10 +1081,10 @@ export class MaterialLoader implements ILoader {
        * @returns the material object
        */
     public load(
-        incomingData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | GeometryData,
+        incomingData: IMaterialAbstractData | GeometryData,
         materialSettings?: MaterialSettings
     ): THREE.Material {
-        let materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null = null;
+        let materialData: IMaterialAbstractData | null = null;
         if (!(incomingData instanceof GeometryData))
             materialData = incomingData;
 
@@ -1066,64 +1228,77 @@ export class MaterialLoader implements ILoader {
             return this._threeJsTextureCache[key].texture;
         }
 
-        const texture = new THREE.Texture(map.image);
-        texture.format = THREE.RGBAFormat;
-        texture.minFilter = (() => {
-            switch (map.minFilter) {
-                case TEXTURE_FILTERING.NEAREST:
-                    return THREE.NearestFilter;
-                case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
-                    return THREE.NearestMipMapNearestFilter;
-                case TEXTURE_FILTERING.LINEAR_MIPMAP_NEAREST:
-                    return THREE.LinearMipMapNearestFilter;
-                case TEXTURE_FILTERING.NEAREST_MIPMAP_LINEAR:
-                    return THREE.NearestMipMapLinearFilter;
-                case TEXTURE_FILTERING.LINEAR:
-                    return THREE.LinearFilter;
-                case TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR:
-                default:
-                    return THREE.LinearMipMapLinearFilter;
-            }
-        })();
-        texture.magFilter = (() => {
-            switch (map.magFilter) {
-                case TEXTURE_FILTERING.NEAREST:
-                    return THREE.NearestFilter;
-                case TEXTURE_FILTERING.LINEAR:
-                default:
-                    return THREE.LinearFilter;
-            }
-        })();
-        texture.wrapS = (() => {
-            switch (map.wrapS) {
-                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
-                    return THREE.ClampToEdgeWrapping;
-                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
-                    return THREE.MirroredRepeatWrapping;
-                case TEXTURE_WRAPPING.REPEAT:
-                default:
-                    return THREE.RepeatWrapping;
-            }
-        })();
-        texture.wrapT = (() => {
-            switch (map.wrapT) {
-                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
-                    return THREE.ClampToEdgeWrapping;
-                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
-                    return THREE.MirroredRepeatWrapping;
-                case TEXTURE_WRAPPING.REPEAT:
-                default:
-                    return THREE.RepeatWrapping;
-            }
-        })();
-
-        texture.center = new THREE.Vector2(map.center[0], map.center[1]);
-        texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
-        texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
-        texture.rotation = map.rotation;
-        if (map.texCoord !== undefined) texture.channel = map.texCoord;
-
-        texture.flipY = map.flipY;
+        let texture: THREE.Texture;
+        if(map.asData === true) {
+            texture = new THREE.DataTexture(
+                new Uint32Array(map.data!),
+                map.data!.length,
+                1,
+                THREE.RedIntegerFormat,
+                THREE.UnsignedIntType
+              );
+              texture.internalFormat = 'R32UI';
+        } else {
+            texture = new THREE.Texture(map.image);
+            texture.format = THREE.RGBAFormat;
+            texture.minFilter = (() => {
+                switch (map.minFilter) {
+                    case TEXTURE_FILTERING.NEAREST:
+                        return THREE.NearestFilter;
+                    case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
+                        return THREE.NearestMipMapNearestFilter;
+                    case TEXTURE_FILTERING.LINEAR_MIPMAP_NEAREST:
+                        return THREE.LinearMipMapNearestFilter;
+                    case TEXTURE_FILTERING.NEAREST_MIPMAP_LINEAR:
+                        return THREE.NearestMipMapLinearFilter;
+                    case TEXTURE_FILTERING.LINEAR:
+                        return THREE.LinearFilter;
+                    case TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR:
+                    default:
+                        return THREE.LinearMipMapLinearFilter;
+                }
+            })();
+            texture.magFilter = (() => {
+                switch (map.magFilter) {
+                    case TEXTURE_FILTERING.NEAREST:
+                        return THREE.NearestFilter;
+                    case TEXTURE_FILTERING.LINEAR:
+                    default:
+                        return THREE.LinearFilter;
+                }
+            })();
+            texture.wrapS = (() => {
+                switch (map.wrapS) {
+                    case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                        return THREE.ClampToEdgeWrapping;
+                    case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                        return THREE.MirroredRepeatWrapping;
+                    case TEXTURE_WRAPPING.REPEAT:
+                    default:
+                        return THREE.RepeatWrapping;
+                }
+            })();
+            texture.wrapT = (() => {
+                switch (map.wrapT) {
+                    case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                        return THREE.ClampToEdgeWrapping;
+                    case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                        return THREE.MirroredRepeatWrapping;
+                    case TEXTURE_WRAPPING.REPEAT:
+                    default:
+                        return THREE.RepeatWrapping;
+                }
+            })();
+    
+            texture.center = new THREE.Vector2(map.center[0], map.center[1]);
+            texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
+            texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
+            texture.rotation = map.rotation;
+            if (map.texCoord !== undefined) texture.channel = map.texCoord;
+    
+            texture.flipY = map.flipY;
+        }
+        
         texture.needsUpdate = true;
 
         texture.userData.cacheKey = key;

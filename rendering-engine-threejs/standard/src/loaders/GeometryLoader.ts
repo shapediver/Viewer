@@ -536,6 +536,8 @@ export class GeometryLoader implements ILoader {
                 return 'skinIndex';
             case 'TANGENT':
                 return 'tangent';
+            case 'POSITION_INDEX':
+                return 'positionIndex';
             default:
                 this._logger.warn(`GeometryLoader.loadPrimitive: Unrecognized attribute id ${attributeId}.`);
         }
