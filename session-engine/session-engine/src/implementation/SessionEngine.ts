@@ -1345,18 +1345,20 @@ export class SessionEngine implements ISessionEngine {
         }
         this._settingsEngine.session = sessionProperties;
 
-        let orderedOutputs: IOutput[] = [];
+        const orderedOutputs: IOutput[] = [];
         for (const o in this.outputs) orderedOutputs.push(this.outputs[o]);
         orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
         const zerosOutputs = orderedOutputs.filter(x => x.order === 0);
-        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
-        orderedOutputs = zerosOutputs.concat(orderedOutputs);
 
-        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
-        for (let i = 0; i < controlOrderOutputs.length; i++) {
-            if (this.outputs[controlOrderOutputs[i]])
-                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
-                    this.outputs[controlOrderOutputs[i]]!.order = i;
+        // get maximum order number of parameters, exports and outputs
+        let maxOrder = 0;
+        for (const p in parameters) maxOrder = Math.max(maxOrder, parameters[p].order || 0);
+        for (const e in exports) maxOrder = Math.max(maxOrder, exports[e].order || 0);
+        for (const o in this.outputs) maxOrder = Math.max(maxOrder, this.outputs[o].order || 0);
+
+        // set the order of the zero outputs
+        for (let i = 0; i < zerosOutputs.length; i++) {
+            zerosOutputs[i].order = maxOrder + i + 1;
         }
     }
 
