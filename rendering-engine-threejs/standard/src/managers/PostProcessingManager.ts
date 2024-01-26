@@ -108,7 +108,7 @@ export class PostProcessingManager implements IManager {
     private _ssaaRenderPass?: SSAARenderPass;
     private _sceneExtents = 0;
     private _suspendEffectPassUpdate = false;
-    private _currentCameraType: string = 'PerspectiveCamera';
+    private _currentCameraId: string = '';
 
     // #endregion Properties (19)
 
@@ -1104,9 +1104,9 @@ export class PostProcessingManager implements IManager {
     public render(deltaTime: number, camera: THREE.Camera) {
         if(!this._composer) return;
 
-        const cameraType = camera.type + (camera.type === 'PerspectiveCamera' ? '' : camera.up.toArray().toString());
-        if(cameraType !== this._currentCameraType) {
-            this._currentCameraType = cameraType;
+        const cameraId = `${camera.id}_${camera.type}${(camera.type === 'PerspectiveCamera' ? '' : '_' + camera.up.toArray().toString())}`;
+        if(cameraId !== this._currentCameraId) {
+            this._currentCameraId = cameraId;
             this.changeEffectPass();
         }
 
