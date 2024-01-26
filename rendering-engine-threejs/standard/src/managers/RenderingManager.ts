@@ -559,15 +559,22 @@ export class RenderingManager implements IManager {
         let adjustedWidth = width,
             adjustedHeight = height;
 
+        width = width * window.devicePixelRatio;
+        height = height * window.devicePixelRatio;
+
         if (width > this._renderingEngine.maximumRenderingSize.width || height > this._renderingEngine.maximumRenderingSize.height) {
             if ((width - this._renderingEngine.maximumRenderingSize.width) / aspect > (height - this._renderingEngine.maximumRenderingSize.height)) {
-                adjustedWidth = this._renderingEngine.maximumRenderingSize.width;
-                adjustedHeight = this._renderingEngine.maximumRenderingSize.width / aspect;
+                adjustedWidth = this._renderingEngine.maximumRenderingSize.width / window.devicePixelRatio;
+                adjustedHeight = adjustedWidth / aspect;
             } else {
-                adjustedWidth = this._renderingEngine.maximumRenderingSize.height * aspect;
-                adjustedHeight = this._renderingEngine.maximumRenderingSize.height;
+                adjustedHeight = this._renderingEngine.maximumRenderingSize.height / window.devicePixelRatio;
+                adjustedWidth = adjustedHeight * aspect;
             }
         }
+
+        width = width / window.devicePixelRatio;
+        height = height / window.devicePixelRatio;
+
         return {
             width, adjustedWidth,
             height, adjustedHeight
