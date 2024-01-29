@@ -1344,20 +1344,6 @@ export class SessionEngine implements ISessionEngine {
             };
         }
         this._settingsEngine.session = sessionProperties;
-
-        let orderedOutputs: IOutput[] = [];
-        for (const o in this.outputs) orderedOutputs.push(this.outputs[o]);
-        orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-        const zerosOutputs = orderedOutputs.filter(x => x.order === 0);
-        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
-        orderedOutputs = zerosOutputs.concat(orderedOutputs);
-
-        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
-        for (let i = 0; i < controlOrderOutputs.length; i++) {
-            if (this.outputs[controlOrderOutputs[i]])
-                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
-                    this.outputs[controlOrderOutputs[i]]!.order = i;
-        }
     }
 
     private _warningCreator() {
