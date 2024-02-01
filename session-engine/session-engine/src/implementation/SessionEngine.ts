@@ -463,7 +463,7 @@ export class SessionEngine implements ISessionEngine {
             const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
-            const oldNode = this.node.cloneInstance();
+            const oldNode = this.node;
             this.#customizationProcess = customizationId;
 
             this._logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
@@ -1173,7 +1173,7 @@ export class SessionEngine implements ISessionEngine {
         }
 
         const customizationId = this._uuidGenerator.create();
-        const oldNode = this.node.cloneInstance();
+        const oldNode = this.node;
         this.#customizationProcess = customizationId;
 
         this._logger.debugLow(`Session(${this.id}).updateOutputs: Updating Outputs.`);
