@@ -121,9 +121,8 @@ export class CameraEngine implements ICameraEngine {
             }
         }
 
-        if(!this._settingsApplied)
-            for (let c in cameras)
-                cameras[c].applySettings(settingsEngine);
+        for (let c in cameras)
+            cameras[c].applySettings(settingsEngine);
 
         const cameraKeys = Object.keys(settingsEngine.settings.camera.cameras);
 
