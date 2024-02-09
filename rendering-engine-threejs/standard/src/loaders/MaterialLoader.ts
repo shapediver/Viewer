@@ -131,9 +131,9 @@ type ThreeJsTextureCacheObject = {
     initialized: boolean
 }
 
-type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | LineMaterial | THREE.ShadowMaterial;
+type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | LineMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial;
 type ThreeJsMeshMaterialTypes = THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial;
-type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | LineMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
+type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | LineMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
 type MaterialDataMeshTypes = MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData;
 
 export class MaterialLoader implements ILoader {
@@ -498,7 +498,11 @@ export class MaterialLoader implements ILoader {
                 material = new THREE.PointsMaterial(properties);
             }
         } else if (type === MATERIAL_TYPE.LINE) {
-            material = new LineMaterial(properties as LineMaterialParameters);
+            if(materialData instanceof MaterialLineData) {
+                material = new LineMaterial(properties as LineMaterialParameters);
+            } else {
+                material = new THREE.LineBasicMaterial(properties as THREE.LineBasicMaterialParameters);
+            }
         } else {
             if (materialData instanceof MaterialUnlitData) {
                 material = new THREE.MeshBasicMaterial(properties);

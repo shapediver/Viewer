@@ -49,6 +49,8 @@ import { MaterialLineData } from './implementation/material/MaterialLineData';
 import { IMaterialLineData, IMaterialLineDataProperties } from './interfaces/data/material/IMaterialLineData';
 import { MaterialMultiPointData } from './implementation/material/MaterialMultiPointData';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties } from './interfaces/data/material/IMaterialMultiPointData';
+import { MaterialBasicLineData } from './implementation/material/MaterialBasicLineData';
+import { IMaterialBasicLineData, IMaterialBasicLineDataProperties } from './interfaces/data/material/IMaterialBasicLineData';
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
@@ -60,6 +62,7 @@ export {
   IMaterialPointData, MaterialPointData, IMaterialPointDataProperties,
   IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties,
   IMaterialLineData, MaterialLineData, IMaterialLineDataProperties,
+  IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties,
   IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 };
 
