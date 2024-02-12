@@ -157,14 +157,29 @@ export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageE
     ctx.putImageData(imageData, 0, 0);
 
     const imageOut = new Image();
-    const promise = new Promise<void>((resolve, reject) => {
+    const promises = [];
+    promises.push(new Promise<void>((resolve, reject) => {
         imageOut.onload = () => resolve();
         imageOut.onerror = reject;
-    });
+    }));
+
     imageOut.crossOrigin = 'anonymous';
-    imageOut.src = canvas.toDataURL('image/jpeg', 1.0);
+    const mimeType = 'image/jpeg';
+    imageOut.src = canvas.toDataURL(mimeType, 1.0);
 
-    await promise;
+    let blob!: Blob;
+    promises.push(new Promise<void>((resolve, reject) => {
+        canvas.toBlob((b) => {
+            if (!b) {
+                reject('Could not create blob.');
+            } else {
+                blob = b;
+            }
+            resolve();
+        }, mimeType, 1.0);
+    }));
 
-    return { image: imageOut, blob: new Blob([buffer]) };
+    await Promise.all(promises);
+
+    return { image: imageOut, blob };
 };
