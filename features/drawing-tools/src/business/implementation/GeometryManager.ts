@@ -122,7 +122,10 @@ export class GeometryManager implements IManager {
                 {
                     materialIndexDataMap: new MapData(new Image(), { asData: true, data: this.#materialIndexArray }),
                     materialIndexDataMapSize: 1024,
-                    alphaMode: MATERIAL_ALPHA.BLEND
+                    alphaMode: MATERIAL_ALPHA.BLEND,
+                    depthTest: false,
+                    depthWrite: false,
+                    transparent: true
                 },
                 this.#drawingToolsManager.customizationProperties.visualizationOptions.points
             )
@@ -135,7 +138,10 @@ export class GeometryManager implements IManager {
             this.#geometryDataLines.material = new MaterialBasicLineData(
                 Object.assign(
                     {
-                        alphaMode: MATERIAL_ALPHA.BLEND
+                        alphaMode: MATERIAL_ALPHA.BLEND,
+                        depthTest: false,
+                        depthWrite: false,
+                        transparent: true
                     },
                     this.#drawingToolsManager.customizationProperties.visualizationOptions.lines
                 )
@@ -146,14 +152,6 @@ export class GeometryManager implements IManager {
 
         this.#parentNode.updateVersion();
         this.#drawingToolsManager.viewport.update();
-
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
-        threeJsPointsGeometry.frustumCulled = false;
-
-        if (this.#geometryDataLines) {
-            const threeJsLinesGeometry: THREE.LineSegments = this.#geometryDataLines.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.LineSegments;
-            threeJsLinesGeometry.frustumCulled = false;
-        }
     }
 
     // #endregion Constructors (1)

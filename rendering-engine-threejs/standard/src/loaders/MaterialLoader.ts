@@ -625,6 +625,18 @@ export class MaterialLoader implements ILoader {
             generalProperties.transparent = false;
         }
 
+        if(materialData.depthTest !== undefined) {
+            generalProperties.depthTest = materialData.depthTest;
+        }
+
+        if(materialData.depthWrite !== undefined) {
+            generalProperties.depthWrite = materialData.depthWrite;
+        }
+
+        if (materialData.transparent !== undefined) {
+            generalProperties.transparent = materialData.transparent;
+        }
+
         if (materialData.color !== undefined)
             generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.color);
 

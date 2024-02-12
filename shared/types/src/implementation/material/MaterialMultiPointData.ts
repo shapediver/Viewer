@@ -268,6 +268,8 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
             aoMapIntensity: this.aoMapIntensity,
             bumpMap: this.bumpMap,
             bumpScale: this.bumpScale,
+            depthTest: this.depthTest,
+            depthWrite: this.depthWrite,
             emissiveMap: this.emissiveMap,
             emissiveness: this.emissiveness,
             shading: this.shading,
@@ -276,6 +278,7 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
             normalScale: this.normalScale,
             opacity: this.opacity,
             side: this.side,
+            transparent: this.transparent,
             
             alphaMap_0: this.alphaMap_0,
             alphaMap_1: this.alphaMap_1,
@@ -309,6 +312,8 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
         this.aoMapIntensity = source.aoMapIntensity;
         this.bumpMap = source.bumpMap;
         this.bumpScale = source.bumpScale;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
         this.emissiveMap = source.emissiveMap;
         this.emissiveness = source.emissiveness;
         this.materialOutput = source.materialOutput;
@@ -317,6 +322,7 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
+        this.transparent = source.transparent;
 
         this.alphaMap_0 = source.alphaMap_0;
         this.alphaMap_1 = source.alphaMap_1;
@@ -349,6 +355,8 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
         this.aoMapIntensity = 1.0;
         this.bumpMap = undefined;
         this.bumpScale = 1.0;
+        this.depthTest = undefined;
+        this.depthWrite = undefined;
         this.emissiveMap = undefined;
         this.emissiveness = '#000000';
         this.materialOutput = false;
@@ -357,6 +365,7 @@ export class MaterialMultiPointData extends AbstractMaterialData implements IMat
         this.opacity = 1.0;
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
+        this.transparent = undefined;
 
         this.alphaMap_0 = undefined;
         this.alphaMap_1 = undefined;

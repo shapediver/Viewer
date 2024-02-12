@@ -34,6 +34,8 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
             bumpMap: this.bumpMap,
             bumpScale: this.bumpScale,
             color: this.color,
+            depthTest: this.depthTest,
+            depthWrite: this.depthWrite,
             emissiveMap: this.emissiveMap,
             emissiveness: this.emissiveness,
             shading: this.shading,
@@ -42,7 +44,8 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
             normalMap: this.normalMap,
             normalScale: this.normalScale,
             opacity: this.opacity,
-            side: this.side
+            side: this.side,
+            transparent: this.transparent
         }, this.id, this.version);
     }
 
@@ -55,6 +58,8 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
         this.bumpMap = source.bumpMap;
         this.bumpScale = source.bumpScale;
         this.color = source.color;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
         this.emissiveMap = source.emissiveMap;
         this.emissiveness = source.emissiveness;
         this.materialOutput = source.materialOutput;
@@ -64,6 +69,7 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
+        this.transparent = source.transparent;
     }
 
     public reset(): void {
@@ -75,6 +81,8 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
         this.bumpMap = undefined;
         this.bumpScale = 1.0;
         this.color = '#ffffff';
+        this.depthTest = undefined;
+        this.depthWrite = undefined;
         this.emissiveMap = undefined;
         this.emissiveness = '#000000';
         this.materialOutput = false;
@@ -84,6 +92,7 @@ export class MaterialBasicLineData extends AbstractMaterialData implements IMate
         this.opacity = 1.0;
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
+        this.transparent = undefined;
     }
 
     // #endregion Public Methods (3)

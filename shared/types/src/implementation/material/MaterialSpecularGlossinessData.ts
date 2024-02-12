@@ -106,6 +106,8 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
             bumpMap: this.bumpMap,
             bumpScale: this.bumpScale,
             color: this.color,
+            depthTest: this.depthTest,
+            depthWrite: this.depthWrite,
             emissiveMap: this.emissiveMap,
             emissiveness: this.emissiveness,
             shading: this.shading,
@@ -115,6 +117,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
             normalScale: this.normalScale,
             opacity: this.opacity,
             side: this.side,
+            transparent: this.transparent,
             specular: this.specular,
             specularMap: this.specularMap,
             specularGlossinessMap: this.specularGlossinessMap,
@@ -133,6 +136,8 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.bumpMap = source.bumpMap;
         this.bumpScale = source.bumpScale;
         this.color = source.color;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
         this.emissiveMap = source.emissiveMap;
         this.emissiveness = source.emissiveness;
         this.materialOutput = source.materialOutput;
@@ -142,6 +147,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
+        this.transparent = source.transparent;
 
         this.glossiness = source.glossiness;
         this.specular = source.specular;
@@ -160,6 +166,8 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.bumpMap = undefined;
         this.bumpScale = 1.0;
         this.color = '#ffffff';
+        this.depthTest = undefined;
+        this.depthWrite = undefined;
         this.emissiveMap = undefined;
         this.emissiveness = '#000000';
         this.materialOutput = false;
@@ -169,6 +177,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.opacity = 1.0;
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
+        this.transparent = undefined;
 
         this.glossiness = 1;
         this.specular = '#ffffff';
