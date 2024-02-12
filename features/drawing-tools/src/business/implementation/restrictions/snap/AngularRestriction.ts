@@ -97,24 +97,25 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const lastPoint = vec3.fromValues(positionArray.at((previousIndex * 3))!, positionArray.at((previousIndex * 3) + 1)!, positionArray.at((previousIndex * 3) + 2)!);
         const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, direction: directionLast } = this.getAngularDifference(projection, lastPoint);
 
-        const maxAngleForMatt = 5;
+        const resultPointFirstAngle = vec3.rotateZ(vec3.create(), projection, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
+        const distanceFirstAngle = vec3.distance(resultPointFirstAngle, projection);
+        const resultPointLastAngle = vec3.rotateZ(vec3.create(), projection, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
+        const distanceLastAngle = vec3.distance(resultPointLastAngle, projection);
 
-        // angle difference is within 10 degrees, don't move the point
-        if (Math.abs(angularDifferenceFirst) > maxAngleForMatt / 180 * Math.PI && Math.abs(angularDifferenceLast) > maxAngleForMatt / 180 * Math.PI) return projection;
+        const distanceThreshold = 1.5;
 
-        const resultPointFirst = vec3.rotateZ(vec3.create(), projection, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
-        const resultPointLast = vec3.rotateZ(vec3.create(), projection, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
+        if(distanceFirstAngle > distanceThreshold && distanceLastAngle > distanceThreshold) return projection;
 
-        // snap to clear defined point if both angles are within 5 degrees
-        if (positionArray.length > 6 && Math.abs(angularDifferenceFirst) < maxAngleForMatt / 180 * Math.PI && Math.abs(angularDifferenceLast) < maxAngleForMatt / 180 * Math.PI) {
-            const rayDirectionFirst = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointFirst, firstPoint));
-            const rayDirectionLast = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointLast, lastPoint));
+        // snap to clear defined point if both distances are smaller than threshold
+        if (positionArray.length > 6 && distanceFirstAngle < distanceThreshold && distanceLastAngle < distanceThreshold) {
+            const rayDirectionFirst = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointFirstAngle, firstPoint));
+            const rayDirectionLast = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointLastAngle, lastPoint));
 
             const crossProduct = vec3.cross(vec3.create(), rayDirectionFirst, rayDirectionLast);
             const crossProductLength = vec3.length(crossProduct);
 
             if (crossProductLength < 0.001) {
-                return resultPointFirst;
+                return resultPointFirstAngle;
             }
 
             const t = vec3.sub(vec3.create(), lastPoint, firstPoint);
@@ -125,7 +126,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             const uValue = vec3.dot(v, crossProduct) / crossProductLength ** 2;
 
             if (tValue < 0 || uValue < 0) {
-                return resultPointFirst;
+                return resultPointFirstAngle;
             }
 
             const intersection = vec3.add(vec3.create(), firstPoint, vec3.scale(vec3.create(), rayDirectionFirst, tValue));
@@ -134,13 +135,13 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             return intersection;
         }
 
-        // check which angular difference is smaller
-        if (Math.abs(angularDifferenceFirst) < Math.abs(angularDifferenceLast)) {
+        // check which distance to the projection is smaller
+        if (distanceFirstAngle < distanceLastAngle) {
             this._polarGridHelperFirst = this.createGrid(this._polarGridHelperFirst, firstPoint, vec3.length(directionFirst));
-            return resultPointFirst;
+            return resultPointFirstAngle;
         } else {
             this._polarGridHelperLast = this.createGrid(this._polarGridHelperLast, lastPoint, vec3.length(directionLast));
-            return resultPointLast;
+            return resultPointLastAngle;
         }
     }
 
