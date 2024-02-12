@@ -154,7 +154,7 @@ export class InteractionManager implements IManager {
     /**
      * On mouse up, check if a point is close to the ray and deselect it
      */
-    public onEnd(): void {
+    public onUp(): void {
         if (this.#justSelected === false && this.#moving === false && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
             this.selectPoint(this.#hoveredPoint);
         } else if (this.#justSelected === true && this.#moving === true && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
@@ -162,6 +162,34 @@ export class InteractionManager implements IManager {
         } if ( this.#moving === true && this.#dragging === true) {
             this.removeAllSelectedPoints();
         }
+        this.#justSelected = false;
+        this.#moving = false;
+        this.#dragging = false;
+        this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
+        this.#selectedPointPositions = [];
+        this.#hoveredPointPosition = vec3.create();
+    }
+
+    /**
+     * On mouse out, deselect the hovered point and remove the stop dragging
+     */
+    public onOut(): void {
+        // reset all selected points to their original position
+        this.#selectedPointIndices.forEach((element, i) => {
+            this.#drawingToolsManager.geometryManager.movePoint(element, this.#selectedPointPositions[i], true);
+        });
+
+        // reset the hovered point
+        this.#drawingToolsManager.geometryManager.movePoint(this.#hoveredPoint!, this.#hoveredPointPosition, true);
+
+        if (this.#justSelected === false && this.#moving === false && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+            this.selectPoint(this.#hoveredPoint);
+        } else if (this.#justSelected === true && this.#moving === true && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+            this.selectPoint(this.#hoveredPoint);
+        } if ( this.#moving === true && this.#dragging === true) {
+            this.removeAllSelectedPoints();
+        }
+
         this.#justSelected = false;
         this.#moving = false;
         this.#dragging = false;

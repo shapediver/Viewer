@@ -103,7 +103,8 @@ export class DrawingToolsManager implements IManager {
 
         this.#eventManager = new EventManager(viewport, {
             onDown: this.onDown.bind(this),
-            onEnd: this.onEnd.bind(this),
+            onUp: this.onUp.bind(this),
+            onOut: this.onOut.bind(this),
             onMove: this.onMove.bind(this),
             onKeyDown: this.onKeyDown.bind(this),
             onKeyUp: this.onKeyUp.bind(this)
@@ -347,9 +348,22 @@ export class DrawingToolsManager implements IManager {
      * 
      * @param ray 
      */
-    private onEnd(): void {
+    private onUp(): void {
         if (this.#closed) return;
-        this.#interactionManager.onEnd();
+        this.#interactionManager.onUp();
+        this.#viewport.removeFlag(this.#cameraFreezeFlag);
+        this.#cameraFreezeFlag = '';
+    }
+
+    /**
+     * Call all according interaction managers with the results.
+     * 
+     * @param ray 
+     */
+    private onOut(): void {
+        if (this.#closed) return;
+        this.#geometryManager.onOut();
+        this.#interactionManager.onOut();
         this.#viewport.removeFlag(this.#cameraFreezeFlag);
         this.#cameraFreezeFlag = '';
     }

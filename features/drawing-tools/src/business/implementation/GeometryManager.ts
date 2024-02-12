@@ -263,6 +263,17 @@ export class GeometryManager implements IManager {
         return false;
     }
 
+    public onOut(): void {
+        this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
+
+        if (this.#insertionActive === true) {
+            // remove last added point
+            this.removePoint(this.#positionArray.length / 3 - 1);
+            this.#insertionActive = false;
+            this.#alreadyInserted = false;
+        }
+    }
+
     public onKeyDown(event: KeyboardEvent): void {
         if (this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert)) {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
