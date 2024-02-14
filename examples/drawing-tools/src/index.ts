@@ -168,7 +168,7 @@ import { vec3 } from 'gl-matrix';
         ], menuDiv);
     };
 
-    session.updateCallback = sessionCallback;
+    // session.updateCallback = sessionCallback;
     // call once to initialize the drawing tool
     sessionCallback();
 
