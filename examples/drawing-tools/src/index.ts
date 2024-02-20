@@ -4,6 +4,7 @@ import {
     createDrawingTools,
     CustomizationProperties,
     GridRestrictionApi,
+    IDrawingToolsApi,
     PlaneRestrictionApi
 } from '@shapediver/viewer.features.drawing-tools';
 import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
@@ -22,58 +23,16 @@ import { vec3 } from 'gl-matrix';
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '0e23ddb1ac28dc00550d435ea4f16ec440a369212d548852fa93f98ebcd1ad76f05982af1dabfceceb7bca7dbab3404c50f1a21d889041b9934f55db552051d30950929259e34e2da5e963551c5a76e263487f6d5a3b4f45f5400173131fbbb37ced0a1b52b5c7-7138e13ae43f7322267ce34373e43519',
+            '0ce71edda5e3dd290727d996da946ef4b5c8c6ff9ec96050da199baca167755d200a0787b708845f0736a2c46976de010b99a9a7ee9ac23afcd60b0f75a15be63ea16ce5a1a3fcfb465128b23d143e0811be3fe5880d6058d6ab94d50e7cb04bed76b3233f5b3f-8e85641a609edc1bc2b59bf7bfbc5a37',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
-        initialParameterValues: {
-            'points': JSON.stringify({ points: [] })
-        }
     });
 
-    const json = { points: [[494.7, 354.3, 0.0], [488.9, 420.7, 0.0], [556.9, 422.9, 0.0], [557.2, 363.7, 0.0]] };
-    const defaultPoints: number[][] = json.points;
-    // calculate the center of the points
-    const center = defaultPoints.reduce((acc, val) => [acc[0] + val[0], acc[1] + val[1], acc[2] + val[2]], [0, 0, 0]).map(val => val / defaultPoints.length) as vec3;
-
-    const customizationProperties: CustomizationProperties = {
-        visualizationOptions: {
-            points: {
-                map_0: texture,
-                map_1: texture_0,
-                map_2: texture,
-                map_3: texture_0,
-                size_0: 15,
-                size_1: 15,
-                size_2: 20,
-                size_3: 20,
-                color_0: '#0d44f0',
-                color_1: '#9e27d8',
-                color_2: '#197aeb',
-                color_3: '#bc47fd',
-                sizeAttenuation_0: false,
-                sizeAttenuation_1: false,
-                sizeAttenuation_2: false,
-                sizeAttenuation_3: false,
-            },
-            lines: {
-                color: '#0d44f0'
-            }
-        },
-        geometry: {
-            mode: SDV.PRIMITIVE_MODE.LINES
-        },
-        restrictions: {
-            grid: { gridSize: 100, gridUnit: 1, origin: center, normal: vec3.fromValues(0, 0, 1) },
-            plane: { gridSize: 100, origin: center, normal: vec3.fromValues(0, 0, 1) },
-            angular: { angleStep: Math.PI / 8, normal: vec3.fromValues(0, 0, 1) }
-        },
-        controls: {
-            insert: 'Ctrl',
-            delete: 'Shift',
-            finish: 'Enter',
-            cancel: 'Escape'
-        }
-    };
+    // get the output for the drawing tools options
+    const drawingToolsOptions = session.getOutputByName('DrawingToolsOptions')[0];
+    console.log(drawingToolsOptions.content![0].data)
+    const customizationProperties: CustomizationProperties = JSON.parse(drawingToolsOptions.content![0].data);
+    console.log(customizationProperties)
 
     /**
      * Callback function for the drawing tool
@@ -91,11 +50,19 @@ import { vec3 } from 'gl-matrix';
         }
 
         session.getParameterByName('points')[0].value = JSON.stringify({ points: points });
-        await session.customize();
+        await session.customize(undefined, undefined, true);
+
+        sessionCallback();
     };
 
-    const sessionCallback = () => {
-        const drawingToolsApi = createDrawingTools(viewport, drawingToolsCallback, customizationProperties);
+    let drawingToolsApi: IDrawingToolsApi | undefined;
+    const sessionCallback = async () => {
+        if(drawingToolsApi) drawingToolsApi.close();
+        SDV.sceneTree.root.updateVersion();
+        viewport.update();
+
+        
+        drawingToolsApi = createDrawingTools(viewport, drawingToolsCallback, customizationProperties);
 
         /**
          * 
@@ -115,6 +82,22 @@ import { vec3 } from 'gl-matrix';
         document.body.appendChild(menuDiv);
 
         createCustomUi([
+            <IBooleanElement>{
+                name: 'show point labels',
+                type: 'boolean',
+                value: true,
+                onInputCallback: (value: boolean) => {
+                    drawingToolsApi!.showPointLabels = value;
+                }
+            },
+            <IBooleanElement>{
+                name: 'show distance labels',
+                type: 'boolean',
+                value: true,
+                onInputCallback: (value: boolean) => {
+                    drawingToolsApi!.showDistanceLabels = value;
+                }
+            },
             <IBooleanElement>{
                 name: 'grid',
                 type: 'boolean',
@@ -168,8 +151,6 @@ import { vec3 } from 'gl-matrix';
         ], menuDiv);
     };
 
-    // session.updateCallback = sessionCallback;
-    // call once to initialize the drawing tool
     sessionCallback();
 
     /**

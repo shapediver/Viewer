@@ -18,6 +18,7 @@ import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/int
 import { RestrictionManager } from './RestrictionManager';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
+import { TextVisualizationManager } from './TextVisualizationManager';
 
 // #region Type aliases (2)
 
@@ -85,6 +86,7 @@ export class DrawingToolsManager implements IManager {
     readonly #geometryMathManager: GeometryMathManager;
     readonly #interactionManager: InteractionManager;
     readonly #restrictionManager: RestrictionManager;
+    readonly #textVisualizationManager: TextVisualizationManager;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
@@ -104,6 +106,7 @@ export class DrawingToolsManager implements IManager {
         this.#restrictionManager = new RestrictionManager(this);
         this.#geometryManager = new GeometryManager(this);
         this.#interactionManager = new InteractionManager(this);
+        this.#textVisualizationManager = new TextVisualizationManager(this);
 
         this.#eventManager = new EventManager(viewport, {
             onDown: this.#interactionManager.onDown.bind(this.#interactionManager),
@@ -132,7 +135,7 @@ export class DrawingToolsManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (7)
+    // #region Public Getters And Setters (8)
 
     public get callback(): (geometryData: IGeometryData) => void {
         return this.#callback;
@@ -162,11 +165,15 @@ export class DrawingToolsManager implements IManager {
         return this.#restrictionManager;
     }
 
+    public get textVisualizationManager(): TextVisualizationManager {
+        return this.#textVisualizationManager;
+    }
+
     public get viewport(): IViewportApi {
         return this.#viewport;
     }
 
-    // #endregion Public Getters And Setters (7)
+    // #endregion Public Getters And Setters (8)
 
     // #region Public Methods (9)
 
@@ -238,6 +245,7 @@ export class DrawingToolsManager implements IManager {
         this.#restrictionManager.close();
         this.#geometryManager.close();
         this.#interactionManager.close();
+        this.#textVisualizationManager.close();
 
         this.#closed = true;
     }

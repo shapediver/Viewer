@@ -156,6 +156,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
+  private _preRenderingCallback?: ((renderer: THREE.WebGLRenderer) => void) | undefined;
+  private _postRenderingCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined;
 
   // #endregion Properties (74)
 
@@ -679,6 +681,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get postProcessingManager(): PostProcessingManager {
     return this._postProcessingManager;
+  }
+
+  public get postRenderingCallback(): ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined {
+    return this._postRenderingCallback;
+  }
+
+  public set postRenderingCallback(value: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined) {
+    this._postRenderingCallback = value;
+  }
+
+  public get preRenderingCallback(): ((renderer: THREE.WebGLRenderer) => void) | undefined {
+    return this._preRenderingCallback;
+  }
+
+  public set preRenderingCallback(value: ((renderer: THREE.WebGLRenderer) => void) | undefined) {
+    this._preRenderingCallback = value;
   }
 
   public get renderer(): THREE.WebGLRenderer {

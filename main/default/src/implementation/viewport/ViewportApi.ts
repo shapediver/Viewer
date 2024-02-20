@@ -470,6 +470,30 @@ export class ViewportApi implements IViewportApi {
         this.update('outputEncoding');
     }
 
+    public get postRenderingCallback(): ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined {
+        return this.#renderingEngine.postRenderingCallback;
+    }
+
+    public set postRenderingCallback(value: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined) {
+        const scope = 'postRenderingCallback';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
+        this.#renderingEngine.postRenderingCallback = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('postRenderingCallback');
+    }
+
+    public get preRenderingCallback(): ((renderer: THREE.WebGLRenderer) => void) | undefined {
+        return this.#renderingEngine.preRenderingCallback;
+    }
+
+    public set preRenderingCallback(value: ((renderer: THREE.WebGLRenderer) => void) | undefined) {
+        const scope = 'preRenderingCallback';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
+        this.#renderingEngine.preRenderingCallback = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('preRenderingCallback');
+    }
+
     public get physicallyCorrectLights(): boolean {
         return this.#renderingEngine.physicallyCorrectLights;
     }

@@ -49,7 +49,7 @@ export class GeometryMathManager implements IManager {
 
             const distance = this.rayLineDistance(ray, lineStart, lineEnd);
 
-            if (distance > 2) continue;
+            if (distance > 1.5) continue;
             distances.push({ index: [firstIndex, secondIndex], distance: distance });
         }
 
@@ -84,7 +84,7 @@ export class GeometryMathManager implements IManager {
             // distance from point to ray
             const distance = this.rayPointDistance(ray, point);
 
-            if (distance > 1) continue;
+            if (distance > 1.5) continue;
             distances.push({ index: i / 3, distance: distance });
         }
 

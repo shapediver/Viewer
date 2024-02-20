@@ -28,6 +28,16 @@ export interface IDrawingToolsApi {
         [key: string]: IRestrictionApi
     };
 
+    /**
+     * Show the point labels of the drawing tool.
+     */
+    showPointLabels: boolean;
+
+    /**
+     * Show the distance labels of the drawing tool.
+     */
+    showDistanceLabels: boolean;
+
     // #endregion Properties (2)
 
     // #region Public Methods (8)

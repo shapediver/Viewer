@@ -341,6 +341,16 @@ export interface IViewportApi {
   type: RENDERER_TYPE;
 
   /**
+   * Optional callback that is called before the rendering of the scene.
+   */
+  preRenderingCallback?: ((renderer: THREE.WebGLRenderer) => void);
+
+  /**
+   * Optional callback that is called after the rendering of the scene.
+   */
+  postRenderingCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void);
+
+  /**
    * A possibility to visualize the attributes of the scene in any way you want. 
    * Please have a look at the {@link https://help.shapediver.com/doc/Attribute-Visualization.1856733198.html|help desk} documentation for more information.
    * 

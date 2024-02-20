@@ -92,6 +92,12 @@ export class PlaneRestriction extends AbstractRestriction implements IIntersecti
 
     // #endregion Public Methods (1)
 
+    // #region Protected Methods (1)
+
+    protected visibilityChanged(visible: boolean): void { }
+
+    // #endregion Protected Methods (1)
+
     // #region Private Methods (1)
 
     private createGridVisualization(): void {
