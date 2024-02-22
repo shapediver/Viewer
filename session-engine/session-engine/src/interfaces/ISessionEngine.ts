@@ -139,7 +139,7 @@ export interface ISessionEngine {
   loadOutputs(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   requestExport(exportId: string, parameters: ShapeDiverRequestCustomization, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
-  requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
+  requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
   resetSettings(sections?: ISettingsSections): void;
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;
