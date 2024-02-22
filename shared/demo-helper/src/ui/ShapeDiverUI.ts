@@ -51,6 +51,12 @@ export const updateUi = (
                 ""
             );
             inputElement.onchange!(new Event("custom"));
+        } else if(paramType === PARAMETER_TYPE.FILE) {
+            const inputElement = <HTMLInputElement>(
+                paramDiv.querySelector('[name="inputElement"]')
+            );
+            inputElement.value = parameters[p];
+            inputElement.onchange!(new Event("custom"));
         }
     }
 };
@@ -251,6 +257,28 @@ export const createUi = (
             // the callback
             parameterInputElement.onchange = async () => {
                 parameterObject.value = parameterInputElement.value;
+                await session.customize();
+            };
+        } else if(parameterObject.type === PARAMETER_TYPE.FILE) {
+            // add the label
+            label.classList.value = "block mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
+            paramDiv.appendChild(label);
+
+            // the file input
+            const parameterInputElement = document.createElement("input") as HTMLInputElement;
+            parameterInputElement.setAttribute("name", "inputElement");
+            parameterInputElement.setAttribute("id", parameterObject.id);
+            parameterInputElement.setAttribute("type", "file");
+            parameterInputElement.setAttribute("accept", parameterObject.format!.join(","));
+            parameterInputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+            paramDiv.appendChild(parameterInputElement);
+
+            // the callback
+            parameterInputElement.onchange = async () => {
+                // Exit if no files selected
+                if (!parameterInputElement.files) return;
+
+                parameterObject.value = parameterInputElement.files[0];
                 await session.customize();
             };
         }

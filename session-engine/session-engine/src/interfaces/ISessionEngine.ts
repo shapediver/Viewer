@@ -1,4 +1,4 @@
-import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseParameterType, ShapeDiverResponseParameterVisualization } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
 import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
@@ -9,57 +9,10 @@ import { IParameter } from './dto/IParameter';
 /**
  * The type of the parameter.
  */
-export enum PARAMETER_TYPE {
-  FLOAT = 'Float',
-  INT = 'Int',
-  EVEN = 'Even',
-  ODD = 'Odd',
-  STRING = 'String',
-  COLOR = 'Color',
-  STRINGLIST = 'StringList',
-  BOOL = 'Bool',
-  TIME = 'Time',
-  FILE = 'File',
-  SNUMBER = 'sNumber',
-  SINTEGER = 'sInteger',
-  SSTRING = 'sString',
-  SCOLOR = 'sColor',
-  SBOOL = 'sBool',
-  STIME = 'sTime',
-  SBITMAP = 'sBitmap',
-  SDOMAIN = 'sDomain',
-  SDOMAIN2D = 'sDomain2D',
-  SPOINT = 'sPoint',
-  SLINE = 'sLine',
-  SVECTOR = 'sVector',
-  SBOX = 'sBox',
-  SPLANE = 'sPlane',
-  SRECTANGLE = 'sRectangle',
-  SCURVE = 'sCurve',
-  SCIRCLE = 'sCircle',
-  SMESH = 'sMesh',
-  SSURFACE = 'sSurface',
-  SBREP = 'sBrep',
-  SSUBDIV = 'sSubdiv'
-}
-
-/**
- * Type of visualization which should be used for UI elements representing the parameter.
- */
-export enum PARAMETER_VISUALIZATION {
-  SLIDER = 'slider',
-  SEQUENCE = 'sequence',
-  CYCLE = 'cycle',
-  DROPDOWN = 'dropdown',
-  CHECKLIST = 'checklist',
-  CLOCK = 'color',
-  CALENDAR = 'calendar',
-  TOGGLE = 'toggle',
-  SWATCH = 'swatch',
-  BUTTON = 'button',
-  DIAL = 'dial',
-  TEXT = 'text'
-}
+export {
+  ShapeDiverResponseParameterType as PARAMETER_TYPE,
+  ShapeDiverResponseParameterVisualization as PARAMETER_VISUALIZATION
+};
 
 export interface ISettingsSections {
   // #region Properties (2)
