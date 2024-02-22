@@ -1,6 +1,6 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { Color } from "../../../types";
-import { IMapData } from "./IMapData";
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { Color } from '../../../types';
+import { IMapData } from './IMapData';
 
 export enum MATERIAL_SIDE {
     DOUBLE = 'double',
@@ -17,6 +17,13 @@ export enum MATERIAL_ALPHA {
 export enum MATERIAL_SHADING {
     FLAT = 'flat',
     SMOOTH = 'smooth'
+}
+
+export enum MATERIAL_TYPE {
+	STANDARD = 'Standard',
+	SPECULAR_GLOSSINESS = 'SpecularGlossiness',
+	UNLIT = 'Unlit',
+	GEM = 'Gem'
 }
 
 export interface IMaterialAbstractDataProperties {
@@ -39,6 +46,7 @@ export interface IMaterialAbstractDataProperties {
     opacity?: number,
     shading?: MATERIAL_SHADING,
     side?: MATERIAL_SIDE
+    type?: MATERIAL_TYPE
 
     // #endregion Properties (17)
 }
