@@ -69,7 +69,7 @@
     "@shapediver/viewer.shared.node-tree": "2.12.5",
     "@shapediver/viewer.shared.services": "2.12.5",
     "@shapediver/viewer.shared.types": "2.12.5",
-    "@shapediver/viewer.utils.mime-type": "1.0.0",
+    "@shapediver/viewer.utils.mime-type": "1.0.1",
     "@types/qrcode": "^1.5.0",
     "@types/three": "0.152.0",
     "gl-matrix": "3.3.0",
