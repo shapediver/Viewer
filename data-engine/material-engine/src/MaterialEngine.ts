@@ -2,9 +2,15 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Converter, HttpClient, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
 import {
+    IMaterialAbstractData,
+    IMaterialAbstractDataProperties,
     MapData,
     MATERIAL_SIDE,
+    MATERIAL_TYPE,
+    MaterialGemData,
+    MaterialSpecularGlossinessData,
     MaterialStandardData,
+    MaterialUnlitData,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
 } from '@shapediver/viewer.shared.types';
@@ -34,6 +40,26 @@ export class MaterialEngine {
     // #endregion Public Static Accessors (1)
 
     // #region Public Methods (9)
+
+    /**
+     * Create a material data based on the material properties
+     * 
+     * @param materialProperties 
+     * @returns 
+     */
+    public createMaterialData(materialProperties: IMaterialAbstractDataProperties): IMaterialAbstractData {
+        const materialType = materialProperties.type  || MATERIAL_TYPE.STANDARD;
+        switch (materialType) {
+            case MATERIAL_TYPE.SPECULAR_GLOSSINESS:
+                return new MaterialSpecularGlossinessData(materialProperties);
+            case MATERIAL_TYPE.UNLIT:
+                return new MaterialUnlitData(materialProperties);
+            case MATERIAL_TYPE.GEM:
+                return new MaterialGemData(materialProperties);
+            default:
+                return new MaterialStandardData(materialProperties);
+        }
+    }
 
     /**
        * Load the material content into a scene graph node.

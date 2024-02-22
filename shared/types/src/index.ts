@@ -16,7 +16,7 @@ import { MapData } from './implementation/material/MapData'
 import { MaterialSpecularGlossinessData } from './implementation/material/MaterialSpecularGlossinessData'
 import { MaterialUnlitData } from './implementation/material/MaterialUnlitData'
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData'
-import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './interfaces/data/material/IMaterialAbstractData'
+import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, MATERIAL_TYPE } from './interfaces/data/material/IMaterialAbstractData'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from './interfaces/data/IGeometryData'
 import { TEXTURE_WRAPPING, TEXTURE_FILTERING, IMapData } from './interfaces/data/material/IMapData'
 import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties'
@@ -51,7 +51,7 @@ export {
   IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties, 
   IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
   IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, 
-  IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
+  IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
 export {
