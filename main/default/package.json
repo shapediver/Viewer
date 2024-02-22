@@ -50,7 +50,7 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/sdk.geometry-api-sdk-v2": "1.6.0",
+    "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
     "@shapediver/viewer.data-engine.data-engine": "2.12.5",
     "@shapediver/viewer.data-engine.geometry-engine": "2.12.5",
     "@shapediver/viewer.data-engine.gltf-converter": "2.12.5",

@@ -336,11 +336,12 @@ export class SessionApi implements ISessionApi {
         return await this.#sessionEngine.loadCachedOutputsParallel(outputs);
     }
 
-    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
+    public async requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
         const scope = 'requestExports';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, body, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, loadOutputs, 'boolean', false);
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, maxWaitMsec, 'number', false);
-        return this.#sessionEngine.requestExports(body, maxWaitMsec);
+        return this.#sessionEngine.requestExports(body, loadOutputs, maxWaitMsec);
     }
 
     public resetParameterValues(force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {

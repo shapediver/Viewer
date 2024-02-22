@@ -410,11 +410,12 @@ export interface ISessionApi {
      * @param body.exports The ids of the exports to request.
      * @param body.outputs The ids of the outputs to request.
      * @param body.max_wait_time Maximum amount of milliseconds to wait for completion of export request before responding.
+     * @param loadOutputs If loadOutputs is set to true, if result of the export request contains outputs, they will be loaded into the session. (Default: false)
      * @param maxWaitTime Maximum amount of milliseconds to wait for completion of the complete request.
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
+    requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
 
     /**
      * Reset the parameters to their stored default values and customize the scene.

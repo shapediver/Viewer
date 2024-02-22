@@ -941,16 +941,17 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async requestExports(body: ShapeDiverRequestExport, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
+    public async requestExports(body: ShapeDiverRequestExport, loadOutputs: boolean = false, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
         this.checkAvailability('export');
         try {
             const requestParameterSet = this.cleanExportParameters(body.parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
+            if(loadOutputs === true) this.updateOutputs();
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
-            return await this.requestExports(body, maxWaitMsec, true);
+            return await this.requestExports(body, loadOutputs, maxWaitMsec, true);
         }
     }
 
