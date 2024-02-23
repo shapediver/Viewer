@@ -19,6 +19,15 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
     // #region Public Methods (1)
 
     /**
+     * Get the filename of the file with the given id. If no id is given, the filename of the current value is returned (if available).
+     * 
+     * @param fileId - The id of the file to get the filename for.
+     * @returns The filename of the file with the given id, or the filename of the current value if no id is given. If the filename is not available, `undefined` is returned.
+     * @throws {@type ShapeDiverViewerError}
+     */
+    getFilename(fileId?: string): Promise<string | undefined>;
+
+    /**
      * Upload the data (File, Blob) that is currently set to the {@link value} property.
      * This call returns immediately in case no data is waiting to be uploaded.
      * 
