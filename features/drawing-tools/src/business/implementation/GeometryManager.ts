@@ -11,10 +11,9 @@ import {
 } from '@shapediver/viewer.shared.types';
 import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
-import { IRay } from '@shapediver/viewer.features.interaction';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
-import { sceneTree } from '@shapediver/viewer';
+import { MaterialEngine, sceneTree, sessions } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryManager implements IManager {
@@ -39,10 +38,21 @@ export class GeometryManager implements IManager {
 
         if (this.#drawingToolsManager.customizationProperties.geometry.parentNode !== undefined) {
             // search for the node that contains the geometry data
-            const parentNode = sceneTree.root.getNodesByName(this.#drawingToolsManager.customizationProperties.geometry.parentNode)[0];
+            let parentNode = sceneTree.root.getNodesByName(this.#drawingToolsManager.customizationProperties.geometry.parentNode)[0];
 
-            if (!parentNode)
-                throw new Error('The node with the name ' + this.#drawingToolsManager.customizationProperties.geometry.parentNode + ' does not exist. Please check the name of the node in the scene tree.');
+            if (!parentNode) {
+                // search for the first Output with that name and use the first node
+                for(const s in sessions) {
+                    const outputs = sessions[s].getOutputByName(this.#drawingToolsManager.customizationProperties.geometry.parentNode);
+                    if(outputs.length > 0) {
+                        parentNode = outputs[0].node!;
+                        break;
+                    }
+                }
+
+                if(!parentNode)
+                    throw new Error('The node with the name ' + this.#drawingToolsManager.customizationProperties.geometry.parentNode + ' does not exist. Please check the name of the node in the scene tree.');
+            }
 
             // get the geometry data from the node
             let data;
@@ -60,12 +70,34 @@ export class GeometryManager implements IManager {
                 throw new Error('The geometry data does not contain a position attribute. Please check the geometry data in the scene tree.');
 
             this.#parentNode = parentNode;
+            this.#positionArray = geometryData.primitive.attributes['POSITION'].array as Float32Array;
 
             if (geometryData.mode === PRIMITIVE_MODE.POINTS) {
                 this.#geometryDataPoints = geometryData;
             } else {
-                this.#geometryDataLines = geometryData;
                 this.#indicesArrayLines = geometryData.primitive.indices ? geometryData.primitive.indices.array as Uint8Array : null;
+
+                if(this.#positionArray.length >= 6 && geometryData.mode === PRIMITIVE_MODE.LINES) {
+                    // clean position array, if first element is same as last element
+                    const firstPoint = vec3.fromValues(this.#positionArray[0], this.#positionArray[1], this.#positionArray[2]);
+                    const lastPoint = vec3.fromValues(this.#positionArray[this.#positionArray.length - 3], this.#positionArray[this.#positionArray.length - 2], this.#positionArray[this.#positionArray.length - 1]);
+
+                    if(vec3.equals(firstPoint, lastPoint)) {
+                        this.#positionArray = this.#positionArray.slice(0, this.#positionArray.length - 3);
+                        geometryData.primitive.attributes['POSITION'] = new AttributeData(
+                            this.#positionArray,
+                            geometryData.primitive.attributes['POSITION'].itemSize,
+                            geometryData.primitive.attributes['POSITION'].itemBytes,
+                            geometryData.primitive.attributes['POSITION'].byteOffset,
+                            geometryData.primitive.attributes['POSITION'].elementBytes,
+                            geometryData.primitive.attributes['POSITION'].normalized,
+                            geometryData.primitive.attributes['POSITION'].count - 1
+                        );
+                    }
+                }
+
+                this.#geometryDataLines = geometryData;
+                this.createLineIndices(true);
 
                 this.#geometryDataPoints = new GeometryData(
                     new PrimitiveData(
@@ -77,8 +109,6 @@ export class GeometryManager implements IManager {
                 );
                 parentNode.addData(this.#geometryDataPoints);
             }
-            this.#positionArray = geometryData.primitive.attributes['POSITION'].array as Float32Array;
-
         } else {
             // create a new node with the geometry data
             const parentNode = new TreeNode('Drawing Tools');
@@ -127,6 +157,48 @@ export class GeometryManager implements IManager {
                 this.#drawingToolsManager.customizationProperties.visualizationOptions.points
             )
         );
+
+        const map0 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_0 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map0).then((map) => {
+            console.log(map)
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_0 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.#parentNode.updateVersion();
+            }
+        });
+
+        const map1 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_1 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft_v2.png';
+        MaterialEngine.instance.loadMap(map1).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_1 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.#parentNode.updateVersion();
+            }
+        });
+
+        const map2 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_2 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map2).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_2 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.#parentNode.updateVersion();
+            }
+        });
+
+        const map3 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_3 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft_v2.png';
+        MaterialEngine.instance.loadMap(map3).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_3 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.#parentNode.updateVersion();
+            }
+        });
+
 
         this.#geometryDataPoints.primitive.updateVersion();
         this.#geometryDataPoints.updateVersion();
