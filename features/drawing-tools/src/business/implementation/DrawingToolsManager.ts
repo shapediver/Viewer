@@ -88,7 +88,6 @@ export class DrawingToolsManager implements IManager {
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
-    #cameraFreezeFlag: string = '';
     #closed: boolean = false;
     #continuousRenderingFlag: string = '';
 
@@ -101,19 +100,19 @@ export class DrawingToolsManager implements IManager {
         this.#callback = callback;
         this.#customizationProperties = this.cleanCustomizationProperties(customizationProperties);
 
-        this.#eventManager = new EventManager(viewport, {
-            onDown: this.onDown.bind(this),
-            onUp: this.onUp.bind(this),
-            onOut: this.onOut.bind(this),
-            onMove: this.onMove.bind(this),
-            onKeyDown: this.onKeyDown.bind(this),
-            onKeyUp: this.onKeyUp.bind(this)
-        });
-
         this.#geometryMathManager = new GeometryMathManager(this);
         this.#restrictionManager = new RestrictionManager(this);
         this.#geometryManager = new GeometryManager(this);
         this.#interactionManager = new InteractionManager(this);
+
+        this.#eventManager = new EventManager(viewport, {
+            onDown: this.#interactionManager.onDown.bind(this.#interactionManager),
+            onUp: this.#interactionManager.onUp.bind(this.#interactionManager),
+            onOut: this.#interactionManager.onOut.bind(this.#interactionManager),
+            onMove: this.#interactionManager.onMove.bind(this.#interactionManager),
+            onKeyDown: this.#interactionManager.onKeyDown.bind(this.#interactionManager),
+            onKeyUp: this.#interactionManager.onKeyUp.bind(this.#interactionManager)
+        });
 
         if (this.#customizationProperties.restrictions.grid)
             this.addGridSnappingRestriction(this.#customizationProperties.restrictions.grid);
@@ -134,6 +133,10 @@ export class DrawingToolsManager implements IManager {
     // #endregion Constructors (1)
 
     // #region Public Getters And Setters (7)
+
+    public get callback(): (geometryData: IGeometryData) => void {
+        return this.#callback;
+    }
 
     public get closed(): boolean {
         return this.#closed;
@@ -285,7 +288,7 @@ export class DrawingToolsManager implements IManager {
 
     // #endregion Public Methods (9)
 
-    // #region Private Methods (6)
+    // #region Private Methods (1)
 
     private cleanCustomizationProperties(customizationProperties: CustomizationProperties): CustomizationPropertiesDefined {
         return {
@@ -326,100 +329,7 @@ export class DrawingToolsManager implements IManager {
         };
     }
 
-    /**
-     * Apply all filters for the intersection of the scene.
-     * Call all according interaction managers with the results.
-     * 
-     * @param ray 
-     */
-    private onDown(event: MouseEvent | TouchEvent, ray: IRay): void {
-        if (this.#closed) return;
-
-        if (this.#geometryManager.onDown(event, ray)) {
-            this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
-        } else if (this.#interactionManager.onDown(event, ray)) {
-            this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
-        }
-        this.#interactionManager.checkHover(event, ray);
-    }
-
-    /**
-     * Call all according interaction managers with the results.
-     * 
-     * @param ray 
-     */
-    private onUp(): void {
-        if (this.#closed) return;
-        this.#interactionManager.onUp();
-        this.#viewport.removeFlag(this.#cameraFreezeFlag);
-        this.#cameraFreezeFlag = '';
-    }
-
-    /**
-     * Call all according interaction managers with the results.
-     * 
-     * @param ray 
-     */
-    private onOut(): void {
-        if (this.#closed) return;
-        this.#geometryManager.onOut();
-        this.#interactionManager.onOut();
-        this.#viewport.removeFlag(this.#cameraFreezeFlag);
-        this.#cameraFreezeFlag = '';
-    }
-
-    /**
-     * On key down event, remove all selected points if escape is pressed.
-     * 
-     * @param event 
-     */
-    private onKeyDown(event: KeyboardEvent): void {
-        // if escape is pressed, remove all selected points
-        if (this.keyPressed(event, this.#customizationProperties.controls.cancel)) {
-            this.#interactionManager.removeAllSelectedPoints();
-        }
-
-        // if enter is pressed, finish the drawing
-        if (this.keyPressed(event, this.#customizationProperties.controls.finish)) {
-            this.#callback(this.#geometryManager.geometryData);
-            this.close();
-        }
-
-        // if shift is pressed, remove the camera freeze flag
-        if (this.keyPressed(event, this.#customizationProperties.controls.insert) && !this.#cameraFreezeFlag) {
-            this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
-        }
-
-        this.#geometryManager.onKeyDown(event);
-        this.#viewport.update();
-    }
-
-    /**
-     * On key up event, remove the camera freeze flag if control is released.
-     * 
-     * @param event 
-     */
-    private onKeyUp(event: KeyboardEvent): void {
-        if (this.keyPressed(event, this.#customizationProperties.controls.insert)) {
-            this.#viewport.removeFlag(this.#cameraFreezeFlag);
-            this.#cameraFreezeFlag = '';
-        }
-
-        this.#geometryManager.onKeyUp(event);
-    }
-
-    /**
-     * Call all according interaction managers with the results.
-     * 
-     * @param ray 
-     */
-    private onMove(event: MouseEvent | TouchEvent, ray: IRay): void {
-        if (this.#closed) return;
-        this.#interactionManager.onMove(event, ray);
-        this.#geometryManager.onMove(event, ray);
-    }
-
-    // #endregion Private Methods (6)
+    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)

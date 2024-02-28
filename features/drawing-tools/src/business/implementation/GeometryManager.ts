@@ -23,12 +23,9 @@ export class GeometryManager implements IManager {
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #parentNode: ITreeNode;
 
-    #alreadyInserted: boolean = false;
     #geometryDataLines?: IGeometryData;
     #geometryDataPoints: IGeometryData;
     #indicesArrayLines?: Uint8Array | null;
-    #insertionActive: boolean = false;
-    #lastEvent?: MouseEvent | TouchEvent;
     #materialIndexArray: number[] = [];
     #positionArray: Float32Array;
     #positionIndexArray: Float32Array;
@@ -174,6 +171,10 @@ export class GeometryManager implements IManager {
         return this.#positionIndexArray;
     }
 
+    public get indicesArrayLines(): Uint8Array | null | undefined {
+        return this.#indicesArrayLines;
+    }
+
     // #endregion Public Getters And Setters (4)
 
     // #region Public Methods (9)
@@ -243,94 +244,6 @@ export class GeometryManager implements IManager {
         if (onlyThreeJs === false) {
             // adjust position array
             this.#positionArray.set([...this.#positionArray.slice(0, index * 3), ...point, ...this.#positionArray.slice(index * 3 + 3, this.#positionArray.length)]);
-        }
-    }
-
-    public onDown(event: MouseEvent | TouchEvent, ray: IRay): boolean {
-        if (this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete)) {
-            // check if there is a point close to the ray
-            const distances = this.#drawingToolsManager.geometryMathManager.checkDistances(ray, this.#positionArray);
-            if (distances) {
-                // add the id if it is not already in the array
-                // remove it if it is in the array
-                this.removePoint(distances[0].index);
-            }
-            return true;
-
-        } else if (this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert)) {
-            this.#insertionActive = false;
-        }
-        return false;
-    }
-
-    public onOut(): void {
-        this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
-
-        if (this.#insertionActive === true) {
-            // remove last added point
-            this.removePoint(this.#positionArray.length / 3 - 1);
-            this.#insertionActive = false;
-            this.#alreadyInserted = false;
-        }
-    }
-
-    public onKeyDown(event: KeyboardEvent): void {
-        if (this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert)) {
-            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
-        }
-
-        if (this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert) && this.#insertionActive === false) {
-            if (!this.#lastEvent) {
-                this.#alreadyInserted = false;
-                return;
-            }
-            // get current ray
-            const ray = this.#lastEvent instanceof MouseEvent ? this.#drawingToolsManager.viewport.mouseEventToRay(this.#lastEvent) : this.#drawingToolsManager.viewport.touchEventToRay(this.#lastEvent);
-
-            // add a point at the ray intersection
-            const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
-            // add at last position
-            this.addPoint(this.#positionArray.length / 3, restrictedPoint);
-
-            this.#insertionActive = true;
-            this.#alreadyInserted = true;
-        }
-    }
-
-    public onKeyUp(event: KeyboardEvent): void {
-        if (this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert)) {
-            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
-        }
-
-        if (this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert) && this.#insertionActive === true) {
-            // remove last added point
-            this.removePoint(this.#positionArray.length / 3 - 1);
-            this.#insertionActive = false;
-            this.#alreadyInserted = false;
-        }
-    }
-
-    public onMove(event: MouseEvent | TouchEvent, ray: IRay): void {
-        this.#lastEvent = event;
-
-        if (this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert)) {
-            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
-        }
-
-        if (this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert) && this.#insertionActive === false && this.#alreadyInserted === false) {
-            // get current ray
-            const ray = this.#lastEvent instanceof MouseEvent ? this.#drawingToolsManager.viewport.mouseEventToRay(this.#lastEvent) : this.#drawingToolsManager.viewport.touchEventToRay(this.#lastEvent);
-
-            // add a point at the ray intersection
-            const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
-            // add at last position
-            this.addPoint(this.#positionArray.length / 3, restrictedPoint);
-
-            this.#insertionActive = true;
-            this.#alreadyInserted = true;
-        } else if (this.#positionArray.length > 0 && this.#insertionActive === true) {
-            const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, this.#positionArray.length / 3 - 1);
-            this.movePoint(this.#positionArray.length / 3 - 1, restrictedPoint, false);
         }
     }
 
@@ -440,7 +353,7 @@ export class GeometryManager implements IManager {
 
         const positionArrayLength = this.#positionArray.length / 3;
 
-        this.#indicesArrayLines = new Uint8Array(positionArrayLength * 2);
+        this.#indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
 
         // create indices array
         for (let i = 0; i < positionArrayLength - 1; i++) {
