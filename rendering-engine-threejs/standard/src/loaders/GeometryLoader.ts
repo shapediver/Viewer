@@ -458,7 +458,7 @@ export class GeometryLoader implements ILoader {
             obj.add(points);
         } else if (geometry.mode === PRIMITIVE_MODE.LINES || geometry.mode === PRIMITIVE_MODE.LINE_LOOP || geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
             if (material instanceof THREE.LineBasicMaterial) {
-                const lineSegments = new THREE.LineSegments(threeGeometry, material);
+                const lineSegments = geometry.mode === PRIMITIVE_MODE.LINES ? new THREE.LineSegments(threeGeometry, material) : geometry.mode === PRIMITIVE_MODE.LINE_LOOP ? new THREE.LineLoop(threeGeometry, material) : new THREE.Line(threeGeometry, material);
                 geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
                 obj.add(lineSegments);
             } else {

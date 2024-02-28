@@ -28,7 +28,7 @@ import { TextVisualizationManager } from './TextVisualizationManager';
 export type CustomizationProperties = {
     geometry: {
         parentNode?: string; // if no node is given, the geometry is created from scratch
-        mode: PRIMITIVE_MODE; // the mode of the geometry (default: PRIMITIVE_MODE.LINES)
+        mode: 'points' | 'lines'; // the mode of the geometry (default: 'lines')
         minPoints?: number; // the minimum amount of points, if undefined, the geometry is not restricted (default: undefined)
         maxPoints?: number; // the maximum amount of points, if undefined, the geometry is not restricted (default: undefined)
     },
@@ -299,11 +299,36 @@ export class DrawingToolsManager implements IManager {
     // #region Private Methods (1)
 
     private cleanCustomizationProperties(customizationProperties: CustomizationProperties): CustomizationPropertiesDefined {
+
         return {
-            geometry: customizationProperties.geometry,
+            geometry: {
+                parentNode: customizationProperties.geometry?.parentNode || undefined,
+                mode: customizationProperties.geometry?.mode === 'points' ? PRIMITIVE_MODE.POINTS : PRIMITIVE_MODE.LINES || PRIMITIVE_MODE.LINES,
+                minPoints: customizationProperties.geometry?.minPoints || undefined,
+                maxPoints: customizationProperties.geometry?.maxPoints || undefined
+            },
             visualizationOptions: {
-                points: customizationProperties.visualizationOptions?.points || {},
-                lines: customizationProperties.visualizationOptions?.lines || {}
+                points:
+                    customizationProperties.visualizationOptions?.points ||
+                    {
+                        size_0: 15,
+                        size_1: 15,
+                        size_2: 20,
+                        size_3: 20,
+                        color_0: '#0d44f0',
+                        color_1: '#9e27d8',
+                        color_2: '#197aeb',
+                        color_3: '#bc47fd',
+                        sizeAttenuation_0: false,
+                        sizeAttenuation_1: false,
+                        sizeAttenuation_2: false,
+                        sizeAttenuation_3: false,
+                    },
+                lines:
+                    customizationProperties.visualizationOptions?.lines ||
+                    {
+                        color: '#0d44f0'
+                    }
             },
             controls: {
                 insert: customizationProperties.controls?.insert || 'Ctrl',
