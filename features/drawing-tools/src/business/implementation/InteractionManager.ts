@@ -45,7 +45,19 @@ export class InteractionManager implements IManager {
     public addPoint(insertionIndex: number): void {
         // move index if it is the hovered index
         if (this.#hoveredPoint !== undefined && this.#hoveredPoint >= insertionIndex) {
+            if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 1);
+            } else {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 0);
+            }
+
             this.#hoveredPoint++;
+
+            if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 3);
+            } else {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 2);
+            }
         }
 
         // move selected indices one forward if they are after the insertion index
@@ -261,6 +273,7 @@ export class InteractionManager implements IManager {
                 // add a point at the ray intersection
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
                 // add at last position
+                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3);
                 this.#drawingToolsManager.geometryManager.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
 
                 this.#insertionActive = true;
@@ -330,6 +343,8 @@ export class InteractionManager implements IManager {
                 this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
             }
         }
+        
+        this.checkHover(event, ray);
 
         /**
          * IF INSERT KEY IS PRESSED
@@ -343,6 +358,7 @@ export class InteractionManager implements IManager {
                 // add a point at the ray intersection
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
                 // add at last position
+                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3);
                 this.#drawingToolsManager.geometryManager.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
 
                 this.#insertionActive = true;
@@ -352,8 +368,6 @@ export class InteractionManager implements IManager {
                 this.#drawingToolsManager.geometryManager.movePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, restrictedPoint, false);
             }
         }
-
-        this.checkHover(event, ray);
 
         /**
          * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
@@ -407,6 +421,7 @@ export class InteractionManager implements IManager {
                         const midPoint = vec3.add(vec3.create(), firstPoint, secondPoint);
                         vec3.scale(midPoint, midPoint, 0.5);
 
+                        this.addPoint(secondIndex);
                         this.#drawingToolsManager.geometryManager.addPoint(secondIndex, midPoint);
 
                         this.#midPointInsertionActive = true;

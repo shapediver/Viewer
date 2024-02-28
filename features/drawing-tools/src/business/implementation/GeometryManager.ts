@@ -222,6 +222,9 @@ export class GeometryManager implements IManager {
             this.#geometryDataLines.primitive.updateVersion();
         }
         this.#parentNode.updateVersion();
+
+        this.#drawingToolsManager.textVisualizationManager.createPointLabels();
+        this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
     }
 
     public close(): void {
@@ -245,6 +248,9 @@ export class GeometryManager implements IManager {
             // adjust position array
             this.#positionArray.set([...this.#positionArray.slice(0, index * 3), ...point, ...this.#positionArray.slice(index * 3 + 3, this.#positionArray.length)]);
         }
+
+        this.#drawingToolsManager.textVisualizationManager.createPointLabels();
+        this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
     }
 
     public removePoint(removalIndex: number): void {
@@ -314,6 +320,9 @@ export class GeometryManager implements IManager {
         }
 
         this.#parentNode.updateVersion();
+
+        this.#drawingToolsManager.textVisualizationManager.createPointLabels();
+        this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
     }
 
     public updateMaterialIndex(index: number, materialIndex: number): void {
@@ -352,6 +361,8 @@ export class GeometryManager implements IManager {
         if (!this.#geometryDataLines || !this.#indicesArrayLines) return;
 
         const positionArrayLength = this.#positionArray.length / 3;
+
+        if(positionArrayLength < 1) return;
 
         this.#indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
 

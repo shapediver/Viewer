@@ -39,6 +39,7 @@ export abstract class AbstractRestriction implements IRestriction {
     public set enabled(value: boolean) {
         this._enabled = value;
         this._object3D.visible = value && this._showVisualization;
+        this.visibilityChanged(this._object3D.visible);
     }
 
     public get id(): string {
@@ -56,6 +57,7 @@ export abstract class AbstractRestriction implements IRestriction {
     public set showVisualization(value: boolean) {
         this._showVisualization = value;
         this._object3D.visible = value && this._enabled;
+        this.visibilityChanged(this._object3D.visible);
     }
 
     // #endregion Public Getters And Setters (6)
@@ -68,6 +70,12 @@ export abstract class AbstractRestriction implements IRestriction {
     }
 
     // #endregion Public Methods (1)
+
+    // #region Protected Abstract Methods (1)
+
+    protected abstract visibilityChanged(visible: boolean): void;
+
+    // #endregion Protected Abstract Methods (1)
 
     // #region Private Methods (1)
 

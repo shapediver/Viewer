@@ -49,6 +49,22 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         return this.#restrictions;
     }
 
+    public get showPointLabels(): boolean {
+        return this.#drawingToolsManager.textVisualizationManager.showPointLabels;
+    }
+
+    public set showPointLabels(value: boolean) {
+        this.#drawingToolsManager.textVisualizationManager.showPointLabels = value;
+    }
+
+    public get showDistanceLabels(): boolean {
+        return this.#drawingToolsManager.textVisualizationManager.showDistanceLabels;
+    }
+
+    public set showDistanceLabels(value: boolean) {
+        this.#drawingToolsManager.textVisualizationManager.showDistanceLabels = value;
+    }
+
     // #endregion Public Getters And Setters (3)
 
     // #region Public Methods (7)

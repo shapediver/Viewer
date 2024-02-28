@@ -359,6 +359,9 @@ export class RenderingManager implements IManager {
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id });
         }
 
+        if(this._renderingEngine.preRenderingCallback)
+            this._renderingEngine.preRenderingCallback(this._renderingEngine.renderer);
+
         if (runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
         if (this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNode(undefined, undefined, { transformationOnly: true });
@@ -547,6 +550,9 @@ export class RenderingManager implements IManager {
                 }
             });
         }
+
+        if(this._renderingEngine.postRenderingCallback)
+            this._renderingEngine.postRenderingCallback(this._renderingEngine.renderer, this._renderingEngine.scene, this._renderingEngine.camera);
 
         this._stats.end();
     }
