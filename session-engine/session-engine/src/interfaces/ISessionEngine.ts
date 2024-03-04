@@ -1,4 +1,4 @@
-import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseParameterType, ShapeDiverResponseParameterVisualization } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseFileInfo, ShapeDiverResponseParameterType, ShapeDiverResponseParameterVisualization } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
 import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
@@ -85,6 +85,7 @@ export interface ISessionEngine {
   close(): Promise<void>;
   customize(force: boolean, waitForViewportUpdate?: boolean):Promise<ITreeNode | ShapeDiverResponseDto>;
   customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
+  getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo>
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: { [key: string]: string; }): Promise<void>;

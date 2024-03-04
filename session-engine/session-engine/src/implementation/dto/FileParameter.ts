@@ -1,9 +1,9 @@
-import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { Logger, ShapeDiverViewerSessionError, UuidGenerator } from "@shapediver/viewer.shared.services";
-import { IFileParameter } from "../../interfaces/dto/IFileParameter";
-import { Parameter } from "./Parameter";
-import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
-import { SessionEngine } from "../SessionEngine";
+import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { Logger, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { IFileParameter } from '../../interfaces/dto/IFileParameter';
+import { Parameter } from './Parameter';
+import * as MimeTypeUtils from '@shapediver/viewer.utils.mime-type';
+import { SessionEngine } from '../SessionEngine';
 
 export class FileParameter extends Parameter<File | Blob | string> implements IFileParameter {
     // #region Properties (5)
@@ -27,7 +27,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
     public async upload() {
         if (this.value === undefined) return this.defval;
-        if (typeof this.value === 'string' && ((this.value.length === 36 && this.#uuidGenerator.validate(this.value)) || this.value === "")) return this.value;
+        if (typeof this.value === 'string' && ((this.value.length === 36 && this.#uuidGenerator.validate(this.value)) || this.value === '')) return this.value;
 
         const data = new File(
             [
@@ -35,7 +35,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
                     new Blob([this.value], { type: 'text/plain' }) :
                     this.value
             ],
-            'upload',
+            this.value instanceof File ? this.value.name : '',
             { type: (<Blob | File>this.value).type }
         );
 
@@ -61,7 +61,21 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
         this.#logger.debug(`Parameter(${this.id}).upload: Uploading FileParameter.`);
 
-        return await this.#sessionEngine.uploadFile(this.id, data, type!)
+        return await this.#sessionEngine.uploadFile(this.id, data, type!);
+    }
+
+    public async getFilename(fileId?: string): Promise<string | undefined> {
+        // if fileId is undefined and value is undefined, return undefined
+        if (fileId === undefined && this.value === undefined) return;
+
+        // if fileId is undefined and value is a string and is a valid uuid, use the value as fileId
+        if (fileId === undefined && typeof this.value === 'string' && ((this.value.length === 36 && this.#uuidGenerator.validate(this.value)) || this.value === ''))
+            return (await this.#sessionEngine.getFileInfo(this.id, this.value)).filename;
+
+        // if fileId is undefined, return undefined
+        if (fileId === undefined) return;
+
+        return (await this.#sessionEngine.getFileInfo(this.id, fileId)).filename;
     }
 
     // #endregion Public Methods (1)

@@ -17,6 +17,7 @@ import {
     ShapeDiverResponseErrorType,
     ShapeDiverResponseExport,
     ShapeDiverResponseExportDefinitionType,
+    ShapeDiverResponseFileInfo,
     ShapeDiverResponseModelComputationStatus,
     ShapeDiverResponseOutput,
     ShapeDiverSdk,
@@ -671,6 +672,15 @@ export class SessionEngine implements ISessionEngine {
         return result;
     }
 
+    public async getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo> {
+        this.checkAvailability();
+        try {
+            return await this._sdk.file.info(this._sessionId!, parameterId, fileId);
+        } catch (e) {
+            throw this._httpClient.convertError(e);
+        }
+    }
+
     public async goBack(): Promise<ITreeNode> {
         if (!this.canGoBack()) {
             this._logger.debug(`Session(${this.id}).goBack: Cannot go further back.`);
@@ -1291,7 +1301,9 @@ export class SessionEngine implements ISessionEngine {
 
             if (responseDto && responseDto.asset && responseDto.asset.file && responseDto.asset.file[parameterId]) {
                 const fileAsset = responseDto.asset.file[parameterId];
-                await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type);
+                // if the name is empty, the filename is not set
+                const filename = data.name === '' ? undefined : data.name;
+                await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type, filename);
                 return fileAsset.id;
             } else {
                 throw new ShapeDiverViewerSessionError('Session.uploadFile: Upload reply has not the required format.');
