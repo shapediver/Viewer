@@ -160,32 +160,31 @@ export class GeometryManager implements IManager {
 
         const map0 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_0 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
         MaterialEngine.instance.loadMap(map0).then((map) => {
-            console.log(map)
             if(map) {
                 (this.#geometryDataPoints.material as MaterialMultiPointData).map_0 = map;
                 (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
                 this.#geometryDataPoints.updateVersion();
-                this.#parentNode.updateVersion();
+                this.updateParentNode();
             }
         });
 
-        const map1 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_1 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft_v2.png';
+        const map1 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_1 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
         MaterialEngine.instance.loadMap(map1).then((map) => {
             if(map) {
                 (this.#geometryDataPoints.material as MaterialMultiPointData).map_1 = map;
                 (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
                 this.#geometryDataPoints.updateVersion();
-                this.#parentNode.updateVersion();
+                this.updateParentNode();
             }
         });
 
-        const map2 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_2 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        const map2 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_2 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft_v2.png';
         MaterialEngine.instance.loadMap(map2).then((map) => {
             if(map) {
                 (this.#geometryDataPoints.material as MaterialMultiPointData).map_2 = map;
                 (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
                 this.#geometryDataPoints.updateVersion();
-                this.#parentNode.updateVersion();
+                this.updateParentNode();
             }
         });
 
@@ -195,10 +194,49 @@ export class GeometryManager implements IManager {
                 (this.#geometryDataPoints.material as MaterialMultiPointData).map_3 = map;
                 (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
                 this.#geometryDataPoints.updateVersion();
-                this.#parentNode.updateVersion();
+                this.updateParentNode();
             }
         });
 
+        const map4 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_4 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map4).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_4 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.updateParentNode();
+            }
+        });
+
+        const map5 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_5 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map5).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_5 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.updateParentNode();
+            }
+        });
+
+        const map6 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_6 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map6).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_6 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.updateParentNode();
+            }
+        });
+
+        const map7 = (this.#drawingToolsManager.customizationProperties.visualizationOptions.points as any).map_7 as string || 'https://viewer.shapediver.com/v3/graphics/point_soft.png';
+        MaterialEngine.instance.loadMap(map7).then((map) => {
+            if(map) {
+                (this.#geometryDataPoints.material as MaterialMultiPointData).map_7 = map;
+                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+                this.#geometryDataPoints.updateVersion();
+                this.updateParentNode();
+            }
+        });
 
         this.#geometryDataPoints.primitive.updateVersion();
         this.#geometryDataPoints.updateVersion();
@@ -229,6 +267,10 @@ export class GeometryManager implements IManager {
 
     public get geometryData(): IGeometryData {
         return this.#geometryDataPoints;
+    }
+
+    public get indicesArrayLines(): Uint8Array | null | undefined {
+        return this.#indicesArrayLines;
     }
 
     public get materialIndexArray(): number[] {
@@ -286,6 +328,16 @@ export class GeometryManager implements IManager {
         this.createAndSetPositionIndexArray();
 
         // set the material index at that point to 0 and move the other indices back
+        this.#materialIndexArray = this.#materialIndexArray.slice(0, insertionIndex).concat([0], this.#materialIndexArray.slice(insertionIndex, this.#materialIndexArray.length-1));
+
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+            (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
+        (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
+        (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
+
+        (this.#geometryDataPoints.material as MaterialMultiPointData).materialIndexDataMap = new MapData(new Image(), { asData: true, data: this.#materialIndexArray }),
+        this.#geometryDataPoints.material!.updateVersion();
 
         this.#geometryDataPoints.updateVersion();
         this.#geometryDataPoints.primitive.updateVersion();
@@ -293,7 +345,7 @@ export class GeometryManager implements IManager {
             this.#geometryDataLines.updateVersion();
             this.#geometryDataLines.primitive.updateVersion();
         }
-        this.#parentNode.updateVersion();
+        this.updateParentNode();
 
         this.#drawingToolsManager.textVisualizationManager.createPointLabels();
         this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
@@ -360,8 +412,19 @@ export class GeometryManager implements IManager {
 
         this.createAndSetPositionIndexArray();
 
-        // remove material index at position of removal index
-        this.#materialIndexArray.splice(removalIndex, 1);
+        // remove material index
+        this.#materialIndexArray = this.#materialIndexArray.slice(0, removalIndex).concat(this.#materialIndexArray.slice(removalIndex + 1, this.#materialIndexArray.length));
+        // add a new material index at the end
+        this.#materialIndexArray.push(0);
+
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+            (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
+        (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
+        (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
+
+        (this.#geometryDataPoints.material as MaterialMultiPointData).materialIndexDataMap = new MapData(new Image(), { asData: true, data: this.#materialIndexArray }),
+        this.#geometryDataPoints.material!.updateVersion();
 
         this.#geometryDataPoints.primitive.attributes['POSITION'] =
             new AttributeData(
@@ -391,13 +454,23 @@ export class GeometryManager implements IManager {
             this.#geometryDataLines.primitive.updateVersion();
         }
 
-        this.#parentNode.updateVersion();
+        this.updateParentNode();
 
         this.#drawingToolsManager.textVisualizationManager.createPointLabels();
         this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
     }
 
-    public updateMaterialIndex(index: number, materialIndex: number): void {
+    public resetMaterialIndices(): void {
+        this.#materialIndexArray = new Array(this.#materialIndexArray.length).fill(0);
+
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+            (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = 0;
+        (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
+        (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
+    }
+
+    public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {
         // change material index
         this.#materialIndexArray[index] = materialIndex;
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
@@ -406,9 +479,9 @@ export class GeometryManager implements IManager {
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (6)
 
-    // #region Private Methods (2)
+    // #region Private Methods (3)
 
     private createAndSetPositionIndexArray(): Float32Array {
         const positionIndexArray = new Float32Array((this.#positionArray.length / 3));
@@ -462,7 +535,31 @@ export class GeometryManager implements IManager {
             );
 
         this.#geometryDataLines!.primitive.updateVersion();
+        this.#geometryDataLines!.updateVersion();
+
+        this.updateParentNode();
     }
 
-    // #endregion Private Methods (2)
+    private updateParentNode(): void {
+        this.#parentNode.updateVersion(false, true);
+        this.#drawingToolsManager.viewport.updateNode(this.#parentNode);
+    }
+
+    // #endregion Private Methods (3)
 }
+
+// #endregion Classes (1)
+
+// #region Enums (1)
+
+export enum MATERIAL_INDEX {
+    DEFAULT = 0,
+    HOVERED = 1,
+    SELECTED = 2,
+    SELECTED_HOVERED = 3,
+    DELETION_HOVERED = 4,
+    INSERTION = 5,
+    INSERTION_HOVERED = 6
+}
+
+// #endregion Enums (1)

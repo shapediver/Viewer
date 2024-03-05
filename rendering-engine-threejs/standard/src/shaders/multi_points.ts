@@ -7,11 +7,19 @@ uniform float size_0;
 uniform float size_1;
 uniform float size_2;
 uniform float size_3;
+uniform float size_4;
+uniform float size_5;
+uniform float size_6;
+uniform float size_7;
 
 uniform bool sizeAttenuation_0;
 uniform bool sizeAttenuation_1;
 uniform bool sizeAttenuation_2;
 uniform bool sizeAttenuation_3;
+uniform bool sizeAttenuation_4;
+uniform bool sizeAttenuation_5;
+uniform bool sizeAttenuation_6;
+uniform bool sizeAttenuation_7;
 
 uniform highp usampler2D materialIndexDataTexture;
 
@@ -24,6 +32,14 @@ float getSize(int materialIndex) {
         return size_2;
     } else if ( materialIndex == 3 ) {
         return size_3;
+    } else if ( materialIndex == 4 ) {
+        return size_4;
+    } else if ( materialIndex == 5 ) {
+        return size_5;
+    } else if ( materialIndex == 6 ) {
+        return size_6;
+    } else if ( materialIndex == 7 ) {
+        return size_7;
     } else {
         return size_0;
     }
@@ -36,6 +52,14 @@ bool getSizeAttenuation(int materialIndex) {
         return sizeAttenuation_2;
     } else if ( materialIndex == 3 ) {
         return sizeAttenuation_3;
+    } else if ( materialIndex == 4 ) {
+        return sizeAttenuation_4;
+    } else if ( materialIndex == 5 ) {
+        return sizeAttenuation_5;
+    } else if ( materialIndex == 6 ) {
+        return sizeAttenuation_6;
+    } else if ( materialIndex == 7 ) {
+        return sizeAttenuation_7;
     } else {
         return sizeAttenuation_0;
     }
@@ -103,6 +127,11 @@ uniform vec3 color_0;
 uniform vec3 color_1;
 uniform vec3 color_2;
 uniform vec3 color_3;
+uniform vec3 color_4;
+uniform vec3 color_5;
+uniform vec3 color_6;
+uniform vec3 color_7;
+
 
 uniform float opacity;
 flat varying int vMaterialIndex;
@@ -131,6 +160,10 @@ flat varying int vPositionIndex;
 	uniform sampler2D map_1;
 	uniform sampler2D map_2;
 	uniform sampler2D map_3;
+    uniform sampler2D map_4;
+    uniform sampler2D map_5;
+    uniform sampler2D map_6;
+    uniform sampler2D map_7;
 
 #endif
 
@@ -140,6 +173,10 @@ flat varying int vPositionIndex;
     uniform sampler2D alphaMap_1;
     uniform sampler2D alphaMap_2;
     uniform sampler2D alphaMap_3;
+    uniform sampler2D alphaMap_4;
+    uniform sampler2D alphaMap_5;
+    uniform sampler2D alphaMap_6;
+    uniform sampler2D alphaMap_7;
 
 #endif
 
@@ -162,6 +199,14 @@ void main() {
         c = color_2;
     } else if ( vMaterialIndex == 3 ) {
         c = color_3;
+    } else if ( vMaterialIndex == 4 ) {
+        c = color_4;
+    } else if ( vMaterialIndex == 5 ) {
+        c = color_5;
+    } else if ( vMaterialIndex == 6 ) {
+        c = color_6;
+    } else if ( vMaterialIndex == 7 ) {
+        c = color_7;
     } else {
         c = color_0;
     }
@@ -195,6 +240,14 @@ void main() {
             diffuseColor *= texture2D( map_2, uv );
         } else if ( vMaterialIndex == 3 ) {
             diffuseColor *= texture2D( map_3, uv );
+        } else if ( vMaterialIndex == 4 ) {
+            diffuseColor *= texture2D( map_4, uv );
+        } else if ( vMaterialIndex == 5 ) {
+            diffuseColor *= texture2D( map_5, uv );
+        } else if ( vMaterialIndex == 6 ) {
+            diffuseColor *= texture2D( map_6, uv );
+        } else if ( vMaterialIndex == 7 ) {
+            diffuseColor *= texture2D( map_7, uv );
         } else {
             diffuseColor *= texture2D( map_0, uv );
         }
@@ -209,6 +262,14 @@ void main() {
             diffuseColor *= texture2D( alphaMap_2, uv );
         } else if ( vMaterialIndex == 3 ) {
             diffuseColor *= texture2D( alphaMap_3, uv );
+        } else if ( vMaterialIndex == 4 ) {
+            diffuseColor *= texture2D( alphaMap_4, uv );
+        } else if ( vMaterialIndex == 5 ) {
+            diffuseColor *= texture2D( alphaMap_5, uv );
+        } else if ( vMaterialIndex == 6 ) {
+            diffuseColor *= texture2D( alphaMap_6, uv );
+        } else if ( vMaterialIndex == 7 ) {
+            diffuseColor *= texture2D( alphaMap_7, uv );
         } else {
             diffuseColor *= texture2D( alphaMap_0, uv );
         }
@@ -227,4 +288,4 @@ void main() {
 	#include <premultiplied_alpha_fragment>
 
 }
-`
+`;

@@ -4,6 +4,7 @@ import { IRay } from '@shapediver/viewer.features.interaction';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
 import { vec3 } from 'gl-matrix';
 import { FLAG_TYPE } from '@shapediver/viewer';
+import { MATERIAL_INDEX } from './GeometryManager';
 
 export class InteractionManager implements IManager {
     // #region Properties (15)
@@ -42,21 +43,25 @@ export class InteractionManager implements IManager {
      * 
      * @param insertionIndex 
      */
-    public addPoint(insertionIndex: number): void {
+    public addPoint(insertionIndex: number, position?: vec3): void {
         // move index if it is the hovered index
         if (this.#hoveredPoint !== undefined && this.#hoveredPoint >= insertionIndex) {
             if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 1);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
+            } else if (this.#midPointInsertionIndex === insertionIndex) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
             } else {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 0);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.DEFAULT);
             }
 
             this.#hoveredPoint++;
 
             if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 3);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED_HOVERED);
+            } else if (this.#midPointInsertionIndex === this.#hoveredPoint) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION_HOVERED);
             } else {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 2);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.HOVERED);
             }
         }
 
@@ -64,6 +69,8 @@ export class InteractionManager implements IManager {
         this.#selectedPointIndices.forEach((element, i) => {
             this.#selectedPointIndices[i] = element >= insertionIndex ? element + 1 : element;
         });
+
+        this.#drawingToolsManager.geometryManager.addPoint(insertionIndex, position);
     }
 
     /**
@@ -74,6 +81,8 @@ export class InteractionManager implements IManager {
      * @returns 
      */
     public checkHover(event: MouseEvent | TouchEvent, ray: IRay): void {
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete);
+
         // check if there is a point close to the ray
         const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
         if (pointDistances) {
@@ -81,19 +90,31 @@ export class InteractionManager implements IManager {
             // remove it if it is in the array
             const index = pointDistances[0].index;
 
+            if (deleteKeyPressed) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.DELETION_HOVERED);
+            } else {
             if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
             if (this.#hoveredPoint !== undefined) {
                 if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 1);
-                } else {
-                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 0);
+                        this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
+                    } else if(this.#midPointInsertionIndex === index) {
+                        this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
+                    } else if(this.#insertionActive === true && this.#alreadyInserted === true && this.#hoveredPoint === this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1) {
+                        this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
+                    } else {
+                        this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.DEFAULT);
+                    }
                 }
-            }
-
-            if (this.#selectedPointIndices.includes(index)) {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, 3);
-            } else {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, 2);
+    
+                if (this.#selectedPointIndices.includes(index)) {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.SELECTED_HOVERED);
+                } else if (this.#midPointInsertionIndex === index) {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
+                } else if(this.#insertionActive === true && this.#alreadyInserted === true && index === this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1) {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
+                } else {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.HOVERED);
+                }
             }
 
             this.#hoveredPoint = index;
@@ -101,9 +122,13 @@ export class InteractionManager implements IManager {
             // remove the hovered point if there is no point close to the ray
             if (this.#hoveredPoint !== undefined) {
                 if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 1);
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
+                } else if (this.#midPointInsertionIndex === this.#hoveredPoint) {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
+                } else if(this.#insertionActive === true && this.#alreadyInserted === true && this.#hoveredPoint === this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1) {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION_HOVERED);
                 } else {
-                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, 0);
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.DEFAULT);
                 }
             }
             this.#hoveredPoint = undefined;
@@ -143,7 +168,6 @@ export class InteractionManager implements IManager {
                 // add the id if it is not already in the array
                 // remove it if it is in the array
                 this.removePoint(distances[0].index);
-                this.#drawingToolsManager.geometryManager.removePoint(distances[0].index);
             }
 
             if (!this.#cameraFreezeFlag)
@@ -155,7 +179,12 @@ export class InteractionManager implements IManager {
          * FINALIZE INSERTION
          */
         if (insertKeyPressed) {
+            if(this.#insertionActive === true && this.#alreadyInserted === true) {
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.DEFAULT);
+            }
+
             this.#insertionActive = false;
+            this.#alreadyInserted = false;
         }
 
         /**
@@ -189,7 +218,7 @@ export class InteractionManager implements IManager {
             // add the id if it is not already in the array
             // remove it if it is in the array
             if (!this.#selectedPointIndices.includes(distances[0].index)) {
-                this.selectPoint(distances[0].index);
+                this.toggleSelection(distances[0].index);
                 this.#justSelected = true;
             }
         }
@@ -234,6 +263,7 @@ export class InteractionManager implements IManager {
         const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert);
         const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.cancel);
         const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.finish);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.delete);
 
         /**
          * IF FINISH KEY IS PRESSED
@@ -257,6 +287,13 @@ export class InteractionManager implements IManager {
          * ADD POINT AT RAY INTERSECTION
          */
         if (insertKeyPressed) {
+            if (this.#midPointInsertionActive === true) {
+                // remove last added point
+                this.removePoint(this.#midPointInsertionIndex);
+                this.#midPointInsertionActive = false;
+                this.#midPointInsertionIndex = -1;
+            }
+
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             if (!this.#cameraFreezeFlag)
@@ -273,8 +310,8 @@ export class InteractionManager implements IManager {
                 // add a point at the ray intersection
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
                 // add at last position
-                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3);
-                this.#drawingToolsManager.geometryManager.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.INSERTION_HOVERED);
 
                 this.#insertionActive = true;
                 this.#alreadyInserted = true;
@@ -298,7 +335,7 @@ export class InteractionManager implements IManager {
 
             if (this.#insertionActive === true) {
                 // remove last added point
-                this.#drawingToolsManager.geometryManager.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+                this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
                 this.#insertionActive = false;
                 this.#alreadyInserted = false;
             }
@@ -317,6 +354,7 @@ export class InteractionManager implements IManager {
         this.#lastEvent = event;
 
         const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete);
 
         /**
          * IF WE ARE DRAGGING A POINT
@@ -358,8 +396,8 @@ export class InteractionManager implements IManager {
                 // add a point at the ray intersection
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
                 // add at last position
-                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3);
-                this.#drawingToolsManager.geometryManager.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.INSERTION_HOVERED);
 
                 this.#insertionActive = true;
                 this.#alreadyInserted = true;
@@ -373,10 +411,9 @@ export class InteractionManager implements IManager {
          * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
          * CHECK IF THERE IS A LINE CLOSE TO THE RAY AND ADD A MID POINT TO IT
          */
-        if (insertKeyPressed === false && this.#dragging === false) {
+        if (insertKeyPressed === false && deleteKeyPressed === false && this.#dragging === false && this.#selectedPointIndices.length === 0) {
             if (this.#midPointInsertionActive === true && this.#hoveredPoint === this.#midPointInsertionIndex) {
-                // des passt
-
+                // we are just waiting for a mouse click to finish the mid point insertion
             } else if (this.#hoveredPoint === undefined) {
                 // check if there is a line close to the ray and add a mid point to it
                 const lineDistances = this.#drawingToolsManager.geometryMathManager.checkLineDistances(ray);
@@ -386,7 +423,7 @@ export class InteractionManager implements IManager {
 
                     if (this.#midPointInsertionActive === true && firstIndex !== this.#midPointInsertionIndex && secondIndex !== this.#midPointInsertionIndex) {
                         // remove last added point
-                        this.#drawingToolsManager.geometryManager.removePoint(this.#midPointInsertionIndex);
+                        this.removePoint(this.#midPointInsertionIndex);
                         this.#midPointInsertionActive = false;
                         this.#midPointInsertionIndex = -1;
 
@@ -421,22 +458,23 @@ export class InteractionManager implements IManager {
                         const midPoint = vec3.add(vec3.create(), firstPoint, secondPoint);
                         vec3.scale(midPoint, midPoint, 0.5);
 
-                        this.addPoint(secondIndex);
-                        this.#drawingToolsManager.geometryManager.addPoint(secondIndex, midPoint);
+                        this.#midPointInsertionIndex = secondIndex;
+
+                        this.addPoint(secondIndex, midPoint);
+                        this.#drawingToolsManager.geometryManager.updateMaterialIndex(secondIndex, MATERIAL_INDEX.INSERTION);
 
                         this.#midPointInsertionActive = true;
-                        this.#midPointInsertionIndex = secondIndex;
                     }
                 } else if (this.#midPointInsertionActive === true) {
                     // remove last added point
-                    this.#drawingToolsManager.geometryManager.removePoint(this.#midPointInsertionIndex);
+                    this.removePoint(this.#midPointInsertionIndex);
                     this.#midPointInsertionActive = false;
                     this.#midPointInsertionIndex = -1;
                 }
             } else {
                 if (this.#midPointInsertionActive === true) {
                     // remove last added point
-                    this.#drawingToolsManager.geometryManager.removePoint(this.#midPointInsertionIndex);
+                    this.removePoint(this.#midPointInsertionIndex);
                     this.#midPointInsertionActive = false;
                     this.#midPointInsertionIndex = -1;
                 }
@@ -453,7 +491,7 @@ export class InteractionManager implements IManager {
         // if insertion is active, remove last added point
         if (this.#insertionActive === true) {
             // remove last added point
-            this.#drawingToolsManager.geometryManager.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+            this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
             this.#insertionActive = false;
             this.#alreadyInserted = false;
         }
@@ -479,9 +517,9 @@ export class InteractionManager implements IManager {
         if (this.#drawingToolsManager.closed) return;
 
         if (this.#justSelected === false && this.#moving === false && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            this.selectPoint(this.#hoveredPoint);
+            this.toggleSelection(this.#hoveredPoint);
         } else if (this.#justSelected === true && this.#moving === true && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            this.selectPoint(this.#hoveredPoint);
+            this.toggleSelection(this.#hoveredPoint);
         } if (this.#moving === true && this.#dragging === true) {
             this.removeAllSelectedPoints();
         }
@@ -493,15 +531,12 @@ export class InteractionManager implements IManager {
      * Remove all selected points
      */
     public removeAllSelectedPoints(): void {
-        this.#selectedPointIndices.forEach(element => this.selectPoint(element));
+        this.#selectedPointIndices.forEach(element => {
+            this.toggleSelection(element);
+        });
         this.#selectedPointIndices = [];
 
-        const threeJsPointsGeometry: THREE.Points = this.#drawingToolsManager.geometryManager.geometryData.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
-        (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data.forEach((element, i) => {
-            (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = 0;
-        });
-        (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
-        (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
+        this.#drawingToolsManager.geometryManager.resetMaterialIndices();
     }
 
     /**
@@ -525,6 +560,8 @@ export class InteractionManager implements IManager {
         this.#selectedPointIndices.forEach((element, i) => {
             this.#selectedPointIndices[i] = element > removalIndex ? element - 1 : element;
         });
+
+        this.#drawingToolsManager.geometryManager.removePoint(removalIndex);
     }
 
     // #endregion Public Methods (11)
@@ -549,16 +586,16 @@ export class InteractionManager implements IManager {
      * 
      * @param index 
      */
-    private selectPoint(index: number): void {
+    private toggleSelection(index: number): void {
         // add the id if it is not already in the array
         // remove it if it is in the array
         const indexInArray = this.#selectedPointIndices.indexOf(index);
         if (indexInArray === -1) {
             this.#selectedPointIndices.push(index);
-            this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, 1);
+            this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.SELECTED);
         } else {
             this.#selectedPointIndices.splice(indexInArray, 1);
-            this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, 0);
+            this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.DEFAULT);
         }
     }
 

@@ -222,9 +222,7 @@ export class DrawingToolsManager implements IManager {
      */
     public addPoint(index: number, position?: vec3 | undefined): void {
         if (this.#closed) return;
-        console.log('addPoint', index, position);
-        this.#geometryManager.addPoint(index, position);
-        this.#interactionManager.addPoint(index);
+        this.#interactionManager.addPoint(index, position);
     }
 
     /**
@@ -312,17 +310,23 @@ export class DrawingToolsManager implements IManager {
                     customizationProperties.visualizationOptions?.points ||
                     {
                         size_0: 15,
-                        size_1: 15,
-                        size_2: 20,
+                        size_1: 20,
+                        size_2: 15,
                         size_3: 20,
+                        size_4: 20,
+                        size_5: 20,
                         color_0: '#0d44f0',
-                        color_1: '#9e27d8',
-                        color_2: '#197aeb',
+                        color_1: '#197aeb',
+                        color_2: '#9e27d8',
                         color_3: '#bc47fd',
+                        color_4: '#ff0000',
+                        color_5: '#00ff00',
                         sizeAttenuation_0: false,
                         sizeAttenuation_1: false,
                         sizeAttenuation_2: false,
                         sizeAttenuation_3: false,
+                        sizeAttenuation_4: false,
+                        sizeAttenuation_5: false
                     },
                 lines:
                     customizationProperties.visualizationOptions?.lines ||

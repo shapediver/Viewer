@@ -454,6 +454,38 @@ export class MaterialLoader implements ILoader {
                     material.size_3 = this._pointSize;
                     material.needsUpdate = true;
                 }
+
+                if(this._materialCache[m].material.userData.customPointSize_4Enabled && this._materialCache[m].material.userData.customPointSize_4Enabled === true) {
+                    material.size_4 = this._pointSize * this._materialCache[m].material.userData.customPointSize_4;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_4 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_5Enabled && this._materialCache[m].material.userData.customPointSize_5Enabled === true) {
+                    material.size_5 = this._pointSize * this._materialCache[m].material.userData.customPointSize_5;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_5 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_6Enabled && this._materialCache[m].material.userData.customPointSize_6Enabled === true) {
+                    material.size_6 = this._pointSize * this._materialCache[m].material.userData.customPointSize_6;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_6 = this._pointSize;
+                    material.needsUpdate = true;
+                }
+
+                if(this._materialCache[m].material.userData.customPointSize_7Enabled && this._materialCache[m].material.userData.customPointSize_7Enabled === true) {
+                    material.size_7 = this._pointSize * this._materialCache[m].material.userData.customPointSize_7;
+                    material.needsUpdate = true;
+                } else {
+                    material.size_7 = this._pointSize;
+                    material.needsUpdate = true;
+                }
                 
             } else if(this._materialCache[m].material instanceof THREE.PointsMaterial) {
                 const material: THREE.PointsMaterial = <THREE.PointsMaterial>this._materialCache[m].material;
@@ -702,22 +734,38 @@ export class MaterialLoader implements ILoader {
                 multiPointMaterialProperties.size_1 = materialData.size_1 !== undefined ? materialData.size_1 : this._pointSize;
                 multiPointMaterialProperties.size_2 = materialData.size_2 !== undefined ? materialData.size_2 : this._pointSize;
                 multiPointMaterialProperties.size_3 = materialData.size_3 !== undefined ? materialData.size_3 : this._pointSize;
+                multiPointMaterialProperties.size_4 = materialData.size_4 !== undefined ? materialData.size_4 : this._pointSize;
+                multiPointMaterialProperties.size_5 = materialData.size_5 !== undefined ? materialData.size_5 : this._pointSize;
+                multiPointMaterialProperties.size_6 = materialData.size_6 !== undefined ? materialData.size_6 : this._pointSize;
+                multiPointMaterialProperties.size_7 = materialData.size_7 !== undefined ? materialData.size_7 : this._pointSize;
 
                 multiPointMaterialProperties.userData = {
                     customPointSize_0Enabled: materialData.size_0 !== undefined,
                     customPointSize_1Enabled: materialData.size_1 !== undefined,
                     customPointSize_2Enabled: materialData.size_2 !== undefined,
                     customPointSize_3Enabled: materialData.size_3 !== undefined,
+                    customPointSize_4Enabled: materialData.size_4 !== undefined,
+                    customPointSize_5Enabled: materialData.size_5 !== undefined,
+                    customPointSize_6Enabled: materialData.size_6 !== undefined,
+                    customPointSize_7Enabled: materialData.size_7 !== undefined,
                     customPointSize_0: materialData.size_0,
                     customPointSize_1: materialData.size_1,
                     customPointSize_2: materialData.size_2,
-                    customPointSize_3: materialData.size_3
+                    customPointSize_3: materialData.size_3,
+                    customPointSize_4: materialData.size_4,
+                    customPointSize_5: materialData.size_5,
+                    customPointSize_6: materialData.size_6,
+                    customPointSize_7: materialData.size_7
                 };
 
                 multiPointMaterialProperties.sizeAttenuation_0 = materialData.sizeAttenuation_0 !== undefined ? materialData.sizeAttenuation_0 : true;
                 multiPointMaterialProperties.sizeAttenuation_1 = materialData.sizeAttenuation_1 !== undefined ? materialData.sizeAttenuation_1 : true;
                 multiPointMaterialProperties.sizeAttenuation_2 = materialData.sizeAttenuation_2 !== undefined ? materialData.sizeAttenuation_2 : true;
                 multiPointMaterialProperties.sizeAttenuation_3 = materialData.sizeAttenuation_3 !== undefined ? materialData.sizeAttenuation_3 : true;
+                multiPointMaterialProperties.sizeAttenuation_4 = materialData.sizeAttenuation_4 !== undefined ? materialData.sizeAttenuation_4 : true;
+                multiPointMaterialProperties.sizeAttenuation_5 = materialData.sizeAttenuation_5 !== undefined ? materialData.sizeAttenuation_5 : true;
+                multiPointMaterialProperties.sizeAttenuation_6 = materialData.sizeAttenuation_6 !== undefined ? materialData.sizeAttenuation_6 : true;
+                multiPointMaterialProperties.sizeAttenuation_7 = materialData.sizeAttenuation_7 !== undefined ? materialData.sizeAttenuation_7 : true;
 
                 if (materialData.map_0 !== undefined) {
                     multiPointMaterialProperties.map_0 = this.createTexture(materialData.map_0);
@@ -739,6 +787,30 @@ export class MaterialLoader implements ILoader {
 
                 if (materialData.map_3 !== undefined) {
                     multiPointMaterialProperties.map_3 = this.createTexture(materialData.map_3);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_4 !== undefined) {
+                    multiPointMaterialProperties.map_4 = this.createTexture(materialData.map_4);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_5 !== undefined) {
+                    multiPointMaterialProperties.map_5 = this.createTexture(materialData.map_5);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_6 !== undefined) {
+                    multiPointMaterialProperties.map_6 = this.createTexture(materialData.map_6);
+                    multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
+                    mapCount++;
+                }
+
+                if (materialData.map_7 !== undefined) {
+                    multiPointMaterialProperties.map_7 = this.createTexture(materialData.map_7);
                     multiPointMaterialProperties.map = multiPointMaterialProperties.map_0;
                     mapCount++;
                 }
@@ -775,6 +847,38 @@ export class MaterialLoader implements ILoader {
                     mapCount++;
                 }
 
+                if (materialData.alphaMap_4 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_4 = this.createTexture(materialData.alphaMap_4);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_5 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_5 = this.createTexture(materialData.alphaMap_5);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_6 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_6 = this.createTexture(materialData.alphaMap_6);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
+                if (materialData.alphaMap_7 !== undefined) {
+                    multiPointMaterialProperties.alphaMap_7 = this.createTexture(materialData.alphaMap_7);
+                    multiPointMaterialProperties.alphaMap = multiPointMaterialProperties.alphaMap_0;
+                    multiPointMaterialProperties.transparent = true;
+                    multiPointMaterialProperties.depthWrite = false;
+                    mapCount++;
+                }
+
                 if (materialData.color_0 !== undefined) {
                     multiPointMaterialProperties.color_0 = this._renderingEngine.createThreeJsColor(materialData.color_0);
                 }
@@ -790,6 +894,23 @@ export class MaterialLoader implements ILoader {
                 if (materialData.color_3 !== undefined) {
                     multiPointMaterialProperties.color_3 = this._renderingEngine.createThreeJsColor(materialData.color_3);
                 }
+
+                if (materialData.color_4 !== undefined) {
+                    multiPointMaterialProperties.color_4 = this._renderingEngine.createThreeJsColor(materialData.color_4);
+                }
+
+                if (materialData.color_5 !== undefined) {
+                    multiPointMaterialProperties.color_5 = this._renderingEngine.createThreeJsColor(materialData.color_5);
+                }
+
+                if (materialData.color_6 !== undefined) {
+                    multiPointMaterialProperties.color_6 = this._renderingEngine.createThreeJsColor(materialData.color_6);
+                }
+
+                if (materialData.color_7 !== undefined) {
+                    multiPointMaterialProperties.color_7 = this._renderingEngine.createThreeJsColor(materialData.color_7);
+                }
+
             } else {
                 const pointMaterialProperties: THREE.PointsMaterialParameters = generalProperties;
                 pointMaterialProperties.size = this._pointSize;

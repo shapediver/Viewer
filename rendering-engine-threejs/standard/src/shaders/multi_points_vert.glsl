@@ -6,11 +6,19 @@ uniform float size_0;
 uniform float size_1;
 uniform float size_2;
 uniform float size_3;
+uniform float size_4;
+uniform float size_5;
+uniform float size_6;
+uniform float size_7;
 
 uniform bool sizeAttenuation_0;
 uniform bool sizeAttenuation_1;
 uniform bool sizeAttenuation_2;
 uniform bool sizeAttenuation_3;
+uniform bool sizeAttenuation_4;
+uniform bool sizeAttenuation_5;
+uniform bool sizeAttenuation_6;
+uniform bool sizeAttenuation_7;
 
 uniform highp usampler2D materialIndexDataTexture;
 
@@ -23,6 +31,14 @@ float getSize(int materialIndex) {
         return size_2;
     } else if ( materialIndex == 3 ) {
         return size_3;
+    } else if ( materialIndex == 4 ) {
+        return size_4;
+    } else if ( materialIndex == 5 ) {
+        return size_5;
+    } else if ( materialIndex == 6 ) {
+        return size_6;
+    } else if ( materialIndex == 7 ) {
+        return size_7;
     } else {
         return size_0;
     }
@@ -35,6 +51,14 @@ bool getSizeAttenuation(int materialIndex) {
         return sizeAttenuation_2;
     } else if ( materialIndex == 3 ) {
         return sizeAttenuation_3;
+    } else if ( materialIndex == 4 ) {
+        return sizeAttenuation_4;
+    } else if ( materialIndex == 5 ) {
+        return sizeAttenuation_5;
+    } else if ( materialIndex == 6 ) {
+        return sizeAttenuation_6;
+    } else if ( materialIndex == 7 ) {
+        return sizeAttenuation_7;
     } else {
         return sizeAttenuation_0;
     }
