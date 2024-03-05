@@ -8,7 +8,6 @@ import {
     PlaneRestrictionApi
 } from '@shapediver/viewer.features.drawing-tools';
 import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
-import { vec3 } from 'gl-matrix';
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -40,7 +39,8 @@ import { vec3 } from 'gl-matrix';
      * 
      * @param geometryData 
      */
-    const drawingToolsCallback = async (geometryData: SDV.IGeometryData) => {
+    const onFinish = async (geometryData: SDV.IGeometryData) => {
+        console.log('Drawing tools finished');
         const positionArray = geometryData.primitive.attributes['POSITION'].array;
 
         // get all points
@@ -52,7 +52,23 @@ import { vec3 } from 'gl-matrix';
         session.getParameterByName('points')[0].value = JSON.stringify({ points: points });
         await session.customize(undefined, undefined, true);
 
-        sessionCallback();
+        // sessionCallback();
+        
+        // remove ui
+        const menuDiv = document.getElementById('menu');
+        if (menuDiv) {
+            menuDiv.remove();
+        }
+    };
+
+    const onCancel = () => {
+        console.log('Drawing tools cancelled');
+
+        // remove ui
+        const menuDiv = document.getElementById('menu');
+        if (menuDiv) {
+            menuDiv.remove();
+        }
     };
 
     let drawingToolsApi: IDrawingToolsApi | undefined;
@@ -62,7 +78,7 @@ import { vec3 } from 'gl-matrix';
         viewport.update();
 
         
-        drawingToolsApi = createDrawingTools(viewport, drawingToolsCallback, customizationProperties);
+        drawingToolsApi = createDrawingTools(viewport, {onFinish, onCancel}, customizationProperties);
 
         /**
          * 
@@ -75,8 +91,9 @@ import { vec3 } from 'gl-matrix';
         const angularRestrictionApi = Object.values(drawingToolsApi.restrictions).find(restriction => restriction instanceof AngularRestrictionApi)! as AngularRestrictionApi;
 
         const menuDiv = document.createElement('div');
+        menuDiv.id = 'menu';
         menuDiv.style.position = 'absolute';
-        menuDiv.style.top = '1rem';
+        menuDiv.style.top = '4rem';
         menuDiv.style.left = '1rem';
         menuDiv.style.zIndex = '100';
         document.body.appendChild(menuDiv);
@@ -151,7 +168,14 @@ import { vec3 } from 'gl-matrix';
         ], menuDiv);
     };
 
-    sessionCallback();
+    document.body.addEventListener('keydown', (event) => {
+        if (event.key === 'a') {
+            if (drawingToolsApi && drawingToolsApi.closed === false) return;
+
+            console.log('Drawing tools re-started');
+            sessionCallback();
+        }
+    });
 
     /**
      * 

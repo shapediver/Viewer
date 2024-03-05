@@ -1,6 +1,6 @@
 import { AngularRestrictionApi } from './api/implementation/restrictions/snap/AngularRestrictionApi';
 import { AngularRestrictionProperties } from './business/implementation/restrictions/snap/AngularRestriction';
-import { CustomizationProperties } from './business/implementation/DrawingToolsManager';
+import { Callbacks, CustomizationProperties } from './business/implementation/DrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
 import { GridRestrictionApi } from './api/implementation/restrictions/snap/GridRestrictionApi';
 import { GridRestrictionProperties } from './business/implementation/restrictions/snap/GridRestriction';
@@ -27,10 +27,10 @@ let drawingTools: IDrawingToolsApi | undefined;
  * @returns The DrawingTools instance.
  * @throws An error if there is already an active instance of DrawingTools.
  */
-export const createDrawingTools = (viewport: IViewportApi, callback: (geometryData: IGeometryData) => void, properties: CustomizationProperties): IDrawingToolsApi => {
+export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks, properties: CustomizationProperties): IDrawingToolsApi => {
     if (drawingTools && drawingTools.closed === false)
         throw new Error('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
 
-    drawingTools = new DrawingToolsApi(viewport, callback, properties);
+    drawingTools = new DrawingToolsApi(viewport, callbacks, properties);
     return drawingTools;
 };

@@ -364,15 +364,19 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
       this.children[i].traverseData(<(data: ITreeNodeData<any>) => void>callback);
   }
 
-  public updateVersion(): void {
-    let node = <AbstractTreeNode<any, any>>this;
-    while (node.parent) {
-      node = node.parent;
-      (<any>node.version) = this.#uuidGenerator.create();
+  public updateVersion(parents: boolean = true, children: boolean = true): void {
+    if(parents === true) {
+      let node = <AbstractTreeNode<any, any>>this;
+      while (node.parent) {
+        node = node.parent;
+        (<any>node.version) = this.#uuidGenerator.create();
+      }
     }
 
-    for (let i = 0; i < this.#children.length; i++)
-      this.#children[i].updateVersion();
+    if(children === true) {
+      for (let i = 0; i < this.#children.length; i++)
+        this.#children[i].updateVersion(parents, children);
+    }
 
     this.#version = this.#uuidGenerator.create();
   }

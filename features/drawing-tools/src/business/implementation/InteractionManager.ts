@@ -1,10 +1,10 @@
 import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
 import { vec3 } from 'gl-matrix';
 import { FLAG_TYPE } from '@shapediver/viewer';
 import { MATERIAL_INDEX } from './GeometryManager';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 export class InteractionManager implements IManager {
     // #region Properties (15)
@@ -25,6 +25,7 @@ export class InteractionManager implements IManager {
     #moving: boolean = false;
     #selectedPointIndices: number[] = [];
     #selectedPointPositions: vec3[] = [];
+    #uuid = UuidGenerator.instance.create();
 
     // #endregion Properties (15)
 
@@ -93,9 +94,9 @@ export class InteractionManager implements IManager {
             if (deleteKeyPressed) {
                 this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.DELETION_HOVERED);
             } else {
-            if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
-            if (this.#hoveredPoint !== undefined) {
-                if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+                if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
+                if (this.#hoveredPoint !== undefined) {
+                    if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
                         this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
                     } else if(this.#midPointInsertionIndex === index) {
                         this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
@@ -270,8 +271,8 @@ export class InteractionManager implements IManager {
          * CLOSE THE DRAWING TOOLS
          */
         if (finishKeyPressed) {
-            this.#drawingToolsManager.callback(this.#drawingToolsManager.geometryManager.geometryData);
-            // this.#drawingToolsManager.close();
+            this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
+            this.#drawingToolsManager.close();
         }
 
         /**
@@ -279,7 +280,21 @@ export class InteractionManager implements IManager {
          * REMOVE ALL SELECTED POINTS
          */
         if (cancelKeyPressed) {
-            this.removeAllSelectedPoints();
+            this.#drawingToolsManager.close();
+            this.#drawingToolsManager.callbacks.onCancel();
+        }
+
+        /**
+         * IF DELETE KEY IS PRESSED
+         * CANCEL MID POINT INSERTION IF THERE IS ONE
+         */
+        if (deleteKeyPressed) {
+            if (this.#midPointInsertionActive === true) {
+                // remove last added point
+                this.removePoint(this.#midPointInsertionIndex);
+                this.#midPointInsertionActive = false;
+                this.#midPointInsertionIndex = -1;
+            }
         }
 
         /**

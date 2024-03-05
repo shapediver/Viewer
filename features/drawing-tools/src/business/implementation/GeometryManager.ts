@@ -2,6 +2,7 @@ import {
     AttributeData,
     GeometryData,
     IGeometryData,
+    IPrimitiveData,
     MapData,
     MATERIAL_ALPHA,
     MaterialBasicLineData,
@@ -16,20 +17,25 @@ import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs
 import { MaterialEngine, sceneTree, sessions } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
+// #region Classes (1)
+
 export class GeometryManager implements IManager {
-    // #region Properties (11)
+    // #region Properties (10)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #parentNode: ITreeNode;
 
+    #directParentNode?: ITreeNode;
+    #directParentNodeClone?: ITreeNode;
     #geometryDataLines?: IGeometryData;
     #geometryDataPoints: IGeometryData;
     #indicesArrayLines?: Uint8Array | null;
     #materialIndexArray: number[] = [];
     #positionArray: Float32Array;
     #positionIndexArray: Float32Array;
+    #primitiveClone?: IPrimitiveData;
 
-    // #endregion Properties (11)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -56,15 +62,25 @@ export class GeometryManager implements IManager {
 
             // get the geometry data from the node
             let data;
-            parentNode.traverseData(d => {
-                if (d instanceof GeometryData)
-                    data = d;
+            parentNode.traverse(node => {
+                for(let i = 0; i < node.data.length; i++) {
+                    const d = node.data[i];
+                    if (d instanceof GeometryData) {
+                        data = d;
+                        this.#directParentNode = node;
+                    }
+                }
             });
+
+            if(this.#directParentNode)
+                this.#directParentNodeClone = this.#directParentNode.clone();
+
 
             if (!data)
                 throw new Error('The node with the name ' + this.#drawingToolsManager.customizationProperties.geometry.parentNode + ' does not contain any geometry data. Please check the node in the scene tree.');
 
             const geometryData = data as IGeometryData;
+            this.#primitiveClone = geometryData!.primitive.clone();
 
             if (!geometryData.primitive.attributes['POSITION'])
                 throw new Error('The geometry data does not contain a position attribute. Please check the geometry data in the scene tree.');
@@ -107,6 +123,7 @@ export class GeometryManager implements IManager {
                     ),
                     PRIMITIVE_MODE.POINTS
                 );
+                this.#geometryDataPoints.renderOrder = 1000;
                 parentNode.addData(this.#geometryDataPoints);
             }
         } else {
@@ -124,6 +141,7 @@ export class GeometryManager implements IManager {
                 }),
                 PRIMITIVE_MODE.POINTS
             );
+            this.#geometryDataPoints.renderOrder = 1000;
             parentNode.addData(this.#geometryDataPoints);
 
             if (this.#drawingToolsManager.customizationProperties.geometry.mode !== PRIMITIVE_MODE.POINTS) {
@@ -135,6 +153,7 @@ export class GeometryManager implements IManager {
                         new AttributeData(this.#indicesArrayLines, 1, 2, 0, 2, false, 0)),
                     PRIMITIVE_MODE.LINES
                 );
+                this.#geometryDataLines.renderOrder = 999;
                 parentNode.addData(this.#geometryDataLines);
             }
         }
@@ -257,13 +276,12 @@ export class GeometryManager implements IManager {
             this.#geometryDataLines.updateVersion();
         }
 
-        this.#parentNode.updateVersion();
-        this.#drawingToolsManager.viewport.update();
+        this.updateParentNode();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (5)
 
     public get geometryData(): IGeometryData {
         return this.#geometryDataPoints;
@@ -285,13 +303,9 @@ export class GeometryManager implements IManager {
         return this.#positionIndexArray;
     }
 
-    public get indicesArrayLines(): Uint8Array | null | undefined {
-        return this.#indicesArrayLines;
-    }
+    // #endregion Public Getters And Setters (5)
 
-    // #endregion Public Getters And Setters (4)
-
-    // #region Public Methods (9)
+    // #region Public Methods (6)
 
     public addPoint(insertionIndex: number, position?: vec3 | undefined, lineIndices?: number[]): void {
         const positionArrayLength = this.#positionArray.length / 3;
@@ -353,8 +367,34 @@ export class GeometryManager implements IManager {
 
     public close(): void {
         this.#parentNode.removeData(this.#geometryDataPoints);
-        if (this.#drawingToolsManager.customizationProperties.geometry.mode !== PRIMITIVE_MODE.POINTS && this.#geometryDataLines)
+
+        if (this.#geometryDataLines)
             this.#parentNode.removeData(this.#geometryDataLines);
+
+        if (this.#directParentNode && this.#directParentNodeClone) {
+            while (this.#directParentNode.data.length > 0)
+                this.#directParentNode.removeData(this.#directParentNode.data[0]);
+
+            for (let i = 0; i < this.#directParentNodeClone.data.length; i++) {
+                if(this.#directParentNodeClone.data[i] instanceof GeometryData && this.#primitiveClone) {
+                    // as the attribute array are adjusted, we need to update the attributes and indices of the geometry data
+                    if((this.#directParentNodeClone.data[i] as GeometryData).primitive.id === this.#primitiveClone.id) {
+                        for(const a in this.#primitiveClone.attributes) {
+                            (this.#directParentNodeClone.data[i] as GeometryData).primitive.attributes[a] = this.#primitiveClone.attributes[a];
+                        }
+                        (this.#directParentNodeClone.data[i] as GeometryData).primitive.indices = this.#primitiveClone.indices;
+                        (this.#directParentNodeClone.data[i] as GeometryData).primitive.updateVersion();
+                        (this.#directParentNodeClone.data[i] as GeometryData).updateVersion();
+                    }
+                }
+                
+                this.#directParentNode.addData(this.#directParentNodeClone.data[i]);}
+
+            this.#directParentNode.updateVersion();
+        } else {
+            sceneTree.root.removeChild(this.#parentNode);
+            sceneTree.root.updateVersion();
+        }
     }
 
     public movePoint(index: number, point: vec3, onlyThreeJs: boolean): void {

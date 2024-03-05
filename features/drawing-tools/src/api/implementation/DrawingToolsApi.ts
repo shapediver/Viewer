@@ -1,6 +1,6 @@
 import { AngularRestriction, AngularRestrictionProperties } from '../../business/implementation/restrictions/snap/AngularRestriction';
 import { AngularRestrictionApi } from './restrictions/snap/AngularRestrictionApi';
-import { CustomizationProperties, DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
+import { Callbacks, CustomizationProperties, DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
 import { GridRestriction, GridRestrictionProperties } from '../../business/implementation/restrictions/snap/GridRestriction';
 import { GridRestrictionApi } from './restrictions/snap/GridRestrictionApi';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
@@ -9,7 +9,6 @@ import { IRestrictionApi } from '../interfaces/IRestrictionApi';
 import { PlaneRestriction, PlaneRestrictionProperties } from '../../business/implementation/restrictions/intersection/PlaneRestriction';
 import { PlaneRestrictionApi } from './restrictions/intersection/PlaneRestrictionApi';
 import { vec3 } from 'gl-matrix';
-
 export class DrawingToolsApi implements IDrawingToolsApi {
     // #region Properties (2)
 
@@ -20,8 +19,8 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callback: (geometryData: IGeometryData) => void, properties: CustomizationProperties) {
-        this.#drawingToolsManager = new DrawingToolsManager(viewport, callback, properties);
+    constructor(viewport: IViewportApi, callbacks: Callbacks, properties: CustomizationProperties) {
+        this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, properties);
 
         for(const token in this.#drawingToolsManager.restrictionManager.restrictions) {
             if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof AngularRestriction)

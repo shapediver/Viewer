@@ -72,6 +72,13 @@ type CustomizationPropertiesDefined = {
     }
 };
 
+
+export type Callbacks = {
+    onCancel(): void;
+    onFinish(geometryData: IGeometryData): void;
+};
+
+
 // #endregion Type aliases (2)
 
 // #region Classes (1)
@@ -79,7 +86,7 @@ type CustomizationPropertiesDefined = {
 export class DrawingToolsManager implements IManager {
     // #region Properties (12)
 
-    readonly #callback: (geometryData: IGeometryData) => void;
+    readonly #callbacks: Callbacks;
     readonly #customizationProperties: CustomizationPropertiesDefined;
     readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
@@ -97,9 +104,9 @@ export class DrawingToolsManager implements IManager {
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callback: (geometryData: IGeometryData) => void, customizationProperties: CustomizationProperties) {
+    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationProperties) {
         this.#viewport = viewport;
-        this.#callback = callback;
+        this.#callbacks = callbacks;
         this.#customizationProperties = this.cleanCustomizationProperties(customizationProperties);
 
         this.#geometryMathManager = new GeometryMathManager(this);
@@ -137,8 +144,8 @@ export class DrawingToolsManager implements IManager {
 
     // #region Public Getters And Setters (8)
 
-    public get callback(): (geometryData: IGeometryData) => void {
-        return this.#callback;
+    public get callbacks(): Callbacks {
+        return this.#callbacks;
     }
 
     public get closed(): boolean {

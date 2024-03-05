@@ -498,9 +498,7 @@ export class GeometryLoader implements ILoader {
         }
 
         obj.traverse(m => {
-            if (m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
-                (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
-                (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
+            if (m instanceof THREE.Mesh || m instanceof THREE.Points || m instanceof THREE.LineSegments || m instanceof THREE.LineLoop || m instanceof THREE.Line || m instanceof Line2) {
                 (<THREE.Mesh>m).geometry.userData = {
                     SDid: geometry.id,
                     SDversion: geometry.version,
@@ -508,6 +506,11 @@ export class GeometryLoader implements ILoader {
                     primitiveSDversion: geometry.primitive.version
                 };
                 m.renderOrder = geometry.renderOrder;
+            }
+
+            if (m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
+                (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
+                (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
                 (<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
             }
         });
