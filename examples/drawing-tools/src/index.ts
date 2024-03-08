@@ -38,7 +38,9 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             parentNode: 'Outline',
             minPoints: 4,
             maxPoints: 12,
-            origin: [523, 389, 0]
+            origin: [523, 389, 0],
+            close: true,
+            autoClose: true
         },
         restrictions: [
             {

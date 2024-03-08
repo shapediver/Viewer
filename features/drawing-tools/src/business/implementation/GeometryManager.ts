@@ -20,11 +20,16 @@ import { vec3 } from 'gl-matrix';
 // #region Classes (1)
 
 export class GeometryManager implements IManager {
-    // #region Properties (10)
+    // #region Properties (13)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #parentNode: ITreeNode;
 
+    #closeLoop: boolean = false;
+    #defaultTextures = {
+        'variation_0': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft.png"),
+        'variation_1': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft_v2.png"),
+    };
     #directParentNode?: ITreeNode;
     #directParentNodeClone?: ITreeNode;
     #geometryDataLines?: IGeometryData;
@@ -35,12 +40,7 @@ export class GeometryManager implements IManager {
     #positionIndexArray: Float32Array;
     #primitiveClone?: IPrimitiveData;
 
-    #defaultTextures = {
-        'variation_0': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft.png"),
-        'variation_1': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft_v2.png"),
-    };
-
-    // #endregion Properties (10)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -81,7 +81,6 @@ export class GeometryManager implements IManager {
             if(this.#directParentNode)
                 this.#directParentNodeClone = this.#directParentNode.clone();
 
-
             if (!data)
                 throw new Error('The node with the name ' + geometryProperties.parentNode + ' does not contain any geometry data. Please check the node in the scene tree.');
 
@@ -119,7 +118,7 @@ export class GeometryManager implements IManager {
                 }
 
                 this.#geometryDataLines = geometryData;
-                this.createLineIndices(true);
+                this.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
 
                 this.#geometryDataPoints = new GeometryData(
                     new PrimitiveData(
@@ -186,7 +185,6 @@ export class GeometryManager implements IManager {
         const variation_0 = ['map_0', 'map_1', 'map_4', 'map_5', 'map_6', 'map_7'];
         const variation_1 = ['map_2', 'map_3'];
 
-
         this.#defaultTextures.variation_0.then((map) => {
             if (map) {
                 for (const v of variation_0) {
@@ -233,7 +231,15 @@ export class GeometryManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (5)
+    // #region Public Getters And Setters (7)
+
+    public get closeLoop(): boolean {
+        return this.#closeLoop;
+    }
+
+    public set closeLoop(value: boolean) {
+        this.#closeLoop = value;
+    }
 
     public get geometryData(): IGeometryData {
         return this.#geometryDataPoints;
@@ -255,9 +261,9 @@ export class GeometryManager implements IManager {
         return this.#positionIndexArray;
     }
 
-    // #endregion Public Getters And Setters (5)
+    // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (6)
+    // #region Public Methods (7)
 
     public addPoint(insertionIndex: number, position?: vec3 | undefined, lineIndices?: number[]): void {
         const positionArrayLength = this.#positionArray.length / 3;
@@ -286,7 +292,7 @@ export class GeometryManager implements IManager {
         this.#positionArray = newPositionArray;
 
         if (this.#indicesArrayLines && this.#geometryDataLines)
-            this.createLineIndices(true);
+            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose));
 
         this.#geometryDataPoints.primitive.attributes['POSITION'] = new AttributeData(this.#positionArray, this.#geometryDataPoints.primitive.attributes['POSITION'].itemSize, this.#geometryDataPoints.primitive.attributes['POSITION'].itemBytes, this.#geometryDataPoints.primitive.attributes['POSITION'].byteOffset, this.#geometryDataPoints.primitive.attributes['POSITION'].elementBytes, this.#geometryDataPoints.primitive.attributes['POSITION'].normalized, this.#geometryDataPoints.primitive.attributes['POSITION'].count + 1);
         if (this.#geometryDataLines) this.#geometryDataLines.primitive.attributes['POSITION'] = new AttributeData(this.#positionArray, this.#geometryDataLines.primitive.attributes['POSITION'].itemSize, this.#geometryDataLines.primitive.attributes['POSITION'].itemBytes, this.#geometryDataLines.primitive.attributes['POSITION'].byteOffset, this.#geometryDataLines.primitive.attributes['POSITION'].elementBytes, this.#geometryDataLines.primitive.attributes['POSITION'].normalized, this.#geometryDataLines.primitive.attributes['POSITION'].count + 1);
@@ -349,6 +355,50 @@ export class GeometryManager implements IManager {
         }
     }
 
+    /**
+     * Creates the indices array for the lines
+     * Each line segment consists of two indices, start and end point
+     * 
+     * optionally connect the last point with the first point
+     */
+    public createLineIndices(loop: boolean): void {
+        if (!this.#geometryDataLines || !this.#indicesArrayLines) return;
+
+        const positionArrayLength = this.#positionArray.length / 3;
+
+        if(positionArrayLength < 1) return;
+
+        this.#indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
+
+        // create indices array
+        for (let i = 0; i < positionArrayLength - 1; i++) {
+            this.#indicesArrayLines.set([i, i + 1], i * 2);
+        }
+
+        if (loop) {
+            // connect the last point with the first point
+            const tempIndicesArray = new Uint8Array(this.#indicesArrayLines.length + 2);
+            tempIndicesArray.set([...this.#indicesArrayLines, positionArrayLength - 1, 0]);
+            this.#indicesArrayLines = tempIndicesArray;
+        }
+
+        this.#geometryDataLines.primitive.indices =
+            new AttributeData(
+                this.#indicesArrayLines,
+                this.#geometryDataLines.primitive.indices!.itemSize,
+                this.#geometryDataLines.primitive.indices!.itemBytes,
+                this.#geometryDataLines.primitive.indices!.byteOffset,
+                this.#geometryDataLines.primitive.indices!.elementBytes,
+                this.#geometryDataLines.primitive.indices!.normalized,
+                this.#indicesArrayLines.length
+            );
+
+        this.#geometryDataLines!.primitive.updateVersion();
+        this.#geometryDataLines!.updateVersion();
+
+        this.updateParentNode();
+    }
+
     public movePoint(index: number, point: vec3, onlyThreeJs: boolean): void {
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         threeJsPointsGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
@@ -400,7 +450,7 @@ export class GeometryManager implements IManager {
          *  - shift the indices with a higher index one forward, as the array will be one smaller after
          */
         if (this.#indicesArrayLines && this.#geometryDataLines)
-            this.createLineIndices(true);
+            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose));
 
         this.createAndSetPositionIndexArray();
 
@@ -471,9 +521,9 @@ export class GeometryManager implements IManager {
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (7)
 
-    // #region Private Methods (3)
+    // #region Private Methods (2)
 
     private createAndSetPositionIndexArray(): Float32Array {
         const positionIndexArray = new Float32Array((this.#positionArray.length / 3));
@@ -488,56 +538,12 @@ export class GeometryManager implements IManager {
         return positionIndexArray;
     }
 
-    /**
-     * Creates the indices array for the lines
-     * Each line segment consists of two indices, start and end point
-     * 
-     * optionally connect the last point with the first point
-     */
-    private createLineIndices(loop: boolean): void {
-        if (!this.#geometryDataLines || !this.#indicesArrayLines) return;
-
-        const positionArrayLength = this.#positionArray.length / 3;
-
-        if(positionArrayLength < 1) return;
-
-        this.#indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
-
-        // create indices array
-        for (let i = 0; i < positionArrayLength - 1; i++) {
-            this.#indicesArrayLines.set([i, i + 1], i * 2);
-        }
-
-        if (loop) {
-            // connect the last point with the first point
-            const tempIndicesArray = new Uint8Array(this.#indicesArrayLines.length + 2);
-            tempIndicesArray.set([...this.#indicesArrayLines, positionArrayLength - 1, 0]);
-            this.#indicesArrayLines = tempIndicesArray;
-        }
-
-        this.#geometryDataLines.primitive.indices =
-            new AttributeData(
-                this.#indicesArrayLines,
-                this.#geometryDataLines.primitive.indices!.itemSize,
-                this.#geometryDataLines.primitive.indices!.itemBytes,
-                this.#geometryDataLines.primitive.indices!.byteOffset,
-                this.#geometryDataLines.primitive.indices!.elementBytes,
-                this.#geometryDataLines.primitive.indices!.normalized,
-                this.#indicesArrayLines.length
-            );
-
-        this.#geometryDataLines!.primitive.updateVersion();
-        this.#geometryDataLines!.updateVersion();
-
-        this.updateParentNode();
-    }
-
     private updateParentNode(): void {
         this.#parentNode.updateVersion(false, true);
         this.#drawingToolsManager.viewport.updateNode(this.#parentNode);
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (2)
 }
 
 // #endregion Classes (1)

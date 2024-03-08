@@ -7,19 +7,20 @@ import { MATERIAL_INDEX } from './GeometryManager';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 export class InteractionManager implements IManager {
-    // #region Properties (15)
+    // #region Properties (19)
 
     readonly #drawingToolsManager: DrawingToolsManager;
 
     #alreadyInserted: boolean = false;
     #cameraFreezeFlag: string = '';
     #dragStart: vec3 = vec3.create();
-    #dragging: boolean = false;
     #draggedPoint?: number;
     #draggedPointPosition: vec3 = vec3.create();
+    #dragging: boolean = false;
     #hoveredPoint?: number;
     #hoveredPointPosition: vec3 = vec3.create();
     #insertionActive: boolean = false;
+    #insertionActiveClosed: boolean = false;
     #justSelected: boolean = false;
     #lastEvent?: MouseEvent | TouchEvent;
     #midPointInsertionActive: boolean = false;
@@ -29,7 +30,7 @@ export class InteractionManager implements IManager {
     #selectedPointPositions: vec3[] = [];
     #uuid = UuidGenerator.instance.create();
 
-    // #endregion Properties (15)
+    // #endregion Properties (19)
 
     // #region Constructors (1)
 
@@ -185,7 +186,22 @@ export class InteractionManager implements IManager {
          */
         if (insertKeyPressed) {
             if(this.#insertionActive === true && this.#alreadyInserted === true) {
-                this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.DEFAULT);
+                if(this.#insertionActiveClosed === true) {
+                    this.#insertionActiveClosed = false;
+                    this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+                    const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
+                    if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
+                        console.error('Not enough points');
+                    } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
+                        console.error('Too many points');
+                    } else {
+                        this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
+                        this.#drawingToolsManager.close();
+                        return;
+                    }
+                } else {
+                    this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.DEFAULT);
+                }
             }
 
             this.#insertionActive = false;
@@ -283,8 +299,15 @@ export class InteractionManager implements IManager {
          * CLOSE THE DRAWING TOOLS
          */
         if (finishKeyPressed) {
-            this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
-            this.#drawingToolsManager.close();
+            const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
+            if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
+                console.error('Not enough points');
+            } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
+                console.error('Too many points');
+            } else {
+                this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
+                this.#drawingToolsManager.close();
+            }
         }
 
         /**
@@ -321,7 +344,8 @@ export class InteractionManager implements IManager {
                 this.#midPointInsertionIndex = -1;
             }
 
-            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+            if(this.#insertionActiveClosed === false)
+                this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             if (!this.#cameraFreezeFlag)
                 this.#cameraFreezeFlag = this.#drawingToolsManager.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
@@ -361,8 +385,15 @@ export class InteractionManager implements IManager {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
 
             if (this.#insertionActive === true) {
-                // remove last added point
-                this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+                if(this.#insertionActiveClosed === true) {
+                    this.#drawingToolsManager.geometryManager.closeLoop = false;
+                    this.#insertionActiveClosed = false;
+                    this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+                    this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
+                } else {
+                    // remove last added point
+                    this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+                }
                 this.#insertionActive = false;
                 this.#alreadyInserted = false;
             }
@@ -420,7 +451,7 @@ export class InteractionManager implements IManager {
          * MOVE LAST ADDED POINT IF THERE IS ONE
          */
         if (insertKeyPressed) {
-            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+            if(this.#insertionActiveClosed === false) this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             if (this.#insertionActive === false && this.#alreadyInserted === false) {
                 // add a point at the ray intersection
@@ -431,10 +462,47 @@ export class InteractionManager implements IManager {
 
                 this.#insertionActive = true;
                 this.#alreadyInserted = true;
-            } else if (this.#drawingToolsManager.geometryManager.positionArray.length > 0 && this.#insertionActive === true) {
+            } else if (this.#drawingToolsManager.geometryManager.positionArray.length > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { index: this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1});
-                if(restrictedPoint)
+                if(restrictedPoint) {
                     this.#drawingToolsManager.geometryManager.movePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, restrictedPoint, false);
+
+                    if(this.#drawingToolsManager.customizationProperties.geometry.close === true && this.#drawingToolsManager.customizationProperties.geometry.autoClose === false && this.#insertionActiveClosed === false) {
+                        // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                        const firstPoint = vec3.fromValues(
+                            this.#drawingToolsManager.geometryManager.positionArray.at(0)!,
+                            this.#drawingToolsManager.geometryManager.positionArray.at(1)!,
+                            this.#drawingToolsManager.geometryManager.positionArray.at(2)!
+                        );
+
+                        const screenSpaceDistanceSquared = this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(firstPoint, restrictedPoint);
+
+                        if (screenSpaceDistanceSquared * 4 < ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) {
+                            this.#drawingToolsManager.geometryManager.closeLoop = true;
+                            this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+                            this.#insertionActiveClosed = true;
+                            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = false;
+                        }
+                    }
+                }
+            } else if (this.#drawingToolsManager.geometryManager.positionArray.length > 0 && this.#insertionActive === true && this.#insertionActiveClosed === true) {
+                const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { index: this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1});
+                if(restrictedPoint) {
+                    // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                    const firstPoint = vec3.fromValues(
+                        this.#drawingToolsManager.geometryManager.positionArray.at(0)!,
+                        this.#drawingToolsManager.geometryManager.positionArray.at(1)!,
+                        this.#drawingToolsManager.geometryManager.positionArray.at(2)!
+                    );
+
+                    const screenSpaceDistanceSquared = this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(firstPoint, restrictedPoint);
+                    if (screenSpaceDistanceSquared * 4 > ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) {
+                        this.#drawingToolsManager.geometryManager.closeLoop = false;
+                            this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                            this.#insertionActiveClosed = false;
+                            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+                    }
+                }
             }
         }
 
@@ -521,8 +589,15 @@ export class InteractionManager implements IManager {
 
         // if insertion is active, remove last added point
         if (this.#insertionActive === true) {
-            // remove last added point
-            this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+            if(this.#insertionActiveClosed === true) {
+                this.#drawingToolsManager.geometryManager.closeLoop = false;
+                this.#insertionActiveClosed = false;
+                this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+                this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
+            } else {
+                // remove last added point
+                this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
+            }
             this.#insertionActive = false;
             this.#alreadyInserted = false;
         }
