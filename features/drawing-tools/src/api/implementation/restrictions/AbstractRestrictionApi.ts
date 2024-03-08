@@ -1,22 +1,22 @@
-import { IRestriction } from '../../../business/interfaces/IRestriction';
 import { IRestrictionApi } from '../../interfaces/IRestrictionApi';
+import { IRestrictionBase } from '../../../business/interfaces/IRestrictionBase';
 
 export abstract class AbstractRestrictionApi implements IRestrictionApi {
     // #region Properties (1)
 
-    private readonly _restriction: IRestriction;
+    private readonly _restriction: IRestrictionBase;
 
     // #endregion Properties (1)
 
     // #region Constructors (1)
 
-    constructor(restriction: IRestriction) {
+    constructor(restriction: IRestrictionBase) {
         this._restriction = restriction;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (3)
+    // #region Public Getters And Setters (5)
 
     public get enabled(): boolean {
         return this._restriction.enabled;
@@ -30,5 +30,13 @@ export abstract class AbstractRestrictionApi implements IRestrictionApi {
         return this._restriction.id;
     }
 
-    // #endregion Public Getters And Setters (3)
+    public get showVisualization(): boolean {
+        return this._restriction.showVisualization;
+    }
+
+    public set showVisualization(value: boolean) {
+        this._restriction.showVisualization = value;
+    }
+
+    // #endregion Public Getters And Setters (5)
 }

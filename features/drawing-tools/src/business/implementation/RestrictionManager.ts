@@ -1,38 +1,38 @@
 import { DrawingToolsManager } from './DrawingToolsManager';
-import { IIntersectionRestriction } from '../interfaces/IIntersectionRestriction';
 import { IManager } from '../interfaces/IManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestriction, RestrictionType } from '../interfaces/IRestriction';
-import { ISnapRestriction } from '../interfaces/ISnapRestriction';
+import { IRestriction, RESTRICTION_TYPE, RestrictionMetaData, RestrictionProperties } from '../interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
+import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 
 export class RestrictionManager implements IManager {
-    // #region Properties (4)
+    // #region Properties (3)
 
     readonly #drawingToolsManager: DrawingToolsManager;
-    readonly #intersectionRestrictions: { [token: string]: IIntersectionRestriction } = {};
-    readonly #snapRestrictions: { [token: string]: ISnapRestriction } = {};
+    readonly #restrictions: { [token: string]: IRestriction } = {};
+    readonly #uuidGenerator = UuidGenerator.instance;
 
     private _showRestrictionVisualization: boolean = false;
 
-    // #endregion Properties (4)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
     constructor(drawToolsManager: DrawingToolsManager) {
         this.#drawingToolsManager = drawToolsManager;
+
+        for(const restrictionDefinition of this.#drawingToolsManager.customizationProperties.restrictions) {
+            this.addRestriction(restrictionDefinition);
+        }
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (5)
-
-    public get intersectionRestrictions(): { [token: string]: IIntersectionRestriction } {
-        return this.#intersectionRestrictions;
-    }
+    // #region Public Getters And Setters (3)
 
     public get restrictions(): { [token: string]: IRestriction } {
-        return { ...this.#intersectionRestrictions, ...this.#snapRestrictions };
+        return this.#restrictions;
     }
 
     public get showRestrictionVisualization(): boolean {
@@ -41,71 +41,68 @@ export class RestrictionManager implements IManager {
 
     public set showRestrictionVisualization(value: boolean) {
         this._showRestrictionVisualization = value;
-        for (const restriction of Object.values(this.#snapRestrictions)) {
+        for (const restriction of Object.values(this.#restrictions)) {
             restriction.showVisualization = value;
-        }
-        for (const restriction of Object.values(this.#intersectionRestrictions)) {
-            restriction.showVisualization = value;
+            for (const snapRestriction of Object.values(restriction.snapRestrictions)) {
+                snapRestriction.showVisualization = value;
+            }
         }
     }
 
-    public get snapRestrictions(): { [token: string]: ISnapRestriction } {
-        return this.#snapRestrictions;
-    }
-
-    // #endregion Public Getters And Setters (5)
+    // #endregion Public Getters And Setters (3)
 
     // #region Public Methods (5)
 
-    public addRestriction(restriction: IRestriction, token: string): void {
-        if (restriction.restrictionType === RestrictionType.SNAP) {
-            this.#snapRestrictions[token] = restriction as ISnapRestriction;
-        } else {
-            this.#intersectionRestrictions[token] = restriction as IIntersectionRestriction;
+    public addRestriction(properties: RestrictionProperties): string | undefined {
+        const token = this.#uuidGenerator.create();
+
+        let restriction: IRestriction | undefined;
+        if(properties.type === RESTRICTION_TYPE.PLANE) {
+            restriction = new PlaneRestriction(this.#drawingToolsManager, token, properties as PlaneRestrictionProperties);
         }
+
+        if(restriction) {
+            this.#restrictions[token] = restriction;
+            return token;
+        }
+        return;
     }
 
     public close(): void {
-        for (const restriction of Object.values(this.#snapRestrictions)) {
-            restriction.removeVisualization();
-        }
-        for (const restriction of Object.values(this.#intersectionRestrictions)) {
-            restriction.removeVisualization();
-        }
+        Object.keys(this.#restrictions).forEach(key => this.removeRestriction(key));
     }
 
-    public rayTrace(ray: IRay, index?: number): vec3 {
-        // ray trace through all restrictions and return the closest hit
-        let result = vec3.create();
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
+        let result: vec3 | undefined;
         let distance = Number.MAX_VALUE;
-        for (const restriction of Object.values(this.#intersectionRestrictions)) {
+        for (const restriction of Object.values(this.#restrictions)) {
             const hit = restriction.rayTrace(ray);
-            if (vec3.length(hit) < distance) {
+            if (hit && vec3.squaredLength(hit) < distance) {
                 result = hit;
-                distance = vec3.length(hit);
+                distance = vec3.squaredLength(hit);
             }
         }
-        return this.restrictPoint(result, index);
+        return result ? this.snap(result, metaData) : result;
     }
 
     public removeRestriction(token: string): void {
-        if (this.#snapRestrictions[token]) {
-            this.#snapRestrictions[token].removeVisualization();
-            delete this.#snapRestrictions[token];
-        }
-
-        if (this.#intersectionRestrictions[token]) {
-            this.#intersectionRestrictions[token].removeVisualization();
-            delete this.#intersectionRestrictions[token];
+        if (this.#restrictions[token]) {
+            Object.values(this.#restrictions[token].snapRestrictions).forEach(r => r.removeVisualization());
         }
     }
 
-    public restrictPoint(point: vec3, index?: number): vec3 {
-        let result = vec3.clone(point);
-        for (const restriction of Object.values(this.#snapRestrictions)) {
-            result = restriction.restrictPointPosition(result, index);
+    public snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
+        let result: vec3 | undefined;
+        let distance = Number.MAX_VALUE;
+
+        for (const restriction of Object.values(this.#restrictions)) {
+            const snapped = restriction.snap(point, metaData);
+            if (snapped && vec3.squaredLength(snapped) < distance) {
+                result = snapped;
+                distance = vec3.squaredLength(snapped);
+            }
         }
-        return result;
+        return result || point;
     }
 
     // #endregion Public Methods (5)

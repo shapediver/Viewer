@@ -5,7 +5,9 @@ import {
     CustomizationProperties,
     GridRestrictionApi,
     IDrawingToolsApi,
-    PlaneRestrictionApi
+    PlaneRestrictionApi,
+    PlaneRestrictionProperties,
+    RESTRICTION_TYPE
 } from '@shapediver/viewer.features.drawing-tools';
 import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
 (<any>window).SDV = SDV;
@@ -29,9 +31,33 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 
     // get the output for the drawing tools options
     const drawingToolsOptions = session.getOutputByName('DrawingToolsOptions')[0];
-    console.log(drawingToolsOptions.content![0].data)
-    const customizationProperties: CustomizationProperties = JSON.parse(drawingToolsOptions.content![0].data);
-    console.log(customizationProperties)
+    console.log(drawingToolsOptions.content![0].data);
+    const customizationProperties: CustomizationProperties = {
+        geometry: {
+            mode: 'lines',
+            parentNode: 'Outline',
+            minPoints: 4,
+            maxPoints: 12,
+            origin: [523, 389, 0]
+        },
+        restrictions: [
+            {
+                type: RESTRICTION_TYPE.PLANE,
+                gridSnapRestriction: { priority: 0, gridUnit: 1 },
+                gridSize: 100,
+                normal: [0, 0, 1],
+                angularSnapRestriction: { priority: 0, angleStep: 0.39269908169 }
+            } as PlaneRestrictionProperties
+
+        ],
+        controls: { 
+            insert: 'Ctrl', 
+            delete: 'Shift', 
+            finish: 'Enter', 
+            cancel: 'Escape' 
+        }
+    };
+    console.log(customizationProperties);
 
     /**
      * Callback function for the drawing tool
@@ -85,10 +111,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
          * RESTRICTION UI
          * 
          */
-
         const planeRestrictionApi = Object.values(drawingToolsApi.restrictions).find(restriction => restriction instanceof PlaneRestrictionApi)! as PlaneRestrictionApi;
-        const gridRestrictionApi = Object.values(drawingToolsApi.restrictions).find(restriction => restriction instanceof GridRestrictionApi)! as GridRestrictionApi;
-        const angularRestrictionApi = Object.values(drawingToolsApi.restrictions).find(restriction => restriction instanceof AngularRestrictionApi)! as AngularRestrictionApi;
+       
 
         const menuDiv = document.createElement('div');
         menuDiv.id = 'menu';
@@ -102,7 +126,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             <IBooleanElement>{
                 name: 'show point labels',
                 type: 'boolean',
-                value: true,
+                value: drawingToolsApi!.showPointLabels,
                 onInputCallback: (value: boolean) => {
                     drawingToolsApi!.showPointLabels = value;
                 }
@@ -110,7 +134,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             <IBooleanElement>{
                 name: 'show distance labels',
                 type: 'boolean',
-                value: true,
+                value: drawingToolsApi!.showDistanceLabels,
                 onInputCallback: (value: boolean) => {
                     drawingToolsApi!.showDistanceLabels = value;
                 }
@@ -118,40 +142,29 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             <IBooleanElement>{
                 name: 'grid',
                 type: 'boolean',
-                value: true,
+                value: planeRestrictionApi.gridRestrictionApi.enabled,
                 onInputCallback: (value: boolean) => {
-                    gridRestrictionApi.enabled = value;
+                    planeRestrictionApi.gridRestrictionApi.enabled = value;
                 }
             },
             <ISliderElement>{
                 name: 'grid unit',
                 type: 'slider',
-                value: 1,
+                value: planeRestrictionApi.gridRestrictionApi.gridUnit,
                 min: 0.1,
                 max: 10,
                 step: 0.1,
                 onInputCallback: (value: string) => {
-                    gridRestrictionApi.gridUnit = +value;
-                }
-            },
-            <ISliderElement>{
-                name: 'grid size',
-                type: 'slider',
-                value: 100,
-                min: 10,
-                max: 10000,
-                step: 10,
-                onInputCallback: (value: string) => {
-                    gridRestrictionApi.gridSize = +value;
+                    planeRestrictionApi.gridRestrictionApi.gridUnit = +value;
                 }
             },
             <IBooleanElement>{
                 name: 'angular',
                 type: 'boolean',
                 label: 'Show Points',
-                value: true,
+                value: planeRestrictionApi.angularRestrictionApi.enabled,
                 onInputCallback: (value: boolean) => {
-                    angularRestrictionApi.enabled = value;
+                    planeRestrictionApi.angularRestrictionApi.enabled = value;
                 }
             },
             <ISliderElement>{
@@ -162,7 +175,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
                 max: 16,
                 step: 1,
                 onInputCallback: (value: string) => {
-                    angularRestrictionApi.angleStep = Math.PI / +value;
+                    planeRestrictionApi.angularRestrictionApi.angleStep = Math.PI / +value;
                 }
             },
         ], menuDiv);

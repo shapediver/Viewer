@@ -1,11 +1,6 @@
-import { AngularRestrictionApi } from '../implementation/restrictions/snap/AngularRestrictionApi';
-import { AngularRestrictionProperties } from '../../business/implementation/restrictions/snap/AngularRestriction';
-import { GridRestrictionApi } from '../implementation/restrictions/snap/GridRestrictionApi';
-import { GridRestrictionProperties } from '../../business/implementation/restrictions/snap/GridRestriction';
 import { IGeometryData } from '@shapediver/viewer.shared.types';
 import { IRestrictionApi } from './IRestrictionApi';
-import { PlaneRestrictionApi } from '../implementation/restrictions/intersection/PlaneRestrictionApi';
-import { PlaneRestrictionProperties } from '../../business/implementation/restrictions/intersection/PlaneRestriction';
+import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export interface IDrawingToolsApi {
@@ -43,28 +38,12 @@ export interface IDrawingToolsApi {
     // #region Public Methods (8)
 
     /**
-     * Add an angular snapping restriction to the drawing tool.
+     * Add a ray tracing intersection restriction to the drawing tool.
      * 
-     * @param angularProperties The properties of the restriction.
+     * @param properties The properties of the restriction.
      * @returns The api of the restriction.
      */
-    addAngularSnappingRestriction(angularProperties: AngularRestrictionProperties): AngularRestrictionApi;
-
-    /**
-     * Add a grid snapping restriction to the drawing tool.
-     * 
-     * @param gridProperties The properties of the restriction.
-     * @returns The api of the restriction.
-     */
-    addGridSnappingRestriction(gridProperties: GridRestrictionProperties): GridRestrictionApi;
-
-    /**
-     * Add a plane intersection restriction to the drawing tool.
-     * 
-     * @param planeProperties The properties of the restriction.
-     * @returns The api of the restriction.
-     */
-    addPlaneIntersectionRestriction(planeProperties: PlaneRestrictionProperties): PlaneRestrictionApi;
+    addRestriction(Properties: RestrictionProperties): IRestrictionApi | undefined;
 
     /**
      * Add a point to the drawing tool.

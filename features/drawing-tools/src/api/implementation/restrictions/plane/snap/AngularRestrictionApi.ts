@@ -1,6 +1,5 @@
-import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
-import { AngularRestriction } from '../../../../business/implementation/restrictions/snap/AngularRestriction';
-import { vec3 } from 'gl-matrix';
+import { AbstractRestrictionApi } from '../../AbstractRestrictionApi';
+import { AngularRestriction } from '../../../../../business/implementation/restrictions/plane/snap/AngularRestriction';
 
 export class AngularRestrictionApi extends AbstractRestrictionApi {
     // #region Properties (1)
@@ -18,7 +17,7 @@ export class AngularRestrictionApi extends AbstractRestrictionApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (2)
 
     public get angleStep(): number {
         return this._angularRestriction.angleStep;
@@ -28,13 +27,5 @@ export class AngularRestrictionApi extends AbstractRestrictionApi {
         this._angularRestriction.angleStep = value;
     }
 
-    public get normal(): vec3 {
-        return this._angularRestriction.normal;
-    }
-
-    public set normal(value: vec3) {
-        this._angularRestriction.normal = value;
-    }
-
-    // #endregion Public Getters And Setters (4)
+    // #endregion Public Getters And Setters (2)
 }

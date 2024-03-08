@@ -1,14 +1,11 @@
-import { AngularRestriction, AngularRestrictionProperties } from '../../business/implementation/restrictions/snap/AngularRestriction';
-import { AngularRestrictionApi } from './restrictions/snap/AngularRestrictionApi';
-import { Callbacks, CustomizationProperties, DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
-import { GridRestriction, GridRestrictionProperties } from '../../business/implementation/restrictions/snap/GridRestriction';
-import { GridRestrictionApi } from './restrictions/snap/GridRestrictionApi';
+import { Callbacks, CustomizationPropertiesOptional, DrawingToolsManager, SetupPropertiesOptional } from '../../business/implementation/DrawingToolsManager';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
 import { IGeometryData, IViewportApi } from '@shapediver/viewer';
 import { IRestrictionApi } from '../interfaces/IRestrictionApi';
-import { PlaneRestriction, PlaneRestrictionProperties } from '../../business/implementation/restrictions/intersection/PlaneRestriction';
-import { PlaneRestrictionApi } from './restrictions/intersection/PlaneRestrictionApi';
 import { vec3 } from 'gl-matrix';
+import { PlaneRestriction } from '../../business/implementation/restrictions/plane/PlaneRestriction';
+import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
+import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 export class DrawingToolsApi implements IDrawingToolsApi {
     // #region Properties (2)
 
@@ -19,15 +16,11 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callbacks: Callbacks, properties: CustomizationProperties) {
-        this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, properties);
+    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional) {
+        this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, customizationProperties, setupProperties);
 
         for(const token in this.#drawingToolsManager.restrictionManager.restrictions) {
-            if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof AngularRestriction)
-                this.#restrictions[token] = new AngularRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as AngularRestriction);
-            else if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof GridRestriction)
-                this.#restrictions[token] = new GridRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GridRestriction);
-            else if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
+            if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
                 this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
         }
     }
@@ -68,22 +61,13 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #region Public Methods (7)
 
-    public addAngularSnappingRestriction(angularProperties: AngularRestrictionProperties): AngularRestrictionApi {
-        const token = this.#drawingToolsManager.addAngularSnappingRestriction(angularProperties);
-        this.#restrictions[token] = new AngularRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as AngularRestriction);
-        return this.#restrictions[token] as AngularRestrictionApi;
-    }
+    public addRestriction(properties: RestrictionProperties): IRestrictionApi | undefined {
+        const token = this.#drawingToolsManager.addRestriction(properties);
+        if(!token) return;
 
-    public addGridSnappingRestriction(gridProperties: GridRestrictionProperties): GridRestrictionApi {
-        const token = this.#drawingToolsManager.addGridSnappingRestriction(gridProperties);
-        this.#restrictions[token] = new GridRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GridRestriction);
-        return this.#restrictions[token] as GridRestrictionApi;
-    }
-
-    public addPlaneIntersectionRestriction(planeProperties: PlaneRestrictionProperties): PlaneRestrictionApi {
-        const token = this.#drawingToolsManager.addPlaneIntersectionRestriction(planeProperties);
-        this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
-        return this.#restrictions[token] as PlaneRestrictionApi;
+        if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
+            this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
+        return this.#restrictions[token];
     }
 
     public addPoint(index: number, position?: vec3 | undefined): void {

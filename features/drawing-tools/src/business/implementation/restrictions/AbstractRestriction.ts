@@ -1,13 +1,12 @@
 import THREE from 'three';
 import { DrawingToolsManager } from '../DrawingToolsManager';
-import { IRestriction, RestrictionType } from '../../interfaces/IRestriction';
+import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
 import { sceneTree, ThreejsData, TreeNode } from '@shapediver/viewer';
 
-export abstract class AbstractRestriction implements IRestriction {
-    // #region Properties (7)
+export abstract class AbstractRestriction implements IRestrictionBase {
+    // #region Properties (6)
 
     private readonly _id: string;
-    private readonly _restrictionType: RestrictionType;
     private readonly _visualizationNode: TreeNode = new TreeNode();
 
     private _enabled: boolean = true;
@@ -17,20 +16,19 @@ export abstract class AbstractRestriction implements IRestriction {
 
     protected _object3D!: THREE.Object3D;
 
-    // #endregion Properties (7)
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(drawingToolsManager: DrawingToolsManager, id: string, restrictionType: RestrictionType) {
+    constructor(drawingToolsManager: DrawingToolsManager, id: string) {
         this._drawingToolsManager = drawingToolsManager;
         this._id = id;
-        this._restrictionType = restrictionType;
         this.createGridHelperObject();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (6)
+    // #region Public Getters And Setters (5)
 
     public get enabled(): boolean {
         return this._enabled;
@@ -46,10 +44,6 @@ export abstract class AbstractRestriction implements IRestriction {
         return this._id;
     }
 
-    public get restrictionType(): RestrictionType {
-        return this._restrictionType;
-    }
-
     public get showVisualization(): boolean {
         return this._showVisualization;
     }
@@ -60,7 +54,7 @@ export abstract class AbstractRestriction implements IRestriction {
         this.visibilityChanged(this._object3D.visible);
     }
 
-    // #endregion Public Getters And Setters (6)
+    // #endregion Public Getters And Setters (5)
 
     // #region Public Methods (1)
 

@@ -1,69 +1,38 @@
-import { AngularRestriction, AngularRestrictionProperties } from './restrictions/snap/AngularRestriction';
 import { EventManager } from './EventManager';
 import { FLAG_TYPE, sceneTree } from '@shapediver/viewer';
 import { GeometryManager } from './GeometryManager';
 import { GeometryMathManager } from './GeometryMathManager';
-import { GridRestriction, GridRestrictionProperties } from './restrictions/snap/GridRestriction';
-import {
-    IGeometryData,
-    IMaterialBasicLineDataProperties,
-    IMaterialMultiPointDataProperties,
-    PRIMITIVE_MODE
-} from '@shapediver/viewer.shared.types';
+import { IGeometryData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
 import { IManager } from '../interfaces/IManager';
 import { InteractionManager } from './InteractionManager';
-import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
-import { IRestriction } from '../interfaces/IRestriction';
-import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/intersection/PlaneRestriction';
+import { IViewportApi } from '@shapediver/viewer.features.interaction';
+import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
+import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
 import { RestrictionManager } from './RestrictionManager';
+import { TextVisualizationManager } from './TextVisualizationManager';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
-import { TextVisualizationManager } from './TextVisualizationManager';
 
-// #region Type aliases (2)
+// #region Type aliases (5)
 
+export type Callbacks = {
+    onCancel(): void;
+    onFinish(geometryData: IGeometryData): void;
+};
 /**
- * The geometry data of the drawing tool.
+ * The customization properties of the drawing tool.
  */
 export type CustomizationProperties = {
     geometry: {
         parentNode?: string; // if no node is given, the geometry is created from scratch
         mode: 'points' | 'lines'; // the mode of the geometry (default: 'lines')
         minPoints?: number; // the minimum amount of points, if undefined, the geometry is not restricted (default: undefined)
-        maxPoints?: number; // the maximum amount of points, if undefined, the geometry is not restricted (default: undefined)
+        maxPoints?: number; // the maximum amount of points, if undefined, the geometry is not restricted (default: undefined),
+        close: boolean; // if the geometry is closed (default: true)
+        autoClose: boolean; // if the geometry is automatically closed (default: true)
+        origin: vec3, // the origin of the drawing tool (default: vec3.fromValues(0, 0, 0))
     },
-    visualizationOptions?: {
-        points?: IMaterialMultiPointDataProperties, // the visualization options for points
-        lines?: IMaterialBasicLineDataProperties, // the visualization options for lines
-    },
-    restrictions?: {
-        plane?: PlaneRestrictionProperties, // the properties of the plane intersection restriction
-        grid?: GridRestrictionProperties, // the properties of the grid snapping restriction
-        angular?: AngularRestrictionProperties, // the properties of the angular snapping restriction
-    },
-    controls?: {
-        insert?: string, // insert point, can only be a modifier key (Ctrl, Shift, Alt) (default: Ctrl)
-        delete?: string, // delete point, can only be a modifier key (Ctrl, Shift, Alt) (default: Shift)
-        finish?: string, // finish drawing (default: Enter)
-        cancel?: string, // cancel drawing (default: Escape)
-    }
-};
-type CustomizationPropertiesDefined = {
-    geometry: {
-        parentNode?: string; // if no node is given, the geometry is created from scratch
-        mode: PRIMITIVE_MODE; // the mode of the geometry (default: PRIMITIVE_MODE.LINES)
-        minPoints?: number; // the minimum amount of points, if undefined, the geometry is not restricted (default: undefined)
-        maxPoints?: number; // the maximum amount of points, if undefined, the geometry is not restricted (default: undefined)
-    },
-    visualizationOptions: {
-        points: IMaterialMultiPointDataProperties, // the visualization options for points
-        lines: IMaterialBasicLineDataProperties, // the visualization options for lines
-    },
-    restrictions: {
-        plane?: PlaneRestrictionProperties, // the properties of the plane intersection restriction
-        grid?: GridRestrictionProperties, // the properties of the grid snapping restriction
-        angular?: AngularRestrictionProperties, // the properties of the angular snapping restriction
-    },
+    restrictions: RestrictionProperties[], // the restrictions of the drawing tool
     controls: {
         insert: string, // insert point, can only be a modifier key (Ctrl, Shift, Alt) (default: Ctrl)
         delete: string, // delete point, can only be a modifier key (Ctrl, Shift, Alt) (default: Shift)
@@ -71,23 +40,35 @@ type CustomizationPropertiesDefined = {
         cancel: string, // cancel drawing (default: Escape)
     }
 };
-
-
-export type Callbacks = {
-    onCancel(): void;
-    onFinish(geometryData: IGeometryData): void;
+export type CustomizationPropertiesOptional = {
+    geometry?: Partial<CustomizationProperties['geometry']>;
+    restrictions?: Partial<CustomizationProperties['restrictions']>;
+    controls?: Partial<CustomizationProperties['controls']>;
+};
+/**
+ * The setup properties of the drawing tool.
+ */
+export type SetupProperties = {
+    visualization: {
+        pointLabels: boolean, // show the point labels of the drawing tool (default: false)
+        distanceLabels: boolean, // show the distance labels of the drawing tool (default: false)
+        points: IMaterialMultiPointDataProperties, // the material properties of the points
+        lines: IMaterialBasicLineDataProperties // the material properties of the lines
+    }
+};
+export type SetupPropertiesOptional = {
+    visualization?: Partial<SetupProperties['visualization']>;
 };
 
-
-// #endregion Type aliases (2)
+// #endregion Type aliases (5)
 
 // #region Classes (1)
 
 export class DrawingToolsManager implements IManager {
-    // #region Properties (12)
+    // #region Properties (13)
 
     readonly #callbacks: Callbacks;
-    readonly #customizationProperties: CustomizationPropertiesDefined;
+    readonly #customizationProperties: CustomizationProperties;
     readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
     readonly #geometryMathManager: GeometryMathManager;
@@ -99,15 +80,17 @@ export class DrawingToolsManager implements IManager {
 
     #closed: boolean = false;
     #continuousRenderingFlag: string = '';
+    #setupProperties: SetupProperties;
 
-    // #endregion Properties (12)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationProperties) {
+    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional) {
         this.#viewport = viewport;
         this.#callbacks = callbacks;
-        this.#customizationProperties = this.cleanCustomizationProperties(customizationProperties);
+        [this.#customizationProperties, this.#setupProperties] = this.cleanProperties(customizationProperties, setupProperties);
+        console.log(this.#customizationProperties)
 
         this.#geometryMathManager = new GeometryMathManager(this);
         this.#restrictionManager = new RestrictionManager(this);
@@ -124,15 +107,6 @@ export class DrawingToolsManager implements IManager {
             onKeyUp: this.#interactionManager.onKeyUp.bind(this.#interactionManager)
         });
 
-        if (this.#customizationProperties.restrictions.grid)
-            this.addGridSnappingRestriction(this.#customizationProperties.restrictions.grid);
-
-        if (this.#customizationProperties.restrictions.plane)
-            this.addPlaneIntersectionRestriction(this.#customizationProperties.restrictions.plane);
-
-        if (this.#customizationProperties.restrictions.angular)
-            this.addAngularSnappingRestriction(this.#customizationProperties.restrictions.angular);
-
         this.#continuousRenderingFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
 
         // special case, the scene is still empty, so we create a grid by default and show the scene
@@ -142,7 +116,7 @@ export class DrawingToolsManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (8)
+    // #region Public Getters And Setters (10)
 
     public get callbacks(): Callbacks {
         return this.#callbacks;
@@ -152,7 +126,7 @@ export class DrawingToolsManager implements IManager {
         return this.#closed;
     }
 
-    public get customizationProperties(): CustomizationPropertiesDefined {
+    public get customizationProperties(): CustomizationProperties {
         return this.#customizationProperties;
     }
 
@@ -172,6 +146,10 @@ export class DrawingToolsManager implements IManager {
         return this.#restrictionManager;
     }
 
+    public get setupProperties(): SetupProperties {
+        return this.#setupProperties;
+    }
+
     public get textVisualizationManager(): TextVisualizationManager {
         return this.#textVisualizationManager;
     }
@@ -180,45 +158,9 @@ export class DrawingToolsManager implements IManager {
         return this.#viewport;
     }
 
-    // #endregion Public Getters And Setters (8)
+    // #endregion Public Getters And Setters (10)
 
-    // #region Public Methods (9)
-
-    /**
-     * Add a angular snapping restriction to the drawing tool.
-     * 
-     * @param angularProperties 
-     * @returns 
-     */
-    public addAngularSnappingRestriction(angularProperties: AngularRestrictionProperties): string {
-        const token = this.#uuidGenerator.create();
-        this.#restrictionManager.addRestriction(new AngularRestriction(this, token, angularProperties), token);
-        return token;
-    }
-
-    /**
-     * Add a grid snapping restriction to the drawing tool.
-     * 
-     * @param gridProperties 
-     * @returns 
-     */
-    public addGridSnappingRestriction(gridProperties: GridRestrictionProperties): string {
-        const token = this.#uuidGenerator.create();
-        this.#restrictionManager.addRestriction(new GridRestriction(this, token, gridProperties), token);
-        return token;
-    }
-
-    /**
-     * Add a plane intersection restriction to the drawing tool.
-     * 
-     * @param planeProperties 
-     * @returns 
-     */
-    public addPlaneIntersectionRestriction(planeProperties: PlaneRestrictionProperties): string {
-        const token = this.#uuidGenerator.create();
-        this.#restrictionManager.addRestriction(new PlaneRestriction(this, token, planeProperties), token);
-        return token;
-    }
+    // #region Public Methods (6)
 
     /**
      * Add a point to the drawing tool.
@@ -233,13 +175,13 @@ export class DrawingToolsManager implements IManager {
     }
 
     /**
-     * Add a restriction to the drawing tool.
+     * Add a ray tracing intersection restriction to the drawing tool.
      * 
-     * @param restriction 
-     * @param token 
+     * @param planeProperties 
+     * @returns 
      */
-    public addRestriction(restriction: IRestriction, token: string): void {
-        this.#restrictionManager.addRestriction(restriction, token);
+    public addRestriction(properties: RestrictionProperties): string | undefined {
+        return this.#restrictionManager.addRestriction(properties);
     }
 
     public close(): void {
@@ -299,78 +241,75 @@ export class DrawingToolsManager implements IManager {
         this.#restrictionManager.removeRestriction(token);
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (6)
 
     // #region Private Methods (1)
 
-    private cleanCustomizationProperties(customizationProperties: CustomizationProperties): CustomizationPropertiesDefined {
-
-        return {
+    private cleanProperties(customizationPropertiesOptional: CustomizationPropertiesOptional, setupPropertiesOptional?: SetupPropertiesOptional): [CustomizationProperties, SetupProperties] {
+        const customizationProperties: CustomizationProperties = {
             geometry: {
-                parentNode: customizationProperties.geometry?.parentNode || undefined,
-                mode: customizationProperties.geometry?.mode === 'points' ? PRIMITIVE_MODE.POINTS : PRIMITIVE_MODE.LINES || PRIMITIVE_MODE.LINES,
-                minPoints: customizationProperties.geometry?.minPoints || undefined,
-                maxPoints: customizationProperties.geometry?.maxPoints || undefined
+                mode: 'lines',
+                close: true,
+                autoClose: false,
+                origin: vec3.fromValues(0, 0, 0)
             },
-            visualizationOptions: {
-                points:
-                    customizationProperties.visualizationOptions?.points ||
-                    {
-                        size_0: 15,
-                        size_1: 20,
-                        size_2: 15,
-                        size_3: 20,
-                        size_4: 20,
-                        size_5: 20,
-                        color_0: '#0d44f0',
-                        color_1: '#197aeb',
-                        color_2: '#9e27d8',
-                        color_3: '#bc47fd',
-                        color_4: '#ff0000',
-                        color_5: '#00ff00',
-                        sizeAttenuation_0: false,
-                        sizeAttenuation_1: false,
-                        sizeAttenuation_2: false,
-                        sizeAttenuation_3: false,
-                        sizeAttenuation_4: false,
-                        sizeAttenuation_5: false
-                    },
-                lines:
-                    customizationProperties.visualizationOptions?.lines ||
-                    {
-                        color: '#0d44f0'
-                    }
-            },
+            restrictions: [],
             controls: {
-                insert: customizationProperties.controls?.insert || 'Ctrl',
-                delete: customizationProperties.controls?.delete || 'Shift',
-                finish: customizationProperties.controls?.finish || 'Enter',
-                cancel: customizationProperties.controls?.cancel || 'Escape'
-            },
-            restrictions: {
-                plane:
-                    customizationProperties.restrictions?.plane ?
-                        {
-                            gridSize: customizationProperties.restrictions?.grid?.gridSize || 100,
-                            normal: customizationProperties.restrictions?.plane?.normal || vec3.fromValues(0, 0, 1),
-                            origin: customizationProperties.restrictions?.plane?.origin || vec3.fromValues(0, 0, 0)
-                        } : undefined,
-                grid:
-                    customizationProperties.restrictions?.grid ?
-                        {
-                            gridUnit: customizationProperties.restrictions?.grid?.gridUnit || 1,
-                            gridSize: customizationProperties.restrictions?.grid?.gridSize || 100,
-                            normal: customizationProperties.restrictions?.plane?.normal || vec3.fromValues(0, 0, 1),
-                            origin: customizationProperties.restrictions?.plane?.origin || vec3.fromValues(0, 0, 0)
-                        } : undefined,
-                angular:
-                    customizationProperties.restrictions?.angular ?
-                        {
-                            angleStep: customizationProperties.restrictions?.angular?.angleStep || Math.PI / 8,
-                            normal: customizationProperties.restrictions?.plane?.normal || vec3.fromValues(0, 0, 1)
-                        } : undefined,
+                insert: 'Ctrl',
+                delete: 'Shift',
+                finish: 'Enter',
+                cancel: 'Escape'
             }
         };
+
+        if (customizationPropertiesOptional.geometry !== undefined) {
+            customizationProperties.geometry = {
+                parentNode: customizationPropertiesOptional.geometry.parentNode,
+                mode: customizationPropertiesOptional.geometry.mode === 'points' ? 'points' : 'lines',
+                minPoints: customizationPropertiesOptional.geometry.minPoints,
+                maxPoints: customizationPropertiesOptional.geometry.maxPoints,
+                close: customizationPropertiesOptional.geometry.close === undefined ? true : customizationPropertiesOptional.geometry.close,
+                autoClose: customizationPropertiesOptional.geometry.autoClose === undefined ? true : customizationPropertiesOptional.geometry.autoClose,
+                origin: customizationPropertiesOptional.geometry.origin === undefined ? vec3.fromValues(0, 0, 0) : customizationPropertiesOptional.geometry.origin
+            };
+        }
+
+        if (customizationPropertiesOptional.controls !== undefined) {
+            customizationProperties.controls = {
+                insert: customizationPropertiesOptional.controls.insert === undefined ? 'Ctrl' : customizationPropertiesOptional.controls.insert,
+                delete: customizationPropertiesOptional.controls.delete === undefined ? 'Shift' : customizationPropertiesOptional.controls.delete,
+                finish: customizationPropertiesOptional.controls.finish === undefined ? 'Enter' : customizationPropertiesOptional.controls.finish,
+                cancel: customizationPropertiesOptional.controls.cancel === undefined ? 'Escape' : customizationPropertiesOptional.controls.cancel
+            };
+        }
+
+        if (customizationPropertiesOptional.restrictions === undefined || customizationPropertiesOptional.restrictions.length === 0) {
+            customizationProperties.restrictions = [
+                {
+                    type: RESTRICTION_TYPE.PLANE,
+                    enabled: true,
+                    showVisualization: true
+                }
+            ];
+        } else {
+            customizationProperties.restrictions = customizationPropertiesOptional.restrictions as RestrictionProperties[];
+        }
+
+        const setupProperties: SetupProperties = {
+            visualization: {
+                pointLabels: setupPropertiesOptional?.visualization?.pointLabels === undefined ? false : setupPropertiesOptional.visualization.pointLabels,
+                distanceLabels: setupPropertiesOptional?.visualization?.distanceLabels === undefined ? true : setupPropertiesOptional.visualization.distanceLabels,
+                points: setupPropertiesOptional?.visualization?.points === undefined ? {
+                    size_0: 15, size_1: 20, size_2: 15, size_3: 20, size_4: 20, size_5: 15, size_6: 20,
+                    color_0: '#0d44f0', color_1: '#197aeb', color_2: '#9e27d8', color_3: '#bc47fd', color_4: '#ff2854', color_5: '#00ff78', color_6: '#00ff78'
+                } : setupPropertiesOptional.visualization.points,
+                lines: setupPropertiesOptional?.visualization?.lines === undefined ? {
+                    color: '#0d44f0'
+                } : setupPropertiesOptional.visualization.lines
+            }
+        };
+
+        return [customizationProperties, setupProperties];
     }
 
     // #endregion Private Methods (1)

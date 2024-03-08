@@ -12,7 +12,6 @@ export class TextVisualizationManager implements IManager {
     private readonly _labelRenderer: CSS2DRenderer;
     private readonly _visualizationNode: TreeNode = new TreeNode();
 
-    private _angleObject3D: THREE.Object3D;
     private _distanceObject3D: THREE.Object3D;
     private _object3D: THREE.Object3D;
     private _positionObject3D: THREE.Object3D;
@@ -40,12 +39,15 @@ export class TextVisualizationManager implements IManager {
 
         this._object3D = new THREE.Object3D();
         this._positionObject3D = new THREE.Object3D();
+        this._positionObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
         this._distanceObject3D = new THREE.Object3D();
-        this._angleObject3D = new THREE.Object3D();
+        this._distanceObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
 
         this._object3D.add(this._positionObject3D);
         this._object3D.add(this._distanceObject3D);
-        this._object3D.add(this._angleObject3D);
+
+        this._showPointLabels = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
+        this._showDistanceLabels = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
 
         const node = new TreeNode();
 
@@ -93,7 +95,7 @@ export class TextVisualizationManager implements IManager {
 
     // #endregion Public Getters And Setters (4)
 
-    // #region Public Methods (3)
+    // #region Public Methods (4)
 
     public close(): void {
         this._positionObject3D.remove(...this._positionObject3D.children);
@@ -155,11 +157,7 @@ export class TextVisualizationManager implements IManager {
         }
     }
 
-    // #endregion Public Methods (3)
-
-    // #region Private Methods (1)
-
-    private numberCleaner(value: number): number {
+    public numberCleaner(value: number): number {
         const roundedThreshold = 100;
         const rounded = Math.round(value * roundedThreshold) / roundedThreshold;
 
@@ -171,5 +169,5 @@ export class TextVisualizationManager implements IManager {
         return rounded;
     }
 
-    // #endregion Private Methods (1)
+    // #endregion Public Methods (4)
 }

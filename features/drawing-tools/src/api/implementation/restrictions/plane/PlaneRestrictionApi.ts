@@ -1,24 +1,39 @@
 import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
-import { PlaneRestriction } from '../../../../business/implementation/restrictions/intersection/PlaneRestriction';
+import { AngularRestrictionApi } from './snap/AngularRestrictionApi';
+import { GridRestrictionApi } from './snap/GridRestrictionApi';
+import { PlaneRestriction } from '../../../../business/implementation/restrictions/plane/PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 
 export class PlaneRestrictionApi extends AbstractRestrictionApi {
-    // #region Properties (1)
+    // #region Properties (3)
 
+    readonly #angularRestrictionApi: AngularRestrictionApi;
+    readonly #gridRestrictionApi: GridRestrictionApi;
     private readonly _planeRestriction: PlaneRestriction;
 
-    // #endregion Properties (1)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
     constructor(restriction: PlaneRestriction) {
         super(restriction);
         this._planeRestriction = restriction;
+
+        this.#gridRestrictionApi = new GridRestrictionApi(restriction.gridRestriction);
+        this.#angularRestrictionApi = new AngularRestrictionApi(restriction.angularRestriction);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (8)
+
+    public get angularRestrictionApi(): AngularRestrictionApi {
+        return this.#angularRestrictionApi;
+    }
+
+    public get gridRestrictionApi(): GridRestrictionApi {
+        return this.#gridRestrictionApi;
+    }
 
     public get gridSize(): number {
         return this._planeRestriction.gridSize;
@@ -44,5 +59,5 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
         this._planeRestriction.origin = value;
     }
 
-    // #endregion Public Getters And Setters (4)
+    // #endregion Public Getters And Setters (8)
 }

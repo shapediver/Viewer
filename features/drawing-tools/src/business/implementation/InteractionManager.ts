@@ -15,6 +15,8 @@ export class InteractionManager implements IManager {
     #cameraFreezeFlag: string = '';
     #dragStart: vec3 = vec3.create();
     #dragging: boolean = false;
+    #draggedPoint?: number;
+    #draggedPointPosition: vec3 = vec3.create();
     #hoveredPoint?: number;
     #hoveredPointPosition: vec3 = vec3.create();
     #insertionActive: boolean = false;
@@ -139,10 +141,12 @@ export class InteractionManager implements IManager {
     public close(): void {
         this.#selectedPointIndices = [];
         this.#hoveredPoint = undefined;
+        this.#draggedPoint = undefined;
         this.#dragging = false;
         this.#dragStart = vec3.create();
         this.#selectedPointPositions = [];
         this.#hoveredPointPosition = vec3.create();
+        this.#draggedPointPosition = vec3.create();
     }
 
     public onDown(event: MouseEvent | TouchEvent, ray: IRay): void {
@@ -250,6 +254,14 @@ export class InteractionManager implements IManager {
                 this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
                 this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
             );
+
+            this.#draggedPointPosition = vec3.fromValues(
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
+            );
+
+            this.#draggedPoint = this.#hoveredPoint;
 
             this.#dragging = true;
 
@@ -386,14 +398,17 @@ export class InteractionManager implements IManager {
             const intersectionPoint = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
             const difference = vec3.sub(vec3.create(), intersectionPoint, this.#dragStart);
 
-            const selectedPoint = vec3.add(vec3.create(), difference, this.#hoveredPointPosition);
-            const restrictedPoint = this.#drawingToolsManager.restrictionManager.restrictPoint(selectedPoint, this.#hoveredPoint);
-            const differenceToRestricted = vec3.sub(vec3.create(), restrictedPoint, this.#hoveredPointPosition);
+            const selectedPoint = vec3.add(vec3.create(), difference, this.#draggedPointPosition);
+            const restrictedPoint = this.#drawingToolsManager.restrictionManager.snap(selectedPoint, { index: this.#draggedPoint });
 
-            for (let i = 0; i < this.#selectedPointIndices.length; i++) {
-                // add difference to selected point
-                const selectedPoint = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
-                this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
+            if(restrictedPoint)  {
+                const differenceToRestricted = vec3.sub(vec3.create(), restrictedPoint, this.#draggedPointPosition);
+    
+                for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+                    // add difference to selected point
+                    const selectedPoint = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
+                    this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
+                }
             }
         }
         
@@ -417,8 +432,9 @@ export class InteractionManager implements IManager {
                 this.#insertionActive = true;
                 this.#alreadyInserted = true;
             } else if (this.#drawingToolsManager.geometryManager.positionArray.length > 0 && this.#insertionActive === true) {
-                const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
-                this.#drawingToolsManager.geometryManager.movePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, restrictedPoint, false);
+                const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { index: this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1});
+                if(restrictedPoint)
+                    this.#drawingToolsManager.geometryManager.movePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, restrictedPoint, false);
             }
         }
 
@@ -516,8 +532,10 @@ export class InteractionManager implements IManager {
             this.#drawingToolsManager.geometryManager.movePoint(element, this.#selectedPointPositions[i], true);
         });
 
-        // reset the hovered point position
-        this.#drawingToolsManager.geometryManager.movePoint(this.#hoveredPoint!, this.#hoveredPointPosition, true);
+        if(this.#dragging === true) {
+            // reset the dragged point position
+            this.#drawingToolsManager.geometryManager.movePoint(this.#draggedPoint!, this.#draggedPointPosition, true);
+        }
 
         // remove the hovered point and the selected points
         this.removeAllSelectedPoints();

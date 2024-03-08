@@ -1,8 +1,8 @@
 import THREE from 'three';
-import { AbstractRestriction } from '../AbstractRestriction';
-import { DrawingToolsManager } from '../../DrawingToolsManager';
-import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
-import { RestrictionType } from '../../../interfaces/IRestriction';
+import { AbstractRestriction } from '../../AbstractRestriction';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
+import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
+import { PlaneRestrictionProperties } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -12,22 +12,10 @@ import { vec3 } from 'gl-matrix';
  */
 export type GridRestrictionProperties = {
     /**
-     * Size of the grid
-     */
-    gridSize: number;
-    /**
      * Size of the grid unit
      */
     gridUnit: number;
-    /**
-     * Origin of the grid
-     */
-    origin: vec3;
-    /**
-     * Normal of the grid
-     */
-    normal: vec3;
-};
+} & SnapRestrictionProperties;
 
 // #endregion Type aliases (1)
 
@@ -36,22 +24,25 @@ export type GridRestrictionProperties = {
 export class GridRestriction extends AbstractRestriction implements ISnapRestriction {
     // #region Properties (6)
 
+    private _active: boolean = false;
     private _gridHelper?: THREE.GridHelper;
     private _gridSize: number = 100;
     private _gridUnit: number;
     private _normal: vec3;
     private _offset: vec3 = vec3.create();
     private _origin: vec3;
+    private _priority: number = 0;
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: GridRestrictionProperties) {
-        super(drawingToolsManager, id, RestrictionType.SNAP);
-        this._normal = properties.normal;
+    constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: GridRestrictionProperties, planeProperties: PlaneRestrictionProperties) {
+        super(drawingToolsManager, id);
+        this._normal = planeProperties.normal;
         this._gridUnit = properties.gridUnit;
-        this._origin = properties.origin;
+        this._origin = planeProperties.origin || drawingToolsManager.customizationProperties.geometry.origin;
+        this._priority = properties.priority;
 
         // calculate offset of grid size to origin
         this.calculateOffset();
@@ -62,13 +53,13 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #region Public Getters And Setters (8)
 
-    public get gridSize(): number {
-        return this._gridSize;
+    public get active(): boolean {
+        return this._active;
     }
 
-    public set gridSize(value: number) {
-        this._gridSize = value;
-        this.createGridVisualization();
+    public set active(value: boolean) {
+        this._active = value;
+        if(this._gridHelper) this._gridHelper.visible = value;
     }
 
     public get gridUnit(): number {
@@ -81,23 +72,12 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.createGridVisualization();
     }
 
-    public get normal(): vec3 {
-        return this._normal;
+    public get priority(): number {
+        return this._priority;
     }
 
-    public set normal(value: vec3) {
-        this._normal = value;
-        this.createGridVisualization();
-    }
-
-    public get origin(): vec3 {
-        return this._origin;
-    }
-
-    public set origin(value: vec3) {
-        this._origin = value;
-        this.calculateOffset();
-        this.createGridVisualization();
+    public set priority(value: number) {
+        this._priority = value;
     }
 
     // #endregion Public Getters And Setters (8)
@@ -105,8 +85,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     // #region Public Methods (1)
 
     // public get
-    public restrictPointPosition(point: vec3): vec3 {
-        if (this.enabled === false) return point;
+    public snap(point: vec3): vec3 | undefined {
+        if (this.enabled === false) return;
 
         const x = Math.round(point[0] / this._gridUnit) * this._gridUnit - this._offset[0];
         const y = Math.round(point[1] / this._gridUnit) * this._gridUnit - this._offset[1];
@@ -189,6 +169,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
         this._gridHelper = new THREE.GridHelper(this._gridSize, this._gridSize / this._gridUnit, 0x666666, 0x222222);
         this._gridHelper.position.copy(new THREE.Vector3(this._origin[0], this._origin[1], this._origin[2]));
+        this._gridHelper.visible = false;
 
         this._gridHelper.renderOrder = -1;
         (this._gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
