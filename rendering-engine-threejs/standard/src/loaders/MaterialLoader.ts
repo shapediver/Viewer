@@ -758,14 +758,14 @@ export class MaterialLoader implements ILoader {
                     customPointSize_7: materialData.size_7
                 };
 
-                multiPointMaterialProperties.sizeAttenuation_0 = materialData.sizeAttenuation_0 !== undefined ? materialData.sizeAttenuation_0 : true;
-                multiPointMaterialProperties.sizeAttenuation_1 = materialData.sizeAttenuation_1 !== undefined ? materialData.sizeAttenuation_1 : true;
-                multiPointMaterialProperties.sizeAttenuation_2 = materialData.sizeAttenuation_2 !== undefined ? materialData.sizeAttenuation_2 : true;
-                multiPointMaterialProperties.sizeAttenuation_3 = materialData.sizeAttenuation_3 !== undefined ? materialData.sizeAttenuation_3 : true;
-                multiPointMaterialProperties.sizeAttenuation_4 = materialData.sizeAttenuation_4 !== undefined ? materialData.sizeAttenuation_4 : true;
-                multiPointMaterialProperties.sizeAttenuation_5 = materialData.sizeAttenuation_5 !== undefined ? materialData.sizeAttenuation_5 : true;
-                multiPointMaterialProperties.sizeAttenuation_6 = materialData.sizeAttenuation_6 !== undefined ? materialData.sizeAttenuation_6 : true;
-                multiPointMaterialProperties.sizeAttenuation_7 = materialData.sizeAttenuation_7 !== undefined ? materialData.sizeAttenuation_7 : true;
+                multiPointMaterialProperties.sizeAttenuation_0 = materialData.sizeAttenuation_0 !== undefined ? materialData.sizeAttenuation_0 : false;
+                multiPointMaterialProperties.sizeAttenuation_1 = materialData.sizeAttenuation_1 !== undefined ? materialData.sizeAttenuation_1 : false;
+                multiPointMaterialProperties.sizeAttenuation_2 = materialData.sizeAttenuation_2 !== undefined ? materialData.sizeAttenuation_2 : false;
+                multiPointMaterialProperties.sizeAttenuation_3 = materialData.sizeAttenuation_3 !== undefined ? materialData.sizeAttenuation_3 : false;
+                multiPointMaterialProperties.sizeAttenuation_4 = materialData.sizeAttenuation_4 !== undefined ? materialData.sizeAttenuation_4 : false;
+                multiPointMaterialProperties.sizeAttenuation_5 = materialData.sizeAttenuation_5 !== undefined ? materialData.sizeAttenuation_5 : false;
+                multiPointMaterialProperties.sizeAttenuation_6 = materialData.sizeAttenuation_6 !== undefined ? materialData.sizeAttenuation_6 : false;
+                multiPointMaterialProperties.sizeAttenuation_7 = materialData.sizeAttenuation_7 !== undefined ? materialData.sizeAttenuation_7 : false;
 
                 if (materialData.map_0 !== undefined) {
                     multiPointMaterialProperties.map_0 = this.createTexture(materialData.map_0);

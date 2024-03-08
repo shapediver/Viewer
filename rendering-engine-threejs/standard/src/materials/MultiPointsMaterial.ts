@@ -87,14 +87,14 @@ export class MultiPointsMaterial extends THREE.PointsMaterial {
     public map_7: THREE.Texture | null = null;
     public materialIndexDataTexture: THREE.DataTexture | null = null;
     public materialIndexDataTextureSize: number = 1024;
-    public sizeAttenuation_0: boolean = true;
-    public sizeAttenuation_1: boolean = true;
-    public sizeAttenuation_2: boolean = true;
-    public sizeAttenuation_3: boolean = true;
-    public sizeAttenuation_4: boolean = true;
-    public sizeAttenuation_5: boolean = true;
-    public sizeAttenuation_6: boolean = true;
-    public sizeAttenuation_7: boolean = true;
+    public sizeAttenuation_0: boolean = false;
+    public sizeAttenuation_1: boolean = false;
+    public sizeAttenuation_2: boolean = false;
+    public sizeAttenuation_3: boolean = false;
+    public sizeAttenuation_4: boolean = false;
+    public sizeAttenuation_5: boolean = false;
+    public sizeAttenuation_6: boolean = false;
+    public sizeAttenuation_7: boolean = false;
     public size_0: number = 1.0;
     public size_1: number = 1.0;
     public size_2: number = 1.0;
@@ -121,49 +121,49 @@ export class MultiPointsMaterial extends THREE.PointsMaterial {
             color_0: { value: new THREE.Color(0xff0000) },
             alphaMap_0: { value: null },
             size_0: { value: 1.0 },
-            sizeAttenuation_0: { value: true },
+            sizeAttenuation_0: { value: false },
 
             map_1: { value: null },
             color_1: { value: new THREE.Color(0x00ff00) },
             alphaMap_1: { value: null },
             size_1: { value: 1.0 },
-            sizeAttenuation_1: { value: true },
+            sizeAttenuation_1: { value: false },
 
             map_2: { value: null },
             color_2: { value: new THREE.Color(0x0000ff) },
             alphaMap_2: { value: null },
             size_2: { value: 1.0 },
-            sizeAttenuation_2: { value: true },
+            sizeAttenuation_2: { value: false },
 
             map_3: { value: null },
             color_3: { value: new THREE.Color(0x0000ff) },
             alphaMap_3: { value: null },
             size_3: { value: 1.0 },
-            sizeAttenuation_3: { value: true },
+            sizeAttenuation_3: { value: false },
 
             map_4: { value: null },
             color_4: { value: new THREE.Color(0x0000ff) },
             alphaMap_4: { value: null },
             size_4: { value: 1.0 },
-            sizeAttenuation_4: { value: true },
+            sizeAttenuation_4: { value: false },
 
             map_5: { value: null },
             color_5: { value: new THREE.Color(0x0000ff) },
             alphaMap_5: { value: null },
             size_5: { value: 1.0 },
-            sizeAttenuation_5: { value: true },
+            sizeAttenuation_5: { value: false },
 
             map_6: { value: null },
             color_6: { value: new THREE.Color(0x0000ff) },
             alphaMap_6: { value: null },
             size_6: { value: 1.0 },
-            sizeAttenuation_6: { value: true },
+            sizeAttenuation_6: { value: false },
 
             map_7: { value: null },
             color_7: { value: new THREE.Color(0x0000ff) },
             alphaMap_7: { value: null },
             size_7: { value: 1.0 },
-            sizeAttenuation_7: { value: true }
+            sizeAttenuation_7: { value: false }
         };
 
         (this as any)._extraUniforms = uniforms;
@@ -530,49 +530,49 @@ export class MultiPointsMaterial extends THREE.PointsMaterial {
         this.color_0 = new THREE.Color(params.color_0 ?? 0xffffff);
         this.alphaMap_0 = params.alphaMap_0 ?? null;
         this.size_0 = params.size_0 ?? 1.0;
-        this.sizeAttenuation_0 = params.sizeAttenuation_0 ?? true;
+        this.sizeAttenuation_0 = params.sizeAttenuation_0 ?? false;
 
         this.map_1 = params.map_1 ?? null;
         this.color_1 = new THREE.Color(params.color_1 ?? 0xffffff);
         this.alphaMap_1 = params.alphaMap_1 ?? null;
         this.size_1 = params.size_1 ?? 1.0;
-        this.sizeAttenuation_1 = params.sizeAttenuation_1 ?? true;
+        this.sizeAttenuation_1 = params.sizeAttenuation_1 ?? false;
 
         this.map_2 = params.map_2 ?? null;
         this.color_2 = new THREE.Color(params.color_2 ?? 0xffffff);
         this.alphaMap_2 = params.alphaMap_2 ?? null;
         this.size_2 = params.size_2 ?? 1.0;
-        this.sizeAttenuation_2 = params.sizeAttenuation_2 ?? true;
+        this.sizeAttenuation_2 = params.sizeAttenuation_2 ?? false;
 
         this.map_3 = params.map_3 ?? null;
         this.color_3 = new THREE.Color(params.color_3 ?? 0xffffff);
         this.alphaMap_3 = params.alphaMap_3 ?? null;
         this.size_3 = params.size_3 ?? 1.0;
-        this.sizeAttenuation_3 = params.sizeAttenuation_3 ?? true;
+        this.sizeAttenuation_3 = params.sizeAttenuation_3 ?? false;
 
         this.map_4 = params.map_4 ?? null;
         this.color_4 = new THREE.Color(params.color_4 ?? 0xffffff);
         this.alphaMap_4 = params.alphaMap_4 ?? null;
         this.size_4 = params.size_4 ?? 1.0;
-        this.sizeAttenuation_4 = params.sizeAttenuation_4 ?? true;
+        this.sizeAttenuation_4 = params.sizeAttenuation_4 ?? false;
 
         this.map_5 = params.map_5 ?? null;
         this.color_5 = new THREE.Color(params.color_5 ?? 0xffffff);
         this.alphaMap_5 = params.alphaMap_5 ?? null;
         this.size_5 = params.size_5 ?? 1.0;
-        this.sizeAttenuation_5 = params.sizeAttenuation_5 ?? true;
+        this.sizeAttenuation_5 = params.sizeAttenuation_5 ?? false;
 
         this.map_6 = params.map_6 ?? null;
         this.color_6 = new THREE.Color(params.color_6 ?? 0xffffff);
         this.alphaMap_6 = params.alphaMap_6 ?? null;
         this.size_6 = params.size_6 ?? 1.0;
-        this.sizeAttenuation_6 = params.sizeAttenuation_6 ?? true;
+        this.sizeAttenuation_6 = params.sizeAttenuation_6 ?? false;
 
         this.map_7 = params.map_7 ?? null;
         this.color_7 = new THREE.Color(params.color_7 ?? 0xffffff);
         this.alphaMap_7 = params.alphaMap_7 ?? null;
         this.size_7 = params.size_7 ?? 1.0;
-        this.sizeAttenuation_7 = params.sizeAttenuation_7 ?? true;
+        this.sizeAttenuation_7 = params.sizeAttenuation_7 ?? false;
 
         this.setValues(params);
     }
