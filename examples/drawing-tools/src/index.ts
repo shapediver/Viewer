@@ -49,13 +49,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
                 angularSnapRestriction: { priority: 0, angleStep: 0.39269908169 }
             } as PlaneRestrictionProperties
 
-        ],
-        controls: { 
-            insert: 'Ctrl', 
-            delete: 'Shift', 
-            finish: 'Enter', 
-            cancel: 'Escape' 
-        }
+        ]
     };
     console.log(customizationProperties);
 

@@ -32,7 +32,24 @@ export type CustomizationProperties = {
         autoClose: boolean; // if the geometry is automatically closed (default: true)
         origin: vec3, // the origin of the drawing tool (default: vec3.fromValues(0, 0, 0))
     },
-    restrictions: RestrictionProperties[], // the restrictions of the drawing tool
+    restrictions: RestrictionProperties[] // the restrictions of the drawing tool
+    
+};
+export type CustomizationPropertiesOptional = {
+    geometry?: Partial<CustomizationProperties['geometry']>;
+    restrictions?: Partial<CustomizationProperties['restrictions']>;
+};
+/**
+ * The setup properties of the drawing tool.
+ */
+export type SetupProperties = {
+    visualization: {
+        distanceMultiplicationFactor: number, // the multiplication factor of the point size when interacting with the drawing tool (default: 2)
+        pointLabels: boolean, // show the point labels of the drawing tool (default: false)
+        distanceLabels: boolean, // show the distance labels of the drawing tool (default: false)
+        points: IMaterialMultiPointDataProperties, // the material properties of the points
+        lines: IMaterialBasicLineDataProperties // the material properties of the lines
+    },
     controls: {
         insert: string, // insert point, can only be a modifier key (Ctrl, Shift, Alt) (default: Ctrl)
         delete: string, // delete point, can only be a modifier key (Ctrl, Shift, Alt) (default: Shift)
@@ -40,24 +57,9 @@ export type CustomizationProperties = {
         cancel: string, // cancel drawing (default: Escape)
     }
 };
-export type CustomizationPropertiesOptional = {
-    geometry?: Partial<CustomizationProperties['geometry']>;
-    restrictions?: Partial<CustomizationProperties['restrictions']>;
-    controls?: Partial<CustomizationProperties['controls']>;
-};
-/**
- * The setup properties of the drawing tool.
- */
-export type SetupProperties = {
-    visualization: {
-        pointLabels: boolean, // show the point labels of the drawing tool (default: false)
-        distanceLabels: boolean, // show the distance labels of the drawing tool (default: false)
-        points: IMaterialMultiPointDataProperties, // the material properties of the points
-        lines: IMaterialBasicLineDataProperties // the material properties of the lines
-    }
-};
 export type SetupPropertiesOptional = {
     visualization?: Partial<SetupProperties['visualization']>;
+    controls?: Partial<SetupProperties['controls']>;
 };
 
 // #endregion Type aliases (5)
@@ -253,13 +255,7 @@ export class DrawingToolsManager implements IManager {
                 autoClose: false,
                 origin: vec3.fromValues(0, 0, 0)
             },
-            restrictions: [],
-            controls: {
-                insert: 'Ctrl',
-                delete: 'Shift',
-                finish: 'Enter',
-                cancel: 'Escape'
-            }
+            restrictions: []
         };
 
         if (customizationPropertiesOptional.geometry !== undefined) {
@@ -271,15 +267,6 @@ export class DrawingToolsManager implements IManager {
                 close: customizationPropertiesOptional.geometry.close === undefined ? true : customizationPropertiesOptional.geometry.close,
                 autoClose: customizationPropertiesOptional.geometry.autoClose === undefined ? true : customizationPropertiesOptional.geometry.autoClose,
                 origin: customizationPropertiesOptional.geometry.origin === undefined ? vec3.fromValues(0, 0, 0) : customizationPropertiesOptional.geometry.origin
-            };
-        }
-
-        if (customizationPropertiesOptional.controls !== undefined) {
-            customizationProperties.controls = {
-                insert: customizationPropertiesOptional.controls.insert === undefined ? 'Ctrl' : customizationPropertiesOptional.controls.insert,
-                delete: customizationPropertiesOptional.controls.delete === undefined ? 'Shift' : customizationPropertiesOptional.controls.delete,
-                finish: customizationPropertiesOptional.controls.finish === undefined ? 'Enter' : customizationPropertiesOptional.controls.finish,
-                cancel: customizationPropertiesOptional.controls.cancel === undefined ? 'Escape' : customizationPropertiesOptional.controls.cancel
             };
         }
 
@@ -297,6 +284,7 @@ export class DrawingToolsManager implements IManager {
 
         const setupProperties: SetupProperties = {
             visualization: {
+                distanceMultiplicationFactor: setupPropertiesOptional?.visualization?.distanceMultiplicationFactor === undefined ? 2 : setupPropertiesOptional.visualization.distanceMultiplicationFactor,
                 pointLabels: setupPropertiesOptional?.visualization?.pointLabels === undefined ? false : setupPropertiesOptional.visualization.pointLabels,
                 distanceLabels: setupPropertiesOptional?.visualization?.distanceLabels === undefined ? true : setupPropertiesOptional.visualization.distanceLabels,
                 points: setupPropertiesOptional?.visualization?.points === undefined ? {
@@ -306,6 +294,12 @@ export class DrawingToolsManager implements IManager {
                 lines: setupPropertiesOptional?.visualization?.lines === undefined ? {
                     color: '#0d44f0'
                 } : setupPropertiesOptional.visualization.lines
+            },
+            controls: {
+                insert: setupPropertiesOptional?.controls?.insert === undefined ? 'Ctrl' : setupPropertiesOptional.controls.insert,
+                delete: setupPropertiesOptional?.controls?.delete === undefined ? 'Shift' : setupPropertiesOptional.controls.delete,
+                finish: setupPropertiesOptional?.controls?.finish === undefined ? 'Enter' : setupPropertiesOptional.controls.finish,
+                cancel: setupPropertiesOptional?.controls?.cancel === undefined ? 'Escape' : setupPropertiesOptional.controls.cancel
             }
         };
 

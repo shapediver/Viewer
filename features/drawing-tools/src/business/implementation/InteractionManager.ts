@@ -84,7 +84,7 @@ export class InteractionManager implements IManager {
      * @returns 
      */
     public checkHover(event: MouseEvent | TouchEvent, ray: IRay): void {
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
 
         // check if there is a point close to the ray
         const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
@@ -153,8 +153,8 @@ export class InteractionManager implements IManager {
         if (this.#drawingToolsManager.closed) return;
         this.#moving = false;
 
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete);
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.insert);
 
         /**
          * IF DELETE AND INSERT KEY ARE PRESSED
@@ -273,10 +273,10 @@ export class InteractionManager implements IManager {
     public onKeyDown(event: KeyboardEvent): void {
         if (this.#drawingToolsManager.closed) return;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert);
-        const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.cancel);
-        const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.finish);
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.insert);
+        const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.cancel);
+        const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.finish);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.delete);
 
         /**
          * IF FINISH KEY IS PRESSED
@@ -349,7 +349,7 @@ export class InteractionManager implements IManager {
     public onKeyUp(event: KeyboardEvent): void {
         if (this.#drawingToolsManager.closed) return;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.customizationProperties.controls.insert);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.insert);
 
         /**
          * IF INSERT KEY IS RELEASED
@@ -380,8 +380,8 @@ export class InteractionManager implements IManager {
         this.#moving = true;
         this.#lastEvent = event;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.insert);
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.customizationProperties.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
 
         /**
          * IF WE ARE DRAGGING A POINT
