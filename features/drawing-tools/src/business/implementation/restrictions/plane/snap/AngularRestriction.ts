@@ -107,11 +107,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             last: false
         };
 
-        // move point to plane
-        const projection = vec3.create();
-        vec3.scale(projection, this._normal, vec3.dot(point, this._normal));
-        vec3.subtract(projection, point, projection);
-
         const positionArray = this._drawingToolsManager.geometryManager.positionArray;
 
         let previousIndex, nextIndex;
@@ -128,16 +123,23 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         // get the first point
         const firstPoint = vec3.fromValues(positionArray.at((nextIndex * 3))!, positionArray.at((nextIndex * 3) + 1)!, positionArray.at((nextIndex * 3) + 2)!);
-        const { angularDifference: angularDifferenceFirst, crossProduct: crossProductFirst, closestAngle: closestAngleFirst } = this.getAngularDifference(projection, firstPoint);
 
         // get the last point
         const lastPoint = vec3.fromValues(positionArray.at((previousIndex * 3))!, positionArray.at((previousIndex * 3) + 1)!, positionArray.at((previousIndex * 3) + 2)!);
-        const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, closestAngle: closestAngleLast } = this.getAngularDifference(projection, lastPoint);
 
-        const resultPointFirstAngle = vec3.rotateZ(vec3.create(), projection, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
-        const distanceFirstAngle = vec3.distance(resultPointFirstAngle, projection);
-        const resultPointLastAngle = vec3.rotateZ(vec3.create(), projection, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
-        const distanceLastAngle = vec3.distance(resultPointLastAngle, projection);
+        // check if they are on the plane that is defined by the point and the normal
+        const firstPointOnPlane = vec3.dot(firstPoint, this._normal) === 0;
+        const lastPointOnPlane = vec3.dot(lastPoint, this._normal) === 0;
+
+        if(!firstPointOnPlane || !lastPointOnPlane) return;
+
+        const { angularDifference: angularDifferenceFirst, crossProduct: crossProductFirst, closestAngle: closestAngleFirst } = this.getAngularDifference(point, firstPoint);
+        const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, closestAngle: closestAngleLast } = this.getAngularDifference(point, lastPoint);
+
+        const resultPointFirstAngle = vec3.rotateZ(vec3.create(), point, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
+        const distanceFirstAngle = vec3.distance(resultPointFirstAngle, point);
+        const resultPointLastAngle = vec3.rotateZ(vec3.create(), point, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
+        const distanceLastAngle = vec3.distance(resultPointLastAngle, point);
 
         const distanceThreshold = 1.5;
 
