@@ -20,94 +20,94 @@ export type AngularRestrictionProperties = {
 // #region Classes (1)
 
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (6)
+    // #region Properties (10)
 
-    private _active: boolean = false;
-    private _angleStep: number;
-    private _angles: number[] = [];
-    private _normal: vec3;
-    private _activePolarGrids = {
+    #active: boolean = false;
+    #activePolarGrids = {
         first: false,
         last: false
     };
-    private _polarGridHelperFirst?: THREE.PolarGridHelper;
-    private _polarGridHelperLast?: THREE.PolarGridHelper;
-    private _priority: number = 0;
-    _labelFirst?: CSS2DObject;
-    _labelLast?: CSS2DObject;
+    #angleStep: number;
+    #angles: number[] = [];
+    #labelFirst?: CSS2DObject;
+    #labelLast?: CSS2DObject;
+    #normal: vec3;
+    #polarGridHelperFirst?: THREE.PolarGridHelper;
+    #polarGridHelperLast?: THREE.PolarGridHelper;
+    #priority: number = 0;
 
-    // #endregion Properties (6)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: AngularRestrictionProperties, planeProperties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        this._angleStep = properties.angleStep;
-        this._normal = planeProperties.normal;
-        this._priority = properties.priority;
+        this.#angleStep = properties.angleStep;
+        this.#normal = planeProperties.normal;
+        this.#priority = properties.priority;
         this.calculateAngles();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (6)
 
     public get active(): boolean {
-        return this._active;
+        return this.#active;
     }
 
     public set active(value: boolean) {
-        this._active = value;
-        if(this._polarGridHelperFirst && this._activePolarGrids.first === value) this._polarGridHelperFirst.visible = value;
-        if(this._labelFirst && this._activePolarGrids.first === value) this._labelFirst.visible = value;
-        if(this._polarGridHelperLast && this._activePolarGrids.last === value) this._polarGridHelperLast.visible = value;
-        if(this._labelLast && this._activePolarGrids.last === value) this._labelLast.visible = value;
+        this.#active = value;
+        if (this.#polarGridHelperFirst && this.#activePolarGrids.first === value) this.#polarGridHelperFirst.visible = value;
+        if (this.#labelFirst && this.#activePolarGrids.first === value) this.#labelFirst.visible = value;
+        if (this.#polarGridHelperLast && this.#activePolarGrids.last === value) this.#polarGridHelperLast.visible = value;
+        if (this.#labelLast && this.#activePolarGrids.last === value) this.#labelLast.visible = value;
     }
 
     public get angleStep(): number {
-        return this._angleStep;
+        return this.#angleStep;
     }
 
     public set angleStep(value: number) {
-        this._angleStep = value;
+        this.#angleStep = value;
         this.calculateAngles();
     }
 
     public get priority(): number {
-        return this._priority;
+        return this.#priority;
     }
 
     public set priority(value: number) {
-        this._priority = value;
+        this.#priority = value;
     }
 
-    // #endregion Public Getters And Setters (4)
+    // #endregion Public Getters And Setters (6)
 
     // #region Public Methods (1)
 
     public snap(point: vec3, metaData?: { index?: number }): vec3 | undefined {
         if (this.enabled === false || metaData === undefined || metaData.index === undefined) return;
 
-        if (this._polarGridHelperFirst) {
-            this._polarGridHelperFirst.remove(...this._polarGridHelperFirst.children);
-            this._polarGridHelperFirst.visible = false;
+        if (this.#polarGridHelperFirst) {
+            this.#polarGridHelperFirst.remove(...this.#polarGridHelperFirst.children);
+            this.#polarGridHelperFirst.visible = false;
         }
 
-        if (this._labelFirst) this._labelFirst.visible = false;
+        if (this.#labelFirst) this.#labelFirst.visible = false;
 
-        if (this._polarGridHelperLast) {
-            this._polarGridHelperLast.remove(...this._polarGridHelperLast.children);
-            this._polarGridHelperLast.visible = false;
+        if (this.#polarGridHelperLast) {
+            this.#polarGridHelperLast.remove(...this.#polarGridHelperLast.children);
+            this.#polarGridHelperLast.visible = false;
         }
 
-        if (this._labelLast) this._labelLast.visible = false;
+        if (this.#labelLast) this.#labelLast.visible = false;
 
-        this._activePolarGrids = {
+        this.#activePolarGrids = {
             first: false,
             last: false
         };
 
-        const positionArray = this._drawingToolsManager.geometryManager.positionArray;
+        const positionArray = this.drawingToolsManager.geometryManager.positionArray;
 
         let previousIndex, nextIndex;
         if (metaData !== undefined && metaData.index !== undefined) {
@@ -128,18 +128,18 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const lastPoint = vec3.fromValues(positionArray.at((previousIndex * 3))!, positionArray.at((previousIndex * 3) + 1)!, positionArray.at((previousIndex * 3) + 2)!);
 
         // check if they are on the plane that is defined by the point and the normal
-        const firstPointOnPlane = vec3.dot(firstPoint, this._normal) === 0;
-        const lastPointOnPlane = vec3.dot(lastPoint, this._normal) === 0;
+        const firstPointOnPlane = vec3.dot(firstPoint, this.#normal) === 0;
+        const lastPointOnPlane = vec3.dot(lastPoint, this.#normal) === 0;
 
-        if(!firstPointOnPlane || !lastPointOnPlane) return;
+        if (!firstPointOnPlane || !lastPointOnPlane) return;
 
         const { angularDifference: angularDifferenceFirst, crossProduct: crossProductFirst, closestAngle: closestAngleFirst } = this.getAngularDifference(point, firstPoint);
         const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, closestAngle: closestAngleLast } = this.getAngularDifference(point, lastPoint);
 
         const resultPointFirstAngle = vec3.rotateZ(vec3.create(), point, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
-        const screenSpaceDistanceCheckFirstAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointFirstAngle, point, this._drawingToolsManager.setupProperties.visualization.points.size_0! * this._drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckFirstAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointFirstAngle, point, this.drawingToolsManager.setupProperties.visualization.points.size_0! * this.drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
         const resultPointLastAngle = vec3.rotateZ(vec3.create(), point, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
-        const screenSpaceDistanceCheckLastAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointLastAngle, point, this._drawingToolsManager.setupProperties.visualization.points.size_0! * this._drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckLastAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointLastAngle, point, this.drawingToolsManager.setupProperties.visualization.points.size_0! * this.drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
 
         if (screenSpaceDistanceCheckFirstAngle.check === false && screenSpaceDistanceCheckLastAngle.check === false) return;
 
@@ -167,21 +167,21 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             }
 
             const intersection = vec3.add(vec3.create(), firstPoint, vec3.scale(vec3.create(), rayDirectionFirst, tValue));
-            [this._polarGridHelperFirst, this._labelFirst] = this.createGrid(this._polarGridHelperFirst, firstPoint, closestAngleFirst);
-            this._activePolarGrids.first = true;
-            [this._polarGridHelperLast, this._labelLast] = this.createGrid(this._polarGridHelperLast, lastPoint, closestAngleLast);
-            this._activePolarGrids.last = true;
+            [this.#polarGridHelperFirst, this.#labelFirst] = this.createGrid(this.#polarGridHelperFirst, firstPoint, closestAngleFirst);
+            this.#activePolarGrids.first = true;
+            [this.#polarGridHelperLast, this.#labelLast] = this.createGrid(this.#polarGridHelperLast, lastPoint, closestAngleLast);
+            this.#activePolarGrids.last = true;
             return intersection;
         }
 
         // check which distance to the projection is smaller
         if (screenSpaceDistanceCheckFirstAngle.distanceSquared < screenSpaceDistanceCheckLastAngle.distanceSquared) {
-            [this._polarGridHelperFirst, this._labelFirst] = this.createGrid(this._polarGridHelperFirst, firstPoint, closestAngleFirst);
-            this._activePolarGrids.first = true;
+            [this.#polarGridHelperFirst, this.#labelFirst] = this.createGrid(this.#polarGridHelperFirst, firstPoint, closestAngleFirst);
+            this.#activePolarGrids.first = true;
             return resultPointFirstAngle;
         } else {
-            [this._polarGridHelperLast, this._labelLast] = this.createGrid(this._polarGridHelperLast, lastPoint, closestAngleLast);
-            this._activePolarGrids.last = true;
+            [this.#polarGridHelperLast, this.#labelLast] = this.createGrid(this.#polarGridHelperLast, lastPoint, closestAngleLast);
+            this.#activePolarGrids.last = true;
             return resultPointLastAngle;
         }
     }
@@ -192,14 +192,14 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     protected visibilityChanged(visible: boolean): void {
         if (visible === false) {
-            if (this._polarGridHelperFirst) {
-                this._polarGridHelperFirst.remove(...this._polarGridHelperFirst.children);
-                this._polarGridHelperFirst.visible = false;
+            if (this.#polarGridHelperFirst) {
+                this.#polarGridHelperFirst.remove(...this.#polarGridHelperFirst.children);
+                this.#polarGridHelperFirst.visible = false;
             }
 
-            if (this._polarGridHelperLast) {
-                this._polarGridHelperLast.remove(...this._polarGridHelperLast.children);
-                this._polarGridHelperLast.visible = false;
+            if (this.#polarGridHelperLast) {
+                this.#polarGridHelperLast.remove(...this.#polarGridHelperLast.children);
+                this.#polarGridHelperLast.visible = false;
             }
         }
     }
@@ -209,9 +209,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     // #region Private Methods (3)
 
     private calculateAngles() {
-        this._angles = [];
-        for (let i = 0; i <= Math.PI + 0.0001; i += this._angleStep) {
-            this._angles.push(i);
+        this.#angles = [];
+        for (let i = 0; i <= Math.PI + 0.0001; i += this.#angleStep) {
+            this.#angles.push(i);
         }
     }
 
@@ -219,10 +219,10 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         if (polarGridHelper) {
             polarGridHelper.remove(...polarGridHelper.children);
             polarGridHelper.dispose();
-            this._object3D.remove(polarGridHelper);
+            this.object3D.remove(polarGridHelper);
         }
 
-        polarGridHelper = new THREE.PolarGridHelper(5, (this._angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
+        polarGridHelper = new THREE.PolarGridHelper(5, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
         polarGridHelper.renderOrder = -1;
         (polarGridHelper.material as THREE.LineBasicMaterial).depthTest = false;
         (polarGridHelper.material as THREE.LineBasicMaterial).transparent = true;
@@ -232,7 +232,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const text = document.createElement('div');
         text.className = 'label';
         text.style.marginTop = '2.5em';
-        text.textContent = `${this._drawingToolsManager.textVisualizationManager.numberCleaner((angle / Math.PI) * 180)}°`;
+        text.textContent = `${this.drawingToolsManager.textVisualizationManager.numberCleaner((angle / Math.PI) * 180)}°`;
 
         const label = new CSS2DObject(text);
         label.position.set(0, 0, 0);
@@ -241,10 +241,10 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         // rotate grid helper to match axis
         const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this._normal[0], this._normal[1], this._normal[2]));
+        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this.#normal[0], this.#normal[1], this.#normal[2]));
         polarGridHelper.quaternion.copy(quaternion);
 
-        this._object3D.add(polarGridHelper);
+        this.object3D.add(polarGridHelper);
 
         return [polarGridHelper, label];
     }
@@ -260,9 +260,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const crossProduct = vec3.cross(vec3.create(), vec3.fromValues(0, 1, 0), direction);
 
         // find the angle that is closest to the angle of the last point
-        let closestAngle = this._angles[0];
-        for (let i = 0; i < this._angles.length; i++) {
-            const angle = this._angles[i];
+        let closestAngle = this.#angles[0];
+        for (let i = 0; i < this.#angles.length; i++) {
+            const angle = this.#angles[i];
 
             if (Math.abs(angleReference - angle) < Math.abs(angleReference - closestAngle))
                 closestAngle = angle;

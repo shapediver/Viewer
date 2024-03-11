@@ -6,23 +6,23 @@ import { sceneTree, ThreejsData, TreeNode } from '@shapediver/viewer';
 export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Properties (6)
 
-    private readonly _id: string;
-    private readonly _visualizationNode: TreeNode = new TreeNode();
+    readonly #id: string;
+    readonly #visualizationNode: TreeNode = new TreeNode();
 
-    private _enabled: boolean = true;
-    private _showVisualization: boolean = false;
+    #enabled: boolean = true;
+    #showVisualization: boolean = false;
 
-    protected readonly _drawingToolsManager: DrawingToolsManager;
+    protected readonly drawingToolsManager: DrawingToolsManager;
 
-    protected _object3D!: THREE.Object3D;
+    protected object3D!: THREE.Object3D;
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string) {
-        this._drawingToolsManager = drawingToolsManager;
-        this._id = id;
+        this.drawingToolsManager = drawingToolsManager;
+        this.#id = id;
         this.createGridHelperObject();
     }
 
@@ -31,27 +31,27 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Public Getters And Setters (5)
 
     public get enabled(): boolean {
-        return this._enabled;
+        return this.#enabled;
     }
 
     public set enabled(value: boolean) {
-        this._enabled = value;
-        this._object3D.visible = value && this._showVisualization;
-        this.visibilityChanged(this._object3D.visible);
+        this.#enabled = value;
+        this.object3D.visible = value && this.#showVisualization;
+        this.visibilityChanged(this.object3D.visible);
     }
 
     public get id(): string {
-        return this._id;
+        return this.#id;
     }
 
     public get showVisualization(): boolean {
-        return this._showVisualization;
+        return this.#showVisualization;
     }
 
     public set showVisualization(value: boolean) {
-        this._showVisualization = value;
-        this._object3D.visible = value && this._enabled;
-        this.visibilityChanged(this._object3D.visible);
+        this.#showVisualization = value;
+        this.object3D.visible = value && this.#enabled;
+        this.visibilityChanged(this.object3D.visible);
     }
 
     // #endregion Public Getters And Setters (5)
@@ -59,7 +59,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Public Methods (1)
 
     public removeVisualization(): void {
-        sceneTree.root.removeChild(this._visualizationNode);
+        sceneTree.root.removeChild(this.#visualizationNode);
         sceneTree.root.updateVersion();
     }
 
@@ -74,17 +74,17 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Private Methods (1)
 
     private createGridHelperObject(): void {
-        this._object3D = new THREE.Object3D();
-        this._object3D.visible = false;
+        this.object3D = new THREE.Object3D();
+        this.object3D.visible = false;
 
         const node = new TreeNode();
 
-        const data = new ThreejsData(this._object3D);
+        const data = new ThreejsData(this.object3D);
         node.addData(data);
 
-        this._visualizationNode.addChild(node);
-        this._visualizationNode.updateVersion();
-        sceneTree.root.addChild(this._visualizationNode);
+        this.#visualizationNode.addChild(node);
+        this.#visualizationNode.updateVersion();
+        sceneTree.root.addChild(this.#visualizationNode);
         sceneTree.root.updateVersion();
     }
 

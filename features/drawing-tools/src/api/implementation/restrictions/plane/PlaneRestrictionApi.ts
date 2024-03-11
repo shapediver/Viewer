@@ -9,7 +9,7 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
 
     readonly #angularRestrictionApi: AngularRestrictionApi;
     readonly #gridRestrictionApi: GridRestrictionApi;
-    private readonly _planeRestriction: PlaneRestriction;
+    readonly #planeRestriction: PlaneRestriction;
 
     // #endregion Properties (3)
 
@@ -17,7 +17,7 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
 
     constructor(restriction: PlaneRestriction) {
         super(restriction);
-        this._planeRestriction = restriction;
+        this.#planeRestriction = restriction;
 
         this.#gridRestrictionApi = new GridRestrictionApi(restriction.gridRestriction);
         this.#angularRestrictionApi = new AngularRestrictionApi(restriction.angularRestriction);
@@ -36,27 +36,27 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
     }
 
     public get gridSize(): number {
-        return this._planeRestriction.gridSize;
+        return this.#planeRestriction.gridSize;
     }
 
     public set gridSize(value: number) {
-        this._planeRestriction.gridSize = value;
+        this.#planeRestriction.gridSize = value;
     }
 
     public get normal(): vec3 {
-        return this._planeRestriction.normal;
+        return this.#planeRestriction.normal;
     }
 
     public set normal(value: vec3) {
-        this._planeRestriction.normal = value;
+        this.#planeRestriction.normal = value;
     }
 
     public get origin(): vec3 {
-        return this._planeRestriction.origin;
+        return this.#planeRestriction.origin;
     }
 
     public set origin(value: vec3) {
-        this._planeRestriction.origin = value;
+        this.#planeRestriction.origin = value;
     }
 
     // #endregion Public Getters And Setters (8)

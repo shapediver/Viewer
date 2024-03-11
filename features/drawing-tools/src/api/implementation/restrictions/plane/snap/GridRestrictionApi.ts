@@ -4,7 +4,7 @@ import { GridRestriction } from '../../../../../business/implementation/restrict
 export class GridRestrictionApi extends AbstractRestrictionApi {
     // #region Properties (1)
 
-    private readonly _gridRestriction: GridRestriction;
+    readonly #gridRestriction: GridRestriction;
 
     // #endregion Properties (1)
 
@@ -12,7 +12,7 @@ export class GridRestrictionApi extends AbstractRestrictionApi {
 
     constructor(restriction: GridRestriction) {
         super(restriction);
-        this._gridRestriction = restriction;
+        this.#gridRestriction = restriction;
     }
 
     // #endregion Constructors (1)
@@ -20,11 +20,11 @@ export class GridRestrictionApi extends AbstractRestrictionApi {
     // #region Public Getters And Setters (2)
 
     public get gridUnit(): number {
-        return this._gridRestriction.gridUnit;
+        return this.#gridRestriction.gridUnit;
     }
 
     public set gridUnit(value: number) {
-        this._gridRestriction.gridUnit = value;
+        this.#gridRestriction.gridUnit = value;
     }
 
     // #endregion Public Getters And Setters (2)

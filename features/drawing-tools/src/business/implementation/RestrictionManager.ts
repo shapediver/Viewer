@@ -13,7 +13,7 @@ export class RestrictionManager implements IManager {
     readonly #restrictions: { [token: string]: IRestriction } = {};
     readonly #uuidGenerator = UuidGenerator.instance;
 
-    private _showRestrictionVisualization: boolean = false;
+    #showRestrictionVisualization: boolean = false;
 
     // #endregion Properties (3)
 
@@ -36,11 +36,11 @@ export class RestrictionManager implements IManager {
     }
 
     public get showRestrictionVisualization(): boolean {
-        return this._showRestrictionVisualization;
+        return this.#showRestrictionVisualization;
     }
 
     public set showRestrictionVisualization(value: boolean) {
-        this._showRestrictionVisualization = value;
+        this.#showRestrictionVisualization = value;
         for (const restriction of Object.values(this.#restrictions)) {
             restriction.showVisualization = value;
             for (const snapRestriction of Object.values(restriction.snapRestrictions)) {

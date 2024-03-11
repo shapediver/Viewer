@@ -6,57 +6,57 @@ import { sceneTree, ThreejsData, TreeNode } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 export class TextVisualizationManager implements IManager {
-    // #region Properties (9)
+    // #region Properties (8)
 
     readonly #drawingToolsManager: DrawingToolsManager;
-    private readonly _labelRenderer: CSS2DRenderer;
-    private readonly _visualizationNode: TreeNode = new TreeNode();
+    readonly #labelRenderer: CSS2DRenderer;
+    readonly #visualizationNode: TreeNode = new TreeNode();
 
-    private _distanceObject3D: THREE.Object3D;
-    private _object3D: THREE.Object3D;
-    private _positionObject3D: THREE.Object3D;
-    private _showDistanceLabels: boolean = true;
-    private _showPointLabels: boolean = true;
+    #distanceObject3D: THREE.Object3D;
+    #object3D: THREE.Object3D;
+    #positionObject3D: THREE.Object3D;
+    #showDistanceLabels: boolean = true;
+    #showPointLabels: boolean = true;
 
-    // #endregion Properties (9)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager) {
-        this._labelRenderer = new CSS2DRenderer();
-        this._labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        this._labelRenderer.domElement.style.position = 'absolute';
-        this._labelRenderer.domElement.style.top = '0px';
-        this._labelRenderer.domElement.style.pointerEvents = 'none';
-        this._labelRenderer.domElement.style.userSelect = 'none';
-        this._labelRenderer.domElement.style.cursor = 'default';
-        document.body.appendChild(this._labelRenderer.domElement);
+        this.#labelRenderer = new CSS2DRenderer();
+        this.#labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        this.#labelRenderer.domElement.style.position = 'absolute';
+        this.#labelRenderer.domElement.style.top = '0px';
+        this.#labelRenderer.domElement.style.pointerEvents = 'none';
+        this.#labelRenderer.domElement.style.userSelect = 'none';
+        this.#labelRenderer.domElement.style.cursor = 'default';
+        document.body.appendChild(this.#labelRenderer.domElement);
 
         this.#drawingToolsManager = drawingToolsManager;
         this.#drawingToolsManager.viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
-            this._labelRenderer.render(scene, camera);
+            this.#labelRenderer.render(scene, camera);
         };
 
-        this._object3D = new THREE.Object3D();
-        this._positionObject3D = new THREE.Object3D();
-        this._positionObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
-        this._distanceObject3D = new THREE.Object3D();
-        this._distanceObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
+        this.#object3D = new THREE.Object3D();
+        this.#positionObject3D = new THREE.Object3D();
+        this.#positionObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
+        this.#distanceObject3D = new THREE.Object3D();
+        this.#distanceObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
 
-        this._object3D.add(this._positionObject3D);
-        this._object3D.add(this._distanceObject3D);
+        this.#object3D.add(this.#positionObject3D);
+        this.#object3D.add(this.#distanceObject3D);
 
-        this._showPointLabels = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
-        this._showDistanceLabels = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
+        this.#showPointLabels = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
+        this.#showDistanceLabels = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
 
         const node = new TreeNode();
 
-        const data = new ThreejsData(this._object3D);
+        const data = new ThreejsData(this.#object3D);
         node.addData(data);
 
-        this._visualizationNode.addChild(node);
-        this._visualizationNode.updateVersion();
-        sceneTree.root.addChild(this._visualizationNode);
+        this.#visualizationNode.addChild(node);
+        this.#visualizationNode.updateVersion();
+        sceneTree.root.addChild(this.#visualizationNode);
         sceneTree.root.updateVersion();
 
         this.createPointLabels();
@@ -68,28 +68,28 @@ export class TextVisualizationManager implements IManager {
     // #region Public Getters And Setters (4)
 
     public get showDistanceLabels(): boolean {
-        return this._distanceObject3D.visible;
+        return this.#distanceObject3D.visible;
     }
 
     public set showDistanceLabels(value: boolean) {
-        this._showDistanceLabels = value;
-        if (this._showDistanceLabels) {
+        this.#showDistanceLabels = value;
+        if (this.#showDistanceLabels) {
             this.createDistanceLabels();
         } else {
-            this._distanceObject3D.remove(...this._distanceObject3D.children);
+            this.#distanceObject3D.remove(...this.#distanceObject3D.children);
         }
     }
 
     public get showPointLabels(): boolean {
-        return this._showPointLabels;
+        return this.#showPointLabels;
     }
 
     public set showPointLabels(value: boolean) {
-        this._showPointLabels = value;
-        if (this._showPointLabels) {
+        this.#showPointLabels = value;
+        if (this.#showPointLabels) {
             this.createPointLabels();
         } else {
-            this._positionObject3D.remove(...this._positionObject3D.children);
+            this.#positionObject3D.remove(...this.#positionObject3D.children);
         }
     }
 
@@ -98,13 +98,13 @@ export class TextVisualizationManager implements IManager {
     // #region Public Methods (4)
 
     public close(): void {
-        this._positionObject3D.remove(...this._positionObject3D.children);
-        this._distanceObject3D.remove(...this._distanceObject3D.children);
+        this.#positionObject3D.remove(...this.#positionObject3D.children);
+        this.#distanceObject3D.remove(...this.#distanceObject3D.children);
     }
 
     public createDistanceLabels(): void {
-        if (!this._showDistanceLabels) return;
-        this._distanceObject3D.remove(...this._distanceObject3D.children);
+        if (!this.#showDistanceLabels) return;
+        this.#distanceObject3D.remove(...this.#distanceObject3D.children);
 
         const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
         const indicesArrayLines = this.#drawingToolsManager.geometryManager.indicesArrayLines;
@@ -135,13 +135,13 @@ export class TextVisualizationManager implements IManager {
 
             const label = new CSS2DObject(text);
             label.position.set(midPoint[0], midPoint[1], midPoint[2]);
-            this._distanceObject3D.add(label);
+            this.#distanceObject3D.add(label);
         }
     }
 
     public createPointLabels(): void {
-        if (!this._showPointLabels) return;
-        this._positionObject3D.remove(...this._positionObject3D.children);
+        if (!this.#showPointLabels) return;
+        this.#positionObject3D.remove(...this.#positionObject3D.children);
 
         const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
         for (let i = 0; i < positionArray.length; i += 3) {
@@ -153,7 +153,7 @@ export class TextVisualizationManager implements IManager {
 
             const label = new CSS2DObject(text);
             label.position.set(positionArray[i], positionArray[i + 1], positionArray[i + 2]);
-            this._positionObject3D.add(label);
+            this.#positionObject3D.add(label);
         }
     }
 

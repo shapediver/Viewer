@@ -6,7 +6,6 @@ import { IGeometryData, IMaterialBasicLineDataProperties, IMaterialMultiPointDat
 import { IManager } from '../interfaces/IManager';
 import { InteractionManager } from './InteractionManager';
 import { IViewportApi } from '@shapediver/viewer.features.interaction';
-import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
 import { RestrictionManager } from './RestrictionManager';
 import { TextVisualizationManager } from './TextVisualizationManager';
@@ -92,7 +91,6 @@ export class DrawingToolsManager implements IManager {
         this.#viewport = viewport;
         this.#callbacks = callbacks;
         [this.#customizationProperties, this.#setupProperties] = this.cleanProperties(customizationProperties, setupProperties);
-        console.log(this.#customizationProperties)
 
         this.#geometryMathManager = new GeometryMathManager(this);
         this.#restrictionManager = new RestrictionManager(this);

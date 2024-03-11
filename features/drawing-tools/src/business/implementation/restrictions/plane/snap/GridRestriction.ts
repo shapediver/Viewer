@@ -24,14 +24,14 @@ export type GridRestrictionProperties = {
 export class GridRestriction extends AbstractRestriction implements ISnapRestriction {
     // #region Properties (6)
 
-    private _active: boolean = false;
-    private _gridHelper?: THREE.GridHelper;
-    private _gridSize: number = 100;
-    private _gridUnit: number;
-    private _normal: vec3;
-    private _offset: vec3 = vec3.create();
-    private _origin: vec3;
-    private _priority: number = 0;
+    #active: boolean = false;
+    #gridHelper?: THREE.GridHelper;
+    #gridSize: number = 100;
+    #gridUnit: number;
+    #normal: vec3;
+    #offset: vec3 = vec3.create();
+    #origin: vec3;
+    #priority: number = 0;
 
     // #endregion Properties (6)
 
@@ -39,10 +39,10 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: GridRestrictionProperties, planeProperties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        this._normal = planeProperties.normal;
-        this._gridUnit = properties.gridUnit;
-        this._origin = planeProperties.origin || drawingToolsManager.customizationProperties.geometry.origin;
-        this._priority = properties.priority;
+        this.#normal = planeProperties.normal;
+        this.#gridUnit = properties.gridUnit;
+        this.#origin = planeProperties.origin || drawingToolsManager.customizationProperties.geometry.origin;
+        this.#priority = properties.priority;
 
         // calculate offset of grid size to origin
         this.calculateOffset();
@@ -54,30 +54,30 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     // #region Public Getters And Setters (8)
 
     public get active(): boolean {
-        return this._active;
+        return this.#active;
     }
 
     public set active(value: boolean) {
-        this._active = value;
-        if(this._gridHelper) this._gridHelper.visible = value;
+        this.#active = value;
+        if(this.#gridHelper) this.#gridHelper.visible = value;
     }
 
     public get gridUnit(): number {
-        return this._gridUnit;
+        return this.#gridUnit;
     }
 
     public set gridUnit(value: number) {
-        this._gridUnit = value;
+        this.#gridUnit = value;
         this.calculateOffset();
         this.createGridVisualization();
     }
 
     public get priority(): number {
-        return this._priority;
+        return this.#priority;
     }
 
     public set priority(value: number) {
-        this._priority = value;
+        this.#priority = value;
     }
 
     // #endregion Public Getters And Setters (8)
@@ -88,9 +88,9 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     public snap(point: vec3): vec3 | undefined {
         if (this.enabled === false) return;
 
-        const x = Math.round(point[0] / this._gridUnit) * this._gridUnit - this._offset[0];
-        const y = Math.round(point[1] / this._gridUnit) * this._gridUnit - this._offset[1];
-        const z = Math.round(point[2] / this._gridUnit) * this._gridUnit - this._offset[2];
+        const x = Math.round(point[0] / this.#gridUnit) * this.#gridUnit - this.#offset[0];
+        const y = Math.round(point[1] / this.#gridUnit) * this.#gridUnit - this.#offset[1];
+        const z = Math.round(point[2] / this.#gridUnit) * this.#gridUnit - this.#offset[2];
         const gridPoint = vec3.fromValues(x, y, z);
 
         // // find the axis that is furthest from the plane in absolute value
@@ -100,20 +100,20 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         return gridPoint;
 
         // // if the difference is smaller than 20% of the grid size, return the grid point
-        // if(vec3.length(absoluteDifference) < this._gridUnit * 0.20) return gridPoint;
+        // if(vec3.length(absoluteDifference) < this.#gridUnit * 0.20) return gridPoint;
 
         // // if all differences are between 40% and 60% of the grid size, return the center point
-        // const xDifferenceBetween40And60 = absoluteDifference[0] > this._gridUnit * 0.4 && absoluteDifference[0] < this._gridUnit * 0.6;
-        // const yDifferenceBetween40And60 = absoluteDifference[1] > this._gridUnit * 0.4 && absoluteDifference[1] < this._gridUnit * 0.6;
-        // const zDifferenceBetween40And60 = absoluteDifference[2] > this._gridUnit * 0.4 && absoluteDifference[2] < this._gridUnit * 0.6;
-        // if ( (xDifferenceBetween40And60 && yDifferenceBetween40And60 && this._axis === 'z')
-        //     || (xDifferenceBetween40And60 && zDifferenceBetween40And60 && this._axis === 'y')
-        //     || (yDifferenceBetween40And60 && zDifferenceBetween40And60 && this._axis === 'x')
+        // const xDifferenceBetween40And60 = absoluteDifference[0] > this.#gridUnit * 0.4 && absoluteDifference[0] < this.#gridUnit * 0.6;
+        // const yDifferenceBetween40And60 = absoluteDifference[1] > this.#gridUnit * 0.4 && absoluteDifference[1] < this.#gridUnit * 0.6;
+        // const zDifferenceBetween40And60 = absoluteDifference[2] > this.#gridUnit * 0.4 && absoluteDifference[2] < this.#gridUnit * 0.6;
+        // if ( (xDifferenceBetween40And60 && yDifferenceBetween40And60 && this.#axis === 'z')
+        //     || (xDifferenceBetween40And60 && zDifferenceBetween40And60 && this.#axis === 'y')
+        //     || (yDifferenceBetween40And60 && zDifferenceBetween40And60 && this.#axis === 'x')
         // )
         //     return vec3.fromValues(
-        //         gridPoint[0] + Math.sign(difference[0]) * this._gridUnit * 0.5,
-        //         gridPoint[1] + Math.sign(difference[1]) * this._gridUnit * 0.5,
-        //         gridPoint[2] + Math.sign(difference[2]) * this._gridUnit * 0.5
+        //         gridPoint[0] + Math.sign(difference[0]) * this.#gridUnit * 0.5,
+        //         gridPoint[1] + Math.sign(difference[1]) * this.#gridUnit * 0.5,
+        //         gridPoint[2] + Math.sign(difference[2]) * this.#gridUnit * 0.5
         //     );
 
         // // otherwise return dismiss the largest difference, and return the point on the line
@@ -121,7 +121,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // if(absoluteDifference[0] > absoluteDifference[1] && absoluteDifference[0] > absoluteDifference[2]) {
         //     // if the difference is between 40% and 60% of the grid size, return the center point on line
         //     if(xDifferenceBetween40And60)
-        //         return vec3.fromValues(gridPoint[0] + Math.sign(difference[0]) * this._gridUnit * 0.5, gridPoint[1], gridPoint[2]);
+        //         return vec3.fromValues(gridPoint[0] + Math.sign(difference[0]) * this.#gridUnit * 0.5, gridPoint[1], gridPoint[2]);
 
         //     return vec3.fromValues(point[0], gridPoint[1], gridPoint[2]);
         // }
@@ -129,7 +129,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // if(absoluteDifference[1] > absoluteDifference[0] && absoluteDifference[1] > absoluteDifference[2]) {
         //     // if the difference is between 40% and 60% of the grid size, return the center point on line
         //     if(yDifferenceBetween40And60)
-        //         return vec3.fromValues(gridPoint[0], gridPoint[1] + Math.sign(difference[1]) * this._gridUnit * 0.5, gridPoint[2]);
+        //         return vec3.fromValues(gridPoint[0], gridPoint[1] + Math.sign(difference[1]) * this.#gridUnit * 0.5, gridPoint[2]);
 
         //     return vec3.fromValues(gridPoint[0], point[1], gridPoint[2]);
         // }
@@ -137,7 +137,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // if(absoluteDifference[2] > absoluteDifference[0] && absoluteDifference[2] > absoluteDifference[1]) {
         //     // if the difference is between 40% and 60% of the grid size, return the center point on line
         //     if(zDifferenceBetween40And60)
-        //         return vec3.fromValues(gridPoint[0], gridPoint[1], gridPoint[2] + Math.sign(difference[2]) * this._gridUnit * 0.5);
+        //         return vec3.fromValues(gridPoint[0], gridPoint[1], gridPoint[2] + Math.sign(difference[2]) * this.#gridUnit * 0.5);
 
         //     return vec3.fromValues(gridPoint[0], gridPoint[1], point[2]);
         // }
@@ -156,31 +156,31 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     // #region Private Methods (2)
 
     private calculateOffset(): void {
-        this._offset[0] = this._gridUnit * Math.round(this._origin[0] / this._gridUnit) - this._origin[0];
-        this._offset[1] = this._gridUnit * Math.round(this._origin[1] / this._gridUnit) - this._origin[1];
-        this._offset[2] = this._gridUnit * Math.round(this._origin[2] / this._gridUnit) - this._origin[2];
+        this.#offset[0] = this.#gridUnit * Math.round(this.#origin[0] / this.#gridUnit) - this.#origin[0];
+        this.#offset[1] = this.#gridUnit * Math.round(this.#origin[1] / this.#gridUnit) - this.#origin[1];
+        this.#offset[2] = this.#gridUnit * Math.round(this.#origin[2] / this.#gridUnit) - this.#origin[2];
     }
 
     private createGridVisualization(): void {
-        if (this._gridHelper) {
-            this._object3D.remove(this._gridHelper);
-            this._gridHelper.dispose();
+        if (this.#gridHelper) {
+            this.object3D.remove(this.#gridHelper);
+            this.#gridHelper.dispose();
         }
 
-        this._gridHelper = new THREE.GridHelper(this._gridSize, this._gridSize / this._gridUnit, 0x666666, 0x222222);
-        this._gridHelper.position.copy(new THREE.Vector3(this._origin[0], this._origin[1], this._origin[2]));
-        this._gridHelper.visible = false;
+        this.#gridHelper = new THREE.GridHelper(this.#gridSize, this.#gridSize / this.#gridUnit, 0x666666, 0x222222);
+        this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
+        this.#gridHelper.visible = false;
 
-        this._gridHelper.renderOrder = -1;
-        (this._gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
-        (this._gridHelper.material as THREE.LineBasicMaterial).transparent = true;
+        this.#gridHelper.renderOrder = -1;
+        (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
+        (this.#gridHelper.material as THREE.LineBasicMaterial).transparent = true;
 
         // rotate grid helper to match axis
         const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this._normal[0], this._normal[1], this._normal[2]));
-        this._gridHelper.quaternion.copy(quaternion);
+        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this.#normal[0], this.#normal[1], this.#normal[2]));
+        this.#gridHelper.quaternion.copy(quaternion);
 
-        this._object3D.add(this._gridHelper);
+        this.object3D.add(this.#gridHelper);
     }
 
     // #endregion Private Methods (2)
