@@ -475,9 +475,7 @@ export class InteractionManager implements IManager {
                             this.#drawingToolsManager.geometryManager.positionArray.at(2)!
                         );
 
-                        const screenSpaceDistanceSquared = this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(firstPoint, restrictedPoint);
-
-                        if (screenSpaceDistanceSquared * 4 < ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) {
+                        if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === true) {
                             this.#drawingToolsManager.geometryManager.closeLoop = true;
                             this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
                             this.#insertionActiveClosed = true;
@@ -495,12 +493,11 @@ export class InteractionManager implements IManager {
                         this.#drawingToolsManager.geometryManager.positionArray.at(2)!
                     );
 
-                    const screenSpaceDistanceSquared = this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(firstPoint, restrictedPoint);
-                    if (screenSpaceDistanceSquared * 4 > ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) {
+                    if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === true) {
                         this.#drawingToolsManager.geometryManager.closeLoop = false;
-                            this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
-                            this.#insertionActiveClosed = false;
-                            this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
+                        this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
+                        this.#insertionActiveClosed = false;
+                        this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
                     }
                 }
             }

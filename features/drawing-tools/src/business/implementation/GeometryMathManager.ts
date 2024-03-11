@@ -48,18 +48,7 @@ export class GeometryMathManager implements IManager {
             const lineEnd = vec3.fromValues(positionArray.at(secondIndex * 3)!, positionArray.at(secondIndex * 3 + 1)!, positionArray.at(secondIndex * 3 + 2)!);
 
             const {closestPointOnRay, closestPointOnLine} = this.closestPointsRayLine(ray, lineStart, lineEnd);
-            const screenSpaceDistanceSquared = this.screenSpaceDistanceSquared(closestPointOnRay, closestPointOnLine);
-
-            /**
-             * Logic: The actual calculation would be
-             * distance * 2 < defaultPointSize * distanceMultiplicationFactor 
-             * the multiplication by 2 is to account for the fact that the distance is from the center of the point
-             * 
-             * However, we work with the squared distance to avoid the sqrt operation
-             * Therefore we square all values:
-             * distanceSquared * 4 < (defaultPointSize * distanceMultiplicationFactor) ** 2
-             */
-            if (screenSpaceDistanceSquared * 4 > ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) continue;
+            if (this.screenSpaceDistanceCheck(closestPointOnRay, closestPointOnLine, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: [firstIndex, secondIndex], distance: vec3.distance(closestPointOnRay, closestPointOnLine) });
         }
@@ -94,18 +83,7 @@ export class GeometryMathManager implements IManager {
 
             // distance from point to ray
             const closestPoint = this.closestPoint(ray, point);
-            const screenSpaceDistanceSquared = this.screenSpaceDistanceSquared(point, closestPoint);
-
-            /**
-             * Logic: The actual calculation would be
-             * distance * 2 < defaultPointSize * distanceMultiplicationFactor 
-             * the multiplication by 2 is to account for the fact that the distance is from the center of the point
-             * 
-             * However, we work with the squared distance to avoid the sqrt operation
-             * Therefore we square all values:
-             * distanceSquared * 4 < (defaultPointSize * distanceMultiplicationFactor) ** 2
-             */
-            if (screenSpaceDistanceSquared * 4 > ((this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2)) continue;
+            if (this.screenSpaceDistanceCheck(point, closestPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: i / 3, distance: vec3.distance(point, closestPoint) });
         }
@@ -117,7 +95,7 @@ export class GeometryMathManager implements IManager {
         return distances.sort((a, b) => a.distance - b.distance);
     }
 
-    public screenSpaceDistanceSquared(point1: vec3, point2: vec3) {
+    public screenSpaceDistanceCheck(point1: vec3, point2: vec3, threshold: number) {
         const camera = this.#drawingToolsManager.viewport.camera!;
 
         // Project points to NDC
@@ -132,8 +110,22 @@ export class GeometryMathManager implements IManager {
 
         const x2 = ((screenPos2[0] * (width / 2)) + (width / 2));
         const y2 = - ((screenPos2[1] * (height / 2)) + (height / 2));
-    
-        return (x2 - x1) ** 2 + (y2 - y1) ** 2;
+
+        const distanceSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+
+        /**
+         * Logic: The actual calculation would be
+         * distance * 2 < threshold
+         * the multiplication by 2 is to account for the fact that the distance is from the center of the point
+         * 
+         * However, we work with the squared distance to avoid the sqrt operation
+         * Therefore we square all values:
+         * distanceSquared * 4 < threshold ** 2
+         */
+        return {
+            distanceSquared: distanceSquared,
+            check: distanceSquared * 4 < threshold ** 2
+        };
     }
 
     public close(): void { }

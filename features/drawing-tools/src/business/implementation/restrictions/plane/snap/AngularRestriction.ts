@@ -137,25 +137,14 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, closestAngle: closestAngleLast } = this.getAngularDifference(point, lastPoint);
 
         const resultPointFirstAngle = vec3.rotateZ(vec3.create(), point, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
-        const screenSpaceDistanceSquaredFirstAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(resultPointFirstAngle, point);
+        const screenSpaceDistanceCheckFirstAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointFirstAngle, point, this._drawingToolsManager.setupProperties.visualization.points.size_0! * this._drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
         const resultPointLastAngle = vec3.rotateZ(vec3.create(), point, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
-        const screenSpaceDistanceSquaredLastAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceSquared(resultPointLastAngle, point);
+        const screenSpaceDistanceCheckLastAngle = this._drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointLastAngle, point, this._drawingToolsManager.setupProperties.visualization.points.size_0! * this._drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
 
-        const screenSpaceDistanceThreshold = ((this._drawingToolsManager.setupProperties.visualization.points.size_0! * this._drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor) ** 2) / 4;
-        /**
-         * Logic: The actual calculation would be
-         * distance * 2 < defaultPointSize * distanceMultiplicationFactor 
-         * the multiplication by 2 is to account for the fact that the distance is from the center of the point
-         * 
-         * However, we work with the squared distance to avoid the sqrt operation
-         * Therefore we square all values:
-         * distanceSquared * 4 < (defaultPointSize * distanceMultiplicationFactor) ** 2
-         */
-        if (screenSpaceDistanceSquaredFirstAngle > screenSpaceDistanceThreshold &&
-            screenSpaceDistanceSquaredLastAngle  > screenSpaceDistanceThreshold) return;
+        if (screenSpaceDistanceCheckFirstAngle.check === false && screenSpaceDistanceCheckLastAngle.check === false) return;
 
         // snap to clear defined point if both distances are smaller than threshold
-        if (positionArray.length > 6 && screenSpaceDistanceSquaredFirstAngle < screenSpaceDistanceThreshold && screenSpaceDistanceSquaredLastAngle < screenSpaceDistanceThreshold) {
+        if (positionArray.length > 6 && screenSpaceDistanceCheckFirstAngle.check === true && screenSpaceDistanceCheckLastAngle.check === true) {
             const rayDirectionFirst = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointFirstAngle, firstPoint));
             const rayDirectionLast = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), resultPointLastAngle, lastPoint));
 
@@ -186,7 +175,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         }
 
         // check which distance to the projection is smaller
-        if (screenSpaceDistanceSquaredFirstAngle < screenSpaceDistanceSquaredLastAngle) {
+        if (screenSpaceDistanceCheckFirstAngle.distanceSquared < screenSpaceDistanceCheckLastAngle.distanceSquared) {
             [this._polarGridHelperFirst, this._labelFirst] = this.createGrid(this._polarGridHelperFirst, firstPoint, closestAngleFirst);
             this._activePolarGrids.first = true;
             return resultPointFirstAngle;
