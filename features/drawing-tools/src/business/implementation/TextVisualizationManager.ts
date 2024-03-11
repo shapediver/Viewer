@@ -34,6 +34,9 @@ export class TextVisualizationManager implements IManager {
 
         this.#drawingToolsManager = drawingToolsManager;
         this.#drawingToolsManager.viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
+            if(this.#labelRenderer.domElement.clientWidth !== renderer.domElement.clientWidth || this.#labelRenderer.domElement.clientHeight !== renderer.domElement.clientHeight) {
+                this.#labelRenderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
+            }
             this.#labelRenderer.render(scene, camera);
         };
 
