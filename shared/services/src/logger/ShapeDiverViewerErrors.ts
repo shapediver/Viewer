@@ -111,3 +111,11 @@ export class ShapeDiverViewerInteractionError extends ShapeDiverViewerError {
         super(ShapeDiverViewerErrorType.INTERACTION_ERROR, 'An error occurred with interactions.', message);
     }
 }
+
+export class ShapeDiverViewerDrawingToolsError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string
+    ) {
+        super(ShapeDiverViewerErrorType.INTERACTION_ERROR, 'An error occurred with drawing tools.', message);
+    }
+}

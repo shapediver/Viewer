@@ -14,7 +14,7 @@ import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
-import { MaterialEngine, sceneTree, sessions } from '@shapediver/viewer';
+import { MaterialEngine, sceneTree, sessions, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 // #region Classes (1)
@@ -63,7 +63,7 @@ export class GeometryManager implements IManager {
                 }
 
                 if(!parentNode)
-                    throw new Error('The node with the name ' + geometryProperties.parentNode + ' does not exist. Please check the name of the node in the scene tree.');
+                    throw new ShapeDiverViewerDrawingToolsError('The node with the name ' + geometryProperties.parentNode + ' does not exist. Please check the name of the node in the scene tree.');
             }
 
             // get the geometry data from the node
@@ -82,13 +82,13 @@ export class GeometryManager implements IManager {
                 this.#directParentNodeClone = this.#directParentNode.clone();
 
             if (!data)
-                throw new Error('The node with the name ' + geometryProperties.parentNode + ' does not contain any geometry data. Please check the node in the scene tree.');
+                throw new ShapeDiverViewerDrawingToolsError('The node with the name ' + geometryProperties.parentNode + ' does not contain any geometry data. Please check the node in the scene tree.');
 
             const geometryData = data as IGeometryData;
             this.#primitiveClone = geometryData!.primitive.clone();
 
             if (!geometryData.primitive.attributes['POSITION'])
-                throw new Error('The geometry data does not contain a position attribute. Please check the geometry data in the scene tree.');
+                throw new ShapeDiverViewerDrawingToolsError('The geometry data does not contain a position attribute. Please check the geometry data in the scene tree.');
 
             this.#parentNode = parentNode;
             this.#positionArray = geometryData.primitive.attributes['POSITION'].array as Float32Array;
@@ -269,7 +269,7 @@ export class GeometryManager implements IManager {
         const positionArrayLength = this.#positionArray.length / 3;
         const scaledIndex = insertionIndex * 3;
         if (insertionIndex < 0 || insertionIndex > positionArrayLength) {
-            throw new Error('TODO');
+            throw new ShapeDiverViewerDrawingToolsError('The insertion index is out of range. Please provide a valid index.');
         }
 
         const newPositionArray = new Float32Array(this.#positionArray.length + 3);
@@ -422,7 +422,7 @@ export class GeometryManager implements IManager {
     public removePoint(removalIndex: number): void {
         const positionArrayLength = this.#positionArray.length / 3;
         if (removalIndex < 0 || removalIndex >= positionArrayLength) {
-            throw new Error('TODO');
+            throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
         }
 
         /**

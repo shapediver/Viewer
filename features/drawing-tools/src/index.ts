@@ -14,7 +14,7 @@ import {
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
 import { IRestrictionBase, RestrictionBaseProperties } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
-import { IViewportApi } from '@shapediver/viewer';
+import { IViewportApi, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/restrictions/plane/PlaneRestriction';
 
@@ -39,7 +39,7 @@ let drawingTools: IDrawingToolsApi | undefined;
  */
 export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional): IDrawingToolsApi => {
     if (drawingTools && drawingTools.closed === false)
-        throw new Error('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
+        throw new ShapeDiverViewerDrawingToolsError('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
 
     drawingTools = new DrawingToolsApi(viewport, callbacks, customizationProperties, setupProperties);
     return drawingTools;
