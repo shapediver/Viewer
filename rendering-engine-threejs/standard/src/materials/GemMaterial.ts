@@ -241,23 +241,25 @@ export class GemMaterial extends MeshPhysicalMaterial {
 
     // #region Public Methods (1)
 
-    public copy(source: GemMaterial) {
-        super.copy(source);
+    public copy(s: THREE.Material) {
+        super.copy(s);
 
-        this.refractionIndex = (<any>source).refractionIndex;
-        this.impurityMap = (<any>source).impurityMap;
-        this.impurityScale = (<any>source).impurityScale;
-        this.colorTransferBegin.copy((<any>source).colorTransferBegin);
-        this.colorTransferEnd.copy((<any>source).colorTransferEnd);
-        this.center.copy((<any>source).center);
-        this.tracingDepth = (<any>source).tracingDepth;
-        this.radius = (<any>source).radius;
-        this.sphericalNormalMap = (<any>source).sphericalNormalMap;
-        this.gamma = (<any>source).gamma;
-        this.contrast = (<any>source).contrast;
-        this.brightness = (<any>source).brightness;
-        this.dispersion = (<any>source).dispersion;
-        this.tracingOpacity = (<any>source).tracingOpacity;
+        const source = s as GemMaterial;
+
+        this.refractionIndex = source.refractionIndex;
+        this.impurityMap = source.impurityMap;
+        this.impurityScale = source.impurityScale;
+        this.colorTransferBegin.copy(source.colorTransferBegin);
+        this.colorTransferEnd.copy(source.colorTransferEnd);
+        this.center.copy(source.center);
+        this.tracingDepth = source.tracingDepth;
+        this.radius = source.radius;
+        this.sphericalNormalMap = source.sphericalNormalMap;
+        this.gamma = source.gamma;
+        this.contrast = source.contrast;
+        this.brightness = source.brightness;
+        this.dispersion = source.dispersion;
+        this.tracingOpacity = source.tracingOpacity;
         
         return this;
     }

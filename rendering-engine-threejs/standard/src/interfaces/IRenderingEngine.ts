@@ -33,6 +33,8 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     }
     outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
+    preRenderCallback?: ((renderer: THREE.WebGLRenderer) => void);
+    postRenderCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void);
     shadows: boolean;
     softShadows: boolean;
     textureEncoding: TEXTURE_ENCODING; 

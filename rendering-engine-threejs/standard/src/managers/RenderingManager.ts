@@ -318,6 +318,7 @@ export class RenderingManager implements IManager {
 
     public resize(width: number, height: number) {
         this._width = width, this._height = height;
+        this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
     }
 
     /**
@@ -356,6 +357,9 @@ export class RenderingManager implements IManager {
             this.render();
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id });
         }
+
+        if(this._renderingEngine.preRenderingCallback)
+            this._renderingEngine.preRenderingCallback(this._renderingEngine.renderer);
 
         if (runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
@@ -544,6 +548,9 @@ export class RenderingManager implements IManager {
                 }
             });
         }
+
+        if(this._renderingEngine.postRenderingCallback)
+            this._renderingEngine.postRenderingCallback(this._renderingEngine.renderer, this._renderingEngine.scene, this._renderingEngine.camera);
 
         this._stats.end();
     }

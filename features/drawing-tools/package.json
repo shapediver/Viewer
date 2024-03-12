@@ -1,0 +1,53 @@
+{
+  "name": "@shapediver/viewer.features.drawing-tools",
+  "version": "2.12.7",
+  "description": "",
+  "keywords": [],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
+    "build-current": "npm run build",
+    "doc": "typedoc"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "@shapediver/viewer": "2.12.7",
+    "@shapediver/viewer.features.interaction": "2.12.7",
+    "@shapediver/viewer.shared.math": "2.12.7",
+    "@shapediver/viewer.shared.node-tree": "2.12.7",
+    "@shapediver/viewer.shared.services": "2.12.7",
+    "@shapediver/viewer.shared.types": "2.12.7",
+    "@shapediver/viewer.rendering-engine-threejs.standard": "2.12.7"
+  },
+  "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
+}

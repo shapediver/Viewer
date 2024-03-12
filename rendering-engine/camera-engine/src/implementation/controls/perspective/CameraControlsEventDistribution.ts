@@ -104,6 +104,8 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if (!this._activeEvents) return;
     this.onKey(event);
   }
+  
+  public onKeyUp(event: KeyboardEvent): void { }
 
   public onMouseDown(event: MouseEvent): void {
     if (this._controls.camera.active === false) return;

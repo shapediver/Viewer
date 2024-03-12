@@ -23,6 +23,7 @@ export class DomEventEngine {
         touchend: true,
         touchcancel: true,
         keydown: true,
+        keyup: true,
         contextmenu: true,
     };
     private _canvas: HTMLCanvasElement;
@@ -38,6 +39,7 @@ export class DomEventEngine {
     private _onTouchUp: (event: TouchEvent) => void;
     private _onTouchCancel: (event: TouchEvent) => void;
     private _onKeyDown: (event: KeyboardEvent) => void;
+    private _onKeyUp: (event: KeyboardEvent) => void;
     private _onContextMenu: (event: MouseEvent) => void;
 
     // #endregion Properties (5)
@@ -57,6 +59,7 @@ export class DomEventEngine {
         this._onTouchUp = this.onTouchUp.bind(this)
         this._onTouchCancel = this.onTouchCancel.bind(this)
         this._onKeyDown = this.onKeyDown.bind(this)
+        this._onKeyUp = this.onKeyUp.bind(this)
         this._onContextMenu = this.onContextMenu.bind(this)
 
         this.addEventListeners();
@@ -93,6 +96,7 @@ export class DomEventEngine {
         touchend?: boolean,
         touchcancel?: boolean,
         keydown?: boolean,
+        keyup?: boolean,
         contextmenu?: boolean,
     }): void {
         if (allowedListeners.mousewheel !== undefined && this._allowListeners.mousewheel !== allowedListeners.mousewheel) {
@@ -189,6 +193,15 @@ export class DomEventEngine {
             this._allowListeners.keydown = allowedListeners.keydown;
         }
 
+        if (allowedListeners.keyup !== undefined && this._allowListeners.keyup !== allowedListeners.keyup) {
+            if (allowedListeners.keyup) {
+                window.addEventListener("keyup", this._onKeyUp);
+            } else {
+                window.removeEventListener("keyup", this._onKeyUp);
+            }
+            this._allowListeners.keyup = allowedListeners.keyup;
+        }
+
         if (allowedListeners.contextmenu !== undefined && this._allowListeners.contextmenu !== allowedListeners.contextmenu) {
             if (allowedListeners.contextmenu) {
                 this._canvas.addEventListener("contextmenu", this._onContextMenu);
@@ -234,6 +247,7 @@ export class DomEventEngine {
         window.addEventListener("touchend", this._onTouchUp, { passive: false });
         window.addEventListener("touchcancel", this._onTouchCancel, { passive: false });
 
+        window.addEventListener("keyup", this._onKeyUp);
         window.addEventListener("keydown", this._onKeyDown);
         window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
 
@@ -249,6 +263,11 @@ export class DomEventEngine {
     private onKeyDown(event: KeyboardEvent): void {
         if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y))
             Object.values(this._domEventListeners).forEach(e => e.onKeyDown(event));
+    }
+
+    private onKeyUp(event: KeyboardEvent): void {
+        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y))
+            Object.values(this._domEventListeners).forEach(e => e.onKeyUp(event));
     }
 
     private onKeyDownMousePositionHelper(event: MouseEvent): void {
@@ -338,6 +357,7 @@ export class DomEventEngine {
         window.removeEventListener("touchcancel", this._onTouchCancel);
 
         window.removeEventListener("keydown", this._onKeyDown);
+        window.removeEventListener("keyup", this._onKeyUp);
         window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);
         this._canvas.removeEventListener("contextmenu", this._onContextMenu);
     }

@@ -198,6 +198,8 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
             bumpMap: this.bumpMap,
             bumpScale: this.bumpScale,
             color: this.color,
+            depthTest: this.depthTest,
+            depthWrite: this.depthWrite,
             emissiveMap: this.emissiveMap,
             emissiveness: this.emissiveness,
             shading: this.shading,
@@ -207,6 +209,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
             normalScale: this.normalScale,
             opacity: this.opacity,
             side: this.side,
+            transparent: this.transparent,
             refractionIndex: this.refractionIndex,
             impurityMap: this.impurityMap,
             impurityScale: this.impurityScale,
@@ -234,6 +237,8 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.bumpMap = source.bumpMap;
         this.bumpScale = source.bumpScale;
         this.color = source.color;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
         this.emissiveMap = source.emissiveMap;
         this.emissiveness = source.emissiveness;
         this.materialOutput = source.materialOutput;
@@ -243,21 +248,22 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
+        this.transparent = source.transparent;
         
-        this.refractionIndex = this.refractionIndex;
-        this.impurityMap = this.impurityMap;
-        this.impurityScale = this.impurityScale;
-        this.colorTransferBegin = this.colorTransferBegin;
-        this.colorTransferEnd = this.colorTransferEnd;
-        this.center = this.center;
-        this.tracingDepth = this.tracingDepth;
-        this.radius = this.radius;
-        this.sphericalNormalMap = this.sphericalNormalMap;
-        this.gamma = this.gamma;
-        this.contrast = this.contrast;
-        this.brightness = this.brightness;
-        this.dispersion = this.dispersion;
-        this.tracingOpacity = this.tracingOpacity;
+        this.refractionIndex = source.refractionIndex;
+        this.impurityMap = source.impurityMap;
+        this.impurityScale = source.impurityScale;
+        this.colorTransferBegin = source.colorTransferBegin;
+        this.colorTransferEnd = source.colorTransferEnd;
+        this.center = source.center;
+        this.tracingDepth = source.tracingDepth;
+        this.radius = source.radius;
+        this.sphericalNormalMap = source.sphericalNormalMap;
+        this.gamma = source.gamma;
+        this.contrast = source.contrast;
+        this.brightness = source.brightness;
+        this.dispersion = source.dispersion;
+        this.tracingOpacity = source.tracingOpacity;
         this.envMap = source.envMap;
     }
 
@@ -270,6 +276,8 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.bumpMap = undefined;
         this.bumpScale = 1.0;
         this.color = '#ffffff';
+        this.depthTest = undefined;
+        this.depthWrite = undefined;
         this.emissiveMap = undefined;
         this.emissiveness = '#000000';
         this.materialOutput = false;
@@ -279,6 +287,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.opacity = 1.0;
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
+        this.transparent = undefined;
 
         this.refractionIndex = 2.4;
         this.impurityMap = undefined;

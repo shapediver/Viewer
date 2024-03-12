@@ -15,6 +15,8 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   #bumpMap?: IMapData;
   #bumpScale: number = 1.0;
   #color: Color = '#ffffff';
+  #depthTest?: boolean;
+  #depthWrite?: boolean;
   #emissiveMap?: IMapData;
   #emissiveness: Color = '#000000';
   #materialOutput: boolean = false;
@@ -26,6 +28,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   #shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
   #side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
   #threeJsObject: { [key: string]: THREE.Material } = {};
+  #transparent?: boolean;
 
   // #endregion Properties (17)
 
@@ -52,6 +55,8 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
     if (properties.bumpMap !== undefined) this.bumpMap = properties.bumpMap;
     if (properties.bumpScale !== undefined) this.bumpScale = properties.bumpScale;
     if (properties.color !== undefined) this.color = properties.color;
+    if (properties.depthTest !== undefined) this.depthTest = properties.depthTest;
+    if (properties.depthWrite !== undefined) this.depthWrite = properties.depthWrite;
     if (properties.emissiveMap !== undefined) this.emissiveMap = properties.emissiveMap;
     if (properties.emissiveness !== undefined) this.emissiveness = properties.emissiveness;
     if (properties.shading !== undefined) this.shading = properties.shading;
@@ -61,6 +66,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
     if (properties.normalScale !== undefined) this.normalScale = properties.normalScale;
     if (properties.opacity !== undefined) this.opacity = properties.opacity;
     if (properties.side !== undefined) this.side = properties.side;
+    if (properties.transparent !== undefined) this.transparent = properties.transparent;
   }
 
   // #endregion Constructors (1)
@@ -129,6 +135,22 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
 
   public set color(value: Color) {
     this.#color = value;
+  }
+
+  public get depthTest(): boolean | undefined {
+    return this.#depthTest;
+  }
+
+  public set depthTest(value: boolean | undefined) {
+    this.#depthTest = value;
+  }
+
+  public get depthWrite(): boolean | undefined {
+    return this.#depthWrite;
+  }
+
+  public set depthWrite(value: boolean | undefined) {
+    this.#depthWrite = value;
   }
 
   public get emissiveMap(): IMapData | undefined {
@@ -209,6 +231,14 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
 
   public set side(value: MATERIAL_SIDE) {
     this.#side = value;
+  }
+
+  public get transparent(): boolean | undefined {
+    return this.#transparent;
+  }
+
+  public set transparent(value: boolean | undefined) {
+    this.#transparent = value;
   }
   
   public get threeJsObject(): { [key: string]: THREE.Material } {

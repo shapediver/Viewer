@@ -21,6 +21,8 @@ export enum TEXTURE_FILTERING {
 export interface IMapData extends ITreeNodeData {
     // #region Properties (11)
 
+    asData?: boolean;
+    data?: number[];
     blob?: Blob;
     center: vec2;
     color?: Color;
