@@ -926,6 +926,7 @@ export class ViewportApi implements IViewportApi {
         touchend?: boolean,
         touchcancel?: boolean,
         keydown?: boolean,
+        keyup?: boolean,
         contextmenu?: boolean,
     }) {
         this.#renderingEngine.domEventEngine.allowEventListeners(allowedListeners);

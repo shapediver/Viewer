@@ -635,6 +635,7 @@ export interface IViewportApi {
     touchend?: boolean,
     touchcancel?: boolean,
     keydown?: boolean,
+    keyup?: boolean,
     contextmenu?: boolean,
   }): void;
 
