@@ -18,9 +18,6 @@ import { ILoader } from '../interfaces/ILoader';
 import { GemMaterial } from '../materials/GemMaterial';
 import { vec3 } from 'gl-matrix';
 import { SDData } from '../objects/SDData';
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry"
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial"
-import { Line2 } from "three/examples/jsm/lines/Line2"
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -441,39 +438,15 @@ export class GeometryLoader implements ILoader {
         return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].texture;
     }
 
-    public recomputeLineDistances() {
-        for (const key in this._geometryCache) {
-            const obj = this._geometryCache[key].obj;
-            obj.traverse(o => {
-                if (o instanceof Line2)
-                    o.computeLineDistances();
-            });
-        }
-    }
-
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton) {
         if (geometry.mode === PRIMITIVE_MODE.POINTS) {
             const points = new THREE.Points(threeGeometry, material);
             geometry.threeJsObject[this._renderingEngine.id] = points;
             obj.add(points);
         } else if (geometry.mode === PRIMITIVE_MODE.LINES || geometry.mode === PRIMITIVE_MODE.LINE_LOOP || geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            if (material instanceof THREE.LineBasicMaterial) {
-                const lineSegments = geometry.mode === PRIMITIVE_MODE.LINES ? new THREE.LineSegments(threeGeometry, material) : geometry.mode === PRIMITIVE_MODE.LINE_LOOP ? new THREE.LineLoop(threeGeometry, material) : new THREE.Line(threeGeometry, material);
-                geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
-                obj.add(lineSegments);
-            } else {
-                const nonIndexThreeGeometry = threeGeometry.toNonIndexed();
-                const positionAttribute = nonIndexThreeGeometry.getAttribute('position');
-
-                const line2Geometry = new LineGeometry();
-                line2Geometry.setPositions(positionAttribute.array as Float32Array);
-
-                const line = new Line2( line2Geometry, material as LineMaterial);
-                line.computeLineDistances();
-
-                geometry.threeJsObject[this._renderingEngine.id] = line;
-                obj.add(line);
-            }
+            const lineSegments = geometry.mode === PRIMITIVE_MODE.LINES ? new THREE.LineSegments(threeGeometry, material) : geometry.mode === PRIMITIVE_MODE.LINE_LOOP ? new THREE.LineLoop(threeGeometry, material) : new THREE.Line(threeGeometry, material);
+            geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
+            obj.add(lineSegments);
         } else if (geometry.mode === PRIMITIVE_MODE.TRIANGLES || geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             const bufferGeometry = threeGeometry;
             if (geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
@@ -498,7 +471,7 @@ export class GeometryLoader implements ILoader {
         }
 
         obj.traverse(m => {
-            if (m instanceof THREE.Mesh || m instanceof THREE.Points || m instanceof THREE.LineSegments || m instanceof THREE.LineLoop || m instanceof THREE.Line || m instanceof Line2) {
+            if (m instanceof THREE.Mesh || m instanceof THREE.Points || m instanceof THREE.LineSegments || m instanceof THREE.LineLoop || m instanceof THREE.Line) {
                 (<THREE.Mesh>m).geometry.userData = {
                     SDid: geometry.id,
                     SDversion: geometry.version,

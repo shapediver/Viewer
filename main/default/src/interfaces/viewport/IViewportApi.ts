@@ -1,25 +1,24 @@
-import { quat, vec2, vec3 } from 'gl-matrix'
-import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { IDomEventListener } from '@shapediver/viewer.shared.services'
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
+import { quat, vec2, vec3 } from 'gl-matrix';
+import { TEXTURE_ENCODING, TONE_MAPPING, FLAG_TYPE, SESSION_SETTINGS_MODE, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { IDomEventListener } from '@shapediver/viewer.shared.services';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import {
   IAnimationData,
   ISDTFAttributeVisualizationData,
-  SDTFItemData,
   ISDTFOverview,
   ISDTFItemData,
   IGeometryData,
   Color,
   MaterialStandardData,
-  MaterialLineData,
+  MaterialBasicLineData,
   MaterialPointData,
-} from '@shapediver/viewer.shared.types'
-import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
-import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
-import { ICameraApi } from './camera/ICameraApi'
-import { ILightSceneApi } from './lights/ILightSceneApi'
-import { ISettings } from '@shapediver/viewer.settings'
-import { IPostProcessingApi } from './IPostProcessingApi'
+} from '@shapediver/viewer.shared.types';
+import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi';
+import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi';
+import { ICameraApi } from './camera/ICameraApi';
+import { ILightSceneApi } from './lights/ILightSceneApi';
+import { ISettings } from '@shapediver/viewer.settings';
+import { IPostProcessingApi } from './IPostProcessingApi';
 
 /**
  * The api for viewports.
@@ -64,7 +63,7 @@ export interface IViewportApi {
    * The default line material that is used for line geometry without a specified material.
    * Please use {@link updateDefaultLineMaterial} to update the material.
    */
-  readonly defaultLineMaterial: MaterialLineData;
+  readonly defaultLineMaterial: MaterialBasicLineData;
 
   /**
    * The default material that is used for geometry without a specified material.
@@ -671,7 +670,7 @@ export interface IViewportApi {
    * 
    * @param value The new default line material.
    */
-  updateDefaultLineMaterial(value: MaterialLineData): void;
+  updateDefaultLineMaterial(value: MaterialBasicLineData): void;
 
   /**
    * Update the default materials of the viewport.

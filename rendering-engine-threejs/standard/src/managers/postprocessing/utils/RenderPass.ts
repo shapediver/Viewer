@@ -7,7 +7,6 @@
 
 import { Pass, ClearPass, OverrideMaterialManager } from "postprocessing";
 import { Scene, Camera, Material, WebGLRenderer, WebGLRenderTarget, Object3D, Line, LineLoop, LineSegments, Mesh, MeshPhysicalMaterial, Points } from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2"
 import { GemMaterial } from "../../../materials/GemMaterial";
 
 export class RenderPass extends Pass {
@@ -296,7 +295,7 @@ export class RenderPass extends Pass {
                         object.visible = false;
                     }
                 }
-                if (object instanceof Line || object instanceof LineLoop || object instanceof LineSegments || object instanceof Line2 || object instanceof Points) {
+                if (object instanceof Line || object instanceof LineLoop || object instanceof LineSegments || object instanceof Points) {
                     materialsNotRenderer.push(object);
                     object.visible = false;
                 }

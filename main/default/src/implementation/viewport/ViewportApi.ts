@@ -12,7 +12,7 @@ import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ICameraApi } from '../../interfaces/viewport/camera/ICameraApi';
 import { ILightSceneApi } from '../../interfaces/viewport/lights/ILightSceneApi';
-import { Color, IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview, MaterialLineData, MaterialPointData, MaterialStandardData } from '@shapediver/viewer.shared.types';
+import { Color, IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview, MaterialPointData, MaterialBasicLineData, MaterialStandardData } from '@shapediver/viewer.shared.types';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { sceneTree } from '../../main';
 import { IOrthographicCameraApi } from '../../interfaces/viewport/camera/IOrthographicCameraApi';
@@ -221,7 +221,7 @@ export class ViewportApi implements IViewportApi {
         this.update('clearColor');
     }
 
-    public get defaultLineMaterial(): MaterialLineData {
+    public get defaultLineMaterial(): MaterialBasicLineData {
         return this.#renderingEngine.defaultLineMaterial;
     }
 
@@ -944,7 +944,7 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.update(id || 'ViewportApi');
     }
 
-    public updateDefaultLineMaterial(value: MaterialLineData) {
+    public updateDefaultLineMaterial(value: MaterialBasicLineData) {
         const scope = 'updateDefaultLineMaterial';
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'object');
         this.#renderingEngine.defaultLineMaterial = value;

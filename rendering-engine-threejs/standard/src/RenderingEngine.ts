@@ -58,7 +58,7 @@ import {
   IViewportEvent,
   MaterialStandardData,
   MaterialPointData,
-  MaterialLineData,
+  MaterialBasicLineData,
 } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
@@ -419,11 +419,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this.materialLoader.defaultPointMaterialData = value;
   }
 
-  public get defaultLineMaterial(): MaterialLineData {
+  public get defaultLineMaterial(): MaterialBasicLineData {
     return this.materialLoader.defaultLineMaterialData;
   }
 
-  public set defaultLineMaterial(value: MaterialLineData) {
+  public set defaultLineMaterial(value: MaterialBasicLineData) {
     this.materialLoader.defaultLineMaterialData = value;
   }
 

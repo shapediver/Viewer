@@ -45,8 +45,6 @@ import { Color } from './types';
 import { IOutputEvent } from './interfaces/events/IOutputEvent';
 import { MaterialPointData } from './implementation/material/MaterialPointData';
 import { IMaterialPointData, IMaterialPointDataProperties } from './interfaces/data/material/IMaterialPointData';
-import { MaterialLineData } from './implementation/material/MaterialLineData';
-import { IMaterialLineData, IMaterialLineDataProperties } from './interfaces/data/material/IMaterialLineData';
 import { MaterialMultiPointData } from './implementation/material/MaterialMultiPointData';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties } from './interfaces/data/material/IMaterialMultiPointData';
 import { MaterialBasicLineData } from './implementation/material/MaterialBasicLineData';
@@ -61,7 +59,6 @@ export {
   IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, 
   IMaterialPointData, MaterialPointData, IMaterialPointDataProperties,
   IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties,
-  IMaterialLineData, MaterialLineData, IMaterialLineDataProperties,
   IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties,
   IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 };

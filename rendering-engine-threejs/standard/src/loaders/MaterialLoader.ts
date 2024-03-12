@@ -26,10 +26,9 @@ import {
     MaterialShadowData,
     GeometryData,
     MaterialPointData,
-    MaterialLineData,
+    MaterialBasicLineData,
     MaterialMultiPointData
 } from '@shapediver/viewer.shared.types';
-import { LineMaterial, LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial"
 import { MultiPointsMaterial, MultiPointsMaterialParameters } from '../materials/MultiPointsMaterial';
 
 export enum MATERIAL_TYPE {
@@ -131,9 +130,9 @@ type ThreeJsTextureCacheObject = {
     initialized: boolean
 }
 
-type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | LineMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial;
+type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial;
 type ThreeJsMeshMaterialTypes = THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial;
-type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | LineMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
+type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
 type MaterialDataMeshTypes = MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData;
 
 export class MaterialLoader implements ILoader {
@@ -143,9 +142,9 @@ export class MaterialLoader implements ILoader {
 
     private _blending: number = 0.0;
     private _defaultMaterialData: MaterialStandardData = new MaterialStandardData({ color: '#199b9b' });
-    private _defaultLineMaterialData: MaterialLineData = new MaterialLineData({ color: '#199b9b' });
+    private _defaultLineMaterialData: MaterialBasicLineData = new MaterialBasicLineData({ color: '#199b9b' });
     private _defaultPointMaterialData: MaterialPointData = new MaterialPointData({ color: '#199b9b' });
-    private _defaultLineMaterial?: LineMaterial;
+    private _defaultLineMaterial?: THREE.LineBasicMaterial;
     private _defaultMaterial?: THREE.MeshPhysicalMaterial;
     private _defaultPointMaterial?: THREE.PointsMaterial;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
@@ -188,11 +187,11 @@ export class MaterialLoader implements ILoader {
         this.assignDefaultMaterial();
     }
 
-    public get defaultLineMaterialData(): MaterialLineData {
+    public get defaultLineMaterialData(): MaterialBasicLineData {
         return this._defaultLineMaterialData;
     }
 
-    public set defaultLineMaterialData(value: MaterialLineData) {
+    public set defaultLineMaterialData(value: MaterialBasicLineData) {
         this._defaultLineMaterialData = value;
         this.assignDefaultLineMaterial();
     }
@@ -319,16 +318,11 @@ export class MaterialLoader implements ILoader {
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
         if(!this._defaultLineMaterial) {
-            this._defaultLineMaterial = new LineMaterial(properties as LineMaterialParameters);
+            this._defaultLineMaterial = new THREE.LineBasicMaterial(properties);
         } else {
-            for(const p in properties) {
-                const key = p as keyof LineMaterialParameters;
-                (this._defaultLineMaterial as unknown as LineMaterialParameters)[key] = (properties as LineMaterialParameters)[key];
-            }
+            this._defaultLineMaterial.copy(new THREE.LineBasicMaterial(properties));
         }
         this._defaultLineMaterial.needsUpdate = true;
-        this._defaultLineMaterial.uniformsNeedUpdate = true;
-        this._renderingEngine.geometryLoader.recomputeLineDistances();
     }
 
     public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null, type: ENVIRONMENT_MAP_TYPE) {
@@ -501,14 +495,6 @@ export class MaterialLoader implements ILoader {
         }
     }
 
-    public assignLineSize() {
-        for (const m in this._materialCache) {
-            if(this._materialCache[m].material instanceof LineMaterial) {
-                (<LineMaterial>this._materialCache[m].material).resolution = this._renderingEngine.renderer.getSize(new THREE.Vector2());
-            }
-        }
-    }
-
     public cacheSize() {
         return Object.entries(this._materialCache).length;
     }
@@ -530,11 +516,7 @@ export class MaterialLoader implements ILoader {
                 material = new THREE.PointsMaterial(properties);
             }
         } else if (type === MATERIAL_TYPE.LINE) {
-            if(materialData instanceof MaterialLineData) {
-                material = new LineMaterial(properties as LineMaterialParameters);
-            } else {
-                material = new THREE.LineBasicMaterial(properties as THREE.LineBasicMaterialParameters);
-            }
+            material = new THREE.LineBasicMaterial(properties as THREE.LineBasicMaterialParameters);
         } else {
             if (materialData instanceof MaterialUnlitData) {
                 material = new THREE.MeshBasicMaterial(properties);
@@ -917,22 +899,7 @@ export class MaterialLoader implements ILoader {
             }
             return { properties: generalProperties, mapCount };
         } else if(type === MATERIAL_TYPE.LINE) {
-            if(materialData instanceof MaterialLineData) {
-                const lineMaterialProperties: LineMaterialParameters = generalProperties as LineMaterialParameters;
-
-                lineMaterialProperties.alphaToCoverage = materialData.alphaToCoverage !== undefined ? materialData.alphaToCoverage : false;
-                lineMaterialProperties.dashOffset = materialData.dashOffset !== undefined ? materialData.dashOffset : 0;
-                lineMaterialProperties.dashScale = materialData.dashScale !== undefined ? materialData.dashScale : 1;
-                lineMaterialProperties.dashSize = materialData.dashSize !== undefined ? materialData.dashSize : 1;
-                lineMaterialProperties.dashed = materialData.dashed !== undefined ? materialData.dashed : false;
-                lineMaterialProperties.gapSize = materialData.gapSize !== undefined ? materialData.gapSize : 1;
-                lineMaterialProperties.linewidth = materialData.lineWidth !== undefined ? materialData.lineWidth : 1;
-                lineMaterialProperties.resolution = this._renderingEngine.renderer.getSize(new THREE.Vector2());
-                lineMaterialProperties.worldUnits = materialData.worldUnits !== undefined ? materialData.worldUnits : false;
-                return { properties: generalProperties, mapCount };
-            } else {
-                return { properties: generalProperties, mapCount };
-            }
+            return { properties: generalProperties, mapCount };
         }
 
         /**
@@ -1249,7 +1216,7 @@ export class MaterialLoader implements ILoader {
             if (type === MATERIAL_TYPE.POINT) {
                 this._defaultPointMaterial = <THREE.PointsMaterial>material;
             } else if (type === MATERIAL_TYPE.LINE) {
-                this._defaultLineMaterial = <LineMaterial>material;
+                this._defaultLineMaterial = <THREE.LineBasicMaterial>material;
             } else {
                 this._defaultMaterial = <THREE.MeshPhysicalMaterial>material;
             }
