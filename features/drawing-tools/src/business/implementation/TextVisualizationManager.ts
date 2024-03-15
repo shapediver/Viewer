@@ -24,13 +24,17 @@ export class TextVisualizationManager implements IManager {
 
     constructor(drawingToolsManager: DrawingToolsManager) {
         this.#labelRenderer = new CSS2DRenderer();
-        this.#labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        this.#labelRenderer.domElement.style.position = 'absolute';
-        this.#labelRenderer.domElement.style.top = '0px';
-        this.#labelRenderer.domElement.style.pointerEvents = 'none';
+        this.#labelRenderer.setSize(drawingToolsManager.viewport.canvas.clientWidth, drawingToolsManager.viewport.canvas.clientHeight);
         this.#labelRenderer.domElement.style.userSelect = 'none';
         this.#labelRenderer.domElement.style.cursor = 'default';
-        document.body.appendChild(this.#labelRenderer.domElement);
+        this.#labelRenderer.domElement.style.pointerEvents = 'none';
+        this.#labelRenderer.domElement.style.overflow = 'hidden';
+        this.#labelRenderer.domElement.style.position = 'absolute';
+        this.#labelRenderer.domElement.style.width = '100%';
+        this.#labelRenderer.domElement.style.height = '100%';
+        this.#labelRenderer.domElement.style.left = '0%';
+        this.#labelRenderer.domElement.style.top = '0%';
+        drawingToolsManager.viewport.canvas.parentElement!.appendChild(this.#labelRenderer.domElement);
 
         this.#drawingToolsManager = drawingToolsManager;
         this.#drawingToolsManager.viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
