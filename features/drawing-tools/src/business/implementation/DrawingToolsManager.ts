@@ -9,7 +9,7 @@ import { IViewportApi } from '@shapediver/viewer.features.interaction';
 import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
 import { RestrictionManager } from './RestrictionManager';
 import { TextVisualizationManager } from './TextVisualizationManager';
-import { UuidGenerator } from '@shapediver/viewer.shared.services';
+import { EVENTTYPE_DRAWING_TOOLS, EventEngine, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (5)
@@ -70,6 +70,7 @@ export class DrawingToolsManager implements IManager {
 
     readonly #callbacks: Callbacks;
     readonly #customizationProperties: CustomizationProperties;
+    readonly #eventEngine = EventEngine.instance;
     readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
     readonly #geometryMathManager: GeometryMathManager;
@@ -82,6 +83,7 @@ export class DrawingToolsManager implements IManager {
     #closed: boolean = false;
     #continuousRenderingFlag: string = '';
     #setupProperties: SetupProperties;
+    #uuid = this.#uuidGenerator.create();
 
     // #endregion Properties (13)
 
@@ -154,6 +156,10 @@ export class DrawingToolsManager implements IManager {
         return this.#textVisualizationManager;
     }
 
+    public get uuid(): string {
+        return this.#uuid;
+    }
+
     public get viewport(): IViewportApi {
         return this.#viewport;
     }
@@ -184,6 +190,13 @@ export class DrawingToolsManager implements IManager {
         return this.#restrictionManager.addRestriction(properties);
     }
 
+    public cancel(): void {
+        if (this.#closed) return;
+        this.#callbacks.onCancel();
+        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.CANCEL, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
+        this.close();
+    }
+
     public close(): void {
         if (this.#closed) return;
         this.#viewport.removeFlag(this.#continuousRenderingFlag);
@@ -195,6 +208,13 @@ export class DrawingToolsManager implements IManager {
         this.#textVisualizationManager.close();
 
         this.#closed = true;
+    }
+
+    public finish(): IGeometryData | undefined {
+        if (this.#closed) return;
+        this.#callbacks.onFinish(this.#geometryManager.geometryData);
+        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
+        this.close();
     }
 
     public keyPressed(event: MouseEvent | KeyboardEvent, key: string): boolean {

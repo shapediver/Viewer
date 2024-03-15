@@ -54,9 +54,21 @@ export interface IDrawingToolsApi {
     addPoint(index: number, position?: vec3 | undefined): void;
 
     /**
+     * Cancel the drawing tool.
+     */
+    cancel(): void;
+
+    /**
      * Close the drawing tool.
      */
     close(): void;
+
+    /**
+     * Finish the drawing tool.
+     * 
+     * @returns The geometry data of the drawing tool.
+     */
+    finish(): IGeometryData | undefined;
 
     /**
      * Remove a point from the drawing tool.

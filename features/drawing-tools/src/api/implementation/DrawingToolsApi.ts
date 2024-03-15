@@ -74,8 +74,16 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         this.#drawingToolsManager.addPoint(index, position);
     }
 
+    public cancel(): void {
+        this.#drawingToolsManager.cancel();
+    }
+
     public close(): void {
         this.#drawingToolsManager.close();
+    }
+
+    public finish(): IGeometryData | undefined {
+        return this.#drawingToolsManager.finish();
     }
 
     public removePoint(index: number): void {
