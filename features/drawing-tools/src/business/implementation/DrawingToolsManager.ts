@@ -246,6 +246,9 @@ export class DrawingToolsManager implements IManager {
     // #region Private Methods (1)
 
     private cleanProperties(customizationPropertiesOptional: CustomizationPropertiesOptional, setupPropertiesOptional?: SetupPropertiesOptional): [CustomizationProperties, SetupProperties] {
+        if(typeof customizationPropertiesOptional === 'string') customizationPropertiesOptional = JSON.parse(customizationPropertiesOptional);
+        if(typeof setupPropertiesOptional === 'string') setupPropertiesOptional = JSON.parse(setupPropertiesOptional);
+
         const customizationProperties: CustomizationProperties = {
             geometry: {
                 mode: 'lines',
