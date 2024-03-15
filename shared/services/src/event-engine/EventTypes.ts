@@ -62,13 +62,13 @@ export enum EVENTTYPE_INTERACTION {
 }
 
 export enum EVENTTYPE_DRAWING_TOOLS {
-    CANCEL = 'drawingTools.cancel',
-    FINISH = 'drawingTools.finish',
-    INSERTED = 'drawingTools.inserted',
-    REMOVED = 'drawingTools.removed',
-    DRAG_START = 'drawingTools.drag.start',
-    DRAG_MOVE = 'drawingTools.drag.move',
-    DRAG_END = 'drawingTools.drag.end',
+    CANCEL = 'drawing_tools.cancel',
+    FINISH = 'drawing_tools.finish',
+    INSERTED = 'drawing_tools.inserted',
+    REMOVED = 'drawing_tools.removed',
+    DRAG_START = 'drawing_tools.drag.start',
+    DRAG_MOVE = 'drawing_tools.drag.move',
+    DRAG_END = 'drawing_tools.drag.end',
 }
 
 export const EVENTTYPE = { 
@@ -79,7 +79,8 @@ export const EVENTTYPE = {
     SESSION: EVENTTYPE_SESSION,
     VIEWPORT: EVENTTYPE_VIEWPORT,
     INTERACTION: EVENTTYPE_INTERACTION,
-    TASK: EVENTTYPE_TASK
+    TASK: EVENTTYPE_TASK,
+    DRAWING_TOOLS: EVENTTYPE_DRAWING_TOOLS
 };
 
 export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_OUTPUT | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_DRAWING_TOOLS | typeof EVENTTYPE_TASK;
