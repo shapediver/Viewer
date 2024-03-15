@@ -4,7 +4,7 @@ import { IRay } from '@shapediver/viewer.features.interaction';
 import { vec3 } from 'gl-matrix';
 import { FLAG_TYPE } from '@shapediver/viewer';
 import { MATERIAL_INDEX } from './GeometryManager';
-import { EVENTTYPE_DRAWING_TOOLS, EventEngine, ShapeDiverViewerDrawingToolsError, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { EVENTTYPE_DRAWING_TOOLS, EventEngine, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer.shared.services';
 
 export class InteractionManager implements IManager {
     // #region Properties (19)
@@ -29,7 +29,6 @@ export class InteractionManager implements IManager {
     #moving: boolean = false;
     #selectedPointIndices: number[] = [];
     #selectedPointPositions: vec3[] = [];
-    #uuid = UuidGenerator.instance.create();
 
     // #endregion Properties (19)
 
@@ -175,7 +174,7 @@ export class InteractionManager implements IManager {
                 // add the id if it is not already in the array
                 // remove it if it is in the array
                 this.removePoint(distances[0].index);            
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
             }
 
             if (!this.#cameraFreezeFlag)
@@ -198,13 +197,13 @@ export class InteractionManager implements IManager {
                         throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
                     } else {
                         this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
-                        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
                         this.#drawingToolsManager.close();
                         return;
                     }
                 } else {
                     this.#drawingToolsManager.geometryManager.updateMaterialIndex(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, MATERIAL_INDEX.DEFAULT);
-                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.INSERTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.INSERTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
                 }
             }
 
@@ -235,7 +234,7 @@ export class InteractionManager implements IManager {
                 if (distances[0].index === this.#midPointInsertionIndex) {
                     this.#midPointInsertionActive = false;
                     this.#midPointInsertionIndex = -1;                    
-                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.INSERTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.INSERTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
                 }
             }
         }
@@ -285,7 +284,7 @@ export class InteractionManager implements IManager {
             this.#draggedPoint = this.#hoveredPoint;
 
             this.#dragging = true;
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
 
             if (!this.#cameraFreezeFlag)
                 this.#cameraFreezeFlag = this.#drawingToolsManager.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
@@ -312,7 +311,7 @@ export class InteractionManager implements IManager {
                 throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
             } else {
                 this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
                 this.#drawingToolsManager.close();
             }
         }
@@ -324,7 +323,7 @@ export class InteractionManager implements IManager {
         if (cancelKeyPressed) {
             this.#drawingToolsManager.close();
             this.#drawingToolsManager.callbacks.onCancel();                        
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.CANCEL, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.CANCEL, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         }
 
         /**
@@ -449,7 +448,7 @@ export class InteractionManager implements IManager {
                     this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
                 }
 
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
             }
         }
         
@@ -637,7 +636,7 @@ export class InteractionManager implements IManager {
             this.toggleSelection(this.#hoveredPoint);
         } if (this.#moving === true && this.#dragging === true) {
             this.removeAllSelectedPoints();
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#uuid });
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         }
 
         this.reset();
