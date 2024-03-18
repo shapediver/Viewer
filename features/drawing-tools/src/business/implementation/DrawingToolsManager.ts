@@ -233,7 +233,6 @@ export class DrawingToolsManager implements IManager {
         if (this.#closed) return;
         this.#callbacks.onFinish(this.#geometryManager.geometryData);
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
-        this.close();
     }
 
     public keyPressed(event: MouseEvent | KeyboardEvent, key: string): boolean {

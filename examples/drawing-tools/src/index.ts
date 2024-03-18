@@ -177,14 +177,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         ], menuDiv);
     };
 
-    document.body.addEventListener('keydown', (event) => {
-        if (event.key === 'a') {
-            if (drawingToolsApi && drawingToolsApi.closed === false) return;
-
-            console.log('Drawing tools re-started');
-            sessionCallback();
-        }
-    });
+    session.updateCallback = sessionCallback;
+    sessionCallback();
 
     /**
      * 

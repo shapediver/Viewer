@@ -196,9 +196,7 @@ export class InteractionManager implements IManager {
                     } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
                         throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
                     } else {
-                        this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
-                        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
-                        this.#drawingToolsManager.close();
+                        this.#drawingToolsManager.finish();
                         return;
                     }
                 } else {
@@ -310,9 +308,7 @@ export class InteractionManager implements IManager {
             } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
                 throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
             } else {
-                this.#drawingToolsManager.callbacks.onFinish(this.#drawingToolsManager.geometryManager.geometryData);
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
-                this.#drawingToolsManager.close();
+                this.#drawingToolsManager.finish();
             }
         }
 
@@ -321,9 +317,7 @@ export class InteractionManager implements IManager {
          * REMOVE ALL SELECTED POINTS
          */
         if (cancelKeyPressed) {
-            this.#drawingToolsManager.close();
-            this.#drawingToolsManager.callbacks.onCancel();                        
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.CANCEL, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
+            this.#drawingToolsManager.cancel();
         }
 
         /**
