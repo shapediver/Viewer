@@ -2,6 +2,7 @@ import {
     AttributeData,
     GeometryData,
     IGeometryData,
+    IMapData,
     IPrimitiveData,
     MapData,
     MATERIAL_ALPHA,
@@ -26,10 +27,6 @@ export class GeometryManager implements IManager {
     readonly #parentNode: ITreeNode;
 
     #closeLoop: boolean = false;
-    #defaultTextures = {
-        'variation_0': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft.png"),
-        'variation_1': MaterialEngine.instance.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft_v2.png"),
-    };
     #directParentNode?: ITreeNode;
     #directParentNodeClone?: ITreeNode;
     #geometryDataLines?: IGeometryData;
@@ -133,8 +130,8 @@ export class GeometryManager implements IManager {
             }
         } else {
             // create a new node with the geometry data
-            const parentNode = new TreeNode('Drawing Tools');
-            sceneTree.root.addChild(parentNode);
+            const parentNode = new TreeNode('DrawingToolsGeometry');
+            this.#drawingToolsManager.parentNode.addChild(parentNode);
 
             this.#parentNode = parentNode;
 
@@ -181,31 +178,33 @@ export class GeometryManager implements IManager {
                 this.#drawingToolsManager.setupProperties.visualization.points
             )
         );
+        const updateMaterialVariation = (variations: string[], map: IMapData) => {
+            for (const v of variations) {
+                (this.#geometryDataPoints.material as unknown as { [key: string]: unknown })[v as keyof MaterialMultiPointData] = map;
+            }
+            (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
+            this.#geometryDataPoints.updateVersion();
+            this.updateParentNode();
+        };
 
         const variation_0 = ['map_0', 'map_1', 'map_4', 'map_5', 'map_6', 'map_7'];
         const variation_1 = ['map_2', 'map_3'];
 
-        this.#defaultTextures.variation_0.then((map) => {
-            if (map) {
-                for (const v of variation_0) {
-                    (this.#geometryDataPoints.material as unknown as { [key: string]: unknown })[v as keyof MaterialMultiPointData] = map;
-                }
-                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
-                this.#geometryDataPoints.updateVersion();
-                this.updateParentNode();
-            }
-        });
+        if(this.#drawingToolsManager.defaultTextures.variation_0 instanceof MapData) {
+            updateMaterialVariation(variation_0, this.#drawingToolsManager.defaultTextures.variation_0);    
+        } else {
+            (this.#drawingToolsManager.defaultTextures.variation_0 as Promise<IMapData>).then((map) => {
+                updateMaterialVariation(variation_0, map);
+            });
+        }
 
-        this.#defaultTextures.variation_1.then((map) => {
-            if (map) {
-                for (const v of variation_1) {
-                    (this.#geometryDataPoints.material as unknown as { [key: string]: unknown })[v as keyof MaterialMultiPointData] = map;
-                }
-                (this.#geometryDataPoints.material as MaterialMultiPointData).updateVersion();
-                this.#geometryDataPoints.updateVersion();
-                this.updateParentNode();
-            }
-        });
+        if(this.#drawingToolsManager.defaultTextures.variation_1 instanceof MapData) {
+            updateMaterialVariation(variation_1, this.#drawingToolsManager.defaultTextures.variation_1);    
+        } else {
+            (this.#drawingToolsManager.defaultTextures.variation_1 as Promise<IMapData>).then((map) => {
+                updateMaterialVariation(variation_1, map);
+            });
+        }
 
         this.#geometryDataPoints.primitive.updateVersion();
         this.#geometryDataPoints.updateVersion();
@@ -350,8 +349,8 @@ export class GeometryManager implements IManager {
 
             this.#directParentNode.updateVersion();
         } else {
-            sceneTree.root.removeChild(this.#parentNode);
-            sceneTree.root.updateVersion();
+            this.#drawingToolsManager.parentNode.removeChild(this.#parentNode);
+            this.#drawingToolsManager.parentNode.updateVersion();
         }
     }
 

@@ -59,8 +59,9 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Public Methods (1)
 
     public removeVisualization(): void {
-        sceneTree.root.removeChild(this.#visualizationNode);
-        sceneTree.root.updateVersion();
+        this.drawingToolsManager.parentNode.removeChild(this.#visualizationNode);
+        this.drawingToolsManager.parentNode.updateVersion(false, false);
+        this.drawingToolsManager.viewport.updateNode(this.drawingToolsManager.parentNode);
     }
 
     // #endregion Public Methods (1)
@@ -84,8 +85,9 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
         this.#visualizationNode.addChild(node);
         this.#visualizationNode.updateVersion();
-        sceneTree.root.addChild(this.#visualizationNode);
-        sceneTree.root.updateVersion();
+        this.drawingToolsManager.parentNode.addChild(this.#visualizationNode);
+        this.drawingToolsManager.parentNode.updateVersion(false, false);
+        this.drawingToolsManager.viewport.updateNode(this.drawingToolsManager.parentNode);
     }
 
     // #endregion Private Methods (1)

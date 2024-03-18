@@ -1,8 +1,8 @@
 import { EventManager } from './EventManager';
-import { FLAG_TYPE, sceneTree } from '@shapediver/viewer';
+import { FLAG_TYPE, ITreeNode, TreeNode, sceneTree } from '@shapediver/viewer';
 import { GeometryManager } from './GeometryManager';
 import { GeometryMathManager } from './GeometryMathManager';
-import { IGeometryData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
+import { IGeometryData, IMapData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
 import { IManager } from '../interfaces/IManager';
 import { InteractionManager } from './InteractionManager';
 import { IViewportApi } from '@shapediver/viewer.features.interaction';
@@ -61,6 +61,8 @@ export type SetupPropertiesOptional = {
     controls?: Partial<SetupProperties['controls']>;
 };
 
+export type DefaultTextures = { [key: string]: Promise<IMapData> | IMapData }
+
 // #endregion Type aliases (5)
 
 // #region Classes (1)
@@ -70,11 +72,13 @@ export class DrawingToolsManager implements IManager {
 
     readonly #callbacks: Callbacks;
     readonly #customizationProperties: CustomizationProperties;
+    readonly #defaultTextures: DefaultTextures;
     readonly #eventEngine = EventEngine.instance;
     readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
     readonly #geometryMathManager: GeometryMathManager;
-    readonly #interactionManager: InteractionManager;
+    readonly #interactionManager: InteractionManager;    
+    readonly #parentNode: ITreeNode;
     readonly #restrictionManager: RestrictionManager;
     readonly #textVisualizationManager: TextVisualizationManager;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
@@ -89,10 +93,15 @@ export class DrawingToolsManager implements IManager {
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional) {
+    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional, defaultTextures?: DefaultTextures) {
         this.#viewport = viewport;
         this.#callbacks = callbacks;
         [this.#customizationProperties, this.#setupProperties] = this.cleanProperties(customizationProperties, setupProperties);
+        this.#defaultTextures = defaultTextures!;
+
+        this.#parentNode = new TreeNode(`DrawingToolsManager_${this.#uuid}`);
+        sceneTree.root.addChild(this.#parentNode);
+        sceneTree.root.updateVersion(false, false);
 
         this.#geometryMathManager = new GeometryMathManager(this);
         this.#restrictionManager = new RestrictionManager(this);
@@ -132,6 +141,10 @@ export class DrawingToolsManager implements IManager {
         return this.#customizationProperties;
     }
 
+    public get defaultTextures(): DefaultTextures {
+        return this.#defaultTextures;
+    }
+
     public get geometryManager(): GeometryManager {
         return this.#geometryManager;
     }
@@ -142,6 +155,10 @@ export class DrawingToolsManager implements IManager {
 
     public get interactionManager(): InteractionManager {
         return this.#interactionManager;
+    }
+
+    public get parentNode(): ITreeNode {
+        return this.#parentNode;
     }
 
     public get restrictionManager(): RestrictionManager {
@@ -207,6 +224,8 @@ export class DrawingToolsManager implements IManager {
         this.#interactionManager.close();
         this.#textVisualizationManager.close();
 
+        sceneTree.root.removeChild(this.#parentNode);
+        sceneTree.root.updateVersion(false, false);
         this.#closed = true;
     }
 

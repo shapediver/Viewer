@@ -63,8 +63,9 @@ export class TextVisualizationManager implements IManager {
 
         this.#visualizationNode.addChild(node);
         this.#visualizationNode.updateVersion();
-        sceneTree.root.addChild(this.#visualizationNode);
-        sceneTree.root.updateVersion();
+        this.#drawingToolsManager.parentNode.addChild(this.#visualizationNode);
+        this.#drawingToolsManager.parentNode.updateVersion(false, false);
+        this.#drawingToolsManager.viewport.updateNode(this.#drawingToolsManager.parentNode);
 
         this.createPointLabels();
         this.createDistanceLabels();

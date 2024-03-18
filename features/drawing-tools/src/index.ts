@@ -14,7 +14,7 @@ import {
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
 import { IRestrictionBase, RestrictionBaseProperties } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
-import { IViewportApi, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
+import { IMapData, IViewportApi, MaterialEngine, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/restrictions/plane/PlaneRestriction';
 
@@ -25,6 +25,21 @@ export {
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,
     RestrictionBaseProperties, IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
 };
+
+const defaultTextures: { [key: string]: Promise<IMapData> | IMapData } = {};
+
+defaultTextures['variation_0'] = MaterialEngine.instance.loadMap('https://viewer.shapediver.com/v3/graphics/point_soft.png')
+    .then((mapData: IMapData | null) => {
+        defaultTextures['variation_0'] = mapData!;
+        return mapData!;
+    });
+
+defaultTextures['variation_1'] = MaterialEngine.instance.loadMap('https://viewer.shapediver.com/v3/graphics/point_soft_v2.png')
+    .then((mapData: IMapData | null) => {
+        defaultTextures['variation_1'] = mapData!;
+        return mapData!;
+    });
+
 
 let drawingTools: IDrawingToolsApi | undefined;
 
@@ -41,6 +56,6 @@ export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks,
     if (drawingTools && drawingTools.closed === false)
         throw new ShapeDiverViewerDrawingToolsError('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
 
-    drawingTools = new DrawingToolsApi(viewport, callbacks, customizationProperties, setupProperties);
+    drawingTools = new DrawingToolsApi(viewport, callbacks, customizationProperties, setupProperties, defaultTextures);
     return drawingTools;
 };

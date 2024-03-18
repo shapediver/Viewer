@@ -1,4 +1,4 @@
-import { Callbacks, CustomizationPropertiesOptional, DrawingToolsManager, SetupPropertiesOptional } from '../../business/implementation/DrawingToolsManager';
+import { Callbacks, CustomizationPropertiesOptional, DefaultTextures, DrawingToolsManager, SetupPropertiesOptional } from '../../business/implementation/DrawingToolsManager';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
 import { IGeometryData, IViewportApi } from '@shapediver/viewer';
 import { IRestrictionApi } from '../interfaces/IRestrictionApi';
@@ -16,8 +16,8 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional) {
-        this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, customizationProperties, setupProperties);
+    constructor(viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional, defaultTextures?: DefaultTextures) {
+        this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, customizationProperties, setupProperties, defaultTextures);
 
         for(const token in this.#drawingToolsManager.restrictionManager.restrictions) {
             if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
