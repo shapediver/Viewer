@@ -12,7 +12,7 @@ export type AngularRestrictionProperties = {
     /**
      * Step size for the angles
      */
-    angleStep: number;
+    angleStep?: number;
 } & SnapRestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -40,11 +40,11 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     // #region Constructors (1)
 
-    constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: AngularRestrictionProperties, planeProperties: PlaneRestrictionProperties) {
+    constructor(drawingToolsManager: DrawingToolsManager, id: string, planeProperties: PlaneRestrictionProperties, properties?: AngularRestrictionProperties) {
         super(drawingToolsManager, id);
-        this.#angleStep = properties.angleStep;
-        this.#normal = planeProperties.normal;
-        this.#priority = properties.priority;
+        this.#angleStep = properties?.angleStep || Math.PI / 8;
+        this.#normal = planeProperties.normal || vec3.fromValues(0, 0, 1);
+        this.#priority = properties?.priority || 0;
         this.calculateAngles();
     }
 

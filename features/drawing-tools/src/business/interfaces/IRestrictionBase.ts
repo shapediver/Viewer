@@ -4,11 +4,11 @@ export type RestrictionBaseProperties = {
     /**
      * If the restriction is enabled
      */
-    enabled: boolean;
+    enabled?: boolean;
     /**
      * If the restriction visualization is shown
      */
-    showVisualization: boolean;
+    showVisualization?: boolean;
 }
 
 // #endregion Type aliases (1)

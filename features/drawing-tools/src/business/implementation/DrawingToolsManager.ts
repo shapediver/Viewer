@@ -9,21 +9,22 @@ import { IViewportApi } from '@shapediver/viewer.features.interaction';
 import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
 import { RestrictionManager } from './RestrictionManager';
 import { TextVisualizationManager } from './TextVisualizationManager';
-import { EVENTTYPE_DRAWING_TOOLS, EventEngine, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { EVENTTYPE_DRAWING_TOOLS, EventEngine, ShapeDiverViewerDrawingToolsError, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
 
-// #region Type aliases (5)
+// #region Type aliases (6)
 
 export type Callbacks = {
     onCancel(): void;
     onFinish(geometryData: IGeometryData): void;
+    onUpdate(geometryData: IGeometryData): void;
 };
 /**
  * The customization properties of the drawing tool.
  */
 export type CustomizationProperties = {
     geometry: {
-        parentNode?: string; // if no node is given, the geometry is created from scratch
+        points: number[][]; // the points of the drawing tool (default: [])
         mode: 'points' | 'lines'; // the mode of the geometry (default: 'lines')
         minPoints?: number; // the minimum amount of points, if undefined, the geometry is not restricted (default: undefined)
         maxPoints?: number; // the maximum amount of points, if undefined, the geometry is not restricted (default: undefined),
@@ -38,6 +39,8 @@ export type CustomizationPropertiesOptional = {
     geometry?: Partial<CustomizationProperties['geometry']>;
     restrictions?: Partial<CustomizationProperties['restrictions']>;
 };
+export type DefaultTextures = { [key: string]: Promise<IMapData> | IMapData }
+
 /**
  * The setup properties of the drawing tool.
  */
@@ -53,6 +56,7 @@ export type SetupProperties = {
         insert: string, // insert point, can only be a modifier key (Ctrl, Shift, Alt) (default: Ctrl)
         delete: string, // delete point, can only be a modifier key (Ctrl, Shift, Alt) (default: Shift)
         finish: string, // finish drawing (default: Enter)
+        update: string, // update drawing (default: Space)
         cancel: string, // cancel drawing (default: Escape)
     }
 };
@@ -61,14 +65,12 @@ export type SetupPropertiesOptional = {
     controls?: Partial<SetupProperties['controls']>;
 };
 
-export type DefaultTextures = { [key: string]: Promise<IMapData> | IMapData }
-
-// #endregion Type aliases (5)
+// #endregion Type aliases (6)
 
 // #region Classes (1)
 
 export class DrawingToolsManager implements IManager {
-    // #region Properties (13)
+    // #region Properties (17)
 
     readonly #callbacks: Callbacks;
     readonly #customizationProperties: CustomizationProperties;
@@ -77,7 +79,7 @@ export class DrawingToolsManager implements IManager {
     readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
     readonly #geometryMathManager: GeometryMathManager;
-    readonly #interactionManager: InteractionManager;    
+    readonly #interactionManager: InteractionManager;
     readonly #parentNode: ITreeNode;
     readonly #restrictionManager: RestrictionManager;
     readonly #textVisualizationManager: TextVisualizationManager;
@@ -89,7 +91,7 @@ export class DrawingToolsManager implements IManager {
     #setupProperties: SetupProperties;
     #uuid = this.#uuidGenerator.create();
 
-    // #endregion Properties (13)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -127,7 +129,7 @@ export class DrawingToolsManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (10)
+    // #region Public Getters And Setters (13)
 
     public get callbacks(): Callbacks {
         return this.#callbacks;
@@ -181,9 +183,9 @@ export class DrawingToolsManager implements IManager {
         return this.#viewport;
     }
 
-    // #endregion Public Getters And Setters (10)
+    // #endregion Public Getters And Setters (13)
 
-    // #region Public Methods (6)
+    // #region Public Methods (9)
 
     /**
      * Add a point to the drawing tool.
@@ -209,7 +211,11 @@ export class DrawingToolsManager implements IManager {
 
     public cancel(): void {
         if (this.#closed) return;
-        this.#callbacks.onCancel();
+        try {
+            this.#callbacks.onCancel();
+        } catch (e) {
+            throw new ShapeDiverViewerDrawingToolsError('An error occurred while cancelling the drawing tool.');
+        }
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.CANCEL, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
         this.close();
     }
@@ -231,8 +237,13 @@ export class DrawingToolsManager implements IManager {
 
     public finish(): IGeometryData | undefined {
         if (this.#closed) return;
-        this.#callbacks.onFinish(this.#geometryManager.geometryData);
+        try {
+            this.#callbacks.onFinish(this.#geometryManager.geometryData);
+        } catch (e) {
+            throw new ShapeDiverViewerDrawingToolsError('An error occurred while finishing the drawing tool.');
+        }
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.FINISH, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
+        this.close();
     }
 
     public keyPressed(event: MouseEvent | KeyboardEvent, key: string): boolean {
@@ -252,7 +263,7 @@ export class DrawingToolsManager implements IManager {
             } else if (key === 'Alt') {
                 return event.key === 'Alt' || event.altKey;
             } else {
-                return event.key === key;
+                return event.code === key;
             }
         }
         return false;
@@ -279,7 +290,17 @@ export class DrawingToolsManager implements IManager {
         this.#restrictionManager.removeRestriction(token);
     }
 
-    // #endregion Public Methods (6)
+    public update(): IGeometryData | undefined {
+        if (this.#closed) return;
+        try{
+            this.#callbacks.onUpdate(this.#geometryManager.geometryData);
+        } catch (e) {
+            throw new ShapeDiverViewerDrawingToolsError('An error occurred while updating the drawing tool.');
+        }
+        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UPDATE, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
+    }
+
+    // #endregion Public Methods (9)
 
     // #region Private Methods (1)
 
@@ -289,6 +310,7 @@ export class DrawingToolsManager implements IManager {
 
         const customizationProperties: CustomizationProperties = {
             geometry: {
+                points: [],
                 mode: 'lines',
                 close: true,
                 autoClose: false,
@@ -299,7 +321,7 @@ export class DrawingToolsManager implements IManager {
 
         if (customizationPropertiesOptional.geometry !== undefined) {
             customizationProperties.geometry = {
-                parentNode: customizationPropertiesOptional.geometry.parentNode,
+                points: customizationPropertiesOptional.geometry.points === undefined ? [] : customizationPropertiesOptional.geometry.points,
                 mode: customizationPropertiesOptional.geometry.mode === 'points' ? 'points' : 'lines',
                 minPoints: customizationPropertiesOptional.geometry.minPoints,
                 maxPoints: customizationPropertiesOptional.geometry.maxPoints,
@@ -312,9 +334,7 @@ export class DrawingToolsManager implements IManager {
         if (customizationPropertiesOptional.restrictions === undefined || customizationPropertiesOptional.restrictions.length === 0) {
             customizationProperties.restrictions = [
                 {
-                    type: RESTRICTION_TYPE.PLANE,
-                    enabled: true,
-                    showVisualization: true
+                    type: RESTRICTION_TYPE.PLANE
                 }
             ];
         } else {
@@ -338,7 +358,8 @@ export class DrawingToolsManager implements IManager {
                 insert: setupPropertiesOptional?.controls?.insert === undefined ? 'Ctrl' : setupPropertiesOptional.controls.insert,
                 delete: setupPropertiesOptional?.controls?.delete === undefined ? 'Shift' : setupPropertiesOptional.controls.delete,
                 finish: setupPropertiesOptional?.controls?.finish === undefined ? 'Enter' : setupPropertiesOptional.controls.finish,
-                cancel: setupPropertiesOptional?.controls?.cancel === undefined ? 'Escape' : setupPropertiesOptional.controls.cancel
+                cancel: setupPropertiesOptional?.controls?.cancel === undefined ? 'Escape' : setupPropertiesOptional.controls.cancel,
+                update: setupPropertiesOptional?.controls?.update === undefined ? 'Space' : setupPropertiesOptional.controls.update
             }
         };
 

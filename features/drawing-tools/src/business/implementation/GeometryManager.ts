@@ -3,7 +3,6 @@ import {
     GeometryData,
     IGeometryData,
     IMapData,
-    IPrimitiveData,
     MapData,
     MATERIAL_ALPHA,
     MaterialBasicLineData,
@@ -15,7 +14,7 @@ import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
-import { MaterialEngine, sceneTree, sessions, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
+import { ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 // #region Classes (1)
@@ -27,15 +26,12 @@ export class GeometryManager implements IManager {
     readonly #parentNode: ITreeNode;
 
     #closeLoop: boolean = false;
-    #directParentNode?: ITreeNode;
-    #directParentNodeClone?: ITreeNode;
     #geometryDataLines?: IGeometryData;
     #geometryDataPoints: IGeometryData;
     #indicesArrayLines?: Uint8Array | null;
     #materialIndexArray: number[] = [];
     #positionArray: Float32Array;
     #positionIndexArray: Float32Array;
-    #primitiveClone?: IPrimitiveData;
 
     // #endregion Properties (13)
 
@@ -45,119 +41,40 @@ export class GeometryManager implements IManager {
         this.#drawingToolsManager = drawingToolsManager;
         const geometryProperties = this.#drawingToolsManager.customizationProperties.geometry!;
 
-        if (geometryProperties.parentNode !== undefined) {
-            // search for the node that contains the geometry data
-            let parentNode = sceneTree.root.getNodesByName(geometryProperties.parentNode)[0];
+        // create a new node with the geometry data
+        const parentNode = new TreeNode('DrawingToolsGeometry');
+        this.#drawingToolsManager.parentNode.addChild(parentNode);
 
-            if (!parentNode) {
-                // search for the first Output with that name and use the first node
-                for(const s in sessions) {
-                    const outputs = sessions[s].getOutputByName(geometryProperties.parentNode);
-                    if(outputs.length > 0) {
-                        parentNode = outputs[0].node!;
-                        break;
-                    }
-                }
+        this.#parentNode = parentNode;
 
-                if(!parentNode)
-                    throw new ShapeDiverViewerDrawingToolsError('The node with the name ' + geometryProperties.parentNode + ' does not exist. Please check the name of the node in the scene tree.');
-            }
-
-            // get the geometry data from the node
-            let data;
-            parentNode.traverse(node => {
-                for(let i = 0; i < node.data.length; i++) {
-                    const d = node.data[i];
-                    if (d instanceof GeometryData) {
-                        data = d;
-                        this.#directParentNode = node;
-                    }
-                }
-            });
-
-            if(this.#directParentNode)
-                this.#directParentNodeClone = this.#directParentNode.clone();
-
-            if (!data)
-                throw new ShapeDiverViewerDrawingToolsError('The node with the name ' + geometryProperties.parentNode + ' does not contain any geometry data. Please check the node in the scene tree.');
-
-            const geometryData = data as IGeometryData;
-            this.#primitiveClone = geometryData!.primitive.clone();
-
-            if (!geometryData.primitive.attributes['POSITION'])
-                throw new ShapeDiverViewerDrawingToolsError('The geometry data does not contain a position attribute. Please check the geometry data in the scene tree.');
-
-            this.#parentNode = parentNode;
-            this.#positionArray = geometryData.primitive.attributes['POSITION'].array as Float32Array;
-
-            if (geometryData.mode === PRIMITIVE_MODE.POINTS) {
-                this.#geometryDataPoints = geometryData;
-            } else {
-                this.#indicesArrayLines = geometryData.primitive.indices ? geometryData.primitive.indices.array as Uint8Array : null;
-
-                if(this.#positionArray.length >= 6 && geometryData.mode === PRIMITIVE_MODE.LINES) {
-                    // clean position array, if first element is same as last element
-                    const firstPoint = vec3.fromValues(this.#positionArray[0], this.#positionArray[1], this.#positionArray[2]);
-                    const lastPoint = vec3.fromValues(this.#positionArray[this.#positionArray.length - 3], this.#positionArray[this.#positionArray.length - 2], this.#positionArray[this.#positionArray.length - 1]);
-
-                    if(vec3.equals(firstPoint, lastPoint)) {
-                        this.#positionArray = this.#positionArray.slice(0, this.#positionArray.length - 3);
-                        geometryData.primitive.attributes['POSITION'] = new AttributeData(
-                            this.#positionArray,
-                            geometryData.primitive.attributes['POSITION'].itemSize,
-                            geometryData.primitive.attributes['POSITION'].itemBytes,
-                            geometryData.primitive.attributes['POSITION'].byteOffset,
-                            geometryData.primitive.attributes['POSITION'].elementBytes,
-                            geometryData.primitive.attributes['POSITION'].normalized,
-                            geometryData.primitive.attributes['POSITION'].count - 1
-                        );
-                    }
-                }
-
-                this.#geometryDataLines = geometryData;
-                this.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
-
-                this.#geometryDataPoints = new GeometryData(
-                    new PrimitiveData(
-                        {
-                            'POSITION': geometryData.primitive.attributes['POSITION']
-                        }
-                    ),
-                    PRIMITIVE_MODE.POINTS
-                );
-                this.#geometryDataPoints.renderOrder = 1000;
-                parentNode.addData(this.#geometryDataPoints);
-            }
+        if(geometryProperties.points.length > 0) {
+            this.#positionArray = new Float32Array(geometryProperties.points.length * 3);
+            this.#positionArray.set(([] as number[]).concat(...geometryProperties.points));
         } else {
-            // create a new node with the geometry data
-            const parentNode = new TreeNode('DrawingToolsGeometry');
-            this.#drawingToolsManager.parentNode.addChild(parentNode);
-
-            this.#parentNode = parentNode;
-
             this.#positionArray = new Float32Array();
+        }
 
-            this.#geometryDataPoints = new GeometryData(
+        this.#geometryDataPoints = new GeometryData(
+            new PrimitiveData({
+                'POSITION': new AttributeData(this.#positionArray, 3, 12, 0, 4, false, this.#positionArray.length)
+            }),
+            PRIMITIVE_MODE.POINTS
+        );
+        this.#geometryDataPoints.renderOrder = 1000;
+        parentNode.addData(this.#geometryDataPoints);
+
+        if (geometryProperties.mode !== 'points') {
+            this.#indicesArrayLines = new Uint8Array();
+            this.#geometryDataLines = new GeometryData(
                 new PrimitiveData({
-                    'POSITION': new AttributeData(this.#positionArray, 3, 12, 0, 4, false, 0)
-                }),
-                PRIMITIVE_MODE.POINTS
+                    'POSITION': new AttributeData(this.#positionArray, 3, 12, 0, 4, false, this.#positionArray.length)
+                },
+                    new AttributeData(this.#indicesArrayLines, 1, 2, 0, 2, false, 0)),
+                PRIMITIVE_MODE.LINES
             );
-            this.#geometryDataPoints.renderOrder = 1000;
-            parentNode.addData(this.#geometryDataPoints);
-
-            if (geometryProperties.mode !== 'points') {
-                this.#indicesArrayLines = new Uint8Array();
-                this.#geometryDataLines = new GeometryData(
-                    new PrimitiveData({
-                        'POSITION': new AttributeData(this.#positionArray, 3, 12, 0, 4, false, 0)
-                    },
-                        new AttributeData(this.#indicesArrayLines, 1, 2, 0, 2, false, 0)),
-                    PRIMITIVE_MODE.LINES
-                );
-                this.#geometryDataLines.renderOrder = 999;
-                parentNode.addData(this.#geometryDataLines);
-            }
+            this.#geometryDataLines.renderOrder = 999;
+            parentNode.addData(this.#geometryDataLines);
+            this.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
         }
 
         this.#positionIndexArray = this.createAndSetPositionIndexArray();
@@ -264,7 +181,7 @@ export class GeometryManager implements IManager {
 
     // #region Public Methods (7)
 
-    public addPoint(insertionIndex: number, position?: vec3 | undefined, lineIndices?: number[]): void {
+    public addPoint(insertionIndex: number, position?: vec3 | undefined): void {
         const positionArrayLength = this.#positionArray.length / 3;
         const scaledIndex = insertionIndex * 3;
         if (insertionIndex < 0 || insertionIndex > positionArrayLength) {
@@ -327,31 +244,9 @@ export class GeometryManager implements IManager {
 
         if (this.#geometryDataLines)
             this.#parentNode.removeData(this.#geometryDataLines);
-
-        if (this.#directParentNode && this.#directParentNodeClone) {
-            while (this.#directParentNode.data.length > 0)
-                this.#directParentNode.removeData(this.#directParentNode.data[0]);
-
-            for (let i = 0; i < this.#directParentNodeClone.data.length; i++) {
-                if(this.#directParentNodeClone.data[i] instanceof GeometryData && this.#primitiveClone) {
-                    // as the attribute array are adjusted, we need to update the attributes and indices of the geometry data
-                    if((this.#directParentNodeClone.data[i] as GeometryData).primitive.id === this.#primitiveClone.id) {
-                        for(const a in this.#primitiveClone.attributes) {
-                            (this.#directParentNodeClone.data[i] as GeometryData).primitive.attributes[a] = this.#primitiveClone.attributes[a];
-                        }
-                        (this.#directParentNodeClone.data[i] as GeometryData).primitive.indices = this.#primitiveClone.indices;
-                        (this.#directParentNodeClone.data[i] as GeometryData).primitive.updateVersion();
-                        (this.#directParentNodeClone.data[i] as GeometryData).updateVersion();
-                    }
-                }
-                
-                this.#directParentNode.addData(this.#directParentNodeClone.data[i]);}
-
-            this.#directParentNode.updateVersion();
-        } else {
-            this.#drawingToolsManager.parentNode.removeChild(this.#parentNode);
-            this.#drawingToolsManager.parentNode.updateVersion();
-        }
+        
+        this.#drawingToolsManager.parentNode.removeChild(this.#parentNode);
+        this.#drawingToolsManager.parentNode.updateVersion();
     }
 
     /**

@@ -15,27 +15,27 @@ export type PlaneRestrictionProperties = {
     /**
      * Size of the grid
      */
-    gridSize: number;
+    gridSize?: number;
 
     /**
      * Origin of the grid
      */
-    origin: vec3;
+    origin?: vec3;
 
     /**
      * Normal of the grid
      */
-    normal: vec3;
+    normal?: vec3;
 
     /**
      * grid snap restriction
      */
-    gridSnapRestriction: GridRestrictionProperties;
+    gridSnapRestriction?: GridRestrictionProperties;
 
     /**
      * angular snap restriction
      */
-    angularSnapRestriction: AngularRestrictionProperties;
+    angularSnapRestriction?: AngularRestrictionProperties;
 } & RestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -48,7 +48,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     readonly #uuidGenerator = UuidGenerator.instance;
 
     #gridHelper?: THREE.GridHelper;
-    #gridSize: number = 100;
+    #gridSize: number;
     #normal: vec3;
     #origin: vec3;
     #snapRestrictions: { [key: string]: ISnapRestriction; } = {};
@@ -59,12 +59,14 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        this.#normal = properties.normal;
-        this.#origin = properties.origin || drawingToolsManager.customizationProperties.geometry.origin;
+        this.#normal = properties.normal || vec3.fromValues(0, 0, 1);
+        properties.origin = properties.origin || drawingToolsManager.customizationProperties.geometry.origin;
+        this.#origin = properties.origin;
+        this.#gridSize = properties.gridSize || 100;
         this.createGridVisualization();
 
-        this.#snapRestrictions['grid'] = new GridRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties.gridSnapRestriction, properties);
-        this.#snapRestrictions['angular'] = new AngularRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties.angularSnapRestriction, properties);
+        this.#snapRestrictions['grid'] = new GridRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties, properties.gridSnapRestriction);
+        this.#snapRestrictions['angular'] = new AngularRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties, properties.angularSnapRestriction);
     }
 
     // #endregion Constructors (1)

@@ -27,7 +27,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (3)
+    // #region Public Getters And Setters (7)
 
     public get closed(): boolean {
         return this.#drawingToolsManager.closed;
@@ -41,14 +41,6 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         return this.#restrictions;
     }
 
-    public get showPointLabels(): boolean {
-        return this.#drawingToolsManager.textVisualizationManager.showPointLabels;
-    }
-
-    public set showPointLabels(value: boolean) {
-        this.#drawingToolsManager.textVisualizationManager.showPointLabels = value;
-    }
-
     public get showDistanceLabels(): boolean {
         return this.#drawingToolsManager.textVisualizationManager.showDistanceLabels;
     }
@@ -57,9 +49,21 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         this.#drawingToolsManager.textVisualizationManager.showDistanceLabels = value;
     }
 
-    // #endregion Public Getters And Setters (3)
+    public get showPointLabels(): boolean {
+        return this.#drawingToolsManager.textVisualizationManager.showPointLabels;
+    }
 
-    // #region Public Methods (7)
+    public set showPointLabels(value: boolean) {
+        this.#drawingToolsManager.textVisualizationManager.showPointLabels = value;
+    }
+
+    // #endregion Public Getters And Setters (7)
+
+    // #region Public Methods (8)
+
+    public addPoint(index: number, position?: vec3 | undefined): void {
+        this.#drawingToolsManager.addPoint(index, position);
+    }
 
     public addRestriction(properties: RestrictionProperties): IRestrictionApi | undefined {
         const token = this.#drawingToolsManager.addRestriction(properties);
@@ -68,10 +72,6 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
             this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
         return this.#restrictions[token];
-    }
-
-    public addPoint(index: number, position?: vec3 | undefined): void {
-        this.#drawingToolsManager.addPoint(index, position);
     }
 
     public cancel(): void {
@@ -95,5 +95,9 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         delete this.#restrictions[token];
     }
 
-    // #endregion Public Methods (7)
+    public update(): IGeometryData | undefined {
+        return this.#drawingToolsManager.update();
+    }
+
+    // #endregion Public Methods (8)
 }

@@ -64,6 +64,7 @@ export enum EVENTTYPE_INTERACTION {
 export enum EVENTTYPE_DRAWING_TOOLS {
     CANCEL = 'drawing_tools.cancel',
     FINISH = 'drawing_tools.finish',
+    UPDATE = 'drawing_tools.update',
     INSERTED = 'drawing_tools.inserted',
     REMOVED = 'drawing_tools.removed',
     DRAG_START = 'drawing_tools.drag.start',

@@ -296,6 +296,8 @@ export class InteractionManager implements IManager {
         const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.cancel);
         const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.finish);
         const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.delete);
+        const updateKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.update);
+
 
         /**
          * IF FINISH KEY IS PRESSED
@@ -309,6 +311,21 @@ export class InteractionManager implements IManager {
                 throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
             } else {
                 this.#drawingToolsManager.finish();
+            }
+        }
+
+        /**
+         * IF UPDATE KEY IS PRESSED
+         * UPDATE THE DRAWING TOOLS
+         */
+        if (updateKeyPressed) {
+            const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
+            if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.customizationProperties.geometry.minPoints);
+            } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
+            } else {
+                this.#drawingToolsManager.update();
             }
         }
 

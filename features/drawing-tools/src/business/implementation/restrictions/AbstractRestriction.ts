@@ -1,13 +1,13 @@
 import THREE from 'three';
 import { DrawingToolsManager } from '../DrawingToolsManager';
 import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
-import { sceneTree, ThreejsData, TreeNode } from '@shapediver/viewer';
+import { ThreejsData, TreeNode } from '@shapediver/viewer';
 
 export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Properties (6)
 
     readonly #id: string;
-    readonly #visualizationNode: TreeNode = new TreeNode();
+    readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
     #enabled: boolean = true;
     #showVisualization: boolean = false;
@@ -78,7 +78,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
         this.object3D = new THREE.Object3D();
         this.object3D.visible = false;
 
-        const node = new TreeNode();
+        const node = new TreeNode('ThreeJsDataNode');
 
         const data = new ThreejsData(this.object3D);
         node.addData(data);

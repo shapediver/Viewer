@@ -8,7 +8,7 @@ export type SnapRestrictionProperties = {
     /**
      * Priority of the restriction
      */
-    priority: number;
+    priority?: number;
 } & RestrictionBaseProperties;
 
 // #endregion Type aliases (1)

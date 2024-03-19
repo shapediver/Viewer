@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
-import { sceneTree, ThreejsData, TreeNode } from '@shapediver/viewer';
+import { ThreejsData, TreeNode } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 export class TextVisualizationManager implements IManager {
@@ -10,7 +10,7 @@ export class TextVisualizationManager implements IManager {
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #labelRenderer: CSS2DRenderer;
-    readonly #visualizationNode: TreeNode = new TreeNode();
+    readonly #visualizationNode: TreeNode = new TreeNode('TextVisualizationNode');
 
     #distanceObject3D: THREE.Object3D;
     #object3D: THREE.Object3D;
@@ -56,7 +56,7 @@ export class TextVisualizationManager implements IManager {
         this.#showPointLabels = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
         this.#showDistanceLabels = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
 
-        const node = new TreeNode();
+        const node = new TreeNode('ThreeJsDataNode');
 
         const data = new ThreejsData(this.#object3D);
         node.addData(data);

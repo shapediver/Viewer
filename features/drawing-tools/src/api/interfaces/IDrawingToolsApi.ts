@@ -4,7 +4,7 @@ import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export interface IDrawingToolsApi {
-    // #region Properties (2)
+    // #region Properties (5)
 
     /**
      * Check if the drawing tool is closed.
@@ -23,27 +23,20 @@ export interface IDrawingToolsApi {
         [key: string]: IRestrictionApi
     };
 
-    /**
-     * Show the point labels of the drawing tool.
-     */
-    showPointLabels: boolean;
 
     /**
      * Show the distance labels of the drawing tool.
      */
     showDistanceLabels: boolean;
 
-    // #endregion Properties (2)
+    /**
+     * Show the point labels of the drawing tool.
+     */
+    showPointLabels: boolean;
+
+    // #endregion Properties (5)
 
     // #region Public Methods (8)
-
-    /**
-     * Add a ray tracing intersection restriction to the drawing tool.
-     * 
-     * @param properties The properties of the restriction.
-     * @returns The api of the restriction.
-     */
-    addRestriction(Properties: RestrictionProperties): IRestrictionApi | undefined;
 
     /**
      * Add a point to the drawing tool.
@@ -52,6 +45,14 @@ export interface IDrawingToolsApi {
      * @param position The position of the point.
      */
     addPoint(index: number, position?: vec3 | undefined): void;
+
+    /**
+     * Add a ray tracing intersection restriction to the drawing tool.
+     * 
+     * @param properties The properties of the restriction.
+     * @returns The api of the restriction.
+     */
+    addRestriction(Properties: RestrictionProperties): IRestrictionApi | undefined;
 
     /**
      * Cancel the drawing tool.
@@ -83,6 +84,13 @@ export interface IDrawingToolsApi {
      * @param id 
      */
     removeRestriction(id: string): void;
+    
+    /**
+     * Receive an update of the drawing tool.
+     * 
+     * @returns The geometry data of the drawing tool.
+     */
+    update(): IGeometryData | undefined;
 
     // #endregion Public Methods (8)
 }
