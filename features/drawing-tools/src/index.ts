@@ -1,6 +1,6 @@
 import { AngularRestrictionApi } from './api/implementation/restrictions/plane/snap/AngularRestrictionApi';
 import { AngularRestrictionProperties } from './business/implementation/restrictions/plane/snap/AngularRestriction';
-import { Callbacks, CustomizationPropertiesOptional, SetupPropertiesOptional } from './business/implementation/DrawingToolsManager';
+import { Callbacks, PointsData, SettingsOptional } from './business/implementation/DrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
 import { GridRestrictionApi } from './api/implementation/restrictions/plane/snap/GridRestrictionApi';
 import { GridRestrictionProperties } from './business/implementation/restrictions/plane/snap/GridRestriction';
@@ -19,8 +19,8 @@ import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/Pla
 import { PlaneRestrictionProperties } from './business/implementation/restrictions/plane/PlaneRestriction';
 
 export {
-    CustomizationPropertiesOptional as CustomizationProperties, SetupPropertiesOptional as SetupProperties, Callbacks,
-    IDrawingToolsApi, DrawingToolsApi,
+    SettingsOptional as Settings, Callbacks,
+    IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,
     RestrictionBaseProperties, IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
@@ -52,10 +52,10 @@ let drawingTools: IDrawingToolsApi | undefined;
  * @returns The DrawingTools instance.
  * @throws An error if there is already an active instance of DrawingTools.
  */
-export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks, customizationProperties: CustomizationPropertiesOptional, setupProperties?: SetupPropertiesOptional): IDrawingToolsApi => {
+export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks, settings: SettingsOptional): IDrawingToolsApi => {
     if (drawingTools && drawingTools.closed === false)
         throw new ShapeDiverViewerDrawingToolsError('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
 
-    drawingTools = new DrawingToolsApi(viewport, callbacks, customizationProperties, setupProperties, defaultTextures);
+    drawingTools = new DrawingToolsApi(viewport, callbacks, settings, defaultTextures);
     return drawingTools;
 };

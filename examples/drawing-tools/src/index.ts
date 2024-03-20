@@ -1,9 +1,10 @@
 import * as SDV from '@shapediver/viewer';
 import {
     createDrawingTools,
-    CustomizationProperties,
     IDrawingToolsApi,
-    PlaneRestrictionApi
+    PlaneRestrictionApi,
+    PointsData,
+    Settings
 } from '@shapediver/viewer.features.drawing-tools';
 import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
 (<any>window).SDV = SDV;
@@ -17,7 +18,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '0ca60357bc3fbd259eb0dcb7e2bf0b3c42fedc0fd61ee56636edd2e2f5d71b3e5dd4dafcc646dd816617f56a41be5fe39b2aa82a1d3a5f17dfa9e289625d9cb9c5680aae6c1696de290ecb296256d29834ef886104b7040d90a2b8966c5611d5bfffc058ae103f-98d2bf2c2addf18bcc9ce3d9cbf313fe',
+            'e5ecfe96f204677ecc75298543779f0615b9a7df31d26d34a3ffe4b341bad2d5bb42614841cd727d0cd2647bc7e6879823ccb7b7b758bb4ca872d40257e59adc58a224831d800616e6f4c74a0f5e56664795b30c2230ed88c5ea4c25aa23843fc356760259d20e-ee89905d975e0d82aeedfe7dc4296aa8',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
     });
@@ -25,7 +26,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     const pointsParameter = session.getParameterByName('points')[0];
 
     // get the output for the drawing tools options
-    const customizationProperties: CustomizationProperties = session.getOutputByName('DrawingToolsOptions')[0].content![0].data as CustomizationProperties;
+    const customizationProperties: Settings = session.getOutputByName('DrawingToolsOptions')[0].content![0].data as Settings;
     console.log(customizationProperties);
 
     /**
@@ -34,18 +35,12 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
      * 
      * @param geometryData 
      */
-    const onUpdate = async (geometryData: SDV.IGeometryData) => {
+    const onUpdate = async (pointsData: PointsData) => {
         console.log('Drawing tools updated');
-        const positionArray = geometryData.primitive.attributes['POSITION'].array;
 
-        // get all points
-        const points = [];
-        for (let i = 0; i < positionArray.length; i += 3) {
-            points.push([positionArray[i], positionArray[i + 1], positionArray[i + 2]]);
-        }
-
-        pointsParameter.value = JSON.stringify({ "points": points });
+        pointsParameter.value = JSON.stringify({ "points": pointsData });
         await session.customize();
+
     };
 
     const onCancel = () => {
@@ -58,8 +53,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         }
     };
 
-    const onFinish = async (geometryData: SDV.IGeometryData) => {
-        onUpdate(geometryData);
+    const onFinish = async (pointsData: PointsData) => {
+        onUpdate(pointsData);
         onCancel();
     };
 
@@ -71,7 +66,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
      * RESTRICTION UI
      * 
      */
-    const planeRestrictionApi = Object.values(drawingToolsApi.restrictions).find(restriction => restriction instanceof PlaneRestrictionApi)! as PlaneRestrictionApi;
+    const planeRestrictionApi = drawingToolsApi.restrictions['plane'] as PlaneRestrictionApi;
 
     const menuDiv = document.createElement('div');
     menuDiv.id = 'menu';

@@ -46,15 +46,15 @@ export class TextVisualizationManager implements IManager {
 
         this.#object3D = new THREE.Object3D();
         this.#positionObject3D = new THREE.Object3D();
-        this.#positionObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
+        this.#positionObject3D.visible = this.#drawingToolsManager.settings.visualization.pointLabels;
         this.#distanceObject3D = new THREE.Object3D();
-        this.#distanceObject3D.visible = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
+        this.#distanceObject3D.visible = this.#drawingToolsManager.settings.visualization.distanceLabels;
 
         this.#object3D.add(this.#positionObject3D);
         this.#object3D.add(this.#distanceObject3D);
 
-        this.#showPointLabels = this.#drawingToolsManager.setupProperties.visualization.pointLabels;
-        this.#showDistanceLabels = this.#drawingToolsManager.setupProperties.visualization.distanceLabels;
+        this.#showPointLabels = this.#drawingToolsManager.settings.visualization.pointLabels;
+        this.#showDistanceLabels = this.#drawingToolsManager.settings.visualization.distanceLabels;
 
         const node = new TreeNode('ThreeJsDataNode');
 

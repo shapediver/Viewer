@@ -48,7 +48,7 @@ export class GeometryMathManager implements IManager {
             const lineEnd = vec3.fromValues(positionArray.at(secondIndex * 3)!, positionArray.at(secondIndex * 3 + 1)!, positionArray.at(secondIndex * 3 + 2)!);
 
             const {closestPointOnRay, closestPointOnLine} = this.closestPointsRayLine(ray, lineStart, lineEnd);
-            if (this.screenSpaceDistanceCheck(closestPointOnRay, closestPointOnLine, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === false) continue;
+            if (this.screenSpaceDistanceCheck(closestPointOnRay, closestPointOnLine, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: [firstIndex, secondIndex], distance: vec3.distance(closestPointOnRay, closestPointOnLine) });
         }
@@ -83,7 +83,7 @@ export class GeometryMathManager implements IManager {
 
             // distance from point to ray
             const closestPoint = this.closestPoint(ray, point);
-            if (this.screenSpaceDistanceCheck(point, closestPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === false) continue;
+            if (this.screenSpaceDistanceCheck(point, closestPoint, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: i / 3, distance: vec3.distance(point, closestPoint) });
         }

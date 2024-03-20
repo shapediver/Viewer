@@ -2,6 +2,7 @@ import { IGeometryData } from '@shapediver/viewer.shared.types';
 import { IRestrictionApi } from './IRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
+import { PointsData } from '../../business/implementation/DrawingToolsManager';
 
 export interface IDrawingToolsApi {
     // #region Properties (5)
@@ -12,9 +13,9 @@ export interface IDrawingToolsApi {
     readonly closed: boolean;
 
     /**
-     * The geometry data of the drawing tool.
+     * The points data of the drawing tool.
      */
-    readonly geometryData: IGeometryData;
+    readonly pointsData: PointsData;
 
     /**
      * The restrictions of the drawing tool.
@@ -50,9 +51,10 @@ export interface IDrawingToolsApi {
      * Add a ray tracing intersection restriction to the drawing tool.
      * 
      * @param properties The properties of the restriction.
+     * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
-    addRestriction(Properties: RestrictionProperties): IRestrictionApi | undefined;
+    addRestriction(properties: RestrictionProperties, token?: string): IRestrictionApi | undefined;
 
     /**
      * Cancel the drawing tool.
@@ -67,9 +69,9 @@ export interface IDrawingToolsApi {
     /**
      * Finish the drawing tool.
      * 
-     * @returns The geometry data of the drawing tool.
+     * @returns The points data of the drawing tool.
      */
-    finish(): IGeometryData | undefined;
+    finish(): PointsData | undefined;
 
     /**
      * Remove a point from the drawing tool.
@@ -88,9 +90,9 @@ export interface IDrawingToolsApi {
     /**
      * Receive an update of the drawing tool.
      * 
-     * @returns The geometry data of the drawing tool.
+     * @returns The points data of the drawing tool.
      */
-    update(): IGeometryData | undefined;
+    update(): PointsData | undefined;
 
     // #endregion Public Methods (8)
 }

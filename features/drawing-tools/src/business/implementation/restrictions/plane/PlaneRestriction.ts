@@ -60,7 +60,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
         this.#normal = properties.normal || vec3.fromValues(0, 0, 1);
-        properties.origin = properties.origin || drawingToolsManager.customizationProperties.geometry.origin;
+        properties.origin = properties.origin || drawingToolsManager.settings.geometry.origin;
         this.#origin = properties.origin;
         this.#gridSize = properties.gridSize || 100;
         this.createGridVisualization();

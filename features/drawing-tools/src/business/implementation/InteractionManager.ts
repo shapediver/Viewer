@@ -85,7 +85,7 @@ export class InteractionManager implements IManager {
      * @returns 
      */
     public checkHover(event: MouseEvent | TouchEvent, ray: IRay): void {
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
 
         // check if there is a point close to the ray
         const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
@@ -154,8 +154,8 @@ export class InteractionManager implements IManager {
         if (this.#drawingToolsManager.closed) return;
         this.#moving = false;
 
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.insert);
 
         /**
          * IF DELETE AND INSERT KEY ARE PRESSED
@@ -191,10 +191,10 @@ export class InteractionManager implements IManager {
                     this.#insertionActiveClosed = false;
                     this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
                     const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
-                    if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
-                        throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.customizationProperties.geometry.minPoints);
-                    } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
-                        throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
+                    if(this.#drawingToolsManager.settings.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.settings.geometry.minPoints) {
+                        throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.settings.geometry.minPoints);
+                    } else if(this.#drawingToolsManager.settings.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.settings.geometry.maxPoints) {
+                        throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.settings.geometry.maxPoints);
                     } else {
                         this.#drawingToolsManager.finish();
                         return;
@@ -292,11 +292,11 @@ export class InteractionManager implements IManager {
     public onKeyDown(event: KeyboardEvent): void {
         if (this.#drawingToolsManager.closed) return;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.insert);
-        const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.cancel);
-        const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.finish);
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.delete);
-        const updateKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.update);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.insert);
+        const cancelKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.cancel);
+        const finishKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.finish);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
+        const updateKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.update);
 
 
         /**
@@ -305,10 +305,10 @@ export class InteractionManager implements IManager {
          */
         if (finishKeyPressed) {
             const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
-            if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
-                throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.customizationProperties.geometry.minPoints);
-            } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
-                throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
+            if(this.#drawingToolsManager.settings.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.settings.geometry.minPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.settings.geometry.minPoints);
+            } else if(this.#drawingToolsManager.settings.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.settings.geometry.maxPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.settings.geometry.maxPoints);
             } else {
                 this.#drawingToolsManager.finish();
             }
@@ -320,10 +320,10 @@ export class InteractionManager implements IManager {
          */
         if (updateKeyPressed) {
             const numberOfPoints = this.#drawingToolsManager.geometryManager.positionArray.length / 3;
-            if(this.#drawingToolsManager.customizationProperties.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.customizationProperties.geometry.minPoints) {
-                throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.customizationProperties.geometry.minPoints);
-            } else if(this.#drawingToolsManager.customizationProperties.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.customizationProperties.geometry.maxPoints) {
-                throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.customizationProperties.geometry.maxPoints);
+            if(this.#drawingToolsManager.settings.geometry.minPoints !== undefined && numberOfPoints < this.#drawingToolsManager.settings.geometry.minPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#drawingToolsManager.settings.geometry.minPoints);
+            } else if(this.#drawingToolsManager.settings.geometry.maxPoints !== undefined && numberOfPoints > this.#drawingToolsManager.settings.geometry.maxPoints) {
+                throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#drawingToolsManager.settings.geometry.maxPoints);
             } else {
                 this.#drawingToolsManager.update();
             }
@@ -391,7 +391,7 @@ export class InteractionManager implements IManager {
     public onKeyUp(event: KeyboardEvent): void {
         if (this.#drawingToolsManager.closed) return;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.setupProperties.controls.insert);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.insert);
 
         /**
          * IF INSERT KEY IS RELEASED
@@ -407,7 +407,7 @@ export class InteractionManager implements IManager {
                     this.#drawingToolsManager.geometryManager.closeLoop = false;
                     this.#insertionActiveClosed = false;
                     this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
-                    this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
+                    this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.settings.geometry.close && this.#drawingToolsManager.settings.geometry.autoClose);
                 } else {
                     // remove last added point
                     this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
@@ -429,8 +429,8 @@ export class InteractionManager implements IManager {
         this.#moving = true;
         this.#lastEvent = event;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.insert);
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.setupProperties.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
 
         /**
          * IF WE ARE DRAGGING A POINT
@@ -487,7 +487,7 @@ export class InteractionManager implements IManager {
                 if(restrictedPoint) {
                     this.#drawingToolsManager.geometryManager.movePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1, restrictedPoint, false);
 
-                    if(this.#drawingToolsManager.customizationProperties.geometry.close === true && this.#drawingToolsManager.customizationProperties.geometry.autoClose === false && this.#insertionActiveClosed === false) {
+                    if(this.#drawingToolsManager.settings.geometry.close === true && this.#drawingToolsManager.settings.geometry.autoClose === false && this.#insertionActiveClosed === false) {
                         // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
                         const firstPoint = vec3.fromValues(
                             this.#drawingToolsManager.geometryManager.positionArray.at(0)!,
@@ -495,7 +495,7 @@ export class InteractionManager implements IManager {
                             this.#drawingToolsManager.geometryManager.positionArray.at(2)!
                         );
 
-                        if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === true) {
+                        if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === true) {
                             this.#drawingToolsManager.geometryManager.closeLoop = true;
                             this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);
                             this.#insertionActiveClosed = true;
@@ -513,7 +513,7 @@ export class InteractionManager implements IManager {
                         this.#drawingToolsManager.geometryManager.positionArray.at(2)!
                     );
 
-                    if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.setupProperties.visualization.points.size_0! * this.#drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor).check === true) {
+                    if (this.#drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === true) {
                         this.#drawingToolsManager.geometryManager.closeLoop = false;
                         this.addPoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3, restrictedPoint);
                         this.#insertionActiveClosed = false;
@@ -610,7 +610,7 @@ export class InteractionManager implements IManager {
                 this.#drawingToolsManager.geometryManager.closeLoop = false;
                 this.#insertionActiveClosed = false;
                 this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
-                this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
+                this.#drawingToolsManager.geometryManager.createLineIndices(this.#drawingToolsManager.settings.geometry.close && this.#drawingToolsManager.settings.geometry.autoClose);
             } else {
                 // remove last added point
                 this.removePoint(this.#drawingToolsManager.geometryManager.positionArray.length / 3 - 1);

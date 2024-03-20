@@ -137,9 +137,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const { angularDifference: angularDifferenceLast, crossProduct: crossProductLast, closestAngle: closestAngleLast } = this.getAngularDifference(point, lastPoint);
 
         const resultPointFirstAngle = vec3.rotateZ(vec3.create(), point, firstPoint, crossProductFirst[2] < 0 ? -angularDifferenceFirst : angularDifferenceFirst);
-        const screenSpaceDistanceCheckFirstAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointFirstAngle, point, this.drawingToolsManager.setupProperties.visualization.points.size_0! * this.drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckFirstAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointFirstAngle, point, this.drawingToolsManager.settings.visualization.points.size_0! * this.drawingToolsManager.settings.visualization.distanceMultiplicationFactor);
         const resultPointLastAngle = vec3.rotateZ(vec3.create(), point, lastPoint, crossProductLast[2] < 0 ? -angularDifferenceLast : angularDifferenceLast);
-        const screenSpaceDistanceCheckLastAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointLastAngle, point, this.drawingToolsManager.setupProperties.visualization.points.size_0! * this.drawingToolsManager.setupProperties.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckLastAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointLastAngle, point, this.drawingToolsManager.settings.visualization.points.size_0! * this.drawingToolsManager.settings.visualization.distanceMultiplicationFactor);
 
         if (screenSpaceDistanceCheckFirstAngle.check === false && screenSpaceDistanceCheckLastAngle.check === false) return;
 

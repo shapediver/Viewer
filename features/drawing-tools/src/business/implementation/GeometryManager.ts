@@ -10,7 +10,7 @@ import {
     PRIMITIVE_MODE,
     PrimitiveData
 } from '@shapediver/viewer.shared.types';
-import { DrawingToolsManager } from './DrawingToolsManager';
+import { DrawingToolsManager, PointsData } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
@@ -39,7 +39,7 @@ export class GeometryManager implements IManager {
 
     constructor(drawingToolsManager: DrawingToolsManager) {
         this.#drawingToolsManager = drawingToolsManager;
-        const geometryProperties = this.#drawingToolsManager.customizationProperties.geometry!;
+        const geometryProperties = this.#drawingToolsManager.settings.geometry!;
 
         // create a new node with the geometry data
         const parentNode = new TreeNode('DrawingToolsGeometry');
@@ -74,7 +74,7 @@ export class GeometryManager implements IManager {
             );
             this.#geometryDataLines.renderOrder = 999;
             parentNode.addData(this.#geometryDataLines);
-            this.createLineIndices(this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose);
+            this.createLineIndices(this.#drawingToolsManager.settings.geometry.close && this.#drawingToolsManager.settings.geometry.autoClose);
         }
 
         this.#positionIndexArray = this.createAndSetPositionIndexArray();
@@ -92,7 +92,7 @@ export class GeometryManager implements IManager {
                     depthWrite: false,
                     transparent: true
                 },
-                this.#drawingToolsManager.setupProperties.visualization.points
+                this.#drawingToolsManager.settings.visualization.points
             )
         );
         const updateMaterialVariation = (variations: string[], map: IMapData) => {
@@ -135,7 +135,7 @@ export class GeometryManager implements IManager {
                         depthWrite: false,
                         transparent: true
                     },
-                    this.#drawingToolsManager.setupProperties.visualization.lines
+                    this.#drawingToolsManager.settings.visualization.lines
                 )
             );
             this.#geometryDataLines.primitive.updateVersion();
@@ -208,7 +208,7 @@ export class GeometryManager implements IManager {
         this.#positionArray = newPositionArray;
 
         if (this.#indicesArrayLines && this.#geometryDataLines)
-            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose));
+            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.settings.geometry.close && this.#drawingToolsManager.settings.geometry.autoClose));
 
         this.#geometryDataPoints.primitive.attributes['POSITION'] = new AttributeData(this.#positionArray, this.#geometryDataPoints.primitive.attributes['POSITION'].itemSize, this.#geometryDataPoints.primitive.attributes['POSITION'].itemBytes, this.#geometryDataPoints.primitive.attributes['POSITION'].byteOffset, this.#geometryDataPoints.primitive.attributes['POSITION'].elementBytes, this.#geometryDataPoints.primitive.attributes['POSITION'].normalized, this.#geometryDataPoints.primitive.attributes['POSITION'].count + 1);
         if (this.#geometryDataLines) this.#geometryDataLines.primitive.attributes['POSITION'] = new AttributeData(this.#positionArray, this.#geometryDataLines.primitive.attributes['POSITION'].itemSize, this.#geometryDataLines.primitive.attributes['POSITION'].itemBytes, this.#geometryDataLines.primitive.attributes['POSITION'].byteOffset, this.#geometryDataLines.primitive.attributes['POSITION'].elementBytes, this.#geometryDataLines.primitive.attributes['POSITION'].normalized, this.#geometryDataLines.primitive.attributes['POSITION'].count + 1);
@@ -293,6 +293,14 @@ export class GeometryManager implements IManager {
         this.updateParentNode();
     }
 
+    public getPointsData(): PointsData {
+        const points = [];
+        for (let i = 0; i < this.#positionArray.length; i += 3) {
+            points.push([this.#positionArray[i], this.#positionArray[i + 1], this.#positionArray[i + 2]]);
+        }
+        return points;
+    }
+
     public movePoint(index: number, point: vec3, onlyThreeJs: boolean): void {
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         threeJsPointsGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
@@ -344,7 +352,7 @@ export class GeometryManager implements IManager {
          *  - shift the indices with a higher index one forward, as the array will be one smaller after
          */
         if (this.#indicesArrayLines && this.#geometryDataLines)
-            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.customizationProperties.geometry.close && this.#drawingToolsManager.customizationProperties.geometry.autoClose));
+            this.createLineIndices(this.#closeLoop || (this.#drawingToolsManager.settings.geometry.close && this.#drawingToolsManager.settings.geometry.autoClose));
 
         this.createAndSetPositionIndexArray();
 

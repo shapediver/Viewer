@@ -22,8 +22,8 @@ export class RestrictionManager implements IManager {
     constructor(drawToolsManager: DrawingToolsManager) {
         this.#drawingToolsManager = drawToolsManager;
 
-        for(const restrictionDefinition of this.#drawingToolsManager.customizationProperties.restrictions) {
-            this.addRestriction(restrictionDefinition);
+        for(const restrictionToken in this.#drawingToolsManager.settings.restrictions) {
+            this.addRestriction(this.#drawingToolsManager.settings.restrictions[restrictionToken], restrictionToken);
         }
     }
 
@@ -53,8 +53,8 @@ export class RestrictionManager implements IManager {
 
     // #region Public Methods (5)
 
-    public addRestriction(properties: RestrictionProperties): string | undefined {
-        const token = this.#uuidGenerator.create();
+    public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
+        token = token || this.#uuidGenerator.create();
 
         let restriction: IRestriction | undefined;
         if(properties.type === RESTRICTION_TYPE.PLANE) {
