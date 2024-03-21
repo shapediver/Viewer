@@ -1,10 +1,10 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
 import { PlaneRestrictionProperties } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
+import { CSS2DObject } from '../../../../../three/CSS2DRenderer';
 
 // #region Type aliases (1)
 

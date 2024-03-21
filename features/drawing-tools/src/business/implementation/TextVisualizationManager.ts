@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { DrawingToolsManager } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { ThreejsData, TreeNode } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
+import { CSS2DObject, CSS2DRenderer } from '../../three/CSS2DRenderer';
 
 export class TextVisualizationManager implements IManager {
     // #region Properties (8)
