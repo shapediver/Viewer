@@ -1,7 +1,7 @@
-import { AbstractRestrictionApi } from '../../AbstractRestrictionApi';
+import { AbstractSnapRestrictionApi } from '../../AbstractSnapRestrictionApi';
 import { AngularRestriction } from '../../../../../business/implementation/restrictions/plane/snap/AngularRestriction';
 
-export class AngularRestrictionApi extends AbstractRestrictionApi {
+export class AngularRestrictionApi extends AbstractSnapRestrictionApi {
     // #region Properties (1)
 
     readonly #angularRestriction: AngularRestriction;

@@ -1,18 +1,3 @@
-// #region Type aliases (1)
-
-export type RestrictionBaseProperties = {
-    /**
-     * If the restriction is enabled
-     */
-    enabled?: boolean;
-    /**
-     * If the restriction visualization is shown
-     */
-    showVisualization?: boolean;
-}
-
-// #endregion Type aliases (1)
-
 // #region Interfaces (1)
 
 export interface IRestrictionBase {
@@ -27,6 +12,7 @@ export interface IRestrictionBase {
      * Whether the restriction is enabled or not.
      */
     enabled: boolean;
+    
     /**
      * Whether the visualization of the restriction is shown or not (if there is one).
      */

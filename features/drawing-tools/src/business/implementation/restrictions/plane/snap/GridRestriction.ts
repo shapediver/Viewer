@@ -40,6 +40,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, planeProperties: PlaneRestrictionProperties, properties?: GridRestrictionProperties) {
         super(drawingToolsManager, id);
+        this.available = properties?.available ?? true;
         this.#normal = planeProperties.normal || vec3.fromValues(0, 0, 1);
         this.#gridUnit = properties?.gridUnit || 1;
         this.#origin = planeProperties.origin || drawingToolsManager.settings.geometry.origin;
@@ -88,7 +89,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // public get
     public snap(point: vec3): vec3 | undefined {
-        if (!this.enabled) return;
+        if (this.canBeActive() === false) return;
 
         /**
          * Idea: we rotate to the xy-plane, snap the point to the grid, and then rotate back to the original plane

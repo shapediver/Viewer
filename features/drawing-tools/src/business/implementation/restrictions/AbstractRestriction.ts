@@ -4,11 +4,12 @@ import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
 import { ThreejsData, TreeNode } from '@shapediver/viewer';
 
 export abstract class AbstractRestriction implements IRestrictionBase {
-    // #region Properties (6)
+    // #region Properties (7)
 
     readonly #id: string;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
+    #available: boolean = true;
     #enabled: boolean = true;
     #showVisualization: boolean = false;
 
@@ -16,7 +17,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     protected object3D!: THREE.Object3D;
 
-    // #endregion Properties (6)
+    // #endregion Properties (7)
 
     // #region Constructors (1)
 
@@ -28,7 +29,17 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (5)
+    // #region Public Getters And Setters (7)
+
+    public get available(): boolean {
+        return this.#available;
+    }
+
+    public set available(value: boolean) {
+        this.#available = value;
+        this.object3D.visible = this.isVisible();
+        this.visibilityChanged(this.object3D.visible);
+    }
 
     public get enabled(): boolean {
         return this.#enabled;
@@ -36,7 +47,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     public set enabled(value: boolean) {
         this.#enabled = value;
-        this.object3D.visible = value && this.#showVisualization;
+        this.object3D.visible = this.isVisible();
         this.visibilityChanged(this.object3D.visible);
     }
 
@@ -50,11 +61,11 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     public set showVisualization(value: boolean) {
         this.#showVisualization = value;
-        this.object3D.visible = value && this.#enabled;
+        this.object3D.visible = this.isVisible();
         this.visibilityChanged(this.object3D.visible);
     }
 
-    // #endregion Public Getters And Setters (5)
+    // #endregion Public Getters And Setters (7)
 
     // #region Public Methods (1)
 
@@ -66,13 +77,21 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     // #endregion Public Methods (1)
 
+    // #region Protected Methods (1)
+
+    protected canBeActive(): boolean {
+        return this.#available && this.#enabled;
+    }
+
+    // #endregion Protected Methods (1)
+
     // #region Protected Abstract Methods (1)
 
     protected abstract visibilityChanged(visible: boolean): void;
 
     // #endregion Protected Abstract Methods (1)
 
-    // #region Private Methods (1)
+    // #region Private Methods (2)
 
     private createGridHelperObject(): void {
         this.object3D = new THREE.Object3D();
@@ -90,5 +109,9 @@ export abstract class AbstractRestriction implements IRestrictionBase {
         this.drawingToolsManager.viewport.updateNode(this.drawingToolsManager.parentNode);
     }
 
-    // #endregion Private Methods (1)
+    private isVisible(): boolean {
+        return this.#available && this.#enabled && this.#showVisualization;
+    }
+
+    // #endregion Private Methods (2)
 }

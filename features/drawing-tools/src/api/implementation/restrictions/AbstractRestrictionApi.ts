@@ -30,13 +30,5 @@ export abstract class AbstractRestrictionApi implements IRestrictionApi {
         return this.#restriction.id;
     }
 
-    public get showVisualization(): boolean {
-        return this.#restriction.showVisualization;
-    }
-
-    public set showVisualization(value: boolean) {
-        this.#restriction.showVisualization = value;
-    }
-
     // #endregion Public Getters And Setters (5)
 }

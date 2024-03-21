@@ -1,5 +1,5 @@
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestrictionBase, RestrictionBaseProperties } from './IRestrictionBase';
+import { IRestrictionBase } from './IRestrictionBase';
 import { ISnapRestriction } from './ISnapRestriction';
 import { vec3 } from 'gl-matrix';
 
@@ -14,7 +14,7 @@ export type RestrictionProperties = {
      * Type of the restriction
      */
     type: RESTRICTION_TYPE;
-} & RestrictionBaseProperties;
+};
 
 // #endregion Type aliases (2)
 

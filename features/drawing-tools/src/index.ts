@@ -12,7 +12,7 @@ import {
     RestrictionProperties
 } from './business/interfaces/IRestriction';
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
-import { IRestrictionBase, RestrictionBaseProperties } from './business/interfaces/IRestrictionBase';
+import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
 import { IMapData, IViewportApi, MaterialEngine, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
@@ -23,7 +23,7 @@ export {
     IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,
-    RestrictionBaseProperties, IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
+    IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
 };
 
 const defaultTextures: { [key: string]: Promise<IMapData> | IMapData } = {};

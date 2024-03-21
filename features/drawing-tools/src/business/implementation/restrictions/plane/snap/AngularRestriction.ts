@@ -42,6 +42,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, planeProperties: PlaneRestrictionProperties, properties?: AngularRestrictionProperties) {
         super(drawingToolsManager, id);
+        this.available = properties?.available ?? true;
         this.#angleStep = properties?.angleStep || Math.PI / 8;
         this.#normal = planeProperties.normal || vec3.fromValues(0, 0, 1);
         this.#priority = properties?.priority || 0;
@@ -86,7 +87,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     // #region Public Methods (1)
 
     public snap(point: vec3, metaData?: { index?: number }): vec3 | undefined {
-        if (this.enabled === false || metaData === undefined || metaData.index === undefined) return;
+        if (this.canBeActive() === false || metaData === undefined || metaData.index === undefined) return;
 
         if (this.#polarGridHelperFirst) {
             this.#polarGridHelperFirst.remove(...this.#polarGridHelperFirst.children);
