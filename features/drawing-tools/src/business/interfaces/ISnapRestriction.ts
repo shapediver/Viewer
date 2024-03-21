@@ -28,6 +28,13 @@ export interface ISnapRestriction extends IRestrictionBase {
     // #region Properties (2)
 
     /**
+     * If the restriction is available.
+     * It can still be enabled or disabled if is available.
+     * If it is not available, it cannot be enabled.
+     */
+    available: boolean;
+
+    /**
      * If the restriction is actively being used at the moment.
      */
     active: boolean;
