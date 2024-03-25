@@ -41,9 +41,9 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     constructor(drawingToolsManager: DrawingToolsManager, id: string, planeProperties: PlaneRestrictionProperties, properties?: GridRestrictionProperties) {
         super(drawingToolsManager, id);
         this.available = properties?.available ?? true;
-        this.#normal = planeProperties.normal || vec3.fromValues(0, 0, 1);
+        this.#normal = planeProperties.normal!;
         this.#gridUnit = properties?.gridUnit || 1;
-        this.#origin = planeProperties.origin || drawingToolsManager.settings.geometry.origin;
+        this.#origin = drawingToolsManager.settings.geometry.origin;
         this.#priority = properties?.priority || 0;
 
         this.#rotationMatrix = this.rotateToXYPlane();

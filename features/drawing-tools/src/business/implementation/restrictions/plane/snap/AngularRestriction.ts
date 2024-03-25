@@ -44,7 +44,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         super(drawingToolsManager, id);
         this.available = properties?.available ?? true;
         this.#angleStep = properties?.angleStep || Math.PI / 8;
-        this.#normal = planeProperties.normal || vec3.fromValues(0, 0, 1);
+        this.#normal = planeProperties.normal!;
         this.#priority = properties?.priority || 0;
         this.calculateAngles();
     }

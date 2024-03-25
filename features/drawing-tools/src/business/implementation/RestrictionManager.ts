@@ -76,7 +76,7 @@ export class RestrictionManager implements IManager {
         let result: vec3 | undefined;
         let distance = Number.MAX_VALUE;
         for (const restriction of Object.values(this.#restrictions)) {
-            const hit = restriction.rayTrace(ray);
+            const hit = restriction.rayTrace(ray, metaData);
             if (hit && vec3.squaredLength(hit) < distance) {
                 result = hit;
                 distance = vec3.squaredLength(hit);

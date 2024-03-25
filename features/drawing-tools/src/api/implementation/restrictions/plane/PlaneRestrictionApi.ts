@@ -35,14 +35,6 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
         return this.#gridRestrictionApi;
     }
 
-    public get gridSize(): number {
-        return this.#planeRestriction.gridSize;
-    }
-
-    public set gridSize(value: number) {
-        this.#planeRestriction.gridSize = value;
-    }
-
     public get normal(): vec3 {
         return this.#planeRestriction.normal;
     }

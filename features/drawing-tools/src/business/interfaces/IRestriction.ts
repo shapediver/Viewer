@@ -7,6 +7,7 @@ import { vec3 } from 'gl-matrix';
 
 export type RestrictionMetaData = {
     index?: number;
+    referencePoint?: vec3;
 }
 
 export type RestrictionProperties = {

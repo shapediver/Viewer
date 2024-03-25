@@ -1,10 +1,9 @@
-import THREE from 'three';
 import { AbstractRestriction } from '../AbstractRestriction';
 import { AngularRestriction, AngularRestrictionProperties } from './snap/AngularRestriction';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestriction, RestrictionProperties } from '../../../interfaces/IRestriction';
+import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
@@ -12,16 +11,6 @@ import { vec3 } from 'gl-matrix';
 // #region Type aliases (1)
 
 export type PlaneRestrictionProperties = {
-    /**
-     * Size of the grid
-     */
-    gridSize?: number;
-
-    /**
-     * Origin of the grid
-     */
-    origin?: vec3;
-
     /**
      * Normal of the grid
      */
@@ -47,8 +36,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     readonly #uuidGenerator = UuidGenerator.instance;
 
-    #gridHelper?: THREE.GridHelper;
-    #gridSize: number;
     #normal: vec3;
     #origin: vec3;
     #snapRestrictions: { [key: string]: ISnapRestriction; } = {};
@@ -59,11 +46,9 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        this.#normal = properties.normal || vec3.fromValues(0, 0, 1);
-        properties.origin = properties.origin || drawingToolsManager.settings.geometry.origin;
-        this.#origin = properties.origin;
-        this.#gridSize = properties.gridSize || 100;
-        this.createGridVisualization();
+        properties.normal = properties.normal ? vec3.normalize(vec3.create(), properties.normal) : vec3.fromValues(0, 0, 1);
+        this.#normal = properties.normal;
+        this.#origin = drawingToolsManager.settings.geometry.origin;
 
         this.#snapRestrictions['grid'] = new GridRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties, properties.gridSnapRestriction);
         this.#snapRestrictions['angular'] = new AngularRestriction(this.drawingToolsManager, this.#uuidGenerator.create(), properties, properties.angularSnapRestriction);
@@ -81,22 +66,12 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         return this.#snapRestrictions['grid'] as GridRestriction;
     }
 
-    public get gridSize(): number {
-        return this.#gridSize;
-    }
-
-    public set gridSize(value: number) {
-        this.#gridSize = value;
-        this.createGridVisualization();
-    }
-
     public get normal(): vec3 {
         return this.#normal;
     }
 
     public set normal(value: vec3) {
         this.#normal = value;
-        this.createGridVisualization();
     }
 
     public get origin(): vec3 {
@@ -105,7 +80,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     public set origin(value: vec3) {
         this.#origin = value;
-        this.createGridVisualization();
     }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
@@ -116,7 +90,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #region Public Methods (2)
 
-    public rayTrace(ray: IRay): vec3 {
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 {
         if (this.canBeActive() === false) return vec3.create();
 
         // find intersection of ray and plane
@@ -172,31 +146,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     protected visibilityChanged(visible: boolean): void { }
 
     // #endregion Protected Methods (1)
-
-    // #region Private Methods (1)
-
-    private createGridVisualization(): void {
-        if (this.#gridHelper) {
-            this.object3D.remove(this.#gridHelper);
-            this.#gridHelper.dispose();
-        }
-
-        this.#gridHelper = new THREE.GridHelper(this.#gridSize, 2, 0x666666, 0x222222);
-        this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
-
-        this.#gridHelper.renderOrder = -1;
-        (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
-        (this.#gridHelper.material as THREE.LineBasicMaterial).transparent = true;
-
-        // rotate grid helper to match axis
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this.#normal[0], this.#normal[1], this.#normal[2]));
-        this.#gridHelper.quaternion.copy(quaternion);
-
-        this.object3D.add(this.#gridHelper);
-    }
-
-    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)

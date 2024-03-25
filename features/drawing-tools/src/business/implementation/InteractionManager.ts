@@ -251,41 +251,49 @@ export class InteractionManager implements IManager {
          * START DRAGGING
          */
         if (this.#selectedPointIndices.length > 0 && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+
+            const draggedPoint = vec3.fromValues(
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
+                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
+            );
+
             // store drag start
-            // calculate ray intersection with XY plane
-            const dot = vec3.dot(ray.direction, vec3.fromValues(0, 0, 1));
-            const t = vec3.dot(vec3.sub(vec3.create(), vec3.create(), ray.origin), vec3.fromValues(0, 0, 1)) / dot;
-            this.#dragStart = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
-            // store selected point positions
-            this.#selectedPointIndices.forEach(element =>
-                this.#selectedPointPositions.push(
-                    vec3.fromValues(
-                        this.#drawingToolsManager.geometryManager.positionArray.at(element * 3)!,
-                        this.#drawingToolsManager.geometryManager.positionArray.at(element * 3 + 1)!,
-                        this.#drawingToolsManager.geometryManager.positionArray.at(element * 3 + 2)!
+            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {referencePoint: draggedPoint});
+
+            if(intersectionPoint) {
+                this.#dragStart = intersectionPoint;
+                // store selected point positions
+                this.#selectedPointIndices.forEach(element =>
+                    this.#selectedPointPositions.push(
+                        vec3.fromValues(
+                            this.#drawingToolsManager.geometryManager.positionArray.at(element * 3)!,
+                            this.#drawingToolsManager.geometryManager.positionArray.at(element * 3 + 1)!,
+                            this.#drawingToolsManager.geometryManager.positionArray.at(element * 3 + 2)!
+                        )
                     )
-                )
-            );
-
-            this.#hoveredPointPosition = vec3.fromValues(
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
-            );
-
-            this.#draggedPointPosition = vec3.fromValues(
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
-                this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
-            );
-
-            this.#draggedPoint = this.#hoveredPoint;
-
-            this.#dragging = true;
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
-
-            if (!this.#cameraFreezeFlag)
-                this.#cameraFreezeFlag = this.#drawingToolsManager.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
+                );
+    
+                this.#hoveredPointPosition = vec3.fromValues(
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
+                );
+    
+                this.#draggedPointPosition = vec3.fromValues(
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3)!,
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 1)!,
+                    this.#drawingToolsManager.geometryManager.positionArray.at(this.#hoveredPoint * 3 + 2)!
+                );
+    
+                this.#draggedPoint = this.#hoveredPoint;
+    
+                this.#dragging = true;
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
+    
+                if (!this.#cameraFreezeFlag)
+                    this.#cameraFreezeFlag = this.#drawingToolsManager.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
+            }
         }
     }
 
@@ -439,27 +447,25 @@ export class InteractionManager implements IManager {
         if (this.#selectedPointIndices.length > 0 && this.#dragging) {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
-            // calculate ray intersection with XY plane
-            const dot = vec3.dot(ray.direction, vec3.fromValues(0, 0, 1));
-            const t = vec3.dot(vec3.sub(vec3.create(), vec3.create(), ray.origin), vec3.fromValues(0, 0, 1)) / dot;
+            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {referencePoint: this.#dragStart});
 
-            // calculate difference between drag start and current position
-            const intersectionPoint = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
-            const difference = vec3.sub(vec3.create(), intersectionPoint, this.#dragStart);
+            if(intersectionPoint) {
+                const difference = vec3.sub(vec3.create(), intersectionPoint, this.#dragStart);
 
-            const selectedPoint = vec3.add(vec3.create(), difference, this.#draggedPointPosition);
-            const restrictedPoint = this.#drawingToolsManager.restrictionManager.snap(selectedPoint, { index: this.#draggedPoint });
-
-            if(restrictedPoint)  {
-                const differenceToRestricted = vec3.sub(vec3.create(), restrictedPoint, this.#draggedPointPosition);
+                const selectedPoint = vec3.add(vec3.create(), difference, this.#draggedPointPosition);
+                const restrictedPoint = this.#drawingToolsManager.restrictionManager.snap(selectedPoint, { index: this.#draggedPoint });
     
-                for (let i = 0; i < this.#selectedPointIndices.length; i++) {
-                    // add difference to selected point
-                    const selectedPoint = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
-                    this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
+                if(restrictedPoint)  {
+                    const differenceToRestricted = vec3.sub(vec3.create(), restrictedPoint, this.#draggedPointPosition);
+        
+                    for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+                        // add difference to selected point
+                        const selectedPoint = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
+                        this.#drawingToolsManager.geometryManager.movePoint(this.#selectedPointIndices[i], selectedPoint, true);
+                    }
+    
+                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
                 }
-
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
             }
         }
         
