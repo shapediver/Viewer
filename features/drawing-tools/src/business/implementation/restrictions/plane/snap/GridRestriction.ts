@@ -2,8 +2,8 @@ import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
-import { PlaneRestrictionProperties } from '../PlaneRestriction';
-import { vec3, mat4 } from 'gl-matrix';
+import { PlaneRestriction } from '../PlaneRestriction';
+import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
@@ -22,32 +22,44 @@ export type GridRestrictionProperties = {
 // #region Classes (1)
 
 export class GridRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (10)
+    // #region Properties (11)
+
+    readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
     #gridHelper?: THREE.GridHelper;
     #gridSize: number = 100;
     #gridUnit: number;
     #normal: vec3;
+    #offsetFromUnit: vec3 = vec3.create();
     #origin: vec3;
     #priority: number = 0;
-    #rotationMatrix: mat4 = mat4.create();
-    #rotationMatrixInverse: mat4 = mat4.create();
+    #vectorU: vec3;
+    #vectorV: vec3;
 
-    // #endregion Properties (10)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
-    constructor(drawingToolsManager: DrawingToolsManager, id: string, planeProperties: PlaneRestrictionProperties, properties?: GridRestrictionProperties) {
-        super(drawingToolsManager, id);
+    constructor(drawingToolsManager: DrawingToolsManager, planeRestriction: PlaneRestriction, properties?: GridRestrictionProperties) {
+        super(drawingToolsManager, 'grid');
+
+        this.#planeRestriction = planeRestriction;
+
+        // we store the properties of the plane restriction
+        // as we need them to calculate the transformation matrices
+        // and the offset of the grid size to the origin
+        this.#vectorU = planeRestriction.vectorU!;
+        this.#vectorV = planeRestriction.vectorV!;
+        this.#normal = planeRestriction.normal;
+        this.#origin = planeRestriction.origin;
+
         this.available = properties?.available ?? true;
-        this.#normal = planeProperties.normal!;
         this.#gridUnit = properties?.gridUnit || 1;
-        this.#origin = drawingToolsManager.settings.geometry.origin;
         this.#priority = properties?.priority || 0;
 
-        this.#rotationMatrix = this.rotateToXYPlane();
-        this.#rotationMatrixInverse = mat4.invert(mat4.create(), this.#rotationMatrix);
+        // create the offset of the grid size to origin
+        this.createOffsetFromUnit();
 
         // calculate offset of grid size to origin
         this.createGridVisualization();
@@ -72,6 +84,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     public set gridUnit(value: number) {
         this.#gridUnit = value;
+        this.createOffsetFromUnit();
         this.createGridVisualization();
     }
 
@@ -85,37 +98,64 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #endregion Public Getters And Setters (6)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     // public get
     public snap(point: vec3): vec3 | undefined {
         if (this.canBeActive() === false) return;
 
         /**
-         * Idea: we rotate to the xy-plane, snap the point to the grid, and then rotate back to the original plane
+         * Explanation of the following code:
+         * 1. Calculate the projection of the origin onto the plane that is created by the point and the normal
+         * 2. Move the grid helper to the projected origin
          */
 
-        // Apply the rotation to the point
-        const rotatedPoint = vec3.transformMat4(vec3.create(), point, this.#rotationMatrix);
+        // vector from the point to the origin
+        const v = vec3.sub(vec3.create(), this.#origin, point);
 
-        // Calculate the offset of the rotated point from the rotated origin
-        const offset = vec3.sub(vec3.create(), rotatedPoint, this.#origin);
+        // dot product of the vector and the normal
+        const dot = vec3.dot(v, this.#normal);
+
+        // projection of the origin onto the plane that is created by the point and the normal
+        const projectedOrigin = vec3.sub(vec3.create(), this.#origin, vec3.scale(vec3.create(), this.#normal, dot));
+
+        // we move the grid helper to the projected origin
+        if (this.#gridHelper)
+            this.#gridHelper.position.copy(new THREE.Vector3(projectedOrigin[0], projectedOrigin[1], projectedOrigin[2]));
+
+        /**
+         * Explanation of the following code:
+         * 1. Rotate the point so that the normal of the plane is aligned with the Z axis (with previously calculated transformation matrix)
+         * 2. Snap the point to the grid
+         * 3. Rotate the point back to the original coordinate system (with previously calculated transformation matrix)
+         */
+
+        // Apply the transformation to the point
+        const rotatedPoint = vec3.transformMat4(vec3.create(), point, this.#planeRestriction.transformationToXYPlaneMatrix);
 
         // Snap the offset to the grid
-        const snappedOffset = vec3.fromValues(
-            this.#gridUnit * Math.round(offset[0] / this.#gridUnit),
-            this.#gridUnit * Math.round(offset[1] / this.#gridUnit),
-            rotatedPoint[2] // No snapping in the Z direction
-        );
+        const snappedOffset = vec3.create();
+        snappedOffset[0] = Math.round(rotatedPoint[0] / this.#gridUnit) * this.#gridUnit - this.#offsetFromUnit[0];
+        snappedOffset[1] = Math.round(rotatedPoint[1] / this.#gridUnit) * this.#gridUnit - this.#offsetFromUnit[1];
+        snappedOffset[2] = rotatedPoint[2];
 
         // Move the snapped point back to the original coordinate system
-        const snappedPoint = vec3.add(vec3.create(), this.#origin, snappedOffset);
-        const finalSnappedPoint = vec3.transformMat4(vec3.create(), snappedPoint, this.#rotationMatrixInverse);
+        const snappedPoint = vec3.transformMat4(vec3.create(), snappedOffset, this.#planeRestriction.transformationFromXYPlaneMatrix);
 
-        return finalSnappedPoint;
+        return snappedPoint;
     }
 
-    // #endregion Public Methods (1)
+    public updatePlaneDefinition(origin: vec3, vectorU: vec3, vectorV: vec3, normal: vec3): void {
+        this.#origin = origin;
+        this.#vectorU = vectorU;
+        this.#vectorV = vectorV;
+        this.#normal = normal;
+
+        this.createOffsetFromUnit();
+        this.createGridVisualization();
+    }
+
+    // #endregion Public Methods (2)
 
     // #region Protected Methods (1)
 
@@ -123,7 +163,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #endregion Protected Methods (1)
 
-    // #region Private Methods (3)
+    // #region Private Methods (2)
 
     private createGridVisualization(): void {
         if (this.#gridHelper) {
@@ -131,7 +171,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
             this.#gridHelper.dispose();
         }
 
-        this.#gridHelper = new THREE.GridHelper(this.#gridSize, this.#gridSize / this.#gridUnit, 0x666666, 0x222222);
+        // if the grid size is not divisible by the grid unit, we need to adjust the grid size
+        let gridSize = this.#gridUnit * Math.ceil(this.#gridSize / this.#gridUnit);
+        // if the number of divisions is odd, we need to add one more division
+        if (gridSize / this.#gridUnit % 2 === 1)
+            gridSize += this.#gridUnit;
+
+        // todo  adjust grid size so that is divisible by grid unit
+        this.#gridHelper = new THREE.GridHelper(gridSize, gridSize / this.#gridUnit, 0x666666, 0x222222);
         this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
         this.#gridHelper.visible = false;
 
@@ -139,33 +186,29 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
         (this.#gridHelper.material as THREE.LineBasicMaterial).transparent = true;
 
-        // rotate grid helper to match axis
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(this.#normal[0], this.#normal[1], this.#normal[2]));
-        this.#gridHelper.quaternion.copy(quaternion);
+        // three.js uses a right-handed coordinate system, so we need to rotate the grid helper
+        const rotationMatrix = new THREE.Matrix4().fromArray([
+            this.#vectorU[0], this.#vectorU[1], this.#vectorU[2], 0,
+            this.#vectorV[0], this.#vectorV[1], this.#vectorV[2], 0,
+            this.#normal[0], this.#normal[1], this.#normal[2], 0,
+            0, 0, 0, 1
+        ]);
+
+        this.#gridHelper.rotation.setFromRotationMatrix(rotationMatrix);
+        // three.js grid helper is created in the XY plane, so we need to rotate it by 90 degrees around the X axis
+        this.#gridHelper.rotateX(Math.PI / 2);
 
         this.object3D.add(this.#gridHelper);
     }
 
-    private rotateToXYPlane(): mat4 {
-        // Normalize the normal vector
-        const normalizedNormal = vec3.normalize(vec3.create(), this.#normal);
-
-        // Calculate the angle between the normal and the positive Z-axis
-        const angle = Math.acos(normalizedNormal[2]);
-
-        // Calculate the axis of rotation using the cross product with the Z-axis
-        const axis = vec3.cross(vec3.create(), [0, 0, 1], normalizedNormal);
-        const normalizedAxis = vec3.normalize(vec3.create(), axis);
-
-        // Construct the rotation matrix
-        const rotationMatrix = mat4.create();
-        mat4.fromRotation(rotationMatrix, angle, normalizedAxis);
-
-        return rotationMatrix;
+    private createOffsetFromUnit(): void {
+        // Calculate the offset of the rotated point from the rotated origin
+        this.#offsetFromUnit[0] = this.#gridUnit * Math.round(this.#origin[0] / this.#gridUnit) - this.#origin[0];
+        this.#offsetFromUnit[1] = this.#gridUnit * Math.round(this.#origin[1] / this.#gridUnit) - this.#origin[1];
+        this.#offsetFromUnit[2] = this.#gridUnit * Math.round(this.#origin[2] / this.#gridUnit) - this.#origin[2];
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (2)
 }
 
 // #endregion Classes (1)

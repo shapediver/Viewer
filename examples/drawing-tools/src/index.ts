@@ -18,7 +18,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '3f4f2205635ed815534ec601f848315576d627d2ef69166a8476e06d2b67eefc9ff6ca487d5b670701ebada86a22cfaa9c9e92c4a2053bd8bd5873f5b0c339f4d88a61ed7a6bc79c49b1e104808fa67c6656395557fcdc960cb84f3f28549622603d2169c72204-1bc02aa8d717333aa124acfacae10740',
+            '1b3d8bb58b502ee9e1cec2f36225b2b282afeaeef871dcbe8b0314d9acc198bf5436dde29d6a9b74a21002bb4fcffd58df3df697778ae4f617f72a3deb663568ee8f8b2c75dc2546d3386b28faa7ac9e96f1c1b9bd4676b83730be1d048dcd1c12e7d5e5575384-503f0b37ca9351b13ac048de37f43f66',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
     });

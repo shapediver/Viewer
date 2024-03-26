@@ -35,12 +35,20 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
         return this.#gridRestrictionApi;
     }
 
-    public get normal(): vec3 {
-        return this.#planeRestriction.normal;
+    public get vectorU(): vec3 {
+        return this.#planeRestriction.vectorU;
     }
 
-    public set normal(value: vec3) {
-        this.#planeRestriction.normal = value;
+    public set vectorU(value: vec3) {
+        this.#planeRestriction.vectorU = value;
+    }
+
+    public get vectorV(): vec3 {
+        return this.#planeRestriction.vectorV;
+    }
+
+    public set vectorV(value: vec3) {
+        this.#planeRestriction.vectorV = value;
     }
 
     public get origin(): vec3 {
