@@ -123,14 +123,6 @@ export type Settings = {
          */
         autoClose: boolean;
 
-        /**
-         * The origin of the drawing tool.
-         * The origin is used as a reference point for the drawing tool.
-         * 
-         * @default vec3.fromValues(0, 0, 0)
-         */
-        origin: vec3
-
     },
     
     /**
@@ -486,8 +478,7 @@ export class DrawingToolsManager implements IManager {
                 points: [],
                 mode: 'lines',
                 close: true,
-                autoClose: false,
-                origin: vec3.fromValues(0, 0, 0)
+                autoClose: false
             },
             restrictions: {},
             visualization: {
@@ -518,8 +509,7 @@ export class DrawingToolsManager implements IManager {
                 minPoints: settingsOptional.geometry.minPoints,
                 maxPoints: settingsOptional.geometry.maxPoints,
                 close: settingsOptional.geometry.close === undefined ? true : settingsOptional.geometry.close,
-                autoClose: settingsOptional.geometry.autoClose === undefined ? true : settingsOptional.geometry.autoClose,
-                origin: settingsOptional.geometry.origin === undefined ? vec3.fromValues(0, 0, 0) : settingsOptional.geometry.origin
+                autoClose: settingsOptional.geometry.autoClose === undefined ? true : settingsOptional.geometry.autoClose
             };
         }
 

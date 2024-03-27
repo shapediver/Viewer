@@ -11,6 +11,14 @@ import { vec3, mat4 } from 'gl-matrix';
 // #region Type aliases (1)
 
 export type PlaneRestrictionProperties = {
+
+    /**
+     * The origin of the plane.
+     * 
+     * @default vec3.fromValues(0, 0, 0)
+     */
+    origin?: vec3
+
     /**
      * Vector U of the plane
      * with the cross product of vectorU and vectorV the normal of the plane can be calculated
@@ -68,7 +76,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         
         this.#vectorU = properties.vectorU;
         this.#vectorV = properties.vectorV;
-        this.#origin = drawingToolsManager.settings.geometry.origin;
+        this.#origin = properties.origin || vec3.create();
 
         this.createTransformationMatrices();
 
