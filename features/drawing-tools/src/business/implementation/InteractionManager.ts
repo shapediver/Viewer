@@ -558,7 +558,7 @@ export class InteractionManager implements IManager {
                         }
 
                         // move indices one back if they are after the removal index
-                        if (secondIndex > this.#midPointInsertionIndex) {
+                        if (secondIndex > this.#midPointInsertionIndex || secondIndex === 0) {
                             secondIndex--;
 
                             if (secondIndex < 0)
@@ -680,6 +680,10 @@ export class InteractionManager implements IManager {
         // remove index if it is the hovered index
         if (this.#hoveredPoint === removalIndex) {
             this.#hoveredPoint = undefined;
+        }
+
+        if (this.#hoveredPoint !== undefined && this.#hoveredPoint > removalIndex) {
+            this.#hoveredPoint--;
         }
 
         // remove index from selected indices

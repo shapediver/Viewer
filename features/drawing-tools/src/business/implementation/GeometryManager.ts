@@ -216,7 +216,7 @@ export class GeometryManager implements IManager {
         this.createAndSetPositionIndexArray();
 
         // set the material index at that point to 0 and move the other indices back
-        this.#materialIndexArray = this.#materialIndexArray.slice(0, insertionIndex).concat([0], this.#materialIndexArray.slice(insertionIndex, this.#materialIndexArray.length-1));
+        this.#materialIndexArray = this.#materialIndexArray.slice(0, insertionIndex).concat([0], this.#materialIndexArray.slice(insertionIndex, this.#materialIndexArray.length));
 
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         for(let i = 0; i < this.#materialIndexArray.length; i++) 
@@ -337,9 +337,9 @@ export class GeometryManager implements IManager {
         if (removalIndex > 0 && removalIndex < positionArrayLength) {
             newPositionArray.set([...this.#positionArray.slice(0, Math.max(removalIndex, 0) * 3), ...this.#positionArray.slice(Math.min(removalIndex + 1, this.#positionArray.length) * 3, this.#positionArray.length)]);
         } else if (removalIndex === 0) {
-            newPositionArray.set(this.#positionArray.slice(3, this.#positionArray.length - 1));
+            newPositionArray.set(this.#positionArray.slice(3, this.#positionArray.length));
         } else {
-            newPositionArray.set(this.#positionArray.slice(0, this.#positionArray.length - 1 - 3));
+            newPositionArray.set(this.#positionArray.slice(0, this.#positionArray.length - 3));
         }
 
         this.#positionArray = newPositionArray;
