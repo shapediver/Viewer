@@ -4,7 +4,7 @@ import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
 import { ThreejsData, TreeNode } from '@shapediver/viewer';
 
 export abstract class AbstractRestriction implements IRestrictionBase {
-    // #region Properties (6)
+    // #region Properties (7)
 
     readonly #id: string;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
@@ -14,9 +14,10 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     protected readonly drawingToolsManager: DrawingToolsManager;
 
-    protected object3D!: THREE.Object3D;
+    protected _enabledEditable: boolean = true;
+    protected _object3D!: THREE.Object3D;
 
-    // #endregion Properties (6)
+    // #endregion Properties (7)
 
     // #region Constructors (1)
 
@@ -35,9 +36,11 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     }
 
     public set enabled(value: boolean) {
+        if(this._enabledEditable === false) return;
+
         this.#enabled = value;
-        this.object3D.visible = this.isVisible();
-        this.visibilityChanged(this.object3D.visible);
+        this._object3D.visible = this.isVisible();
+        this.visibilityChanged(this._object3D.visible);
     }
 
     public get id(): string {
@@ -50,8 +53,8 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     public set showVisualization(value: boolean) {
         this.#showVisualization = value;
-        this.object3D.visible = this.isVisible();
-        this.visibilityChanged(this.object3D.visible);
+        this._object3D.visible = this.isVisible();
+        this.visibilityChanged(this._object3D.visible);
     }
 
     // #endregion Public Getters And Setters (5)
@@ -75,12 +78,12 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Private Methods (2)
 
     private createGridHelperObject(): void {
-        this.object3D = new THREE.Object3D();
-        this.object3D.visible = false;
+        this._object3D = new THREE.Object3D();
+        this._object3D.visible = false;
 
         const node = new TreeNode('ThreeJsDataNode');
 
-        const data = new ThreejsData(this.object3D);
+        const data = new ThreejsData(this._object3D);
         node.addData(data);
 
         this.#visualizationNode.addChild(node);

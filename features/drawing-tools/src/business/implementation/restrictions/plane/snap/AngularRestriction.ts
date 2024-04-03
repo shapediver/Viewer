@@ -36,7 +36,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     #angleStep: number;
     #angleStepEditable: boolean = true;
     #angles: number[] = [];
-    #enabledEditable: boolean = true;
     #labelNext?: CSS2DObject;
     #labelPrevious?: CSS2DObject;
     #normal: vec3;
@@ -63,7 +62,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#vectorV = planeRestriction.vectorV!;
         this.#normal = planeRestriction.normal;
 
-        this.#enabledEditable = properties?.enabledEditable ?? true;
+        this._enabledEditable = properties?.enabledEditable ?? true;
         this.#angleStep = properties?.angleStep || Math.PI / 8;
         this.#angleStepEditable = properties?.angleStepEditable ?? true;
         this.#priority = properties?.priority || 0;
@@ -81,8 +80,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     public set active(value: boolean) {
-        if(this.#enabledEditable === false) return;
-
         this.#active = value;
         if (this.#polarGridHelperNext && this.#activePolarGrids.next === value) this.#polarGridHelperNext.visible = value;
         if (this.#labelNext && this.#activePolarGrids.next === value) this.#labelNext.visible = value;
@@ -106,7 +103,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     public get enabledEditable(): boolean {
-        return this.#enabledEditable;
+        return this._enabledEditable;
     }
 
     public get priority(): number {
@@ -289,7 +286,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         if (polarGridHelper) {
             polarGridHelper.remove(...polarGridHelper.children);
             polarGridHelper.dispose();
-            this.object3D.remove(polarGridHelper);
+            this._object3D.remove(polarGridHelper);
         }
 
         polarGridHelper = new THREE.PolarGridHelper(5, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
@@ -320,7 +317,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         polarGridHelper.rotation.setFromRotationMatrix(rotationMatrix);
         polarGridHelper.rotateX(Math.PI / 2);
 
-        this.object3D.add(polarGridHelper);
+        this._object3D.add(polarGridHelper);
 
         return [polarGridHelper, label];
     }

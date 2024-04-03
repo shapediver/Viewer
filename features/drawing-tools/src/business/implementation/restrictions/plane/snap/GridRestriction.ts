@@ -33,7 +33,6 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
-    #enabledEditable: boolean = true;
     #gridHelper?: THREE.GridHelper;
     #gridSize: number = 100;
     #gridUnit: number;
@@ -62,7 +61,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.#normal = planeRestriction.normal;
         this.#origin = planeRestriction.origin;
 
-        this.#enabledEditable = properties?.enabledEditable ?? true;
+        this._enabledEditable = properties?.enabledEditable ?? true;
         this.#gridUnit = properties?.gridUnit || 1;
         this.#gridUnitEditable = properties?.gridUnitEditable ?? true;
         this.#priority = properties?.priority || 0;
@@ -83,14 +82,12 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     }
 
     public set active(value: boolean) {
-        if(this.#enabledEditable === false) return;
-
         this.#active = value;
         if (this.#gridHelper) this.#gridHelper.visible = value;
     }
 
     public get enabledEditable(): boolean {
-        return this.#enabledEditable;
+        return this._enabledEditable;
     }
 
     public get gridUnit(): number {
@@ -188,7 +185,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     private createGridVisualization(): void {
         if (this.#gridHelper) {
-            this.object3D.remove(this.#gridHelper);
+            this._object3D.remove(this.#gridHelper);
             this.#gridHelper.dispose();
         }
 
@@ -219,7 +216,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // three.js grid helper is created in the XY plane, so we need to rotate it by 90 degrees around the X axis
         this.#gridHelper.rotateX(Math.PI / 2);
 
-        this.object3D.add(this.#gridHelper);
+        this._object3D.add(this.#gridHelper);
     }
 
     private createOffsetFromUnit(): void {
