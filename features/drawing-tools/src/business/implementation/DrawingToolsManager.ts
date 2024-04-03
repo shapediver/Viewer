@@ -1,5 +1,5 @@
 import { EventManager } from './EventManager';
-import { FLAG_TYPE, ITreeNode, TreeNode, sceneTree } from '@shapediver/viewer';
+import { Box, FLAG_TYPE, IBox, ITreeNode, TreeNode, sceneTree } from '@shapediver/viewer';
 import { GeometryManager } from './GeometryManager';
 import { GeometryMathManager } from './GeometryMathManager';
 import { IMapData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
@@ -255,6 +255,7 @@ export class DrawingToolsManager implements IManager {
 
     #closed: boolean = false;
     #continuousRenderingFlag: string = '';
+    #inputBoundingBox: IBox = new Box();
     #uuid = this.#uuidGenerator.create();
 
     // #endregion Properties (17)
@@ -319,6 +320,10 @@ export class DrawingToolsManager implements IManager {
 
     public get geometryMathManager(): GeometryMathManager {
         return this.#geometryMathManager;
+    }
+
+    public get inputBoundingBox(): IBox {
+        return this.#inputBoundingBox;
     }
 
     public get interactionManager(): InteractionManager {
@@ -512,6 +517,21 @@ export class DrawingToolsManager implements IManager {
                 autoClose: settingsOptional.geometry.autoClose === undefined ? true : settingsOptional.geometry.autoClose
             };
         }
+
+        const min = vec3.fromValues(Infinity, Infinity, Infinity);
+        const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+        for(let i = 0; i < settings.geometry.points.length; i++) {
+            const point = settings.geometry.points[i];
+            
+            min[0] = Math.min(min[0], point[0]);
+            min[1] = Math.min(min[1], point[1]);
+            min[2] = Math.min(min[2], point[2]);
+
+            max[0] = Math.max(max[0], point[0]);
+            max[1] = Math.max(max[1], point[1]);
+            max[2] = Math.max(max[2], point[2]);
+        }
+        this.#inputBoundingBox = new Box(min, max);
 
         if (settingsOptional.restrictions === undefined || Object.keys(settingsOptional.restrictions).length === 0) {
             settings.restrictions['plane'] = { type: RESTRICTION_TYPE.PLANE };

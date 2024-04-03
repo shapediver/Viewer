@@ -18,12 +18,12 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '9ce93e17a415e2ed20a3ebd4ed836e334ee3a03651209e2883d96a304f29e2b3110896c97c84fb41619689931d11c5bd26fc28e23cc55333fc258abbaf0795f43494ee5ac88bb5859844f81d681c736284841bb09c6439791d8a3b7522fbf5deed04fae1e23f7c-1c0f23f7c9ce07181955c4536b0e5edc',
+            'e68eb247669db1dd9143edfddb621e97cf631d54757781eb66cd25a36224a8c3e4d803fa1f8d67552469920526ebe969b906541d2041d85702f7b4f46df3b76909c034a3d7f00618356dc0b485115092cb21f304c3f592a9ccc2e48240e8ca933a8280c8660ab0-a71165b362ca9e696710c2d7bc86e88b',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
         initialParameterValues: {
-            "Grid Restriction Unit Editable": "false",
-            "Angular Restriction Angle Step Editable": "false",
+            "Grid Unit Editable": "false",
+            "Angle Step Editable": "false",
         }
     });
 

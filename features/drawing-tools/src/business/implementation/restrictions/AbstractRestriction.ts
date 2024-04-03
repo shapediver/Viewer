@@ -9,11 +9,11 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     readonly #id: string;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
-    #enabled: boolean = true;
     #showVisualization: boolean = false;
 
     protected readonly drawingToolsManager: DrawingToolsManager;
 
+    protected _enabled: boolean = true;
     protected _enabledEditable: boolean = true;
     protected _object3D!: THREE.Object3D;
 
@@ -32,13 +32,13 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Public Getters And Setters (5)
 
     public get enabled(): boolean {
-        return this.#enabled;
+        return this._enabled;
     }
 
     public set enabled(value: boolean) {
         if(this._enabledEditable === false) return;
 
-        this.#enabled = value;
+        this._enabled = value;
         this._object3D.visible = this.isVisible();
         this.visibilityChanged(this._object3D.visible);
     }
@@ -94,7 +94,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     }
 
     private isVisible(): boolean {
-        return this.#enabled && this.#showVisualization;
+        return this._enabled && this.#showVisualization;
     }
 
     // #endregion Private Methods (2)

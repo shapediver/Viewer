@@ -61,6 +61,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.#normal = planeRestriction.normal;
         this.#origin = planeRestriction.origin;
 
+        this.enabled = properties?.enabled ?? true;
         this._enabledEditable = properties?.enabledEditable ?? true;
         this.#gridUnit = properties?.gridUnit || 1;
         this.#gridUnitEditable = properties?.gridUnitEditable ?? true;

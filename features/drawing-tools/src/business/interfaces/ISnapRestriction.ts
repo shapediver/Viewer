@@ -6,6 +6,10 @@ import { vec3 } from 'gl-matrix';
 
 export type SnapRestrictionProperties = {
     /**
+     * If the restriction should be enabled by default.
+     */
+    enabled?: boolean;
+    /**
      * If the enabling or disabling of the restriction is allowed to the end user.
      * If it is not editable, the default value for enabling or disabling the restriction is used.
      */

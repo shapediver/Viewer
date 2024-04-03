@@ -62,6 +62,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#vectorV = planeRestriction.vectorV!;
         this.#normal = planeRestriction.normal;
 
+        this.enabled = properties?.enabled ?? true;
         this._enabledEditable = properties?.enabledEditable ?? true;
         this.#angleStep = properties?.angleStep || Math.PI / 8;
         this.#angleStepEditable = properties?.angleStepEditable ?? true;
@@ -289,7 +290,11 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             this._object3D.remove(polarGridHelper);
         }
 
-        polarGridHelper = new THREE.PolarGridHelper(5, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
+        let radius = this.drawingToolsManager.inputBoundingBox.boundingSphere.radius / 2;
+        if(radius === Infinity)
+            radius = 1;
+
+        polarGridHelper = new THREE.PolarGridHelper(radius, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
         polarGridHelper.renderOrder = -1;
         (polarGridHelper.material as THREE.LineBasicMaterial).depthTest = false;
         (polarGridHelper.material as THREE.LineBasicMaterial).transparent = true;
