@@ -6,12 +6,10 @@ import { vec3 } from 'gl-matrix';
 
 export type SnapRestrictionProperties = {
     /**
-     * If the restriction is available.
-     * It can still be enabled or disabled if is available.
-     * If it is not available, it cannot be enabled.
+     * If the enabling or disabling of the restriction is allowed to the end user.
+     * If it is not editable, the default value for enabling or disabling the restriction is used.
      */
-    available?: boolean;
-    
+    enabledEditable?: boolean;
     /**
      * Priority of the restriction.
      * The higher the priority, the sooner the restriction is applied.
@@ -28,11 +26,10 @@ export interface ISnapRestriction extends IRestrictionBase {
     // #region Properties (2)
 
     /**
-     * If the restriction is available.
-     * It can still be enabled or disabled if is available.
-     * If it is not available, it cannot be enabled.
+     * If the enabling or disabling of the restriction is allowed to the end user.
+     * If it is not editable, the default value for enabling or disabling the restriction is used.
      */
-    available: boolean;
+    enabledEditable: boolean;
 
     /**
      * If the restriction is actively being used at the moment.

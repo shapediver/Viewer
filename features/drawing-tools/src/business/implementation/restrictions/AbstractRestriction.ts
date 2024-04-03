@@ -4,12 +4,11 @@ import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
 import { ThreejsData, TreeNode } from '@shapediver/viewer';
 
 export abstract class AbstractRestriction implements IRestrictionBase {
-    // #region Properties (7)
+    // #region Properties (6)
 
     readonly #id: string;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
-    #available: boolean = true;
     #enabled: boolean = true;
     #showVisualization: boolean = false;
 
@@ -17,7 +16,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     protected object3D!: THREE.Object3D;
 
-    // #endregion Properties (7)
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -29,17 +28,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (7)
-
-    public get available(): boolean {
-        return this.#available;
-    }
-
-    public set available(value: boolean) {
-        this.#available = value;
-        this.object3D.visible = this.isVisible();
-        this.visibilityChanged(this.object3D.visible);
-    }
+    // #region Public Getters And Setters (5)
 
     public get enabled(): boolean {
         return this.#enabled;
@@ -65,7 +54,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
         this.visibilityChanged(this.object3D.visible);
     }
 
-    // #endregion Public Getters And Setters (7)
+    // #endregion Public Getters And Setters (5)
 
     // #region Public Methods (1)
 
@@ -76,14 +65,6 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     }
 
     // #endregion Public Methods (1)
-
-    // #region Protected Methods (1)
-
-    protected canBeActive(): boolean {
-        return this.#available && this.#enabled;
-    }
-
-    // #endregion Protected Methods (1)
 
     // #region Protected Abstract Methods (1)
 
@@ -110,7 +91,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     }
 
     private isVisible(): boolean {
-        return this.#available && this.#enabled && this.#showVisualization;
+        return this.#enabled && this.#showVisualization;
     }
 
     // #endregion Private Methods (2)

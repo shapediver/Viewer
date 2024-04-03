@@ -27,5 +27,9 @@ export class GridRestrictionApi extends AbstractSnapRestrictionApi {
         this.#gridRestriction.gridUnit = value;
     }
 
+    public get gridUnitEditable(): boolean {
+        return this.#gridRestriction.gridUnitEditable;
+    }
+
     // #endregion Public Getters And Setters (2)
 }

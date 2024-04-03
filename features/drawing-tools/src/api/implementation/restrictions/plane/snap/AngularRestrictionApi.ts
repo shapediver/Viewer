@@ -27,5 +27,9 @@ export class AngularRestrictionApi extends AbstractSnapRestrictionApi {
         this.#angularRestriction.angleStep = value;
     }
 
+    public get angleStepEditable(): boolean {
+        return this.#angularRestriction.angleStepEditable;
+    }
+
     // #endregion Public Getters And Setters (2)
 }

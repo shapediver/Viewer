@@ -18,15 +18,19 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            'c7548197f436d1836a032c57be63ca641c8b5ae6996e33908a5345197fe2d9f75cc9d55ff56a801be4ab10f5a8ae313e075bf0263adb24ed14aaf0592bcbe2c04b09e4c0acc340cf537d553da3db4eae591afe00e50d9a42afb39bffac7166213483b81cff8063-e2ab847586000d01b7743a89a7d131b3',
+            '9ce93e17a415e2ed20a3ebd4ed836e334ee3a03651209e2883d96a304f29e2b3110896c97c84fb41619689931d11c5bd26fc28e23cc55333fc258abbaf0795f43494ee5ac88bb5859844f81d681c736284841bb09c6439791d8a3b7522fbf5deed04fae1e23f7c-1c0f23f7c9ce07181955c4536b0e5edc',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
+        initialParameterValues: {
+            "Grid Restriction Unit Editable": "false",
+            "Angular Restriction Angle Step Editable": "false",
+        }
     });
 
     const pointsParameter = session.getParameterByName('points')[0];
 
     // get the output for the drawing tools options
-    const customizationProperties: Settings = session.getOutputByName('DrawingToolsOptions')[0].content![0].data as Settings;
+    const customizationProperties: Settings = (session.getOutputByName('AppBuilder')[0].content![0].data as any).containers[1].tabs[0].widgets[0].props.drawingToolsSettings;
     console.log(customizationProperties);
 
     /**
@@ -76,32 +80,39 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     menuDiv.style.zIndex = '100';
     document.body.appendChild(menuDiv);
 
-    createCustomUi([
-        <IBooleanElement>{
-            name: 'show point labels',
-            type: 'boolean',
-            value: drawingToolsApi!.showPointLabels,
-            onInputCallback: (value: boolean) => {
-                drawingToolsApi!.showPointLabels = value;
-            }
-        },
-        <IBooleanElement>{
-            name: 'show distance labels',
-            type: 'boolean',
-            value: drawingToolsApi!.showDistanceLabels,
-            onInputCallback: (value: boolean) => {
-                drawingToolsApi!.showDistanceLabels = value;
-            }
-        },
-        <IBooleanElement>{
+    const elements: (IBooleanElement | ISliderElement)[] = [];
+
+    elements.push({
+        name: 'show point labels',
+        type: 'boolean',
+        value: drawingToolsApi!.showPointLabels,
+        onInputCallback: (value: boolean) => {
+            drawingToolsApi!.showPointLabels = value;
+        }
+    });
+
+    elements.push({
+        name: 'show distance labels',
+        type: 'boolean',
+        value: drawingToolsApi!.showDistanceLabels,
+        onInputCallback: (value: boolean) => {
+            drawingToolsApi!.showDistanceLabels = value;
+        }
+    });
+
+    if(planeRestrictionApi.gridRestrictionApi.enabledEditable) {
+        elements.push({
             name: 'grid',
             type: 'boolean',
             value: planeRestrictionApi.gridRestrictionApi.enabled,
             onInputCallback: (value: boolean) => {
                 planeRestrictionApi.gridRestrictionApi.enabled = value;
             }
-        },
-        <ISliderElement>{
+        });
+    }
+
+    if(planeRestrictionApi.gridRestrictionApi.gridUnitEditable) {
+        elements.push({
             name: 'grid unit',
             type: 'slider',
             value: planeRestrictionApi.gridRestrictionApi.gridUnit,
@@ -111,17 +122,22 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             onInputCallback: (value: string) => {
                 planeRestrictionApi.gridRestrictionApi.gridUnit = +value;
             }
-        },
-        <IBooleanElement>{
+        });
+    }
+
+    if(planeRestrictionApi.angularRestrictionApi.enabledEditable) {
+        elements.push({
             name: 'angular',
             type: 'boolean',
-            label: 'Show Points',
             value: planeRestrictionApi.angularRestrictionApi.enabled,
             onInputCallback: (value: boolean) => {
                 planeRestrictionApi.angularRestrictionApi.enabled = value;
             }
-        },
-        <ISliderElement>{
+        });
+    }
+
+    if(planeRestrictionApi.angularRestrictionApi.angleStepEditable) {
+        elements.push({
             name: 'angle step',
             type: 'slider',
             value: 8,
@@ -131,8 +147,10 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             onInputCallback: (value: string) => {
                 planeRestrictionApi.angularRestrictionApi.angleStep = Math.PI / +value;
             }
-        },
-    ], menuDiv);
+        });
+    }
+
+    createCustomUi(elements, menuDiv);
 
     /**
      * 

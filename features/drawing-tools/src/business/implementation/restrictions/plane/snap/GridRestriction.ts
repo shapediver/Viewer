@@ -15,6 +15,12 @@ export type GridRestrictionProperties = {
      * Size of the grid unit
      */
     gridUnit?: number;
+    
+    /**
+     * If the grid unit is editable for change to the end user.
+     * If it is not editable, the grid unit cannot be changed from the default value.
+     */
+    gridUnitEditable?: boolean;
 } & SnapRestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -27,9 +33,11 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
+    #enabledEditable: boolean = true;
     #gridHelper?: THREE.GridHelper;
     #gridSize: number = 100;
     #gridUnit: number;
+    #gridUnitEditable: boolean = true;
     #normal: vec3;
     #offsetFromUnit: vec3 = vec3.create();
     #origin: vec3;
@@ -54,8 +62,9 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.#normal = planeRestriction.normal;
         this.#origin = planeRestriction.origin;
 
-        this.available = properties?.available ?? true;
+        this.#enabledEditable = properties?.enabledEditable ?? true;
         this.#gridUnit = properties?.gridUnit || 1;
+        this.#gridUnitEditable = properties?.gridUnitEditable ?? true;
         this.#priority = properties?.priority || 0;
 
         // create the offset of the grid size to origin
@@ -74,8 +83,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     }
 
     public set active(value: boolean) {
+        if(this.#enabledEditable === false) return;
+
         this.#active = value;
         if (this.#gridHelper) this.#gridHelper.visible = value;
+    }
+
+    public get enabledEditable(): boolean {
+        return this.#enabledEditable;
     }
 
     public get gridUnit(): number {
@@ -83,9 +98,15 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     }
 
     public set gridUnit(value: number) {
+        if (this.#gridUnitEditable === false) return;
+
         this.#gridUnit = value;
         this.createOffsetFromUnit();
         this.createGridVisualization();
+    }
+
+    public get gridUnitEditable(): boolean {
+        return this.#gridUnitEditable;
     }
 
     public get priority(): number {
@@ -102,7 +123,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // public get
     public snap(point: vec3): vec3 | undefined {
-        if (this.canBeActive() === false) return;
+        if (this.enabled === false) return;
 
         /**
          * Explanation of the following code:

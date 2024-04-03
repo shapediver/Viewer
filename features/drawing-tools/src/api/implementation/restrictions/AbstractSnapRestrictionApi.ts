@@ -20,8 +20,8 @@ export abstract class AbstractSnapRestrictionApi extends AbstractRestrictionApi 
 
     // #region Public Getters And Setters (3)
 
-    public get available(): boolean {
-        return this.#restriction.available;
+    public get enabledEditable(): boolean {
+        return this.#restriction.enabledEditable;
     }
 
     public get priority(): number {

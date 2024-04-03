@@ -2,7 +2,7 @@ import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
-import { PlaneRestriction, PlaneRestrictionProperties } from '../PlaneRestriction';
+import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 import { CSS2DObject } from '../../../../../three/CSS2DRenderer';
 
@@ -13,6 +13,12 @@ export type AngularRestrictionProperties = {
      * Step size for the angles
      */
     angleStep?: number;
+
+    /**
+     * If the angle step is editable for change to the end user.
+     * If it is not editable, the angle step cannot be changed from the default value.
+     */
+    angleStepEditable?: boolean;
 } & SnapRestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -28,7 +34,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         previous: false
     };
     #angleStep: number;
+    #angleStepEditable: boolean = true;
     #angles: number[] = [];
+    #enabledEditable: boolean = true;
     #labelNext?: CSS2DObject;
     #labelPrevious?: CSS2DObject;
     #normal: vec3;
@@ -55,8 +63,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#vectorV = planeRestriction.vectorV!;
         this.#normal = planeRestriction.normal;
 
-        this.available = properties?.available ?? true;
+        this.#enabledEditable = properties?.enabledEditable ?? true;
         this.#angleStep = properties?.angleStep || Math.PI / 8;
+        this.#angleStepEditable = properties?.angleStepEditable ?? true;
         this.#priority = properties?.priority || 0;
 
         // calculate the angles
@@ -72,6 +81,8 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     public set active(value: boolean) {
+        if(this.#enabledEditable === false) return;
+
         this.#active = value;
         if (this.#polarGridHelperNext && this.#activePolarGrids.next === value) this.#polarGridHelperNext.visible = value;
         if (this.#labelNext && this.#activePolarGrids.next === value) this.#labelNext.visible = value;
@@ -84,8 +95,18 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     public set angleStep(value: number) {
+        if(this.#angleStepEditable === false) return;
+
         this.#angleStep = value;
         this.calculateAngles();
+    }
+
+    public get angleStepEditable(): boolean {
+        return this.#angleStepEditable;
+    }
+
+    public get enabledEditable(): boolean {
+        return this.#enabledEditable;
     }
 
     public get priority(): number {
@@ -101,7 +122,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     // #region Public Methods (2)
 
     public snap(point: vec3, metaData?: { index?: number }): vec3 | undefined {
-        if (this.canBeActive() === false || metaData === undefined || metaData.index === undefined) return;
+        if (this.enabled === false || metaData === undefined || metaData.index === undefined) return;
 
         if (this.#polarGridHelperNext) {
             this.#polarGridHelperNext.remove(...this.#polarGridHelperNext.children);

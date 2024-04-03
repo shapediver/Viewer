@@ -21,15 +21,15 @@ export type PlaneRestrictionProperties = {
 
     /**
      * Vector U of the plane
-     * with the cross product of vectorU and vectorV the normal of the plane can be calculated
+     * with the cross product of vector_u and vector_v the normal of the plane can be calculated
      */
-    vectorU?: vec3;
+    vector_u?: vec3;
 
     /**
      * Vector V of the plane
-     * with the cross product of vectorU and vectorV the normal of the plane can be calculated
+     * with the cross product of vector_u and vector_v the normal of the plane can be calculated
      */
-    vectorV?: vec3;
+    vector_v?: vec3;
 
     /**
      * grid snap restriction
@@ -67,15 +67,15 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        properties.vectorU = properties.vectorU ? vec3.normalize(vec3.create(), properties.vectorU) : vec3.fromValues(1, 0, 0);
-        properties.vectorV = properties.vectorV ? vec3.normalize(vec3.create(), properties.vectorV) : vec3.fromValues(0, 1, 0);
+        properties.vector_u = properties.vector_u ? vec3.normalize(vec3.create(), properties.vector_u) : vec3.fromValues(1, 0, 0);
+        properties.vector_v = properties.vector_v ? vec3.normalize(vec3.create(), properties.vector_v) : vec3.fromValues(0, 1, 0);
         
-        this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), properties.vectorU, properties.vectorV));
-        if(vec3.dot(properties.vectorU, properties.vectorV) !== 0)
-            properties.vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, properties.vectorU));
+        this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), properties.vector_u, properties.vector_v));
+        if(vec3.dot(properties.vector_u, properties.vector_v) !== 0)
+            properties.vector_v = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, properties.vector_u));
         
-        this.#vectorU = properties.vectorU;
-        this.#vectorV = properties.vectorV;
+        this.#vectorU = properties.vector_u;
+        this.#vectorV = properties.vector_v;
         this.#origin = properties.origin || vec3.create();
 
         this.createTransformationMatrices();
@@ -164,7 +164,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     // #region Public Methods (2)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 {
-        if (this.canBeActive() === false) return vec3.create();
+        if (this.enabled === false) return vec3.create();
 
         let origin = this.#origin;
         if(metaData?.referencePoint)
@@ -177,7 +177,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     }
 
     public snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
-        if (this.canBeActive() === false) return;
+        if (this.enabled === false) return;
 
         const sortedSnapRestrictions = Object.values(this.#snapRestrictions).sort((a, b) => b.priority - a.priority);
 

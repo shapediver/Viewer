@@ -4,11 +4,10 @@ export interface ISnapRestrictionApi extends IRestrictionApi {
     // #region Properties (2)
 
     /**
-     * If the restriction is available.
-     * It can still be enabled or disabled if is available.
-     * If it is not available, it cannot be enabled.
+     * If the enabling or disabling of the restriction is allowed to the end user.
+     * If it is not editable, the default value for enabling or disabling the restriction is used.
      */
-    readonly available: boolean;
+    readonly enabledEditable: boolean;
 
     /**
      * The priority of the restriction.
