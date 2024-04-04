@@ -190,6 +190,10 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
             this.#gridHelper.dispose();
         }
 
+        this.#gridSize = this.drawingToolsManager.inputBoundingBox.boundingSphere.radius * 5;
+        if(this.#gridSize === Infinity)
+            this.#gridSize = 100;
+
         // if the grid size is not divisible by the grid unit, we need to adjust the grid size
         let gridSize = this.#gridUnit * Math.ceil(this.#gridSize / this.#gridUnit);
         // if the number of divisions is odd, we need to add one more division
