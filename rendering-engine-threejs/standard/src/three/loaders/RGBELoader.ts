@@ -457,7 +457,7 @@ class RGBELoader extends DataTextureLoader {
 
 	}
 
-	load( url: string, onLoad: { (texture: any, texData: any): void; (texture: any): void; (arg0: any, arg1: any): void; }, onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined, onError: ((event: ErrorEvent) => void) | undefined ) {
+	load( url: string, onLoad: { (texture: any, texData: any): void; (texture: any): void; (arg0: any, arg1: any): void; }, onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined, onError: ((event: unknown) => void) | undefined ) {
 
 		function onLoadCallback( texture: { type: any; colorSpace: string; minFilter: number; magFilter: number; generateMipmaps: boolean; flipY: boolean; }, texData: any ) {
 

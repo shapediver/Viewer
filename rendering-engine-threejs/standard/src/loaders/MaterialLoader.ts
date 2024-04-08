@@ -51,67 +51,76 @@ export const adaptShaders = () => {
     }
     THREE.ShaderChunk.shadowmap_pars_fragment = shader;
 
-    // set the uniform for the background envmap calculation initially
-    THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: new THREE.Matrix4() };
+    // here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))
+    THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
+        'vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );',
+        'vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );'
+    );
+    THREE.ShaderLib.backgroundCube.fragmentShader = THREE.ShaderChunk.backgroundCube_frag;
 
-    // console.log(THREE.ShaderChunk.envmap_common_pars_fragment)
-    if (!THREE.ShaderChunk.cube_uv_reflection_fragment.includes('uniform mat4 envMapRotation;')) {
-        THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-            '#ifdef ENVMAP_TYPE_CUBE_UV',
-            `uniform mat4 envMapRotation;
-            #ifdef ENVMAP_TYPE_CUBE_UV`
-        );
-    }
+    // here we replace in the envmap_physical_pars_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );'));
+    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );',
+        `
+            #ifdef ENVMAP_TYPE_LDR
+                vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal).xzy;
+                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
+            #else
+                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+            #endif
+            `
+    );
 
-    // console.log(THREE.ShaderChunk.envmap_fragment.includes(`vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`))
+    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );'));
+    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );',
+        `
+            #ifdef ENVMAP_TYPE_LDR
+                vec3 rotatedReflectVec = vec3(envMapRotation * reflectVec).xzy;
+                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), roughness );
+            #else
+                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+            #endif
+            `
+    );
+
+    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_fragment, THREE.ShaderChunk.envmap_fragment.includes('vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );'));
     THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
-        'vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );',
+        'vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );',
         `
         #ifdef ENVMAP_TYPE_LDR
-            vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.yz, 1.0 ) * envMapRotation;
-            vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
+            vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
         #else
-            vec4 adjustedEnvReflectVector = vec4( flipEnvMap * reflectVec.x, reflectVec.zy, 1.0 ) * envMapRotation;
-            vec4 envColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
+            vec4 envColor = textureCube( envMap, envMapRotation * vec3( -flipEnvMap * reflectVec.x, reflectVec.zy ) );
         #endif
         `
     );
 
-    // console.log(THREE.ShaderChunk.backgroundCube_frag.includes(`vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );`))
-    THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
-        'vec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );',
-        `
-        vec4 adjustedEnvReflectVector = vec4( flipEnvMap * vWorldDirection.x, vWorldDirection.zy, 1.0 ) * envMapRotation;
-        vec4 texColor = textureCube( envMap, adjustedEnvReflectVector.xyz );
-        `
-    );
-    THREE.ShaderLib.backgroundCube.fragmentShader = THREE.ShaderChunk.backgroundCube_frag;
-
-    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );`))
+    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes('vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );'))
     THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
         'vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );',
-        `
-        vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
-        vec3 color0 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt );      
-        `
-
+        'vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );'
     );
 
-    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes(`vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );`))
+    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment)
     THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
         'vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );',
-        `
-        vec4 adjustedEnvReflectVector = vec4(sampleDir.xzy, 1.0) * envMapRotation;
-        vec3 color1 = bilinearCubeUV( envMap, adjustedEnvReflectVector.xyz, mipInt + 1.0 );        
-        `
+        'vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );'
     );
 
+    // here we create a new case in the lights_fragment_maps for the case of ENVMAP_TYPE_NONE
     if (!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
         const index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
         THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
             `#else
             #ifdef ENVMAP_TYPE_NONE
-                vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
+                vec3 reflectVec = reflect( -geometryViewDir, geometryNormal );
                 reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
                 vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0);
                 radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
@@ -139,7 +148,7 @@ export class MaterialLoader implements ILoader {
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
     private _envMapIntensity: number = 1;
     private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
-    private _environmentMapRotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
+    private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
     private _height: number = 1020;
     private _lightSizeUV: number = 0.025;
     private _materialCache: {
@@ -151,7 +160,6 @@ export class MaterialLoader implements ILoader {
     } = {};
     private _maxMapCount: number = 0;
     private _pointSize: number = 1.0;
-    private _sceneBackgroundNeedsUpdate: boolean = false;
     private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _threeJsTextureCache: { [key: string]: ThreeJsTextureCacheObject } = {};
 
@@ -159,9 +167,7 @@ export class MaterialLoader implements ILoader {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {
-        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: this.transformEnvMapRotationMatrix(true) };
-    }
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
@@ -173,14 +179,6 @@ export class MaterialLoader implements ILoader {
 
     public set maxMapCount(value: number) {
         this._maxMapCount = value;
-    }
-
-    public get sceneBackgroundNeedsUpdate(): boolean {
-        return this._sceneBackgroundNeedsUpdate;
-    }
-
-    public set sceneBackgroundNeedsUpdate(value: boolean) {
-        this._sceneBackgroundNeedsUpdate = value;
     }
 
     public get textureEncoding(): THREE.ColorSpace {
@@ -288,7 +286,7 @@ export class MaterialLoader implements ILoader {
                 if (material.defines)
                     material.defines['ENVMAP_TYPE_' + this._envMapType.toUpperCase()] = '';
 
-                this.updateEnvironmentMapRotation(this._renderingEngine.environmentMapRotation);
+                this.assignEnvironmentMapRotation(this._renderingEngine.environmentMapRotation);
             }
         }
     }
@@ -311,8 +309,6 @@ export class MaterialLoader implements ILoader {
                     }
                     if (material.defines)
                         material.defines['ENVMAP_TYPE_' + this._envMapType.toUpperCase()] = '';
-
-                    material.userData.shader.uniforms.envMapRotation.value = this.transformEnvMapRotationMatrix();
                 } else {
                     material.envMap = null;
                     material.needsUpdate = true;
@@ -337,6 +333,31 @@ export class MaterialLoader implements ILoader {
                 ) continue;
 
                 material.envMapIntensity = value;
+                material.needsUpdate = true;
+            }
+        }
+    }
+
+    public assignEnvironmentMapRotation(value: quat) {
+        // we switch the y and z axis to match the three.js coordinate system
+        const rotationMatrix = new THREE.Matrix4().fromArray(mat4.fromQuat(mat4.create(), quat.fromValues(value[0], value[2], -value[1], value[3]))).transpose();
+        this._environmentMapRotationEuler = new THREE.Euler().setFromRotationMatrix(rotationMatrix);        
+        this._renderingEngine.scene.backgroundRotation = this._environmentMapRotationEuler;
+            
+        for (const cacheKey in this._materialCache) {
+            if ((this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshStandardMaterial)) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[cacheKey].material;
+                if (this._materialCache[cacheKey].materialData &&
+                    (
+                        this._materialCache[cacheKey].materialData instanceof MaterialStandardData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialGemData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialSpecularGlossinessData ||
+                        this._materialCache[cacheKey].materialData instanceof MaterialUnlitData
+                    ) &&
+                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[cacheKey].materialData).envMap !== undefined
+                ) continue;
+
+                material.envMapRotation = this._environmentMapRotationEuler;
                 material.needsUpdate = true;
             }
         }
@@ -387,12 +408,10 @@ export class MaterialLoader implements ILoader {
                     material = new THREE.MeshPhysicalMaterial(properties);
                 }
                 const before = material.onBeforeCompile;
-                material.onBeforeCompile = (shader: THREE.Shader, renderer: THREE.WebGLRenderer) => {
+                material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms, renderer: THREE.WebGLRenderer) => {
                     before(shader, renderer);
                     shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
                     shader.uniforms.blending = { value: this._blending };
-                    const envMapRotationMatrix = this.transformEnvMapRotationMatrix();
-                    shader.uniforms.envMapRotation = { value: envMapRotationMatrix };
                     material.userData.shader = shader;
                 };
 
@@ -469,6 +488,7 @@ export class MaterialLoader implements ILoader {
             if (!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) {
                 (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMap = this._envMap;
                 (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMapIntensity = this._envMapIntensity;
+                (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMapRotation = this._environmentMapRotationEuler;
             }
             return { properties: generalProperties, mapCount };
         }
@@ -592,6 +612,7 @@ export class MaterialLoader implements ILoader {
 
         standardProperties.envMap = this._envMap;
         standardProperties.envMapIntensity = this._envMapIntensity;
+        standardProperties.envMapRotation = this._environmentMapRotationEuler;
 
         if (materialData.normalMap !== undefined) {
             standardProperties.normalMap = this.createTexture(materialData.normalMap);
@@ -872,32 +893,6 @@ export class MaterialLoader implements ILoader {
                 delete this._materialCache[cacheKey];
             }
         }
-    }
-
-    public transformEnvMapRotationMatrix(backgroundMaterial: boolean = false): THREE.Matrix4 {
-        // y - z axis change 
-        const matrix = new THREE.Matrix4().fromArray([1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
-        if (backgroundMaterial === true) {
-            return this._envMapType.toUpperCase() === 'LDR' ? this._environmentMapRotationMatrix.clone().invert().multiply(matrix) : this._environmentMapRotationMatrix;
-        } else {
-            return this._envMapType.toUpperCase() === 'LDR' ? this._environmentMapRotationMatrix.clone().multiply(matrix) : this._environmentMapRotationMatrix;
-        }
-    }
-
-    public updateEnvironmentMapRotation(quaternion: quat) {
-        this._environmentMapRotationMatrix = new THREE.Matrix4().fromArray(mat4.fromQuat(mat4.create(), quaternion)).transpose();
-        const envMapRotationMatrix = this.transformEnvMapRotationMatrix();
-        const envMapRotationMatrixBackground = this.transformEnvMapRotationMatrix(true);
-
-        for (const cacheKey in this._materialCache)
-            if (this._materialCache[cacheKey].material.userData.shader) {
-                this._materialCache[cacheKey].material.userData.shader.uniforms.envMapRotation.value = envMapRotationMatrix;
-            }
-
-        // set the new uniform value as the default if the environment is recomputed
-        THREE.ShaderLib.backgroundCube.uniforms.envMapRotation = { value: envMapRotationMatrixBackground };
-
-        this._sceneBackgroundNeedsUpdate = true;
     }
 
     public updateMaterials(): void {

@@ -3,6 +3,7 @@ import { AbstractTreeNodeData, ITreeNode, ITreeNodeData } from '@shapediver/view
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from '../../interfaces/data/IGeometryData';
 import { IMaterialAbstractData } from '../../interfaces/data/material/IMaterialAbstractData';
+import * as THREE from 'three';
 
 export class AttributeData extends AbstractTreeNodeData implements IAttributeData {
   // #region Properties (15)

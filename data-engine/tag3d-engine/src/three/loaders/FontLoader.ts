@@ -17,7 +17,7 @@ class FontLoader extends Loader {
 	load( url: string,
         onLoad?: (responseFont: Font) => void,
         onProgress?: (event: ProgressEvent) => void,
-        onError?: (event: ErrorEvent) => void, ) {
+        onError?: (event: unknown) => void, ) {
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const scope = this;

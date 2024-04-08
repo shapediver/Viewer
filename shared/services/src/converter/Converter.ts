@@ -2,6 +2,7 @@ import { vec3 } from 'gl-matrix';
 import { ColorInput, TinyColor } from '@ctrl/tinycolor';
 import { HttpClient } from '../http-client/HttpClient';
 import { HttpResponse } from '../http-client/HttpResponse';
+import * as THREE from 'three';
 
 export class Converter {
     // #region Properties (2)

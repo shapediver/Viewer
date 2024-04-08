@@ -485,7 +485,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set environmentMapRotation(value: quat) {
     this._environmentMapRotation = value;
-    this._materialLoader.updateEnvironmentMapRotation(value);
+    this._materialLoader.assignEnvironmentMapRotation(value);
   }
 
   public get eventEngine(): EventEngine {

@@ -6,6 +6,8 @@ import { LIGHT_TYPE } from '../../interface/ILight'
 import { IPointLight } from '../../interface/types/IPointLight';
 import { AbstractLight } from '../AbstractLight'
 
+import * as THREE from 'three';
+
 export class PointLight extends AbstractLight implements IPointLight {
   // #region Properties (3)
 

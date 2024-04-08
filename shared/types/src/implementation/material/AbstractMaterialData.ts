@@ -2,6 +2,7 @@ import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.n
 import { IMapData } from '../../interfaces/data/material/IMapData';
 import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 import { Color } from '../../types';
+import * as THREE from 'three';
 
 
 export abstract class AbstractMaterialData extends AbstractTreeNodeData implements IMaterialAbstractData {

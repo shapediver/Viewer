@@ -24,6 +24,8 @@ import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-e
 import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
 import { PostProcessingApi } from "./PostProcessingApi";
 
+import * as THREE from "three";
+
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
 

@@ -17,6 +17,7 @@ import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
 import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls'
+import * as THREE from 'three'
 
 export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCamera {
   // #region Properties (3)

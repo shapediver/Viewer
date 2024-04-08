@@ -39,8 +39,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@types/three": "0.152.0",
-    "three": "0.152.2"
+    "@types/three": "0.162.0",
+    "three": "0.162.0"
   },
   "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
 }

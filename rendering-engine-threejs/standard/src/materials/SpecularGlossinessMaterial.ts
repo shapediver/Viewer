@@ -60,7 +60,7 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
         const lightPhysicalFragmentChunk = [
             'PhysicalMaterial material;',
             'material.diffuseColor = diffuseColor.rgb * ( 1. - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );',
-            'vec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );',
+            'vec3 dxy = max( abs( dFdx( nonPerturbedNormal  ) ), abs( dFdy( nonPerturbedNormal ) ) );',
             'float geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );',
             'material.roughness = max( 1.0 - glossinessFactor, 0.0525 ); // 0.0525 corresponds to the base mip of a 256 cubemap.',
             'material.roughness += geometryRoughness;',

@@ -515,36 +515,6 @@ export class RenderingManager implements IManager {
         if (threeJsLightObject)
             threeJsLightObject.visible = oldLightVisibility;
 
-        // as the scene background is not easily reachable we have to adjust properties of it within the list of rendered objects
-        // therefore, whenever the sceneBackgroundNeedsUpdate flag is set, the list of elements is traversed to adjust the scene background
-        // this currently only happens when the environment map rotation changed
-        if (this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate === true) {
-            // in case of post-processing we have to append a hidden render call
-            // as otherwise the background is not rendered into the render list
-            if (renderPostProcessing) {
-                this._renderingEngine.renderer.setRenderTarget(this._hiddenRenderTarget);
-                this._renderingEngine.renderer.render(this._renderingEngine.scene, this._hiddenCamera);
-                this._renderingEngine.renderer.setRenderTarget(null);
-            }
-
-            this._renderingEngine.materialLoader.sceneBackgroundNeedsUpdate = false;
-            const envMapRotationMatrix = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix();
-            const envMapRotationMatrixBackground = this._renderingEngine.materialLoader.transformEnvMapRotationMatrix(true);
-            // the background cube is its own mesh that lives somewhere within three.js
-            // therefore our way to change the uniform is to go through the renderer list and set the uniforms there
-            const list = this._renderingEngine.renderer.renderLists.get(this._renderingEngine.scene, 0);
-            list.opaque.forEach(element => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if ((<any>element.material).name === 'BackgroundCubeMaterial') {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrixBackground });
-                } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (<any>element.material).uniforms && (<any>element.material).uniforms.envMapRotation && ((<any>element.material).uniforms.envMapRotation = { value: envMapRotationMatrix });
-                }
-            });
-        }
-
         this._stats.end();
     }
 

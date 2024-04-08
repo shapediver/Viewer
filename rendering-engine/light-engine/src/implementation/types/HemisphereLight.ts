@@ -6,6 +6,8 @@ import { LIGHT_TYPE } from '../../interface/ILight'
 import { IHemisphereLight } from '../../interface/types/IHemisphereLight';
 import { AbstractLight } from '../AbstractLight'
 
+import * as THREE from 'three';
+
 export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 

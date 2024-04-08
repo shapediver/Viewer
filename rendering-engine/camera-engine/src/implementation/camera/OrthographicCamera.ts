@@ -17,6 +17,7 @@ import { AbstractCamera } from './AbstractCamera'
 import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
 import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
 import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
+import * as THREE from 'three'
 
 export class OrthographicCamera extends AbstractCamera implements IOrthographicCamera {
   // #region Properties (7)

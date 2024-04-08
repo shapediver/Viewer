@@ -5,6 +5,8 @@ import { LIGHT_TYPE } from '../../interface/ILight'
 import { IAmbientLight } from '../../interface/types/IAmbientLight';
 import { AbstractLight } from '../AbstractLight'
 
+import * as THREE from 'three';
+
 export class AmbientLight extends AbstractLight implements IAmbientLight {
     // #region Properties (1)
 

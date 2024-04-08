@@ -18,6 +18,8 @@ import { ILightSceneApi } from './lights/ILightSceneApi'
 import { ISettings } from '@shapediver/viewer.settings'
 import { IPostProcessingApi } from './IPostProcessingApi'
 
+import * as THREE from 'three'
+
 /**
  * The api for viewports.
  * 

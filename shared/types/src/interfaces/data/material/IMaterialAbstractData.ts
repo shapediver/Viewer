@@ -1,6 +1,7 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { Color } from '../../../types';
 import { IMapData } from './IMapData';
+import * as THREE from 'three';
 
 export enum MATERIAL_SIDE {
     DOUBLE = 'double',
