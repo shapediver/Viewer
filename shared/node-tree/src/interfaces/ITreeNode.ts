@@ -207,8 +207,11 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
     traverseData(callback: (data: U) => void): void;
     /**
      * Update the version.
+     * 
+     * @param parents if true, the version of all parents will be updated as well (default: true)
+     * @param children if true, the version of all children will be updated as well (default: true)
      */
-    updateVersion(): void;
+    updateVersion(parents?: boolean, children?: boolean): void;
 
     // #endregion Public Methods (20)
 }

@@ -1,6 +1,6 @@
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from "./ShapeDiverBackendErrors"
 import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from "./ShapeDiverError"
-import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerInteractionError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerViewportError, ShapeDiverViewerWebGLError } from "./ShapeDiverViewerErrors"
+import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerDrawingToolsError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerInteractionError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerViewportError, ShapeDiverViewerWebGLError } from "./ShapeDiverViewerErrors"
 
 /** Type guard for all error types of the viewer package. */
 export function isViewerError(e: any): e is ShapeDiverViewerError {
@@ -91,6 +91,13 @@ export function isViewerInteractionError(e: any): e is ShapeDiverViewerInteracti
     return e instanceof Error &&
         "errorType" in e &&
         (<ShapeDiverViewerError>e).errorType === ShapeDiverViewerErrorType.INTERACTION_ERROR
+}
+
+/** Type guard for a drawing tools viewer error. */
+export function isViewerDrawingToolsError(e: any): e is ShapeDiverViewerDrawingToolsError {
+    return e instanceof Error &&
+        "errorType" in e &&
+        (<ShapeDiverViewerError>e).errorType === ShapeDiverViewerErrorType.DRAWING_TOOLS_ERROR
 }
 
 /** Type guard for all error types of the Geometry Backend SDK package that are mapped to viewer errors. */

@@ -56,6 +56,9 @@ import {
   IGeometryData,
   Color,
   IViewportEvent,
+  MaterialStandardData,
+  MaterialPointData,
+  MaterialBasicLineData,
 } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
@@ -127,7 +130,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _defaultMaterialColor: Color = '#199b9b';
   private _enableAR: boolean = true;
   private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
@@ -143,7 +145,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _logoDivElement: HTMLDivElement;
   private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
   private _pause: boolean = false;
-  private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
   private _sessionSettingsMode: SESSION_SETTINGS_MODE;
@@ -155,6 +156,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
+  private _preRenderingCallback?: ((renderer: THREE.WebGLRenderer) => void) | undefined;
+  private _postRenderingCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined;
 
   // #endregion Properties (74)
 
@@ -400,13 +403,37 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
+  public get defaultMaterial(): MaterialStandardData {
+    return this.materialLoader.defaultMaterialData;
+  }
+
+  public set defaultMaterial(value: MaterialStandardData) {
+    this.materialLoader.defaultMaterialData = value;
+  }
+
+  public get defaultPointMaterial(): MaterialPointData {
+    return this.materialLoader.defaultPointMaterialData;
+  }
+
+  public set defaultPointMaterial(value: MaterialPointData) {
+    this.materialLoader.defaultPointMaterialData = value;
+  }
+
+  public get defaultLineMaterial(): MaterialBasicLineData {
+    return this.materialLoader.defaultLineMaterialData;
+  }
+
+  public set defaultLineMaterial(value: MaterialBasicLineData) {
+    this.materialLoader.defaultLineMaterialData = value;
+  }
+
   public get defaultMaterialColor(): Color {
-    return this._defaultMaterialColor;
+    return this.materialLoader.defaultMaterialData.color;
   }
 
   public set defaultMaterialColor(value: Color) {
-    this._defaultMaterialColor = value;
-    this._materialLoader.assignDefaultMaterialColor();
+    this.materialLoader.defaultMaterialData.color = value;
+    this.materialLoader.assignDefaultMaterial();
   }
 
   public get domEventEngine(): DomEventEngine {
@@ -644,16 +671,32 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get pointSize(): number {
-    return this._pointSize;
+    return this.materialLoader.defaultPointMaterialData.size || 1;
   }
 
   public set pointSize(value: number) {
-    this._pointSize = value;
-    this.materialLoader.assignPointSize(value);
+    this.materialLoader.defaultPointMaterialData.size = value;
+    this.materialLoader.assignDefaultPointMaterial();
   }
 
   public get postProcessingManager(): PostProcessingManager {
     return this._postProcessingManager;
+  }
+
+  public get postRenderingCallback(): ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined {
+    return this._postRenderingCallback;
+  }
+
+  public set postRenderingCallback(value: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined) {
+    this._postRenderingCallback = value;
+  }
+
+  public get preRenderingCallback(): ((renderer: THREE.WebGLRenderer) => void) | undefined {
+    return this._preRenderingCallback;
+  }
+
+  public set preRenderingCallback(value: ((renderer: THREE.WebGLRenderer) => void) | undefined) {
+    this._preRenderingCallback = value;
   }
 
   public get renderer(): THREE.WebGLRenderer {

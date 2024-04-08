@@ -1,14 +1,14 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from "../../interfaces/data/material/IMaterialAbstractData";
-import { IMaterialUnlitData, IMaterialUnlitDataProperties } from "../../interfaces/data/material/IMaterialUnlitData";
-import { AbstractMaterialData } from "./AbstractMaterialData";
+import { AbstractMaterialData } from './AbstractMaterialData';
+import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
+import { IMaterialPointData, IMaterialPointDataProperties } from '../../interfaces/data/material/IMaterialPointData';
 
-export class MaterialUnlitData extends AbstractMaterialData implements IMaterialUnlitData {
-    // #region Properties (1)
+export class MaterialPointData extends AbstractMaterialData implements IMaterialPointData {
+    // #region Properties (2)
 
-    #envMap?: string | string[];
+    #size?: number = undefined;
+    #sizeAttenuation?: boolean = undefined;
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
@@ -19,33 +19,42 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
      * @param id the id
      */
     constructor(
-        properties?: IMaterialUnlitDataProperties,
+        properties?: IMaterialPointDataProperties,
         id?: string,
         version?: string
     ) {
         super(properties, id, version);
         if (!properties) return;
-        if (properties.envMap !== undefined) this.envMap = properties.envMap;
+        if (properties.size !== undefined) this.size = properties.size;
+        if (properties.sizeAttenuation !== undefined) this.sizeAttenuation = properties.sizeAttenuation;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Accessors (4)
 
-    public get envMap(): string | string[] | undefined {
-        return this.#envMap;
+    public get size(): number | undefined {
+        return this.#size;
     }
 
-    public set envMap(value: string | string[] | undefined) {
-        this.#envMap = value;
+    public set size(value: number | undefined) {
+        this.#size = value;
     }
 
-    // #endregion Public Accessors (2)
+    public get sizeAttenuation(): boolean | undefined {
+        return this.#sizeAttenuation;
+    }
+
+    public set sizeAttenuation(value: boolean | undefined) {
+        this.#sizeAttenuation = value;
+    }
+
+    // #endregion Public Accessors (4)
 
     // #region Public Methods (3)
 
-    public clone(): IMaterialUnlitData {
-        return new MaterialUnlitData({
+    public clone(): IMaterialPointData {
+        return new MaterialPointData({
             alphaMap: this.alphaMap,
             alphaCutoff: this.alphaCutoff,
             alphaMode: this.alphaMode,
@@ -66,11 +75,12 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
             opacity: this.opacity,
             side: this.side,
             transparent: this.transparent,
-            envMap: this.envMap
+            size: this.size,
+            sizeAttenuation: this.sizeAttenuation
         }, this.id, this.version);
     }
 
-    public copy(source: MaterialUnlitData): void {
+    public copy(source: MaterialPointData): void {
         this.alphaCutoff = source.alphaCutoff;
         this.alphaMap = source.alphaMap;
         this.alphaMode = source.alphaMode;
@@ -90,8 +100,10 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
-        this.envMap = source.envMap;
         this.transparent = source.transparent;
+
+        this.size = source.size;
+        this.sizeAttenuation = source.sizeAttenuation;
     }
 
     public reset(): void {
@@ -115,7 +127,9 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
         this.transparent = undefined;
-        this.envMap = undefined;
+
+        this.size = undefined;
+        this.sizeAttenuation = undefined;
     }
 
     // #endregion Public Methods (3)

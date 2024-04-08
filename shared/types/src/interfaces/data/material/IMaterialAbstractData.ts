@@ -33,6 +33,8 @@ export interface IMaterialAbstractDataProperties {
     alphaCutoff?: number,
     alphaMap?: IMapData,
     alphaMode?: MATERIAL_ALPHA,
+    depthTest?: boolean,
+    depthWrite?: boolean,
     aoMap?: IMapData,
     aoMapIntensity?: number,
     bumpMap?: IMapData,
@@ -46,7 +48,8 @@ export interface IMaterialAbstractDataProperties {
     normalScale?: number,
     opacity?: number,
     shading?: MATERIAL_SHADING,
-    side?: MATERIAL_SIDE
+    side?: MATERIAL_SIDE,
+    transparent?: boolean,
     type?: MATERIAL_TYPE
 
     // #endregion Properties (17)
@@ -63,6 +66,8 @@ export interface IMaterialAbstractData extends ITreeNodeData {
     bumpMap?: IMapData,
     bumpScale: number,
     color: Color,
+    depthTest?: boolean,
+    depthWrite?: boolean,
     emissiveMap?: IMapData,
     emissiveness: Color,
     map?: IMapData,
@@ -74,6 +79,7 @@ export interface IMaterialAbstractData extends ITreeNodeData {
     shading: MATERIAL_SHADING,
     side: MATERIAL_SIDE,
     threeJsObject: { [key: string]: THREE.Material };
+    transparent?: boolean,
 
     // #endregion Properties (18)
 

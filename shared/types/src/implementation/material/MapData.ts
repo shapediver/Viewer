@@ -4,11 +4,13 @@ import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from '../../interfaces/
 import { Color } from '../../types';
 
 export class MapData extends AbstractTreeNodeData implements IMapData {
-    // #region Properties (11)
+    // #region Properties (15)
 
+    #asData: boolean = false;
     #blob?: Blob;
     #center: vec2 = vec2.fromValues(0, 0);
     #color?: Color;
+    #data?: number[];
     #flipY: boolean = true;
     #image: HTMLImageElement;
     #magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
@@ -20,13 +22,15 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     #wrapS: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT;
     #wrapT: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT;
 
-    // #endregion Properties (11)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
     constructor(
       image: HTMLImageElement,
       properties?: {
+        asData?: boolean,
+        data?: number[],
         blob?: Blob,
         wrapS?: TEXTURE_WRAPPING,
         wrapT?: TEXTURE_WRAPPING,
@@ -45,6 +49,8 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     ) {
       super(id, version);
       this.#image = image;
+      this.#asData = properties && properties.asData !== undefined ? properties.asData : false;
+      this.#data = properties ? properties.data : undefined;
       this.#blob = properties ? properties.blob : undefined;
       this.#wrapS = properties && properties.wrapS !== undefined ? properties.wrapS : TEXTURE_WRAPPING.REPEAT;
       this.#wrapT = properties && properties.wrapT !== undefined ? properties.wrapT : TEXTURE_WRAPPING.REPEAT;
@@ -61,7 +67,15 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (11)
+    // #region Public Getters And Setters (30)
+
+    public get asData(): boolean {
+      return this.#asData;
+    }
+
+    public set asData(value: boolean) {
+      this.#asData = value;
+    }
 
     public get blob(): Blob | undefined {
       return this.#blob;
@@ -85,6 +99,14 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 
     public set color(value: Color | undefined) {
       this.#color = value;
+    }
+
+    public get data(): number[] | undefined {
+      return this.#data;
+    }
+
+    public set data(value: number[] | undefined) {
+      this.#data = value;
     }
 
     public get flipY(): boolean {
@@ -167,7 +189,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       this.#wrapT = value;
     }
 
-    // #endregion Public Accessors (11)
+    // #endregion Public Getters And Setters (30)
 
     // #region Public Methods (1)
 
@@ -175,6 +197,8 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       return new MapData(
         <HTMLImageElement>this.image, 
         {
+          asData: this.asData,
+          data: this.data,
           blob: this.blob, 
           wrapS: this.wrapS, 
           wrapT: this.wrapT, 

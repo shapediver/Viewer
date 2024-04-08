@@ -1,5 +1,6 @@
 export interface IDomEventListener {
     onKeyDown(event: KeyboardEvent): void;
+    onKeyUp(event: KeyboardEvent): void;
     onMouseDown(event: MouseEvent): void;
     onMouseMove(event: MouseEvent): void;
     onMouseEnd(event: MouseEvent): void;

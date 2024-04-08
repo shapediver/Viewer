@@ -1,48 +1,47 @@
-import { mat4, quat, vec2, vec3 } from "gl-matrix";
-import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
-import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
-import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
-import { Converter, IDomEventListener, InputValidator, Logger, ShapeDiverViewerArError, ShapeDiverViewerValidationError, SystemInfo } from "@shapediver/viewer.shared.services";
-import { FLAG_TYPE, RENDERER_TYPE, SESSION_SETTINGS_MODE, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { PerspectiveCameraApi } from "./camera/PerspectiveCameraApi";
-import { OrthographicCameraApi } from "./camera/OrthographicCameraApi";
-import { LightSceneApi } from "./lights/LightSceneApi";
-import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
-import { ShapeDiverRequestGltfUploadQueryConversion } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ICameraApi } from "../../interfaces/viewport/camera/ICameraApi";
-import { ILightSceneApi } from "../../interfaces/viewport/lights/ILightSceneApi";
-import { Color, IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview } from "@shapediver/viewer.shared.types";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { sceneTree } from "../../main";
-import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
-import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
-import { ISettings } from "@shapediver/viewer.settings";
-import { build_data } from "@shapediver/viewer.shared.build-data";
-import * as QRCode from "qrcode";
-import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
-import { IPostProcessingApi } from "../../interfaces/viewport/IPostProcessingApi";
-import { PostProcessingApi } from "./PostProcessingApi";
+import { mat4, quat, vec2, vec3 } from 'gl-matrix';
+import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
+import { IViewportApi } from '../../interfaces/viewport/IViewportApi';
+import { ICreationControlCenter, CreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
+import { Converter, IDomEventListener, InputValidator, Logger, ShapeDiverViewerArError, ShapeDiverViewerValidationError, SystemInfo } from '@shapediver/viewer.shared.services';
+import { FLAG_TYPE, RENDERER_TYPE, SESSION_SETTINGS_MODE, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { PerspectiveCameraApi } from './camera/PerspectiveCameraApi';
+import { OrthographicCameraApi } from './camera/OrthographicCameraApi';
+import { LightSceneApi } from './lights/LightSceneApi';
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
+import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ICameraApi } from '../../interfaces/viewport/camera/ICameraApi';
+import { ILightSceneApi } from '../../interfaces/viewport/lights/ILightSceneApi';
+import { Color, IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview, MaterialPointData, MaterialBasicLineData, MaterialStandardData } from '@shapediver/viewer.shared.types';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { sceneTree } from '../../main';
+import { IOrthographicCameraApi } from '../../interfaces/viewport/camera/IOrthographicCameraApi';
+import { IPerspectiveCameraApi } from '../../interfaces/viewport/camera/IPerspectiveCameraApi';
+import { ISettings } from '@shapediver/viewer.settings';
+import { build_data } from '@shapediver/viewer.shared.build-data';
+import * as QRCode from 'qrcode';
+import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
+import { IPostProcessingApi } from '../../interfaces/viewport/IPostProcessingApi';
+import { PostProcessingApi } from './PostProcessingApi';
 
 import * as THREE from "three";
 
 export class ViewportApi implements IViewportApi {
-    // #region Properties (5)
+    // #region Properties (11)
 
     readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
-    readonly #renderingEngine: RenderingEngineThreeJs;
-    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+    readonly #cameras: { [key: string]: ICameraApi } = {};
     readonly #converter: Converter = Converter.instance;
+    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
+    readonly #lightScenes: { [key: string]: ILightSceneApi } = {};
     readonly #logger: Logger = Logger.instance;
     readonly #postProcessing: IPostProcessingApi;
+    readonly #renderingEngine: RenderingEngineThreeJs;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
-    readonly #cameras: { [key: string]: ICameraApi } = {};
-    readonly #lightScenes: { [key: string]: ILightSceneApi } = {};
-
-    // #endregion Properties (5)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -51,7 +50,7 @@ export class ViewportApi implements IViewportApi {
 
         // Whenever a camera is added or removed from the camera engine, this update is called.
         this.#renderingEngine.cameraEngine.update = () => {
-            for (let c in this.#renderingEngine.cameraEngine.cameras) {
+            for (const c in this.#renderingEngine.cameraEngine.cameras) {
                 if (!this.#cameras[c]) {
                     if (this.#renderingEngine.cameraEngine.cameras[c].type === CAMERA_TYPE.PERSPECTIVE) {
                         this.#cameras[c] = new PerspectiveCameraApi(this, <IPerspectiveCamera>this.#renderingEngine.cameraEngine.cameras[c]);
@@ -61,30 +60,30 @@ export class ViewportApi implements IViewportApi {
                 }
             }
 
-            for (let c in this.#cameras) {
+            for (const c in this.#cameras) {
                 if (!this.#renderingEngine.cameraEngine.cameras[c]) {
                     delete this.#cameras[c];
                 }
             }
-        }
+        };
 
         // We call it once in the beginning to get the current state.
         this.#renderingEngine.cameraEngine.update();
 
         // Whenever a camera is added or removed from the camera engine, this update is called.
         this.#renderingEngine.lightEngine.update = () => {
-            for (let l in this.#renderingEngine.lightEngine.lightScenes) {
+            for (const l in this.#renderingEngine.lightEngine.lightScenes) {
                 if (!this.#lightScenes[l]) {
                     this.#lightScenes[l] = new LightSceneApi(this, this.#renderingEngine.lightEngine.lightScenes[l]);
                 }
             }
 
-            for (let l in this.#lightScenes) {
+            for (const l in this.#lightScenes) {
                 if (!this.#renderingEngine.lightEngine.lightScenes[l]) {
                     delete this.#lightScenes[l];
                 }
             }
-        }
+        };
 
         // We call it once in the beginning to get the current state.
         this.#renderingEngine.lightEngine.update();
@@ -95,7 +94,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (69)
+    // #region Public Accessors (90)
 
     public get animations(): {
         [key: string]: IAnimationData
@@ -223,7 +222,15 @@ export class ViewportApi implements IViewportApi {
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('clearColor');
     }
-    
+
+    public get defaultLineMaterial(): MaterialBasicLineData {
+        return this.#renderingEngine.defaultLineMaterial;
+    }
+
+    public get defaultMaterial(): MaterialStandardData {
+        return this.#renderingEngine.defaultMaterial;
+    }
+
     public get defaultMaterialColor(): Color {
         return this.#renderingEngine.defaultMaterialColor;
     }
@@ -234,6 +241,10 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.defaultMaterialColor = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('defaultMaterialColor');
+    }
+
+    public get defaultPointMaterial(): MaterialPointData {
+        return this.#renderingEngine.defaultPointMaterial;
     }
 
     public get enableAR(): boolean {
@@ -284,6 +295,18 @@ export class ViewportApi implements IViewportApi {
         this.update('environmentMapBlurriness');
     }
 
+    public get environmentMapForUnlitMaterials(): boolean {
+        return this.#renderingEngine.environmentMapForUnlitMaterials;
+    }
+
+    public set environmentMapForUnlitMaterials(value: boolean) {
+        const scope = 'environmentMapForUnlitMaterials';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.environmentMapForUnlitMaterials = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('environmentMapForUnlitMaterials');
+    }
+
     public get environmentMapIntensity(): number {
         return this.#renderingEngine.environmentMapIntensity;
     }
@@ -306,18 +329,6 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.environmentMapResolution = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('environmentMapResolution');
-    }
-
-    public get environmentMapForUnlitMaterials(): boolean {
-        return this.#renderingEngine.environmentMapForUnlitMaterials;
-    }
-
-    public set environmentMapForUnlitMaterials(value: boolean) {
-        const scope = 'environmentMapForUnlitMaterials';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
-        this.#renderingEngine.environmentMapForUnlitMaterials = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('environmentMapForUnlitMaterials');
     }
 
     public get environmentMapRotation(): quat {
@@ -368,18 +379,6 @@ export class ViewportApi implements IViewportApi {
         this.update('groundPlaneColor');
     }
 
-    public get groundPlaneVisibility(): boolean {
-        return this.#renderingEngine.groundPlaneVisibility;
-    }
-
-    public set groundPlaneVisibility(value: boolean) {
-        const scope = 'groundPlaneVisibility';
-        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
-        this.#renderingEngine.groundPlaneVisibility = value;
-        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('groundPlaneVisibility');
-    }
-
     public get groundPlaneShadowColor(): Color {
         return this.#renderingEngine.groundPlaneShadowColor;
     }
@@ -404,8 +403,29 @@ export class ViewportApi implements IViewportApi {
         this.update('groundPlaneShadowVisibility');
     }
 
+    public get groundPlaneVisibility(): boolean {
+        return this.#renderingEngine.groundPlaneVisibility;
+    }
+
+    public set groundPlaneVisibility(value: boolean) {
+        const scope = 'groundPlaneVisibility';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.groundPlaneVisibility = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('groundPlaneVisibility');
+    }
+
     public get id(): string {
         return this.#renderingEngine.id;
+    }
+
+    public get lightScene(): ILightSceneApi | null {
+        if (!this.#renderingEngine.lightEngine.lightScene) return null;
+        return this.#lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
+    }
+
+    public get lightScenes(): { [key: string]: ILightSceneApi; } {
+        return this.#lightScenes;
     }
 
     public get lights(): boolean {
@@ -418,15 +438,6 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.lights = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('lights');
-    }
-
-    public get lightScene(): ILightSceneApi | null {
-        if (!this.#renderingEngine.lightEngine.lightScene) return null;
-        return this.#lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
-    }
-
-    public get lightScenes(): { [key: string]: ILightSceneApi; } {
-        return this.#lightScenes;
     }
 
     public get maximumRenderingSize(): {
@@ -459,6 +470,30 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.outputEncoding = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('outputEncoding');
+    }
+
+    public get postRenderingCallback(): ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined {
+        return this.#renderingEngine.postRenderingCallback;
+    }
+
+    public set postRenderingCallback(value: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined) {
+        const scope = 'postRenderingCallback';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
+        this.#renderingEngine.postRenderingCallback = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('postRenderingCallback');
+    }
+
+    public get preRenderingCallback(): ((renderer: THREE.WebGLRenderer) => void) | undefined {
+        return this.#renderingEngine.preRenderingCallback;
+    }
+
+    public set preRenderingCallback(value: ((renderer: THREE.WebGLRenderer) => void) | undefined) {
+        const scope = 'preRenderingCallback';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
+        this.#renderingEngine.preRenderingCallback = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('preRenderingCallback');
     }
 
     public get physicallyCorrectLights(): boolean {
@@ -617,9 +652,9 @@ export class ViewportApi implements IViewportApi {
         this.update('visualizeAttributes');
     }
 
-    // #endregion Public Accessors (69)
+    // #endregion Public Accessors (90)
 
-    // #region Public Methods (23)
+    // #region Public Methods (41)
 
     public addCanvasEventListener(listener: IDomEventListener): string {
         const scope = 'addCanvasEventListener';
@@ -633,21 +668,12 @@ export class ViewportApi implements IViewportApi {
         const token = this.#renderingEngine.addFlag(flag);
         return token;
     }
-    
-    public restrictEventListeners(allowedListeners: {
-        mousewheel?: boolean,
-        mousedown?: boolean,
-        mousemove?: boolean,
-        mouseup?: boolean,
-        mouseout?: boolean,
-        touchstart?: boolean,
-        touchmove?: boolean,
-        touchend?: boolean,
-        touchcancel?: boolean,
-        keydown?: boolean,
-        contextmenu?: boolean,
-    }) {
-        this.#renderingEngine.domEventEngine.allowEventListeners(allowedListeners);
+
+    public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }) {
+        const scope = 'applyViewportSettings';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
+        return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
     }
 
     public assignCamera(id: string): boolean {
@@ -666,19 +692,12 @@ export class ViewportApi implements IViewportApi {
         return check;
     }
 
-    public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }) {
-        const scope = 'applyViewportSettings';
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
-        return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
-    }
-
     public async close(): Promise<void> {
         return await this.#creationControlCenter.closeRenderingEngine(this.id);
     }
 
     public continueRendering(): void {
-        this.#renderingEngine.continueRendering()
+        this.#renderingEngine.continueRendering();
     }
 
     public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
@@ -696,6 +715,79 @@ export class ViewportApi implements IViewportApi {
         const result = await this.#gltfConverter.convert(node, false, this.id);
         this.update('convertToGlTF.end');
         return new Blob([result], { type: 'application/octet-stream' });
+    }
+
+    public async createArSessionLink(node?: ITreeNode, qrCode: boolean = true, fallbackUrl?: string): Promise<string> {
+        const scope = 'createArSessionLink';
+        if (node && !(node instanceof TreeNode))
+            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+
+        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
+        if (!arSessionEngine)
+            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
+
+        const targetNode = node || sceneTree.root;
+
+        const scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+
+        // add scaling matrix to scene tree node
+        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix });
+
+        // create the gltf
+        this.update('createArSessionLink.start');
+        const blob = await this.#gltfConverter.convert(targetNode, true, this.id);
+
+        // remove scaling the matrix
+        for (let i = 0; i < targetNode.transformations.length; i++)
+            if (targetNode.transformations[i].id === 'ar_scaling')
+                targetNode.transformations.splice(i, 1);
+
+        this.update('createArSessionLink.end');
+
+        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
+
+        const backends: {
+            [key: string]: string
+        } = {
+            'sddev3': 'https://sddev3.eu-central-1.shapediver.com',
+            'sddev2': 'https://sddev2.eu-central-1.shapediver.com',
+            'sddev': 'https://sddev.eu-central-1.shapediver.com',
+            'sdtest': 'https://sdtest.us-east-1.shapediver.com',
+            'sdeuc1': 'https://sdeuc1.eu-central-1.shapediver.com',
+            'sdr7euc1': 'https://sdr7euc1.eu-central-1.shapediver.com',
+            'sduse1': 'https://model-view.shapediver.com',
+        };
+
+        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
+        if (!backendIdentifier) {
+            const modelViewUrl = arSessionEngine.modelViewUrl;
+            backendIdentifier = modelViewUrl.replace('https://', '').replace('.shapediver.com', '');
+        }
+
+        const fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : '';
+
+        if (!response.gltf || !response.gltf.sceneId)
+            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
+
+        const sceneId = response.gltf!.sceneId!;
+
+        const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
+        if (qrCode === false) {
+            return link;
+        } else {
+            const qrCodeLink = await new Promise<string>((resolve, reject) => {
+                QRCode.toDataURL(link,
+                    (error: Error | null | undefined, url: string) => {
+                        if(error) {
+                            reject(error);
+                        } else {
+                            resolve(url);
+                        }
+                    }
+                );
+            });
+            return qrCodeLink;
+        }
     }
 
     public createLightScene(properties?: { name?: string | undefined; standard?: boolean | undefined; }): ILightSceneApi {
@@ -766,7 +858,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public pauseRendering(): void {
-        this.#renderingEngine.pauseRendering()
+        this.#renderingEngine.pauseRendering();
     }
 
     public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
@@ -794,7 +886,7 @@ export class ViewportApi implements IViewportApi {
     public removeFlag(token: string): boolean {
         const scope = 'removeFlag';
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, token, 'string');
-        const check = this.#renderingEngine.removeFlag(token)
+        const check = this.#renderingEngine.removeFlag(token);
         return check;
     }
 
@@ -811,7 +903,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public resetToDefaultCameras(): void {
-        for (let c in this.cameras)
+        for (const c in this.cameras)
             this.#renderingEngine.cameraEngine.removeCamera(c);
         this.#renderingEngine.cameraEngine.createDefaultCameras();
         this.update('resetToDefaultCameras');
@@ -825,18 +917,61 @@ export class ViewportApi implements IViewportApi {
         this.update('resize');
     }
 
-    public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
-        return this.#renderingEngine.touchToRay(event);
-
+    public restrictEventListeners(allowedListeners: {
+        mousewheel?: boolean,
+        mousedown?: boolean,
+        mousemove?: boolean,
+        mouseup?: boolean,
+        mouseout?: boolean,
+        touchstart?: boolean,
+        touchmove?: boolean,
+        touchend?: boolean,
+        touchcancel?: boolean,
+        keydown?: boolean,
+        keyup?: boolean,
+        contextmenu?: boolean,
+    }) {
+        this.#renderingEngine.domEventEngine.allowEventListeners(allowedListeners);
     }
 
     public touchEventToRay(event: TouchEvent): { origin: vec3; direction: vec3; } {
         return this.#renderingEngine.touchEventToRay(event);
+    }
 
+    public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
+        return this.#renderingEngine.touchToRay(event);
     }
 
     public update(id?: string): void {
         this.#renderingEngine.update(id || 'ViewportApi');
+    }
+
+    public updateDefaultLineMaterial(value: MaterialBasicLineData) {
+        const scope = 'updateDefaultLineMaterial';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'object');
+        this.#renderingEngine.defaultLineMaterial = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('updateDefaultLineMaterial');
+    }
+
+    public updateDefaultMaterial(value: MaterialStandardData) {
+        const scope = 'updateDefaultMaterial';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'object');
+        this.#renderingEngine.defaultMaterial = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('updateDefaultMaterial');
+    }
+
+    public updateDefaultPointMaterial(value: MaterialPointData) {
+        const scope = 'updateDefaultPointMaterial';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'object');
+        this.#renderingEngine.defaultPointMaterial = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('updateDefaultPointMaterial');
+    }
+
+    public updateEnvironmentGeometry(): void {
+        this.#renderingEngine.updateEnvironmentGeometry();
     }
 
     public updateNode(node: ITreeNode): void {
@@ -855,84 +990,6 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id], { transformationOnly: true });
     }
 
-    public updateEnvironmentGeometry(): void {
-        this.#renderingEngine.updateEnvironmentGeometry();
-    }
-
-    public async createArSessionLink(node?: ITreeNode, qrCode: boolean = true, fallbackUrl?: string): Promise<string> {
-        const scope = 'createArSessionLink';
-        if (node && !(node instanceof TreeNode))
-            throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-
-        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
-        if (!arSessionEngine)
-            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
-
-        const targetNode = node || sceneTree.root;
-
-        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
-
-        // add scaling matrix to scene tree node
-        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
-
-        // create the gltf
-        this.update('createArSessionLink.start');
-        const blob = await this.#gltfConverter.convert(targetNode, true, this.id);
-
-        // remove scaling the matrix
-        for (let i = 0; i < targetNode.transformations.length; i++)
-            if (targetNode.transformations[i].id === 'ar_scaling')
-                targetNode.transformations.splice(i, 1);
-
-        this.update('createArSessionLink.end');
-
-        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
-
-        const backends: {
-            [key: string]: string
-        } = {
-            "sddev3": "https://sddev3.eu-central-1.shapediver.com",
-            "sddev2": "https://sddev2.eu-central-1.shapediver.com",
-            "sddev": "https://sddev.eu-central-1.shapediver.com",
-            "sdtest": "https://sdtest.us-east-1.shapediver.com",
-            "sdeuc1": "https://sdeuc1.eu-central-1.shapediver.com",
-            "sdr7euc1": "https://sdr7euc1.eu-central-1.shapediver.com",
-            "sduse1": "https://model-view.shapediver.com",
-        }
-
-        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
-        if (!backendIdentifier) {
-            const modelViewUrl = arSessionEngine.modelViewUrl;
-            backendIdentifier = modelViewUrl.replace("https://", "").replace(".shapediver.com", "");
-        }
-
-        let fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : "";
-
-        if (!response.gltf || !response.gltf.sceneId)
-            throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
-
-        let sceneId = response.gltf!.sceneId!;
-
-        const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
-        if (qrCode === false) {
-            return link;
-        } else {
-            let qrCodeLink = await new Promise<string>((resolve, reject) => {
-                QRCode.toDataURL(link,
-                    (error: Error | null | undefined, url: string) => {
-                        if(error) {
-                            reject(error)
-                        } else {
-                            resolve(url)
-                        }
-                    }
-                )
-            })
-            return qrCodeLink;
-        }
-    }
-
-
     public async viewInAR(node?: ITreeNode): Promise<void> {
         const scope = 'viewInAR';
         if (node && !(node instanceof TreeNode))
@@ -944,10 +1001,10 @@ export class ViewportApi implements IViewportApi {
 
         const targetNode = node || sceneTree.root;
 
-        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+        const scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
 
         // add scaling matrix to scene tree node
-        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix });
 
         // create the gltf
         this.update('viewInAR.start');
@@ -961,11 +1018,12 @@ export class ViewportApi implements IViewportApi {
         this.update('viewInAR.end');
 
         const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
-        return this.#renderingEngine.viewInAR(response.gltf!.href)
+        return this.#renderingEngine.viewInAR(response.gltf!.href);
     }
 
     public viewableInAR(): boolean {
         return this.#renderingEngine.viewableInAR();
     }
-    // #endregion Public Methods (23)
+
+    // #endregion Public Methods (41)
 }

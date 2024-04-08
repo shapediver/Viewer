@@ -1,15 +1,8 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from "../../interfaces/data/material/IMaterialAbstractData";
-import { IMaterialUnlitData, IMaterialUnlitDataProperties } from "../../interfaces/data/material/IMaterialUnlitData";
-import { AbstractMaterialData } from "./AbstractMaterialData";
+import { AbstractMaterialData } from './AbstractMaterialData';
+import { IMaterialBasicLineData, IMaterialBasicLineDataProperties } from '../../interfaces/data/material/IMaterialBasicLineData';
+import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 
-export class MaterialUnlitData extends AbstractMaterialData implements IMaterialUnlitData {
-    // #region Properties (1)
-
-    #envMap?: string | string[];
-
-    // #endregion Properties (1)
-
+export class MaterialBasicLineData extends AbstractMaterialData implements IMaterialBasicLineData {
     // #region Constructors (1)
 
     /**
@@ -19,33 +12,20 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
      * @param id the id
      */
     constructor(
-        properties?: IMaterialUnlitDataProperties,
+        properties?: IMaterialBasicLineDataProperties,
         id?: string,
         version?: string
     ) {
         super(properties, id, version);
         if (!properties) return;
-        if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
-
-    public get envMap(): string | string[] | undefined {
-        return this.#envMap;
-    }
-
-    public set envMap(value: string | string[] | undefined) {
-        this.#envMap = value;
-    }
-
-    // #endregion Public Accessors (2)
-
     // #region Public Methods (3)
 
-    public clone(): IMaterialUnlitData {
-        return new MaterialUnlitData({
+    public clone(): IMaterialBasicLineData {
+        return new MaterialBasicLineData({
             alphaMap: this.alphaMap,
             alphaCutoff: this.alphaCutoff,
             alphaMode: this.alphaMode,
@@ -65,12 +45,11 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
             normalScale: this.normalScale,
             opacity: this.opacity,
             side: this.side,
-            transparent: this.transparent,
-            envMap: this.envMap
+            transparent: this.transparent
         }, this.id, this.version);
     }
 
-    public copy(source: MaterialUnlitData): void {
+    public copy(source: MaterialBasicLineData): void {
         this.alphaCutoff = source.alphaCutoff;
         this.alphaMap = source.alphaMap;
         this.alphaMode = source.alphaMode;
@@ -90,7 +69,6 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
-        this.envMap = source.envMap;
         this.transparent = source.transparent;
     }
 
@@ -115,7 +93,6 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
         this.transparent = undefined;
-        this.envMap = undefined;
     }
 
     // #endregion Public Methods (3)
