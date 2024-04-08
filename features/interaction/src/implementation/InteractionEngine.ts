@@ -68,6 +68,10 @@ export class InteractionEngine implements IInteractionEngine {
         if(this.#closed) return;
     }
 
+    public onKeyUp(event: KeyboardEvent): void {        
+        if(this.#closed) return;
+    }
+
     public onMouseDown(event: MouseEvent): void {
         if(this.#closed) return;
         const ray = this.#viewport.mouseEventToRay(event);

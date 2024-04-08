@@ -1,7 +1,7 @@
 import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { quat } from "gl-matrix";
-import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData, IAnimationData, Color } from "@shapediver/viewer.shared.types";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData, Color } from "@shapediver/viewer.shared.types";
+import * as THREE from "three";
 
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
     // #region Properties (17)
