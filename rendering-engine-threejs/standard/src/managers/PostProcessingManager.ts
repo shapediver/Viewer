@@ -152,6 +152,11 @@ export class PostProcessingManager implements IManager {
 
     public set antiAliasingTechniqueMobile(value: ANTI_ALIASING_TECHNIQUE) {
         this._antiAliasingTechniqueMobile = value;
+
+        // we don't allow SSAA on mobile devices anymore as it is too slow
+        if(this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA) 
+            this._antiAliasingTechniqueMobile = ANTI_ALIASING_TECHNIQUE.SMAA;
+
         this.changeEffectPass();
     }
 
@@ -246,6 +251,11 @@ export class PostProcessingManager implements IManager {
 
         this.antiAliasingTechnique = settingsEngine.settings.postprocessing.antiAliasingTechnique as ANTI_ALIASING_TECHNIQUE;
         this.antiAliasingTechniqueMobile = settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile as ANTI_ALIASING_TECHNIQUE;
+
+        // we don't allow SSAA on mobile devices anymore as it is too slow
+        if(this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA) 
+            this._antiAliasingTechniqueMobile = ANTI_ALIASING_TECHNIQUE.SMAA;
+
         this.enablePostProcessingOnMobile = settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
         this.ssaaSampleLevel = settingsEngine.settings.postprocessing.ssaaSampleLevel;
 
