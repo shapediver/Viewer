@@ -1,0 +1,57 @@
+{
+  "name": "@shapediver/viewer.creation-control-center.default",
+  "version": "2.12.8",
+  "description": "",
+  "keywords": [],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
+    "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "2.12.8",
+    "@shapediver/viewer.rendering-engine.camera-engine": "2.12.8",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "2.12.8",
+    "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "2.12.8",
+    "@shapediver/viewer.session-engine.session-engine": "2.12.8",
+    "@shapediver/viewer.settings": "0.5.7",
+    "@shapediver/viewer.shared.build-data": "2.12.8",
+    "@shapediver/viewer.shared.math": "2.12.8",
+    "@shapediver/viewer.shared.node-tree": "2.12.8",
+    "@shapediver/viewer.shared.services": "2.12.8",
+    "@shapediver/viewer.shared.types": "2.12.8",
+    "gl-matrix": "3.3.0"
+  },
+  "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
+}

@@ -13,7 +13,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         /**
          * Read out the components of the version to see if we already have a release-candidate.
          */
-        const packageJson = require('../../main/default/package.json');
+        const packageJson = require('../../api/default/package.json');
         const versionComponents: string[] = packageJson.version.split('-');
 
         // if this was already a release-candidate (versionComponents.length > 1) we don't need to ask for the version, as it was already updated.

@@ -13,7 +13,7 @@ import { sdeuc1 } from '../../general/src/models'
 require('chromedriver');
 
 for (let c = 0; c < allCapabilities.length; c++) {
-    const capabilities = Object.assign({ 'name': 'mobile_tests', 'build': require('../../../main/default/package.json').version }, allCapabilities[c]);
+    const capabilities = Object.assign({ 'name': 'mobile_tests', 'build': require('../../../api/default/package.json').version }, allCapabilities[c]);
     let name = 'mobile_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ?
         (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version :
         (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
