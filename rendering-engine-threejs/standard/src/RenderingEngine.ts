@@ -143,7 +143,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneVisibility: boolean = true;
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
-  private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
+  private _maximumRenderingSize: { width: number; height: number } = this._systemInfo.isMobile ? { width: 1280, height: 720 } : { width: 1920, height: 1080 };
   private _pause: boolean = false;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
