@@ -22,11 +22,11 @@ import { ICreationControlCenter, SessionCreationDefinition, ViewportCreationDefi
 import { ISettings, latestVersion } from '@shapediver/viewer.settings';
 import { ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
-import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
+import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class CreationControlCenter implements ICreationControlCenter {
-  // #region Properties (10)
+  // #region Properties (11)
 
   readonly #eventEngine: EventEngine = EventEngine.instance;
   readonly #logger: Logger = Logger.instance;
@@ -41,20 +41,22 @@ export class CreationControlCenter implements ICreationControlCenter {
   public readonly renderingEngines: { [key: string]: RenderingEngineThreeJs } = {};
   public readonly sessionEngines: { [key: string]: SessionEngine } = {};
 
-  update?: (
+  public updateSession?: (
     sessionEngines: { [key: string]: SessionEngine; },
-    renderingEngines: { [key: string]: RenderingEngine; }
+  ) => void;
+  public updateViewport?: (
+    renderingEngines: { [key: string]: RenderingEngineThreeJs; },
   ) => void;
 
-  // #endregion Properties (10)
+  // #endregion Properties (11)
 
-  // #region Public Static Accessors (1)
+  // #region Public Static Getters And Setters (1)
 
   public static get instance() {
     return this._instance || (this._instance = new this());
   }
 
-  // #endregion Public Static Accessors (1)
+  // #endregion Public Static Getters And Setters (1)
 
   // #region Public Methods (11)
 
@@ -119,7 +121,8 @@ export class CreationControlCenter implements ICreationControlCenter {
     delete this.#stateEngine.renderingEngines[id];
 
     this.#logger.debug('CreationControlCenter.closeRenderingEngine: Viewport closed.');
-    if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+    if (this.updateSession) this.updateSession(this.sessionEngines);
+    if (this.updateViewport) this.updateViewport(this.renderingEngines);
 
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
   }
@@ -159,7 +162,8 @@ export class CreationControlCenter implements ICreationControlCenter {
 
         await Promise.all(promises);
 
-        if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+        if (this.updateSession) this.updateSession(this.sessionEngines);
+        if (this.updateViewport) this.updateViewport(this.renderingEngines);
       }
     }
 
@@ -172,7 +176,8 @@ export class CreationControlCenter implements ICreationControlCenter {
     this.#logger.debug('CreationControlCenter.closeSessionEngine: Session closed.');
     for (const r in this.renderingEngines)
       this.renderingEngines[r].update('CreationControlCenter.closeSessionEngine');
-    if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+    if (this.updateSession) this.updateSession(this.sessionEngines);
+    if (this.updateViewport) this.updateViewport(this.renderingEngines);
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
   }
 
@@ -268,7 +273,8 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created', data: { viewportId: renderingEngineId } };
 
-      if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+      if (this.updateSession) this.updateSession(this.sessionEngines);
+      if (this.updateViewport) this.updateViewport(this.renderingEngines);
 
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CREATED, { viewportId: renderingEngineId });
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
@@ -385,7 +391,8 @@ export class CreationControlCenter implements ICreationControlCenter {
       for (const r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.createSessionEngine');
 
-      if (this.update) this.update(this.sessionEngines, this.renderingEngines);
+      if (this.updateSession) this.updateSession(this.sessionEngines);
+      if (this.updateViewport) this.updateViewport(this.renderingEngines);
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created', data: { sessionId: sessionEngineId } };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
