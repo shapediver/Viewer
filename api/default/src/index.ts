@@ -140,7 +140,6 @@ import {
     BUSY_MODE_DISPLAY,
     FLAG_TYPE,
     RENDERER_TYPE,
-    SESSION_SETTINGS_MODE,
     SPINNER_POSITIONING,
     TEXTURE_ENCODING,
     TONE_MAPPING,
@@ -209,6 +208,7 @@ import {
     isViewerWebGLError,
     LOGGING_LEVEL,
     MainEventTypes,
+    SESSION_SETTINGS_MODE,
     ShapeDiverGeometryBackendError,
     ShapeDiverGeometryBackendRequestError,
     ShapeDiverGeometryBackendResponseError,
@@ -260,7 +260,8 @@ import {
 } from '@shapediver/viewer.shared.node-tree';
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
-import { SessionCreationDefinition, ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.default';
+import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
+import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 import {
     ShapeDiverResponseExport,
     ShapeDiverResponseExportContent,

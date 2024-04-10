@@ -1,10 +1,10 @@
-import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.creation-control-center.default';
+import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import { ExportApi } from './ExportApi';
 import { FileParameter, ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { FileParameterApi } from './FileParameterApi';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { IExportApi } from '../interfaces/IExportApi';
-import { InputValidator, Logger, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services';
+import { InputValidator, Logger, ShapeDiverViewerSessionError, StateEngine } from '@shapediver/viewer.shared.services';
 import { IOutputApi } from '../interfaces/IOutputApi';
 import { IParameterApi } from '../interfaces//IParameterApi';
 import { ISessionApi } from '../interfaces/ISessionApi';
@@ -17,7 +17,7 @@ import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.
 export class SessionApi implements ISessionApi {
     // #region Properties (8)
 
-    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+    readonly #creationControlCenterSession: ICreationControlCenterSession = CreationControlCenterSession.instance;
     readonly #exports: { [key: string]: IExportApi; } = {};
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
@@ -25,6 +25,7 @@ export class SessionApi implements ISessionApi {
     readonly #outputs: { [key: string]: IOutputApi; } = {};
     readonly #parameters: { [key: string]: IParameterApi<unknown>; } = {};
     readonly #sessionEngine: SessionEngine;
+    readonly #stateEngine: StateEngine = StateEngine.instance;
 
     // #endregion Properties (8)
 
@@ -210,7 +211,7 @@ export class SessionApi implements ISessionApi {
         const scope = 'applySettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, response, 'object');
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
-        return this.#creationControlCenter.applySettings(this.id, response, sections);
+        return this.#creationControlCenterSession.applySettings(this.id, response, sections);
     }
 
     public canGoBack(): boolean {
@@ -226,12 +227,12 @@ export class SessionApi implements ISessionApi {
     }
 
     public async close(): Promise<void> {
-        return await this.#creationControlCenter.closeSessionEngine(this.id);
+        return await this.#creationControlCenterSession.closeSessionEngine(this.id);
     }
 
     public async convertToGlTF(): Promise<Blob> {
-        for (const r in this.#creationControlCenter.renderingEngines)
-            this.#creationControlCenter.renderingEngines[r].update('SessionApi.convertToGlTF');
+        for (const r in this.#stateEngine.viewportEngines)
+            this.#stateEngine.viewportEngines[r].update('SessionApi.convertToGlTF');
 
         const result = await this.#gltfConverter.convert(this.node, false);
         return new Blob([result], { type: 'application/octet-stream' });
@@ -355,7 +356,7 @@ export class SessionApi implements ISessionApi {
     public resetSettings(sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
-        return this.#creationControlCenter.resetSettings(this.id, sections);
+        return this.#creationControlCenterSession.resetSettings(this.id, sections);
     }
 
     public saveDefaultParameterValues(): Promise<boolean> {
@@ -365,7 +366,7 @@ export class SessionApi implements ISessionApi {
     public saveSettings(viewportId?: string): Promise<boolean> {
         const scope = 'saveDefaultParameterValues';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, viewportId, 'string', false);
-        return this.#creationControlCenter.saveSettings(this.id, viewportId);
+        return this.#creationControlCenterSession.saveSettings(this.id, viewportId);
     }
 
     public saveUiProperties(): Promise<boolean> {

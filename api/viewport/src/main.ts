@@ -1,17 +1,16 @@
 import {
     BUSY_MODE_DISPLAY,
-    SESSION_SETTINGS_MODE,
     SPINNER_POSITIONING,
     VISIBILITY_MODE
 } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { CreationControlCenter, ICreationControlCenter, ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.default';
-import { InputValidator, Logger, ShapeDiverViewerValidationError } from '@shapediver/viewer.shared.services';
+import { CreationControlCenterViewport, ICreationControlCenterViewport, ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
+import { InputValidator, Logger, SESSION_SETTINGS_MODE, ShapeDiverViewerValidationError } from '@shapediver/viewer.shared.services';
 import { IViewportApi } from './interfaces/IViewportApi';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { showConsoleMessage } from '@shapediver/viewer.api.general';
 import { ViewportApi } from './implementation/ViewportApi';
 
-const creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+const creationControlCenterViewport: ICreationControlCenterViewport = CreationControlCenterViewport.instance;
 const inputValidator: InputValidator = InputValidator.instance;
 const logger: Logger = Logger.instance;
 
@@ -21,7 +20,7 @@ const logger: Logger = Logger.instance;
 export const viewports: { [key: string]: IViewportApi; } = {};
 
 // Whenever a session or viewport is added or removed, this update is called.
-creationControlCenter.updateViewports = (
+creationControlCenterViewport.updateViewports = (
     renderingEngines: { [key: string]: RenderingEngineThreeJs; }
 ) => {
     for (const v in renderingEngines)
@@ -79,7 +78,7 @@ export const createViewport = async (properties?: ViewportCreationDefinition): P
     if (prop.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && !prop.sessionSettingsId)
         throw new ShapeDiverViewerValidationError('createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL', prop.sessionSettingsId, 'string');
 
-    const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
+    const renderingEngine = await creationControlCenterViewport.createViewportEngine(prop);
 
     viewports[renderingEngine.id] = new ViewportApi(renderingEngine);
     return viewports[renderingEngine.id];

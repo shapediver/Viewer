@@ -19,15 +19,16 @@ import {
     IDomEventListener,
     InputValidator,
     Logger,
+    SESSION_SETTINGS_MODE, 
     ShapeDiverViewerArError,
     ShapeDiverViewerValidationError,
+    StateEngine,
     SystemInfo
 } from '@shapediver/viewer.shared.services';
-import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.creation-control-center.default';
+import { CreationControlCenterViewport, ICreationControlCenterViewport } from '@shapediver/viewer.creation-control-center.viewport';
 import {
     FLAG_TYPE,
     RENDERER_TYPE,
-    SESSION_SETTINGS_MODE,
     TEXTURE_ENCODING,
     TONE_MAPPING
 } from '@shapediver/viewer.rendering-engine.rendering-engine';
@@ -60,13 +61,14 @@ export class ViewportApi implements IViewportApi {
     readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
     readonly #cameras: { [key: string]: ICameraApi } = {};
     readonly #converter: Converter = Converter.instance;
-    readonly #creationControlCenter: ICreationControlCenter = CreationControlCenter.instance;
+    readonly #creationControlCenterViewport: ICreationControlCenterViewport = CreationControlCenterViewport.instance;
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
     readonly #lightScenes: { [key: string]: ILightSceneApi } = {};
     readonly #logger: Logger = Logger.instance;
     readonly #postProcessing: IPostProcessingApi;
     readonly #renderingEngine: RenderingEngineThreeJs;
+    readonly #stateEngine: StateEngine = StateEngine.instance;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
     // #endregion Properties (11)
@@ -701,7 +703,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'applyViewportSettings';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, settings, 'object');
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, sections, 'object', false);
-        return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
+        return this.#creationControlCenterViewport.applyViewportSettings(this.id, settings, sections);
     }
 
     public assignCamera(id: string): boolean {
@@ -721,7 +723,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public async close(): Promise<void> {
-        return await this.#creationControlCenter.closeRenderingEngine(this.id);
+        return await this.#creationControlCenterViewport.closeViewportEngine(this.id);
     }
 
     public continueRendering(): void {
@@ -750,8 +752,15 @@ export class ViewportApi implements IViewportApi {
         if (node && !(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
-        if (!arSessionEngine)
+        let sessionEngineId: string | undefined = undefined;
+        for (const s in this.#stateEngine.sessionEngines) {
+            if (this.#stateEngine.sessionEngines[s].canUploadGLTF) {
+                sessionEngineId = s;
+                break;
+            }
+        }
+
+        if (!sessionEngineId)
             throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
 
         const targetNode = node || sceneTree.root;
@@ -772,7 +781,7 @@ export class ViewportApi implements IViewportApi {
 
         this.update('createArSessionLink.end');
 
-        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
+        const response = await this.#stateEngine.sessionEngines[sessionEngineId!].uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
 
         const backends: {
             [key: string]: string
@@ -786,9 +795,9 @@ export class ViewportApi implements IViewportApi {
             'sduse1': 'https://model-view.shapediver.com',
         };
 
-        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
+        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === this.#stateEngine.sessionEngines[sessionEngineId!].modelViewUrl);
         if (!backendIdentifier) {
-            const modelViewUrl = arSessionEngine.modelViewUrl;
+            const modelViewUrl = this.#stateEngine.sessionEngines[sessionEngineId!].modelViewUrl;
             backendIdentifier = modelViewUrl.replace('https://', '').replace('.shapediver.com', '');
         }
 
@@ -799,7 +808,7 @@ export class ViewportApi implements IViewportApi {
 
         const sceneId = response.gltf!.sceneId!;
 
-        const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
+        const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier!)}&id=${encodeURIComponent(sceneId)}`;
         if (qrCode === false) {
             return link;
         } else {
@@ -874,7 +883,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public getViewportSettings(): ISettings {
-        return this.#creationControlCenter.getViewportSettings(this.id);
+        return this.#creationControlCenterViewport.getViewportSettings(this.id);
     }
 
     public isMobileDeviceWithoutBrowserARSupport(): boolean {
@@ -1023,8 +1032,15 @@ export class ViewportApi implements IViewportApi {
         if (node && !(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
-        if (!arSessionEngine)
+        let sessionEngineId: string | undefined = undefined;
+        for (const s in this.#stateEngine.sessionEngines) {
+            if (this.#stateEngine.sessionEngines[s].canUploadGLTF) {
+                sessionEngineId = s;
+                break;
+            }
+        }
+
+        if (!sessionEngineId)
             throw new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
 
         const targetNode = node || sceneTree.root;
@@ -1045,7 +1061,7 @@ export class ViewportApi implements IViewportApi {
 
         this.update('viewInAR.end');
 
-        const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+        const response = await this.#stateEngine.sessionEngines[sessionEngineId!].uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
         return this.#renderingEngine.viewInAR(response.gltf!.href);
     }
 

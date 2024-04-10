@@ -37,7 +37,6 @@
     "build": "bash ../../scripts/building/build.sh",
     "build-watch": "bash ../../scripts/building/build-watch.sh",
     "build-dep": "bash ../../scripts/building/build-dep.sh",
-    "build-current": "npm run build-dep",
     "doc": "typedoc"
   },
   "bugs": {
@@ -53,7 +52,7 @@
     "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
     "@shapediver/viewer.api.general": "2.12.8",
     "@shapediver/viewer.data-engine.gltf-converter": "2.12.8",
-    "@shapediver/viewer.creation-control-center.default": "2.12.8",
+    "@shapediver/viewer.creation-control-center.viewport": "2.12.8",
     "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "2.12.8",
     "@shapediver/viewer.rendering-engine.animation-engine": "2.12.8",
     "@shapediver/viewer.rendering-engine.camera-engine": "2.12.8",

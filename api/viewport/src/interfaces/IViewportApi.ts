@@ -2,12 +2,11 @@ import * as THREE from 'three';
 import {
   FLAG_TYPE,
   RENDERER_TYPE,
-  SESSION_SETTINGS_MODE,
   TEXTURE_ENCODING,
   TONE_MAPPING
 } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ICameraApi } from './camera/ICameraApi';
-import { IDomEventListener } from '@shapediver/viewer.shared.services';
+import { IDomEventListener, SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services';
 import { ILightSceneApi } from './lights/ILightSceneApi';
 import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi';
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi';

@@ -416,9 +416,9 @@ export class SessionEngine implements ISessionEngine {
             this.removeBusyMode(this.#customizationProcess);
 
         for (const busyId of this.#customizationBusyModes) {
-            for (const r in this._stateEngine.renderingEngines) {
-                if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+            for (const r in this._stateEngine.viewportEngines) {
+                if (this._stateEngine.viewportEngines[r].busy.includes(busyId))
+                    this._stateEngine.viewportEngines[r].busy.splice(this._stateEngine.viewportEngines[r].busy.indexOf(busyId), 1);
             }
         }
 
@@ -599,9 +599,9 @@ export class SessionEngine implements ISessionEngine {
 
             // update the viewports
             if (waitForViewportUpdate) {
-                for (const r in this._stateEngine.renderingEngines)
-                    if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                        this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+                for (const r in this._stateEngine.viewportEngines)
+                    if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                        this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).customize`);
 
                 for (const outputId in this.outputs) {
                     if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
@@ -623,9 +623,9 @@ export class SessionEngine implements ISessionEngine {
 
             if (!waitForViewportUpdate) {
                 setTimeout(() => {
-                    for (const r in this._stateEngine.renderingEngines)
-                        if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                            this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+                    for (const r in this._stateEngine.viewportEngines)
+                        if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                            this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).customize`);
                 }, 0);
             }
 
@@ -1267,9 +1267,9 @@ export class SessionEngine implements ISessionEngine {
 
         // update the viewports
         if (waitForViewportUpdate) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
+            for (const r in this._stateEngine.viewportEngines)
+                if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                    this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
 
             for (const outputId in this.outputs) {
                 if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
@@ -1388,9 +1388,9 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private addBusyMode(busyId: string) {
-        for (const r in this._stateEngine.renderingEngines) {
+        for (const r in this._stateEngine.viewportEngines) {
             if (!this.excludeViewports.includes(r)) {
-                this._stateEngine.renderingEngines[r].busy.push(busyId);
+                this._stateEngine.viewportEngines[r].busy.push(busyId);
                 this.#customizationBusyModes.push(busyId);
             }
         }
@@ -1556,9 +1556,9 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private removeBusyMode(busyId: string) {
-        for (const r in this._stateEngine.renderingEngines) {
-            if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
-                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+        for (const r in this._stateEngine.viewportEngines) {
+            if (this._stateEngine.viewportEngines[r].busy.includes(busyId))
+                this._stateEngine.viewportEngines[r].busy.splice(this._stateEngine.viewportEngines[r].busy.indexOf(busyId), 1);
 
             if (this.#customizationBusyModes.includes(busyId))
                 this.#customizationBusyModes.splice(this.#customizationBusyModes.indexOf(busyId), 1);

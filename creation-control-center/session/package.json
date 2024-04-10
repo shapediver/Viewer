@@ -1,17 +1,8 @@
 {
-  "name": "@shapediver/viewer.session",
+  "name": "@shapediver/viewer.creation-control-center.session",
   "version": "2.12.8",
   "description": "",
-  "keywords": [
-    "webgl",
-    "shapediver",
-    "viewer",
-    "augumented-reality",
-    "webgl",
-    "grasshopper",
-    "typescript",
-    "3d"
-  ],
+  "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
   "main": "dist/index.js",
@@ -36,8 +27,7 @@
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/building/build.sh",
     "build-watch": "bash ../../scripts/building/build-watch.sh",
-    "build-dep": "bash ../../scripts/building/build-dep.sh",
-    "doc": "typedoc"
+    "build-dep": "bash ../../scripts/building/build-dep.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
@@ -46,16 +36,11 @@
   "typings": "dist/index.d.ts",
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "jsdom"
+    "testEnvironment": "node"
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
-    "@shapediver/viewer.api.general": "2.12.8",
-    "@shapediver/viewer.data-engine.gltf-converter": "2.12.8",
-    "@shapediver/viewer.creation-control-center.session": "2.12.8",
-    "@shapediver/viewer.session-engine.session-engine": "2.12.8",
-    "@shapediver/viewer.shared.node-tree": "2.12.8",
-    "@shapediver/viewer.shared.services": "2.12.8"
+    "@shapediver/viewer.session-engine.session-engine": "2.12.8"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
