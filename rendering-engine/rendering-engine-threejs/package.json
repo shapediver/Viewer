@@ -39,6 +39,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@shapediver/viewer.data-engine.shared-types": "2.12.8",
+    "@shapediver/viewer.data-engine.tag3d-engine": "2.12.8",
     "@shapediver/viewer.rendering-engine.animation-engine": "2.12.8",
     "@shapediver/viewer.rendering-engine.animation-frame-engine": "2.12.8",
     "@shapediver/viewer.rendering-engine.camera-engine": "2.12.8",

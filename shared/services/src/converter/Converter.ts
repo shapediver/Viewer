@@ -227,7 +227,7 @@ export class Converter {
         }
 
         // check if the input is a THREE.Color
-        if ('isColor' in (color as object) && 'getHexString' in (color as object) && typeof (color as { getHexString: unknown }).getHexString === 'function'){
+        if (typeof color === 'object' && 'isColor' in (color as object) && 'getHexString' in (color as object) && typeof (color as { getHexString: unknown }).getHexString === 'function'){
             const tc = new TinyColor((color as { getHexString: () => string }).getHexString());
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }

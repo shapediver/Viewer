@@ -18,6 +18,7 @@ import { RenderingManager } from './managers/RenderingManager';
 import { SceneTracingManager } from './managers/SceneTracingManager';
 import { SceneTreeManager } from './managers/SceneTreeManager';
 import { SDColor } from './objects/SDColor';
+import { Tag3dGeometryCreationInjector } from './injectors/Tag3dGeometryCreationInjector';
 import {
   CameraEngine,
 } from '@shapediver/viewer.rendering-engine.camera-engine';
@@ -37,7 +38,7 @@ import {
   EVENTTYPE,
   EVENTTYPE_VIEWPORT,
   Logger,
-  SESSION_SETTINGS_MODE, 
+  SESSION_SETTINGS_MODE,
   SettingsEngine,
   ShapeDiverViewerArError,
   StateEngine,
@@ -62,7 +63,7 @@ import {
 } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (74)
+  // #region Properties (75)
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
   readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
@@ -104,6 +105,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = StateEngine.instance;
   private readonly _systemInfo: SystemInfo = SystemInfo.instance;
+  private readonly _tag3dGeometryCreationInjector: Tag3dGeometryCreationInjector;
   private readonly _tree: ITree = Tree.instance;
   private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
   private readonly _visibility: VISIBILITY_MODE;
@@ -145,6 +147,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _logoDivElement: HTMLDivElement;
   private _maximumRenderingSize: { width: number; height: number } = this._systemInfo.isMobile ? { width: 1280, height: 720 } : { width: 1920, height: 1080 };
   private _pause: boolean = false;
+  private _postRenderingCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined;
+  private _preRenderingCallback?: ((renderer: THREE.WebGLRenderer) => void) | undefined;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
   private _sessionSettingsMode: SESSION_SETTINGS_MODE;
@@ -156,10 +160,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
-  private _preRenderingCallback?: ((renderer: THREE.WebGLRenderer) => void) | undefined;
-  private _postRenderingCallback?: ((renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => void) | undefined;
 
-  // #endregion Properties (74)
+  // #endregion Properties (75)
 
   // #region Constructors (1)
 
@@ -223,6 +225,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
     this._lightLoader = new LightLoader(this);
 
+    // injectors
+    this._tag3dGeometryCreationInjector = new Tag3dGeometryCreationInjector();
+
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
@@ -242,11 +247,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._geometryLoader.init();
     this._htmlElementAnchorLoader.init();
     this._lightLoader.init();
+
+    // injectors
+    this._tag3dGeometryCreationInjector.init();
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (123)
+  // #region Public Getters And Setters (133)
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -393,28 +401,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
-  public get defaultMaterial(): MaterialStandardData {
-    return this.materialLoader.defaultMaterialData;
-  }
-
-  public set defaultMaterial(value: MaterialStandardData) {
-    this.materialLoader.defaultMaterialData = value;
-  }
-
-  public get defaultPointMaterial(): MaterialPointData {
-    return this.materialLoader.defaultPointMaterialData;
-  }
-
-  public set defaultPointMaterial(value: MaterialPointData) {
-    this.materialLoader.defaultPointMaterialData = value;
-  }
-
   public get defaultLineMaterial(): MaterialBasicLineData {
     return this.materialLoader.defaultLineMaterialData;
   }
 
   public set defaultLineMaterial(value: MaterialBasicLineData) {
     this.materialLoader.defaultLineMaterialData = value;
+  }
+
+  public get defaultMaterial(): MaterialStandardData {
+    return this.materialLoader.defaultMaterialData;
+  }
+
+  public set defaultMaterial(value: MaterialStandardData) {
+    this.materialLoader.defaultMaterialData = value;
   }
 
   public get defaultMaterialColor(): Color {
@@ -424,6 +424,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set defaultMaterialColor(value: Color) {
     this.materialLoader.defaultMaterialData.color = value;
     this.materialLoader.assignDefaultMaterial();
+  }
+
+  public get defaultPointMaterial(): MaterialPointData {
+    return this.materialLoader.defaultPointMaterialData;
+  }
+
+  public set defaultPointMaterial(value: MaterialPointData) {
+    this.materialLoader.defaultPointMaterialData = value;
   }
 
   public get domEventEngine(): DomEventEngine {
@@ -866,9 +874,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Accessors (123)
+  // #endregion Public Getters And Setters (133)
 
-  // #region Public Methods (25)
+  // #region Public Methods (27)
 
   public addFlag(flag: FLAG_TYPE): string {
     const token = this._uuidGenerator.create();
@@ -942,6 +950,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public async close(): Promise<void> {
     this._closed = true;
     this._lightEngine.close();
+    this._tag3dGeometryCreationInjector.close();
     this._renderer.clear(true, true, true);
     this._renderer.dispose();
     this._domEventEngine.removeAllDomEventListener();
@@ -1283,7 +1292,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return true;
   }
 
-  // #endregion Public Methods (25)
+  // #endregion Public Methods (27)
 
   // #region Private Methods (1)
 
@@ -1349,7 +1358,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this.cameraManager.adjustCamera(1);
 
     this._stateEngine.viewportEngines[this.id].settingsAssigned.resolve(true);
-    if(updateViewport) this.update('RenderingEngine.applySyncSettings');
+    if (updateViewport) this.update('RenderingEngine.applySyncSettings');
   }
 
   // #endregion Private Methods (1)
