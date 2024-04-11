@@ -5,7 +5,6 @@ import {
     isViewerError,
     Logger,
     SESSION_SETTINGS_MODE,
-    SettingsEngine,
     ShapeDiverViewerSessionError,
     StateEngine,
     StatePromise,
@@ -16,6 +15,7 @@ import { ISettings, latestVersion } from '@shapediver/viewer.settings';
 import { ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { SessionGlobalAccessObject } from './SessionGlobalAccessObject';
 
 export class CreationControlCenterSession implements ICreationControlCenterSession {
     // #region Properties (8)
@@ -148,18 +148,6 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                 await this.closeSessionEngine(sessionEngineId);
             }
 
-            this.#stateEngine.sessionEngines[sessionEngineId] = {
-                canUploadGLTF: false,
-                id: sessionEngineId,
-                initialized: new StatePromise(),
-                initialOutputsLoaded: new StatePromise(),
-                isFirstSession: false,
-                modelViewUrl: properties.modelViewUrl,
-                settingsRegistered: new StatePromise(),
-                settingsEngine: new SettingsEngine(),
-                uploadGLTF: async () => { throw new ShapeDiverViewerSessionError('The function uploadGLTF has not been set in the state engine yet.'); }
-            };
-
             // create the actual session 
             const sessionEngine = new SessionEngine({
                 id: sessionEngineId,
@@ -172,13 +160,12 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                 jwtToken: properties.jwtToken
             });
 
+            this.#stateEngine.sessionEngines[sessionEngineId] = new SessionGlobalAccessObject(sessionEngine);
+
             const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session.', data: { sessionId: sessionEngineId } };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
             await sessionEngine.init(properties.initialParameterValues);
-
-            this.#stateEngine.sessionEngines[sessionEngineId].uploadGLTF = sessionEngine.uploadGLTF.bind(sessionEngine);
-            this.#stateEngine.sessionEngines[sessionEngineId].canUploadGLTF = sessionEngine.canUploadGLTF;
 
             if (properties.loadOutputs !== false) {
                 if (properties.waitForOutputs !== false) {

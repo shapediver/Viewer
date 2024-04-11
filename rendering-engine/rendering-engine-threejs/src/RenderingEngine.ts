@@ -242,16 +242,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._geometryLoader.init();
     this._htmlElementAnchorLoader.init();
     this._lightLoader.init();
-
-    this._renderingManager.start();
-
-    this._stateEngine.viewportEngines[this.id].boundingBoxCreated.then(() => {
-      this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
-    });
-
-    if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
-      this.environmentMap = 'photo_studio';
-    }
   }
 
   // #endregion Constructors (1)
@@ -1192,6 +1182,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
     settingsEngine.rendering.shadows = this.shadows;
     settingsEngine.rendering.softShadows = this.softShadows;
+  }
+
+  public start() {
+    this._renderingManager.start();
+
+    this._stateEngine.viewportEngines[this.id].boundingBoxCreated.then(() => {
+      this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
+    });
+
+    if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
+      this.environmentMap = 'photo_studio';
+    }
   }
 
   public touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 } {

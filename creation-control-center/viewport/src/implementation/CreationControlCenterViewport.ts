@@ -7,7 +7,6 @@ import {
     SettingsEngine,
     ShapeDiverViewerViewportError,
     StateEngine,
-    StatePromise,
     UuidGenerator
     } from '@shapediver/viewer.shared.services';
 import { ICreationControlCenterViewport, ViewportCreationDefinition } from '../interfaces/ICreationControlCenterViewport';
@@ -16,6 +15,7 @@ import { ISettings } from '@shapediver/viewer.settings';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { ViewportGlobalAccessObject } from './ViewportGlobalAccessObject';
 
 export class CreationControlCenterViewport implements ICreationControlCenterViewport {
     // #region Properties (8)
@@ -104,31 +104,10 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
                 await this.closeViewportEngine(viewportEngineId);
             }
 
-            this.#stateEngine.viewportEngines[viewportEngineId] = {
-                applySettings: async () => { },
-                assignSettingsEngine: () => { },
-                boundingBoxCreated: new StatePromise(),
-                busy: [],
-                displayErrorMessage: () => { },
-                environmentMapLoaded: new StatePromise(),
-                id: viewportEngineId,
-                initialized: new StatePromise(),
-                reset: () => { },
-                saveSettings: () => { },
-                sessionSettingsId: properties.sessionSettingsId,
-                sessionSettingsMode: properties.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST,
-                settingsAssigned: new StatePromise(),
-                update: () => { }
-            };
-
             const viewportEngine = new RenderingEngineThreeJs(properties);
-            this.#stateEngine.viewportEngines[viewportEngineId].applySettings = viewportEngine.applySettings.bind(viewportEngine);
-            this.#stateEngine.viewportEngines[viewportEngineId].assignSettingsEngine = viewportEngine.assignSettingsEngine.bind(viewportEngine);
-            this.#stateEngine.viewportEngines[viewportEngineId].displayErrorMessage = viewportEngine.displayErrorMessage.bind(viewportEngine);
-            this.#stateEngine.viewportEngines[viewportEngineId].reset = viewportEngine.reset.bind(viewportEngine);
-            this.#stateEngine.viewportEngines[viewportEngineId].saveSettings = viewportEngine.saveSettings.bind(viewportEngine);
-            this.#stateEngine.viewportEngines[viewportEngineId].update = viewportEngine.update.bind(viewportEngine);
+            this.#stateEngine.viewportEngines[viewportEngineId] = new ViewportGlobalAccessObject(viewportEngine);
             this.viewportEngines[viewportEngineId] = viewportEngine;
+            viewportEngine.start();
 
             viewportEngine.cameraEngine.createDefaultCameras();
 

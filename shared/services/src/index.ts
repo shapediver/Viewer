@@ -13,7 +13,7 @@ import {
     EVENTTYPE_TASK,
     EVENTTYPE_VIEWPORT,
     MainEventTypes
-    } from './event-engine/EventTypes';
+} from './event-engine/EventTypes';
 import { HttpClient } from './http-client/HttpClient';
 import { HttpResponse } from './http-client/HttpResponse';
 import { IDomEventListener } from './dom-event-engine/IDomEventListener';
@@ -38,7 +38,9 @@ import {
     isViewerValidationError,
     isViewerViewportError,
     isViewerWebGLError
-    } from './logger/ErrorTypeGuards';
+} from './logger/ErrorTypeGuards';
+import { ISessionGlobalAccessObjectDefinition } from './state-engine/ISessionGlobalAccessObjectDefinition';
+import { IViewportGlobalAccessObjectDefinition } from './state-engine/IViewportGlobalAccessObjectDefinition';
 import { Logger, LOGGING_LEVEL } from './logger/Logger';
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator';
 import { SESSION_SETTINGS_MODE, SettingsEngine } from './settings-engine/SettingsEngine';
@@ -58,7 +60,7 @@ import {
     ShapeDiverViewerValidationError,
     ShapeDiverViewerViewportError,
     ShapeDiverViewerWebGLError
-    } from './logger/ShapeDiverViewerErrors';
+} from './logger/ShapeDiverViewerErrors';
 import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from './logger/ShapeDiverError';
 import { StateEngine } from './state-engine/StateEngine';
 import { StatePromise } from './state-engine/StatePromise';
@@ -67,8 +69,8 @@ import { TypeChecker } from './type-check/TypeChecker';
 import { UuidGenerator } from './uuid-generator/UuidGenerator';
 
 export {
-  EventEngine, EVENTTYPE, MainEventTypes, IEvent,
-  EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK
+    EventEngine, EVENTTYPE, MainEventTypes, IEvent,
+    EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK
 };
 
 export {
@@ -76,7 +78,8 @@ export {
 };
 
 export {
-    StateEngine, StatePromise
+    StateEngine, StatePromise,
+    IViewportGlobalAccessObjectDefinition, ISessionGlobalAccessObjectDefinition
 };
 
 export {
@@ -108,16 +111,16 @@ export {
 };
 
 export {
-    Logger, LOGGING_LEVEL, 
+    Logger, LOGGING_LEVEL,
     ShapeDiverViewerErrorType,
-    ShapeDiverViewerError, 
-    ShapeDiverViewerDataProcessingError, 
+    ShapeDiverViewerError,
+    ShapeDiverViewerDataProcessingError,
     ShapeDiverViewerEnvironmentMapError,
     ShapeDiverViewerWebGLError,
     ShapeDiverViewerSettingsError,
     ShapeDiverViewerSessionError,
     ShapeDiverViewerViewportError,
-    ShapeDiverViewerUnknownError, 
+    ShapeDiverViewerUnknownError,
     ShapeDiverViewerArError,
     ShapeDiverViewerLightError,
     ShapeDiverViewerCameraError,

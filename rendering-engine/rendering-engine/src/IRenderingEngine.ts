@@ -47,7 +47,7 @@ export enum BUSY_MODE_DISPLAY {
   SPINNER = 'spinner',
   /** Nothing happens when a session is busy. */
   NONE = 'none'
-};
+}
 
 /**
  * Types of flags used to influence the render loop.
@@ -104,6 +104,7 @@ export interface IRenderingEngine {
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;
+  start(): void;
   touchToRay(event: Touch): { origin: vec3, direction: vec3 };
   touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 };
   update(id: string): void;
