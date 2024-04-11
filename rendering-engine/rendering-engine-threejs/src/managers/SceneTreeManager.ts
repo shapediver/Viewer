@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import * as THREE from 'three';
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { AbstractLight, DirectionalLight } from '@shapediver/viewer.rendering-engine.light-engine';
@@ -13,7 +12,7 @@ import {
     MaterialStandardData,
     SDTFItemData,
     SDTFOverviewData
-    } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
 import { Box, IBox } from '@shapediver/viewer.shared.math';
 import { IManager, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import {
@@ -21,13 +20,14 @@ import {
     ITreeNode,
     ITreeNodeData,
     Tree
-    } from '@shapediver/viewer.shared.node-tree';
+} from '@shapediver/viewer.shared.node-tree';
 import { mat4, vec3 } from 'gl-matrix';
 import { RenderingEngine } from '../RenderingEngine';
 import { SD_DATA_TYPE, SDData } from '../objects/SDData';
 import { SDBone } from '../objects/SDBone';
 import { SDObject } from '../objects/SDObject';
 import { ThreejsData } from '../types/ThreejsData';
+/* eslint-disable @typescript-eslint/no-empty-function */
 import {
     EventEngine,
     EVENTTYPE,
@@ -35,13 +35,18 @@ import {
     StateEngine,
 } from '@shapediver/viewer.shared.services';
 
+// #region Type aliases (1)
 
 type UpdateFilter = {
     transformationOnly: boolean
 }
 
+// #endregion Type aliases (1)
+
+// #region Classes (1)
+
 export class SceneTreeManager implements IManager {
-    // #region Properties (15)
+    // #region Properties (12)
 
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _inputValidator: InputValidator = InputValidator.instance;
@@ -60,7 +65,7 @@ export class SceneTreeManager implements IManager {
     private _lastRootVersion: string = '';
     private _mainNode!: SDObject;
 
-    // #endregion Properties (15)
+    // #endregion Properties (12)
 
     // #region Constructors (1)
 
@@ -70,7 +75,7 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (4)
+    // #region Public Getters And Setters (4)
 
     public get boundingBox(): IBox {
         return this._boundingBox;
@@ -88,7 +93,7 @@ export class SceneTreeManager implements IManager {
         return this._scene;
     }
 
-    // #endregion Public Accessors (4)
+    // #endregion Public Getters And Setters (4)
 
     // #region Public Methods (6)
 
@@ -127,7 +132,7 @@ export class SceneTreeManager implements IManager {
                         this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton).clone();
 
                     let bb: IBox = new Box();
-                    if(skeleton) {
+                    if (skeleton) {
                         bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix);
                     } else {
                         const clone = dataChild.clone();
@@ -244,15 +249,15 @@ export class SceneTreeManager implements IManager {
             // remove all data items that do not exist anymore
             const dataIds = node.data.map(d => d.id);
             const dataToRemove = convertedObject.children.filter(oc => {
-                if(oc instanceof SDData) {
-                    if(dataIds.includes(oc.SDid)) {
+                if (oc instanceof SDData) {
+                    if (dataIds.includes(oc.SDid)) {
                         const data = node.data.find(d => d.id === oc.SDid);
-                            if(data && data.version !== oc.SDversion) {
-                                // version is different
-                                return true;
-                            } else {
-                                return false;
-                            }
+                        if (data && data.version !== oc.SDversion) {
+                            // version is different
+                            return true;
+                        } else {
+                            return false;
+                        }
                     } else {
                         // id not included anymore
                         return true;
@@ -271,15 +276,15 @@ export class SceneTreeManager implements IManager {
             // the filter goes also through the data items as they were already added
             const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
             const childrenToRemove = convertedObject.children.filter(oc => {
-                if(oc instanceof SDObject && !(oc instanceof SDData)) {
-                    if(nodeIds.includes(oc.SDid)) {
+                if (oc instanceof SDObject && !(oc instanceof SDData)) {
+                    if (nodeIds.includes(oc.SDid)) {
                         const child = node.children.find(d => d.id === oc.SDid);
-                            if(child && child.version !== oc.SDversion) {
-                                // version is different
-                                return true;
-                            } else {
-                                return false;
-                            }
+                        if (child && child.version !== oc.SDversion) {
+                            // version is different
+                            return true;
+                        } else {
+                            return false;
+                        }
                     } else {
                         // id not included anymore
                         return true;
@@ -325,10 +330,10 @@ export class SceneTreeManager implements IManager {
 
             if (!objChild) {
                 const newChild = node.data.find(d => d instanceof BoneData) ? new SDBone(nodeChild.id, nodeChild.version) : new SDObject(nodeChild.id, nodeChild.version);
-                const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
-                nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
-                if (nodeChild.updateCallbackThreeJsObject)
-                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id);
+                const oldChild = nodeChild.convertedObject[this._renderingEngine.id] as THREE.Object3D;
+                nodeChild.convertedObject[this._renderingEngine.id] = newChild;
+                if (nodeChild.updateCallbackConvertedObject)
+                    nodeChild.updateCallbackConvertedObject(newChild, oldChild, this._renderingEngine.id);
                 convertedObject.add(newChild);
                 this.updateNode(nodeChild, newChild, filter, isVisibleInHierarchy, skeleton);
             } else if (objChild.SDversion !== nodeChild.version) {
@@ -370,10 +375,10 @@ export class SceneTreeManager implements IManager {
 
         if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
-            const oldObj = root.threeJsObject[this._renderingEngine.id];
-            root.threeJsObject[this._renderingEngine.id] = this._mainNode;
-            if (root.updateCallbackThreeJsObject)
-                root.updateCallbackThreeJsObject(this._mainNode, oldObj, this._renderingEngine.id);
+            const oldObj = root.convertedObject[this._renderingEngine.id] as THREE.Object3D;
+            root.convertedObject[this._renderingEngine.id] = this._mainNode;
+            if (root.updateCallbackConvertedObject)
+                root.updateCallbackConvertedObject!(this._mainNode, oldObj, this._renderingEngine.id);
             this._scene.add(this._mainNode);
         }
 
@@ -397,12 +402,12 @@ export class SceneTreeManager implements IManager {
                     max: vec3.clone(this._boundingBox.max),
                 }
             });
-        } 
-        
-        if(this._boundingBox.isEmpty()) {
+        }
+
+        if (this._boundingBox.isEmpty()) {
             // check if all outputs that should be loaded at the start of a session are loaded
             // if the bounding box is empty then, emit the event
-            if(Object.values(this._stateEngine.sessionEngines).every(s => s.initialOutputsLoaded.resolved === true)) {
+            if (Object.values(this._stateEngine.sessionEngines).every(s => s.initialOutputsLoaded.resolved === true)) {
                 this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_EMPTY, {
                     viewportId: this._renderingEngine.id
                 });
@@ -421,10 +426,10 @@ export class SceneTreeManager implements IManager {
         // we initialize all texture and then clear the cache
         const threeJsTextureCache = this._renderingEngine.materialLoader.threeJsTextureCache;
         for (const key in threeJsTextureCache) {
-            if(threeJsTextureCache[key].usage === 0) {
+            if (threeJsTextureCache[key].usage === 0) {
                 threeJsTextureCache[key].texture.dispose();
                 delete threeJsTextureCache[key];
-            } else if(threeJsTextureCache[key].initialized === false) {
+            } else if (threeJsTextureCache[key].initialized === false) {
                 this._renderingEngine.renderer.initTexture(threeJsTextureCache[key].texture);
                 threeJsTextureCache[key].initialized = true;
             }
@@ -496,13 +501,13 @@ export class SceneTreeManager implements IManager {
     }
 
     private removeData(dataObject: SDData) {
-        if(dataObject.userData.removed === true) return;
+        if (dataObject.userData.removed === true) return;
         dataObject.userData.removed = true;
 
         switch (true) {
             case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
                 dataObject.traverse((o) => {
-                    if(dataObject.id !== o.id && o.userData.removed === true) return;
+                    if (dataObject.id !== o.id && o.userData.removed === true) return;
                     o.userData.removed = true;
 
                     if (o instanceof THREE.Mesh) {
@@ -516,17 +521,17 @@ export class SceneTreeManager implements IManager {
                             if (o.material[t] instanceof THREE.Texture) {
                                 o.material[t].name = t;
                                 if (t !== 'envMap') {
-                                    if(!texturesToRemove.includes(o.material[t]))
+                                    if (!texturesToRemove.includes(o.material[t]))
                                         texturesToRemove.push(o.material[t]);
                                 }
                             }
                         }
 
-                        for(const texture of texturesToRemove) {
-                            if(texture.userData.cacheKey) {
+                        for (const texture of texturesToRemove) {
+                            if (texture.userData.cacheKey) {
                                 this._renderingEngine.materialLoader.threeJsTextureCache[texture.userData.cacheKey].usage--;
                             } else {
-                                if(texture.name === "sphericalNormalMap") {
+                                if (texture.name === 'sphericalNormalMap') {
                                     this._renderingEngine.geometryLoader.removeFromGemSphericalMapsCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
                                     texture.dispose();
                                 } else {
@@ -560,3 +565,5 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Private Methods (5)
 }
+
+// #endregion Classes (1)

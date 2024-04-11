@@ -1,12 +1,8 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
+import { AbstractLight } from '../AbstractLight';
 import { Color } from '@shapediver/viewer.shared.types';
-
-import { LIGHT_TYPE } from '../../interface/ILight'
 import { ISpotLight } from '../../interface/types/ISpotLight';
-import { AbstractLight } from '../AbstractLight'
-
-import * as THREE from 'three';
+import { LIGHT_TYPE } from '../../interface/ILight';
+import { vec3 } from 'gl-matrix';
 
 export class SpotLight extends AbstractLight implements ISpotLight {
   // #region Properties (6)
@@ -17,7 +13,6 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   #penumbra: number = 0.5;
   #position: vec3 = vec3.fromValues(-1, 0, 1);
   #target: vec3 = vec3.fromValues(0, 0, 0);
-  #threeJsObject: { [key: string]: THREE.SpotLight } = {};
 
   // #endregion Properties (6)
 
@@ -56,7 +51,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (12)
+  // #region Public Getters And Setters (12)
 
   public get angle(): number {
     return this.#angle;
@@ -65,7 +60,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set angle(value: number) {
     this.#angle = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get decay(): number {
@@ -75,7 +70,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set decay(value: number) {
     this.#decay = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get distance(): number {
@@ -85,7 +80,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set distance(value: number) {
     this.#distance = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get penumbra(): number {
@@ -95,7 +90,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set penumbra(value: number) {
     this.#penumbra = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get position(): vec3 {
@@ -105,7 +100,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set position(value: vec3) {
     this.#position = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get target(): vec3 {
@@ -115,14 +110,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set target(value: vec3) {
     this.#target = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
-  public get threeJsObject(): { [key: string]: THREE.SpotLight } {
-      return this.#threeJsObject;
-  }
-
-  // #endregion Public Accessors (12)
+  // #endregion Public Getters And Setters (12)
 
   // #region Public Methods (1)
 

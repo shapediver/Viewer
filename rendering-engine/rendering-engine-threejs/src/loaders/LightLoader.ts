@@ -1,127 +1,55 @@
-import * as THREE from 'three'
-import { Box, IBox, ISphere, Sphere } from '@shapediver/viewer.shared.math'
+import * as THREE from 'three';
+import { IBox, ISphere } from '@shapediver/viewer.shared.math';
+import { ILoader } from '../interfaces/ILoader';
+import { RenderingEngine } from '../RenderingEngine';
+import { SDData } from '../objects/SDData';
 import {
-  AbstractLight,
-  AmbientLight,
-  DirectionalLight,
-  HemisphereLight,
-  PointLight,
-  SpotLight,
-} from '@shapediver/viewer.rendering-engine.light-engine'
-
-import { RenderingEngine } from '../RenderingEngine'
-import { ILoader } from '../interfaces/ILoader'
-import { Converter } from '@shapediver/viewer.shared.services'
-import { SDData } from '../objects/SDData'
+    AbstractLight,
+    AmbientLight,
+    DirectionalLight,
+    HemisphereLight,
+    PointLight,
+    SpotLight,
+} from '@shapediver/viewer.rendering-engine.light-engine';
 
 export class LightLoader implements ILoader {
+    // #region Properties (3)
 
-
-    private readonly _converter: Converter = Converter.instance;
-    
-    private _shadowMapCount = 0;
     private _forceDisabledShadows: boolean = false;
+    private _shadowMapCount = 0;
+
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (2)
+    // #region Public Getters And Setters (4)
 
-    public init(): void {}
-
-    public load(light: AbstractLight, dataChild: SDData) {
-        let threeLight: THREE.Light | null = dataChild.children[0] instanceof THREE.Light ? <THREE.Light>dataChild.children[0] : null;
-        if (light instanceof AmbientLight) {
-            if(!threeLight) {
-                threeLight = new THREE.AmbientLight();
-                (<AmbientLight>light).threeJsObject[this._renderingEngine.id] = <THREE.AmbientLight>threeLight;
-                dataChild.add(threeLight);
-            }
-            const threeAmbientLight = <THREE.AmbientLight>threeLight;
-
-            threeAmbientLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeAmbientLight.intensity = light.intensity;
-        }
-        
-        if (light instanceof DirectionalLight) {
-            if(!threeLight) {
-                threeLight = new THREE.DirectionalLight();
-                dataChild.add(threeLight);
-                dataChild.add((<THREE.DirectionalLight>threeLight).target);
-                (<DirectionalLight>light).threeJsObject[this._renderingEngine.id] = <THREE.DirectionalLight>threeLight;
-            }
-            const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
-
-            threeDirectionalLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeDirectionalLight.intensity = light.intensity;
-
-            if(light.useNodeData) {
-                threeDirectionalLight.position.set(0,0,0);
-                threeDirectionalLight.target.position.set(0,0,-1);
-            }
-        }
-        
-        if (light instanceof HemisphereLight) {
-            if(!threeLight) {
-                threeLight = new THREE.HemisphereLight();
-                dataChild.add(threeLight);
-                (<HemisphereLight>light).threeJsObject[this._renderingEngine.id] = <THREE.HemisphereLight>threeLight;
-            }
-            const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
-
-            threeHemisphereLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeHemisphereLight.intensity = light.intensity;
-            threeHemisphereLight.groundColor = this._renderingEngine.createThreeJsColor(light.groundColor);
-        }
-        
-        if (light instanceof PointLight) {
-            if(!threeLight) {
-                threeLight = new THREE.PointLight();
-                dataChild.add(threeLight);
-                (<PointLight>light).threeJsObject[this._renderingEngine.id] = <THREE.PointLight>threeLight;
-            }
-            const threePointLight = <THREE.PointLight>threeLight;
-
-            threePointLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threePointLight.intensity = light.intensity;
-            threePointLight.distance = light.distance;
-            threePointLight.decay = light.decay;
-            threePointLight.position.set(light.position[0], light.position[1], light.position[2]);
-        }
-        
-        if (light instanceof SpotLight) {
-            if(!threeLight) {
-                threeLight = new THREE.SpotLight(
-                    this._renderingEngine.createThreeJsColor(light.color), 
-                    light.intensity, 
-                    light.distance, 
-                    light.angle, 
-                    light.penumbra, 
-                    light.decay
-                );
-                dataChild.add(threeLight);
-                dataChild.add((<THREE.SpotLight>threeLight).target);
-                (<SpotLight>light).threeJsObject[this._renderingEngine.id] = <THREE.SpotLight>threeLight;
-            }
-            const threeSpotLight = <THREE.SpotLight>threeLight;
-
-            threeSpotLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeSpotLight.intensity = light.intensity;
-            threeSpotLight.distance = light.distance;
-            threeSpotLight.angle = light.angle;
-            threeSpotLight.penumbra = light.penumbra;
-            threeSpotLight.decay = light.decay;
-
-            threeSpotLight.position.set(light.position[0], light.position[1], light.position[2]);
-            threeSpotLight.target.position.set(light.target[0], light.target[1], light.target[2]);
-        }
+    public get forceDisabledShadows(): boolean {
+        return this._forceDisabledShadows;
     }
 
+    public set forceDisabledShadows(value: boolean) {
+        this._forceDisabledShadows = value;
+    }
+
+    public get shadowMapCount(): number {
+        return this._shadowMapCount;
+    }
+
+    public set shadowMapCount(value: number) {
+        this._shadowMapCount = value;
+    }
+
+    // #endregion Public Getters And Setters (4)
+
+    // #region Public Methods (3)
+
     public adjustToBoundingBox(light: AbstractLight, dataChild: SDData, boundingBox: IBox) {
-        let threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
+        const threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
 
         if (light instanceof DirectionalLight) {
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
@@ -149,21 +77,95 @@ export class LightLoader implements ILoader {
         }
     }
 
-    public get shadowMapCount(): number {
-        return this._shadowMapCount;
+    public init(): void { }
+
+    public load(light: AbstractLight, dataChild: SDData) {
+        let threeLight: THREE.Light | null = dataChild.children[0] instanceof THREE.Light ? <THREE.Light>dataChild.children[0] : null;
+        if (light instanceof AmbientLight) {
+            if (!threeLight) {
+                threeLight = new THREE.AmbientLight();
+                light.convertedObject[this._renderingEngine.id] = <THREE.AmbientLight>threeLight;
+                dataChild.add(threeLight);
+            }
+            const threeAmbientLight = <THREE.AmbientLight>threeLight;
+
+            threeAmbientLight.color = this._renderingEngine.createThreeJsColor(light.color);
+            threeAmbientLight.intensity = light.intensity;
+        }
+
+        if (light instanceof DirectionalLight) {
+            if (!threeLight) {
+                threeLight = new THREE.DirectionalLight();
+                dataChild.add(threeLight);
+                dataChild.add((<THREE.DirectionalLight>threeLight).target);
+                light.convertedObject[this._renderingEngine.id] = <THREE.DirectionalLight>threeLight;
+            }
+            const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
+
+            threeDirectionalLight.color = this._renderingEngine.createThreeJsColor(light.color);
+            threeDirectionalLight.intensity = light.intensity;
+
+            if (light.useNodeData) {
+                threeDirectionalLight.position.set(0, 0, 0);
+                threeDirectionalLight.target.position.set(0, 0, -1);
+            }
+        }
+
+        if (light instanceof HemisphereLight) {
+            if (!threeLight) {
+                threeLight = new THREE.HemisphereLight();
+                dataChild.add(threeLight);
+                light.convertedObject[this._renderingEngine.id] = <THREE.HemisphereLight>threeLight;
+            }
+            const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
+
+            threeHemisphereLight.color = this._renderingEngine.createThreeJsColor(light.color);
+            threeHemisphereLight.intensity = light.intensity;
+            threeHemisphereLight.groundColor = this._renderingEngine.createThreeJsColor(light.groundColor);
+        }
+
+        if (light instanceof PointLight) {
+            if (!threeLight) {
+                threeLight = new THREE.PointLight();
+                dataChild.add(threeLight);
+                light.convertedObject[this._renderingEngine.id] = <THREE.PointLight>threeLight;
+            }
+            const threePointLight = <THREE.PointLight>threeLight;
+
+            threePointLight.color = this._renderingEngine.createThreeJsColor(light.color);
+            threePointLight.intensity = light.intensity;
+            threePointLight.distance = light.distance;
+            threePointLight.decay = light.decay;
+            threePointLight.position.set(light.position[0], light.position[1], light.position[2]);
+        }
+
+        if (light instanceof SpotLight) {
+            if (!threeLight) {
+                threeLight = new THREE.SpotLight(
+                    this._renderingEngine.createThreeJsColor(light.color),
+                    light.intensity,
+                    light.distance,
+                    light.angle,
+                    light.penumbra,
+                    light.decay
+                );
+                dataChild.add(threeLight);
+                dataChild.add((<THREE.SpotLight>threeLight).target);
+                light.convertedObject[this._renderingEngine.id] = <THREE.SpotLight>threeLight;
+            }
+            const threeSpotLight = <THREE.SpotLight>threeLight;
+
+            threeSpotLight.color = this._renderingEngine.createThreeJsColor(light.color);
+            threeSpotLight.intensity = light.intensity;
+            threeSpotLight.distance = light.distance;
+            threeSpotLight.angle = light.angle;
+            threeSpotLight.penumbra = light.penumbra;
+            threeSpotLight.decay = light.decay;
+
+            threeSpotLight.position.set(light.position[0], light.position[1], light.position[2]);
+            threeSpotLight.target.position.set(light.target[0], light.target[1], light.target[2]);
+        }
     }
 
-    public set shadowMapCount(value: number) {
-        this._shadowMapCount = value;
-    }
-
-    public get forceDisabledShadows(): boolean {
-        return this._forceDisabledShadows;
-    }
-
-    public set forceDisabledShadows(value: boolean) {
-        this._forceDisabledShadows = value;
-    }
-
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (3)
 }

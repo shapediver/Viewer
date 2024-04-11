@@ -41,9 +41,7 @@
   "dependencies": {
     "@shapediver/viewer.shared.math": "2.12.8",
     "@shapediver/viewer.shared.services": "2.12.8",
-    "@types/three": "0.162.0",
-    "gl-matrix": "3.3.0",
-    "three": "0.162.0"
+    "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

@@ -1,33 +1,43 @@
 import { ITree } from '../interfaces/ITree';
 import { ITreeNode } from '../interfaces/ITreeNode';
-import { ITreeNodeData } from '../interfaces/ITreeNodeData';
+import { TreeNode } from './TreeNode';
 
-export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>> implements ITree<T> {
-  // #region Properties (1)
+export class Tree implements ITree {
+  // #region Properties (2)
 
-  readonly #root: T;
+  readonly #root: ITreeNode;
 
-  // #endregion Properties (1)
+  private static _instance: Tree;
+
+  // #endregion Properties (2)
 
   // #region Constructors (1)
 
-  constructor(root: T) {
-    this.#root = root;
+  private constructor() {
+    this.#root = new TreeNode('root');
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (1)
+  // #region Public Static Getters And Setters (1)
 
-  public get root(): T {
+  public static get instance() {
+    return this._instance || (this._instance = new this());
+  }
+
+  // #endregion Public Static Getters And Setters (1)
+
+  // #region Public Getters And Setters (1)
+
+  public get root(): ITreeNode {
     return this.#root;
   }
 
-  // #endregion Public Accessors (1)
+  // #endregion Public Getters And Setters (1)
 
-  // #region Public Methods (6)
+  // #region Public Methods (5)
 
-  public addNode(node: T, parent: T = this.#root, root: T = this.#root): boolean {
+  public addNode(node: ITreeNode, parent: ITreeNode = this.#root, root: ITreeNode = this.#root): boolean {
     if (root === parent) {
       root.addChild(node);
       return true;
@@ -42,7 +52,7 @@ export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>>
     return false;
   }
 
-  public addNodeAtPath(node: T, path: string = this.root.getPath(), root: T = this.#root): boolean {
+  public addNodeAtPath(node: ITreeNode, path: string = this.root.getPath(), root: ITreeNode = this.#root): boolean {
     if (root.name === path) {
       root.addChild(node);
       return true;
@@ -62,8 +72,8 @@ export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>>
     return false;
   }
 
-  public getNodeAtPath(path: string = this.root.getPath(), root: T = this.#root): T | null {
-    if (root.name === path) 
+  public getNodeAtPath(path: string = this.root.getPath(), root: ITreeNode = this.#root): ITreeNode | null {
+    if (root.name === path)
       return root;
 
     const pathStart = path.substr(0, path.indexOf('.'));
@@ -73,13 +83,13 @@ export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>>
       for (let i = 0; i < root.children.length; i++) {
         const child = root.children[i];
         const res = this.getNodeAtPath(shortenedPath, child);
-        if(res) return res;
+        if (res) return res;
       }
     }
     return null;
   }
 
-  public removeNode(node: T, root: T = this.#root): boolean {
+  public removeNode(node: ITreeNode, root: ITreeNode = this.#root): boolean {
     if (root.hasChild(node)) {
       root.removeChild(node);
       return true;
@@ -95,7 +105,7 @@ export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>>
     return false;
   }
 
-  public removeNodeAtPath(path: string, root: T = this.#root): boolean {
+  public removeNodeAtPath(path: string, root: ITreeNode = this.#root): boolean {
     if (root.name === path) {
       root.parent?.removeChild(root);
       return true;
@@ -115,5 +125,5 @@ export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>>
     return false;
   }
 
-  // #endregion Public Methods (6)
+  // #endregion Public Methods (5)
 }

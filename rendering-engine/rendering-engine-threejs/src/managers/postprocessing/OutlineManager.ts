@@ -1,7 +1,7 @@
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { OutlineEffect } from "postprocessing";
-import * as THREE from "three";
-import { RenderingEngine } from "../../RenderingEngine";
+import * as THREE from 'three';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { OutlineEffect } from 'postprocessing';
+import { RenderingEngine } from '../../RenderingEngine';
 
 export class OutlineManager {
     // #region Properties (2)
@@ -47,10 +47,10 @@ export class OutlineManager {
         this._outlineEffect.selection.clear();
 
         for (let i = 0; i < this._outlineNodes.length; i++) {
-            this._outlineNodes[i].threeJsObject[this._renderingEngine.id].traverse(o => {
+            (this._outlineNodes[i].convertedObject[this._renderingEngine.id] as THREE.Object3D).traverse(o => {
                 if (o instanceof THREE.Mesh)
                     this._outlineEffect.selection.add(o);
-            })
+            });
         }
     }
 

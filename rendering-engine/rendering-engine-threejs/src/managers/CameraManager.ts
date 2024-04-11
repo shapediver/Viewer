@@ -1,15 +1,14 @@
 import * as THREE from 'three';
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { mat4, vec3 } from 'gl-matrix';
+import { RenderingEngine } from '../RenderingEngine';
+import { SDData } from '../objects/SDData';
 import {
     AbstractCamera,
     CAMERA_TYPE,
     OrthographicCamera,
     PerspectiveCamera,
 } from '@shapediver/viewer.rendering-engine.camera-engine';
-
-import { RenderingEngine } from '../RenderingEngine';
-import { SDData } from '../objects/SDData';
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export class CameraManager implements IManager {
     // #region Properties (2)
@@ -25,13 +24,13 @@ export class CameraManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+    // #region Public Getters And Setters (1)
 
     public get camera(): THREE.Camera {
         return this.#camera;
     }
 
-    // #endregion Public Accessors (1)
+    // #endregion Public Getters And Setters (1)
 
     // #region Public Methods (4)
 
@@ -41,15 +40,15 @@ export class CameraManager implements IManager {
 
         const camera = this._renderingEngine.cameraEngine.camera!;
         if (camera.useNodeData) {
-            const sdCameraNode = camera.node!.threeJsObject[this._renderingEngine.id];
+            const sdCameraNode = camera.convertedObject[this._renderingEngine.id] as THREE.Object3D;
             const sdCameraData = sdCameraNode.children[0];
             cameraThree = <THREE.Camera>sdCameraData.children[0];
         } else {
             if (this._renderingEngine.cameraEngine.camera!.type === CAMERA_TYPE.ORTHOGRAPHIC) {
                 const orthographicCameraData = <OrthographicCamera>camera;
-                let orthographicCameraThreeJs = orthographicCameraData.threeJsObject[this._renderingEngine.id];
+                let orthographicCameraThreeJs = orthographicCameraData.convertedObject[this._renderingEngine.id] as THREE.OrthographicCamera;
                 if (!orthographicCameraThreeJs) this.load(orthographicCameraData);
-                orthographicCameraThreeJs = orthographicCameraData.threeJsObject[this._renderingEngine.id];
+                orthographicCameraThreeJs = orthographicCameraData.convertedObject[this._renderingEngine.id] as THREE.OrthographicCamera;
 
                 const distance = vec3.distance(orthographicCameraData.position, orthographicCameraData.target) / 2;
                 orthographicCameraThreeJs.up.set(orthographicCameraData.up[0], orthographicCameraData.up[1], orthographicCameraData.up[2]);
@@ -65,9 +64,9 @@ export class CameraManager implements IManager {
                 cameraThree = orthographicCameraThreeJs;
             } else {
                 const perspectiveCameraData = <PerspectiveCamera>camera;
-                let perspectiveCameraThreeJs = perspectiveCameraData.threeJsObject[this._renderingEngine.id];
+                let perspectiveCameraThreeJs = perspectiveCameraData.convertedObject[this._renderingEngine.id] as THREE.PerspectiveCamera;
                 if (!perspectiveCameraThreeJs) this.load(perspectiveCameraData);
-                perspectiveCameraThreeJs = perspectiveCameraData.threeJsObject[this._renderingEngine.id];
+                perspectiveCameraThreeJs = perspectiveCameraData.convertedObject[this._renderingEngine.id] as THREE.PerspectiveCamera;
 
                 perspectiveCameraThreeJs.up.set(0, 0, 1);
                 const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).fov;
@@ -104,11 +103,11 @@ export class CameraManager implements IManager {
             if (!threeCamera) {
                 threeCamera = new THREE.PerspectiveCamera();
                 this.#cameraCache[camera.id] = threeCamera;
-                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
+                camera.convertedObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
                 if (dataChild)
                     dataChild.add(threeCamera);
             } else {
-                (<PerspectiveCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
+                camera.convertedObject[this._renderingEngine.id] = <THREE.PerspectiveCamera>threeCamera;
                 if (dataChild && !dataChild.children.find(t => t === threeCamera))
                     dataChild.add(threeCamera);
             }
@@ -128,11 +127,11 @@ export class CameraManager implements IManager {
             if (!threeCamera) {
                 threeCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
                 this.#cameraCache[camera.id] = threeCamera;
-                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
+                camera.convertedObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
                 if (dataChild)
                     dataChild.add(threeCamera);
             } else {
-                (<OrthographicCamera>camera).threeJsObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
+                camera.convertedObject[this._renderingEngine.id] = <THREE.OrthographicCamera>threeCamera;
                 if (dataChild && !dataChild.children.find(t => t === threeCamera))
                     dataChild.add(threeCamera);
             }

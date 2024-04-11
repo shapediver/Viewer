@@ -80,7 +80,7 @@ export class RenderingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (6)
+    // #region Public Getters And Setters (6)
 
     public get continuousRendering(): boolean {
         return this._continuousRendering;
@@ -106,7 +106,7 @@ export class RenderingManager implements IManager {
         return this._usingSwiftShader;
     }
 
-    // #endregion Public Accessors (6)
+    // #endregion Public Getters And Setters (6)
 
     // #region Public Methods (10)
 
@@ -358,7 +358,7 @@ export class RenderingManager implements IManager {
             this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id });
         }
 
-        if(this._renderingEngine.preRenderingCallback)
+        if (this._renderingEngine.preRenderingCallback)
             this._renderingEngine.preRenderingCallback(this._renderingEngine.renderer);
 
         if (runningAnimation !== this._runningAnimation) this.render();
@@ -434,6 +434,7 @@ export class RenderingManager implements IManager {
         // that means that the turntable controls are activated
         if (matrix) {
             for (let i = 0; i < this._tree.root.children.length; i++) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if (!(<any>this._tree.root.children[i]).sessionNode || this._tree.root.children[i].excludeViewports.includes(this._renderingEngine.id)) continue;
                 const transform = this._tree.root.children[i].transformations.find(t => t.id === 'turntableRotation');
                 if (transform) {
@@ -462,7 +463,7 @@ export class RenderingManager implements IManager {
         if (this._renderingEngine.lights === false) {
             const ls = this._renderingEngine.lightEngine.lightScene;
             if (ls) {
-                threeJsLightObject = ls.node.threeJsObject[this._renderingEngine.id];
+                threeJsLightObject = ls.node.convertedObject[this._renderingEngine.id] as THREE.Object3D;
                 if (threeJsLightObject) {
                     oldLightVisibility = threeJsLightObject.visible;
                     threeJsLightObject.visible = false;
@@ -519,9 +520,9 @@ export class RenderingManager implements IManager {
         if (threeJsLightObject)
             threeJsLightObject.visible = oldLightVisibility;
 
-        if(this._renderingEngine.postRenderingCallback)
+        if (this._renderingEngine.postRenderingCallback)
             this._renderingEngine.postRenderingCallback(this._renderingEngine.renderer, this._renderingEngine.scene, this._renderingEngine.camera);
-        
+
         this._stats.end();
     }
 

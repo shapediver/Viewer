@@ -2,31 +2,34 @@ import * as THREE from 'three';
 import {
     AttributeData,
     GeometryData,
-    MATERIAL_SIDE,
-    IMaterialAbstractData,
-    PRIMITIVE_MODE,
-    IPrimitiveData,
     IAttributeData,
-    MaterialGemData
+    IMaterialAbstractData,
+    IPrimitiveData,
+    MATERIAL_SIDE,
+    MaterialGemData,
+    PRIMITIVE_MODE
 } from '@shapediver/viewer.shared.types';
+import { GemMaterial } from '../materials/GemMaterial';
 import { IBox } from '@shapediver/viewer.shared.math';
+import { ILoader } from '../interfaces/ILoader';
 import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
-
 import { RenderingEngine } from '../RenderingEngine';
-import { ILoader } from '../interfaces/ILoader';
-import { GemMaterial } from '../materials/GemMaterial';
-import { vec3 } from 'gl-matrix';
 import { SDData } from '../objects/SDData';
+import { vec3 } from 'gl-matrix';
 
 export class GeometryLoader implements ILoader {
-    // #region Properties (3)
+    // #region Properties (8)
 
-    private _primitiveCache: {
+    private _gemCubeCamera?: THREE.CubeCamera;
+    private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
+    private _gemNormalMaterial?: THREE.ShaderMaterial;
+    private _gemScene?: THREE.Scene;
+    private _gemSphericalMapsCache: {
         [key: string]: {
-            counter: number,
-            threeGeometry: THREE.BufferGeometry,
-            clones: THREE.BufferGeometry[]
+            texture: THREE.CubeTexture,
+            renderTarget: THREE.WebGLCubeRenderTarget,
+            counter: number
         }
     } = {};
     private _geometryCache: {
@@ -35,19 +38,15 @@ export class GeometryLoader implements ILoader {
         }
     } = {};
     private _logger: Logger = Logger.instance;
-    private _gemSphericalMapsCache: {
+    private _primitiveCache: {
         [key: string]: {
-            texture: THREE.CubeTexture,
-            renderTarget: THREE.WebGLCubeRenderTarget,
-            counter: number
+            counter: number,
+            threeGeometry: THREE.BufferGeometry,
+            clones: THREE.BufferGeometry[]
         }
     } = {};
-    private _gemNormalMaterial?: THREE.ShaderMaterial;
-    private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
-    private _gemScene?: THREE.Scene;
-    private _gemCubeCamera?: THREE.CubeCamera;
 
-    // #endregion Properties (3)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -55,7 +54,7 @@ export class GeometryLoader implements ILoader {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (5)
+    // #region Public Methods (7)
 
     public emptyGeometryCache() {
         this._geometryCache = {};
@@ -72,7 +71,7 @@ export class GeometryLoader implements ILoader {
      */
     public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
         const threeGeometry = (() => {
-            if(!this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version]) {
+            if (!this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version]) {
                 return this.loadPrimitive(geometry.primitive);
             } else {
                 this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].counter++;
@@ -113,10 +112,10 @@ export class GeometryLoader implements ILoader {
 
             gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
             gemMaterialData.radius = radius;
-            (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+            (<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
         }
 
-        while(parent.children.length !== 0)
+        while (parent.children.length !== 0)
             parent.remove(parent.children[0]);
 
         const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
@@ -126,7 +125,7 @@ export class GeometryLoader implements ILoader {
 
             // case 1: in case the geometry data was cloned and this is a different object
             // case 2: it is a new child
-            if(newChild === false && obj.parent !== parent || newChild === true) {
+            if (newChild === false && obj.parent !== parent || newChild === true) {
                 obj = obj.cloneObject() as SDData;
                 parent.add(obj);
             }
@@ -179,7 +178,6 @@ export class GeometryLoader implements ILoader {
                 for (let i = 0; i < morphAttributeData.length; i++)
                     buffers.push(this.loadAttribute(morphAttributeData[i], attributeId));
                 geometry.morphAttributes[attributeName] = buffers;
-
             }
 
             // we copy the uv coordinates into the second set of uv coordinates if there are none
@@ -198,20 +196,15 @@ export class GeometryLoader implements ILoader {
                 }
             }
         }
-        primitive.threeJsObject[this._renderingEngine.id] = geometry;
+        primitive.convertedObject[this._renderingEngine.id] = geometry;
 
         this._primitiveCache[primitive.id + '_' + primitive.version] = { threeGeometry: geometry, counter: 1, clones: [] };
         return geometry;
     }
 
-    public removeFromGeometryCache(id: string) {
-        if (this._geometryCache[id])
-            delete this._geometryCache[id];
-    }
-
     public removeFromGemSphericalMapsCache(id: string) {
         if (this._gemSphericalMapsCache[id]) {
-            if(this._gemSphericalMapsCache[id].counter === 1) {
+            if (this._gemSphericalMapsCache[id].counter === 1) {
                 this._gemSphericalMapsCache[id].renderTarget.dispose();
                 this._gemSphericalMapsCache[id].texture.dispose();
                 delete this._gemSphericalMapsCache[id];
@@ -221,9 +214,14 @@ export class GeometryLoader implements ILoader {
         }
     }
 
+    public removeFromGeometryCache(id: string) {
+        if (this._geometryCache[id])
+            delete this._geometryCache[id];
+    }
+
     public removeFromPrimitiveCache(id: string) {
         if (this._primitiveCache[id]) {
-            if(this._primitiveCache[id].counter === 1) {
+            if (this._primitiveCache[id].counter === 1) {
                 this._primitiveCache[id].threeGeometry.dispose();
                 for (const key in this._primitiveCache[id].threeGeometry.attributes)
                     this._primitiveCache[id].threeGeometry.deleteAttribute(key);
@@ -243,9 +241,9 @@ export class GeometryLoader implements ILoader {
         }
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (7)
 
-    // #region Private Methods (5)
+    // #region Private Methods (6)
 
     private checkNormals(primitive: IPrimitiveData, attributeId: string, buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute, geometry: THREE.BufferGeometry): boolean {
         let blnNormalsOk = false;
@@ -441,19 +439,19 @@ export class GeometryLoader implements ILoader {
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton) {
         if (geometry.mode === PRIMITIVE_MODE.POINTS) {
             const points = new THREE.Points(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = points;
+            geometry.convertedObject[this._renderingEngine.id] = points;
             obj.add(points);
         } else if (geometry.mode === PRIMITIVE_MODE.LINES) {
             const lineSegments = new THREE.LineSegments(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
+            geometry.convertedObject[this._renderingEngine.id] = lineSegments;
             obj.add(lineSegments);
         } else if (geometry.mode === PRIMITIVE_MODE.LINE_LOOP) {
             const lineLoop = new THREE.LineLoop(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = lineLoop;
+            geometry.convertedObject[this._renderingEngine.id] = lineLoop;
             obj.add(lineLoop);
         } else if (geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
             const line = new THREE.Line(threeGeometry, material);
-            geometry.threeJsObject[this._renderingEngine.id] = line;
+            geometry.convertedObject[this._renderingEngine.id] = line;
             obj.add(line);
         } else if (geometry.mode === PRIMITIVE_MODE.TRIANGLES || geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             const bufferGeometry = threeGeometry;
@@ -462,7 +460,7 @@ export class GeometryLoader implements ILoader {
 
             if (skeleton) {
                 const skinnedMesh = new THREE.SkinnedMesh(bufferGeometry, material);
-                geometry.threeJsObject[this._renderingEngine.id] = skinnedMesh;
+                geometry.convertedObject[this._renderingEngine.id] = skinnedMesh;
                 skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
 
                 if ((<THREE.BufferAttribute>bufferGeometry.attributes.skinWeight).normalized)
@@ -471,7 +469,7 @@ export class GeometryLoader implements ILoader {
                 obj.add(skinnedMesh);
             } else {
                 const mesh = new THREE.Mesh(bufferGeometry, material);
-                geometry.threeJsObject[this._renderingEngine.id] = mesh;
+                geometry.convertedObject[this._renderingEngine.id] = mesh;
                 obj.add(mesh);
             }
         } else {
@@ -563,5 +561,5 @@ export class GeometryLoader implements ILoader {
         return buffer;
     }
 
-    // #endregion Private Methods (5)
+    // #endregion Private Methods (6)
 }

@@ -1,12 +1,8 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
+import { AbstractLight } from '../AbstractLight';
 import { Color } from '@shapediver/viewer.shared.types';
-
-import { LIGHT_TYPE } from '../../interface/ILight'
 import { IPointLight } from '../../interface/types/IPointLight';
-import { AbstractLight } from '../AbstractLight'
-
-import * as THREE from 'three';
+import { LIGHT_TYPE } from '../../interface/ILight';
+import { vec3 } from 'gl-matrix';
 
 export class PointLight extends AbstractLight implements IPointLight {
   // #region Properties (3)
@@ -14,7 +10,6 @@ export class PointLight extends AbstractLight implements IPointLight {
   #decay: number = 0;
   #distance: number = 0;
   #position: vec3 = vec3.fromValues(0, 0, 0);
-  #threeJsObject: { [key: string]: THREE.PointLight } = {};
 
   // #endregion Properties (3)
 
@@ -47,7 +42,7 @@ export class PointLight extends AbstractLight implements IPointLight {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (6)
+  // #region Public Getters And Setters (6)
 
   public get decay(): number {
     return this.#decay;
@@ -56,7 +51,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set decay(value: number) {
     this.#decay = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get distance(): number {
@@ -66,7 +61,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set distance(value: number) {
     this.#distance = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
   public get position(): vec3 {
@@ -76,14 +71,10 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set position(value: vec3) {
     this.#position = value;
     this.updateVersion();
-    if(this.parentNode) this.parentNode.updateVersion();
+    if (this.parentNode) this.parentNode.updateVersion();
   }
 
-  public get threeJsObject(): { [key: string]: THREE.PointLight } {
-      return this.#threeJsObject;
-  }
-
-  // #endregion Public Accessors (6)
+  // #endregion Public Getters And Setters (6)
 
   // #region Public Methods (1)
 

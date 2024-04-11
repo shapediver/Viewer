@@ -1,36 +1,34 @@
-import { mat4 } from 'gl-matrix'
-import { UuidGenerator } from '@shapediver/viewer.shared.services'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { ITransformation, ITreeNode } from '../interfaces/ITreeNode';
+import { ITreeNodeData } from '../interfaces/ITreeNodeData';
+import { mat4 } from 'gl-matrix';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
-import { ITransformation, ITreeNode } from '../interfaces/ITreeNode'
-import { ITreeNodeData } from '../interfaces/ITreeNodeData'
-
-export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> implements ITreeNode<T, U> {
-  // #region Properties (13)
-
-  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
-
-  readonly #children: T[] = [];
-  readonly #data: U[] = [];
-  #transformations: ITransformation[] = [];
-
-  readonly #id: string;
-  #name: string = '';
-  #version: string;
-  #parent?: T;
+export class TreeNode implements ITreeNode {
+  // #region Properties (19)
 
   readonly #boundingBox: IBox = new Box();
   readonly #boundingBoxViewport: { [key: string]: IBox } = {};
-  #excludeViewports: string[] = [];
-  #restrictViewports: string[] = [];
+  readonly #children: ITreeNode[] = [];
+  readonly #data: ITreeNodeData[] = [];
+  readonly #id: string;
+  readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-  #visible: boolean = true;
-  #skinNode: boolean = false;
-  #bones: T[] = [];
   #boneInverses: mat4[] = [];
+  #bones: ITreeNode[] = [];
+  #convertedObject: { [key: string]: unknown } = {};
+  #excludeViewports: string[] = [];
+  #name: string = '';
   #originalId: string;
+  #parent?: ITreeNode;
+  #restrictViewports: string[] = [];
+  #skinNode: boolean = false;
+  #transformations: ITransformation[] = [];
+  #updateCallbackConvertedObject: ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null = null;
+  #version: string;
+  #visible: boolean = true;
 
-  // #endregion Properties (13)
+  // #endregion Properties (19)
 
   // #region Constructors (1)
 
@@ -44,11 +42,11 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
    */
   constructor(
     name: string = 'node',
-    parent?: T,
-    data: U[] = [],
+    parent?: ITreeNode,
+    data: ITreeNodeData[] = [],
     transformations: ITransformation[] = []
   ) {
-    this.#name = name.replace(/\./g, "_");
+    this.#name = name.replace(/\./g, '_');
     this.#parent = parent;
     this.#data = data;
     this.#transformations = transformations;
@@ -61,16 +59,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (19)
-
-
-  public get bones(): T[] {
-    return this.#bones;
-  }
-
-  public set bones(value: T[]) {
-    this.#bones = value;
-  }
+  // #region Public Getters And Setters (33)
 
   public get boneInverses(): mat4[] {
     return this.#boneInverses;
@@ -78,6 +67,14 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public set boneInverses(value: mat4[]) {
     this.#boneInverses = value;
+  }
+
+  public get bones(): ITreeNode[] {
+    return this.#bones;
+  }
+
+  public set bones(value: ITreeNode[]) {
+    this.#bones = value;
   }
 
   public get boundingBox(): IBox {
@@ -88,19 +85,19 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return this.#boundingBoxViewport;
   }
 
-  public get children(): T[] {
+  public get children(): ITreeNode[] {
     return this.#children;
   }
 
-  public get originalId(): string {
-    return this.#originalId;
+  public get convertedObject(): { [key: string]: unknown } {
+    return this.#convertedObject;
   }
 
-  public set originalId(value: string) {
-    this.#originalId = value;
+  public set convertedObject(value: { [key: string]: unknown }) {
+    this.#convertedObject = value;
   }
 
-  public get data(): U[] {
+  public get data(): ITreeNodeData[] {
     return this.#data;
   }
 
@@ -126,16 +123,24 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public get nodeMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
-    for (let transform of this.#transformations)
+    for (const transform of this.#transformations)
       if (transform.id !== 'sdtf') mat4.multiply(matrix, matrix, transform.matrix);
     return matrix;
   }
 
-  public get parent(): T | undefined {
+  public get originalId(): string {
+    return this.#originalId;
+  }
+
+  public set originalId(value: string) {
+    this.#originalId = value;
+  }
+
+  public get parent(): ITreeNode | undefined {
     return this.#parent;
   }
 
-  public set parent(value: T | undefined) {
+  public set parent(value: ITreeNode | undefined) {
     // check if it was removed from previous parent
     if (this.#parent)
       this.#parent.removeChild(this);
@@ -171,6 +176,14 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     this.#transformations = value;
   }
 
+  public get updateCallbackConvertedObject(): ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null {
+    return this.#updateCallbackConvertedObject;
+  }
+
+  public set updateCallbackConvertedObject(value: ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null) {
+    this.#updateCallbackConvertedObject = value;
+  }
+
   public get version(): string {
     return this.#version;
   }
@@ -190,10 +203,11 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
   public get worldMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
 
-    for (let transform of this.#transformations)
+    for (const transform of this.#transformations)
       mat4.multiply(matrix, matrix, transform.matrix);
 
-    let node: AbstractTreeNode<any, any> = this;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let node: ITreeNode = this;
     while (node.parent) {
       mat4.multiply(matrix, node.parent.nodeMatrix, matrix);
       node = node.parent;
@@ -202,22 +216,22 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return matrix;
   }
 
-  // #endregion Public Accessors (19)
+  // #endregion Public Getters And Setters (33)
 
-  // #region Public Methods (16)
+  // #region Public Methods (20)
 
-  public addChild(child: T): boolean {
+  public addChild(child: ITreeNode): boolean {
     if (this.hasChild(child)) return false;
 
     this.#children.push(child);
     if (child.parent)
       child.parent.removeChild(child);
-    (<AbstractTreeNode<any, any>>child.parent) = this;
+    (<ITreeNode>child.parent) = this;
 
     return true;
   }
 
-  public addData(data: U): boolean {
+  public addData(data: ITreeNodeData): boolean {
     this.#data.push(data);
     return true;
   }
@@ -227,16 +241,20 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return true;
   }
 
-  public clone(): T {
-    const clone = new (<any>this.constructor);
+  public clone(): ITreeNode {
+    const clone = new (this.constructor as new () => ITreeNode)();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     clone.name = this.name;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     clone.originalId = this.originalId;
     clone.visible = this.visible;
-    for (let child of this.#children)
+    for (const child of this.#children)
       clone.addChild(child.clone());
-    for (let data of this.#data)
+    for (const data of this.#data)
       clone.data.push(data.clone());
-    for (let transform of this.#transformations)
+    for (const transform of this.#transformations)
       clone.addTransformation({
         id: transform.id,
         matrix: mat4.clone(transform.matrix)
@@ -245,16 +263,20 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return clone;
   }
 
-  public cloneInstance(): T {
-    const clone = new (<any>this.constructor);
+  public cloneInstance(): ITreeNode {
+    const clone = new (this.constructor as new () => ITreeNode)();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     clone.name = this.name;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     clone.originalId = this.originalId;
     clone.visible = this.visible;
-    for (let child of this.#children)
+    for (const child of this.#children)
       clone.addChild(child.cloneInstance());
-    for (let data of this.#data)
+    for (const data of this.#data)
       clone.data.push(data);
-    for (let transform of this.#transformations)
+    for (const transform of this.#transformations)
       clone.addTransformation({
         id: transform.id,
         matrix: mat4.clone(transform.matrix)
@@ -263,41 +285,41 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return clone;
   }
 
-  public getChild(id: string): T | undefined {
+  public getChild(id: string): ITreeNode | undefined {
     for (let i = 0; i < this.#children.length; i++)
       if (this.#children[i].id === id)
         return this.#children[i];
     return;
   }
 
-  public getData(id: string): U | undefined {
+  public getData(id: string): ITreeNodeData | undefined {
     for (let i = 0; i < this.#data.length; i++)
       if (this.#data[i].id === id)
         return this.#data[i];
     return;
   }
 
-  public getNodesByName(name: string): T[] {
-    let nodes: T[] = [];
-    if (name === this.name) nodes.push(<T><unknown>this);
+  public getNodesByName(name: string): ITreeNode[] {
+    const nodes: ITreeNode[] = [];
+    if (name === this.name) nodes.push(<ITreeNode><unknown>this);
     this.traverse((n) => {
       if (name === n.name) nodes.push(n);
     });
     return nodes;
-  };
+  }
 
-  public getNodesByNameWithRegex(regex: RegExp): T[] {
-    let nodes: T[] = [];
-    if (regex.test(this.name)) nodes.push(<T><unknown>this);
+  public getNodesByNameWithRegex(regex: RegExp): ITreeNode[] {
+    const nodes: ITreeNode[] = [];
+    if (regex.test(this.name)) nodes.push(<ITreeNode><unknown>this);
     this.traverse((n) => {
       if (regex.test(n.name)) nodes.push(n);
     });
     return nodes;
-  };
+  }
 
   public getPath(): string {
     let path = this.name;
-    let node: T | undefined = this.parent;
+    let node: ITreeNode | undefined = this.parent;
     while (node) {
       path = node.name + '.' + path;
       node = node.parent;
@@ -312,11 +334,11 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return;
   }
 
-  public hasChild(child: T): boolean {
+  public hasChild(child: ITreeNode): boolean {
     return this.#children.includes(child);
   }
 
-  public hasData(data: U): boolean {
+  public hasData(data: ITreeNodeData): boolean {
     return this.#data.includes(data);
   }
 
@@ -324,16 +346,16 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return this.#transformations.includes(transformation);
   }
 
-  public removeChild(child: T): boolean {
+  public removeChild(child: ITreeNode): boolean {
     const index = this.#children.indexOf(child);
     if (index === -1) return false;
     this.#children.splice(index, 1);
-    (<T | undefined>child.parent) = undefined;
+    (<ITreeNode | undefined>child.parent) = undefined;
 
     return true;
   }
 
-  public removeData(data: U): boolean {
+  public removeData(data: ITreeNodeData): boolean {
     const index = this.#data.indexOf(data);
     if (index === -1) return false;
     this.#data.splice(index, 1);
@@ -349,31 +371,33 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     return true;
   }
 
-  public traverse(callback: (node: T) => void): void {
-    callback(<T><unknown>this);
+  public traverse(callback: (node: ITreeNode) => void): void {
+    callback(<ITreeNode><unknown>this);
 
-    for(let i = 0; i < this.children.length; i++)
+    for (let i = 0; i < this.children.length; i++)
       this.children[i].traverse(callback);
   }
 
-  public traverseData(callback: (node: U) => void): void {
-    for(let j = 0; j < this.data.length; j++)
-      callback(<U>this.data[j]);
+  public traverseData(callback: (node: ITreeNodeData) => void): void {
+    for (let j = 0; j < this.data.length; j++)
+      callback(<ITreeNodeData>this.data[j]);
 
-    for(let i = 0; i < this.children.length; i++)
-      this.children[i].traverseData(<(data: ITreeNodeData<any>) => void>callback);
+    for (let i = 0; i < this.children.length; i++)
+      this.children[i].traverseData(<(data: ITreeNodeData) => void>callback);
   }
 
   public updateVersion(parents: boolean = true, children: boolean = true): void {
-    if(parents === true) {
-      let node = <AbstractTreeNode<any, any>>this;
+    if (parents === true) {
+      let node = <ITreeNode>this;
       while (node.parent) {
         node = node.parent;
-        (<any>node.version) = this.#uuidGenerator.create();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        node.version = this.#uuidGenerator.create();
       }
     }
 
-    if(children === true) {
+    if (children === true) {
       for (let i = 0; i < this.#children.length; i++)
         this.#children[i].updateVersion(parents, children);
     }
@@ -381,5 +405,5 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
     this.#version = this.#uuidGenerator.create();
   }
 
-  // #endregion Public Methods (16)
+  // #endregion Public Methods (20)
 }

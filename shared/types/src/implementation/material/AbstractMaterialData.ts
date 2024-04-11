@@ -1,12 +1,16 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { IMapData } from '../../interfaces/data/material/IMapData';
-import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { Color } from '../../types';
-import * as THREE from 'three';
-
+import { IMapData } from '../../interfaces/data/material/IMapData';
+import {
+  IMaterialAbstractData,
+  IMaterialAbstractDataProperties,
+  MATERIAL_ALPHA,
+  MATERIAL_SHADING,
+  MATERIAL_SIDE
+} from '../../interfaces/data/material/IMaterialAbstractData';
 
 export abstract class AbstractMaterialData extends AbstractTreeNodeData implements IMaterialAbstractData {
-  // #region Properties (17)
+  // #region Properties (21)
 
   #alphaCutoff: number = 0;
   #alphaMap?: IMapData;
@@ -20,18 +24,17 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   #depthWrite?: boolean;
   #emissiveMap?: IMapData;
   #emissiveness: Color = '#000000';
-  #materialOutput: boolean = false;
   #map?: IMapData;
+  #materialOutput: boolean = false;
   #name?: string;
   #normalMap?: IMapData;
   #normalScale: number = 1.0;
   #opacity = 1.0;
   #shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
   #side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
-  #threeJsObject: { [key: string]: THREE.Material } = {};
   #transparent?: boolean;
 
-  // #endregion Properties (17)
+  // #endregion Properties (21)
 
   // #region Constructors (1)
 
@@ -72,7 +75,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (34)
+  // #region Public Getters And Setters (42)
 
   public get alphaCutoff(): number {
     return this.#alphaCutoff;
@@ -241,31 +244,25 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   public set transparent(value: boolean | undefined) {
     this.#transparent = value;
   }
-  
-  public get threeJsObject(): { [key: string]: THREE.Material } {
-    return this.#threeJsObject;
-  }
 
-  // #endregion Public Accessors (34)
+  // #endregion Public Getters And Setters (42)
 
-  // #region Public Abstract Methods (1)
-
-  /**
-   * Reset the material data.
-   */
-  public abstract reset(): void;
+  // #region Public Abstract Methods (3)
 
   /**
    * Clones the scene graph data.
    */
   public abstract clone(): IMaterialAbstractData;
-
   /**
    * Copy all properties of another material data object.
    * 
    * @param source 
    */
   public abstract copy(source: IMaterialAbstractData): void;
+  /**
+   * Reset the material data.
+   */
+  public abstract reset(): void;
 
-  // #endregion Public Abstract Methods (1)
+  // #endregion Public Abstract Methods (3)
 }

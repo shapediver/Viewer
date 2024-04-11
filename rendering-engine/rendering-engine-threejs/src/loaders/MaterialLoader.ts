@@ -1,43 +1,38 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-
 import * as THREE from 'three';
 import { Converter, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
 import { entry, main } from '../shaders/PCSS';
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader';
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial';
+import {
+    GeometryData,
+    IMapData,
+    IMaterialAbstractData,
+    MATERIAL_ALPHA,
+    MATERIAL_SIDE,
+    MaterialBasicLineData,
+    MaterialGemData,
+    MaterialMultiPointData,
+    MaterialPointData,
+    MaterialShadowData,
+    MaterialSpecularGlossinessData,
+    MaterialStandardData,
+    MaterialUnlitData,
+    PRIMITIVE_MODE,
+    TEXTURE_FILTERING,
+    TEXTURE_WRAPPING
+} from '@shapediver/viewer.shared.types';
 import { ILoader } from '../interfaces/ILoader';
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { mat4, quat } from 'gl-matrix';
 import { MeshUnlitMaterialParameters } from '../materials/MeshUnlitMaterialParameters';
+import { MultiPointsMaterial, MultiPointsMaterialParameters } from '../materials/MultiPointsMaterial';
 import { RenderingEngine } from '../RenderingEngine';
 import { SDColor } from '../objects/SDColor';
 import { SpecularGlossinessMaterial, SpecularGlossinessMaterialParameters } from '../materials/SpecularGlossinessMaterial';
-import {
-    MATERIAL_SIDE,
-    TEXTURE_FILTERING,
-    TEXTURE_WRAPPING,
-    MATERIAL_ALPHA,
-    PRIMITIVE_MODE,
-    IMaterialAbstractData,
-    MaterialUnlitData,
-    MaterialSpecularGlossinessData,
-    MaterialGemData,
-    MaterialStandardData,
-    IMapData,
-    MaterialShadowData,
-    GeometryData,
-    MaterialPointData,
-    MaterialBasicLineData,
-    MaterialMultiPointData
-} from '@shapediver/viewer.shared.types';
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { MultiPointsMaterial, MultiPointsMaterialParameters } from '../materials/MultiPointsMaterial';
 
-export enum MATERIAL_TYPE {
-    POINT = 'point',
-    LINE = 'line',
-    MESH = 'mesh',
-}
+// #region Type aliases (6)
 
+type MaterialDataMeshTypes = MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData;
 export type MaterialSettings = {
     mode: PRIMITIVE_MODE,
     useVertexTangents: boolean,
@@ -47,112 +42,27 @@ export type MaterialSettings = {
     useMorphNormals: boolean
 }
 
-export const adaptShaders = () => {
-    let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
-    if (!shader.includes('PCSS implementation')) {
-        shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
-        shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
-    }
-    THREE.ShaderChunk.shadowmap_pars_fragment = shader;
-
-    // here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
-    // console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))
-    THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
-        'vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );',
-        'vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );'
-    );
-    THREE.ShaderLib.backgroundCube.fragmentShader = THREE.ShaderChunk.backgroundCube_frag;
-
-    // here we replace in the envmap_physical_pars_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );'));
-    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );',
-        `
-            #ifdef ENVMAP_TYPE_LDR
-                vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal).xzy;
-                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
-            #else
-                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
-            #endif
-            `
-    );
-
-    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );'));
-    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );',
-        `
-            #ifdef ENVMAP_TYPE_LDR
-                vec3 rotatedReflectVec = vec3(envMapRotation * reflectVec).xzy;
-                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), roughness );
-            #else
-                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
-            #endif
-            `
-    );
-
-    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-    // console.log(THREE.ShaderChunk.envmap_fragment, THREE.ShaderChunk.envmap_fragment.includes('vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );'));
-    THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
-        'vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );',
-        `
-        #ifdef ENVMAP_TYPE_LDR
-            vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
-        #else
-            vec4 envColor = textureCube( envMap, envMapRotation * vec3( -flipEnvMap * reflectVec.x, reflectVec.zy ) );
-        #endif
-        `
-    );
-
-    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
-    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes('vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );'))
-    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-        'vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );',
-        'vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );'
-    );
-
-    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
-    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment)
-    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
-        'vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );',
-        'vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );'
-    );
-
-    // here we create a new case in the lights_fragment_maps for the case of ENVMAP_TYPE_NONE
-    if (!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
-        const index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
-        THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
-            `#else
-            #ifdef ENVMAP_TYPE_NONE
-                vec3 reflectVec = reflect( -geometryViewDir, geometryNormal );
-                reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-                vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0);
-                radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
-            #endif
-        #endif
-        ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
-    }
-};
-
+type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
+type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial;
+type ThreeJsMeshMaterialTypes = THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial;
 type ThreeJsTextureCacheObject = {
     texture: THREE.Texture,
     usage: number,
     initialized: boolean
 }
 
-type ThreeJsMaterialTypes = THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | GemMaterial | THREE.PointsMaterial | MultiPointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial;
-type ThreeJsMeshMaterialTypes = THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial;
-type ThreeJsMaterialParameterTypes = THREE.PointsMaterialParameters | MultiPointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters | GemMaterialParameters | THREE.ShadowMaterialParameters;
-type MaterialDataMeshTypes = MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData;
+// #endregion Type aliases (6)
+
+// #region Classes (1)
 
 export class MaterialLoader implements ILoader {
-    // #region Properties (17)
+    // #region Properties (16)
 
     private readonly _converter: Converter = Converter.instance;
 
     private _blending: number = 0.0;
-    private _defaultMaterialData: MaterialStandardData = new MaterialStandardData({ color: '#199b9b', side: MATERIAL_SIDE.DOUBLE, metalness: 0.0});
     private _defaultLineMaterialData: MaterialBasicLineData = new MaterialBasicLineData({ color: '#199b9b' });
+    private _defaultMaterialData: MaterialStandardData = new MaterialStandardData({ color: '#199b9b', side: MATERIAL_SIDE.DOUBLE, metalness: 0.0 });
     private _defaultPointMaterialData: MaterialPointData = new MaterialPointData({ color: '#199b9b' });
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
     private _envMapIntensity: number = 1;
@@ -172,7 +82,7 @@ export class MaterialLoader implements ILoader {
     private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
     private _threeJsTextureCache: { [key: string]: ThreeJsTextureCacheObject } = {};
 
-    // #endregion Properties (17)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
@@ -180,16 +90,7 @@ export class MaterialLoader implements ILoader {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
-
-    public get defaultMaterialData(): MaterialStandardData {
-        return this._defaultMaterialData;
-    }
-
-    public set defaultMaterialData(value: MaterialStandardData) {
-        this._defaultMaterialData = value;
-        this.assignDefaultMaterial();
-    }
+    // #region Public Getters And Setters (12)
 
     public get defaultLineMaterialData(): MaterialBasicLineData {
         return this._defaultLineMaterialData;
@@ -198,6 +99,15 @@ export class MaterialLoader implements ILoader {
     public set defaultLineMaterialData(value: MaterialBasicLineData) {
         this._defaultLineMaterialData = value;
         this.assignDefaultLineMaterial();
+    }
+
+    public get defaultMaterialData(): MaterialStandardData {
+        return this._defaultMaterialData;
+    }
+
+    public set defaultMaterialData(value: MaterialStandardData) {
+        this._defaultMaterialData = value;
+        this.assignDefaultMaterial();
     }
 
     public get defaultPointMaterialData(): MaterialPointData {
@@ -234,9 +144,9 @@ export class MaterialLoader implements ILoader {
         this._threeJsTextureCache = value;
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Getters And Setters (12)
 
-    // #region Public Methods (17)
+    // #region Public Methods (18)
 
     public assignColorCorrection(value: boolean) {
         const convertColor = (c: THREE.Color | SDColor | undefined, toggle: boolean): THREE.Color | SDColor | undefined => {
@@ -285,6 +195,20 @@ export class MaterialLoader implements ILoader {
         }
     }
 
+    public assignDefaultLineMaterial() {
+        for (const cacheKey in this._materialCache) {
+            if (this._materialCache[cacheKey].material instanceof THREE.LineBasicMaterial && this._materialCache[cacheKey].materialData === undefined) {
+                const material: THREE.LineBasicMaterial = <THREE.LineBasicMaterial>this._materialCache[cacheKey].material;
+                if (this._materialCache[cacheKey].materialData && this._materialCache[cacheKey].materialData instanceof MaterialBasicLineData) continue;
+
+                const { properties, mapCount } = this.getMaterialProperties(this._defaultLineMaterialData, MATERIAL_TYPE.LINE, undefined);
+                this.maxMapCount = Math.max(this.maxMapCount, mapCount);
+                material.copy(new THREE.LineBasicMaterial(properties));
+                material.needsUpdate = true;
+            }
+        }
+    }
+
     public assignDefaultMaterial() {
         for (const cacheKey in this._materialCache) {
             if (this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial && this._materialCache[cacheKey].materialData === undefined) {
@@ -308,20 +232,6 @@ export class MaterialLoader implements ILoader {
                 const { properties, mapCount } = this.getMaterialProperties(this._defaultPointMaterialData, MATERIAL_TYPE.POINT, undefined);
                 this.maxMapCount = Math.max(this.maxMapCount, mapCount);
                 material.copy(new THREE.PointsMaterial(properties));
-                material.needsUpdate = true;
-            }
-        }
-    }
-
-    public assignDefaultLineMaterial() {
-        for(const cacheKey in this._materialCache) {
-            if(this._materialCache[cacheKey].material instanceof THREE.LineBasicMaterial && this._materialCache[cacheKey].materialData === undefined) {
-                const material: THREE.LineBasicMaterial = <THREE.LineBasicMaterial>this._materialCache[cacheKey].material;
-                if(this._materialCache[cacheKey].materialData && this._materialCache[cacheKey].materialData instanceof MaterialBasicLineData) continue;
-
-                const { properties, mapCount } = this.getMaterialProperties(this._defaultLineMaterialData, MATERIAL_TYPE.LINE, undefined);
-                this.maxMapCount = Math.max(this.maxMapCount, mapCount);
-                material.copy(new THREE.LineBasicMaterial(properties));
                 material.needsUpdate = true;
             }
         }
@@ -409,9 +319,9 @@ export class MaterialLoader implements ILoader {
     public assignEnvironmentMapRotation(value: quat) {
         // we switch the y and z axis to match the three.js coordinate system
         const rotationMatrix = new THREE.Matrix4().fromArray(mat4.fromQuat(mat4.create(), quat.fromValues(value[0], value[2], -value[1], value[3]))).transpose();
-        this._environmentMapRotationEuler = new THREE.Euler().setFromRotationMatrix(rotationMatrix);        
+        this._environmentMapRotationEuler = new THREE.Euler().setFromRotationMatrix(rotationMatrix);
         this._renderingEngine.scene.backgroundRotation = this._environmentMapRotationEuler;
-            
+
         for (const cacheKey in this._materialCache) {
             if ((this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[cacheKey].material instanceof THREE.MeshStandardMaterial)) {
                 const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[cacheKey].material;
@@ -438,10 +348,10 @@ export class MaterialLoader implements ILoader {
         this._pointSize = p * (this._height / 1080);
 
         for (const cacheKey in this._materialCache) {
-            if(this._materialCache[cacheKey].material instanceof MultiPointsMaterial) {
+            if (this._materialCache[cacheKey].material instanceof MultiPointsMaterial) {
                 const material: MultiPointsMaterial = <MultiPointsMaterial>this._materialCache[cacheKey].material;
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_0Enabled && this._materialCache[cacheKey].material.userData.customPointSize_0Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_0Enabled && this._materialCache[cacheKey].material.userData.customPointSize_0Enabled === true) {
                     material.size_0 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_0;
                     material.needsUpdate = true;
                 } else {
@@ -449,7 +359,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_1Enabled && this._materialCache[cacheKey].material.userData.customPointSize_1Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_1Enabled && this._materialCache[cacheKey].material.userData.customPointSize_1Enabled === true) {
                     material.size_1 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_1;
                     material.needsUpdate = true;
                 } else {
@@ -457,7 +367,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_2Enabled && this._materialCache[cacheKey].material.userData.customPointSize_2Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_2Enabled && this._materialCache[cacheKey].material.userData.customPointSize_2Enabled === true) {
                     material.size_2 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_2;
                     material.needsUpdate = true;
                 } else {
@@ -465,7 +375,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_3Enabled && this._materialCache[cacheKey].material.userData.customPointSize_3Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_3Enabled && this._materialCache[cacheKey].material.userData.customPointSize_3Enabled === true) {
                     material.size_3 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_3;
                     material.needsUpdate = true;
                 } else {
@@ -473,7 +383,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_4Enabled && this._materialCache[cacheKey].material.userData.customPointSize_4Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_4Enabled && this._materialCache[cacheKey].material.userData.customPointSize_4Enabled === true) {
                     material.size_4 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_4;
                     material.needsUpdate = true;
                 } else {
@@ -481,7 +391,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_5Enabled && this._materialCache[cacheKey].material.userData.customPointSize_5Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_5Enabled && this._materialCache[cacheKey].material.userData.customPointSize_5Enabled === true) {
                     material.size_5 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_5;
                     material.needsUpdate = true;
                 } else {
@@ -489,7 +399,7 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_6Enabled && this._materialCache[cacheKey].material.userData.customPointSize_6Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_6Enabled && this._materialCache[cacheKey].material.userData.customPointSize_6Enabled === true) {
                     material.size_6 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_6;
                     material.needsUpdate = true;
                 } else {
@@ -497,18 +407,18 @@ export class MaterialLoader implements ILoader {
                     material.needsUpdate = true;
                 }
 
-                if(this._materialCache[cacheKey].material.userData.customPointSize_7Enabled && this._materialCache[cacheKey].material.userData.customPointSize_7Enabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSize_7Enabled && this._materialCache[cacheKey].material.userData.customPointSize_7Enabled === true) {
                     material.size_7 = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize_7;
                     material.needsUpdate = true;
                 } else {
                     material.size_7 = this._pointSize;
                     material.needsUpdate = true;
                 }
-                
-            } else if(this._materialCache[cacheKey].material instanceof THREE.PointsMaterial) {
+
+            } else if (this._materialCache[cacheKey].material instanceof THREE.PointsMaterial) {
                 const material: THREE.PointsMaterial = <THREE.PointsMaterial>this._materialCache[cacheKey].material;
 
-                if(this._materialCache[cacheKey].material.userData.customPointSizeEnabled && this._materialCache[cacheKey].material.userData.customPointSizeEnabled === true) {
+                if (this._materialCache[cacheKey].material.userData.customPointSizeEnabled && this._materialCache[cacheKey].material.userData.customPointSizeEnabled === true) {
                     material.size = this._pointSize * this._materialCache[cacheKey].material.userData.customPointSize;
                     material.needsUpdate = true;
                 } else {
@@ -599,7 +509,7 @@ export class MaterialLoader implements ILoader {
         }
 
         if (materialData)
-            materialData.threeJsObject[this._renderingEngine.id] = material;
+            materialData.convertedObject[this._renderingEngine.id] = material;
 
         material.needsUpdate = true;
 
@@ -634,12 +544,12 @@ export class MaterialLoader implements ILoader {
 
         // if no MaterialStandardData is provided, we return our default
         if (!materialData) {
-            if(type === MATERIAL_TYPE.POINT) {
+            if (type === MATERIAL_TYPE.POINT) {
                 return this.getMaterialProperties(this._defaultPointMaterialData, type, materialSettings);
-            } else if(type === MATERIAL_TYPE.LINE) {
+            } else if (type === MATERIAL_TYPE.LINE) {
                 return this.getMaterialProperties(this._defaultLineMaterialData, type, materialSettings);
             } else {
-                if(materialSettings !== undefined && materialSettings.useVertexColors) {
+                if (materialSettings !== undefined && materialSettings.useVertexColors) {
                     const currentDefaultMaterialColor = this._defaultMaterialData.color;
                     this._defaultMaterialData.color = '#d3d3d3';
                     const properties = this.getMaterialProperties(this._defaultMaterialData, type, materialSettings);
@@ -669,11 +579,11 @@ export class MaterialLoader implements ILoader {
             generalProperties.transparent = false;
         }
 
-        if(materialData.depthTest !== undefined) {
+        if (materialData.depthTest !== undefined) {
             generalProperties.depthTest = materialData.depthTest;
         }
 
-        if(materialData.depthWrite !== undefined) {
+        if (materialData.depthWrite !== undefined) {
             generalProperties.depthWrite = materialData.depthWrite;
         }
 
@@ -702,8 +612,8 @@ export class MaterialLoader implements ILoader {
          * 
          */
 
-        if(type === MATERIAL_TYPE.POINT) {
-            if(materialData instanceof MaterialPointData) {
+        if (type === MATERIAL_TYPE.POINT) {
+            if (materialData instanceof MaterialPointData) {
                 const pointMaterialProperties: THREE.PointsMaterialParameters = generalProperties;
 
                 pointMaterialProperties.size = materialData.size !== undefined ? materialData.size : this._pointSize;
@@ -725,10 +635,10 @@ export class MaterialLoader implements ILoader {
                     mapCount++;
                 }
 
-            } else if(materialData instanceof MaterialMultiPointData) {
+            } else if (materialData instanceof MaterialMultiPointData) {
                 const multiPointMaterialProperties: MultiPointsMaterialParameters = generalProperties;
 
-                if(materialData.materialIndexDataMap) {
+                if (materialData.materialIndexDataMap) {
                     multiPointMaterialProperties.materialIndexDataTexture = this.createTexture(materialData.materialIndexDataMap) as THREE.DataTexture;
                 } else {
                     multiPointMaterialProperties.materialIndexDataTexture =
@@ -928,7 +838,7 @@ export class MaterialLoader implements ILoader {
                 pointMaterialProperties.size = this._pointSize;
             }
             return { properties: generalProperties, mapCount };
-        } else if(type === MATERIAL_TYPE.LINE) {
+        } else if (type === MATERIAL_TYPE.LINE) {
             return { properties: generalProperties, mapCount };
         }
 
@@ -1275,9 +1185,9 @@ export class MaterialLoader implements ILoader {
         }
     }
 
-    // #endregion Public Methods (17)
+    // #endregion Public Methods (18)
 
-    // #region Private Methods (3)
+    // #region Private Methods (4)
 
     private assignTextureEncoding() {
         for (const cacheKey in this._materialCache) {
@@ -1296,12 +1206,12 @@ export class MaterialLoader implements ILoader {
         }
     }
 
-    private createDataKeyFromMaterial(data: ITreeNodeData | undefined, type: MATERIAL_TYPE, materialSettings?: MaterialSettings): string {
-        return data ? window.btoa(data.id + '_' + data.version + '_' + type + '_' + JSON.stringify(materialSettings)) : window.btoa(type + '_' + JSON.stringify(materialSettings));
-    } 
-        
     private createDataKeyFromMap(map: IMapData): string {
         return window.btoa(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
+    }
+
+    private createDataKeyFromMaterial(data: ITreeNodeData | undefined, type: MATERIAL_TYPE, materialSettings?: MaterialSettings): string {
+        return data ? window.btoa(data.id + '_' + data.version + '_' + type + '_' + JSON.stringify(materialSettings)) : window.btoa(type + '_' + JSON.stringify(materialSettings));
     }
 
     private createTexture(map: IMapData): THREE.Texture {
@@ -1316,15 +1226,15 @@ export class MaterialLoader implements ILoader {
         }
 
         let texture: THREE.Texture;
-        if(map.asData === true) {
+        if (map.asData === true) {
             texture = new THREE.DataTexture(
                 new Uint32Array(map.data!),
                 map.data!.length,
                 1,
                 THREE.RedIntegerFormat,
                 THREE.UnsignedIntType
-              );
-              texture.internalFormat = 'R32UI';
+            );
+            texture.internalFormat = 'R32UI';
         } else {
             texture = new THREE.Texture(map.image);
             texture.format = THREE.RGBAFormat;
@@ -1376,16 +1286,16 @@ export class MaterialLoader implements ILoader {
                         return THREE.RepeatWrapping;
                 }
             })();
-    
+
             texture.center = new THREE.Vector2(map.center[0], map.center[1]);
             texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
             texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
             texture.rotation = map.rotation;
             if (map.texCoord !== undefined) texture.channel = map.texCoord;
-    
+
             texture.flipY = map.flipY;
         }
-        
+
         texture.needsUpdate = true;
 
         texture.userData.cacheKey = key;
@@ -1398,5 +1308,109 @@ export class MaterialLoader implements ILoader {
         return this._threeJsTextureCache[key].texture;
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (4)
 }
+
+// #endregion Classes (1)
+
+// #region Enums (1)
+
+/* eslint-disable @typescript-eslint/no-empty-function */
+export enum MATERIAL_TYPE {
+    POINT = 'point',
+    LINE = 'line',
+    MESH = 'mesh',
+}
+
+// #endregion Enums (1)
+
+// #region Variables (1)
+
+export const adaptShaders = () => {
+    let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
+    if (!shader.includes('PCSS implementation')) {
+        shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
+        shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+    }
+    THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+
+    // here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))
+    THREE.ShaderChunk.backgroundCube_frag = THREE.ShaderChunk.backgroundCube_frag.replace(
+        'vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );',
+        'vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );'
+    );
+    THREE.ShaderLib.backgroundCube.fragmentShader = THREE.ShaderChunk.backgroundCube_frag;
+
+    // here we replace in the envmap_physical_pars_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );'));
+    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );',
+        `
+            #ifdef ENVMAP_TYPE_LDR
+                vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal).xzy;
+                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
+            #else
+                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+            #endif
+            `
+    );
+
+    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );'));
+    THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        'vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );',
+        `
+            #ifdef ENVMAP_TYPE_LDR
+                vec3 rotatedReflectVec = vec3(envMapRotation * reflectVec).xzy;
+                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), roughness );
+            #else
+                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+            #endif
+            `
+    );
+
+    // here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+    // console.log(THREE.ShaderChunk.envmap_fragment, THREE.ShaderChunk.envmap_fragment.includes('vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );'));
+    THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
+        'vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );',
+        `
+        #ifdef ENVMAP_TYPE_LDR
+            vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
+        #else
+            vec4 envColor = textureCube( envMap, envMapRotation * vec3( -flipEnvMap * reflectVec.x, reflectVec.zy ) );
+        #endif
+        `
+    );
+
+    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes('vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );'))
+    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+        'vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );',
+        'vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );'
+    );
+
+    // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
+    // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment)
+    THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
+        'vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );',
+        'vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );'
+    );
+
+    // here we create a new case in the lights_fragment_maps for the case of ENVMAP_TYPE_NONE
+    if (!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
+        const index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
+        THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
+            `#else
+            #ifdef ENVMAP_TYPE_NONE
+                vec3 reflectVec = reflect( -geometryViewDir, geometryNormal );
+                reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
+                vec4 adjustedEnvReflectVector = vec4(reflectVec, 1.0);
+                radiance += (vec3((adjustedEnvReflectVector.z + 1.0) / 2.0) + 0.5) / 1.5;
+            #endif
+        #endif
+        ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
+    }
+};
+
+// #endregion Variables (1)

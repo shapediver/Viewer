@@ -19,7 +19,7 @@ import {
     IDomEventListener,
     InputValidator,
     Logger,
-    SESSION_SETTINGS_MODE, 
+    SESSION_SETTINGS_MODE,
     ShapeDiverViewerArError,
     ShapeDiverViewerValidationError,
     StateEngine,
@@ -56,11 +56,10 @@ import { sceneTree } from '@shapediver/viewer.api.general';
 import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class ViewportApi implements IViewportApi {
-    // #region Properties (11)
+    // #region Properties (12)
 
     readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
     readonly #cameras: { [key: string]: ICameraApi } = {};
-    readonly #converter: Converter = Converter.instance;
     readonly #creationControlCenterViewport: ICreationControlCenterViewport = CreationControlCenterViewport.instance;
     readonly #gltfConverter: GLTFConverter = GLTFConverter.instance;
     readonly #inputValidator: InputValidator = InputValidator.instance;
@@ -71,7 +70,7 @@ export class ViewportApi implements IViewportApi {
     readonly #stateEngine: StateEngine = StateEngine.instance;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
-    // #endregion Properties (11)
+    // #endregion Properties (12)
 
     // #region Constructors (1)
 
@@ -1016,7 +1015,7 @@ export class ViewportApi implements IViewportApi {
         if (!(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id]);
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.convertedObject[this.id] as THREE.Object3D);
     }
 
     public updateNodeTransformation(node: ITreeNode): void {
@@ -1024,7 +1023,7 @@ export class ViewportApi implements IViewportApi {
         if (!(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
-        this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id], { transformationOnly: true });
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.convertedObject[this.id] as THREE.Object3D, { transformationOnly: true });
     }
 
     public async viewInAR(node?: ITreeNode): Promise<void> {

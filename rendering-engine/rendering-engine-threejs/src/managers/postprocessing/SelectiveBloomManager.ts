@@ -1,7 +1,7 @@
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { SelectiveBloomEffect } from "postprocessing";
-import * as THREE from "three";
-import { RenderingEngine } from "../../RenderingEngine";
+import * as THREE from 'three';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { RenderingEngine } from '../../RenderingEngine';
+import { SelectiveBloomEffect } from 'postprocessing';
 
 export class SelectiveBloomManager {
     // #region Properties (2)
@@ -47,10 +47,10 @@ export class SelectiveBloomManager {
         this._selectiveBloomEffect.selection.clear();
 
         for (let i = 0; i < this._selectiveBloomNodes.length; i++) {
-            this._selectiveBloomNodes[i].threeJsObject[this._renderingEngine.id].traverse(o => {
+            (this._selectiveBloomNodes[i].convertedObject[this._renderingEngine.id] as THREE.Object3D).traverse(o => {
                 if (o instanceof THREE.Mesh)
                     this._selectiveBloomEffect.selection.add(o);
-            })
+            });
         }
     }
 

@@ -1,15 +1,15 @@
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { GodRaysEffect } from "postprocessing";
-import * as THREE from "three";
-import { RenderingEngine } from "../../RenderingEngine";
+import * as THREE from 'three';
+import { GodRaysEffect } from 'postprocessing';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { RenderingEngine } from '../../RenderingEngine';
 
 export class GodRaysManager {
-    // #region Properties (1)
+    // #region Properties (2)
 
     private _godRaysEffect!: GodRaysEffect;
     private _lightSource: THREE.Mesh | THREE.Points | null = null;
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
@@ -30,13 +30,13 @@ export class GodRaysManager {
 
     public setLightSource(node: ITreeNode): void {
         this._lightSource = null;
-        node.threeJsObject[this._renderingEngine.id].traverse(o => {
+        (node.convertedObject[this._renderingEngine.id] as THREE.Object3D).traverse(o => {
             if (o instanceof THREE.Mesh || o instanceof THREE.Points)
                 this._lightSource = o;
-        })
+        });
 
-        if(this._lightSource) {
-            if(Array.isArray((<THREE.Mesh | THREE.Points>this._lightSource).material)) {
+        if (this._lightSource) {
+            if (Array.isArray((<THREE.Mesh | THREE.Points>this._lightSource).material)) {
                 (<THREE.Material[]>(<THREE.Mesh | THREE.Points>this._lightSource).material).forEach(m => m.transparent = true);
                 (<THREE.Material[]>(<THREE.Mesh | THREE.Points>this._lightSource).material).forEach(m => m.depthWrite = false);
             } else {
@@ -44,7 +44,7 @@ export class GodRaysManager {
                 (<THREE.Material>(<THREE.Mesh | THREE.Points>this._lightSource).material).depthWrite = false;
             }
         }
-        
+
         this._godRaysEffect.lightSource = this._lightSource;
     }
 
