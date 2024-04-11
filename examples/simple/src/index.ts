@@ -9,7 +9,7 @@ import * as SDV from '@shapediver/viewer';
     });
     const session = await SDV.createSession({
         id: 'mySession',
-        ticket: '7d6061acf274727aff4710230595ff9e58fbd019a1e173ccd5f2342ecc697fd2397ab08cadc3014b2760f858d18b4aade0aade39fd73a5c1b44fef4d5a457739c1fe28ec6b44ef593a41f6c0cccc78fb3f62234080db167d60c23886b32c759068cdff6af5a8e3-853d465964df80e5db72abe9655cedee',
-        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
+        ticket: '283364d960ceb3d95c8bbda77ea9d0186e9ac2ad26b177b41bd06ecc1601bb6c14da10994886ab2f36e1b4c0c8537a07e636f1eceb23a824877cc7858633182541a165dd431f67cc1fcf1e9ae82359de62edabaacfec1447c622f16d088c9c13cc39becc8623af-7a95a07f6d94215329ce13927d7ca70c',
+        modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com'
     });
 })();

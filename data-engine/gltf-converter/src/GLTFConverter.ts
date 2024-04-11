@@ -1,6 +1,12 @@
 import { build_data } from '@shapediver/viewer.shared.build-data';
+import {
+    Converter,
+    EventEngine,
+    EVENTTYPE,
+    UuidGenerator
+} from '@shapediver/viewer.shared.services';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Converter, EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { mat4, vec3 } from 'gl-matrix';
 import {
     IGLTF_v2,
     IGLTF_v2_Scene,
@@ -16,7 +22,6 @@ import {
     IGLTF_v2_Image,
     IGLTF_v2_Animation,
 } from '@shapediver/viewer.data-engine.shared-types';
-import { mat4, vec3 } from 'gl-matrix';
 import {
     AttributeData,
     GeometryData,
@@ -37,16 +42,11 @@ import {
     ITaskEvent,
     TASK_TYPE,
 } from '@shapediver/viewer.shared.types';
-import { combineTextures } from '@shapediver/viewer.shared.texture-unifier';
 
-export enum GLTF_EXTENSIONS {
-    KHR_BINARY_GLTF = 'KHR_binary_glTF',
-    KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
-    KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
-}
+// #region Classes (1)
 
 export class GLTFConverter {
-    // #region Properties (15)
+    // #region Properties (23)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -55,14 +55,15 @@ export class GLTFConverter {
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
-    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
     private readonly _progressUpdateLimit = 500;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private static _instance: GLTFConverter;
 
     private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
+    private _combineTextures?: (red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement) => Promise<{ image: HTMLImageElement, blob: Blob }>;
     private _content: IGLTF_v2 = {
         asset: {
             copyright: '2023 (c) ShapeDiver',
@@ -71,12 +72,17 @@ export class GLTFConverter {
             extensions: {}
         },
     };
-
     private _convertForAR = false;
     private _eventId = '';
     private _extensionsRequired: string[] = [];
     private _extensionsUsed: string[] = [];
     private _imageCache: { [key: string]: number } = {};
+    private _materialCache: {
+        [key: string]: number
+    } = {};
+    private _meshCache: {
+        [key: string]: number
+    } = {};
     private _nodes: {
         node: ITreeNode,
         id: number
@@ -85,22 +91,28 @@ export class GLTFConverter {
     private _progressTimer = 0;
     private _promises: Promise<unknown>[] = [];
     private _viewport?: string;
-    private _materialCache: {
-        [key: string]: number
-    } = {};
-    private _meshCache: {
-        [key: string]: number
-    } = {};
 
-    // #endregion Properties (15)
+    // #endregion Properties (23)
 
-    // #region Public Static Accessors (1)
+    // #region Public Static Getters And Setters (1)
 
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
 
-    // #endregion Public Static Accessors (1)
+    // #endregion Public Static Getters And Setters (1)
+
+    // #region Public Getters And Setters (2)
+
+    public get combineTextures() {
+        return this._combineTextures;
+    }
+
+    public set combineTextures(value: ((red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement) => Promise<{ image: HTMLImageElement, blob: Blob }>) | undefined) {
+        this._combineTextures = value;
+    }
+
+    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (1)
 
@@ -135,21 +147,21 @@ export class GLTFConverter {
         });
 
         const translationMatrixId = this._uuidGenerator.create();
-        if(convertForAR) {
-          // add translation matrix to scene tree node
-          const center = node.boundingBox.boundingSphere.center;
-          const translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
-          node.addTransformation({ id: translationMatrixId, matrix: translationMatrix });
+        if (convertForAR) {
+            // add translation matrix to scene tree node
+            const center = node.boundingBox.boundingSphere.center;
+            const translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
+            node.addTransformation({ id: translationMatrixId, matrix: translationMatrix });
         }
 
         if (this._viewport) {
-            if(this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
+            if (this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
                 const nodeId = await this.convertNode(node);
-                if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
+                if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
             }
         } else {
             const nodeId = await this.convertNode(node);
-            if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
+            if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
         }
 
         for (let i = 0; i < node.transformations.length; i++)
@@ -184,8 +196,8 @@ export class GLTFConverter {
 
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
-        
-        if(originalParent)
+
+        if (originalParent)
             originalParent.addChild(node);
 
         // Update byte length of the single buffer.
@@ -203,13 +215,13 @@ export class GLTFConverter {
                     const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
                     binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
                     binaryChunkPrefix.setUint32(4, 0x004E4942, true);
-    
+
                     // JSON chunk.
                     const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
                     const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
                     jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
                     jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
-    
+
                     // GLB header.
                     const header = new ArrayBuffer(12);
                     const headerView = new DataView(header);
@@ -219,7 +231,7 @@ export class GLTFConverter {
                         + jsonChunkPrefix.byteLength + jsonChunk.byteLength
                         + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
                     headerView.setUint32(8, totalByteLength, true);
-    
+
                     const glbBlob = new Blob([
                         header,
                         jsonChunkPrefix,
@@ -227,7 +239,7 @@ export class GLTFConverter {
                         binaryChunkPrefix,
                         binaryChunk
                     ], { type: 'application/octet-stream' });
-    
+
                     const glbReader = new window.FileReader();
                     glbReader.readAsArrayBuffer(glbBlob);
                     glbReader.onloadend = () => {
@@ -452,7 +464,7 @@ export class GLTFConverter {
                     resolve(this._content.bufferViews!.length - 1);
                 };
                 reader.onerror = reject;
-            } catch(e) {
+            } catch (e) {
                 reject(e);
             }
         });
@@ -473,7 +485,7 @@ export class GLTFConverter {
             ctx.scale(1, - 1);
         }
 
-        if(data.blob) {
+        if (data.blob) {
             imageDef.mimeType = data.blob.type;
             this._promises.push(new Promise<void>((resolve, reject) => {
                 try {
@@ -484,12 +496,12 @@ export class GLTFConverter {
                 } catch (e) {
                     reject(e);
                 }
-            }));            
+            }));
         } else {
             let mimeType = 'image/png';
             if (data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
                 mimeType = 'image/jpeg';
-            
+
             imageDef.mimeType = mimeType;
 
             const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
@@ -509,7 +521,7 @@ export class GLTFConverter {
                                 resolve();
                             })
                             .catch(reject);
-                    } catch(e) {
+                    } catch (e) {
                         reject(e);
                     }
                 }));
@@ -533,7 +545,6 @@ export class GLTFConverter {
             }
         }
 
-
         this._content.images.push(imageDef);
         this._imageCache[data.image.src] = this._content.images.length - 1;
         return this._content.images.length - 1;
@@ -542,7 +553,7 @@ export class GLTFConverter {
     private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         if (this._materialCache[data.id + '_' + data.version]) return this._materialCache[data.id + '_' + data.version];
-        
+
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
             pbrMetallicRoughness: {}
@@ -588,41 +599,53 @@ export class GLTFConverter {
             materialDef.pbrMetallicRoughness!.roughnessFactor = standardMaterialData.roughnessMap ? 1 : standardMaterialData.roughness;
             if (standardMaterialData.metalnessRoughnessMap && includeMaps) {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
-            } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
-                this._promises.push(new Promise<void>((resolve, reject) => {
-                    try {
-                        combineTextures(
-                            undefined, 
-                            standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
-                            standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
-                        )
-                            .then(imageData => {
-                                const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
-        
-                                const mapData = new MapData(imageData.image,
-                                    {
-                                        blob: imageData.blob,
-                                        wrapS: m.wrapS,
-                                        wrapT: m.wrapT,
-                                        minFilter: m.minFilter,
-                                        magFilter: m.magFilter,
-                                        center: m.center,
-                                        color: m.color,
-                                        offset: m.offset,
-                                        repeat: m.repeat,
-                                        rotation: m.rotation,
-                                        texCoord: m.texCoord,
-                                        flipY: m.flipY
-                                    }
-                                );
-                                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) };
-                                resolve();
-                            })
-                            .catch(reject);
-                    } catch(e) {
-                        reject(e);
-                    }
-                }));
+            } else if (standardMaterialData.metalnessMap && standardMaterialData.roughnessMap && includeMaps) {
+                if(this.combineTextures) {
+                    this._promises.push(new Promise<void>((resolve, reject) => {
+                        try {
+                            // no support for combining textures
+                            if(!this.combineTextures) return standardMaterialData.roughnessMap;
+
+                            this.combineTextures(
+                                undefined,
+                                standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined,
+                                standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
+                            )
+                                .then(imageData => {
+                                    const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
+    
+                                    const mapData = new MapData(imageData.image,
+                                        {
+                                            blob: imageData.blob,
+                                            wrapS: m.wrapS,
+                                            wrapT: m.wrapT,
+                                            minFilter: m.minFilter,
+                                            magFilter: m.magFilter,
+                                            center: m.center,
+                                            color: m.color,
+                                            offset: m.offset,
+                                            repeat: m.repeat,
+                                            rotation: m.rotation,
+                                            texCoord: m.texCoord,
+                                            flipY: m.flipY
+                                        }
+                                    );
+                                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) };
+                                    resolve();
+                                })
+                                .catch(reject);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }));
+                } else {
+                    // no support for combining textures
+                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.roughnessMap) };
+                }
+            } else if (standardMaterialData.metalnessMap && includeMaps) {
+                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessMap) };
+            } else if (standardMaterialData.roughnessMap && includeMaps) {
+                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.roughnessMap) };
             }
         }
 
@@ -664,7 +687,7 @@ export class GLTFConverter {
 
         if (node.transformations.length > 0) {
             let matrix = node.nodeMatrix;
-            if(node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
+            if (node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
                 matrix = mat4.create();
 
             nodeDef.matrix = [matrix[0], matrix[1], matrix[2], matrix[3],
@@ -692,21 +715,21 @@ export class GLTFConverter {
 
         if (node.children.length > 0) nodeDef.children = [];
         for (let i = 0; i < node.children.length; i++) {
-            if(node.children[i].visible === true) {
-                if(this._viewport) {
-                    if(node.children[i].excludeViewports.includes(this._viewport)) continue;
-                    if(node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
+            if (node.children[i].visible === true) {
+                if (this._viewport) {
+                    if (node.children[i].excludeViewports.includes(this._viewport)) continue;
+                    if (node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
                 }
                 const nodeId = await this.convertNode(node.children[i]);
-                if(nodeId !== -1) nodeDef.children?.push(nodeId);
+                if (nodeId !== -1) nodeDef.children?.push(nodeId);
             }
         }
 
         // remove children array if it is empty
-        if(nodeDef.children !== undefined && nodeDef.children.length === 0)
+        if (nodeDef.children !== undefined && nodeDef.children.length === 0)
             nodeDef.children = undefined;
 
-        if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
+        if (performance.now() - this._progressTimer > this._progressUpdateLimit) {
             this._progressTimer = performance.now();
             const eventProgress: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: (this._content.nodes.length / this._numberOfNodes) / 2, status: `GlTF conversion progress: ${this._content.nodes.length}/${this._numberOfNodes} nodes.` };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
@@ -714,7 +737,7 @@ export class GLTFConverter {
         }
 
         // if the node is empty, don't add it
-        if(nodeDef.camera === undefined && nodeDef.children === undefined && nodeDef.mesh === undefined && nodeDef.extensions === undefined && nodeDef.extras === undefined && nodeDef.skin === undefined) return -1;
+        if (nodeDef.camera === undefined && nodeDef.children === undefined && nodeDef.mesh === undefined && nodeDef.extensions === undefined && nodeDef.extras === undefined && nodeDef.skin === undefined) return -1;
 
         this._content.nodes.push(nodeDef);
         this._nodes.push({
@@ -738,17 +761,17 @@ export class GLTFConverter {
                         primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a]);
                     } else if (data.attributes[a].itemSize % 3 === 0) {
                         const oldAttributeData = data.attributes[a];
-                        const newArray = new Float32Array((oldAttributeData.array.length/3)*4);
+                        const newArray = new Float32Array((oldAttributeData.array.length / 3) * 4);
 
                         let counter = 0;
-                        for(let i = 0; i < newArray.length; i+=4) {
+                        for (let i = 0; i < newArray.length; i += 4) {
                             newArray[i] = oldAttributeData.array[counter] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+1] = oldAttributeData.array[counter+1] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+2] = oldAttributeData.array[counter+2] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+3] = 1.0;
-                            counter+=3;
+                            newArray[i + 1] = oldAttributeData.array[counter + 1] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i + 2] = oldAttributeData.array[counter + 2] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i + 3] = 1.0;
+                            counter += 3;
                         }
-                        primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4*4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
+                        primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4 * 4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
                     }
                 } else {
                     primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a]);
@@ -901,3 +924,15 @@ export class GLTFConverter {
 
     // #endregion Private Methods (17)
 }
+
+// #endregion Classes (1)
+
+// #region Enums (1)
+
+export enum GLTF_EXTENSIONS {
+    KHR_BINARY_GLTF = 'KHR_binary_glTF',
+    KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
+    KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+}
+
+// #endregion Enums (1)
