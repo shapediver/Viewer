@@ -1,14 +1,25 @@
-import { IMaterialAbstractData, GeometryData, AbstractMaterialData, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
-import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
-import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import {
+    AbstractMaterialData,
+    GeometryData,
+    IMaterialAbstractData,
+    ITaskEvent,
+    TASK_TYPE
+} from '@shapediver/viewer.shared.types';
+import {
+    EventEngine,
+    EVENTTYPE,
+    IEvent,
+    PerformanceEvaluator
+} from '@shapediver/viewer.shared.services';
+import { ISessionEngine } from '../interfaces/ISessionEngine';
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { OutputDelayException } from './OutputDelayException';
+import { SessionOutputData } from './SessionOutputData';
+import { SessionTreeNode } from './SessionTreeNode';
+import { ShapeDiverResponseOutput, ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-import { OutputDelayException } from './OutputDelayException'
-import { SessionTreeNode } from './SessionTreeNode'
-import { SessionOutputData } from './SessionOutputData'
-import { EventEngine, EVENTTYPE, IEvent, PerformanceEvaluator, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
-import { ISessionEngine } from '../interfaces/ISessionEngine'
+// #region Type aliases (1)
 
 export type OutputLoaderTaskEventInfo = {
     eventId: string,
@@ -17,27 +28,31 @@ export type OutputLoaderTaskEventInfo = {
         min: number,
         max: number
     },
-    data: any
+    data: unknown
 }
 
-export class OutputLoader {
-    // #region Properties (3)
+// #endregion Type aliases (1)
 
-    private readonly _dataEngine: DataEngine = DataEngine.instance;
+// #region Classes (1)
+
+export class OutputLoader {
+    // #region Properties (5)
+
+    private readonly _dataEngine?: { loadContent: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode> };
     private readonly _eventEngine: EventEngine = EventEngine.instance;
-    private readonly _loadedOutputNodes: { 
+    private readonly _lastOutputNodes: {
         [key: string]: {
             [key: string]: ISessionTreeNode
-        }; 
+        };
     } = {};
-    private readonly _lastOutputNodes: { 
+    private readonly _loadedOutputNodes: {
         [key: string]: {
             [key: string]: ISessionTreeNode
-        }; 
+        };
     } = {};
     private readonly _performanceEvaluator: PerformanceEvaluator = PerformanceEvaluator.instance;
 
-    // #endregion Properties (3)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -46,11 +61,30 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor(private readonly _sessionEngine: ISessionEngine) {}
+    constructor(private readonly _sessionEngine: ISessionEngine) {
+        try {
+            // Attempt to load the package
+            require.resolve('@shapediver/viewer.data-engine.data-engine');
+
+            // If the package is installed, set the exported properties
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            this._dataEngine = require('@shapediver/viewer.data-engine.data-engine').DataEngine.instance;
+        } catch (error) {
+            // data engine not available
+        }
+    }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public getCurrentOutputVersions(): { [key: string]: string } {
+        const versions: { [key: string]: string } = {};
+        for (const o in this._lastOutputNodes)
+            versions[o] = Object.keys(this._lastOutputNodes[o])[0];
+
+        return versions;
+    }
 
     /**
      * Load the outputs and return the scene graph node of the result.
@@ -59,23 +93,25 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {        
+    public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
-        let currentNodes: { 
+        const currentNodes: {
             [key: string]: {
                 [key: string]: ISessionTreeNode
-            }; 
+            };
         } = {};
-        let outputInfo: { [key: string]: {
-            version:string,
-            contentFormat: string[],
-        } } = {};
-        let promises: Promise<ITreeNode>[] = [];
-        let promisesNodes: ISessionTreeNode[] = [];
+        const outputInfo: {
+            [key: string]: {
+                version: string,
+                contentFormat: string[],
+            }
+        } = {};
+        const promises: Promise<ITreeNode>[] = [];
+        const promisesNodes: ISessionTreeNode[] = [];
         let maxDelay = 0;
 
-        let progress: {
+        const progress: {
             [key: string]: number
         } = {};
 
@@ -83,7 +119,7 @@ export class OutputLoader {
 
         const cb = (e: IEvent) => {
             const taskEvent = e as ITaskEvent;
-            if(outputIDs.find(oId => taskEvent.id.startsWith(oId))) {
+            if (outputIDs.find(oId => taskEvent.id.startsWith(oId))) {
                 progress[taskEvent.id] = taskEvent.progress;
 
                 let sum = 0;
@@ -93,38 +129,39 @@ export class OutputLoader {
                 const eventProgressUpdate: ITaskEvent = { type: taskEventInfo.type, id: taskEventInfo.eventId, progress: outputLoadingProgress, data: taskEventInfo.data, status: 'Output content loading progress.' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgressUpdate);
             }
-        }
-        
-        let listenerTokens = [];
+        };
+
+        const listenerTokens = [];
         listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_START, cb));
         listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_PROCESS, cb));
         listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_CANCEL, cb));
         listenerTokens.push(this._eventEngine.addListener(EVENTTYPE.TASK.TASK_END, cb));
 
-        for (let outputID in outputs) {
+        for (const outputID in outputs) {
             // we store some necessary information as this data may have been changed after the await (see warning below)
             outputInfo[outputID] = {
                 version: outputs[outputID].version,
                 contentFormat: outputs[outputID].content ? outputs[outputID].content!.map(c => c.format) : []
-            }
+            };
 
             currentNodes[outputID] = {};
-            if(!this._loadedOutputNodes[outputID]) 
+            if (!this._loadedOutputNodes[outputID])
                 this._loadedOutputNodes[outputID] = {};
-             
-            if(outputsFreeze[outputID]) {
+
+            if (outputsFreeze[outputID]) {
                 currentNodes[outputID][outputInfo[outputID].version] = this._lastOutputNodes[outputID][outputInfo[outputID].version];
                 // no loading necessary, progress done
                 progress[outputID] = 1;
-            } else if(outputs[outputID].delay) {
+            } else if (outputs[outputID].delay) {
                 maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
-            } else if(!this._loadedOutputNodes[outputID][outputInfo[outputID].version]) {
+            } else if (!this._loadedOutputNodes[outputID][outputInfo[outputID].version]) {
                 currentNodes[outputID][outputInfo[outputID].version] = new SessionTreeNode(outputID);
                 currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
-                if(outputs[outputID].content) {
+                if (outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + "_" + outputInfo[outputID].version + "_" + i))
-                        promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version])
+                        if(this._dataEngine)
+                            promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + '_' + outputInfo[outputID].version + '_' + i));
+                        promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version]);
                     }
                 }
             } else {
@@ -134,7 +171,7 @@ export class OutputLoader {
             }
         }
 
-        if(maxDelay && throwDelay)
+        if (maxDelay && throwDelay)
             throw new OutputDelayException(maxDelay);
 
         /**
@@ -148,29 +185,29 @@ export class OutputLoader {
         listenerTokens.forEach(t => this._eventEngine.removeListener(t));
 
         // all promises are resolved, await in the next lines is just for structural purposes
-        for(let i = 0; i < promises.length; i++) 
-            promisesNodes[i].addChild(await promises[i])
+        for (let i = 0; i < promises.length; i++)
+            promisesNodes[i].addChild(await promises[i]);
 
         // here we assign all outputs just to the node and return it
-        for (let outputID in outputInfo)
-            if(currentNodes[outputID][outputInfo[outputID].version])    
+        for (const outputID in outputInfo)
+            if (currentNodes[outputID][outputInfo[outputID].version])
                 node.addChild(currentNodes[outputID][outputInfo[outputID].version]);
 
         // save the nodes as the last available version
-        for (let outputID in outputInfo) {
-            if(!currentNodes[outputID][outputInfo[outputID].version]) continue;
+        for (const outputID in outputInfo) {
+            if (!currentNodes[outputID][outputInfo[outputID].version]) continue;
             this._loadedOutputNodes[outputID] = {};
             this._loadedOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
             this._lastOutputNodes[outputID] = {};
             this._lastOutputNodes[outputID][outputInfo[outputID].version] = currentNodes[outputID][outputInfo[outputID].version];
         }
 
-        for (let outputID in outputInfo) {
-            if(!currentNodes[outputID][outputInfo[outputID].version]) continue;
-            if(currentNodes[outputID][outputInfo[outputID].version].children.length > 1) {
+        for (const outputID in outputInfo) {
+            if (!currentNodes[outputID][outputInfo[outputID].version]) continue;
+            if (currentNodes[outputID][outputInfo[outputID].version].children.length > 1) {
                 for (let i = 0, len = outputInfo[outputID].contentFormat!.length; i < len; i++) {
-                    if(outputInfo[outputID].contentFormat[i] === 'sdtf') {
-                        this.mergeContentNodes(currentNodes[outputID][outputInfo[outputID].version])
+                    if (outputInfo[outputID].contentFormat[i] === 'sdtf') {
+                        this.mergeContentNodes(currentNodes[outputID][outputInfo[outputID].version]);
                         break;
                     }
                 }
@@ -182,15 +219,7 @@ export class OutputLoader {
         return node;
     }
 
-    public getCurrentOutputVersions(): { [key: string]: string } {
-        const versions: { [key: string]: string } = {};
-        for(const o in this._lastOutputNodes)
-            versions[o] = Object.keys(this._lastOutputNodes[o])[0];
-
-        return versions;
-    }
-
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 
     // #region Private Methods (2)
 
@@ -200,7 +229,7 @@ export class OutputLoader {
                 if (node.data[i] instanceof GeometryData) {
                     const geometry = <GeometryData>node.data[i];
                     const currentMaterial = geometry.material;
-                    if(currentMaterial === null || currentMaterial.materialOutput === true) {
+                    if (currentMaterial === null || currentMaterial.materialOutput === true) {
                         geometry.material = material;
                     }
                 }
@@ -220,28 +249,15 @@ export class OutputLoader {
                     materials.push(material);
                 }
             }
-            
+
             for (let k = 0; k < node.children.length; k++) {
                 const child = node.children[k];
-                if(!child) continue;
+                if (!child) continue;
                 materials.push(...getMaterialData(child));
             }
 
             return materials;
-        }
-
-        const getGeometryData = (node: ITreeNode, geometries: GeometryData[] = []): GeometryData[] => {
-            for (let k = 0; k < node.data.length; k++)
-                if (node.data[k] instanceof GeometryData)
-                    geometries.push(<GeometryData>node.data[k]);
-            
-            for (let k = 0; k < node.children.length; k++) {
-                const child = node.children[k];
-                if(!child) continue;
-                geometries.push(...getGeometryData(child));
-            }
-            return geometries;
-        }
+        };
 
         for (let m = 0; m < node.children.length; m++) {
             // per output node, we go through the material assignment process
@@ -251,13 +267,13 @@ export class OutputLoader {
             // we go through all data properties, normally, there should ony one, but we just make sure
             for (let i = 0; i < outputNode.data.length; i++) {
                 if (!(outputNode.data[i] instanceof SessionOutputData)) continue;
-                
+
                 // the session output data contains information about this Output
                 // most importantly the SessionOutput property with the material and content in it
                 const sessionOutputData = <SessionOutputData>outputNode.data[i];
 
                 // case 1: we have a specific material id defined, let's use that
-                if(sessionOutputData.responseOutput.material) {
+                if (sessionOutputData.responseOutput.material) {
                     let materialNodes: ITreeNode[] = [];
                     // now we have id
                     // get material with it    
@@ -270,7 +286,7 @@ export class OutputLoader {
 
                     const geometryNodes = outputNode.children;
 
-                    if(materialNodes.length >= geometryNodes.length) {
+                    if (materialNodes.length >= geometryNodes.length) {
                         for (let n = 0; n < geometryNodes.length; n++) {
                             addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[n])[0]);
                         }
@@ -280,25 +296,25 @@ export class OutputLoader {
                                 addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[0])[0]);
                             }
                     }
-                } 
+                }
                 // case 2: there is no specific material id defined, maybe in the content we can match geometries to ids
                 else {
                     // now we hope that in our content, there are exactly the amount of geometries and material, this will be interesting :)
 
                     const sessionOutputContent = sessionOutputData.responseOutput.content;
-                    if(sessionOutputContent === undefined) continue;
+                    if (sessionOutputContent === undefined) continue;
 
                     const materialNodes = [];
                     const geometryNodes = [];
-                    for(let i = 0; i < sessionOutputContent.length; i++) {
-                        if(sessionOutputContent[i].format === 'material') {
+                    for (let i = 0; i < sessionOutputContent.length; i++) {
+                        if (sessionOutputContent[i].format === 'material') {
                             materialNodes.push(outputNode.children[i]);
                         } else {
                             geometryNodes.push(outputNode.children[i]);
                         }
                     }
 
-                    if(materialNodes.length >= geometryNodes.length) {
+                    if (materialNodes.length >= geometryNodes.length) {
                         for (let n = 0; n < geometryNodes.length; n++) {
                             addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[n])[0]);
                         }
@@ -314,40 +330,42 @@ export class OutputLoader {
     }
 
     private mergeContentNodes(node: ISessionTreeNode) {
-        if(!(node.children.length > 1)) return;
+        if (!(node.children.length > 1)) return;
 
         const children = [];
-        while(node.children.length > 0) {
+        while (node.children.length > 0) {
             children.push(...node.children[0].children);
             node.removeChild(node.children[0]);
         }
 
         const mergeNodes = (node1: ITreeNode, node2: ITreeNode) => {
-            for(let i = 0; i < node1.data.length; i++)
+            for (let i = 0; i < node1.data.length; i++)
                 node2.data.push(node1.data[i]);
 
-            for(let i = 0; i < node1.children.length; i++) {
+            for (let i = 0; i < node1.children.length; i++) {
                 let childNode;
-                for(let j = 0; j < node2.children.length; j++) {
-                    if(node1.children[i].name === node2.children[j].name) {
+                for (let j = 0; j < node2.children.length; j++) {
+                    if (node1.children[i].name === node2.children[j].name) {
                         childNode = node2.children[j];
                         break;
                     }
                 }
-                if(!childNode) {
+                if (!childNode) {
                     childNode = new TreeNode(node1.children[i].name);
                     node2.addChild(childNode);
                 }
 
                 mergeNodes(node1.children[i], childNode);
             }
-        }
+        };
 
         const newChild = new TreeNode('content_array');
         node.addChild(newChild);
-        for(let i = 0; i < children.length; i++) 
-            mergeNodes(children[i], newChild)
+        for (let i = 0; i < children.length; i++)
+            mergeNodes(children[i], newChild);
     }
 
     // #endregion Private Methods (2)
 }
+
+// #endregion Classes (1)
