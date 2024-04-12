@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.session",
-  "version": "2.13.0-rc.1",
+  "version": "2.13.0-rc.2",
   "description": "",
   "keywords": [
     "webgl",
@@ -50,12 +50,12 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
-    "@shapediver/viewer.api.general": "2.13.0-rc.1",
-    "@shapediver/viewer.creation-control-center.session": "2.13.0-rc.1",
-    "@shapediver/viewer.data-engine.gltf-converter": "2.13.0-rc.1",
-    "@shapediver/viewer.session-engine.session-engine": "2.13.0-rc.1",
-    "@shapediver/viewer.shared.node-tree": "2.13.0-rc.1",
-    "@shapediver/viewer.shared.services": "2.13.0-rc.1"
+    "@shapediver/viewer.api.general": "2.13.0-rc.2",
+    "@shapediver/viewer.creation-control-center.session": "2.13.0-rc.2",
+    "@shapediver/viewer.data-engine.gltf-converter": "2.13.0-rc.2",
+    "@shapediver/viewer.session-engine.session-engine": "2.13.0-rc.2",
+    "@shapediver/viewer.shared.node-tree": "2.13.0-rc.2",
+    "@shapediver/viewer.shared.services": "2.13.0-rc.2"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
