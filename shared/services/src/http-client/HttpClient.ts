@@ -3,6 +3,7 @@ import { ShapeDiverError as ShapeDiverBackendError, isGBResponseError, isGBReque
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
 import { Converter } from '../converter/Converter';
+import { btoaCustom } from '../utilities/base64';
 
 export class HttpClient {
     // #region Properties (7)
@@ -326,7 +327,7 @@ export class HttpClient {
         url.search = params.toString();
 
         const hrefAsKey = url.toString();
-        return window.btoa(hrefAsKey);
+        return btoaCustom(hrefAsKey);
     }
 
     // #endregion Private Methods (5)

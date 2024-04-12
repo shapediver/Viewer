@@ -1,5 +1,6 @@
 import { build_data } from '@shapediver/viewer.shared.build-data';
 import {
+    atobCustom,
     Converter,
     EventEngine,
     EVENTTYPE,
@@ -207,50 +208,54 @@ export class GLTFConverter {
             // https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
 
             try {
-                const reader = new window.FileReader();
-                reader.readAsArrayBuffer(blob);
-                reader.onloadend = () => {
-                    // Binary chunk.
-                    const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                    const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
-                    binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
-                    binaryChunkPrefix.setUint32(4, 0x004E4942, true);
+                if (typeof window !== 'undefined' && window.FileReader) {
+                    const reader = new window.FileReader();
+                    reader.readAsArrayBuffer(blob);
+                    reader.onloadend = () => {
+                        // Binary chunk.
+                        const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                        const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
+                        binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
+                        binaryChunkPrefix.setUint32(4, 0x004E4942, true);
 
-                    // JSON chunk.
-                    const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
-                    const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
-                    jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
-                    jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
+                        // JSON chunk.
+                        const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
+                        const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
+                        jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
+                        jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
 
-                    // GLB header.
-                    const header = new ArrayBuffer(12);
-                    const headerView = new DataView(header);
-                    headerView.setUint32(0, 0x46546C67, true);
-                    headerView.setUint32(4, 2, true);
-                    const totalByteLength = 12
-                        + jsonChunkPrefix.byteLength + jsonChunk.byteLength
-                        + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
-                    headerView.setUint32(8, totalByteLength, true);
+                        // GLB header.
+                        const header = new ArrayBuffer(12);
+                        const headerView = new DataView(header);
+                        headerView.setUint32(0, 0x46546C67, true);
+                        headerView.setUint32(4, 2, true);
+                        const totalByteLength = 12
+                            + jsonChunkPrefix.byteLength + jsonChunk.byteLength
+                            + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
+                        headerView.setUint32(8, totalByteLength, true);
 
-                    const glbBlob = new Blob([
-                        header,
-                        jsonChunkPrefix,
-                        jsonChunk,
-                        binaryChunkPrefix,
-                        binaryChunk
-                    ], { type: 'application/octet-stream' });
+                        const glbBlob = new Blob([
+                            header,
+                            jsonChunkPrefix,
+                            jsonChunk,
+                            binaryChunkPrefix,
+                            binaryChunk
+                        ], { type: 'application/octet-stream' });
 
-                    const glbReader = new window.FileReader();
-                    glbReader.readAsArrayBuffer(glbBlob);
-                    glbReader.onloadend = () => {
-                        const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
-                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-                        resolve(<ArrayBuffer>glbReader.result);
+                        const glbReader = new window.FileReader();
+                        glbReader.readAsArrayBuffer(glbBlob);
+                        glbReader.onloadend = () => {
+                            const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
+                            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+                            resolve(<ArrayBuffer>glbReader.result);
+                        };
+                        glbReader.onerror = reject;
                     };
-                    glbReader.onerror = reject;
-                };
 
-                reader.onerror = reject;
+                    reader.onerror = reject;
+                } else {
+                    reject('FileReader not available.');
+                }
             } catch (e) {
                 reject(e);
             }
@@ -450,20 +455,24 @@ export class GLTFConverter {
         if (!this._content.bufferViews) this._content.bufferViews = [];
         return new Promise((resolve, reject) => {
             try {
-                const reader = new window.FileReader();
-                reader.readAsArrayBuffer(blob);
-                reader.onloadend = () => {
-                    const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                    const bufferViewDef = {
-                        buffer: this.convertBuffer(buffer),
-                        byteOffset: this._byteOffset,
-                        byteLength: buffer.byteLength
+                if (typeof window !== 'undefined' && window.FileReader) {
+                    const reader = new window.FileReader();
+                    reader.readAsArrayBuffer(blob);
+                    reader.onloadend = () => {
+                        const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                        const bufferViewDef = {
+                            buffer: this.convertBuffer(buffer),
+                            byteOffset: this._byteOffset,
+                            byteLength: buffer.byteLength
+                        };
+                        this._byteOffset += buffer.byteLength;
+                        this._content.bufferViews!.push(bufferViewDef);
+                        resolve(this._content.bufferViews!.length - 1);
                     };
-                    this._byteOffset += buffer.byteLength;
-                    this._content.bufferViews!.push(bufferViewDef);
-                    resolve(this._content.bufferViews!.length - 1);
-                };
-                reader.onerror = reject;
+                    reader.onerror = reject;
+                } else {
+                    reject('FileReader not available.');
+                }
             } catch (e) {
                 reject(e);
             }
@@ -506,7 +515,7 @@ export class GLTFConverter {
 
             const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
             if (DATA_URI_REGEX.test(data.image.src)) {
-                const byteString = atob(data.image.src.split(',')[1]);
+                const byteString = atobCustom(data.image.src.split(',')[1]);
                 const mimeType = data.image.src.split(',')[0].split(':')[1].split(';')[0];
                 const ab = new ArrayBuffer(byteString.length);
                 const ia = new Uint8Array(ab);

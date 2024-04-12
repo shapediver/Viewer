@@ -1,5 +1,5 @@
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types';
-import { HttpClient, HttpResponse } from '@shapediver/viewer.shared.services';
+import { HttpClient, HttpResponse, atobCustom } from '@shapediver/viewer.shared.services';
 
 export class BufferLoader {
     // #region Properties (2)
@@ -55,7 +55,7 @@ export class BufferLoader {
                 const isBase64 = !!dataUriRegexResult[2];
                 let data = dataUriRegexResult[3];
                 data = decodeURIComponent(data);
-                if (isBase64) data = atob(data);
+                if (isBase64) data = atobCustom(data);
 
                 const view = new Uint8Array(data.length);
                 for (let i = 0; i < data.length; i++) {

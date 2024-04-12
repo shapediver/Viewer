@@ -2,6 +2,7 @@ import { ColorInput, TinyColor } from '@ctrl/tinycolor';
 import { HttpClient } from '../http-client/HttpClient';
 import { HttpResponse } from '../http-client/HttpResponse';
 import { vec3 } from 'gl-matrix';
+import { atobCustom, btoaCustom } from '../utilities/base64';
 
 export class Converter {
     // #region Properties (2)
@@ -30,7 +31,7 @@ export class Converter {
             reader.readAsDataURL(blob);
         });
         data = data.replace('data:image/svg+xml;base64,', '');
-        data = atob(data);
+        data = atobCustom(data);
 
         const svgC = document.createElement('DIV');
         svgC.id = 'svgc';
@@ -81,7 +82,7 @@ export class Converter {
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                const base64Data = window.btoa(biStr.join(''));
+                const base64Data = btoaCustom(biStr.join(''));
                 const imgDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
 
                 // replace url in SVG string
@@ -121,7 +122,7 @@ export class Converter {
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                const base64Data = window.btoa(biStr.join(''));
+                const base64Data = btoaCustom(biStr.join(''));
                 const fontDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
                 if (fUrl.length > 0)
                     cssString = cssString.replace(fUrl, fontDataUrl);

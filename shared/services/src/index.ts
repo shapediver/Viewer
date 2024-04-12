@@ -67,6 +67,7 @@ import { StatePromise } from './state-engine/StatePromise';
 import { SystemInfo } from './system-info/SystemInfo';
 import { TypeChecker } from './type-check/TypeChecker';
 import { UuidGenerator } from './uuid-generator/UuidGenerator';
+import { atobCustom, btoaCustom } from './utilities/base64';
 
 export {
     EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -156,4 +157,8 @@ export {
 
 export {
     PerformanceEvaluator
+};
+
+export {
+    atobCustom, btoaCustom
 };

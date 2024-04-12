@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Converter, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
+import { Converter, ShapeDiverViewerDataProcessingError, atobCustom, btoaCustom } from '@shapediver/viewer.shared.services';
 import { entry, main } from '../shaders/PCSS';
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader';
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial';
@@ -1162,7 +1162,7 @@ export class MaterialLoader implements ILoader {
 
     public removeFromMaterialCache(id: string) {
         for (const cacheKey in this._materialCache) {
-            const decodedCacheKey = window.atob(cacheKey);
+            const decodedCacheKey = atobCustom(cacheKey);
             if (decodedCacheKey.startsWith(id)) {
                 delete this._materialCache[cacheKey];
             }
@@ -1207,11 +1207,11 @@ export class MaterialLoader implements ILoader {
     }
 
     private createDataKeyFromMap(map: IMapData): string {
-        return window.btoa(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
+        return btoaCustom(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
     }
 
     private createDataKeyFromMaterial(data: ITreeNodeData | undefined, type: MATERIAL_TYPE, materialSettings?: MaterialSettings): string {
-        return data ? window.btoa(data.id + '_' + data.version + '_' + type + '_' + JSON.stringify(materialSettings)) : window.btoa(type + '_' + JSON.stringify(materialSettings));
+        return data ? btoaCustom(data.id + '_' + data.version + '_' + type + '_' + JSON.stringify(materialSettings)) : btoaCustom(type + '_' + JSON.stringify(materialSettings));
     }
 
     private createTexture(map: IMapData): THREE.Texture {
