@@ -1,13 +1,19 @@
 import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import { ExportApi } from './ExportApi';
-import { FileParameter, ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { FileParameter, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { FileParameterApi } from './FileParameterApi';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { IExportApi } from '../interfaces/IExportApi';
-import { InputValidator, Logger, ShapeDiverViewerSessionError, StateEngine } from '@shapediver/viewer.shared.services';
+import {
+    InputValidator,
+    Logger,
+    ShapeDiverViewerSessionError,
+    StateEngine
+} from '@shapediver/viewer.shared.services';
 import { IOutputApi } from '../interfaces/IOutputApi';
 import { IParameterApi } from '../interfaces//IParameterApi';
 import { ISessionApi } from '../interfaces/ISessionApi';
+import { ISettingsSections } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { OutputApi } from './OutputApi';
 import { ParameterApi } from './ParameterApi';
@@ -15,7 +21,7 @@ import { SessionApiData } from './data/SessionApiData';
 import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class SessionApi implements ISessionApi {
-    // #region Properties (8)
+    // #region Properties (9)
 
     readonly #creationControlCenterSession: ICreationControlCenterSession = CreationControlCenterSession.instance;
     readonly #exports: { [key: string]: IExportApi; } = {};
@@ -27,7 +33,7 @@ export class SessionApi implements ISessionApi {
     readonly #sessionEngine: SessionEngine;
     readonly #stateEngine: StateEngine = StateEngine.instance;
 
-    // #endregion Properties (8)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 

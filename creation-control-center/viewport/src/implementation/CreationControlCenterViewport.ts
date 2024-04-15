@@ -8,14 +8,19 @@ import {
     ShapeDiverViewerViewportError,
     StateEngine,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { ICreationControlCenterViewport, ViewportCreationDefinition } from '../interfaces/ICreationControlCenterViewport';
-import { ISceneEvent, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import {
+    ISceneEvent,
+    ITaskEvent,
+    IViewportSettingsSections,
+    TASK_TYPE
+} from '@shapediver/viewer.shared.types';
 import { ISettings } from '@shapediver/viewer.settings';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
-import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ViewportGlobalAccessObject } from './ViewportGlobalAccessObject';
+import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export class CreationControlCenterViewport implements ICreationControlCenterViewport {
     // #region Properties (8)
@@ -46,7 +51,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
 
     // #region Public Methods (4)
 
-    public applyViewportSettings(viewportId: string, settings: ISettings, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false }): Promise<void> {
+    public applyViewportSettings(viewportId: string, settings: ISettings, sections: IViewportSettingsSections = { ar: false, scene: false, camera: false, light: false, environment: false, general: false }): Promise<void> {
         sections = sections || {};
 
         const settingsEngine: SettingsEngine = new SettingsEngine();

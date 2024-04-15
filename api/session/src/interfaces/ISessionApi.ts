@@ -1,7 +1,7 @@
 import { IExportApi } from './IExportApi';
 import { IOutputApi } from './IOutputApi';
 import { IParameterApi } from './IParameterApi';
-import { ISettingsSections } from '@shapediver/viewer.session-engine.session-engine';
+import { ISettingsSections } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 

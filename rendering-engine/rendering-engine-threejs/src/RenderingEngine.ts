@@ -60,6 +60,7 @@ import {
   MaterialStandardData,
   MaterialPointData,
   MaterialBasicLineData,
+  IViewportSettingsSections,
 } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
@@ -890,23 +891,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public async applySettings(
-    sections: {
-      ar?: boolean,
-      scene?: boolean,
-      camera?: boolean,
-      light?: boolean,
-      environment?: boolean,
-      general?: boolean,
-      postprocessing?: boolean
-    } = {
-        ar: true,
-        scene: true,
-        camera: true,
-        light: true,
-        environment: true,
-        general: true,
-        postprocessing: true
-      },
+    sections: IViewportSettingsSections = {
+      ar: true,
+      scene: true,
+      camera: true,
+      light: true,
+      environment: true,
+      general: true,
+      postprocessing: true
+    },
     settingsEngine?: SettingsEngine,
     updateViewport: boolean = true
   ): Promise<void> {
@@ -1296,23 +1289,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Private Methods (1)
 
-  private applySyncSettings(sections: {
-    ar?: boolean,
-    scene?: boolean,
-    camera?: boolean,
-    light?: boolean,
-    environment?: boolean,
-    general?: boolean,
-    postprocessing?: boolean
-  } = {
-      ar: true,
-      scene: true,
-      camera: true,
-      light: true,
-      environment: true,
-      general: true,
-      postprocessing: true
-    },
+  private applySyncSettings(sections: IViewportSettingsSections = {
+    ar: true,
+    scene: true,
+    camera: true,
+    light: true,
+    environment: true,
+    general: true,
+    postprocessing: true
+  },
     settingsEngine?: SettingsEngine,
     updateViewport: boolean = true) {
     settingsEngine = settingsEngine || this._settingsEngine;

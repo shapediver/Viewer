@@ -1,4 +1,4 @@
-import { IParameter } from './IParameter'
+import { IParameter } from './IParameter';
 
 export interface IFileParameter extends IParameter<File | Blob | string> {
     // #region Public Methods (2)

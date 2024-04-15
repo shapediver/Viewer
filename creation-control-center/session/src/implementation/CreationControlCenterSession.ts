@@ -12,10 +12,10 @@ import {
 } from '@shapediver/viewer.shared.services';
 import { ICreationControlCenterSession, SessionCreationDefinition } from '../interfaces/ICreationControlCenterSession';
 import { ISettings, latestVersion } from '@shapediver/viewer.settings';
-import { ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
-import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
-import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ISettingsSections, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { SessionGlobalAccessObject } from './SessionGlobalAccessObject';
+import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class CreationControlCenterSession implements ICreationControlCenterSession {
     // #region Properties (8)
@@ -45,7 +45,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
     // #endregion Public Static Getters And Setters (1)
 
-    // #region Public Methods (6)
+    // #region Public Methods (5)
 
     public applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         sections = sections || {};
@@ -297,7 +297,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
         return response;
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (5)
 
     // #region Private Methods (2)
 

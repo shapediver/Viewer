@@ -1,61 +1,18 @@
-import { ShapeDiverRequestCustomization, ShapeDiverRequestExport, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseFileInfo, ShapeDiverResponseParameterType, ShapeDiverResponseParameterVisualization } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { SettingsEngine } from '@shapediver/viewer.shared.services';
-import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
 import { IExport } from './dto/IExport';
 import { IOutput } from './dto/IOutput';
 import { IParameter } from './dto/IParameter';
-
-/**
- * The type of the parameter.
- */
-export {
-  ShapeDiverResponseParameterType as PARAMETER_TYPE,
-  ShapeDiverResponseParameterVisualization as PARAMETER_VISUALIZATION
-};
-
-export interface ISettingsSections {
-  // #region Properties (2)
-
-  session?: {
-    parameter?: {
-      /** Option to update the displayname of the parameters (default: false) */
-      displayname?: boolean,
-      /** Option to update the order of the parameters (default: false) */
-      order?: boolean,
-      /** Option to update the hidden state of the parameters (default: false) */
-      hidden?: boolean,
-      /** Option to update the value of the parameters (default: false) */
-      value?: boolean
-    },
-    export?: {
-      /** Option to update the displayname of the exports (default: false) */
-      displayname?: boolean,
-      /** Option to update the order of the exports (default: false) */
-      order?: boolean,
-      /** Option to update the hidden state of the exports (default: false) */
-      hidden?: boolean
-    }
-  },
-  viewport?: {
-    /** Option to update the ar settings (default: false) */
-    ar?: boolean,
-    /** Option to update the scene settings (default: false) */
-    scene?: boolean,
-    /** Option to update the camera settings (default: false) */
-    camera?: boolean,
-    /** Option to update the light settings (default: false) */
-    light?: boolean,
-    /** Option to update the environment settings (default: false) */
-    environment?: boolean
-    /** Option to update the general settings (default: false) */
-    general?: boolean
-    /** Option to update the postprocessing settings (default: false) */
-    postprocessing?: boolean
-  }
-
-  // #endregion Properties (2)
-}
+import { ISettingsSections } from '@shapediver/viewer.shared.types';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { OutputLoaderTaskEventInfo } from '../implementation/OutputLoader';
+import { SettingsEngine } from '@shapediver/viewer.shared.services';
+import {
+  ShapeDiverRequestCustomization,
+  ShapeDiverRequestExport,
+  ShapeDiverRequestGltfUploadQueryConversion,
+  ShapeDiverResponseDto,
+  ShapeDiverResponseExport,
+  ShapeDiverResponseFileInfo
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface ISessionEngine {
   // #region Properties (13)
@@ -77,13 +34,13 @@ export interface ISessionEngine {
 
   // #endregion Properties (13)
 
-  // #region Public Methods (21)
+  // #region Public Methods (23)
 
   applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
-  customize(force: boolean, waitForViewportUpdate?: boolean):Promise<ITreeNode | ShapeDiverResponseDto>;
+  customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo>
   goBack(): Promise<ITreeNode>;
@@ -103,5 +60,5 @@ export interface ISessionEngine {
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
-  // #endregion Public Methods (21)
+  // #endregion Public Methods (23)
 }

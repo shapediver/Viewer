@@ -43,10 +43,16 @@ import { FileParameter } from './dto/FileParameter';
 import { IExport } from '../interfaces/dto/IExport';
 import { IFileParameter } from '../interfaces/dto/IFileParameter';
 import { IOutput } from '../interfaces/dto/IOutput';
+import {
+    IOutputEvent,
+    ISettingsSections,
+    ITaskEvent,
+    PARAMETER_TYPE,
+    TASK_TYPE
+} from '@shapediver/viewer.shared.types';
 import { IParameter } from '../interfaces/dto/IParameter';
-import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
+import { ISessionEngine } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
-import { IOutputEvent, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import {
     ITree,
     ITreeNode,
@@ -63,7 +69,7 @@ import { vec3 } from 'gl-matrix';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (44)
+    // #region Properties (45)
 
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
@@ -129,7 +135,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (44)
+    // #endregion Properties (45)
 
     // #region Constructors (1)
 
@@ -160,7 +166,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (25)
+    // #region Public Getters And Setters (25)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -269,9 +275,9 @@ export class SessionEngine implements ISessionEngine {
         return this._viewerSettings;
     }
 
-    // #endregion Public Accessors (25)
+    // #endregion Public Getters And Setters (25)
 
-    // #region Public Methods (27)
+    // #region Public Methods (28)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -959,7 +965,7 @@ export class SessionEngine implements ISessionEngine {
             const requestParameterSet = this.cleanExportParameters(body.parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
-            if(loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
+            if (loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
@@ -1329,7 +1335,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (27)
+    // #endregion Public Methods (28)
 
     // #region Private Methods (15)
 

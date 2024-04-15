@@ -53,8 +53,11 @@ import {
     ISDTFOverview,
     ISDTFOverviewData,
     ISessionEvent,
+    ISessionSettingsSections,
+    ISettingsSections,
     ITaskEvent,
     IViewportEvent,
+    IViewportSettingsSections,
     MapData,
     MATERIAL_ALPHA,
     MATERIAL_SHADING,
@@ -68,6 +71,8 @@ import {
     MaterialStandardData,
     MaterialUnlitData,
     MaterialVariantsData,
+    PARAMETER_TYPE,
+    PARAMETER_VISUALIZATION,
     PRIMITIVE_MODE,
     PrimitiveData,
     SDTF_TYPEHINT,
@@ -242,9 +247,6 @@ import {
 import {
     ISessionData,
     ISessionOutputData,
-    ISettingsSections,
-    PARAMETER_TYPE,
-    PARAMETER_VISUALIZATION,
     SessionData,
     SessionOutputData,
     ShapeDiverResponseOutputChunk,
@@ -261,7 +263,6 @@ import {
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
-import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 import {
     ShapeDiverResponseExport,
     ShapeDiverResponseExportContent,
@@ -276,6 +277,7 @@ import {
     ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 
 export { createViewport, viewports };
 export { createSession, sessions };
@@ -288,7 +290,7 @@ export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPU
 export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutput, ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunkBackend, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, IDomEventListener, IEvent, IThreejsData, ThreejsData };
 export { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionGroup, ShapeDiverResponseParameter };
 
-export { EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, ISettingsSections };
+export { EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, ISettingsSections, IViewportSettingsSections, ISessionSettingsSections };
 export { IMaterialAbstractData, IMaterialAbstractDataProperties, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialPointData, MaterialPointData, IMaterialPointDataProperties, IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMapData, MapData, ITexture, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 };
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData };
 export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData };
@@ -300,6 +302,6 @@ export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataP
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi };

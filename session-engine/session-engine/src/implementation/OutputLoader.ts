@@ -159,7 +159,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if (outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        if(this._dataEngine)
+                        if (this._dataEngine)
                             promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + '_' + outputInfo[outputID].version + '_' + i));
                         promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version]);
                     }
@@ -308,9 +308,9 @@ export class OutputLoader {
                     const geometryNodes = [];
                     for (let i = 0; i < sessionOutputContent.length; i++) {
                         if (sessionOutputContent[i].format === 'material') {
-                            if(outputNode.children[i]) materialNodes.push(outputNode.children[i]);
+                            if (outputNode.children[i]) materialNodes.push(outputNode.children[i]);
                         } else {
-                            if(outputNode.children[i]) geometryNodes.push(outputNode.children[i]);
+                            if (outputNode.children[i]) geometryNodes.push(outputNode.children[i]);
                         }
                     }
 

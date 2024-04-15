@@ -1,6 +1,7 @@
 import { BUSY_MODE_DISPLAY, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { ISettings } from '@shapediver/viewer.settings';
+import { IViewportSettingsSections } from '@shapediver/viewer.shared.types';
+import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services';
 
 // #region Type aliases (1)
@@ -35,7 +36,7 @@ export type ViewportCreationDefinition = {
          */
         busyModeDisplay?: BUSY_MODE_DISPLAY,
         /**
-         * Where the spinner that is specified by {@link BUSY_MODE_DISPLAY} is desplayed on the screen. (default: BUSY_MODE_DISPLAY.BOTTOM_RIGHT)
+         * Where the spinner that is specified by {@link BUSY_MODE_DISPLAY} is displayed on the screen. (default: BUSY_MODE_DISPLAY.BOTTOM_RIGHT)
          */
         spinnerPositioning?: SPINNER_POSITIONING
 
@@ -62,7 +63,7 @@ export interface ICreationControlCenterViewport {
 
     // #region Public Methods (4)
 
-    applyViewportSettings(viewportId: string, settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }): Promise<void>;
+    applyViewportSettings(viewportId: string, settings: ISettings, sections?: IViewportSettingsSections): Promise<void>;
     closeViewportEngine(id: string): Promise<void>;
     createViewportEngine(properties: ViewportCreationDefinition): Promise<RenderingEngineThreeJs>;
     getViewportSettings(viewportId: string): ISettings;

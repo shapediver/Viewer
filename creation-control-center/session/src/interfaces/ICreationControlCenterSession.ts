@@ -1,4 +1,5 @@
-import { ISettingsSections, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { ISettingsSections } from '@shapediver/viewer.shared.types';
+import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 // #region Type aliases (1)
@@ -18,9 +19,9 @@ export type SessionCreationDefinition = {
     waitForOutputs?: boolean,
     /** Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true) */
     allowOutputLoading?: boolean,
-    /** Option to load the outputs, or not load them until the first call of {@link ISessioncustomize}. (default: true) */
+    /** Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true) */
     loadOutputs?: boolean,
-    /** Option to exclude some viewports from the start. Can be accessed via {@link ISessionexcludeViewports}. */
+    /** Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}. */
     excludeViewports?: string[],
     /** The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified. */
     initialParameterValues?: { [key: string]: string }
@@ -38,7 +39,7 @@ export interface ICreationControlCenterSession {
 
     // #endregion Properties (2)
 
-    // #region Public Methods (6)
+    // #region Public Methods (5)
 
     applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void>;
     closeSessionEngine(id: string): Promise<void>;
@@ -46,7 +47,7 @@ export interface ICreationControlCenterSession {
     resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void>;
     saveSettings(sessionId: string, viewportId?: string): Promise<boolean>;
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (5)
 }
 
 // #endregion Interfaces (1)
