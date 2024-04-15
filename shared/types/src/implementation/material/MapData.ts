@@ -12,7 +12,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     #color?: Color;
     #data?: number[];
     #flipY: boolean = true;
-    #image: HTMLImageElement;
+    #image: HTMLImageElement | ArrayBuffer;
     #magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
     #minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
     #offset: vec2 = vec2.fromValues(0, 0);
@@ -27,7 +27,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Constructors (1)
 
     constructor(
-      image: HTMLImageElement,
+      image: HTMLImageElement | ArrayBuffer,
       properties?: {
         asData?: boolean,
         data?: number[],
@@ -117,11 +117,11 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       this.#flipY = value;
     }
 
-    public get image(): HTMLImageElement {
+    public get image(): HTMLImageElement | ArrayBuffer {
       return this.#image;
     }
 
-    public set image(value: HTMLImageElement) {
+    public set image(value: HTMLImageElement | ArrayBuffer) {
       this.#image = value;
     }
 

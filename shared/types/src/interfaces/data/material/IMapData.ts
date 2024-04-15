@@ -27,7 +27,7 @@ export interface IMapData extends ITreeNodeData {
     center: vec2;
     color?: Color;
     flipY: boolean;
-    image: HTMLImageElement;
+    image: HTMLImageElement | ArrayBuffer;
     magFilter: TEXTURE_FILTERING;
     minFilter: TEXTURE_FILTERING;
     offset: vec2;

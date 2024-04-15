@@ -11,7 +11,7 @@ export class TextureLoader {
 
     private _loaded: {
         [key: string]: {
-            image: HTMLImageElement,
+            image: HTMLImageElement | ArrayBuffer,
             blob: Blob
         }
     } = {};
@@ -27,7 +27,7 @@ export class TextureLoader {
     // #region Public Methods (2)
 
     public getTexture(textureId: number): {
-        image: HTMLImageElement,
+        image: HTMLImageElement | ArrayBuffer,
         blob: Blob
     } {
         if (!this._content.textures) throw new Error('TextureLoader.getTexture: Textures not available.');
@@ -83,8 +83,22 @@ export class TextureLoader {
                     new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(url!)
                             .then(response => {
-                                this._loaded[textureId] = response.data;
-                                resolve();
+                                if(typeof window !== 'undefined') {
+                                    Converter.instance.responseToImage(response).then(img => {
+                                        this._loaded[textureId] = {
+                                            image: img,
+                                            blob: response.data.blob
+                                        };
+                                        resolve();
+                                    })
+                                    .catch(e => reject(e));
+                                } else {
+                                    this._loaded[textureId] = {
+                                        image: response.data.buffer,
+                                        blob: response.data.blob
+                                    };
+                                    resolve();
+                                }
                             })
                             .catch(e => reject(e));
                     })

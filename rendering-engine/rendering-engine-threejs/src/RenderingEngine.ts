@@ -207,7 +207,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // creation of the engines (all singleton engines were created already)
     this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
-    this._cameraEngine = new CameraEngine(this, this._canvas.canvasElement);
+    this._cameraEngine = new CameraEngine(this);
     this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)

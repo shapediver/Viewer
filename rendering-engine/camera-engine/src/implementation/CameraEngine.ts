@@ -51,7 +51,7 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: IRenderingEngine, private readonly _canvas: HTMLCanvasElement) {
+    constructor(private readonly _renderingEngine: IRenderingEngine) {
         this._tree.root.addChild(this._cameraNode);
         this._cameraNode.restrictViewports = [this._renderingEngine.id];
         

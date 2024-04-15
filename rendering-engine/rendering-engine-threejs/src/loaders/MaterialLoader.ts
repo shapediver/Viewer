@@ -1207,7 +1207,7 @@ export class MaterialLoader implements ILoader {
     }
 
     private createDataKeyFromMap(map: IMapData): string {
-        return btoaCustom(`${map.image.src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
+        return btoaCustom(`${(map.image as HTMLImageElement).src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`);
     }
 
     private createDataKeyFromMaterial(data: ITreeNodeData | undefined, type: MATERIAL_TYPE, materialSettings?: MaterialSettings): string {
@@ -1215,6 +1215,8 @@ export class MaterialLoader implements ILoader {
     }
 
     private createTexture(map: IMapData): THREE.Texture {
+        if(map.image instanceof ArrayBuffer) return new THREE.Texture();
+
         const key = this.createDataKeyFromMap(map);
 
         // texture in this structure are only stored until the next scene tree update call

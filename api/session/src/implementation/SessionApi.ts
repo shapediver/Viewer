@@ -36,7 +36,9 @@ export class SessionApi implements ISessionApi {
         if (!this.#sessionEngine.initialized)
             throw new ShapeDiverViewerSessionError('Session could not be initialized.');
 
-        this.#sessionEngine.updateCallback = (newNode: ITreeNode) => {
+        this.#sessionEngine.updateCallback = (newNode?: ITreeNode) => {
+            if (!newNode) return;
+
             if (newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
                 newNode.addData(new SessionApiData(this));
         };

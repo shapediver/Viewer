@@ -134,6 +134,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
         const eventId = this.#uuidGenerator.create();
         const sessionEngineId = properties.id || this.#uuidGenerator.create();
         properties.id = sessionEngineId;
+        properties.loadOutputs = properties.allowOutputLoading === false ? false : properties.loadOutputs;
 
         try {
             const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0, status: 'Creating session', data: { sessionId: sessionEngineId } };
@@ -157,7 +158,8 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                 excludeViewports: properties.excludeViewports,
                 buildVersion: build_data.build_version,
                 buildDate: build_data.build_date,
-                jwtToken: properties.jwtToken
+                jwtToken: properties.jwtToken,
+                allowOutputLoading: properties.allowOutputLoading === undefined ? true : properties.allowOutputLoading
             });
 
             this.#stateEngine.sessionEngines[sessionEngineId] = new SessionGlobalAccessObject(sessionEngine);

@@ -152,12 +152,12 @@ export class Converter {
         return img;
     }
 
-    public async responseToImage(response: HttpResponse<ArrayBuffer | HTMLImageElement>, blob: Blob): Promise<HTMLImageElement> {
+    public async responseToImage(response: HttpResponse<{ buffer: ArrayBuffer, blob: Blob }>): Promise<HTMLImageElement> {
         // if we already receive and image, this conversion already happened
         if (response.data instanceof HTMLImageElement) return response.data;
 
         if (response.headers['content-type'] === 'image/svg+xml') {
-            const img = await this.processSVG(blob);
+            const img = await this.processSVG(response.data.blob);
             return img;
         } else {
             const img = new Image();
@@ -166,7 +166,7 @@ export class Converter {
                 img.onerror = reject;
             });
             img.crossOrigin = 'anonymous';
-            img.src = URL.createObjectURL(blob);
+            img.src = URL.createObjectURL(response.data.blob);
             await promise;
             URL.revokeObjectURL(img.src);
             return img;

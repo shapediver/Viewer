@@ -33,9 +33,18 @@ export class TextureUnifierInjector implements IManager {
 
     // #region Private Methods (2)
 
-    private async combineTextures(red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement): Promise<{ image: HTMLImageElement, blob: Blob }> {
+    private async combineTextures(red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer): Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }> {
         if (!red && !green && !blue)
             throw new Error('No maps supplied.');
+
+        if (red && red instanceof ArrayBuffer)
+            return { image: red, blob: new Blob([new Uint8Array(red)], { type: 'image/jpeg' }) };
+
+        if (green && green instanceof ArrayBuffer)
+            return { image: green, blob: new Blob([new Uint8Array(green)], { type: 'image/jpeg' }) };
+
+        if (blue && blue instanceof ArrayBuffer)
+            return { image: blue, blob: new Blob([new Uint8Array(blue)], { type: 'image/jpeg' }) };
 
         if (!this._renderer)
             this.createThreeJsUtils();

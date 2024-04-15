@@ -308,9 +308,9 @@ export class OutputLoader {
                     const geometryNodes = [];
                     for (let i = 0; i < sessionOutputContent.length; i++) {
                         if (sessionOutputContent[i].format === 'material') {
-                            materialNodes.push(outputNode.children[i]);
+                            if(outputNode.children[i]) materialNodes.push(outputNode.children[i]);
                         } else {
-                            geometryNodes.push(outputNode.children[i]);
+                            if(outputNode.children[i]) geometryNodes.push(outputNode.children[i]);
                         }
                     }
 

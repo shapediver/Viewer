@@ -64,7 +64,7 @@ export class GLTFConverter {
     private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
-    private _combineTextures?: (red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement) => Promise<{ image: HTMLImageElement, blob: Blob }>;
+    private _combineTextures?: (red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>;
     private _content: IGLTF_v2 = {
         asset: {
             copyright: '2023 (c) ShapeDiver',
@@ -109,7 +109,7 @@ export class GLTFConverter {
         return this._combineTextures;
     }
 
-    public set combineTextures(value: ((red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement) => Promise<{ image: HTMLImageElement, blob: Blob }>) | undefined) {
+    public set combineTextures(value: ((red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>) | undefined) {
         this._combineTextures = value;
     }
 
@@ -479,8 +479,9 @@ export class GLTFConverter {
         });
     }
 
-    private convertImage(data: IMapData): number {
+    private convertImage(data: IMapData): number | undefined {
         if (!this._content.images) this._content.images = [];
+        if (data.image instanceof ArrayBuffer) return;
         if (this._imageCache[data.image.src]) return this._imageCache[data.image.src];
         const imageDef: IGLTF_v2_Image = {};
         const canvas = document.createElement('canvas');
@@ -578,11 +579,16 @@ export class GLTFConverter {
 
             ext.diffuseFactor = this._converter.toColorArray(data.color);
             ext.diffuseFactor[3] = data.opacity;
-            if (data.map && includeMaps) ext.diffuseTexture = { index: this.convertTexture(data.map) };
+            if (data.map && includeMaps) {
+                const textureIndex = this.convertTexture(data.map);
+                if (textureIndex !== undefined) ext.diffuseTexture = { index: textureIndex };
+            }
             ext.specularFactor = this._converter.toColorArray(data.specular);
             ext.glossinessFactor = data.glossiness;
-            if (data.specularGlossinessMap && includeMaps)
-                ext.specularGlossinessTexture = { index: this.convertTexture(data.specularGlossinessMap) };
+            if (data.specularGlossinessMap && includeMaps) {
+                const textureIndex = this.convertTexture(data.specularGlossinessMap);
+                if (textureIndex !== undefined) ext.specularGlossinessTexture = { index: textureIndex };
+            }
 
             materialDef.extensions = {
                 KHR_materials_pbrSpecularGlossiness: ext
@@ -594,7 +600,10 @@ export class GLTFConverter {
                 this._extensionsRequired.push('KHR_materials_unlit');
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
-            if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) };
+            if (data.map && includeMaps) {
+                const textureIndex = this.convertTexture(data.map);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: textureIndex };
+            }
 
             materialDef.extensions = {
                 KHR_materials_unlit: {}
@@ -603,11 +612,15 @@ export class GLTFConverter {
             const standardMaterialData = data as MaterialStandardData;
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(standardMaterialData.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = standardMaterialData.opacity;
-            if (standardMaterialData.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(standardMaterialData.map) };
+            if (standardMaterialData.map && includeMaps) {
+                const textureIndex = this.convertTexture(standardMaterialData.map);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: textureIndex };
+            }
             materialDef.pbrMetallicRoughness!.metallicFactor = standardMaterialData.metalnessMap ? 1 : standardMaterialData.metalness;
             materialDef.pbrMetallicRoughness!.roughnessFactor = standardMaterialData.roughnessMap ? 1 : standardMaterialData.roughness;
             if (standardMaterialData.metalnessRoughnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
+                const textureIndex = this.convertTexture(standardMaterialData.metalnessRoughnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
             } else if (standardMaterialData.metalnessMap && standardMaterialData.roughnessMap && includeMaps) {
                 if(this.combineTextures) {
                     this._promises.push(new Promise<void>((resolve, reject) => {
@@ -639,7 +652,9 @@ export class GLTFConverter {
                                             flipY: m.flipY
                                         }
                                     );
-                                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) };
+
+                                    const textureIndex = this.convertTexture(mapData);
+                                    if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
                                     resolve();
                                 })
                                 .catch(reject);
@@ -649,18 +664,33 @@ export class GLTFConverter {
                     }));
                 } else {
                     // no support for combining textures
-                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.roughnessMap) };
+                    const textureIndex = this.convertTexture(standardMaterialData.roughnessMap);
+                    if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
                 }
             } else if (standardMaterialData.metalnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessMap) };
+                const textureIndex = this.convertTexture(standardMaterialData.metalnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
             } else if (standardMaterialData.roughnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.roughnessMap) };
+                const textureIndex = this.convertTexture(standardMaterialData.roughnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
             }
         }
 
-        if (data.normalMap && includeMaps) materialDef.normalTexture = { index: this.convertTexture(data.normalMap) };
-        if (data.aoMap && includeMaps) materialDef.occlusionTexture = { index: this.convertTexture(data.aoMap) };
-        if (data.emissiveMap && includeMaps) materialDef.emissiveTexture = { index: this.convertTexture(data.emissiveMap) };
+        if (data.normalMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.normalMap);
+            if (textureIndex !== undefined) materialDef.normalTexture = { index: textureIndex };
+        }
+        
+        if (data.aoMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.aoMap);
+            if (textureIndex !== undefined) materialDef.occlusionTexture = { index: textureIndex };
+        }
+
+        if (data.emissiveMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.emissiveMap);
+            if (textureIndex !== undefined) materialDef.emissiveTexture = { index: textureIndex };
+        }
+        
         if (data.emissiveness) materialDef.emissiveFactor = this._converter.toColorArray(data.emissiveness);
         materialDef.alphaMode = data.alphaMode.toUpperCase();
         if (data.alphaMode === MATERIAL_ALPHA.MASK) materialDef.alphaCutoff = data.alphaCutoff;
@@ -799,10 +829,13 @@ export class GLTFConverter {
         return primitiveDef;
     }
 
-    private convertTexture(data: IMapData): number {
+    private convertTexture(data: IMapData): number | undefined {
         if (!this._content.textures) this._content.textures = [];
+
+        const imageIndex = this.convertImage(data);
+        if(!imageIndex) return;
         const textureDef: IGLTF_v2_Texture = {
-            source: this.convertImage(data)
+            source: imageIndex
         };
         // TODO samplers
         this._content.textures.push(textureDef);

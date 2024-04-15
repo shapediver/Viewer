@@ -100,6 +100,7 @@ export class SessionEngine implements ISessionEngine {
             valueString: string
         }
     }[] = [];
+    private _allowOutputLoading: boolean = true;
     private _automaticSceneUpdate: boolean = true;
     private _closeOnFailure: () => Promise<void> = async () => { };
     private _closed: boolean = false;
@@ -136,7 +137,7 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[] }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._guid = properties.guid;
@@ -144,6 +145,7 @@ export class SessionEngine implements ISessionEngine {
         this._modelViewUrl = properties.modelViewUrl;
         this._excludeViewports = properties.excludeViewports || [];
         this._jwtToken = properties.jwtToken;
+        this._allowOutputLoading = properties.allowOutputLoading;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader(this);
@@ -957,7 +959,7 @@ export class SessionEngine implements ISessionEngine {
             const requestParameterSet = this.cleanExportParameters(body.parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
-            if(loadOutputs === true) this.updateOutputs();
+            if(loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
@@ -1474,16 +1476,16 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
-        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo) as Promise<ISessionTreeNode>;
+        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo);
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, loadOutputs = true, retry = false): Promise<ISessionTreeNode | ShapeDiverResponseDto> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, loadOutputs = true, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if (loadOutputs === true) {
+            if (loadOutputs === true && this._allowOutputLoading === true) {
                 if (cancelRequest()) return new SessionTreeNode();
                 if (parallel === true) {
                     // special case, we load the outputs put don't add them to the scene
@@ -1495,7 +1497,9 @@ export class SessionEngine implements ISessionEngine {
                 }
             } else {
                 // special case, we don't load the outputs and only return the responseDto
-                return responseDto;
+                const node = new SessionTreeNode();
+                node.data.push(new SessionData(responseDto));
+                return node;
             }
         } catch (e) {
             await this.handleError(e, retry);

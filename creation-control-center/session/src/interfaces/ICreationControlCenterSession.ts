@@ -16,6 +16,8 @@ export type SessionCreationDefinition = {
     id?: string,
     /** Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true) */
     waitForOutputs?: boolean,
+    /** Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true) */
+    allowOutputLoading?: boolean,
     /** Option to load the outputs, or not load them until the first call of {@link ISessioncustomize}. (default: true) */
     loadOutputs?: boolean,
     /** Option to exclude some viewports from the start. Can be accessed via {@link ISessionexcludeViewports}. */
