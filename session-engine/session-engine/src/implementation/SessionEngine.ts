@@ -1331,7 +1331,11 @@ export class SessionEngine implements ISessionEngine {
                 fileParameterValues[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload(parameterValueSet ? parameterValueSet[parameterId] : undefined);
                 if (parameterValues) {
                     parameterValues[parameterId] = fileParameterValues[parameterId];
-                } else {
+
+                    // if the parameter value of the file parameter was used, set the value to the parameter
+                    if(parameterValues[parameterId] === undefined && this.parameters[parameterId].value !== fileParameterValues[parameterId]) 
+                        this.parameters[parameterId].value = fileParameterValues[parameterId];
+                } else if(this.parameters[parameterId].value !== fileParameterValues[parameterId]) {
                     this.parameters[parameterId].value = fileParameterValues[parameterId];
                 }
             }
