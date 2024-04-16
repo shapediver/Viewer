@@ -13,7 +13,7 @@ export interface IParameter<T> extends ShapeDiverResponseParameter {
     isValid(value: unknown): boolean;
     resetToDefaultValue(): void;
     resetToSessionValue(): void;
-    stringify(): string;
+    stringify(value?: unknown): string;
 
     // #endregion Public Methods (4)
 }

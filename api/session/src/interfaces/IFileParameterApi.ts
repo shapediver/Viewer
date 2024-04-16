@@ -28,6 +28,7 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
     getFilename(fileId?: string): Promise<string | undefined>;
     /**
      * Upload the data (File, Blob) that is currently set to the {@link value} property.
+     * You can then use the returned id to either set it as the value of the parameter or use it in a subsequent customization.
      * This call returns immediately in case no data is waiting to be uploaded.
      * 
      * @throws {@type ShapeDiverViewerError}

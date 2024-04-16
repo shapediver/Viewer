@@ -261,21 +261,15 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.customize(force, waitForViewportUpdate);
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
+    public customizeParallel(parameterValues: { [key: string]: unknown; }): Promise<ITreeNode> {
         const scope = 'customizeParallel';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object');
-        for (const p in parameterValues)
-            this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues[p], 'string');
-
         return this.#sessionEngine.customizeParallel(parameterValues) as Promise<ITreeNode>;
     }
 
-    public customizeResult(parameterValues: { [key: string]: string; }): Promise<ShapeDiverResponseDto> {
+    public customizeResult(parameterValues: { [key: string]: unknown; }): Promise<ShapeDiverResponseDto> {
         const scope = 'customizeResult';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object');
-        for (const p in parameterValues)
-            this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues[p], 'string');
-
         return this.#sessionEngine.customizeParallel(parameterValues, false) as Promise<ShapeDiverResponseDto>;
     }
 
@@ -391,6 +385,12 @@ export class SessionApi implements ISessionApi {
 
     public updateOutputs(waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
         return this.#sessionEngine.updateOutputs(undefined, waitForViewportUpdate);
+    }
+
+    public async uploadFileParameters(values: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }> {
+        const fileParameters: { [key: string]: string | File | Blob } = values || {};
+        const fileParameterIds = await this.#sessionEngine.uploadFileParameters(fileParameters);
+        return fileParameterIds; 
     }
 
     // #endregion Public Methods (29)

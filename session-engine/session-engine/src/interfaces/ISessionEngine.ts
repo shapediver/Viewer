@@ -58,6 +58,7 @@ export interface ISessionEngine {
   setJwtToken(token: string): Promise<void>;
   updateOutputs(taskEventInfo?: OutputLoaderTaskEventInfo, waitForViewportUpdate?: boolean): Promise<ITreeNode>;
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
+  uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
   // #endregion Public Methods (23)
