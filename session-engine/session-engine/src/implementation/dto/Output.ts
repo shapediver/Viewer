@@ -47,7 +47,7 @@ export class Output implements IOutput {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (30)
+  // #region Public Getters And Setters (30)
 
   public get bbmax(): number[] | undefined {
     return this.#bbmax;
@@ -169,7 +169,7 @@ export class Output implements IOutput {
     this.#version = value;
   }
 
-  // #endregion Public Accessors (30)
+  // #endregion Public Getters And Setters (30)
 
   // #region Public Methods (4)
 

@@ -1,17 +1,17 @@
-import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { ITreeNodeData } from '../interfaces/ITreeNodeData';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
-import { ITreeNodeData } from '../interfaces/ITreeNodeData'
-
-export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> implements ITreeNodeData<T> {
-  // #region Properties (3)
-
-  #version: string;
+export abstract class AbstractTreeNodeData implements ITreeNodeData {
+  // #region Properties (5)
 
   readonly #id: string;
   readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
-  readonly #eventEngine: EventEngine = EventEngine.instance;
 
-  // #endregion Properties (3)
+  #convertedObject: { [key: string]: unknown } = {};
+  #updateCallbackConvertedObject: ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null = null;
+  #version: string;
+
+  // #endregion Properties (5)
 
   // #region Constructors (1)
 
@@ -27,19 +27,43 @@ export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> impleme
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (2)
+  // #region Public Getters And Setters (6)
+
+  public get convertedObject(): { [key: string]: unknown } {
+    return this.#convertedObject;
+  }
+
+  public set convertedObject(value: { [key: string]: unknown }) {
+    this.#convertedObject = value;
+  }
 
   public get id(): string {
     return this.#id;
   }
 
+  public get updateCallbackConvertedObject(): ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null {
+    return this.#updateCallbackConvertedObject;
+  }
+
+  public set updateCallbackConvertedObject(value: ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null) {
+    this.#updateCallbackConvertedObject = value;
+  }
+
   public get version(): string {
     return this.#version;
   }
-  
-  // #endregion Public Accessors (2)
 
-  // #region Public Methods (1)
+  // #endregion Public Getters And Setters (6)
+
+  // #region Public Methods (2)
+
+  /**
+   * Clones the tree node data.
+   */
+  public clone(): ITreeNodeData {
+    const clone = new (this.constructor as new () => ITreeNodeData)();
+    return clone;
+  }
 
   /**
    * Update the version
@@ -48,17 +72,5 @@ export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> impleme
     this.#version = this.#uuidGenerator.create();
   }
 
-  // #endregion Public Methods (1)
-
-  // #region Public Abstract Methods (1)
-
-  /**
-   * Clones the tree node data.
-   */
-  public clone(): T {
-    const clone = new (<any>this.constructor);
-    return clone;
-  };
-
-  // #endregion Public Abstract Methods (1)
+  // #endregion Public Methods (2)
 }

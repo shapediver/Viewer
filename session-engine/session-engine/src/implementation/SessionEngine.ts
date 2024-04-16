@@ -43,10 +43,16 @@ import { FileParameter } from './dto/FileParameter';
 import { IExport } from '../interfaces/dto/IExport';
 import { IFileParameter } from '../interfaces/dto/IFileParameter';
 import { IOutput } from '../interfaces/dto/IOutput';
+import {
+    IOutputEvent,
+    ISettingsSections,
+    ITaskEvent,
+    PARAMETER_TYPE,
+    TASK_TYPE
+} from '@shapediver/viewer.shared.types';
 import { IParameter } from '../interfaces/dto/IParameter';
-import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine';
+import { ISessionEngine } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
-import { IOutputEvent, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import {
     ITree,
     ITreeNode,
@@ -63,7 +69,7 @@ import { vec3 } from 'gl-matrix';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (44)
+    // #region Properties (45)
 
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
@@ -100,6 +106,7 @@ export class SessionEngine implements ISessionEngine {
             valueString: string
         }
     }[] = [];
+    private _allowOutputLoading: boolean = true;
     private _automaticSceneUpdate: boolean = true;
     private _closeOnFailure: () => Promise<void> = async () => { };
     private _closed: boolean = false;
@@ -128,7 +135,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (44)
+    // #endregion Properties (45)
 
     // #region Constructors (1)
 
@@ -136,7 +143,7 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[] }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._guid = properties.guid;
@@ -144,6 +151,7 @@ export class SessionEngine implements ISessionEngine {
         this._modelViewUrl = properties.modelViewUrl;
         this._excludeViewports = properties.excludeViewports || [];
         this._jwtToken = properties.jwtToken;
+        this._allowOutputLoading = properties.allowOutputLoading;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader(this);
@@ -158,7 +166,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (25)
+    // #region Public Getters And Setters (25)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -267,9 +275,9 @@ export class SessionEngine implements ISessionEngine {
         return this._viewerSettings;
     }
 
-    // #endregion Public Accessors (25)
+    // #endregion Public Getters And Setters (25)
 
-    // #region Public Methods (27)
+    // #region Public Methods (28)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -416,9 +424,9 @@ export class SessionEngine implements ISessionEngine {
             this.removeBusyMode(this.#customizationProcess);
 
         for (const busyId of this.#customizationBusyModes) {
-            for (const r in this._stateEngine.renderingEngines) {
-                if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
-                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+            for (const r in this._stateEngine.viewportEngines) {
+                if (this._stateEngine.viewportEngines[r].busy.includes(busyId))
+                    this._stateEngine.viewportEngines[r].busy.splice(this._stateEngine.viewportEngines[r].busy.indexOf(busyId), 1);
             }
         }
 
@@ -599,9 +607,9 @@ export class SessionEngine implements ISessionEngine {
 
             // update the viewports
             if (waitForViewportUpdate) {
-                for (const r in this._stateEngine.renderingEngines)
-                    if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                        this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+                for (const r in this._stateEngine.viewportEngines)
+                    if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                        this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).customize`);
 
                 for (const outputId in this.outputs) {
                     if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
@@ -623,9 +631,9 @@ export class SessionEngine implements ISessionEngine {
 
             if (!waitForViewportUpdate) {
                 setTimeout(() => {
-                    for (const r in this._stateEngine.renderingEngines)
-                        if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                            this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).customize`);
+                    for (const r in this._stateEngine.viewportEngines)
+                        if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                            this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).customize`);
                 }, 0);
             }
 
@@ -957,7 +965,7 @@ export class SessionEngine implements ISessionEngine {
             const requestParameterSet = this.cleanExportParameters(body.parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
-            if(loadOutputs === true) this.updateOutputs();
+            if (loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
             return responseDto;
         } catch (e) {
             await this.handleError(e, retry);
@@ -1267,9 +1275,9 @@ export class SessionEngine implements ISessionEngine {
 
         // update the viewports
         if (waitForViewportUpdate) {
-            for (const r in this._stateEngine.renderingEngines)
-                if (!this.excludeViewports.includes(this._stateEngine.renderingEngines[r].id))
-                    this._stateEngine.renderingEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
+            for (const r in this._stateEngine.viewportEngines)
+                if (!this.excludeViewports.includes(this._stateEngine.viewportEngines[r].id))
+                    this._stateEngine.viewportEngines[r].update(`SessionEngine(${this.id}).updateOutputs`);
 
             for (const outputId in this.outputs) {
                 if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
@@ -1327,7 +1335,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (27)
+    // #endregion Public Methods (28)
 
     // #region Private Methods (15)
 
@@ -1388,9 +1396,9 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private addBusyMode(busyId: string) {
-        for (const r in this._stateEngine.renderingEngines) {
+        for (const r in this._stateEngine.viewportEngines) {
             if (!this.excludeViewports.includes(r)) {
-                this._stateEngine.renderingEngines[r].busy.push(busyId);
+                this._stateEngine.viewportEngines[r].busy.push(busyId);
                 this.#customizationBusyModes.push(busyId);
             }
         }
@@ -1474,16 +1482,16 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
-        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo) as Promise<ISessionTreeNode>;
+        return this.customizeSession(this._parameterValues, cancelRequest, taskEventInfo);
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, loadOutputs = true, retry = false): Promise<ISessionTreeNode | ShapeDiverResponseDto> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo, parallel = false, loadOutputs = true, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if (loadOutputs === true) {
+            if (loadOutputs === true && this._allowOutputLoading === true) {
                 if (cancelRequest()) return new SessionTreeNode();
                 if (parallel === true) {
                     // special case, we load the outputs put don't add them to the scene
@@ -1495,7 +1503,9 @@ export class SessionEngine implements ISessionEngine {
                 }
             } else {
                 // special case, we don't load the outputs and only return the responseDto
-                return responseDto;
+                const node = new SessionTreeNode();
+                node.data.push(new SessionData(responseDto));
+                return node;
             }
         } catch (e) {
             await this.handleError(e, retry);
@@ -1556,9 +1566,9 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private removeBusyMode(busyId: string) {
-        for (const r in this._stateEngine.renderingEngines) {
-            if (this._stateEngine.renderingEngines[r].busy.includes(busyId))
-                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(busyId), 1);
+        for (const r in this._stateEngine.viewportEngines) {
+            if (this._stateEngine.viewportEngines[r].busy.includes(busyId))
+                this._stateEngine.viewportEngines[r].busy.splice(this._stateEngine.viewportEngines[r].busy.indexOf(busyId), 1);
 
             if (this.#customizationBusyModes.includes(busyId))
                 this.#customizationBusyModes.splice(this.#customizationBusyModes.indexOf(busyId), 1);

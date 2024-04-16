@@ -1,19 +1,9 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractLight } from '../AbstractLight';
 import { Color } from '@shapediver/viewer.shared.types';
-
-import { LIGHT_TYPE } from '../../interface/ILight'
 import { IAmbientLight } from '../../interface/types/IAmbientLight';
-import { AbstractLight } from '../AbstractLight'
-
-import * as THREE from 'three';
+import { LIGHT_TYPE } from '../../interface/ILight';
 
 export class AmbientLight extends AbstractLight implements IAmbientLight {
-    // #region Properties (1)
-
-    #threeJsObject: { [key: string]: THREE.AmbientLight } = {};
-
-    // #endregion Properties (1)
-
     // #region Constructors (1)
 
     constructor(properties: {
@@ -25,8 +15,8 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
         version?: string
     }) {
         super({
-            color: properties.color || '#ffffff', 
-            intensity: properties.intensity !== undefined ? properties.intensity : 1, 
+            color: properties.color || '#ffffff',
+            intensity: properties.intensity !== undefined ? properties.intensity : 1,
             type: LIGHT_TYPE.AMBIENT,
             name: properties.name,
             order: properties.order,
@@ -37,20 +27,12 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
-
-    public get threeJsObject(): { [key: string]: THREE.AmbientLight } {
-        return this.#threeJsObject;
-    }
-
-    // #endregion Public Accessors (1)
-
     // #region Public Methods (1)
 
     public clone(): IAmbientLight {
         return new AmbientLight({
-            color: this.color || '#ffffff', 
-            intensity: this.intensity || 0.5, 
+            color: this.color || '#ffffff',
+            intensity: this.intensity || 0.5,
             name: this.name,
             order: this.order,
             id: this.id,

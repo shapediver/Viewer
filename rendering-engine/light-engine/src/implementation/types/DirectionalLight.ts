@@ -1,12 +1,8 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
+import { AbstractLight } from '../AbstractLight';
 import { Color } from '@shapediver/viewer.shared.types';
-
-import { LIGHT_TYPE } from '../../interface/ILight'
 import { IDirectionalLight } from '../../interface/types/IDirectionalLight';
-import { AbstractLight } from '../AbstractLight'
-
-import * as THREE from 'three';
+import { LIGHT_TYPE } from '../../interface/ILight';
+import { vec3 } from 'gl-matrix';
 
 export class DirectionalLight extends AbstractLight implements IDirectionalLight {
     // #region Properties (4)
@@ -15,7 +11,6 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     #direction: vec3 = vec3.fromValues(-1, 0, 1);
     #shadowMapBias: number = -0.003;
     #shadowMapResolution: number = 1024;
-    #threeJsObject: { [key: string]: THREE.DirectionalLight } = {};
 
     // #endregion Properties (4)
 
@@ -34,8 +29,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         version?: string
     }) {
         super({
-            color: properties.color || '#ffffff', 
-            intensity: properties.intensity !== undefined ? properties.intensity : 1, 
+            color: properties.color || '#ffffff',
+            intensity: properties.intensity !== undefined ? properties.intensity : 1,
             type: LIGHT_TYPE.DIRECTIONAL,
             name: properties.name,
             order: properties.order,
@@ -43,15 +38,15 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             version: properties.version
         });
 
-        if(properties.direction) this.#direction = properties.direction;
-        if(properties.castShadow !== undefined) this.#castShadow = properties.castShadow;
-        if(properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
-        if(properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
+        if (properties.direction) this.#direction = properties.direction;
+        if (properties.castShadow !== undefined) this.#castShadow = properties.castShadow;
+        if (properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
+        if (properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
+    // #region Public Getters And Setters (8)
 
     public get castShadow(): boolean {
         return this.#castShadow;
@@ -60,7 +55,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set castShadow(value: boolean) {
         this.#castShadow = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get direction(): vec3 {
@@ -70,7 +65,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set direction(value: vec3) {
         this.#direction = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get shadowMapBias(): number {
@@ -80,7 +75,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set shadowMapBias(value: number) {
         this.#shadowMapBias = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get shadowMapResolution(): number {
@@ -90,14 +85,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set shadowMapResolution(value: number) {
         this.#shadowMapResolution = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
-    public get threeJsObject(): { [key: string]: THREE.DirectionalLight } {
-        return this.#threeJsObject;
-    }
-
-    // #endregion Public Accessors (8)
+    // #endregion Public Getters And Setters (8)
 
     // #region Public Methods (1)
 

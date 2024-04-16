@@ -1,8 +1,21 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { EventEngine, EVENTTYPE, InputValidator, Logger, UuidGenerator } from "@shapediver/viewer.shared.services";
-import { ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
-import { IExport } from "../../interfaces/dto/IExport";
-import { SessionEngine } from "../SessionEngine";
+import {
+  EventEngine,
+  EVENTTYPE,
+  InputValidator,
+  Logger,
+  UuidGenerator
+} from '@shapediver/viewer.shared.services';
+import { IExport } from '../../interfaces/dto/IExport';
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { SessionEngine } from '../SessionEngine';
+import {
+  ShapeDiverResponseExport,
+  ShapeDiverResponseExportContent,
+  ShapeDiverResponseExportDefinitionType,
+  ShapeDiverResponseExportResult,
+  ShapeDiverResponseModelComputationStatus,
+  ShapeDiverResponseParameterGroup
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class Export implements IExport {
   // #region Properties (24)
@@ -24,9 +37,9 @@ export class Export implements IExport {
   #group?: ShapeDiverResponseParameterGroup;
   #hidden: boolean = false;
   #maxWaitTime: number = 300000;
-  #msg?: string
+  #msg?: string;
   #order?: number;
-  #result?: ShapeDiverResponseExportResult
+  #result?: ShapeDiverResponseExportResult;
   #status_collect?: ShapeDiverResponseModelComputationStatus;
   #status_computation?: ShapeDiverResponseModelComputationStatus;
   #tooltip?: string;
@@ -48,7 +61,7 @@ export class Export implements IExport {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (24)
+  // #region Public Getters And Setters (24)
 
   public get content(): ShapeDiverResponseExportContent[] | undefined {
     return this.#content;
@@ -146,7 +159,7 @@ export class Export implements IExport {
     return this.#version;
   }
 
-  // #endregion Public Accessors (24)
+  // #endregion Public Getters And Setters (24)
 
   // #region Public Methods (3)
 
@@ -156,7 +169,7 @@ export class Export implements IExport {
       const event: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-      if(Object.keys(parameterValues).length === 0) {
+      if (Object.keys(parameterValues).length === 0) {
         this.#logger.info(`Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(parameterValues)}.`);
       } else {
         this.#logger.debugLow(`Export(${this.#id}).request: Sending export request.`);

@@ -1,18 +1,12 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
+import { AbstractLight } from '../AbstractLight';
 import { Color } from '@shapediver/viewer.shared.types';
-
-import { LIGHT_TYPE } from '../../interface/ILight'
 import { IHemisphereLight } from '../../interface/types/IHemisphereLight';
-import { AbstractLight } from '../AbstractLight'
-
-import * as THREE from 'three';
+import { LIGHT_TYPE } from '../../interface/ILight';
 
 export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 
     #groundColor: Color = '#000000';
-    #threeJsObject: { [key: string]: THREE.HemisphereLight } = {};
 
     // #endregion Properties (1)
 
@@ -42,7 +36,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Getters And Setters (2)
 
     public get groundColor(): Color {
         return this.#groundColor;
@@ -51,14 +45,10 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     public set groundColor(value: Color) {
         this.#groundColor = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
-    public get threeJsObject(): { [key: string]: THREE.HemisphereLight } {
-        return this.#threeJsObject;
-    }
-
-    // #endregion Public Accessors (2)
+    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (1)
 

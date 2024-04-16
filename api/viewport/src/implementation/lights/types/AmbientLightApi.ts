@@ -1,0 +1,24 @@
+import { AbstractLightApi } from '../AbstractLightApi';
+import { IAmbientLight } from '@shapediver/viewer.rendering-engine.light-engine';
+import { IAmbientLightApi } from '../../../interfaces/lights/types/IAmbientLightApi';
+import { IViewportApi } from '../../../interfaces/IViewportApi';
+
+export class AmbientLightApi extends AbstractLightApi implements IAmbientLightApi {
+    // #region Properties (2)
+
+    readonly #light: IAmbientLight;
+    readonly #viewportApi: IViewportApi;
+
+    // #endregion Properties (2)
+
+    // #region Constructors (1)
+
+    constructor(viewportApi: IViewportApi, light: IAmbientLight) {
+        super(viewportApi, light);
+        this.#viewportApi = viewportApi;
+        this.#light = light;
+        this.scope = 'AmbientLightApi';
+    }
+
+    // #endregion Constructors (1)
+}

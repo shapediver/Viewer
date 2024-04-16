@@ -1,44 +1,40 @@
+import { AbstractCamera } from './AbstractCamera';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
+import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera';
+import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls';
+import { IOrthographicCameraSettingsV3 } from '@shapediver/viewer.settings';
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
+import { mat4, vec2, vec3 } from 'gl-matrix';
+import { OrthographicCameraControls } from '../controls/OrthographicCameraControls';
 import {
   Converter,
   DomEventEngine,
   Logger,
   SettingsEngine,
   ShapeDiverViewerCameraError,
-  StateEngine,
-} from '@shapediver/viewer.shared.services'
-import { mat4, vec2, vec3 } from 'gl-matrix'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
-import { IOrthographicCameraSettingsV3 } from '@shapediver/viewer.settings'
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { ITree, Tree } from '@shapediver/viewer.shared.node-tree'
-
-import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
-import { AbstractCamera } from './AbstractCamera'
-import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
-import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
-import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
-import * as THREE from 'three'
+} from '@shapediver/viewer.shared.services';
 
 export class OrthographicCamera extends AbstractCamera implements IOrthographicCamera {
-  // #region Properties (7)
+  // #region Properties (12)
 
   readonly #converter: Converter = Converter.instance;
   readonly #logger: Logger = Logger.instance;
   readonly #tree: ITree = Tree.instance;
 
-  #domEventListenerToken?: string;
-  #domEventEngine?: DomEventEngine;
-
   #bottom: number = -100;
   #direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
+  #domEventEngine?: DomEventEngine;
+  #domEventListenerToken?: string;
   #left: number = -100;
   #right: number = 100;
   #top: number = 100;
-  #threeJsObject: { [key: string]: THREE.OrthographicCamera } = {};
   #up: vec3 = vec3.fromValues(0, 1, 0);
+
   protected _controls: IOrthographicCameraControls;
 
-  // #endregion Properties (7)
+  // #endregion Properties (12)
 
   // #region Constructors (1)
 
@@ -49,7 +45,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (12)
+  // #region Public Getters And Setters (14)
 
   public get bottom(): number {
     return this.#bottom;
@@ -100,7 +96,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
       const { position, target } = this.calculateZoomTo(undefined);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
-      
+
       this.position = vec3.clone(position);
       this.target = vec3.clone(target);
     }
@@ -138,11 +134,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     this.#up = value;
   }
 
-  public get threeJsObject(): { [key: string]: THREE.OrthographicCamera } {
-    return this.#threeJsObject;
-  }
-
-  // #endregion Public Accessors (12)
+  // #endregion Public Getters And Setters (14)
 
   // #region Public Methods (6)
 
@@ -157,8 +149,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
       this.revertAtMouseUpDuration = cameraSetting.revertAtMouseUpDuration;
       this.zoomExtentsFactor = cameraSetting.zoomExtentsFactor;
 
-      let position = this.#converter.toVec3(cameraSetting.position);
-      let target = this.#converter.toVec3(cameraSetting.target);
+      const position = this.#converter.toVec3(cameraSetting.position);
+      const target = this.#converter.toVec3(cameraSetting.target);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
 
@@ -168,21 +160,21 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
       if (this._viewportId) {
-        this._stateEngine.renderingEngines[this._viewportId].boundingBoxCreated
+        this._stateEngine.viewportEngines[this._viewportId].boundingBoxCreated
           .then(async () => {
             await this.zoomTo(undefined, { duration: 0 });
             this.defaultPosition = vec3.clone(this._controls.position);
             this.defaultTarget = vec3.clone(this._controls.target);
-          })
+          });
       }
     }
     (<OrthographicCameraControls>this._controls).applySettings(settingsEngine);
   }
 
   public assignViewer(renderingEngine: IRenderingEngine): void {
-    if(renderingEngine.closed) 
+    if (renderingEngine.closed)
       throw new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${renderingEngine.id} not found.`);
-      
+
     this.assignViewerInternal(renderingEngine.id, renderingEngine.canvas);
     this._controls.assignViewer(renderingEngine.id, renderingEngine.canvas);
 
@@ -193,18 +185,14 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     this.#domEventListenerToken = this.#domEventEngine.addDomEventListener((<OrthographicCameraControls>this._controls).cameraControlsEventDistribution);
 
     this.boundingBox = this.#tree.root.boundingBox.clone();
-      
-    this._stateEngine.renderingEngines[renderingEngine.id].boundingBoxCreated.then(async () => {
+
+    this._stateEngine.viewportEngines[renderingEngine.id].boundingBoxCreated.then(async () => {
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
         await this.zoomTo(undefined, { duration: 0 });
-    })
+    });
   }
 
-  public clone(): IOrthographicCamera {
-    return new OrthographicCamera(this.id, this.version);
-  }
-
-  public calculateZoomTo(zoomTarget?: Box, startingPosition: vec3 = this.position, startingTarget: vec3 = this.target): { position: vec3; target: vec3; } {
+  public calculateZoomTo(zoomTarget?: Box): { position: vec3; target: vec3; } {
     let box: IBox;
 
     // Part 1 - calculate the bounding box that we should zoom to
@@ -215,8 +203,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
       // specified Box
       box = zoomTarget.clone();
     }
-    
-    if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
+
+    if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() };
 
     const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
     const center = vec3.clone(box.boundingSphere.center);
@@ -226,53 +214,57 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
         return {
           position: vec3.fromValues(center[0], center[1], center[2] + factor),
           target: vec3.clone(center)
-        }
+        };
       case ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM:
         return {
           position: vec3.fromValues(center[0], center[1], center[2] - factor),
           target: vec3.clone(center)
-        }
+        };
       case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
         return {
           position: vec3.fromValues(center[0] + factor, center[1], center[2]),
           target: vec3.clone(center)
-        }
+        };
       case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
         return {
           position: vec3.fromValues(center[0] - factor, center[1], center[2]),
           target: vec3.clone(center)
-        }
+        };
       case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
         return {
           position: vec3.fromValues(center[0], center[1] + factor, center[2]),
           target: vec3.clone(center)
-        }
+        };
       case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
         return {
           position: vec3.fromValues(center[0], center[1] - factor, center[2]),
           target: vec3.clone(center)
-        }
+        };
       default:
         return {
           position: vec3.fromValues(center[0], center[1], center[2] + factor),
           target: vec3.clone(center)
-        }
+        };
     }
+  }
+
+  public clone(): IOrthographicCamera {
+    return new OrthographicCamera(this.id, this.version);
   }
 
   public project(pos: vec3): vec2 {
     const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
     const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(m, m))
-    vec3.transformMat4(pos, pos, p)
-    return vec2.fromValues(pos[0], pos[1])
+    vec3.transformMat4(pos, pos, mat4.invert(m, m));
+    vec3.transformMat4(pos, pos, p);
+    return vec2.fromValues(pos[0], pos[1]);
   }
 
-  public unproject(pos: vec3, position = this.position, target = this.target): vec3 {
+  public unproject(pos: vec3): vec3 {
     const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
     const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(p, p))
-    vec3.transformMat4(pos, pos, m)
+    vec3.transformMat4(pos, pos, mat4.invert(p, p));
+    vec3.transformMat4(pos, pos, m);
     return vec3.clone(pos);
   }
 

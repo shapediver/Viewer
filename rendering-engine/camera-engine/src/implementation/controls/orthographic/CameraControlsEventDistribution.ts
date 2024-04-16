@@ -33,11 +33,11 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
         if (this._controls.camera.active === false) return;
         const { x, y } = this.convertInput(event);
 
-        const input = window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
-        const mapping = window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
+        const input = window && window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
+        const mapping = window && window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
 
         if (input === mapping.pan && this._controls.enablePan) {
-            this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
+            this._cameraLogic.pan(x, y, this._active.pan, window && window.TouchEvent && event instanceof TouchEvent);
             this._active.pan = true;
         } else {
             this._active.pan = false;
@@ -45,11 +45,11 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
         if (input === mapping.zoom && this._controls.enableZoom) {
             let x1 = x, y1 = y;
-            if (window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
+            if (window && window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
                 x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
                 y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
             }
-            this._cameraLogic.zoom(x1, y1, this._active.zoom, window.TouchEvent && event instanceof TouchEvent);
+            this._cameraLogic.zoom(x1, y1, this._active.zoom, window && window.TouchEvent && event instanceof TouchEvent);
             this._active.zoom = true;
         } else {
             this._active.zoom = false;
@@ -136,15 +136,15 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
         const { x, y } = this.convertInput(event);
 
         if (this._controls.enablePan && this._active.pan)
-            this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
+            this._cameraLogic.pan(x, y, this._active.pan, window && window.TouchEvent && event instanceof TouchEvent);
 
         if (this._controls.enableZoom && this._active.zoom) {
             let x1 = x, y1 = y;
-            if (window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
+            if (window && window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
                 x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
                 y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
             }
-            this._cameraLogic.zoom(x1, y1, this._active.zoom, window.TouchEvent && event instanceof TouchEvent);
+            this._cameraLogic.zoom(x1, y1, this._active.zoom, window && window.TouchEvent && event instanceof TouchEvent);
         }
     }
 

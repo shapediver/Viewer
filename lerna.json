@@ -5,10 +5,10 @@
     "session-engine/*",
     "examples/*",
     "rendering-engine/*",
-    "rendering-engine-threejs/*",
     "tests/*",
     "features/*",
-    "main/*"
+    "api/*",
+    "creation-control-center/*"
   ],
   "version": "independent"
 }

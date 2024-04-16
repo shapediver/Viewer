@@ -12,11 +12,11 @@ export class OutputDelayException extends Error {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+    // #region Public Getters And Setters (1)
 
     public get delay(): number {
-		  return this._delay;
+        return this._delay;
     }
 
-    // #endregion Public Accessors (1)
+    // #endregion Public Getters And Setters (1)
 } 

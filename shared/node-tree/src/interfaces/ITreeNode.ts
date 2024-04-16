@@ -1,6 +1,8 @@
-import { mat4 } from 'gl-matrix'
-import { IBox } from '@shapediver/viewer.shared.math'
-import { ITreeNodeData } from './ITreeNodeData'
+import { IBox } from '@shapediver/viewer.shared.math';
+import { ITreeNodeData } from './ITreeNodeData';
+import { mat4 } from 'gl-matrix';
+
+// #region Interfaces (2)
 
 export interface ITransformation {
     // #region Properties (2)
@@ -11,8 +13,8 @@ export interface ITransformation {
     // #endregion Properties (2)
 }
 
-export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> {
-    // #region Properties (18)
+export interface ITreeNode {
+    // #region Properties (20)
 
     /**
      * The bounding box of this tree node.
@@ -27,14 +29,14 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
     /**
      * The children of this tree node. Can be added and remove via {@link addChild} and {@link removeChild}. 
      */
-    readonly children: T[];
+    readonly children: ITreeNode[];
     /**
      * The data of this tree node. 
      * The data can include Geometry, Materials, Lights, Cameras, but also informational or custom data.
      * 
      * Can be added and remove via {@link addData} and {@link removeData}. 
      */
-    readonly data: U[];
+    readonly data: ITreeNodeData[];
     /**
      * The ID of the tree node.
      */
@@ -56,7 +58,7 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * The parent of the tree node.
      * This property is automatically managed by {@link addChild} and {@link removeChild}. 
      */
-    readonly parent?: T;
+    readonly parent?: ITreeNode;
     /**
      * The version of the tree node.
      * If the version changes, the node will be marked for an update.
@@ -76,7 +78,11 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
     /**
      * The optional bones that build a skeleton for animations.
      */
-    bones: T[];
+    bones: ITreeNode[];
+    /**
+     * The converted object of the tree node.
+     */
+    convertedObject: { [key: string]: unknown };
     /**
      * The viewports to exclude this tree node from.
      */
@@ -94,11 +100,15 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      */
     transformations: ITransformation[];
     /**
+     * The update callback for the converted object of the tree node.
+     */
+    updateCallbackConvertedObject: ((newObj: unknown, oldObj: unknown, viewport: string) => void) | null;
+    /**
      * Option to make this tree node visible. (default: true)
      */
     visible: boolean;
 
-    // #endregion Properties (18)
+    // #endregion Properties (20)
 
     // #region Public Methods (20)
 
@@ -107,13 +117,13 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * 
      * @param child the child to add
      */
-    addChild(child: T): boolean;
+    addChild(child: ITreeNode): boolean;
     /**
      * Add a data item to node.
      * 
      * @param data the data to add
      */
-    addData(data: U): boolean;
+    addData(data: ITreeNodeData): boolean;
     /**
      * Add a transformation to this node.
      * 
@@ -125,30 +135,30 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * The data objects like GeometryData, MaterialData, etc. are cloned as well. 
      * Depending on the size of the node and the amount of children, this can therefore be relatively slow.
      */
-    clone(): T;
+    clone(): ITreeNode;
     /**
      * Clones this node and all its children. 
      * The data objects like GeometryData, MaterialData, etc. are not copied in this case.
      */
-    cloneInstance(): T;
+    cloneInstance(): ITreeNode;
     /**
      * Returns the child with the specified id
      */
-    getChild(id: string): T | undefined;
+    getChild(id: string): ITreeNode | undefined;
     /**
      * Returns the data item with the specified id
      */
-    getData(id: string): U | undefined;
+    getData(id: string): ITreeNodeData | undefined;
     /**
-     * Test this node and all it's descendents for nodes with the specified name and return them in an array.
+     * Test this node and all it's descendants for nodes with the specified name and return them in an array.
      * @param name 
      */
-    getNodesByName(name: string): T[]
+    getNodesByName(name: string): ITreeNode[]
     /**
-     * Test this nodes name and all it's descendents name for nodes for the specified regex and return them in an array.
+     * Test this nodes name and all it's descendants name for nodes for the specified regex and return them in an array.
      * @param regex 
      */
-    getNodesByNameWithRegex(regex: RegExp): T[]
+    getNodesByNameWithRegex(regex: RegExp): ITreeNode[]
     /**
      * Return the path to this node.
      */
@@ -162,13 +172,13 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * 
      * @param child the child to check
      */
-    hasChild(child: T): boolean;
+    hasChild(child: ITreeNode): boolean;
     /**
      * Check for existence of a data item of this node.
      * 
      * @param data the data item to check
      */
-    hasData(data: U): boolean;
+    hasData(data: ITreeNodeData): boolean;
     /**
      * Check for existence of a transformation of this node.
      * 
@@ -180,13 +190,13 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * 
      * @param child the child to remove
      */
-    removeChild(child: T): boolean;
+    removeChild(child: ITreeNode): boolean;
     /**
      * Remove a data item from this node.
      * 
      * @param data the data to remove
      */
-    removeData(data: U): boolean;
+    removeData(data: ITreeNodeData): boolean;
     /**
      * Remove a transformation from this node.
      * 
@@ -198,13 +208,13 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      * 
      * @param callback 
      */
-    traverse(callback: (node: T) => void): void;
+    traverse(callback: (node: ITreeNode) => void): void;
     /**
      * Traverse this node and all it's children and executes the callback for all  data items of them
      * 
      * @param callback 
      */
-    traverseData(callback: (data: U) => void): void;
+    traverseData(callback: (data: ITreeNodeData) => void): void;
     /**
      * Update the version.
      * 
@@ -215,3 +225,5 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
 
     // #endregion Public Methods (20)
 }
+
+// #endregion Interfaces (2)

@@ -1,0 +1,74 @@
+{
+  "name": "@shapediver/viewer",
+  "version": "2.13.0-rc.5",
+  "description": "",
+  "keywords": [
+    "webgl",
+    "shapediver",
+    "viewer",
+    "augumented-reality",
+    "webgl",
+    "grasshopper",
+    "typescript",
+    "3d"
+  ],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
+    "build-current": "npm run build-dep",
+    "doc": "typedoc"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom"
+  },
+  "dependencies": {
+    "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
+    "@shapediver/viewer.api.general": "2.13.0-rc.5",
+    "@shapediver/viewer.creation-control-center.session": "2.13.0-rc.5",
+    "@shapediver/viewer.creation-control-center.viewport": "2.13.0-rc.5",
+    "@shapediver/viewer.data-engine.data-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.data-engine.geometry-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.data-engine.material-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.data-engine.shared-types": "2.13.0-rc.5",
+    "@shapediver/viewer.rendering-engine.camera-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.rendering-engine.light-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "2.13.0-rc.5",
+    "@shapediver/viewer.session": "2.13.0-rc.5",
+    "@shapediver/viewer.session-engine.session-engine": "2.13.0-rc.5",
+    "@shapediver/viewer.shared.math": "2.13.0-rc.5",
+    "@shapediver/viewer.shared.node-tree": "2.13.0-rc.5",
+    "@shapediver/viewer.shared.services": "2.13.0-rc.5",
+    "@shapediver/viewer.shared.types": "2.13.0-rc.5",
+    "@shapediver/viewer.viewport": "2.13.0-rc.5"
+  },
+  "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
+}

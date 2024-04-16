@@ -3,6 +3,7 @@ import { ShapeDiverError as ShapeDiverBackendError, isGBResponseError, isGBReque
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
 import { Converter } from '../converter/Converter';
+import { btoaCustom } from '../utilities/base64';
 
 export class HttpClient {
     // #region Properties (7)
@@ -205,14 +206,14 @@ export class HttpClient {
      * @param href 
      * @returns 
      */
-    public async loadTexture(href: string): Promise<HttpResponse<{ image: HTMLImageElement, blob: Blob }>> {
+    public async loadTexture(href: string): Promise<HttpResponse<{ buffer: ArrayBuffer, blob: Blob }>> {
         const response = await (this.get(href, undefined, true) as Promise<HttpResponse<ArrayBuffer>>);
+        const buffer = response.data;
         const arrayBufferView = new Uint8Array( response.data );
         const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
-        const image = await Converter.instance.responseToImage(response, blob);
         return {
             data: {
-                image,
+                buffer,
                 blob
             },
             size: response.data.byteLength,
@@ -326,7 +327,7 @@ export class HttpClient {
         url.search = params.toString();
 
         const hrefAsKey = url.toString();
-        return window.btoa(hrefAsKey);
+        return btoaCustom(hrefAsKey);
     }
 
     // #endregion Private Methods (5)
