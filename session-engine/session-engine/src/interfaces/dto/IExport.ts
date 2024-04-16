@@ -9,7 +9,7 @@ export interface IExport extends ShapeDiverResponseExport {
 
     // #region Public Methods (3)
 
-    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    request(parameters?: { [key: string]: unknown }): Promise<ShapeDiverResponseExport>;
     updateExport(): void;
     updateExportDefinition(exportDef: ShapeDiverResponseExport): void;
 
