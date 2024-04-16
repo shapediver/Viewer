@@ -93,7 +93,6 @@ import {
     Sphere
 } from '@shapediver/viewer.shared.math';
 import { createSession, sessions } from './main';
-import { DataEngine } from '@shapediver/viewer.data-engine.data-engine';
 import {
     EVENTTYPE,
     EVENTTYPE_CAMERA,
@@ -148,7 +147,6 @@ import {
     ShapeDiverViewerViewportError,
     ShapeDiverViewerWebGLError
 } from '@shapediver/viewer.shared.services';
-import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { IExportApi } from './interfaces/IExportApi';
 import { IFileParameterApi } from './interfaces/IFileParameterApi';
 import {
@@ -181,7 +179,6 @@ import {
     Tree,
     TreeNode
 } from '@shapediver/viewer.shared.node-tree';
-import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { OutputApiData } from './implementation/data/OutputApiData';
 import { SessionApiData } from './implementation/data/SessionApiData';
 import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
@@ -220,7 +217,6 @@ export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttribu
 export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData };
 export { ICustomData, CustomData };
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard };
-export { DataEngine, GeometryEngine, MaterialEngine };
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData };
 export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
