@@ -144,12 +144,9 @@ export class ExportApi implements IExportApi {
 
     // #region Public Methods (2)
 
-    public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
+    public async request(parameters: { [key: string]: unknown } = {}): Promise<ShapeDiverResponseExport> {
         const scope = 'request';
         this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters, 'object');
-        for (const p in parameters)
-            this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters[p], 'string');
-
         return this.#export.request(parameters);
     }
 

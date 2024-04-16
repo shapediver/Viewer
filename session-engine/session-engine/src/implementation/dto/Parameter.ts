@@ -306,35 +306,37 @@ export class Parameter<T> implements IParameter<T> {
         this.#value = this.sessionValue;
     }
 
-    public stringify(): string {
+    public stringify(val?: unknown): string {
+        const value = val !== undefined ? val : this.value;
+
         switch (true) {
             case this.type === PARAMETER_TYPE.BOOL:
-                return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value) + '';
+                return typeof value === 'string' ? value : (<boolean><unknown>value) + '';
             case this.type === PARAMETER_TYPE.COLOR:
-                return this.#converter.toHex8Color(this.value);
+                return this.#converter.toHex8Color(value);
             case this.type === PARAMETER_TYPE.FILE:
-                if (typeof this.value !== 'string')
+                if (typeof value !== 'string')
                     throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
-                return <string>this.value;
+                return <string>value;
             case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
-                if (typeof this.value === 'string') {
+                if (typeof value === 'string') {
                     // cast to number and round to decimalplaces if they exist
                     if (this.decimalplaces || this.decimalplaces === 0) {
-                        const number = +this.value;
+                        const number = +value;
                         return number.toFixed(this.#decimalplaces);
                     } else {
-                        return this.value;
+                        return value;
                     }
                 } else {
                     // round to decimalplaces if they exist
                     if (this.decimalplaces || this.decimalplaces === 0) {
-                        return (<number><unknown>this.value).toFixed(this.#decimalplaces);
+                        return (<number><unknown>value).toFixed(this.#decimalplaces);
                     } else {
-                        return (<number><unknown>this.value) + '';
+                        return (<number><unknown>value) + '';
                     }
                 }
             default:
-                return <string>this.value;
+                return <string>value;
         }
     }
 

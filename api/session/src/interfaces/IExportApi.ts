@@ -23,7 +23,7 @@ export interface IExportApi extends ShapeDiverResponseExport {
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    request(parameters?: { [key: string]: unknown }): Promise<ShapeDiverResponseExport>;
 
     // #endregion Public Methods (1)
 }

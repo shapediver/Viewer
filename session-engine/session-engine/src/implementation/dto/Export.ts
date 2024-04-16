@@ -163,7 +163,7 @@ export class Export implements IExport {
 
   // #region Public Methods (3)
 
-  public async request(parameterValues: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
+  public async request(parameterValues: { [key: string]: unknown } = {}): Promise<ShapeDiverResponseExport> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };

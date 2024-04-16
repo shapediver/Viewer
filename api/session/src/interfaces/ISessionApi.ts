@@ -245,7 +245,7 @@ export interface ISessionApi {
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+    customizeParallel(parameterValues: { [key: string]: unknown }): Promise<ITreeNode>;
     /**
      * Customize the session and only receive the result of the customization call.
      * 
@@ -262,7 +262,7 @@ export interface ISessionApi {
      * 
      * @throws {@type ShapeDiverViewerError}
      */
-    customizeResult(parameterValues: { [key: string]: string; }): Promise<ShapeDiverResponseDto>;
+    customizeResult(parameterValues: { [key: string]: unknown; }): Promise<ShapeDiverResponseDto>;
     /**
      * Get an export definition by id.
      * 
@@ -442,6 +442,16 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     updateOutputs(waitForViewportUpdate?: boolean): Promise<ITreeNode>;
+    /**
+     * Upload the files that are specified in the provided values.
+     * If a file parameter is not specified in the values, the current value will be used. 
+     * The ids of the uploaded files are returned in a map from parameter id to file id.
+     * 
+     * Note: The currently set file parameters will be uploaded automatically by {@link customize}, {@link customizeParallel}, {@link requestExports}, and {@link requestExport}.
+
+    * @param values The set of file parameters to upload. If a parameter is not a file parameter, the current value will be used.
+     */
+    uploadFileParameters(values: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>;
 
     // #endregion Public Methods (29)
 }
