@@ -39,18 +39,20 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
         return (await this.#sessionEngine.getFileInfo(this.id, fileId)).filename;
     }
 
-    public async upload() {
-        if (this.value === undefined) return this.defval;
-        if (typeof this.value === 'string' && ((this.value.length === 36 && this.#uuidGenerator.validate(this.value)) || this.value === '')) return this.value;
+    public async upload(v?: File | Blob | string): Promise<string> {
+        const value = v !== undefined ? v : this.value;
+        
+        if (value === undefined) return this.defval;
+        if (typeof value === 'string' && ((value.length === 36 && this.#uuidGenerator.validate(value)) || value === '')) return value;
 
         const data = new File(
             [
-                typeof this.value === 'string' ?
-                    new Blob([this.value], { type: 'text/plain' }) :
-                    this.value
+                typeof value === 'string' ?
+                    new Blob([value], { type: 'text/plain' }) :
+                    value
             ],
-            this.value instanceof File ? this.value.name : '',
-            { type: (<Blob | File>this.value).type }
+            value instanceof File ? value.name : '',
+            { type: (<Blob | File>value).type }
         );
 
         let types = [data.type];

@@ -4,7 +4,7 @@ export interface IFileParameter extends IParameter<File | Blob | string> {
     // #region Public Methods (2)
 
     getFilename(fileId?: string): Promise<string | undefined>;
-    upload(): Promise<string>;
+    upload(v?: File | Blob | string): Promise<string>;
 
     // #endregion Public Methods (2)
 }

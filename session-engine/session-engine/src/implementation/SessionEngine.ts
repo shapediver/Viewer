@@ -482,25 +482,12 @@ export class SessionEngine implements ISessionEngine {
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
 
-            const fileParameterIds: { [key: string]: string } = {};
-            // load file parameter first
-            for (const parameterId in this.parameters) {
-                if (this.parameters[parameterId] instanceof FileParameter) {
-                    fileParameterIds[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload();
-
-                    // OPTION TO SKIP - PART 1a
-                    const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
-                    if (cancelResult) return cancelResult;
-                }
-            }
+            // upload file parameters
+            await this.uploadFileParameters();
 
             // OPTION TO SKIP - PART 1b
             const cancelResult = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
             if (cancelResult) return cancelResult;
-
-            // assign the uploaded parameters
-            for (const parameterId in fileParameterIds)
-                this.parameters[parameterId].value = fileParameterIds[parameterId];
 
             const parameterSet: {
                 [key: string]: {
@@ -657,6 +644,9 @@ export class SessionEngine implements ISessionEngine {
         const parameterSet: {
             [key: string]: string
         } = {};
+
+        // upload file parameters
+        await this.uploadFileParameters(parameterValues);
 
         // create a set of the current validated parameter values
         for (const parameterId in this.parameters)
@@ -949,6 +939,7 @@ export class SessionEngine implements ISessionEngine {
     public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
+            await this.uploadFileParameters(parameters);
             const requestParameterSet = this.cleanExportParameters(parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: requestParameterSet }, maxWaitTime);
             this.updateResponseDto(responseDto);
@@ -962,6 +953,7 @@ export class SessionEngine implements ISessionEngine {
     public async requestExports(body: ShapeDiverRequestExport, loadOutputs: boolean = false, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
         this.checkAvailability('export');
         try {
+            await this.uploadFileParameters(body.parameters as { [key: string]: string | File | Blob });
             const requestParameterSet = this.cleanExportParameters(body.parameters);
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
@@ -1337,7 +1329,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Methods (28)
 
-    // #region Private Methods (15)
+    // #region Private Methods (17)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1512,6 +1504,23 @@ export class SessionEngine implements ISessionEngine {
             if (cancelRequest()) return new SessionTreeNode();
             return await this.customizeSession(parameters, cancelRequest, taskEventInfo, parallel, loadOutputs, true);
         }
+    }
+
+    /**
+     * Get all file parameters from the parameter set.
+     * If the parameter is not set in the parameter set, the value from the parameter object is used.
+     * 
+     * @param parameters 
+     * @returns 
+     */
+    private getFileParameterSet(parameters: { [key: string]: string | File | Blob }): { [key: string]: string | File | Blob } {
+        const fileParameterSet: { [key: string]: string | File | Blob } = {};
+        for (const parameterId in this.parameters) {
+            if (this.parameters[parameterId] instanceof FileParameter) {
+                fileParameterSet[parameterId] = parameters[parameterId] !== undefined ? parameters[parameterId] : (this.parameters[parameterId] as FileParameter).value;
+            }
+        }
+        return fileParameterSet;
     }
 
     private async handleError(e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, retry = false) {
@@ -1705,6 +1714,32 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    /**
+     * Uploads all file parameters and returns the file parameter values.
+     * If parameterValues is provided, the file parameter values are added to it.
+     * 
+     * @param parameterValues 
+     * @returns 
+     */
+    private async uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }> {
+        const parameterValueSet = parameterValues !== undefined ? this.getFileParameterSet(parameterValues) : undefined;
+
+        const fileParameterValues: { [key: string]: string } = {};
+        // load file parameter first
+        for (const parameterId in this.parameters) {
+            if (this.parameters[parameterId] instanceof FileParameter) {
+                fileParameterValues[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload(parameterValueSet ? parameterValueSet[parameterId] : undefined);
+                if (parameterValues) {
+                    parameterValues[parameterId] = fileParameterValues[parameterId];
+                } else {
+                    this.parameters[parameterId].value = fileParameterValues[parameterId];
+                }
+            }
+        }
+
+        return fileParameterValues;
+    }
+
     private async waitForUpdateCallbacks(newOutputVersions: { [key: string]: string }, oldOutputVersions: { [key: string]: string }, newNode: ITreeNode, oldNode: ITreeNode) {
         // call the update callback function on the session
         if (this._updateCallback) await Promise.resolve(this._updateCallback(newNode, oldNode));
@@ -1724,5 +1759,5 @@ export class SessionEngine implements ISessionEngine {
         await Promise.all(promises);
     }
 
-    // #endregion Private Methods (15)
+    // #endregion Private Methods (17)
 }
