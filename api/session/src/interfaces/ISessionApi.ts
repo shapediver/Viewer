@@ -25,7 +25,7 @@ import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.
  * be requested by functionality of the session.
  */
 export interface ISessionApi {
-    // #region Properties (19)
+    // #region Properties (20)
 
     /**
      * The [exports]{@link IExportApi} defined by the model.
@@ -48,6 +48,10 @@ export interface ISessionApi {
      * @see setJwtToken
      */
     readonly jwtToken: string | undefined;
+    /**
+     * Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
+     */
+    readonly loadSdtf: boolean;
     /**
      * The modelViewUrl of the 
      * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
@@ -133,9 +137,9 @@ export interface ISessionApi {
      */
     updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null;
 
-    // #endregion Properties (19)
+    // #endregion Properties (20)
 
-    // #region Public Methods (29)
+    // #region Public Methods (31)
 
     /**
      * Update all or some settings of the current session and the viewports based on the Geometry Backend
@@ -364,6 +368,12 @@ export interface ISessionApi {
      */
     loadCachedOutputs(outputs: { [key: string]: string }): Promise<{ [key: string]: ITreeNode | undefined }>;
     /**
+     * Load the SDTF data. The data is not loaded by default as it can be quite large.
+     * 
+     * @param onlyLoadOnce Only load sdtf data once and not keep loading it. (default: false)
+     */
+    loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void>;
+    /**
      * Request one or multiple exports.
      * 
      * @param body The body of the export request.
@@ -453,5 +463,5 @@ export interface ISessionApi {
      */
     uploadFileParameters(values: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>;
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (31)
 }

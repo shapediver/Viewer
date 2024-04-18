@@ -48,6 +48,7 @@ creationControlCenterSession.updateSessions = (
  * @param properties.id The unique identifier to use for the session.
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
  * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true)
+ * @param properties.loadSdtf Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) 
  * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}.
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @param properties.allowOutputLoading Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true)
@@ -66,6 +67,7 @@ export const createSession = async (properties: SessionCreationDefinition): Prom
     inputValidator.validateAndError('createSession', properties.id, 'string', false);
     inputValidator.validateAndError('createSession', properties.waitForOutputs, 'boolean', false);
     inputValidator.validateAndError('createSession', properties.loadOutputs, 'boolean', false);
+    inputValidator.validateAndError('createSession', properties.loadSdtf, 'boolean', false);
     inputValidator.validateAndError('createSession', properties.excludeViewports, 'stringArray', false);
     inputValidator.validateAndError('createSession', properties.initialParameterValues, 'object', false);
     if (properties.initialParameterValues)

@@ -67,7 +67,7 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (27)
+    // #region Public Getters And Setters (28)
 
     public get automaticSceneUpdate(): boolean {
         return this.#sessionEngine.automaticSceneUpdate;
@@ -144,6 +144,10 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.jwtToken;
     }
 
+    public get loadSdtf(): boolean {
+        return this.#sessionEngine.loadSdtf;
+    }
+
     public get modelViewUrl(): string {
         return this.#sessionEngine.modelViewUrl;
     }
@@ -211,9 +215,9 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
-    // #endregion Public Getters And Setters (27)
+    // #endregion Public Getters And Setters (28)
 
-    // #region Public Methods (29)
+    // #region Public Methods (31)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -339,6 +343,12 @@ export class SessionApi implements ISessionApi {
         return await this.#sessionEngine.loadCachedOutputsParallel(outputs);
     }
 
+    public async loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void> {
+        const scope = 'loadSdtfOutputs';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, onlyLoadOnce, 'boolean', false);
+        return await this.#sessionEngine.loadSdtfOutputs(onlyLoadOnce);
+    }
+
     public async requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {
         const scope = 'requestExports';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, body, 'object');
@@ -393,5 +403,5 @@ export class SessionApi implements ISessionApi {
         return fileParameterIds; 
     }
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (31)
 }
