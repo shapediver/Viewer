@@ -1,26 +1,33 @@
-import { CameraControlsLogic } from './CameraControlsLogic';
-import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution';
-import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
+import { ICameraControls } from '../../interfaces/controls/ICameraControls';
+import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution';
+import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic';
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
-  // #region Properties (2)
+  // #region Properties (6)
 
-  private _active = {
+  protected _active = {
     rotation: false,
     zoom: false,
     pan: false
   };
-  private _activeEvents = true;
+  protected _activeEvents = true;
+  protected _cameraLogic: ICameraControlsLogic;
+  protected _controls: ICameraControls;
+  protected _primaryPointerEvent?: PointerEvent;
+  protected _secondaryPointerEvent?: PointerEvent;
 
-  // #endregion Properties (2)
+  // #endregion Properties (6)
 
   // #region Constructors (1)
 
-  constructor(private readonly _controls: PerspectiveCameraControls, private readonly _cameraLogic: CameraControlsLogic) { }
+  constructor(controls: ICameraControls, cameraLogic: ICameraControlsLogic) {
+    this._controls = controls;
+    this._cameraLogic = cameraLogic;
+  }
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (20)
+  // #region Public Methods (16)
 
   public activateCameraEvents(): void {
     this._activeEvents = true;
@@ -31,22 +38,24 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     this.reset();
   }
 
-  public onDown(event: MouseEvent | TouchEvent): void {
+  public onDown(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
+
     const { x, y } = this.convertInput(event);
 
-    const input = window && window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
-    const mapping = window && window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
+    const touchEvent = event.pointerType === 'touch';
+    const input = this.getInput(event);
+    const mapping = event.pointerType === 'touch' ? this._controls.input.touch : this._controls.input.mouse;
 
     if (input === mapping.rotate && this._controls.enableRotation) {
-      this._cameraLogic.rotate(x, y, this._active.rotation, window && window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.rotate(x, y, this._active.rotation, touchEvent);
       this._active.rotation = true;
     } else {
       this._active.rotation = false;
     }
 
     if (input === mapping.pan && this._controls.enablePan) {
-      this._cameraLogic.pan(x, y, this._active.pan, window && window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.pan(x, y, this._active.pan, touchEvent);
       this._active.pan = true;
     } else {
       this._active.pan = false;
@@ -54,11 +63,11 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
     if (input === mapping.zoom && this._controls.enableZoom) {
       let x1 = x, y1 = y;
-      if (window && window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
-        x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
-        y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
+      if (touchEvent && this._controls.input.touch.zoom === 2 && this._primaryPointerEvent && this._secondaryPointerEvent) {
+        x1 = (this._primaryPointerEvent!.pageX - this._secondaryPointerEvent!.pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
+        y1 = (this._primaryPointerEvent!.pageY - this._secondaryPointerEvent!.pageY) / window.innerHeight;
       }
-      this._cameraLogic.zoom(x1, y1, this._active.zoom, window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.zoom(x1, y1, this._active.zoom, touchEvent);
       this._active.zoom = true;
     } else {
       this._active.zoom = false;
@@ -104,34 +113,8 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if (!this._activeEvents) return;
     this.onKey(event);
   }
-  
+
   public onKeyUp(event: KeyboardEvent): void { }
-
-  public onMouseDown(event: MouseEvent): void {
-    if (this._controls.camera.active === false) return;
-    if (!this._activeEvents) return;
-    this.onDown(event);
-  }
-
-  public onMouseEnd(event: MouseEvent): void {
-    if (this._controls.camera.active === false) return;
-    if (!this._activeEvents) return;
-    this.onUp(event);
-  }
-
-  public onMouseMove(event: MouseEvent): void {
-    if (this._controls.camera.active === false) return;
-    if (!this._activeEvents) return;
-    this.onMove(event);
-  }
-
-  public onMouseOut(event: WheelEvent): void {
-    if (this._controls.camera.active === false) return;
-  }
-
-  public onMouseUp(event: WheelEvent): void {
-    if (this._controls.camera.active === false) return;
-  }
 
   public onMouseWheel(event: WheelEvent): void {
     if (this._controls.camera.active === false) return;
@@ -139,53 +122,83 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     this.onWheel(event);
   }
 
-  public onMove(event: MouseEvent | TouchEvent): void {
+  public onMove(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
     const { x, y } = this.convertInput(event);
 
+    const touchEvent = event.pointerType === 'touch';
+
     if (this._controls.enableRotation && this._active.rotation)
-      this._cameraLogic.rotate(x, y, this._active.rotation, window && window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.rotate(x, y, this._active.rotation, touchEvent);
 
     if (this._controls.enablePan && this._active.pan)
-      this._cameraLogic.pan(x, y, this._active.pan, window && window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.pan(x, y, this._active.pan, touchEvent);
 
     if (this._controls.enableZoom && this._active.zoom) {
       let x1 = x, y1 = y;
-      if (window && window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2 && event.touches.length >= 2) {
-        x1 = (event.touches[0].pageX - event.touches[1].pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
-        y1 = (event.touches[0].pageY - event.touches[1].pageY) / window.innerHeight;
+      if (touchEvent && this._controls.input.touch.zoom === 2 && this._primaryPointerEvent && this._secondaryPointerEvent) {
+        x1 = (this._primaryPointerEvent!.pageX - this._secondaryPointerEvent!.pageX) / window.innerWidth * (window.innerWidth / window.innerHeight);
+        y1 = (this._primaryPointerEvent!.pageY - this._secondaryPointerEvent!.pageY) / window.innerHeight;
       }
-      this._cameraLogic.zoom(x1, y1, this._active.zoom, window && window.TouchEvent && event instanceof TouchEvent);
+      this._cameraLogic.zoom(x1, y1, this._active.zoom, touchEvent);
     }
   }
 
-  public onTouchCancel(event: TouchEvent): void {
-    if (this._controls.camera.active === false) return;
-  }
-
-  public onTouchEnd(event: TouchEvent): void {
+  public onPointerDown(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
     if (!this._activeEvents) return;
-    this.onUp(event);
-  }
 
-  public onTouchMove(event: TouchEvent): void {
-    if (this._controls.camera.active === false) return;
-    if (!this._activeEvents) return;
-    this.onMove(event);
-  }
+    if (event.isPrimary === true)
+      this._primaryPointerEvent = event;
+    else if (event.isPrimary === false)
+      this._secondaryPointerEvent = event;
 
-  public onTouchStart(event: TouchEvent): void {
-    if (this._controls.camera.active === false) return;
-    if (!this._activeEvents) return;
     this.onDown(event);
   }
 
-  public onTouchUp(event: TouchEvent): void {
+  public onPointerEnd(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+
+    if (event.isPrimary === true)
+      this._primaryPointerEvent = undefined;
+    else if (event.isPrimary === false)
+      this._secondaryPointerEvent = undefined;
+
+    this.onUp(event);
   }
 
-  public onUp(event: MouseEvent | TouchEvent): void {
+  public onPointerMove(event: PointerEvent): void {
+    if (this._controls.camera.active === false) return;
+    if (!this._activeEvents) return;
+
+    if (event.isPrimary === true)
+      this._primaryPointerEvent = event;
+    else if (event.isPrimary === false)
+      this._secondaryPointerEvent = event;
+
+    this.onMove(event);
+  }
+
+  public onPointerOut(event: PointerEvent): void {
+    if (this._controls.camera.active === false) return;
+
+    if (event.isPrimary === true)
+      this._primaryPointerEvent = undefined;
+    else if (event.isPrimary === false)
+      this._secondaryPointerEvent = undefined;
+  }
+
+  public onPointerUp(event: PointerEvent): void {
+    if (this._controls.camera.active === false) return;
+
+    if (event.isPrimary === true)
+      this._primaryPointerEvent = undefined;
+    else if (event.isPrimary === false)
+      this._secondaryPointerEvent = undefined;
+  }
+
+  public onUp(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
     this._active.rotation = false;
     this._active.zoom = false;
@@ -214,7 +227,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
   }
 
-  public reset() {
+  public reset(): void {
     this._active = {
       rotation: false,
       zoom: false,
@@ -222,29 +235,35 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     };
   }
 
-  // #endregion Public Methods (20)
+  // #endregion Public Methods (16)
 
-  // #region Private Methods (1)
+  // #region Protected Methods (2)
 
-  private convertInput(event: MouseEvent | TouchEvent): { x: number, y: number } {
-    if (event instanceof MouseEvent) {
+  protected convertInput(event: PointerEvent): { x: number, y: number } {
+    if (this._primaryPointerEvent && this._secondaryPointerEvent) {
+      return {
+        x: (this._primaryPointerEvent.pageX + this._secondaryPointerEvent.pageX) / 2,
+        y: (this._primaryPointerEvent.pageY + this._secondaryPointerEvent.pageY) / 2
+      };
+    } else {
       return {
         x: event.clientX,
         y: event.clientY
       };
-    } else {
-      if (event.touches.length < 1) return { x: 0, y: 0 };
-      if (event.touches.length === 1)
-        return {
-          x: event.touches[0].pageX,
-          y: event.touches[0].pageY
-        };
-      return {
-        x: (event.touches[0].pageX + event.touches[1].pageX) / 2,
-        y: (event.touches[0].pageY + event.touches[1].pageY) / 2
-      };
     }
   }
 
-  // #endregion Private Methods (1)
+  protected getInput(event: PointerEvent): number {
+    if (event.pointerType === 'touch') {
+      if (this._secondaryPointerEvent) {
+        return 2;
+      } else {
+        return 1;
+      }
+    } else {
+      return event.button;
+    }
+  }
+
+  // #endregion Protected Methods (2)
 }

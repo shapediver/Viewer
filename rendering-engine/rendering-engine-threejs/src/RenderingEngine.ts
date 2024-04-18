@@ -877,7 +877,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #endregion Public Getters And Setters (133)
 
-  // #region Public Methods (27)
+  // #region Public Methods (25)
 
   public addFlag(flag: FLAG_TYPE): string {
     const token = this._uuidGenerator.create();
@@ -1085,12 +1085,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return false;
   }
 
-  public mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 } {
-    return this._sceneTracingManager.mouseEventToRay(event);
-  }
-
   public pauseRendering(): void {
     this._pause = true;
+  }
+
+  public pointerEventToRay(event: PointerEvent): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.pointerEventToRay(event);
   }
 
   public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
@@ -1198,14 +1198,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
-  public touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 } {
-    return this._sceneTracingManager.touchEventToRay(event);
-  }
-
-  public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
-    return this._sceneTracingManager.touchToRay(event);
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public update(id: string): void {
     if (this.closed) return;
@@ -1285,7 +1277,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return true;
   }
 
-  // #endregion Public Methods (27)
+  // #endregion Public Methods (25)
 
   // #region Private Methods (1)
 

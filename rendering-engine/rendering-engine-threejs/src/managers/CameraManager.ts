@@ -61,6 +61,18 @@ export class CameraManager implements IManager {
                 orthographicCameraThreeJs.position.set(orthographicCameraData.position[0], orthographicCameraData.position[1], orthographicCameraData.position[2]);
                 orthographicCameraThreeJs.lookAt(orthographicCameraData.target[0], orthographicCameraData.target[1], orthographicCameraData.target[2]);
                 orthographicCameraThreeJs.updateProjectionMatrix();
+                
+                if (orthographicCameraData.controls.enableTurntableControls === true) {
+                    matrix = mat4.create();
+                    mat4.rotateZ(matrix, matrix, -orthographicCameraData.sceneRotation[1]);
+                    mat4.translate(matrix, matrix, orthographicCameraData.controls.turntableCenter);
+                } else if (orthographicCameraData.controls.enableObjectControls === true) {
+                    matrix = mat4.create();
+                    mat4.rotateX(matrix, matrix, -orthographicCameraData.sceneRotation[0]);
+                    mat4.rotateZ(matrix, matrix, -orthographicCameraData.sceneRotation[1]);
+                    mat4.translate(matrix, matrix, orthographicCameraData.controls.objectControlsCenter);
+                }
+
                 cameraThree = orthographicCameraThreeJs;
             } else {
                 const perspectiveCameraData = <PerspectiveCamera>camera;
@@ -84,6 +96,11 @@ export class CameraManager implements IManager {
                     matrix = mat4.create();
                     mat4.rotateZ(matrix, matrix, -perspectiveCameraData.sceneRotation[1]);
                     mat4.translate(matrix, matrix, perspectiveCameraData.controls.turntableCenter);
+                } else if (perspectiveCameraData.controls.enableObjectControls === true) {
+                    matrix = mat4.create();
+                    mat4.rotateX(matrix, matrix, -perspectiveCameraData.sceneRotation[0]);
+                    mat4.rotateZ(matrix, matrix, -perspectiveCameraData.sceneRotation[1]);
+                    mat4.translate(matrix, matrix, perspectiveCameraData.controls.objectControlsCenter);
                 }
 
                 cameraThree = perspectiveCameraThreeJs;

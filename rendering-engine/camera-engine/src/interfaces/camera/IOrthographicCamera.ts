@@ -1,5 +1,27 @@
-import { IOrthographicCameraControls } from '../controls/IOrthographicCameraControls';
-import { ICamera } from './ICamera'
+import { ICamera } from './ICamera';
+import { ICameraControls } from '../controls/ICameraControls';
+
+// #region Interfaces (1)
+
+export interface IOrthographicCamera extends ICamera {
+    // #region Properties (2)
+
+    readonly controls: ICameraControls;
+
+    direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
+
+    // #endregion Properties (2)
+
+    // #region Public Methods (1)
+
+    clone(): IOrthographicCamera;
+
+    // #endregion Public Methods (1)
+}
+
+// #endregion Interfaces (1)
+
+// #region Enums (1)
 
 export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
     TOP = 'top',
@@ -8,11 +30,7 @@ export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
     RIGHT = 'right',
     FRONT = 'front',
     BACK = 'back',
- }
-export interface IOrthographicCamera extends ICamera {
-    readonly controls: IOrthographicCameraControls;
-    
-    direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
-
-    clone(): IOrthographicCamera;
+    CUSTOM = 'custom'
 }
+
+// #endregion Enums (1)

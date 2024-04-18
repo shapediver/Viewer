@@ -1,45 +1,49 @@
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { IViewportApi, IMaterialAbstractData, ITreeNode, Tree } from '@shapediver/viewer'
-
-import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager'
-import { DragConstraintUtils } from './utils/DragConstraintUtils'
-import { InteractionEffectUtils } from './utils/InteractionEffectUtils'
-import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils'
-import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils'
-import { INTERACTION_STATE } from '../interfaces/IInteractionEngine'
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
-import { InteractionData } from './InteractionData'
+import { DragConstraintUtils } from './utils/DragConstraintUtils';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils';
+import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils';
+import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import {
+    IMaterialAbstractData,
+    ITreeNode,
+    IViewportApi,
+    Tree
+} from '@shapediver/viewer';
+import { INTERACTION_STATE } from '../interfaces/IInteractionEngine';
+import { InteractionData } from './InteractionData';
+import { InteractionEffectUtils } from './utils/InteractionEffectUtils';
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
-    // #region Properties (6)
+    // #region Properties (8)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
 
     #dragConstraintUtils: IDragConstraintUtils = DragConstraintUtils.instance;
     #effectMaterial?: IMaterialAbstractData;
-    #interactionEffectUtils: IInteractionEffectUtils = InteractionEffectUtils.instance;
-    #viewport?: IViewportApi;
     #gatheredGroupedNodes: {
         [key: string]: ITreeNode[]
     } = {};
+    #interactionEffectUtils: IInteractionEffectUtils = InteractionEffectUtils.instance;
+    #viewport?: IViewportApi;
 
-    abstract filter: IInteractionFilterOptions;
+    public abstract filter: IInteractionFilterOptions;
 
-    // #endregion Properties (6)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
-    constructor() {        
+    constructor() {
         this.gatherGroupNodes();
         this.#eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, () => {
             this.gatherGroupNodes();
-        })
+        });
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
+    // #region Public Getters And Setters (9)
 
     public get dragConstraintUtils(): IDragConstraintUtils {
         return this.#dragConstraintUtils;
@@ -79,15 +83,15 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#viewport = value;
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Getters And Setters (9)
 
     // #region Public Abstract Methods (5)
 
-    abstract add(viewport: IViewportApi): void;
-    abstract onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
-    abstract onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
-    abstract onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
-    abstract remove(): void;
+    public abstract add(viewport: IViewportApi): void;
+    public abstract onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void;
+    public abstract onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
+    public abstract onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void;
+    public abstract remove(): void;
 
     // #endregion Public Abstract Methods (5)
 
@@ -97,17 +101,17 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#gatheredGroupedNodes = {};
         this.#tree.root.traverse(node => {
             if (node.visible === false) return;
-            if(this.#viewport && node.excludeViewports.includes(this.#viewport.id)) return;
-            if(this.#viewport && node.restrictViewports.length > 0 && !node.restrictViewports.includes(this.#viewport.id)) return;
+            if (this.#viewport && node.excludeViewports.includes(this.#viewport.id)) return;
+            if (this.#viewport && node.restrictViewports.length > 0 && !node.restrictViewports.includes(this.#viewport.id)) return;
 
-            for(let i = 0; i < node.data.length; i++) {
-                if(node.data[i] instanceof InteractionData && (<InteractionData>node.data[i]).groupId) {
-                    if(!this.#gatheredGroupedNodes[(<InteractionData>node.data[i]).groupId!]) 
+            for (let i = 0; i < node.data.length; i++) {
+                if (node.data[i] instanceof InteractionData && (<InteractionData>node.data[i]).groupId) {
+                    if (!this.#gatheredGroupedNodes[(<InteractionData>node.data[i]).groupId!])
                         this.#gatheredGroupedNodes[(<InteractionData>node.data[i]).groupId!] = [];
                     this.#gatheredGroupedNodes[(<InteractionData>node.data[i]).groupId!].push(node);
                 }
             }
-        })
+        });
     }
 
     // #endregion Private Methods (1)
