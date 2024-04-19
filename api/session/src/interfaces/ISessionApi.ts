@@ -49,10 +49,6 @@ export interface ISessionApi {
      */
     readonly jwtToken: string | undefined;
     /**
-     * Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
-     */
-    readonly loadSdtf: boolean;
-    /**
      * The modelViewUrl of the 
      * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
      * hosting the model.
@@ -123,6 +119,10 @@ export interface ISessionApi {
      * The ids of the viewports in which the session's scene tree {@link node} should not be shown.
      */
     excludeViewports: string[];
+    /**
+     * Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
+     */
+    loadSdtf: boolean;
     /**
      * Optional callback which can be specified for refreshing the JWT. 
      * This will be called by the session once the JWT expires. 
@@ -367,12 +367,6 @@ export interface ISessionApi {
      * @throws {@type ShapeDiverViewerError}
      */
     loadCachedOutputs(outputs: { [key: string]: string }): Promise<{ [key: string]: ITreeNode | undefined }>;
-    /**
-     * Load the SDTF data. The data is not loaded by default as it can be quite large.
-     * 
-     * @param onlyLoadOnce Only load sdtf data once and not keep loading it. (default: false)
-     */
-    loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void>;
     /**
      * Request one or multiple exports.
      * 

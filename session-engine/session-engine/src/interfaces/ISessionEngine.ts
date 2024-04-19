@@ -18,13 +18,13 @@ export interface ISessionEngine {
   // #region Properties (14)
 
   readonly jwtToken?: string;
-  readonly loadSdtf: boolean;
 
   canUploadGLTF: boolean;
   exports: { [key: string]: IExport };
   guid?: string;
   id: string;
   initialized: boolean;
+  loadSdtf: boolean;
   modelViewUrl: string;
   outputs: { [key: string]: IOutput };
   parameters: { [key: string]: IParameter<unknown> };
@@ -35,7 +35,7 @@ export interface ISessionEngine {
 
   // #endregion Properties (14)
 
-  // #region Public Methods (25)
+  // #region Public Methods (24)
 
   applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
@@ -50,7 +50,6 @@ export interface ISessionEngine {
   loadCachedOutputsParallel(outputMapping: { [key: string]: string }, taskEventInfo?: OutputLoaderTaskEventInfo, retry?: boolean): Promise<{ [key: string]: ITreeNode | undefined }>;
   loadOutputs(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
   loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ITreeNode>;
-  loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void>;
   requestExport(exportId: string, parameters: ShapeDiverRequestCustomization, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
   requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto>;
   resetSettings(sections?: ISettingsSections): void;
@@ -63,5 +62,5 @@ export interface ISessionEngine {
   uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
-  // #endregion Public Methods (25)
+  // #endregion Public Methods (24)
 }

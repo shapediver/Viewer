@@ -148,6 +148,13 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.loadSdtf;
     }
 
+    public set loadSdtf(value: boolean) {
+        const scope = 'loadSdtf';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'boolean');
+        this.#sessionEngine.loadSdtf = value;
+        this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+    }
+
     public get modelViewUrl(): string {
         return this.#sessionEngine.modelViewUrl;
     }
@@ -341,12 +348,6 @@ export class SessionApi implements ISessionApi {
 
     public async loadCachedOutputs(outputs: { [key: string]: string; }): Promise<{ [key: string]: ITreeNode | undefined }> {
         return await this.#sessionEngine.loadCachedOutputsParallel(outputs);
-    }
-
-    public async loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void> {
-        const scope = 'loadSdtfOutputs';
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, onlyLoadOnce, 'boolean', false);
-        return await this.#sessionEngine.loadSdtfOutputs(onlyLoadOnce);
     }
 
     public async requestExports(body: ShapeDiverRequestExport, loadOutputs?: boolean, maxWaitMsec?: number): Promise<ShapeDiverResponseDto> {

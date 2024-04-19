@@ -229,6 +229,18 @@ export class SessionEngine implements ISessionEngine {
         return this._loadSdtf;
     }
 
+    public set loadSdtf(value: boolean) {
+        this._loadSdtf = value;
+        if(this._initialized === true && this._loadSdtf === true) {
+            (async () => {
+                this._outputLoader.reloadSdtf = true;
+                await this.updateOutputs();
+                this._outputLoader.reloadSdtf = false;
+                this._eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_SDTF_DELAYED_LOADED, { sessionId: this.id });
+            })();
+        }
+    }
+
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
@@ -940,14 +952,6 @@ export class SessionEngine implements ISessionEngine {
                 return await this.loadOutputsParallel(responseDto, cancelRequest, taskEventInfo, true);
             }
         }
-    }
-
-    public async loadSdtfOutputs(onlyLoadOnce?: boolean): Promise<void> {
-        this._loadSdtf = true;
-        this._outputLoader.reloadSdtf = true;
-        await this.updateOutputs();
-        this._outputLoader.reloadSdtf = false;
-        this._loadSdtf = onlyLoadOnce === true ? false : true;
     }
 
     public async requestExport(exportId: string, parameters: { [key: string]: unknown }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
