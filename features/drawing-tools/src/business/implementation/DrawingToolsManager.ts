@@ -104,6 +104,16 @@ export type Settings = {
         maxPoints?: number;
 
         /**
+         * If the number of points is strictly checked during the drawing process.
+         * If this setting is set to true, once the minimum or maximum amount of points is reached, the user cannot add or remove points that would violate the restriction.
+         * If this setting is set to false, the user can add or remove points even if the minimum or maximum amount of points is exceeded temporarily.
+         * Once the user tries to update or finish the drawing tool, the amount of points is checked in either case.
+         * 
+         * @default true
+         */
+        strictMinMaxPoints?: boolean;
+
+        /**
          * If the mode is set to 'lines', if it is a closed line or not.
          * If the mode is set to 'points', this setting is ignored.
          * 
@@ -363,6 +373,8 @@ export class DrawingToolsManager implements IManager {
      */
     public addPoint(index: number, position?: vec3 | undefined): void {
         if (this.#closed) return;
+        if (!this.#geometryManager.canAddPoint()) 
+            throw new ShapeDiverViewerDrawingToolsError('The maximum amount of points is reached.');
         this.#interactionManager.addPoint(index, position);
     }
 
@@ -446,6 +458,9 @@ export class DrawingToolsManager implements IManager {
      */
     public removePoint(index: number): void {
         if (this.#closed) return;
+        if (!this.#geometryManager.canRemovePoint())
+            throw new ShapeDiverViewerDrawingToolsError('The minimum amount of points is reached.');
+
         this.#interactionManager.removePoint(index);
         this.#geometryManager.removePoint(index);
     }
@@ -513,6 +528,7 @@ export class DrawingToolsManager implements IManager {
                 mode: settingsOptional.geometry.mode === 'points' ? 'points' : 'lines',
                 minPoints: settingsOptional.geometry.minPoints,
                 maxPoints: settingsOptional.geometry.maxPoints,
+                strictMinMaxPoints: settingsOptional.geometry.strictMinMaxPoints === undefined ? true : settingsOptional.geometry.strictMinMaxPoints,
                 close: settingsOptional.geometry.close === undefined ? true : settingsOptional.geometry.close,
                 autoClose: settingsOptional.geometry.autoClose === undefined ? true : settingsOptional.geometry.autoClose
             };

@@ -20,7 +20,7 @@ import { vec3 } from 'gl-matrix';
 // #region Classes (1)
 
 export class GeometryManager implements IManager {
-    // #region Properties (13)
+    // #region Properties (10)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #parentNode: ITreeNode;
@@ -32,8 +32,9 @@ export class GeometryManager implements IManager {
     #materialIndexArray: number[] = [];
     #positionArray: Float32Array;
     #positionIndexArray: Float32Array;
+    #wasWithinMinimumMaximumPointsRange: boolean = false;
 
-    // #endregion Properties (13)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -47,7 +48,7 @@ export class GeometryManager implements IManager {
 
         this.#parentNode = parentNode;
 
-        if(geometryProperties.points.length > 0) {
+        if (geometryProperties.points.length > 0) {
             this.#positionArray = new Float32Array(geometryProperties.points.length * 3);
             this.#positionArray.set(([] as number[]).concat(...geometryProperties.points));
         } else {
@@ -107,16 +108,16 @@ export class GeometryManager implements IManager {
         const variation_0 = ['map_0', 'map_1', 'map_4', 'map_5', 'map_6', 'map_7'];
         const variation_1 = ['map_2', 'map_3'];
 
-        if(this.#drawingToolsManager.defaultTextures.variation_0 instanceof MapData) {
-            updateMaterialVariation(variation_0, this.#drawingToolsManager.defaultTextures.variation_0);    
+        if (this.#drawingToolsManager.defaultTextures.variation_0 instanceof MapData) {
+            updateMaterialVariation(variation_0, this.#drawingToolsManager.defaultTextures.variation_0);
         } else {
             (this.#drawingToolsManager.defaultTextures.variation_0 as Promise<IMapData>).then((map) => {
                 updateMaterialVariation(variation_0, map);
             });
         }
 
-        if(this.#drawingToolsManager.defaultTextures.variation_1 instanceof MapData) {
-            updateMaterialVariation(variation_1, this.#drawingToolsManager.defaultTextures.variation_1);    
+        if (this.#drawingToolsManager.defaultTextures.variation_1 instanceof MapData) {
+            updateMaterialVariation(variation_1, this.#drawingToolsManager.defaultTextures.variation_1);
         } else {
             (this.#drawingToolsManager.defaultTextures.variation_1 as Promise<IMapData>).then((map) => {
                 updateMaterialVariation(variation_1, map);
@@ -143,11 +144,14 @@ export class GeometryManager implements IManager {
         }
 
         this.updateParentNode();
+
+        // check if the number of points is within the minimum and maximum range
+        this.#wasWithinMinimumMaximumPointsRange = this.checkNumberOfPoints();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (7)
+    // #region Public Getters And Setters (9)
 
     public get closeLoop(): boolean {
         return this.#closeLoop;
@@ -169,6 +173,10 @@ export class GeometryManager implements IManager {
         return this.#materialIndexArray;
     }
 
+    public get pointsLength(): number {
+        return this.#positionArray.length / 3;
+    }
+
     public get positionArray(): Float32Array {
         return this.#positionArray;
     }
@@ -177,9 +185,13 @@ export class GeometryManager implements IManager {
         return this.#positionIndexArray;
     }
 
-    // #endregion Public Getters And Setters (7)
+    public get wasWithinMinimumMaximumPointsRange(): boolean {
+        return this.#wasWithinMinimumMaximumPointsRange;
+    }
 
-    // #region Public Methods (7)
+    // #endregion Public Getters And Setters (9)
+
+    // #region Public Methods (13)
 
     public addPoint(insertionIndex: number, position?: vec3 | undefined): void {
         const positionArrayLength = this.#positionArray.length / 3;
@@ -219,13 +231,13 @@ export class GeometryManager implements IManager {
         this.#materialIndexArray = this.#materialIndexArray.slice(0, insertionIndex).concat([0], this.#materialIndexArray.slice(insertionIndex, this.#materialIndexArray.length));
 
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
-        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+        for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
 
         (this.#geometryDataPoints.material as MaterialMultiPointData).materialIndexDataMap = new MapData(new Image(), { asData: true, data: this.#materialIndexArray }),
-        this.#geometryDataPoints.material!.updateVersion();
+            this.#geometryDataPoints.material!.updateVersion();
 
         this.#geometryDataPoints.updateVersion();
         this.#geometryDataPoints.primitive.updateVersion();
@@ -237,6 +249,39 @@ export class GeometryManager implements IManager {
 
         this.#drawingToolsManager.textVisualizationManager.createPointLabels();
         this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
+
+        // check if the number of points is within the minimum and maximum range
+        this.#wasWithinMinimumMaximumPointsRange = this.checkNumberOfPoints();
+    }
+
+    public canAddPoint(): boolean {
+        return this.#drawingToolsManager.settings.geometry.maxPoints !== undefined &&
+            this.pointsLength < this.#drawingToolsManager.settings.geometry.maxPoints &&
+            this.wasWithinMinimumMaximumPointsRange &&
+            this.#drawingToolsManager.settings.geometry.strictMinMaxPoints === true;
+    }
+
+    public canRemovePoint(): boolean {
+        return this.#drawingToolsManager.settings.geometry.minPoints !== undefined &&
+            this.pointsLength > this.#drawingToolsManager.settings.geometry.minPoints &&
+            this.wasWithinMinimumMaximumPointsRange &&
+            this.#drawingToolsManager.settings.geometry.strictMinMaxPoints === true;
+    }
+
+    public checkMaximumNumberOfPoints(number?: number): boolean {
+        if (number === undefined) number = this.#positionArray.length / 3;
+        if (this.#drawingToolsManager.settings.geometry.maxPoints === undefined) return true;
+        return number <= this.#drawingToolsManager.settings.geometry.maxPoints;
+    }
+
+    public checkMinimumNumberOfPoints(number?: number): boolean {
+        if (number === undefined) number = this.#positionArray.length / 3;
+        if (this.#drawingToolsManager.settings.geometry.minPoints === undefined) return true;
+        return number >= this.#drawingToolsManager.settings.geometry.minPoints;
+    }
+
+    public checkNumberOfPoints(number?: number): boolean {
+        return this.checkMinimumNumberOfPoints(number) && this.checkMaximumNumberOfPoints(number);
     }
 
     public close(): void {
@@ -244,7 +289,7 @@ export class GeometryManager implements IManager {
 
         if (this.#geometryDataLines)
             this.#parentNode.removeData(this.#geometryDataLines);
-        
+
         this.#drawingToolsManager.parentNode.removeChild(this.#parentNode);
         this.#drawingToolsManager.parentNode.updateVersion();
     }
@@ -260,7 +305,7 @@ export class GeometryManager implements IManager {
 
         const positionArrayLength = this.#positionArray.length / 3;
 
-        if(positionArrayLength < 1) return;
+        if (positionArrayLength < 1) return;
 
         this.#indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
 
@@ -362,13 +407,13 @@ export class GeometryManager implements IManager {
         this.#materialIndexArray.push(0);
 
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
-        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+        for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
 
         (this.#geometryDataPoints.material as MaterialMultiPointData).materialIndexDataMap = new MapData(new Image(), { asData: true, data: this.#materialIndexArray }),
-        this.#geometryDataPoints.material!.updateVersion();
+            this.#geometryDataPoints.material!.updateVersion();
 
         this.#geometryDataPoints.primitive.attributes['POSITION'] =
             new AttributeData(
@@ -402,13 +447,16 @@ export class GeometryManager implements IManager {
 
         this.#drawingToolsManager.textVisualizationManager.createPointLabels();
         this.#drawingToolsManager.textVisualizationManager.createDistanceLabels();
+
+        // check if the number of points is within the minimum and maximum range
+        this.#wasWithinMinimumMaximumPointsRange = this.checkNumberOfPoints();
     }
 
     public resetMaterialIndices(): void {
         this.#materialIndexArray = new Array(this.#materialIndexArray.length).fill(0);
 
         const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
-        for(let i = 0; i < this.#materialIndexArray.length; i++) 
+        for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = 0;
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
@@ -423,7 +471,7 @@ export class GeometryManager implements IManager {
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;
     }
 
-    // #endregion Public Methods (7)
+    // #endregion Public Methods (13)
 
     // #region Private Methods (2)
 

@@ -94,7 +94,7 @@ export class InteractionManager implements IManager {
             // remove it if it is in the array
             const index = pointDistances[0].index;
 
-            if (deleteKeyPressed) {
+            if (deleteKeyPressed && this.#drawingToolsManager.geometryManager.canRemovePoint()) {
                 this.#drawingToolsManager.geometryManager.updateMaterialIndex(index, MATERIAL_INDEX.DELETION_HOVERED);
             } else {
                 if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
@@ -167,7 +167,7 @@ export class InteractionManager implements IManager {
          * IF DELETE KEY IS PRESSED
          * REMOVE POINT IF THERE IS ONE CLOSE TO THE RAY
          */
-        if (deleteKeyPressed) {
+        if (deleteKeyPressed && this.#drawingToolsManager.geometryManager.canRemovePoint()) {
             // check if there is a point close to the ray
             const distances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
             if (distances) {
@@ -362,7 +362,7 @@ export class InteractionManager implements IManager {
          * IF INSERT KEY IS PRESSED
          * ADD POINT AT RAY INTERSECTION
          */
-        if (insertKeyPressed) {
+        if (insertKeyPressed && this.#drawingToolsManager.geometryManager.canAddPoint()) {
             if (this.#midPointInsertionActive === true) {
                 // remove last added point
                 this.removePoint(this.#midPointInsertionIndex);
@@ -476,7 +476,7 @@ export class InteractionManager implements IManager {
          * ADD POINT AT RAY INTERSECTION IF THERE IS NONE WAS ADDED
          * MOVE LAST ADDED POINT IF THERE IS ONE
          */
-        if (insertKeyPressed) {
+        if (insertKeyPressed && (this.#drawingToolsManager.geometryManager.canAddPoint() || this.#alreadyInserted === true)) {
             if(this.#insertionActiveClosed === false) this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             if (this.#insertionActive === false && this.#alreadyInserted === false) {
@@ -536,7 +536,7 @@ export class InteractionManager implements IManager {
         if (insertKeyPressed === false && deleteKeyPressed === false && this.#dragging === false && this.#selectedPointIndices.length === 0) {
             if (this.#midPointInsertionActive === true && this.#hoveredPoint === this.#midPointInsertionIndex) {
                 // we are just waiting for a mouse click to finish the mid point insertion
-            } else if (this.#hoveredPoint === undefined) {
+            } else if (this.#hoveredPoint === undefined && this.#drawingToolsManager.geometryManager.canAddPoint()) {
                 // check if there is a line close to the ray and add a mid point to it
                 const lineDistances = this.#drawingToolsManager.geometryMathManager.checkLineDistances(ray);
                 if (lineDistances) {
