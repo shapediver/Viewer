@@ -67,7 +67,7 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (27)
+    // #region Public Getters And Setters (28)
 
     public get automaticSceneUpdate(): boolean {
         return this.#sessionEngine.automaticSceneUpdate;
@@ -144,6 +144,17 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.jwtToken;
     }
 
+    public get loadSdtf(): boolean {
+        return this.#sessionEngine.loadSdtf;
+    }
+
+    public set loadSdtf(value: boolean) {
+        const scope = 'loadSdtf';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'boolean');
+        this.#sessionEngine.loadSdtf = value;
+        this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+    }
+
     public get modelViewUrl(): string {
         return this.#sessionEngine.modelViewUrl;
     }
@@ -211,9 +222,9 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
-    // #endregion Public Getters And Setters (27)
+    // #endregion Public Getters And Setters (28)
 
-    // #region Public Methods (29)
+    // #region Public Methods (31)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -393,5 +404,5 @@ export class SessionApi implements ISessionApi {
         return fileParameterIds; 
     }
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (31)
 }

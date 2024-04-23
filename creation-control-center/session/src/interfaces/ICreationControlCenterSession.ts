@@ -21,6 +21,8 @@ export type SessionCreationDefinition = {
     allowOutputLoading?: boolean,
     /** Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true) */
     loadOutputs?: boolean,
+    /** Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) */
+    loadSdtf?: boolean,
     /** Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}. */
     excludeViewports?: string[],
     /** The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified. */

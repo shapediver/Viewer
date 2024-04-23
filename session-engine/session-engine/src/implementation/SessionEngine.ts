@@ -69,7 +69,7 @@ import { vec3 } from 'gl-matrix';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (45)
+    // #region Properties (46)
 
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
@@ -123,6 +123,7 @@ export class SessionEngine implements ISessionEngine {
     };
     private _initialized: boolean = false;
     private _jwtToken?: string;
+    private _loadSdtf: boolean = false;
     private _modelId?: string;
     private _node: ITreeNode;
     private _refreshJwtToken?: () => Promise<string>;
@@ -135,7 +136,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (45)
+    // #endregion Properties (46)
 
     // #region Constructors (1)
 
@@ -143,7 +144,7 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean, loadSdtf: boolean }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._guid = properties.guid;
@@ -152,6 +153,7 @@ export class SessionEngine implements ISessionEngine {
         this._excludeViewports = properties.excludeViewports || [];
         this._jwtToken = properties.jwtToken;
         this._allowOutputLoading = properties.allowOutputLoading;
+        this._loadSdtf = properties.loadSdtf;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader(this);
@@ -166,7 +168,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (25)
+    // #region Public Getters And Setters (26)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -223,6 +225,22 @@ export class SessionEngine implements ISessionEngine {
         return this._jwtToken;
     }
 
+    public get loadSdtf(): boolean {
+        return this._loadSdtf;
+    }
+
+    public set loadSdtf(value: boolean) {
+        this._loadSdtf = value;
+        if(this._initialized === true && this._loadSdtf === true) {
+            (async () => {
+                this._outputLoader.reloadSdtf = true;
+                await this.updateOutputs();
+                this._outputLoader.reloadSdtf = false;
+                this._eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_SDTF_DELAYED_LOADED, { sessionId: this.id });
+            })();
+        }
+    }
+
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
@@ -275,9 +293,9 @@ export class SessionEngine implements ISessionEngine {
         return this._viewerSettings;
     }
 
-    // #endregion Public Getters And Setters (25)
+    // #endregion Public Getters And Setters (26)
 
-    // #region Public Methods (29)
+    // #region Public Methods (30)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -1357,7 +1375,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (30)
 
     // #region Private Methods (16)
 
