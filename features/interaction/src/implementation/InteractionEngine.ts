@@ -1,10 +1,9 @@
-import { vec3 } from "gl-matrix";
-import { Logger, UuidGenerator, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
-import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
-import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { IInteractionManager } from "../interfaces/IInteractionManager";
-import { IViewportApi, RENDERER_TYPE, sceneTree } from "@shapediver/viewer";
-import { IntersectionManager } from "./IntersectionManager";
+import { Logger, UuidGenerator, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
+import { IInteractionEngine, INTERACTION_STATE } from '../interfaces/IInteractionEngine';
+import { IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IInteractionManager } from '../interfaces/IInteractionManager';
+import { IViewportApi, RENDERER_TYPE, sceneTree } from '@shapediver/viewer';
+import { IntersectionManager } from './IntersectionManager';
 
 export class InteractionEngine implements IInteractionEngine {
     // #region Properties (6)
@@ -33,7 +32,7 @@ export class InteractionEngine implements IInteractionEngine {
     // #region Public Accessors (2)
 
     public get intersectionOpacity(): number {
-        return this.#intersectionOpacity
+        return this.#intersectionOpacity;
     }
 
     public set intersectionOpacity(value: number) {
@@ -49,15 +48,15 @@ export class InteractionEngine implements IInteractionEngine {
     // #region Public Methods (14)
 
     public close(): void {
-        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
-        for(let m in this.#managers)
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.');
+        for(const m in this.#managers)
             this.removeInteractionManager(m);
         this.#viewport.removeCanvasEventListener(this.#canvasEventListenerToken);
         this.#closed = true;
     }
 
     public addInteractionManager(manager: IInteractionManager): string {
-        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.');
         const token = this.#uuidGenerator.create();
         this.#managers[token] = manager;
         manager.add(this.#viewport);
@@ -72,31 +71,31 @@ export class InteractionEngine implements IInteractionEngine {
         if(this.#closed) return;
     }
 
-    public onMouseDown(event: MouseEvent): void {
+    public onPointerDown(event: PointerEvent): void {
         if(this.#closed) return;
-        const ray = this.#viewport.mouseEventToRay(event);
+        const ray = this.#viewport.pointerEventToRay(event);
         this.onDown(event, ray);
     }
 
-    public onMouseEnd(event: MouseEvent): void {
+    public onPointerEnd(event: PointerEvent): void {
         if(this.#closed) return;
     }
 
-    public onMouseMove(event: MouseEvent): void {
+    public onPointerMove(event: PointerEvent): void {
         if(this.#closed) return;
-        const ray = this.#viewport.mouseEventToRay(event);
+        const ray = this.#viewport.pointerEventToRay(event);
         this.onMove(event, ray);
     }
 
-    public onMouseOut(event: WheelEvent): void {
+    public onPointerOut(event: PointerEvent): void {
         if(this.#closed) return;
-        const ray = this.#viewport.mouseEventToRay(event);
+        const ray = this.#viewport.pointerEventToRay(event);
         this.onEnd(event, ray, INTERACTION_STATE.OUT);
     }
 
-    public onMouseUp(event: WheelEvent): void {
+    public onPointerUp(event: PointerEvent): void {
         if(this.#closed) return;
-        const ray = this.#viewport.mouseEventToRay(event);
+        const ray = this.#viewport.pointerEventToRay(event);
         this.onEnd(event, ray, INTERACTION_STATE.UP);
     }
 
@@ -104,48 +103,8 @@ export class InteractionEngine implements IInteractionEngine {
         if(this.#closed) return;
     }
 
-    public onTouchCancel(event: TouchEvent): void {
-        if(this.#closed) return;
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.onEnd(event, ray, INTERACTION_STATE.OUT);
-    }
-
-    public onTouchEnd(event: TouchEvent): void {
-        if(this.#closed) return;
-    }
-
-    public onTouchMove(event: TouchEvent): void {
-        if(this.#closed) return;
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.onMove(event, ray);
-    }
-
-    public onTouchStart(event: TouchEvent): void {
-        if(this.#closed) return;
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.onDown(event, ray);
-    }
-
-    public onTouchUp(event: TouchEvent): void {
-        if(this.#closed) return;
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.onEnd(event, ray, INTERACTION_STATE.UP);
-    }
-
     public removeInteractionManager(token: string): boolean {
-        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.');
         if(!this.#managers[token]) return false;
         this.#managers[token].remove();
         delete this.#managers[token];
@@ -162,14 +121,14 @@ export class InteractionEngine implements IInteractionEngine {
      * 
      * @param ray 
      */
-    private onDown(event: MouseEvent | TouchEvent, ray: IRay): void {
+    private onDown(event: PointerEvent, ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
         const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             this.#managers[m].onDown(event, ray, intersections);
     }
 
@@ -179,17 +138,17 @@ export class InteractionEngine implements IInteractionEngine {
      * 
      * @param ray 
      */
-    private onEnd(event: MouseEvent | TouchEvent, ray: IRay, endState: INTERACTION_STATE): void {
+    private onEnd(event: PointerEvent, ray: IRay, endState: INTERACTION_STATE): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             filters.push(this.#managers[m].filter(endState));
 
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
             
         const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             this.#managers[m].onEnd(event, ray, intersections, endState);
     }
 
@@ -199,14 +158,14 @@ export class InteractionEngine implements IInteractionEngine {
      * 
      * @param ray 
      */
-    private onMove(event: MouseEvent | TouchEvent, ray: IRay): void {
+    private onMove(event: PointerEvent, ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
         const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
-        for(let m in this.#managers)
+        for(const m in this.#managers)
             this.#managers[m].onMove(event, ray, intersections);
     }
 

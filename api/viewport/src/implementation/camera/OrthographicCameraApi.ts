@@ -25,19 +25,7 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (18)
-
-    public get damping(): number {
-        return this.#camera.controls.damping;
-    }
-
-    public set damping(value: number) {
-        const scope = 'damping';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
-        this.#camera.controls.damping = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
+    // #region Public Getters And Setters (2)
 
     public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
         return this.#camera.direction;
@@ -51,89 +39,5 @@ export class OrthographicCameraApi extends AbstractCameraApi implements IOrthogr
         this.#viewportApi.update();
     }
 
-    public get enableKeyPan(): boolean {
-        return this.#camera.controls.enableKeyPan;
-    }
-
-    public set enableKeyPan(value: boolean) {
-        const scope = 'enableKeyPan';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
-        this.#camera.controls.enableKeyPan = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get enablePan(): boolean {
-        return this.#camera.controls.enablePan;
-    }
-
-    public set enablePan(value: boolean) {
-        const scope = 'enablePan';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
-        this.#camera.controls.enablePan = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get enableZoom(): boolean {
-        return this.#camera.controls.enableZoom;
-    }
-
-    public set enableZoom(value: boolean) {
-        const scope = 'enableZoom';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'boolean');
-        this.#camera.controls.enableZoom = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get keyPanSpeed(): number {
-        return this.#camera.controls.keyPanSpeed;
-    }
-
-    public set keyPanSpeed(value: number) {
-        const scope = 'keyPanSpeed';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
-        this.#camera.controls.keyPanSpeed = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get movementSmoothness(): number {
-        return this.#camera.controls.movementSmoothness;
-    }
-
-    public set movementSmoothness(value: number) {
-        const scope = 'movementSmoothness';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
-        this.#camera.controls.movementSmoothness = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get panSpeed(): number {
-        return this.#camera.controls.panSpeed;
-    }
-
-    public set panSpeed(value: number) {
-        const scope = 'panSpeed';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
-        this.#camera.controls.panSpeed = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    public get zoomSpeed(): number {
-        return this.#camera.controls.zoomSpeed;
-    }
-
-    public set zoomSpeed(value: number) {
-        const scope = 'zoomSpeed';
-        this.#inputValidator.validateAndError(`${this.scope}.${scope}`, value, 'number');
-        this.#camera.controls.zoomSpeed = value;
-        this.#logger.debug(`${this.scope}.${scope}: ${scope} was set to: ${value}`);
-        this.#viewportApi.update();
-    }
-
-    // #endregion Public Getters And Setters (18)
+    // #endregion Public Getters And Setters (2)
 }

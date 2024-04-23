@@ -315,7 +315,7 @@ export interface IViewportApi {
 
   // #endregion Properties (54)
 
-  // #region Public Methods (41)
+  // #region Public Methods (39)
 
   /**
    * Add an event listener that receives all canvas events.
@@ -468,16 +468,6 @@ export interface IViewportApi {
    */
   isMobileDeviceWithoutBrowserARSupport(): boolean;
   /**
-   * Calculate the ray that is created by the mouse event and the camera.
-   * 
-   * @see {@link touchToRay}
-   * @see {@link touchEventToRay}
-   * @param event 
-   * @returns 
-   */
-  mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 }
-
-  /**
    * Pause the rendering of the scene. 
    * Can be used with {@link continueRendering} to continue/pause the rendering at will.
    * 
@@ -485,11 +475,19 @@ export interface IViewportApi {
    */
   pauseRendering(): void;
   /**
+   * Calculate the ray that is created by the pointer event and the camera.
+   * 
+   * @param event 
+   * @returns 
+   */
+  pointerEventToRay(event: PointerEvent): { origin: vec3, direction: vec3 }
+
+  /**
    * From the provided origin and direction, trace the ray through the scene.
    * The intersections with GeometryData will be returned including the corresponding nodes, sorted by their smallest distance.
    * 
    * If you want to raytrace the scene from an interaction with the the canvas, 
-   * please use {@link mouseEventToRay}, {@link touchEventToRay} or {@link touchToRay} to create a ray first.
+   * please use {@link pointerEventToRay} to create a ray first.
    * 
    * An optional root node can be provided to intersect. Per default, the whole scene tree will be intersected.
    * 
@@ -546,44 +544,20 @@ export interface IViewportApi {
    * 
    * Example use case: If you don't want to allow mouse wheel events for a specific viewport so that users can scroll past the viewport.
    * 
-   * Be aware that this might cause some issues with the the camera controls if the mouse / touch events are disabled only partially.
+   * Be aware that this might cause some issues with the the camera controls if the pointer events are disabled only partially.
    * 
    * @param allowedListeners 
    */
   restrictEventListeners(allowedListeners: {
     mousewheel?: boolean,
-    mousedown?: boolean,
-    mousemove?: boolean,
-    mouseup?: boolean,
-    mouseout?: boolean,
-    touchstart?: boolean,
-    touchmove?: boolean,
-    touchend?: boolean,
-    touchcancel?: boolean,
+    pointerdown?: boolean,
+    pointermove?: boolean,
+    pointerup?: boolean,
+    pointerout?: boolean,
     keydown?: boolean,
     keyup?: boolean,
     contextmenu?: boolean,
   }): void;
-  /**
-   * Create the ray that is created by the touch event and the camera.
-   * 
-   * @see {@link mouseEventToRay}
-   * @see {@link touchToRay}
-   * @param event 
-   * @returns 
-   */
-  touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 }
-
-  /**
-   * Create the ray that is created by the touch and the camera.
-   * 
-   * @see {@link mouseEventToRay}
-   * @see {@link touchEventToRay}
-   * @param event 
-   * @returns 
-   */
-  touchToRay(event: Touch): { origin: vec3, direction: vec3 }
-
   /**
    * Update the viewport with the current changes of the complete scene tree.
    * This carries out preparations for rendering. Call it after doing 
@@ -651,5 +625,5 @@ export interface IViewportApi {
    */
   viewableInAR(): boolean;
 
-  // #endregion Public Methods (41)
+  // #endregion Public Methods (39)
 }

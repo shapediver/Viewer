@@ -1,17 +1,16 @@
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
-import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services'
-
-import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
-import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
-import { AbstractInteractionManager } from '../AbstractInteractionManager'
-import { InteractionData } from '../InteractionData'
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { IViewportApi } from '@shapediver/viewer'
-import { IHoverEvent } from '../../interfaces/events/IHoverEvent'
+import { AbstractInteractionManager } from '../AbstractInteractionManager';
+import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
+import { IHoverEvent } from '../../interfaces/events/IHoverEvent';
+import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
+import { InteractionData } from '../InteractionData';
+import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
 
 export class HoverManager extends AbstractInteractionManager {
-    // #region Properties (5)
+    // #region Properties (8)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
@@ -32,70 +31,50 @@ export class HoverManager extends AbstractInteractionManager {
 
         return (node: ITreeNode) => false;
     };
-
+    #groupEffectMaterialToken?: string[];
+    #groupedNodes?: ITreeNode[];
     #intersection: IIntersection | null = null;
     #node: ITreeNode | null = null;
-    
-    #groupedNodes?: ITreeNode[];
-    #groupEffectMaterialToken?: string[];
 
-    // #endregion Properties (5)
+    // #endregion Properties (8)
 
-    // #region Public Accessors (1)
+    // #region Public Getters And Setters (1)
 
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
     }
 
-    // #endregion Public Accessors (1)
+    // #endregion Public Getters And Setters (1)
 
-    // #region Public Methods (3)
+    // #region Public Methods (7)
 
     public add(viewport: IViewportApi): void {
         this.viewport = viewport;
-    }
-
-    public remove(): void {
-        if (this.#node)
-            this.deactivateNode(); 
-        this.viewport = undefined;
-    }
-    
-    /**
-     * Select a node for hovering.
-     * The point and distance of the intersection can be freely chosen and are provided in the event callbacks.
-     * 
-     * @param intersection 
-     */
-    public select(intersection: IIntersection) {
-        if(this.#node)
-            this.deactivateNode();
-        this.activateNode(intersection);
     }
 
     /**
      * Deselect the current node.
      */
     public deselect() {
-        if(this.#node)
+        if (this.#node)
             this.deactivateNode();
     }
 
-    public onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
-    public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    public onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
-    public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node))
+    public onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node));
         intersections = intersection.filter(i => {
             const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
             return !(data && data.interactionStates.drag === true);
-        })
+        });
 
         if (this.#node) {
             if (intersections.length > 0 && intersection[0].node === this.#node) {
@@ -112,7 +91,25 @@ export class HoverManager extends AbstractInteractionManager {
         }
     }
 
-    // #endregion Public Methods (3)
+    public remove(): void {
+        if (this.#node)
+            this.deactivateNode();
+        this.viewport = undefined;
+    }
+
+    /**
+     * Select a node for hovering.
+     * The point and distance of the intersection can be freely chosen and are provided in the event callbacks.
+     * 
+     * @param intersection 
+     */
+    public select(intersection: IIntersection) {
+        if (this.#node)
+            this.deactivateNode();
+        this.activateNode(intersection);
+    }
+
+    // #endregion Public Methods (7)
 
     // #region Private Methods (2)
 
@@ -124,8 +121,8 @@ export class HoverManager extends AbstractInteractionManager {
      * @param event 
      * @param ray 
      */
-    private activateNode(intersection: IIntersection, event?: MouseEvent | TouchEvent, ray?: IRay) {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    private activateNode(intersection: IIntersection, event?: PointerEvent, ray?: IRay) {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
 
@@ -135,27 +132,27 @@ export class HoverManager extends AbstractInteractionManager {
         // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates.hover = true;
-        
+
         // find and store all nodes that are within the group
-        if(data.groupId) {
+        if (data.groupId) {
             this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
         }
 
         // apply the effect material if there is something to apply
         if (this.effectMaterial) {
-            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
-            if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)))
+            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial);
+            if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)));
         } else {
             this.#effectMaterialToken = undefined;
         }
 
         this.viewport.updateNode(this.#node);
-        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+        if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, 
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON,
             {
                 viewportId: this.viewport.id,
                 node: this.#node,
@@ -174,28 +171,28 @@ export class HoverManager extends AbstractInteractionManager {
      * 
      * @param event 
      */
-    private deactivateNode(event?: MouseEvent | TouchEvent) {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        
+    private deactivateNode(event?: PointerEvent) {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+
         // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates.hover = false;
-        
-        if(this.#effectMaterialToken) {
+
+        if (this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
 
-            if(this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
+            if (this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
             this.#groupEffectMaterialToken = undefined;
         }
 
         this.viewport.updateNode(this.#node!);
-        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+        if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, 
-            { 
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF,
+            {
                 viewportId: this.viewport.id,
                 node: this.#node,
                 event,
@@ -203,10 +200,10 @@ export class HoverManager extends AbstractInteractionManager {
                 groupedNodes: this.#groupedNodes
             } as IHoverEvent
         );
-        
+
         this.#intersection = null;
         this.#node = null;
-        
+
         this.#groupedNodes = undefined;
         this.#groupEffectMaterialToken = undefined;
     }

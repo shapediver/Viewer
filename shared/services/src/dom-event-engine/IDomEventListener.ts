@@ -1,15 +1,14 @@
 export interface IDomEventListener {
+    // #region Public Methods (8)
+
     onKeyDown(event: KeyboardEvent): void;
     onKeyUp(event: KeyboardEvent): void;
-    onMouseDown(event: MouseEvent): void;
-    onMouseMove(event: MouseEvent): void;
-    onMouseEnd(event: MouseEvent): void;
-    onMouseUp(event: MouseEvent): void;
-    onMouseOut(event: MouseEvent): void;
     onMouseWheel(event: WheelEvent): void;
-    onTouchEnd(event: TouchEvent): void;
-    onTouchUp(event: TouchEvent): void;
-    onTouchCancel(event: TouchEvent): void;
-    onTouchMove(event: TouchEvent): void;
-    onTouchStart(event: TouchEvent): void;
+    onPointerDown(event: PointerEvent): void;
+    onPointerEnd(event: PointerEvent): void;
+    onPointerMove(event: PointerEvent): void;
+    onPointerOut(event: PointerEvent): void;
+    onPointerUp(event: PointerEvent): void;
+
+    // #endregion Public Methods (8)
 }

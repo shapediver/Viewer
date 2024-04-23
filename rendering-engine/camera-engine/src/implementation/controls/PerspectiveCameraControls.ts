@@ -1,244 +1,42 @@
-import { IOrbitControlsSettingsV3 } from '@shapediver/viewer.settings';
-import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.shared.services';
-import { vec3 } from 'gl-matrix';
-
-import { CAMERA_TYPE, ICamera } from '../..';
-import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls';
 import { AbstractCameraControls } from './AbstractCameraControls';
-import {
-    CameraControlsEventDistribution as OrbitCameraControlsEventDistribution,
-} from './perspective/CameraControlsEventDistribution';
-import { CameraControlsLogic as OrbitCameraControlsLogic } from './perspective/CameraControlsLogic';
+import { ICamera } from '../..';
+import { CameraControlsLogic } from './CameraControlsLogic';
+import { Converter, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
+import { IOrbitControlsSettingsV3 } from '@shapediver/viewer.settings';
+import { CameraControlsEventDistribution, } from './CameraControlsEventDistribution';
 
-export class PerspectiveCameraControls extends AbstractCameraControls implements IPerspectiveCameraControls {
-    // #region Properties (25)
+export class PerspectiveCameraControls extends AbstractCameraControls {
+    // #region Properties (2)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _stateEngine: StateEngine = StateEngine.instance;
-
-    private _autoRotationSpeed: number = 0;
-    private _cubePositionRestriction: { min: vec3, max: vec3 } = { min: vec3.fromValues(-Infinity, -Infinity, -Infinity), max: vec3.fromValues(Infinity, Infinity, Infinity) };
-    private _cubeTargetRestriction: { min: vec3, max: vec3 } = { min: vec3.fromValues(-Infinity, -Infinity, -Infinity), max: vec3.fromValues(Infinity, Infinity, Infinity) };
-    private _damping: number = 0.1;
-    private _enableAutoRotation: boolean = false;
-    private _enableAzimuthRotation: boolean = true;
-    private _enableKeyPan: boolean = false;
-    private _enablePan: boolean = true;
-    private _enablePolarRotation: boolean = true;
-    private _enableRotation: boolean = true;
-    private _enableTurntableControls: boolean = false;
-    private _enableZoom: boolean = true;
-    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 2 }, };
-    private _keyPanSpeed: number = 0.5;
-    private _movementSmoothness: number = 0.5;
-    private _panSpeed: number = 0.5;
-    private _rotationRestriction: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number } = { minPolarAngle: 0, maxPolarAngle: 180, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity };
-    private _rotationSpeed: number = 0.5;
-    private _spherePositionRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
-    private _sphereTargetRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
-    private _turntableCenter: vec3 = vec3.create();
-    private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
-    private _zoomSpeed: number = 0.5;
-
-    // #endregion Properties (25)
+    private _settingsAdjustments = {
+        autoRotationSpeed: 2 * Math.PI / 60 / 60,
+        damping: 1.0,
+        movementSmoothness: 1.0,
+        panSpeed: 1.75,
+        rotationSpeed: Math.PI,
+        zoomSpeed: 0.025,
+    };
+    private _touchAdjustments = {
+        autoRotationSpeed: 1.0,
+        damping: 1.0,
+        movementSmoothness: 1.0,
+        panSpeed: 1.0 / 1.75,
+        rotationSpeed: 1.5,
+        zoomSpeed: 100.0,
+    };
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
     constructor(camera: ICamera, enabled: boolean) {
-        super(camera, enabled, CAMERA_TYPE.PERSPECTIVE);
-        this._cameraLogic = new OrbitCameraControlsLogic(this);
-        this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
+        super(camera, enabled);
+        this._cameraLogic = new CameraControlsLogic(this, this._settingsAdjustments, this._touchAdjustments);
+        this._cameraControlsEventDistribution = new CameraControlsEventDistribution(this, this._cameraLogic);
     }
 
     // #endregion Constructors (1)
-
-    // #region Public Accessors (46)
-
-    public get autoRotationSpeed(): number {
-        return this._autoRotationSpeed;
-    }
-
-    public set autoRotationSpeed(value: number) {
-        this._autoRotationSpeed = value;
-    }
-
-    public get cubePositionRestriction(): { min: vec3, max: vec3 } {
-        return this._cubePositionRestriction;
-    }
-
-    public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
-        this._cubePositionRestriction = value;
-    }
-
-    public get cubeTargetRestriction(): { min: vec3, max: vec3 } {
-        return this._cubeTargetRestriction;
-    }
-
-    public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
-        this._cubeTargetRestriction = value;
-    }
-
-    public get damping(): number {
-        return this._damping;
-    }
-
-    public set damping(value: number) {
-        this._damping = value;
-    }
-
-    public get enableAutoRotation(): boolean {
-        return this._enableAutoRotation;
-    }
-
-    public set enableAutoRotation(value: boolean) {
-        this._enableAutoRotation = value;
-    }
-
-    public get enableAzimuthRotation(): boolean {
-        return this._enableAzimuthRotation;
-    }
-
-    public set enableAzimuthRotation(value: boolean) {
-        this._enableAzimuthRotation = value;
-    }
-
-    public get enableKeyPan(): boolean {
-        return this._enableKeyPan;
-    }
-
-    public set enableKeyPan(value: boolean) {
-        this._enableKeyPan = value;
-    }
-
-    public get enablePan(): boolean {
-        return this._enablePan;
-    }
-
-    public set enablePan(value: boolean) {
-        this._enablePan = value;
-    }
-
-    public get enablePolarRotation(): boolean {
-        return this._enablePolarRotation;
-    }
-
-    public set enablePolarRotation(value: boolean) {
-        this._enablePolarRotation = value;
-    }
-
-    public get enableRotation(): boolean {
-        return this._enableRotation;
-    }
-
-    public set enableRotation(value: boolean) {
-        this._enableRotation = value;
-    }
-
-    public get enableTurntableControls(): boolean {
-        return this._enableTurntableControls;
-    }
-
-    public set enableTurntableControls(value: boolean) {
-        this._enableTurntableControls = value;
-    }
-
-    public get enableZoom(): boolean {
-        return this._enableZoom;
-    }
-
-    public set enableZoom(value: boolean) {
-        this._enableZoom = value;
-    }
-
-    public get input(): { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } {
-        return this._input;
-    }
-
-    public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
-        this._input = value;
-    }
-
-    public get keyPanSpeed(): number {
-        return this._keyPanSpeed;
-    }
-
-    public set keyPanSpeed(value: number) {
-        this._keyPanSpeed = value;
-    }
-
-    public get movementSmoothness(): number {
-        return this._movementSmoothness;
-    }
-
-    public set movementSmoothness(value: number) {
-        this._movementSmoothness = value;
-    }
-
-    public get panSpeed(): number {
-        return this._panSpeed;
-    }
-
-    public set panSpeed(value: number) {
-        this._panSpeed = value;
-    }
-
-    public get rotationRestriction(): { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number } {
-        return this._rotationRestriction;
-    }
-
-    public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
-        this._rotationRestriction = value;
-    }
-
-    public get rotationSpeed(): number {
-        return this._rotationSpeed;
-    }
-
-    public set rotationSpeed(value: number) {
-        this._rotationSpeed = value;
-    }
-
-    public get spherePositionRestriction(): { center: vec3, radius: number } {
-        return this._spherePositionRestriction;
-    }
-
-    public set spherePositionRestriction(value: { center: vec3, radius: number }) {
-        this._spherePositionRestriction = value;
-    }
-
-    public get sphereTargetRestriction(): { center: vec3, radius: number } {
-        return this._sphereTargetRestriction;
-    }
-
-    public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
-        this._sphereTargetRestriction = value;
-    }
-
-    public get turntableCenter(): vec3 {
-        return this._turntableCenter;
-    }
-
-    public set turntableCenter(value: vec3) {
-        this._turntableCenter = value;
-    }
-
-    public get zoomRestriction(): { minDistance: number, maxDistance: number } {
-        return this._zoomRestriction;
-    }
-
-    public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
-        this._zoomRestriction = value;
-    }
-
-    public get zoomSpeed(): number {
-        return this._zoomSpeed;
-    }
-
-    public set zoomSpeed(value: number) {
-        this._zoomSpeed = value;
-    }
-
-    // #endregion Public Accessors (46)
 
     // #region Public Methods (1)
 
