@@ -43,7 +43,6 @@
     "@shapediver/viewer.shared.build-data": "3.0.0-rc.10",
     "@shapediver/viewer.shared.node-tree": "3.0.0-rc.10",
     "@shapediver/viewer.shared.services": "3.0.0-rc.10",
-    "@shapediver/viewer.shared.texture-unifier": "3.0.0-rc.10",
     "@shapediver/viewer.shared.types": "3.0.0-rc.10",
     "axios": "^1.2.6",
     "gl-matrix": "3.3.0"

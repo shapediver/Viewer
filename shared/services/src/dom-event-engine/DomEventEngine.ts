@@ -99,6 +99,8 @@ export class DomEventEngine {
         keyup?: boolean,
         contextmenu?: boolean,
     }): void {
+        if(typeof window === undefined) return;
+
         if (allowedListeners.mousewheel !== undefined && this._allowListeners.mousewheel !== allowedListeners.mousewheel) {
             if (allowedListeners.mousewheel) {
                 this._canvas.addEventListener("mousewheel", this._onMouseWheel);
@@ -234,6 +236,8 @@ export class DomEventEngine {
     // #region Private Methods (12)
 
     private addEventListeners() {
+        if(typeof window === undefined) return;
+
         this._canvas.addEventListener("mousewheel", this._onMouseWheel);
         this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
 
@@ -309,7 +313,6 @@ export class DomEventEngine {
     }
 
     private onTouchUp(event: TouchEvent): void {
-        if(this._systemInfo.isMobile === false) return;
         if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchUp(event));
@@ -318,7 +321,6 @@ export class DomEventEngine {
     }
 
     private onTouchCancel(event: TouchEvent): void {
-        if(this._systemInfo.isMobile === false) return;
         if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchCancel(event));
@@ -327,7 +329,6 @@ export class DomEventEngine {
     }
 
     private onTouchMove(event: TouchEvent): void {
-        if(this._systemInfo.isMobile === false) return;
         if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
@@ -335,7 +336,6 @@ export class DomEventEngine {
     }
 
     private onTouchStart(event: TouchEvent): void {
-        if(this._systemInfo.isMobile === false) return;
         if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
@@ -343,6 +343,8 @@ export class DomEventEngine {
     }
 
     private removeEventListeners() {
+        if(typeof window === undefined) return;
+        
         this._canvas.removeEventListener("mousewheel", this._onMouseWheel);
         this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
 

@@ -1,7 +1,8 @@
-import { vec3 } from 'gl-matrix';
 import { ColorInput, TinyColor } from '@ctrl/tinycolor';
 import { HttpClient } from '../http-client/HttpClient';
 import { HttpResponse } from '../http-client/HttpResponse';
+import { vec3 } from 'gl-matrix';
+import { atobCustom, btoaCustom } from '../utilities/base64';
 
 export class Converter {
     // #region Properties (2)
@@ -12,13 +13,13 @@ export class Converter {
 
     // #endregion Properties (2)
 
-    // #region Public Static Accessors (1)
+    // #region Public Static Getters And Setters (1)
 
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
 
-    // #endregion Public Static Accessors (1)
+    // #endregion Public Static Getters And Setters (1)
 
     // #region Public Methods (8)
 
@@ -30,7 +31,7 @@ export class Converter {
             reader.readAsDataURL(blob);
         });
         data = data.replace('data:image/svg+xml;base64,', '');
-        data = atob(data);
+        data = atobCustom(data);
 
         const svgC = document.createElement('DIV');
         svgC.id = 'svgc';
@@ -81,7 +82,7 @@ export class Converter {
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                const base64Data = window.btoa(biStr.join(''));
+                const base64Data = btoaCustom(biStr.join(''));
                 const imgDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
 
                 // replace url in SVG string
@@ -121,7 +122,7 @@ export class Converter {
                 while (i--)
                     biStr[i] = String.fromCharCode(uInt8Array[i]);
 
-                const base64Data = window.btoa(biStr.join(''));
+                const base64Data = btoaCustom(biStr.join(''));
                 const fontDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
                 if (fUrl.length > 0)
                     cssString = cssString.replace(fUrl, fontDataUrl);
@@ -151,12 +152,12 @@ export class Converter {
         return img;
     }
 
-    public async responseToImage(response: HttpResponse<ArrayBuffer | HTMLImageElement>, blob: Blob): Promise<HTMLImageElement> {
+    public async responseToImage(response: HttpResponse<{ buffer: ArrayBuffer, blob: Blob }>): Promise<HTMLImageElement> {
         // if we already receive and image, this conversion already happened
-        if(response.data instanceof HTMLImageElement) return response.data;
-        
+        if (response.data instanceof HTMLImageElement) return response.data;
+
         if (response.headers['content-type'] === 'image/svg+xml') {
-            const img = await this.processSVG(blob);
+            const img = await this.processSVG(response.data.blob);
             return img;
         } else {
             const img = new Image();
@@ -165,7 +166,7 @@ export class Converter {
                 img.onerror = reject;
             });
             img.crossOrigin = 'anonymous';
-            img.src = URL.createObjectURL(blob);
+            img.src = URL.createObjectURL(response.data.blob);
             await promise;
             URL.revokeObjectURL(img.src);
             return img;
@@ -179,7 +180,7 @@ export class Converter {
     }
 
     public toColorArray(color: unknown): number[] {
-        if(typeof color !== 'string' || !color.startsWith('#'))
+        if (typeof color !== 'string' || !color.startsWith('#'))
             color = this.toHexColor(color);
         const tColor = new TinyColor(color as ColorInput | undefined);
         const rgb = tColor.toRgb();
@@ -227,8 +228,8 @@ export class Converter {
         }
 
         // check if the input is a THREE.Color
-        if ((color as THREE.Color).isColor && typeof (color as THREE.Color).getHexString == 'function') {
-            const tc = new TinyColor((color as THREE.Color).getHexString());
+        if (typeof color === 'object' && 'isColor' in (color as object) && 'getHexString' in (color as object) && typeof (color as { getHexString: unknown }).getHexString === 'function'){
+            const tc = new TinyColor((color as { getHexString: () => string }).getHexString());
             return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
@@ -296,15 +297,15 @@ export class Converter {
         return c.slice(0, c.length - 2);
     }
 
-    public toVec3(point: vec3 | { x: number, y: number, z: number} | { X: number, Y: number, Z: number}): vec3 {
+    public toVec3(point: vec3 | { x: number, y: number, z: number } | { X: number, Y: number, Z: number }): vec3 {
         if (Array.isArray(point) && point.length >= 3 && typeof point[0] === 'number' && typeof point[1] === 'number' && typeof point[2] === 'number')
             return vec3.fromValues(point[0], point[1], point[2]);
 
-        const pointCast1 = point as { x: number, y: number, z: number};
+        const pointCast1 = point as { x: number, y: number, z: number };
         if (((pointCast1.x || pointCast1.x === 0) && typeof pointCast1.x === 'number') && ((pointCast1.y || pointCast1.y === 0) && typeof pointCast1.y === 'number') && ((pointCast1.z || pointCast1.z === 0) && typeof pointCast1.z === 'number'))
             return vec3.fromValues(pointCast1.x, pointCast1.y, pointCast1.z);
 
-        const pointCast2 = point as { X: number, Y: number, Z: number};
+        const pointCast2 = point as { X: number, Y: number, Z: number };
         if (((pointCast2.X || pointCast2.X === 0) && typeof pointCast2.X === 'number') && ((pointCast2.Y || pointCast2.Y === 0) && typeof pointCast2.Y === 'number') && ((pointCast2.Z || pointCast2.Z === 0) && typeof pointCast2.Z === 'number'))
             return vec3.fromValues(pointCast2.X, pointCast2.Y, pointCast2.Z);
 

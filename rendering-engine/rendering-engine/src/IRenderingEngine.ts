@@ -1,5 +1,5 @@
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { DomEventEngine, SettingsEngine } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, SettingsEngine, SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services'
 import { IGeometryData } from '@shapediver/viewer.shared.types';
 import { vec2, vec3 } from 'gl-matrix';
 
@@ -47,33 +47,7 @@ export enum BUSY_MODE_DISPLAY {
   SPINNER = 'spinner',
   /** Nothing happens when a session is busy. */
   NONE = 'none'
-};
-
-/**
- * Session settings to be used by a viewport.
- * 
- * The {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
- * allows to persist settings of the viewer, individually for each model that it hosts. Persisting the settings
- * of the viewer requires permissions which are typically only granted to the owner of the model. Editing
- * of the settings typically happens on the model edit page of the ShapeDiver Platform.
- * 
- * Whenever an instance of the viewer creates a session with a model, the settings are made available to the viewer.
- * It is possible to use multiple sessions with different models from a single instance of the viewer. 
- * Therefore the viewer offers a choice on which settings to use.
- */
-export enum SESSION_SETTINGS_MODE {
-  /** No settings of a session will be used for the viewport. */
-  NONE = 'none',
-  /** 
-   * The settings of the very first session created will be used for the viewport. 
-   */
-  FIRST = 'first',
-  /** 
-   * Use this mode in case you want to assign a specific session identifier 
-   * to the viewport, whose settings will be used.
-   */
-  MANUAL = 'manual',
-};
+}
 
 /**
  * Types of flags used to influence the render loop.
@@ -119,6 +93,7 @@ export interface IRenderingEngine {
   // #region Public Methods (7)
 
   addFlag(flag: FLAG_TYPE): string;
+  assignSettingsEngine(settingsEngine: SettingsEngine): void;
   continueRendering(): void;
   convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
   getScreenshot(type?: string, encoderOptions?: number): string;
@@ -129,6 +104,7 @@ export interface IRenderingEngine {
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;
+  start(): void;
   touchToRay(event: Touch): { origin: vec3, direction: vec3 };
   touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 };
   update(id: string): void;

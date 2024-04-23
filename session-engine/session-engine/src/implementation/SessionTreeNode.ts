@@ -1,6 +1,10 @@
-import { mat4 } from 'gl-matrix'
-import { ITransformation, ITreeNode, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
+import {
+  ITransformation,
+  ITreeNode,
+  ITreeNodeData,
+  TreeNode
+} from '@shapediver/viewer.shared.node-tree';
 
 export class SessionTreeNode extends TreeNode implements ISessionTreeNode {
   // #region Properties (1)
@@ -30,12 +34,11 @@ export class SessionTreeNode extends TreeNode implements ISessionTreeNode {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (1)
+  // #region Public Getters And Setters (1)
 
   public get sessionNode(): boolean {
     return this.#sessionNode;
   }
 
-  // #endregion Public Accessors (1)
-
+  // #endregion Public Getters And Setters (1)
 }

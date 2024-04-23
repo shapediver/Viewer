@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {
     AttributeData,
     GeometryData,
@@ -9,11 +10,11 @@ import {
     MaterialMultiPointData,
     PRIMITIVE_MODE,
     PrimitiveData
-} from '@shapediver/viewer.shared.types';
+    } from '@shapediver/viewer.shared.types';
 import { DrawingToolsManager, PointsData } from './DrawingToolsManager';
 import { IManager } from '../interfaces/IManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine-threejs.standard';
+import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
@@ -230,7 +231,7 @@ export class GeometryManager implements IManager {
         // set the material index at that point to 0 and move the other indices back
         this.#materialIndexArray = this.#materialIndexArray.slice(0, insertionIndex).concat([0], this.#materialIndexArray.slice(insertionIndex, this.#materialIndexArray.length));
 
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
@@ -347,12 +348,12 @@ export class GeometryManager implements IManager {
     }
 
     public movePoint(index: number, point: vec3, onlyThreeJs: boolean): void {
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         threeJsPointsGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
         threeJsPointsGeometry.geometry.attributes['position'].needsUpdate = true;
 
         if (this.#geometryDataLines) {
-            const threeJsLinesGeometry: THREE.LineSegments = this.#geometryDataLines.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.LineSegments;
+            const threeJsLinesGeometry: THREE.LineSegments = this.#geometryDataLines.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.LineSegments;
             threeJsLinesGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
             threeJsLinesGeometry.geometry.attributes['position'].needsUpdate = true;
         }
@@ -406,7 +407,7 @@ export class GeometryManager implements IManager {
         // add a new material index at the end
         this.#materialIndexArray.push(0);
 
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = this.#materialIndexArray[i];
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
@@ -455,7 +456,7 @@ export class GeometryManager implements IManager {
     public resetMaterialIndices(): void {
         this.#materialIndexArray = new Array(this.#materialIndexArray.length).fill(0);
 
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         for (let i = 0; i < this.#materialIndexArray.length; i++)
             (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[i] = 0;
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
@@ -465,7 +466,7 @@ export class GeometryManager implements IManager {
     public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {
         // change material index
         this.#materialIndexArray[index] = materialIndex;
-        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.threeJsObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
+        const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints.convertedObject[this.#drawingToolsManager.viewport.id] as THREE.Points;
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.image.data[index] = materialIndex;
         (threeJsPointsGeometry.material as MultiPointsMaterial).materialIndexDataTexture!.needsUpdate = true;
         (threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate = true;

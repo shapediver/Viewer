@@ -1,6 +1,13 @@
 import { build_data } from '@shapediver/viewer.shared.build-data';
+import {
+    atobCustom,
+    Converter,
+    EventEngine,
+    EVENTTYPE,
+    UuidGenerator
+} from '@shapediver/viewer.shared.services';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Converter, EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { mat4, vec3 } from 'gl-matrix';
 import {
     IGLTF_v2,
     IGLTF_v2_Scene,
@@ -16,7 +23,6 @@ import {
     IGLTF_v2_Image,
     IGLTF_v2_Animation,
 } from '@shapediver/viewer.data-engine.shared-types';
-import { mat4, vec3 } from 'gl-matrix';
 import {
     AttributeData,
     GeometryData,
@@ -37,16 +43,11 @@ import {
     ITaskEvent,
     TASK_TYPE,
 } from '@shapediver/viewer.shared.types';
-import { combineTextures } from '@shapediver/viewer.shared.texture-unifier';
 
-export enum GLTF_EXTENSIONS {
-    KHR_BINARY_GLTF = 'KHR_binary_glTF',
-    KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
-    KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
-}
+// #region Classes (1)
 
 export class GLTFConverter {
-    // #region Properties (15)
+    // #region Properties (23)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -55,14 +56,15 @@ export class GLTFConverter {
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
-    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
     private readonly _progressUpdateLimit = 500;
+    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
     private static _instance: GLTFConverter;
 
     private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
+    private _combineTextures?: (red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>;
     private _content: IGLTF_v2 = {
         asset: {
             copyright: '2023 (c) ShapeDiver',
@@ -71,12 +73,17 @@ export class GLTFConverter {
             extensions: {}
         },
     };
-
     private _convertForAR = false;
     private _eventId = '';
     private _extensionsRequired: string[] = [];
     private _extensionsUsed: string[] = [];
     private _imageCache: { [key: string]: number } = {};
+    private _materialCache: {
+        [key: string]: number
+    } = {};
+    private _meshCache: {
+        [key: string]: number
+    } = {};
     private _nodes: {
         node: ITreeNode,
         id: number
@@ -85,22 +92,28 @@ export class GLTFConverter {
     private _progressTimer = 0;
     private _promises: Promise<unknown>[] = [];
     private _viewport?: string;
-    private _materialCache: {
-        [key: string]: number
-    } = {};
-    private _meshCache: {
-        [key: string]: number
-    } = {};
 
-    // #endregion Properties (15)
+    // #endregion Properties (23)
 
-    // #region Public Static Accessors (1)
+    // #region Public Static Getters And Setters (1)
 
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
 
-    // #endregion Public Static Accessors (1)
+    // #endregion Public Static Getters And Setters (1)
+
+    // #region Public Getters And Setters (2)
+
+    public get combineTextures() {
+        return this._combineTextures;
+    }
+
+    public set combineTextures(value: ((red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>) | undefined) {
+        this._combineTextures = value;
+    }
+
+    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (1)
 
@@ -135,21 +148,21 @@ export class GLTFConverter {
         });
 
         const translationMatrixId = this._uuidGenerator.create();
-        if(convertForAR) {
-          // add translation matrix to scene tree node
-          const center = node.boundingBox.boundingSphere.center;
-          const translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
-          node.addTransformation({ id: translationMatrixId, matrix: translationMatrix });
+        if (convertForAR) {
+            // add translation matrix to scene tree node
+            const center = node.boundingBox.boundingSphere.center;
+            const translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.multiply(vec3.create(), vec3.fromValues(center[0], center[1], center[2]), vec3.fromValues(-1, -1, -1)));
+            node.addTransformation({ id: translationMatrixId, matrix: translationMatrix });
         }
 
         if (this._viewport) {
-            if(this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
+            if (this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
                 const nodeId = await this.convertNode(node);
-                if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
+                if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
             }
         } else {
             const nodeId = await this.convertNode(node);
-            if(nodeId !== -1) sceneDef.nodes?.push(nodeId);
+            if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
         }
 
         for (let i = 0; i < node.transformations.length; i++)
@@ -184,8 +197,8 @@ export class GLTFConverter {
 
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
-        
-        if(originalParent)
+
+        if (originalParent)
             originalParent.addChild(node);
 
         // Update byte length of the single buffer.
@@ -195,50 +208,54 @@ export class GLTFConverter {
             // https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
 
             try {
-                const reader = new window.FileReader();
-                reader.readAsArrayBuffer(blob);
-                reader.onloadend = () => {
-                    // Binary chunk.
-                    const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                    const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
-                    binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
-                    binaryChunkPrefix.setUint32(4, 0x004E4942, true);
-    
-                    // JSON chunk.
-                    const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
-                    const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
-                    jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
-                    jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
-    
-                    // GLB header.
-                    const header = new ArrayBuffer(12);
-                    const headerView = new DataView(header);
-                    headerView.setUint32(0, 0x46546C67, true);
-                    headerView.setUint32(4, 2, true);
-                    const totalByteLength = 12
-                        + jsonChunkPrefix.byteLength + jsonChunk.byteLength
-                        + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
-                    headerView.setUint32(8, totalByteLength, true);
-    
-                    const glbBlob = new Blob([
-                        header,
-                        jsonChunkPrefix,
-                        jsonChunk,
-                        binaryChunkPrefix,
-                        binaryChunk
-                    ], { type: 'application/octet-stream' });
-    
-                    const glbReader = new window.FileReader();
-                    glbReader.readAsArrayBuffer(glbBlob);
-                    glbReader.onloadend = () => {
-                        const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
-                        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-                        resolve(<ArrayBuffer>glbReader.result);
-                    };
-                    glbReader.onerror = reject;
-                };
+                if (typeof window !== 'undefined' && window.FileReader) {
+                    const reader = new window.FileReader();
+                    reader.readAsArrayBuffer(blob);
+                    reader.onloadend = () => {
+                        // Binary chunk.
+                        const binaryChunk = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                        const binaryChunkPrefix = new DataView(new ArrayBuffer(8));
+                        binaryChunkPrefix.setUint32(0, binaryChunk.byteLength, true);
+                        binaryChunkPrefix.setUint32(4, 0x004E4942, true);
 
-                reader.onerror = reject;
+                        // JSON chunk.
+                        const jsonChunk = this.getPaddedArrayBuffer(this.stringToArrayBuffer(JSON.stringify(this._content)), 0x20);
+                        const jsonChunkPrefix = new DataView(new ArrayBuffer(8));
+                        jsonChunkPrefix.setUint32(0, jsonChunk.byteLength, true);
+                        jsonChunkPrefix.setUint32(4, 0x4E4F534A, true);
+
+                        // GLB header.
+                        const header = new ArrayBuffer(12);
+                        const headerView = new DataView(header);
+                        headerView.setUint32(0, 0x46546C67, true);
+                        headerView.setUint32(4, 2, true);
+                        const totalByteLength = 12
+                            + jsonChunkPrefix.byteLength + jsonChunk.byteLength
+                            + binaryChunkPrefix.byteLength + binaryChunk.byteLength;
+                        headerView.setUint32(8, totalByteLength, true);
+
+                        const glbBlob = new Blob([
+                            header,
+                            jsonChunkPrefix,
+                            jsonChunk,
+                            binaryChunkPrefix,
+                            binaryChunk
+                        ], { type: 'application/octet-stream' });
+
+                        const glbReader = new window.FileReader();
+                        glbReader.readAsArrayBuffer(glbBlob);
+                        glbReader.onloadend = () => {
+                            const eventEnd: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: 1, status: 'GlTF creation complete.' };
+                            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+                            resolve(<ArrayBuffer>glbReader.result);
+                        };
+                        glbReader.onerror = reject;
+                    };
+
+                    reader.onerror = reject;
+                } else {
+                    reject('FileReader not available.');
+                }
             } catch (e) {
                 reject(e);
             }
@@ -438,28 +455,33 @@ export class GLTFConverter {
         if (!this._content.bufferViews) this._content.bufferViews = [];
         return new Promise((resolve, reject) => {
             try {
-                const reader = new window.FileReader();
-                reader.readAsArrayBuffer(blob);
-                reader.onloadend = () => {
-                    const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
-                    const bufferViewDef = {
-                        buffer: this.convertBuffer(buffer),
-                        byteOffset: this._byteOffset,
-                        byteLength: buffer.byteLength
+                if (typeof window !== 'undefined' && window.FileReader) {
+                    const reader = new window.FileReader();
+                    reader.readAsArrayBuffer(blob);
+                    reader.onloadend = () => {
+                        const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                        const bufferViewDef = {
+                            buffer: this.convertBuffer(buffer),
+                            byteOffset: this._byteOffset,
+                            byteLength: buffer.byteLength
+                        };
+                        this._byteOffset += buffer.byteLength;
+                        this._content.bufferViews!.push(bufferViewDef);
+                        resolve(this._content.bufferViews!.length - 1);
                     };
-                    this._byteOffset += buffer.byteLength;
-                    this._content.bufferViews!.push(bufferViewDef);
-                    resolve(this._content.bufferViews!.length - 1);
-                };
-                reader.onerror = reject;
-            } catch(e) {
+                    reader.onerror = reject;
+                } else {
+                    reject('FileReader not available.');
+                }
+            } catch (e) {
                 reject(e);
             }
         });
     }
 
-    private convertImage(data: IMapData): number {
+    private convertImage(data: IMapData): number | undefined {
         if (!this._content.images) this._content.images = [];
+        if (data.image instanceof ArrayBuffer) return;
         if (this._imageCache[data.image.src]) return this._imageCache[data.image.src];
         const imageDef: IGLTF_v2_Image = {};
         const canvas = document.createElement('canvas');
@@ -473,7 +495,7 @@ export class GLTFConverter {
             ctx.scale(1, - 1);
         }
 
-        if(data.blob) {
+        if (data.blob) {
             imageDef.mimeType = data.blob.type;
             this._promises.push(new Promise<void>((resolve, reject) => {
                 try {
@@ -484,17 +506,17 @@ export class GLTFConverter {
                 } catch (e) {
                     reject(e);
                 }
-            }));            
+            }));
         } else {
             let mimeType = 'image/png';
             if (data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
                 mimeType = 'image/jpeg';
-            
+
             imageDef.mimeType = mimeType;
 
             const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
             if (DATA_URI_REGEX.test(data.image.src)) {
-                const byteString = atob(data.image.src.split(',')[1]);
+                const byteString = atobCustom(data.image.src.split(',')[1]);
                 const mimeType = data.image.src.split(',')[0].split(':')[1].split(';')[0];
                 const ab = new ArrayBuffer(byteString.length);
                 const ia = new Uint8Array(ab);
@@ -509,7 +531,7 @@ export class GLTFConverter {
                                 resolve();
                             })
                             .catch(reject);
-                    } catch(e) {
+                    } catch (e) {
                         reject(e);
                     }
                 }));
@@ -533,7 +555,6 @@ export class GLTFConverter {
             }
         }
 
-
         this._content.images.push(imageDef);
         this._imageCache[data.image.src] = this._content.images.length - 1;
         return this._content.images.length - 1;
@@ -542,7 +563,7 @@ export class GLTFConverter {
     private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         if (this._materialCache[data.id + '_' + data.version]) return this._materialCache[data.id + '_' + data.version];
-        
+
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
             pbrMetallicRoughness: {}
@@ -558,11 +579,16 @@ export class GLTFConverter {
 
             ext.diffuseFactor = this._converter.toColorArray(data.color);
             ext.diffuseFactor[3] = data.opacity;
-            if (data.map && includeMaps) ext.diffuseTexture = { index: this.convertTexture(data.map) };
+            if (data.map && includeMaps) {
+                const textureIndex = this.convertTexture(data.map);
+                if (textureIndex !== undefined) ext.diffuseTexture = { index: textureIndex };
+            }
             ext.specularFactor = this._converter.toColorArray(data.specular);
             ext.glossinessFactor = data.glossiness;
-            if (data.specularGlossinessMap && includeMaps)
-                ext.specularGlossinessTexture = { index: this.convertTexture(data.specularGlossinessMap) };
+            if (data.specularGlossinessMap && includeMaps) {
+                const textureIndex = this.convertTexture(data.specularGlossinessMap);
+                if (textureIndex !== undefined) ext.specularGlossinessTexture = { index: textureIndex };
+            }
 
             materialDef.extensions = {
                 KHR_materials_pbrSpecularGlossiness: ext
@@ -574,7 +600,10 @@ export class GLTFConverter {
                 this._extensionsRequired.push('KHR_materials_unlit');
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
-            if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) };
+            if (data.map && includeMaps) {
+                const textureIndex = this.convertTexture(data.map);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: textureIndex };
+            }
 
             materialDef.extensions = {
                 KHR_materials_unlit: {}
@@ -583,52 +612,85 @@ export class GLTFConverter {
             const standardMaterialData = data as MaterialStandardData;
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(standardMaterialData.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = standardMaterialData.opacity;
-            if (standardMaterialData.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(standardMaterialData.map) };
+            if (standardMaterialData.map && includeMaps) {
+                const textureIndex = this.convertTexture(standardMaterialData.map);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: textureIndex };
+            }
             materialDef.pbrMetallicRoughness!.metallicFactor = standardMaterialData.metalnessMap ? 1 : standardMaterialData.metalness;
             materialDef.pbrMetallicRoughness!.roughnessFactor = standardMaterialData.roughnessMap ? 1 : standardMaterialData.roughness;
             if (standardMaterialData.metalnessRoughnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
-            } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
-                this._promises.push(new Promise<void>((resolve, reject) => {
-                    try {
-                        combineTextures(
-                            undefined, 
-                            standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
-                            standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
-                        )
-                            .then(imageData => {
-                                const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
-        
-                                const mapData = new MapData(imageData.image,
-                                    {
-                                        blob: imageData.blob,
-                                        wrapS: m.wrapS,
-                                        wrapT: m.wrapT,
-                                        minFilter: m.minFilter,
-                                        magFilter: m.magFilter,
-                                        center: m.center,
-                                        color: m.color,
-                                        offset: m.offset,
-                                        repeat: m.repeat,
-                                        rotation: m.rotation,
-                                        texCoord: m.texCoord,
-                                        flipY: m.flipY
-                                    }
-                                );
-                                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) };
-                                resolve();
-                            })
-                            .catch(reject);
-                    } catch(e) {
-                        reject(e);
-                    }
-                }));
+                const textureIndex = this.convertTexture(standardMaterialData.metalnessRoughnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
+            } else if (standardMaterialData.metalnessMap && standardMaterialData.roughnessMap && includeMaps) {
+                if(this.combineTextures) {
+                    this._promises.push(new Promise<void>((resolve, reject) => {
+                        try {
+                            // no support for combining textures
+                            if(!this.combineTextures) return standardMaterialData.roughnessMap;
+
+                            this.combineTextures(
+                                undefined,
+                                standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined,
+                                standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
+                            )
+                                .then(imageData => {
+                                    const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
+    
+                                    const mapData = new MapData(imageData.image,
+                                        {
+                                            blob: imageData.blob,
+                                            wrapS: m.wrapS,
+                                            wrapT: m.wrapT,
+                                            minFilter: m.minFilter,
+                                            magFilter: m.magFilter,
+                                            center: m.center,
+                                            color: m.color,
+                                            offset: m.offset,
+                                            repeat: m.repeat,
+                                            rotation: m.rotation,
+                                            texCoord: m.texCoord,
+                                            flipY: m.flipY
+                                        }
+                                    );
+
+                                    const textureIndex = this.convertTexture(mapData);
+                                    if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
+                                    resolve();
+                                })
+                                .catch(reject);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }));
+                } else {
+                    // no support for combining textures
+                    const textureIndex = this.convertTexture(standardMaterialData.roughnessMap);
+                    if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
+                }
+            } else if (standardMaterialData.metalnessMap && includeMaps) {
+                const textureIndex = this.convertTexture(standardMaterialData.metalnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
+            } else if (standardMaterialData.roughnessMap && includeMaps) {
+                const textureIndex = this.convertTexture(standardMaterialData.roughnessMap);
+                if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
             }
         }
 
-        if (data.normalMap && includeMaps) materialDef.normalTexture = { index: this.convertTexture(data.normalMap) };
-        if (data.aoMap && includeMaps) materialDef.occlusionTexture = { index: this.convertTexture(data.aoMap) };
-        if (data.emissiveMap && includeMaps) materialDef.emissiveTexture = { index: this.convertTexture(data.emissiveMap) };
+        if (data.normalMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.normalMap);
+            if (textureIndex !== undefined) materialDef.normalTexture = { index: textureIndex };
+        }
+        
+        if (data.aoMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.aoMap);
+            if (textureIndex !== undefined) materialDef.occlusionTexture = { index: textureIndex };
+        }
+
+        if (data.emissiveMap && includeMaps) {
+            const textureIndex = this.convertTexture(data.emissiveMap);
+            if (textureIndex !== undefined) materialDef.emissiveTexture = { index: textureIndex };
+        }
+        
         if (data.emissiveness) materialDef.emissiveFactor = this._converter.toColorArray(data.emissiveness);
         materialDef.alphaMode = data.alphaMode.toUpperCase();
         if (data.alphaMode === MATERIAL_ALPHA.MASK) materialDef.alphaCutoff = data.alphaCutoff;
@@ -664,7 +726,7 @@ export class GLTFConverter {
 
         if (node.transformations.length > 0) {
             let matrix = node.nodeMatrix;
-            if(node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
+            if (node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
                 matrix = mat4.create();
 
             nodeDef.matrix = [matrix[0], matrix[1], matrix[2], matrix[3],
@@ -692,21 +754,21 @@ export class GLTFConverter {
 
         if (node.children.length > 0) nodeDef.children = [];
         for (let i = 0; i < node.children.length; i++) {
-            if(node.children[i].visible === true) {
-                if(this._viewport) {
-                    if(node.children[i].excludeViewports.includes(this._viewport)) continue;
-                    if(node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
+            if (node.children[i].visible === true) {
+                if (this._viewport) {
+                    if (node.children[i].excludeViewports.includes(this._viewport)) continue;
+                    if (node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
                 }
                 const nodeId = await this.convertNode(node.children[i]);
-                if(nodeId !== -1) nodeDef.children?.push(nodeId);
+                if (nodeId !== -1) nodeDef.children?.push(nodeId);
             }
         }
 
         // remove children array if it is empty
-        if(nodeDef.children !== undefined && nodeDef.children.length === 0)
+        if (nodeDef.children !== undefined && nodeDef.children.length === 0)
             nodeDef.children = undefined;
 
-        if(performance.now() - this._progressTimer > this._progressUpdateLimit) {
+        if (performance.now() - this._progressTimer > this._progressUpdateLimit) {
             this._progressTimer = performance.now();
             const eventProgress: ITaskEvent = { type: TASK_TYPE.GLTF_CREATION, id: this._eventId, progress: (this._content.nodes.length / this._numberOfNodes) / 2, status: `GlTF conversion progress: ${this._content.nodes.length}/${this._numberOfNodes} nodes.` };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventProgress);
@@ -714,7 +776,7 @@ export class GLTFConverter {
         }
 
         // if the node is empty, don't add it
-        if(nodeDef.camera === undefined && nodeDef.children === undefined && nodeDef.mesh === undefined && nodeDef.extensions === undefined && nodeDef.extras === undefined && nodeDef.skin === undefined) return -1;
+        if (nodeDef.camera === undefined && nodeDef.children === undefined && nodeDef.mesh === undefined && nodeDef.extensions === undefined && nodeDef.extras === undefined && nodeDef.skin === undefined) return -1;
 
         this._content.nodes.push(nodeDef);
         this._nodes.push({
@@ -738,17 +800,17 @@ export class GLTFConverter {
                         primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a]);
                     } else if (data.attributes[a].itemSize % 3 === 0) {
                         const oldAttributeData = data.attributes[a];
-                        const newArray = new Float32Array((oldAttributeData.array.length/3)*4);
+                        const newArray = new Float32Array((oldAttributeData.array.length / 3) * 4);
 
                         let counter = 0;
-                        for(let i = 0; i < newArray.length; i+=4) {
+                        for (let i = 0; i < newArray.length; i += 4) {
                             newArray[i] = oldAttributeData.array[counter] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+1] = oldAttributeData.array[counter+1] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+2] = oldAttributeData.array[counter+2] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
-                            newArray[i+3] = 1.0;
-                            counter+=3;
+                            newArray[i + 1] = oldAttributeData.array[counter + 1] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i + 2] = oldAttributeData.array[counter + 2] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i + 3] = 1.0;
+                            counter += 3;
                         }
-                        primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4*4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
+                        primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4 * 4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
                     }
                 } else {
                     primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a]);
@@ -767,10 +829,13 @@ export class GLTFConverter {
         return primitiveDef;
     }
 
-    private convertTexture(data: IMapData): number {
+    private convertTexture(data: IMapData): number | undefined {
         if (!this._content.textures) this._content.textures = [];
+
+        const imageIndex = this.convertImage(data);
+        if(!imageIndex) return;
         const textureDef: IGLTF_v2_Texture = {
-            source: this.convertImage(data)
+            source: imageIndex
         };
         // TODO samplers
         this._content.textures.push(textureDef);
@@ -901,3 +966,15 @@ export class GLTFConverter {
 
     // #endregion Private Methods (17)
 }
+
+// #endregion Classes (1)
+
+// #region Enums (1)
+
+export enum GLTF_EXTENSIONS {
+    KHR_BINARY_GLTF = 'KHR_binary_glTF',
+    KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
+    KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+}
+
+// #endregion Enums (1)

@@ -1,4 +1,4 @@
-import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
+import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface IParameter<T> extends ShapeDiverResponseParameter {
     // #region Properties (2)
@@ -10,10 +10,10 @@ export interface IParameter<T> extends ShapeDiverResponseParameter {
 
     // #region Public Methods (4)
 
-    isValid(value: any): boolean;
+    isValid(value: unknown): boolean;
     resetToDefaultValue(): void;
     resetToSessionValue(): void;
-    stringify(): string;
+    stringify(value?: unknown): string;
 
     // #endregion Public Methods (4)
 }

@@ -1,12 +1,17 @@
-import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { Converter, InputValidator, Logger, ShapeDiverViewerSessionError } from "@shapediver/viewer.shared.services";
-import { IParameter } from "../../interfaces/dto/IParameter";
-import { ISessionEngine, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from "../../interfaces/ISessionEngine";
-import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
-import { SessionEngine } from "../SessionEngine";
+import * as MimeTypeUtils from '@shapediver/viewer.utils.mime-type';
+import {
+    Converter,
+    InputValidator,
+    Logger,
+    ShapeDiverViewerSessionError
+} from '@shapediver/viewer.shared.services';
+import { IParameter } from '../../interfaces/dto/IParameter';
+import { PARAMETER_TYPE, PARAMETER_VISUALIZATION } from '@shapediver/viewer.shared.types';
+import { SessionEngine } from '../SessionEngine';
+import { ShapeDiverResponseParameter, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class Parameter<T> implements IParameter<T> {
-    // #region Properties (24)
+    // #region Properties (25)
 
     readonly #choices?: string[];
     readonly #converter: Converter = Converter.instance;
@@ -35,7 +40,7 @@ export class Parameter<T> implements IParameter<T> {
     #tooltip?: string;
     #value: T | string;
 
-    // #endregion Properties (24)
+    // #endregion Properties (25)
 
     // #region Constructors (1)
 
@@ -73,9 +78,9 @@ export class Parameter<T> implements IParameter<T> {
         }
 
         if (this.#type === PARAMETER_TYPE.COLOR) {
-            (<any>this).convertColor = (color: any): string => {
+            (this as unknown as { convertColor: (color: unknown) => string }).convertColor = (color: unknown): string => {
                 return this.#converter.toHexColor(color);
-            }
+            };
         }
 
         this.#value = this.#defaultValue;
@@ -85,7 +90,7 @@ export class Parameter<T> implements IParameter<T> {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (26)
+    // #region Public Getters And Setters (26)
 
     public get choices(): string[] | undefined {
         return this.#choices;
@@ -185,22 +190,22 @@ export class Parameter<T> implements IParameter<T> {
 
     public set value(value: T | string) {
         this.#value = value;
-        if(this.#sessionEngine.customizeOnParameterChange) this.#sessionEngine.customize();
+        if (this.#sessionEngine.customizeOnParameterChange) this.#sessionEngine.customize();
     }
 
     public get visualization(): PARAMETER_VISUALIZATION | undefined {
         return this.#visualization;
     }
 
-    // #endregion Public Accessors (26)
+    // #endregion Public Getters And Setters (26)
 
     // #region Public Methods (4)
 
-    public isValid(value: any): boolean {
+    public isValid(value: unknown): boolean {
         switch (true) {
             case this.type === PARAMETER_TYPE.BOOL:
                 if (typeof value === 'string') {
-                    if (!(value === 'true' || value === 'false')) 
+                    if (!(value === 'true' || value === 'false'))
                         throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is a string that is neither true or false.`);
                 } else {
                     this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, value, 'boolean');
@@ -213,76 +218,79 @@ export class Parameter<T> implements IParameter<T> {
                 this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, value, 'file');
                 break;
             case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
-                let temp: number = value;
-                if (typeof value === 'string')
-                    temp = +value;
-                this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
-                if (this.type === PARAMETER_TYPE.EVEN) {
-                    if (temp % 2 !== 0) 
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not even.`);
-                } else if (this.type === PARAMETER_TYPE.ODD) {
-                    if (temp % 2 === 0) 
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not odd.`);
-                } else if (this.type === PARAMETER_TYPE.INT) {
-                    if (!Number.isInteger(temp))
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not an integer.`);
-                }
-                if (this.min || this.min === 0)
-                    if (temp < this.min)
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`);
-
-                if (this.max || this.max === 0)
-                    if (temp > this.max)
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is larger than the maximum ${this.max}.`);
-
-                if (this.decimalplaces || this.decimalplaces === 0) {
-                    const numStr = temp + '';
-                    let decimalplaces = 0;
-                    if (numStr.includes('.'))
-                        decimalplaces = numStr.split('.')[1].length;
-                    if (this.decimalplaces < decimalplaces)
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
-                }
-
-                break;
-            case this.type === PARAMETER_TYPE.STRINGLIST:
-                this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, value, 'string');
-                const choicesChecker = (v: string) => {
-                    // has to be a single value that is
-                    // 1. convertible to number
-                    // 2. between 0 and choices.length -1
-                    const temp = +v;
-                    this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
-                    if (temp < 0 || temp > this.choices!.length - 1)
-                        throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${v} is not within the range of the defined number choices.`);
-                }
-
-                if (this.visualization === PARAMETER_VISUALIZATION.CHECKLIST) {
-                    // comma separated numbers
-                    if (value.includes(',')) {
-                        const values: string[] = value.split(',');
-                        for (let i = 0; i < values.length; i++) {
-                            if (values.filter(item => item === values[i]).length !== 1)
-                                throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`);
-                            choicesChecker(values[i]);
-                        }
-                    } else {
-                        // to number
-                        let temp: number = value;
-                        if (typeof value === 'string')
-                            temp = +value;
-                        this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
-                        choicesChecker(value);
-                    }
-                } else {
-                    // to number
-                    let temp: number = value;
+                {
+                    let temp = value as number;
                     if (typeof value === 'string')
                         temp = +value;
                     this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
-                    choicesChecker(value);
+                    if (this.type === PARAMETER_TYPE.EVEN) {
+                        if (temp % 2 !== 0)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not even.`);
+                    } else if (this.type === PARAMETER_TYPE.ODD) {
+                        if (temp % 2 === 0)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not odd.`);
+                    } else if (this.type === PARAMETER_TYPE.INT) {
+                        if (!Number.isInteger(temp))
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not an integer.`);
+                    }
+                    if (this.min || this.min === 0)
+                        if (temp < this.min)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`);
+
+                    if (this.max || this.max === 0)
+                        if (temp > this.max)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is larger than the maximum ${this.max}.`);
+
+                    if (this.decimalplaces || this.decimalplaces === 0) {
+                        const numStr = temp + '';
+                        let decimalplaces = 0;
+                        if (numStr.includes('.'))
+                            decimalplaces = numStr.split('.')[1].length;
+                        if (this.decimalplaces < decimalplaces)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
+                    }
                 }
                 break;
+            case this.type === PARAMETER_TYPE.STRINGLIST:
+                {
+                    this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, value, 'string');
+                    const choicesChecker = (v: string) => {
+                        // has to be a single value that is
+                        // 1. convertible to number
+                        // 2. between 0 and choices.length -1
+                        const temp = +v;
+                        this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
+                        if (temp < 0 || temp > this.choices!.length - 1)
+                            throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${v} is not within the range of the defined number choices.`);
+                    };
+
+                    if (this.visualization === PARAMETER_VISUALIZATION.CHECKLIST) {
+                        // comma separated numbers
+                        if ((value as string).includes(',')) {
+                            const values: string[] = (value as string).split(',');
+                            for (let i = 0; i < values.length; i++) {
+                                if (values.filter(item => item === values[i]).length !== 1)
+                                    throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`);
+                                choicesChecker(values[i]);
+                            }
+                        } else {
+                            // to number
+                            let temp = value as number;
+                            if (typeof value === 'string')
+                                temp = +value;
+                            this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
+                            choicesChecker(value as string);
+                        }
+                    } else {
+                        // to number
+                        let temp = value as number;
+                        if (typeof value === 'string')
+                            temp = +value;
+                        this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, temp, 'number');
+                        choicesChecker(value as string);
+                    }
+                    break;
+                }
             default:
                 this.#inputValidator.validateAndError(`Parameter(${this.#id}).isValid`, value, 'string');
                 break;
@@ -298,35 +306,37 @@ export class Parameter<T> implements IParameter<T> {
         this.#value = this.sessionValue;
     }
 
-    public stringify(): string {
+    public stringify(val?: unknown): string {
+        const value = val !== undefined ? val : this.value;
+
         switch (true) {
             case this.type === PARAMETER_TYPE.BOOL:
-                return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value) + '';
+                return typeof value === 'string' ? value : (<boolean><unknown>value) + '';
             case this.type === PARAMETER_TYPE.COLOR:
-                return this.#converter.toHex8Color(this.value);
+                return this.#converter.toHex8Color(value);
             case this.type === PARAMETER_TYPE.FILE:
-                if (typeof this.value !== 'string')
+                if (typeof value !== 'string')
                     throw new ShapeDiverViewerSessionError(`Parameter(${this.#id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
-                return <string>this.value;
+                return <string>value;
             case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
-                if(typeof this.value === 'string') {
+                if (typeof value === 'string') {
                     // cast to number and round to decimalplaces if they exist
                     if (this.decimalplaces || this.decimalplaces === 0) {
-                        const number = +this.value;
+                        const number = +value;
                         return number.toFixed(this.#decimalplaces);
                     } else {
-                        return this.value;
+                        return value;
                     }
                 } else {
                     // round to decimalplaces if they exist
                     if (this.decimalplaces || this.decimalplaces === 0) {
-                        return (<number><unknown>this.value).toFixed(this.#decimalplaces);
+                        return (<number><unknown>value).toFixed(this.#decimalplaces);
                     } else {
-                        return (<number><unknown>this.value) + '';
+                        return (<number><unknown>value) + '';
                     }
                 }
             default:
-                return <string>this.value;
+                return <string>value;
         }
     }
 

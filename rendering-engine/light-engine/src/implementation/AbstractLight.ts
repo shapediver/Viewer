@@ -1,12 +1,10 @@
-import { vec3 } from 'gl-matrix'
-import { UuidGenerator } from '@shapediver/viewer.shared.services'
-import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree'
-
-import { ILight, LIGHT_TYPE } from '../interface/ILight'
-import { Color } from '@shapediver/viewer.shared.types'
+import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { Color } from '@shapediver/viewer.shared.types';
+import { ILight, LIGHT_TYPE } from '../interface/ILight';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
-    // #region Properties (6)
+    // #region Properties (8)
 
     readonly #type: LIGHT_TYPE;
 
@@ -14,12 +12,12 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     #intensity: number;
     #name?: string;
     #order?: number;
-    #useNodeData: boolean = false;
     #parentNode?: ITreeNode;
+    #useNodeData: boolean = false;
 
     protected readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    // #endregion Properties (6)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -42,7 +40,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
+    // #region Public Getters And Setters (13)
 
     public get color(): Color {
         return this.#color;
@@ -51,7 +49,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set color(value: Color) {
         this.#color = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get intensity(): number {
@@ -61,7 +59,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set intensity(value: number) {
         this.#intensity = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get name(): string | undefined {
@@ -71,7 +69,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set name(value: string | undefined) {
         this.#name = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get order(): number | undefined {
@@ -81,28 +79,28 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set order(value: number | undefined) {
         this.#order = value;
         this.updateVersion();
-        if(this.parentNode) this.parentNode.updateVersion();
-    }
-
-    public set parentNode(value: ITreeNode | undefined) {
-        this.#parentNode = value;
+        if (this.parentNode) this.parentNode.updateVersion();
     }
 
     public get parentNode(): ITreeNode | undefined {
         return this.#parentNode;
     }
 
-    public get type(): LIGHT_TYPE {
-        return this.#type;
+    public set parentNode(value: ITreeNode | undefined) {
+        this.#parentNode = value;
     }
 
-    public set useNodeData(value: boolean) {
-        this.#useNodeData = value;
+    public get type(): LIGHT_TYPE {
+        return this.#type;
     }
 
     public get useNodeData(): boolean {
         return this.#useNodeData;
     }
 
-    // #endregion Public Accessors (9)
+    public set useNodeData(value: boolean) {
+        this.#useNodeData = value;
+    }
+
+    // #endregion Public Getters And Setters (13)
 }

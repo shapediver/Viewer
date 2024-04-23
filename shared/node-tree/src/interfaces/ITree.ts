@@ -1,13 +1,12 @@
-import { ITreeNode } from "./ITreeNode";
-import { ITreeNodeData } from "./ITreeNodeData";
+import { ITreeNode } from './ITreeNode';
 
-export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
+export interface ITree {
     // #region Properties (1)
 
     /**
      * The root of the tree.
      */
-    readonly root: T;
+    readonly root: ITreeNode;
 
     // #endregion Properties (1)
 
@@ -20,8 +19,7 @@ export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
      * @param parent the targeted parent node
      * @param root optional root at which the process begins, root node will be used per default
      */
-    addNode(node: T, parent?: T, root?: T): boolean;
-
+    addNode(node: ITreeNode, parent?: ITreeNode, root?: ITreeNode): boolean;
     /**
      * Add the node at the corresponding path. (paths are dot separated ids)
      * 
@@ -29,8 +27,7 @@ export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
      * @param path the path at which the node should be added
      * @param root optional root at which the process begins, root node will be used per default
      */
-    addNodeAtPath(node: T, path?: string, root?: T): boolean;
-
+    addNodeAtPath(node: ITreeNode, path?: string, root?: ITreeNode): boolean;
     /**
      * Get the node at the provided path.
      * 
@@ -38,23 +35,21 @@ export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
      * @param root 
      * @returns 
      */
-    getNodeAtPath(path?: string, root?: T): T | null;
-
+    getNodeAtPath(path?: string, root?: ITreeNode): ITreeNode | null;
     /**
      * Remove a node from the tree.
      * 
      * @param node the node to remove 
      * @param root optional root at which the process begins, root node will be used per default
      */
-    removeNode(node: T, root?: T): boolean;
-
+    removeNode(node: ITreeNode, root?: ITreeNode): boolean;
     /**
      * Remove a node via the path of it.
      * 
      * @param path the path of the node to be removed
      * @param root optional root at which the process begins, root node will be used per default
      */
-    removeNodeAtPath(path: string, root?: T): boolean;
+    removeNodeAtPath(path: string, root?: ITreeNode): boolean;
 
     // #endregion Public Methods (5)
 }

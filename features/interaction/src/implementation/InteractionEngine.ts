@@ -67,9 +67,9 @@ export class InteractionEngine implements IInteractionEngine {
     public onKeyDown(event: KeyboardEvent): void {        
         if(this.#closed) return;
     }
-    
-    public onKeyUp(event: KeyboardEvent): void {
-        if (this.#closed) return;
+
+    public onKeyUp(event: KeyboardEvent): void {        
+        if(this.#closed) return;
     }
 
     public onMouseDown(event: MouseEvent): void {

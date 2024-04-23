@@ -1,8 +1,15 @@
-import { mat4, vec3, quat } from 'gl-matrix'
-import { AbstractTreeNodeData, ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
-import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from '../../interfaces/data/IGeometryData';
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import {
+  IAttributeData,
+  IGeometryData,
+  IPrimitiveData,
+  PRIMITIVE_MODE
+} from '../../interfaces/data/IGeometryData';
 import { IMaterialAbstractData } from '../../interfaces/data/material/IMaterialAbstractData';
+import { mat4, quat, vec3 } from 'gl-matrix';
+
+// #region Classes (3)
 
 export class AttributeData extends AbstractTreeNodeData implements IAttributeData {
   // #region Properties (15)
@@ -76,7 +83,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (15)
+  // #region Public Getters And Setters (15)
 
   public get array(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array {
     return this.#array;
@@ -138,7 +145,7 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
     return this.#target;
   }
 
-  // #endregion Public Accessors (15)
+  // #endregion Public Getters And Setters (15)
 
   // #region Public Methods (1)
 
@@ -170,131 +177,8 @@ export class AttributeData extends AbstractTreeNodeData implements IAttributeDat
   // #endregion Public Methods (1)
 }
 
-export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveData {
-  // #region Properties (4)
-
-  readonly #attributes: {
-    [key: string]: IAttributeData
-  } = {};
-
-  #boundingBoxes: {
-    matrix: mat4,
-    boundingBox: IBox
-  }[] = [];
-  #indices: IAttributeData | null = null;
-  #threeJsObject: { [key: string]: THREE.BufferGeometry } = {};
-
-  // #endregion Properties (4)
-
-  // #region Constructors (1)
-
-  /**
-   * Creates a primitive data object.
-   * 
-   * @param _attributes the attributes as key-value pairs 
-   * @param _indices the indices
-   */
-  constructor(
-    attributes: {
-      [key: string]: IAttributeData
-    } = {},
-    indices: IAttributeData | null = null,
-    id?: string,
-    version?: string
-  ) {
-    super(id, version);
-    this.#attributes = attributes;
-    this.#indices = indices;
-  }
-
-  // #endregion Constructors (1)
-
-  // #region Public Accessors (5)
-
-  public get attributes(): {
-    [key: string]: IAttributeData
-  } {
-    return this.#attributes;
-  }
-
-  public get boundingBox(): IBox {
-    return this.computeBoundingBox(mat4.create());
-  }
-
-  public get indices(): IAttributeData | null {
-    return this.#indices;
-  }
-
-  public set indices(value: IAttributeData | null) {
-    this.#indices = value
-  }
-
-  public get threeJsObject(): { [key: string]: THREE.BufferGeometry } {
-    return this.#threeJsObject;
-  }
-
-  // #endregion Public Accessors (5)
-
-  // #region Public Methods (2)
-
-  /**
-   * Clones the primitive data.
-   */
-  public clone(): IPrimitiveData {
-    let attributes: {
-      [key: string]: IAttributeData
-    } = {};
-    for (let attribute in this.#attributes)
-      attributes[attribute] = <IAttributeData>this.#attributes[attribute].clone();
-
-    return new PrimitiveData(attributes, <AttributeData>this.#indices, this.id, this.version);
-  }
-
-  public computeBoundingBox(matrix: mat4): IBox {
-    const res = this.#boundingBoxes.find(b => mat4.equals(matrix, b.matrix));
-    if(res) return res.boundingBox;
-
-    if (this.#attributes['POSITION']) {
-      if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3 && mat4.equals(matrix, mat4.create())) {
-        const boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
-        this.#boundingBoxes.push({
-          boundingBox,
-          matrix: mat4.clone(matrix)
-        })
-        return boundingBox;
-      } else if(mat4.equals(matrix, mat4.create())) {
-        const boundingBox = new Box();
-        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes);
-        this.#boundingBoxes.push({
-          boundingBox,
-          matrix: mat4.clone(matrix)
-        })
-      } else if(quat.equals(mat4.getRotation(quat.create(), matrix), quat.create())) {
-        const identityBB = this.computeBoundingBox(mat4.create());
-        const boundingBox = identityBB.clone().applyMatrix(matrix);
-        this.#boundingBoxes.push({
-          boundingBox,
-          matrix: mat4.clone(matrix)
-        })
-        return boundingBox;
-      } else {
-        const boundingBox = new Box();
-        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes, matrix);
-        this.#boundingBoxes.push({
-          boundingBox,
-          matrix: mat4.clone(matrix)
-        })
-        return boundingBox;
-      }
-    }
-    return new Box();
-  }
-
-  // #endregion Public Methods (2)
-}
-
 export class GeometryData extends AbstractTreeNodeData implements IGeometryData {
-  // #region Properties (11)
+  // #region Properties (10)
 
   readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
   readonly #primitive: IPrimitiveData;
@@ -307,9 +191,8 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   #morphWeights: number[] = [];
   #renderOrder: number = 0;
   #standardMaterial: IMaterialAbstractData | null = null;
-  #threeJsObject: { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } = {};
 
-  // #endregion Properties (11)
+  // #endregion Properties (10)
 
   // #region Constructors (1)
 
@@ -341,7 +224,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (16)
+  // #region Public Getters And Setters (15)
 
   public get attributeMaterial(): IMaterialAbstractData | null {
     return this.#attributeMaterial;
@@ -380,7 +263,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   }
 
   public set morphWeights(value: number[]) {
-    this.#morphWeights = value
+    this.#morphWeights = value;
   }
 
   public get primitive(): IPrimitiveData {
@@ -403,11 +286,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
     this.#standardMaterial = value;
   }
 
-  public get threeJsObject(): { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } {
-    return this.#threeJsObject;
-  }
-
-  // #endregion Public Accessors (16)
+  // #endregion Public Getters And Setters (15)
 
   // #region Public Methods (2)
 
@@ -425,3 +304,123 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
 
   // #endregion Public Methods (2)
 }
+
+export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveData {
+  // #region Properties (3)
+
+  readonly #attributes: {
+    [key: string]: IAttributeData
+  } = {};
+
+  #boundingBoxes: {
+    matrix: mat4,
+    boundingBox: IBox
+  }[] = [];
+  #indices: IAttributeData | null = null;
+
+  // #endregion Properties (3)
+
+  // #region Constructors (1)
+
+  /**
+   * Creates a primitive data object.
+   * 
+   * @param _attributes the attributes as key-value pairs 
+   * @param _indices the indices
+   */
+  constructor(
+    attributes: {
+      [key: string]: IAttributeData
+    } = {},
+    indices: IAttributeData | null = null,
+    id?: string,
+    version?: string
+  ) {
+    super(id, version);
+    this.#attributes = attributes;
+    this.#indices = indices;
+  }
+
+  // #endregion Constructors (1)
+
+  // #region Public Getters And Setters (4)
+
+  public get attributes(): {
+    [key: string]: IAttributeData
+  } {
+    return this.#attributes;
+  }
+
+  public get boundingBox(): IBox {
+    return this.computeBoundingBox(mat4.create());
+  }
+
+  public get indices(): IAttributeData | null {
+    return this.#indices;
+  }
+
+  public set indices(value: IAttributeData | null) {
+    this.#indices = value;
+  }
+
+  // #endregion Public Getters And Setters (4)
+
+  // #region Public Methods (2)
+
+  /**
+   * Clones the primitive data.
+   */
+  public clone(): IPrimitiveData {
+    const attributes: {
+      [key: string]: IAttributeData
+    } = {};
+    for (const attribute in this.#attributes)
+      attributes[attribute] = <IAttributeData>this.#attributes[attribute].clone();
+
+    return new PrimitiveData(attributes, <AttributeData>this.#indices, this.id, this.version);
+  }
+
+  public computeBoundingBox(matrix: mat4): IBox {
+    const res = this.#boundingBoxes.find(b => mat4.equals(matrix, b.matrix));
+    if (res) return res.boundingBox;
+
+    if (this.#attributes['POSITION']) {
+      if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3 && mat4.equals(matrix, mat4.create())) {
+        const boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix: mat4.clone(matrix)
+        });
+        return boundingBox;
+      } else if (mat4.equals(matrix, mat4.create())) {
+        const boundingBox = new Box();
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix: mat4.clone(matrix)
+        });
+      } else if (quat.equals(mat4.getRotation(quat.create(), matrix), quat.create())) {
+        const identityBB = this.computeBoundingBox(mat4.create());
+        const boundingBox = identityBB.clone().applyMatrix(matrix);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix: mat4.clone(matrix)
+        });
+        return boundingBox;
+      } else {
+        const boundingBox = new Box();
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes, matrix);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix: mat4.clone(matrix)
+        });
+        return boundingBox;
+      }
+    }
+    return new Box();
+  }
+
+  // #endregion Public Methods (2)
+}
+
+// #endregion Classes (3)

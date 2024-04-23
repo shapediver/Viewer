@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExport } from "@shapediver/sdk.geometry-api-sdk-v2";
+import { ShapeDiverResponseExport } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface IExport extends ShapeDiverResponseExport {
     // #region Properties (1)
@@ -7,11 +7,11 @@ export interface IExport extends ShapeDiverResponseExport {
 
     // #endregion Properties (1)
 
-    // #region Public Methods (2)
+    // #region Public Methods (3)
 
-    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    request(parameters?: { [key: string]: unknown }): Promise<ShapeDiverResponseExport>;
     updateExport(): void;
     updateExportDefinition(exportDef: ShapeDiverResponseExport): void;
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (3)
 }
