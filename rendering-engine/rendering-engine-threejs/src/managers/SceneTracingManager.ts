@@ -18,7 +18,7 @@ export class SceneTracingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (5)
+    // #region Public Methods (3)
 
     public convert3Dto2D(p: vec3): {
         container: vec2, client: vec2, page: vec2, hidden: boolean
@@ -80,14 +80,14 @@ export class SceneTracingManager implements IManager {
      * @param event 
      * @returns 
      */
-    public mouseEventToRay(event: MouseEvent): {
+    public pointerEventToRay(event: PointerEvent): {
         origin: vec3,
         direction: vec3
     } {
         const rect = this._renderingEngine.canvas.getBoundingClientRect();
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera)
-            throw new ShapeDiverViewerViewportError('SceneTracingManager.mouseEventToRay: No camera is defined for this viewer.');
+            throw new ShapeDiverViewerViewportError('SceneTracingManager.pointerEventToRay: No camera is defined for this viewer.');
 
         const _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         const _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -106,96 +106,15 @@ export class SceneTracingManager implements IManager {
                 origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, 0, _mouse_y * camera.top));
             } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
                 origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, 0, _mouse_y * camera.top));
-            }
-        }
-
-        const direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
-    }
-
-    /**
-     * Create the ray that is created by the touch event and the camera.
-     * 
-     * @param event 
-     * @returns 
-     */
-    public touchEventToRay(event: TouchEvent): {
-        origin: vec3,
-        direction: vec3
-    } {
-        if (event.touches.length < 1)
-            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchEventToRay: No touches in this event.');
-
-        const touch = event.changedTouches[0];
-
-        const rect = this._renderingEngine.canvas.getBoundingClientRect();
-        const camera = this._renderingEngine.cameraEngine.camera;
-        if (!camera)
-            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchEventToRay: No camera is defined for this viewer.');
-
-        const _mouse_x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-        const _mouse_y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        if (camera instanceof OrthographicCamera) {
-            if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.TOP) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, _mouse_y * camera.top, 0));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, _mouse_y * camera.top, 0));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT) {
+            } else {
                 origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x * camera.left, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x * camera.right, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, 0, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, 0, _mouse_y * camera.top));
             }
         }
+
         const direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
 
         return { origin, direction };
     }
 
-    /**
-     * Create the ray that is created by the touch event and the camera.
-     * 
-     * @param event 
-     * @returns 
-     */
-    public touchToRay(event: Touch): {
-        origin: vec3,
-        direction: vec3
-    } {
-        const rect = this._renderingEngine.canvas.getBoundingClientRect();
-        const camera = this._renderingEngine.cameraEngine.camera;
-        if (!camera)
-            throw new ShapeDiverViewerViewportError('SceneTracingManager.touchToRay: No camera is defined for this viewer.');
-
-        const _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        const _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        if (camera instanceof OrthographicCamera) {
-            if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.TOP) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, _mouse_y * camera.top, 0));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, _mouse_y * camera.top, 0));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x * camera.left, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x * camera.right, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, 0, _mouse_y * camera.top));
-            } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, 0, _mouse_y * camera.top));
-            }
-        }
-        const direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
-    }
-
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (3)
 }

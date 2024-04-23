@@ -1,4 +1,10 @@
 import * as detectIt from 'detect-it';
+import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera';
+import { ICameraControls } from '../../interfaces/controls/ICameraControls';
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { vec2, vec3 } from 'gl-matrix';
 import {
     EventEngine,
@@ -6,22 +12,16 @@ import {
     SettingsEngine,
     StateEngine,
 } from '@shapediver/viewer.shared.services';
-import { Box, IBox } from '@shapediver/viewer.shared.math';
-import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree';
-
-import { ICameraControls } from '../../interfaces/controls/ICameraControls';
-import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera';
-import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
-    // #region Properties (23)
+    // #region Properties (24)
 
     #active: boolean = false;
     #autoAdjust: boolean = false;
     #cameraMovementDuration: number = 800;
     #defaultPosition: vec3 = vec3.create();
     #defaultTarget: vec3 = vec3.create();
+    #domEventListenerToken: string | undefined;
     #enableCameraControls: boolean = true;
     #far: number = 1000;
     #name?: string;
@@ -43,7 +43,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected _target: vec3 = vec3.create();
     protected _viewportId?: string;
 
-    // #endregion Properties (23)
+    // #endregion Properties (24)
 
     // #region Constructors (1)
 
@@ -53,7 +53,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (41)
+    // #region Public Getters And Setters (43)
 
     public get active(): boolean {
         return this.#active;
@@ -101,6 +101,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public set defaultTarget(value: vec3) {
         this.#defaultTarget = value;
+    }
+
+    public get domEventListenerToken(): string | undefined {
+        return this.#domEventListenerToken;
+    }
+
+    public set domEventListenerToken(value: string | undefined) {
+        this.#domEventListenerToken = value;
     }
 
     public get enableCameraControls(): boolean {
@@ -221,7 +229,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this.#zoomExtentsFactor = value;
     }
 
-    // #endregion Public Accessors (41)
+    // #endregion Public Getters And Setters (43)
 
     // #region Public Methods (5)
 
@@ -286,11 +294,11 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Public Abstract Methods (5)
 
-    abstract applySettings(settingsEngine?: SettingsEngine): void;
-    abstract assignViewer(renderingEngine: IRenderingEngine): void;
-    abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
-    abstract project(p: vec3): vec2;
-    abstract unproject(p: vec3): vec3;
+    public abstract applySettings(settingsEngine?: SettingsEngine): void;
+    public abstract assignViewer(renderingEngine: IRenderingEngine): void;
+    public abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
+    public abstract project(p: vec3): vec2;
+    public abstract unproject(p: vec3): vec3;
 
     // #endregion Public Abstract Methods (5)
 

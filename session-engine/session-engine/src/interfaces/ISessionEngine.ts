@@ -15,7 +15,7 @@ import {
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface ISessionEngine {
-  // #region Properties (13)
+  // #region Properties (14)
 
   readonly jwtToken?: string;
 
@@ -24,6 +24,7 @@ export interface ISessionEngine {
   guid?: string;
   id: string;
   initialized: boolean;
+  loadSdtf: boolean;
   modelViewUrl: string;
   outputs: { [key: string]: IOutput };
   parameters: { [key: string]: IParameter<unknown> };
@@ -32,9 +33,9 @@ export interface ISessionEngine {
   ticket?: string;
   updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
-  // #endregion Properties (13)
+  // #endregion Properties (14)
 
-  // #region Public Methods (23)
+  // #region Public Methods (24)
 
   applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
@@ -61,5 +62,5 @@ export interface ISessionEngine {
   uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
-  // #endregion Public Methods (23)
+  // #endregion Public Methods (24)
 }

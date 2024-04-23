@@ -56,7 +56,7 @@ import { sceneTree } from '@shapediver/viewer.api.general';
 import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class ViewportApi implements IViewportApi {
-    // #region Properties (12)
+    // #region Properties (11)
 
     readonly #animationEngine: AnimationEngine = AnimationEngine.instance;
     readonly #cameras: { [key: string]: ICameraApi } = {};
@@ -70,7 +70,7 @@ export class ViewportApi implements IViewportApi {
     readonly #stateEngine: StateEngine = StateEngine.instance;
     readonly #systemInfo: SystemInfo = SystemInfo.instance;
 
-    // #endregion Properties (12)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -683,7 +683,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Public Getters And Setters (94)
 
-    // #region Public Methods (41)
+    // #region Public Methods (39)
 
     public addCanvasEventListener(listener: IDomEventListener): string {
         const scope = 'addCanvasEventListener';
@@ -889,12 +889,12 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.isMobileDeviceWithoutBrowserARSupport();
     }
 
-    public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
-        return this.#renderingEngine.mouseEventToRay(event);
-    }
-
     public pauseRendering(): void {
         this.#renderingEngine.pauseRendering();
+    }
+
+    public pointerEventToRay(event: PointerEvent): { origin: vec3; direction: vec3; } {
+        return this.#renderingEngine.pointerEventToRay(event);
     }
 
     public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
@@ -955,27 +955,15 @@ export class ViewportApi implements IViewportApi {
 
     public restrictEventListeners(allowedListeners: {
         mousewheel?: boolean,
-        mousedown?: boolean,
-        mousemove?: boolean,
-        mouseup?: boolean,
-        mouseout?: boolean,
-        touchstart?: boolean,
-        touchmove?: boolean,
-        touchend?: boolean,
-        touchcancel?: boolean,
+        pointerdown?: boolean,
+        pointermove?: boolean,
+        pointerup?: boolean,
+        pointerout?: boolean,
         keydown?: boolean,
         keyup?: boolean,
         contextmenu?: boolean,
     }) {
         this.#renderingEngine.domEventEngine.allowEventListeners(allowedListeners);
-    }
-
-    public touchEventToRay(event: TouchEvent): { origin: vec3; direction: vec3; } {
-        return this.#renderingEngine.touchEventToRay(event);
-    }
-
-    public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
-        return this.#renderingEngine.touchToRay(event);
     }
 
     public update(id?: string): void {
@@ -1068,5 +1056,5 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.viewableInAR();
     }
 
-    // #endregion Public Methods (41)
+    // #endregion Public Methods (39)
 }

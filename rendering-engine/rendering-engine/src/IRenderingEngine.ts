@@ -1,41 +1,54 @@
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { DomEventEngine, SettingsEngine, SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, SESSION_SETTINGS_MODE, SettingsEngine } from '@shapediver/viewer.shared.services';
 import { IGeometryData } from '@shapediver/viewer.shared.types';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { vec2, vec3 } from 'gl-matrix';
 
-export enum RENDERER_TYPE {
-  /** The standard rendering engine */
-  STANDARD = 'standard',
-  /** A basic version of the rendering engine */
-  ATTRIBUTES = 'attributes'
+// #region Interfaces (1)
+
+export interface IRenderingEngine {
+  // #region Properties (13)
+
+  automaticResizing: boolean;
+  canvas: HTMLCanvasElement;
+  closed: boolean;
+  domEventEngine: DomEventEngine;
+  id: string;
+  pointSize: number;
+  sessionSettingsId?: string;
+  sessionSettingsMode: SESSION_SETTINGS_MODE;
+  settingsEngine?: SettingsEngine;
+  show: boolean;
+  showStatistics: boolean;
+  type: RENDERER_TYPE;
+  visibility: VISIBILITY_MODE;
+
+  // #endregion Properties (13)
+
+  // #region Public Methods (16)
+
+  addFlag(flag: FLAG_TYPE): string;
+  assignSettingsEngine(settingsEngine: SettingsEngine): void;
+  continueRendering(): void;
+  convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
+  getScreenshot(type?: string, encoderOptions?: number): string;
+  isMobileDeviceWithoutBrowserARSupport(): boolean;
+  pauseRendering(): void;
+  pointerEventToRay(event: PointerEvent): { origin: vec3, direction: vec3 };
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
+  removeFlag(token: string): boolean;
+  reset(): void;
+  resize(width: number, height: number): void;
+  start(): void;
+  update(id: string): void;
+  viewInAR(file: string, options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
+  viewableInAR(): boolean;
+
+  // #endregion Public Methods (16)
 }
 
-export enum VISIBILITY_MODE {
-  /** The viewer shows the scene instantly */
-  INSTANT = 'instant',
-  /** The viewer shows the scene after the first session loading */
-  SESSION = 'session',
-  /** The viewer is shown once the 'show' property is set to true */
-  MANUAL = 'manual'
-}
+// #endregion Interfaces (1)
 
-export enum TEXTURE_ENCODING {
-  LINEAR = 'linear',
-  SRGB = 'srgb',
-  RGBE = 'rgbe',
-  RGBM7 = 'rgbm7',
-  RGBM16 = 'rgbm16',
-  RGBD = 'rgbd',
-  GAMMA = 'gamma'
-}
-
-export enum TONE_MAPPING {
-  NONE = 'none',
-  LINEAR = 'linear',
-  REINHARD = 'reinhard',
-  CINEON = 'cineon',
-  ACES_FILMIC = 'aces_filmic'
-}
+// #region Enums (7)
 
 /**
  * Modes used to indicate that a viewport is busy.
@@ -63,6 +76,13 @@ export enum FLAG_TYPE {
   CONTINUOUS_SHADOW_MAP_UPDATE = 'continuous_shadow_map_update',
 }
 
+export enum RENDERER_TYPE {
+  /** The standard rendering engine */
+  STANDARD = 'standard',
+  /** A basic version of the rendering engine */
+  ATTRIBUTES = 'attributes'
+}
+
 export enum SPINNER_POSITIONING {
   CENTER = 'center',
   TOP_LEFT = 'top_left',
@@ -71,45 +91,31 @@ export enum SPINNER_POSITIONING {
   BOTTOM_RIGHT = 'bottom_right',
 }
 
-export interface IRenderingEngine {
-  // #region Properties (15)
-
-  automaticResizing: boolean;
-  canvas: HTMLCanvasElement;
-  closed: boolean;
-  domEventEngine: DomEventEngine;
-  id: string;
-  pointSize: number;
-  sessionSettingsId?: string;
-  sessionSettingsMode: SESSION_SETTINGS_MODE;
-  settingsEngine?: SettingsEngine;
-  show: boolean;
-  showStatistics: boolean;
-  type: RENDERER_TYPE;
-  visibility: VISIBILITY_MODE;
-
-  // #endregion Properties (15)
-
-  // #region Public Methods (7)
-
-  addFlag(flag: FLAG_TYPE): string;
-  assignSettingsEngine(settingsEngine: SettingsEngine): void;
-  continueRendering(): void;
-  convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
-  getScreenshot(type?: string, encoderOptions?: number): string;
-  isMobileDeviceWithoutBrowserARSupport(): boolean;
-  mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 };
-  pauseRendering(): void;
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
-  removeFlag(token: string): boolean;
-  reset(): void;
-  resize(width: number, height: number): void;
-  start(): void;
-  touchToRay(event: Touch): { origin: vec3, direction: vec3 };
-  touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 };
-  update(id: string): void;
-  viewInAR(file: string, options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
-  viewableInAR(): boolean;
-
-  // #endregion Public Methods (7)
+export enum TEXTURE_ENCODING {
+  LINEAR = 'linear',
+  SRGB = 'srgb',
+  RGBE = 'rgbe',
+  RGBM7 = 'rgbm7',
+  RGBM16 = 'rgbm16',
+  RGBD = 'rgbd',
+  GAMMA = 'gamma'
 }
+
+export enum TONE_MAPPING {
+  NONE = 'none',
+  LINEAR = 'linear',
+  REINHARD = 'reinhard',
+  CINEON = 'cineon',
+  ACES_FILMIC = 'aces_filmic'
+}
+
+export enum VISIBILITY_MODE {
+  /** The viewer shows the scene instantly */
+  INSTANT = 'instant',
+  /** The viewer shows the scene after the first session loading */
+  SESSION = 'session',
+  /** The viewer is shown once the 'show' property is set to true */
+  MANUAL = 'manual'
+}
+
+// #endregion Enums (7)

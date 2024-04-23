@@ -159,7 +159,8 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                 buildVersion: build_data.build_version,
                 buildDate: build_data.build_date,
                 jwtToken: properties.jwtToken,
-                allowOutputLoading: properties.allowOutputLoading === undefined ? true : properties.allowOutputLoading
+                allowOutputLoading: properties.allowOutputLoading === undefined ? true : properties.allowOutputLoading,
+                loadSdtf: properties.loadSdtf === undefined ? false : properties.loadSdtf,
             });
 
             this.#stateEngine.sessionEngines[sessionEngineId] = new SessionGlobalAccessObject(sessionEngine);

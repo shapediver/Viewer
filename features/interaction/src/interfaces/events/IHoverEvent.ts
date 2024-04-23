@@ -1,20 +1,24 @@
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { vec3 } from "gl-matrix";
-import { IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { IViewportEvent } from "@shapediver/viewer.shared.types";
-import { IInteractionManager } from "../IInteractionManager";
+import { IInteractionManager } from '../IInteractionManager';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportEvent } from '@shapediver/viewer.shared.types';
+import { vec3 } from 'gl-matrix';
 
 export interface IHoverEvent extends IViewportEvent {
-    /** The node being hovered. */
-    node: ITreeNode,
-    /** The intersection point of the ray with the node. Only provided on HOVER_ON. */
-    intersectionPoint?: vec3,
-    /** The ray of the hover process. Only provided on HOVER_ON and only if it was not a manual hovering. */
-    ray?: IRay,
+    // #region Properties (6)
+
     /** The original event that triggered the hovering. Only provided if it was not a manual hovering. */
-    event?: MouseEvent | TouchEvent,
-    /** The manager that emitted this event. */
-    manager: IInteractionManager,
+    event?: PointerEvent,
     /** All nodes in the scene tree that share the same groupId and are therefore interacted with at the same time. */
     groupedNodes?: ITreeNode[]
+    /** The intersection point of the ray with the node. Only provided on HOVER_ON. */
+    intersectionPoint?: vec3,
+    /** The manager that emitted this event. */
+    manager: IInteractionManager,
+    /** The node being hovered. */
+    node: ITreeNode,
+    /** The ray of the hover process. Only provided on HOVER_ON and only if it was not a manual hovering. */
+    ray?: IRay,
+
+    // #endregion Properties (6)
 }

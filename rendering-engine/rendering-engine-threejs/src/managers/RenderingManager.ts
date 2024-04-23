@@ -431,17 +431,17 @@ export class RenderingManager implements IManager {
         const { camera, matrix } = this._renderingEngine.cameraManager.adjustCamera(aspect);
 
         // if a matrix is provided after a camera adjustment
-        // that means that the turntable controls are activated
+        // that means that the turntable controls or the object controls are activated
         if (matrix) {
             for (let i = 0; i < this._tree.root.children.length; i++) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if (!(<any>this._tree.root.children[i]).sessionNode || this._tree.root.children[i].excludeViewports.includes(this._renderingEngine.id)) continue;
-                const transform = this._tree.root.children[i].transformations.find(t => t.id === 'turntableRotation');
+                const transform = this._tree.root.children[i].transformations.find(t => t.id === 'objectRotation');
                 if (transform) {
                     transform.matrix = matrix;
                 } else {
                     this._tree.root.children[i].addTransformation({
-                        id: 'turntableRotation',
+                        id: 'objectRotation',
                         matrix
                     });
                 }

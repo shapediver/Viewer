@@ -37,7 +37,8 @@ export enum EVENTTYPE_SESSION {
     SESSION_CREATED = 'session.created',
     SESSION_CUSTOMIZED = 'session.customized',
     SESSION_CLOSED = 'session.closed',
-    SESSION_INITIAL_OUTPUTS_LOADED = 'session.initialOutputsLoaded'
+    SESSION_INITIAL_OUTPUTS_LOADED = 'session.initialOutputsLoaded',
+    SESSION_SDTF_DELAYED_LOADED = 'session.sdtfDelayedLoaded',
 }
 
 export enum EVENTTYPE_OUTPUT {

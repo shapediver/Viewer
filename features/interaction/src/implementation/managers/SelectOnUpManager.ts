@@ -1,16 +1,16 @@
-import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
-import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
-import { AbstractInteractionManager } from "../AbstractInteractionManager";
-import { InteractionData } from "../InteractionData";
-import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { IViewportApi } from "@shapediver/viewer";
-import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
+import { AbstractInteractionManager } from '../AbstractInteractionManager';
+import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
+import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
+import { InteractionData } from '../InteractionData';
+import { ISelectEvent } from '../../interfaces/events/ISelectEvent';
+import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
 
 export class SelectOnUpManager extends AbstractInteractionManager {
-    // #region Properties (6)
+    // #region Properties (9)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
@@ -18,11 +18,11 @@ export class SelectOnUpManager extends AbstractInteractionManager {
     #deselectOnEmpty: boolean = true;
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
-        if(interactionState === INTERACTION_STATE.UP) {
+        if (interactionState === INTERACTION_STATE.UP) {
             return (node: ITreeNode) => {
-                for(let i = 0; i < node.data.length; i++) {
-                    if(node.data[i] instanceof InteractionData) {
-                        if((<InteractionData>node.data[i]).interactionTypes.select)
+                for (let i = 0; i < node.data.length; i++) {
+                    if (node.data[i] instanceof InteractionData) {
+                        if ((<InteractionData>node.data[i]).interactionTypes.select)
                             return true;
                     }
                 }
@@ -32,16 +32,14 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
         return (node: ITreeNode) => false;
     };
-
+    #groupEffectMaterialToken?: string[];
+    #groupedNodes?: ITreeNode[];
     #intersection: IIntersection | null = null;
     #node: ITreeNode | null = null;
-    
-    #groupedNodes?: ITreeNode[];
-    #groupEffectMaterialToken?: string[];
 
-    // #endregion Properties (6)
+    // #endregion Properties (9)
 
-    // #region Public Accessors (3)
+    // #region Public Getters And Setters (3)
 
     /**
      * Deselect the selected node when clicking on an empty space in the Viewport.
@@ -61,17 +59,57 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         return this.#filter;
     }
 
-    // #endregion Public Accessors (3)
+    // #endregion Public Getters And Setters (3)
 
-    // #region Public Methods (3)
+    // #region Public Methods (7)
 
     public add(viewport: IViewportApi): void {
         this.viewport = viewport;
     }
 
+    /**
+     * Deselect the current node.
+     */
+    public deselect() {
+        if (this.#node)
+            this.deactivateNode();
+    }
+
+    public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
+
+    public onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (endState === INTERACTION_STATE.UP) {
+            const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.UP)(i.node));
+
+            if (this.#node) {
+                if (intersections.length > 0 && intersection[0].node !== this.#node) {
+                    // case other node was clicked, deselect then select
+                    this.deactivateNode(event);
+                    this.activateNode(intersections[0], event, ray);
+                } else if (intersections.length > 0 && intersection[0].node === this.#node) {
+                    // case same node was clicked, only deselect
+                    this.deactivateNode(event);
+                } else if (intersections.length === 0 && this.#deselectOnEmpty) {
+                    // case no node was clicked, only deselect when option is on
+                    this.deactivateNode(event);
+                }
+            } else if (intersections.length > 0) {
+                // easy case, no node select, just select this one
+                this.activateNode(intersections[0], event, ray);
+            }
+        }
+    }
+
+    public onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
+
     public remove(): void {
         if (this.#node)
-            this.deactivateNode(); 
+            this.deactivateNode();
         this.viewport = undefined;
     }
 
@@ -82,52 +120,12 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * @param intersection 
      */
     public select(intersection: IIntersection) {
-        if(this.#node)
+        if (this.#node)
             this.deactivateNode();
         this.activateNode(intersection);
     }
 
-    /**
-     * Deselect the current node.
-     */
-    public deselect() {
-        if(this.#node)
-            this.deactivateNode();
-    }
-
-    public onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-    }
-
-    public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        if(endState === INTERACTION_STATE.UP) {
-            const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.UP)(i.node))
-
-            if(this.#node) {
-                if(intersections.length > 0 && intersection[0].node !== this.#node) {
-                    // case other node was clicked, deselect then select
-                    this.deactivateNode(event);
-                    this.activateNode(intersections[0], event, ray);
-                } else if(intersections.length > 0 && intersection[0].node === this.#node) {
-                    // case same node was clicked, only deselect
-                    this.deactivateNode(event);
-                } else if(intersections.length === 0 && this.#deselectOnEmpty) {
-                    // case no node was clicked, only deselect when option is on
-                    this.deactivateNode(event);
-                }
-            } else if(intersections.length > 0) {
-                // easy case, no node select, just select this one
-                this.activateNode(intersections[0], event, ray);
-            } 
-        }
-    }
-
-    public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-    }
-
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (7)
 
     // #region Private Methods (2)
 
@@ -139,34 +137,34 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * @param event 
      * @param ray 
      */
-    private activateNode(intersection: IIntersection, event?: MouseEvent | TouchEvent, ray?: IRay) {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    private activateNode(intersection: IIntersection, event?: PointerEvent, ray?: IRay) {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
 
         this.#groupedNodes = undefined;
         this.#groupEffectMaterialToken = undefined;
-        
+
         // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates.select = true;
-        
+        if (data) data.interactionStates.select = true;
+
         // find and store all nodes that are within the group
-        if(data.groupId) {
+        if (data.groupId) {
             this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
         }
 
         // apply the effect material if there is something to apply
-        if(this.effectMaterial) {
-            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
-            if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)))
+        if (this.effectMaterial) {
+            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial);
+            if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.#groupEffectMaterialToken!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)));
         } else {
             this.#effectMaterialToken = undefined;
         }
-        
+
         this.viewport.updateNode(this.#node);
-        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+        if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
@@ -189,39 +187,39 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * 
      * @param event
      */
-    private deactivateNode(event?: MouseEvent | TouchEvent) {
-        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
-        
+    private deactivateNode(event?: PointerEvent) {
+        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+
         // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates.select = false;
-        
-        if(this.#effectMaterialToken) {
+
+        if (this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
 
-            if(this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
+            if (this.#groupedNodes) this.#groupedNodes!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken![i]));
             this.#groupEffectMaterialToken = undefined;
         }
-        
+
         this.viewport.updateNode(this.#node!);
-        if(this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
+        if (this.#groupedNodes) this.#groupedNodes!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
-            { 
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF,
+            {
                 viewportId: this.viewport.id,
                 node: this.#node,
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes   
+                groupedNodes: this.#groupedNodes
             } as ISelectEvent
         );
-        
+
         this.#intersection = null;
         this.#node = null;
-        
+
         this.#groupedNodes = undefined;
         this.#groupEffectMaterialToken = undefined;
     }

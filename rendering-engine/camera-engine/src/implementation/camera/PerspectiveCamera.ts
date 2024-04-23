@@ -1,8 +1,8 @@
 import { AbstractCamera } from './AbstractCamera';
 import { Box, IBox, Plane } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
+import { ICameraControls } from '../../interfaces/controls/ICameraControls';
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera';
-import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls';
 import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
@@ -21,19 +21,18 @@ import {
 } from '@shapediver/viewer.shared.services';
 
 export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCamera {
-  // #region Properties (8)
+  // #region Properties (6)
 
   readonly #converter: Converter = Converter.instance;
   readonly #tree: ITree = Tree.instance;
 
   #aspect: number | undefined;
   #domEventEngine?: DomEventEngine;
-  #domEventListenerToken?: string;
   #fov: number = 60;
 
-  protected _controls: IPerspectiveCameraControls;
+  protected _controls: ICameraControls;
 
-  // #endregion Properties (8)
+  // #endregion Properties (6)
 
   // #region Constructors (1)
 
@@ -55,11 +54,11 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     this.#aspect = value;
   }
 
-  public get controls(): IPerspectiveCameraControls {
+  public get controls(): ICameraControls {
     return this._controls;
   }
 
-  public set controls(value: IPerspectiveCameraControls) {
+  public set controls(value: ICameraControls) {
     this._controls = value;
   }
 
@@ -115,11 +114,11 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     this.assignViewerInternal(renderingEngine.id, renderingEngine.canvas);
     this._controls.assignViewer(renderingEngine.id, renderingEngine.canvas);
 
-    if (this.#domEventListenerToken && this.#domEventEngine)
-      this.#domEventEngine.removeDomEventListener(this.#domEventListenerToken);
+    if (this.domEventListenerToken && this.#domEventEngine)
+      this.#domEventEngine.removeDomEventListener(this.domEventListenerToken);
 
     this.#domEventEngine = renderingEngine.domEventEngine;
-    this.#domEventListenerToken = this.#domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
+    this.domEventListenerToken = this.#domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
 
     this.boundingBox = this.#tree.root.boundingBox.clone();
 

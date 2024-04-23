@@ -36,7 +36,7 @@ export type OutputLoaderTaskEventInfo = {
 // #region Classes (1)
 
 export class OutputLoader {
-    // #region Properties (5)
+    // #region Properties (6)
 
     private readonly _dataEngine?: { loadContent: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode> };
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -52,7 +52,9 @@ export class OutputLoader {
     } = {};
     private readonly _performanceEvaluator: PerformanceEvaluator = PerformanceEvaluator.instance;
 
-    // #endregion Properties (5)
+    private _reloadSdtf = false;
+
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -75,6 +77,14 @@ export class OutputLoader {
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (1)
+
+    public set reloadSdtf(value: boolean) {
+        this._reloadSdtf = value;
+    }
+
+    // #endregion Public Getters And Setters (1)
 
     // #region Public Methods (2)
 
@@ -148,6 +158,12 @@ export class OutputLoader {
             if (!this._loadedOutputNodes[outputID])
                 this._loadedOutputNodes[outputID] = {};
 
+            if (this._reloadSdtf && outputs[outputID].content) {
+                const sdtfContents = outputs[outputID].content?.filter(c => c.format === 'sdtf');
+                if(sdtfContents && sdtfContents.length > 0) 
+                    delete this._loadedOutputNodes[outputID][outputInfo[outputID].version];
+            }
+
             if (outputsFreeze[outputID]) {
                 currentNodes[outputID][outputInfo[outputID].version] = this._lastOutputNodes[outputID][outputInfo[outputID].version];
                 // no loading necessary, progress done
@@ -159,6 +175,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputInfo[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if (outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
+                        if (outputs[outputID].content![i].format === 'sdtf' && !this._sessionEngine.loadSdtf) continue;
                         if (this._dataEngine)
                             promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + '_' + outputInfo[outputID].version + '_' + i));
                         promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version]);
@@ -206,7 +223,7 @@ export class OutputLoader {
             if (!currentNodes[outputID][outputInfo[outputID].version]) continue;
             if (currentNodes[outputID][outputInfo[outputID].version].children.length > 1) {
                 for (let i = 0, len = outputInfo[outputID].contentFormat!.length; i < len; i++) {
-                    if (outputInfo[outputID].contentFormat[i] === 'sdtf') {
+                    if (outputInfo[outputID].contentFormat[i] === 'sdtf' && this._sessionEngine.loadSdtf === true) {
                         this.mergeContentNodes(currentNodes[outputID][outputInfo[outputID].version]);
                         break;
                     }

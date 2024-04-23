@@ -25,7 +25,7 @@ import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.
  * be requested by functionality of the session.
  */
 export interface ISessionApi {
-    // #region Properties (19)
+    // #region Properties (20)
 
     /**
      * The [exports]{@link IExportApi} defined by the model.
@@ -120,6 +120,10 @@ export interface ISessionApi {
      */
     excludeViewports: string[];
     /**
+     * Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
+     */
+    loadSdtf: boolean;
+    /**
      * Optional callback which can be specified for refreshing the JWT. 
      * This will be called by the session once the JWT expires. 
      * The callback is required to provide a fresh JWT.
@@ -133,9 +137,9 @@ export interface ISessionApi {
      */
     updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null;
 
-    // #endregion Properties (19)
+    // #endregion Properties (20)
 
-    // #region Public Methods (29)
+    // #region Public Methods (31)
 
     /**
      * Update all or some settings of the current session and the viewports based on the Geometry Backend
@@ -453,5 +457,5 @@ export interface ISessionApi {
      */
     uploadFileParameters(values: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>;
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (31)
 }

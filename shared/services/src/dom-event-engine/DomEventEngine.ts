@@ -1,66 +1,51 @@
-import { SystemInfo } from '../system-info/SystemInfo';
+import { IDomEventListener } from './IDomEventListener';
 import { UuidGenerator } from '../uuid-generator/UuidGenerator';
 
-import { IDomEventListener } from './IDomEventListener'
-
 export class DomEventEngine {
-    // #region Properties (5)
+    // #region Properties (14)
 
     private readonly _domEventListeners: {
         [key: string]: IDomEventListener
     } = {};
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
-    private readonly _systemInfo: SystemInfo = SystemInfo.instance;
 
     private _allowListeners = {
         mousewheel: true,
-        mousedown: true,
-        mousemove: true,
-        mouseup: true,
-        mouseout: true,
-        touchstart: true,
-        touchmove: true,
-        touchend: true,
-        touchcancel: true,
+        pointerdown: true,
+        pointermove: true,
+        pointerup: true,
+        pointerout: true,
         keydown: true,
         keyup: true,
         contextmenu: true,
     };
     private _canvas: HTMLCanvasElement;
-    private _currentMousePosition: { x: number, y: number } = { x: 0, y: 0 };
-    private _onMouseWheel: (event: Event) => void;
-    private _onMouseDown: (event: MouseEvent) => void;
-    private _onMouseMove: (event: MouseEvent) => void;
-    private _onKeyDownMousePositionHelper: (event: MouseEvent) => void;
-    private _onMouseUp: (event: MouseEvent) => void;
-    private _onMouseOut: (event: MouseEvent) => void;
-    private _onTouchStart: (event: TouchEvent) => void;
-    private _onTouchMove: (event: TouchEvent) => void;
-    private _onTouchUp: (event: TouchEvent) => void;
-    private _onTouchCancel: (event: TouchEvent) => void;
-    private _onKeyDown: (event: KeyboardEvent) => void;
-    private _onKeyUp: (event: KeyboardEvent) => void;
+    private _currentPointerPosition: { x: number, y: number } = { x: 0, y: 0 };
     private _onContextMenu: (event: MouseEvent) => void;
+    private _onKeyDown: (event: KeyboardEvent) => void;
+    private _onKeyDownPointerPositionHelper: (event: PointerEvent) => void;
+    private _onKeyUp: (event: KeyboardEvent) => void;
+    private _onMouseWheel: (event: Event) => void;
+    private _onPointerDown: (event: PointerEvent) => void;
+    private _onPointerMove: (event: PointerEvent) => void;
+    private _onPointerOut: (event: PointerEvent) => void;
+    private _onPointerUp: (event: PointerEvent) => void;
 
-    // #endregion Properties (5)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
     constructor(canvas: HTMLCanvasElement) {
         this._canvas = canvas;
         this._onMouseWheel = this.onMouseWheel.bind(this);
-        this._onMouseDown = this.onMouseDown.bind(this);
-        this._onMouseMove = this.onMouseMove.bind(this)
-        this._onKeyDownMousePositionHelper = this.onKeyDownMousePositionHelper.bind(this)
-        this._onMouseUp = this.onMouseUp.bind(this)
-        this._onMouseOut = this.onMouseOut.bind(this)
-        this._onTouchStart = this.onTouchStart.bind(this)
-        this._onTouchMove = this.onTouchMove.bind(this)
-        this._onTouchUp = this.onTouchUp.bind(this)
-        this._onTouchCancel = this.onTouchCancel.bind(this)
-        this._onKeyDown = this.onKeyDown.bind(this)
-        this._onKeyUp = this.onKeyUp.bind(this)
-        this._onContextMenu = this.onContextMenu.bind(this)
+        this._onPointerDown = this.onPointerDown.bind(this);
+        this._onPointerMove = this.onPointerMove.bind(this);
+        this._onKeyDownPointerPositionHelper = this.onKeyDownPointerPositionHelper.bind(this);
+        this._onPointerUp = this.onPointerUp.bind(this);
+        this._onPointerOut = this.onPointerOut.bind(this);
+        this._onKeyDown = this.onKeyDown.bind(this);
+        this._onKeyUp = this.onKeyUp.bind(this);
+        this._onContextMenu = this.onContextMenu.bind(this);
 
         this.addEventListeners();
     }
@@ -81,134 +66,94 @@ export class DomEventEngine {
      * 
      * Example use case: If you don't want to allow mouse wheel events for a specific viewer so that users can scroll past the viewer.
      * 
-     * Be aware that this might cause some issues with the the camera controls if the mouse / touch events are disabled only partially.
+     * Be aware that this might cause some issues with the the camera controls if the pointer events are disabled only partially.
      * 
      * @param allowedListeners 
      */
     public allowEventListeners(allowedListeners: {
         mousewheel?: boolean,
-        mousedown?: boolean,
-        mousemove?: boolean,
-        mouseup?: boolean,
-        mouseout?: boolean,
-        touchstart?: boolean,
-        touchmove?: boolean,
-        touchend?: boolean,
-        touchcancel?: boolean,
+        pointerdown?: boolean,
+        pointermove?: boolean,
+        pointerup?: boolean,
+        pointerout?: boolean,
         keydown?: boolean,
         keyup?: boolean,
         contextmenu?: boolean,
     }): void {
-        if(typeof window === undefined) return;
+        if (typeof window === undefined) return;
 
         if (allowedListeners.mousewheel !== undefined && this._allowListeners.mousewheel !== allowedListeners.mousewheel) {
             if (allowedListeners.mousewheel) {
-                this._canvas.addEventListener("mousewheel", this._onMouseWheel);
-                this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+                this._canvas.addEventListener('mousewheel', this._onMouseWheel);
+                this._canvas.addEventListener('MozMousePixelScroll', this._onMouseWheel); // firefox
             } else {
-                this._canvas.removeEventListener("mousewheel", this._onMouseWheel);
-                this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+                this._canvas.removeEventListener('mousewheel', this._onMouseWheel);
+                this._canvas.removeEventListener('MozMousePixelScroll', this._onMouseWheel); // firefox
             }
             this._allowListeners.mousewheel = allowedListeners.mousewheel;
         }
 
-        if (allowedListeners.mousedown !== undefined && this._allowListeners.mousedown !== allowedListeners.mousedown) {
-            if (allowedListeners.mousedown) {
-                this._canvas.addEventListener("mousedown", this._onMouseDown);
+        if (allowedListeners.pointerdown !== undefined && this._allowListeners.pointerdown !== allowedListeners.pointerdown) {
+            if (allowedListeners.pointerdown) {
+                this._canvas.addEventListener('pointerdown', this._onPointerDown);
             } else {
-                this._canvas.removeEventListener("mousedown", this._onMouseDown);
+                this._canvas.removeEventListener('pointerdown', this._onPointerDown);
             }
-            this._allowListeners.mousedown = allowedListeners.mousedown;
+            this._allowListeners.pointerdown = allowedListeners.pointerdown;
         }
 
-        if (allowedListeners.mousemove !== undefined && this._allowListeners.mousemove !== allowedListeners.mousemove) {
-            if (allowedListeners.mousemove) {
-                this._canvas.addEventListener("mousemove", this._onMouseMove);
-                window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
+        if (allowedListeners.pointermove !== undefined && this._allowListeners.pointermove !== allowedListeners.pointermove) {
+            if (allowedListeners.pointermove) {
+                this._canvas.addEventListener('pointermove', this._onPointerMove);
+                window.addEventListener('pointermove', this._onKeyDownPointerPositionHelper);
             } else {
-                this._canvas.removeEventListener("mousemove", this._onMouseMove);
-                window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);
+                this._canvas.removeEventListener('pointermove', this._onPointerMove);
+                window.removeEventListener('pointermove', this._onKeyDownPointerPositionHelper);
             }
-            this._allowListeners.mousemove = allowedListeners.mousemove;
+            this._allowListeners.pointermove = allowedListeners.pointermove;
         }
 
-        if (allowedListeners.mouseup !== undefined && this._allowListeners.mouseup !== allowedListeners.mouseup) {
-            if (allowedListeners.mouseup) {
-                this._canvas.addEventListener("mouseup", this._onMouseUp);
+        if (allowedListeners.pointerup !== undefined && this._allowListeners.pointerup !== allowedListeners.pointerup) {
+            if (allowedListeners.pointerup) {
+                this._canvas.addEventListener('pointerup', this._onPointerUp);
             } else {
-                this._canvas.removeEventListener("mouseup", this._onMouseUp);
+                this._canvas.removeEventListener('pointerup', this._onPointerUp);
             }
-            this._allowListeners.mouseup = allowedListeners.mouseup;
+            this._allowListeners.pointerup = allowedListeners.pointerup;
         }
 
-        if (allowedListeners.mouseout !== undefined && this._allowListeners.mouseout !== allowedListeners.mouseout) {
-            if (allowedListeners.mouseout) {
-                this._canvas.addEventListener("mouseout", this._onMouseOut);
+        if (allowedListeners.pointerout !== undefined && this._allowListeners.pointerout !== allowedListeners.pointerout) {
+            if (allowedListeners.pointerout) {
+                this._canvas.addEventListener('pointerout', this._onPointerOut);
             } else {
-                this._canvas.removeEventListener("mouseout", this._onMouseOut);
+                this._canvas.removeEventListener('pointerout', this._onPointerOut);
             }
-            this._allowListeners.mouseout = allowedListeners.mouseout;
-        }
-
-        if (allowedListeners.touchstart !== undefined && this._allowListeners.touchstart !== allowedListeners.touchstart) {
-            if (allowedListeners.touchstart) {
-                window.addEventListener("touchstart", this._onTouchStart, { passive: false });
-            } else {
-                window.removeEventListener("touchstart", this._onTouchStart);
-            }
-            this._allowListeners.touchstart = allowedListeners.touchstart;
-        }
-
-        if (allowedListeners.touchmove !== undefined && this._allowListeners.touchmove !== allowedListeners.touchmove) {
-            if (allowedListeners.touchmove) {
-                window.addEventListener("touchmove", this._onTouchMove, { passive: false });
-            } else {
-                window.removeEventListener("touchmove", this._onTouchMove);
-            }
-            this._allowListeners.touchmove = allowedListeners.touchmove;
-        }
-
-        if (allowedListeners.touchend !== undefined && this._allowListeners.touchend !== allowedListeners.touchend) {
-            if (allowedListeners.touchend) {
-                window.addEventListener("touchend", this._onTouchUp, { passive: false });
-            } else {
-                window.removeEventListener("touchend", this._onTouchUp);
-            }
-            this._allowListeners.touchend = allowedListeners.touchend;
-        }
-
-        if (allowedListeners.touchcancel !== undefined && this._allowListeners.touchcancel !== allowedListeners.touchcancel) {
-            if (allowedListeners.touchcancel) {
-                window.addEventListener("touchcancel", this._onTouchCancel, { passive: false });
-            } else {
-                window.removeEventListener("touchcancel", this._onTouchCancel);
-            }
-            this._allowListeners.touchcancel = allowedListeners.touchcancel;
+            this._allowListeners.pointerout = allowedListeners.pointerout;
         }
 
         if (allowedListeners.keydown !== undefined && this._allowListeners.keydown !== allowedListeners.keydown) {
             if (allowedListeners.keydown) {
-                window.addEventListener("keydown", this._onKeyDown);
+                window.addEventListener('keydown', this._onKeyDown);
             } else {
-                window.removeEventListener("keydown", this._onKeyDown);
+                window.removeEventListener('keydown', this._onKeyDown);
             }
             this._allowListeners.keydown = allowedListeners.keydown;
         }
 
         if (allowedListeners.keyup !== undefined && this._allowListeners.keyup !== allowedListeners.keyup) {
             if (allowedListeners.keyup) {
-                window.addEventListener("keyup", this._onKeyUp);
+                window.addEventListener('keyup', this._onKeyUp);
             } else {
-                window.removeEventListener("keyup", this._onKeyUp);
+                window.removeEventListener('keyup', this._onKeyUp);
             }
             this._allowListeners.keyup = allowedListeners.keyup;
         }
 
         if (allowedListeners.contextmenu !== undefined && this._allowListeners.contextmenu !== allowedListeners.contextmenu) {
             if (allowedListeners.contextmenu) {
-                this._canvas.addEventListener("contextmenu", this._onContextMenu);
+                this._canvas.addEventListener('contextmenu', this._onContextMenu);
             } else {
-                this._canvas.removeEventListener("contextmenu", this._onContextMenu);
+                this._canvas.removeEventListener('contextmenu', this._onContextMenu);
             }
             this._allowListeners.contextmenu = allowedListeners.contextmenu;
         }
@@ -219,12 +164,12 @@ export class DomEventEngine {
     }
 
     public removeAllDomEventListener(): void {
-        for(let id in this._domEventListeners)
+        for (const id in this._domEventListeners)
             delete this._domEventListeners[id];
     }
 
     public removeDomEventListener(id: string): boolean {
-        if(this._domEventListeners[id]) {
+        if (this._domEventListeners[id]) {
             delete this._domEventListeners[id];
             return true;
         }
@@ -233,136 +178,89 @@ export class DomEventEngine {
 
     // #endregion Public Methods (5)
 
-    // #region Private Methods (12)
+    // #region Private Methods (11)
 
     private addEventListeners() {
-        if(typeof window === undefined) return;
+        if (typeof window === undefined) return;
 
-        this._canvas.addEventListener("mousewheel", this._onMouseWheel);
-        this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+        this._canvas.addEventListener('mousewheel', this._onMouseWheel);
+        this._canvas.addEventListener('MozMousePixelScroll', this._onMouseWheel); // firefox
 
-        this._canvas.addEventListener("mousedown", this._onMouseDown);
-        this._canvas.addEventListener("mousemove", this._onMouseMove);
-        this._canvas.addEventListener("mouseup", this._onMouseUp);
-        this._canvas.addEventListener("mouseout", this._onMouseOut);
+        this._canvas.addEventListener('pointerdown', this._onPointerDown);
+        this._canvas.addEventListener('pointermove', this._onPointerMove);
+        this._canvas.addEventListener('pointerup', this._onPointerUp);
+        this._canvas.addEventListener('pointerout', this._onPointerOut);
 
-        window.addEventListener("touchstart", this._onTouchStart, { passive: false });
-        window.addEventListener("touchmove", this._onTouchMove, { passive: false });
-        window.addEventListener("touchend", this._onTouchUp, { passive: false });
-        window.addEventListener("touchcancel", this._onTouchCancel, { passive: false });
-
-        window.addEventListener("keyup", this._onKeyUp);
-        window.addEventListener("keydown", this._onKeyDown);
-        window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
+        window.addEventListener('keyup', this._onKeyUp);
+        window.addEventListener('keydown', this._onKeyDown);
+        window.addEventListener('pointermove', this._onKeyDownPointerPositionHelper);
 
         // just prevent right click menu
-        this._canvas.addEventListener("contextmenu", this._onContextMenu);
+        this._canvas.addEventListener('contextmenu', this._onContextMenu);
     }
 
     private onContextMenu(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
         event.preventDefault();
     }
 
     private onKeyDown(event: KeyboardEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y))
+        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y))
             Object.values(this._domEventListeners).forEach(e => e.onKeyDown(event));
     }
 
+    private onKeyDownPointerPositionHelper(event: PointerEvent): void {
+        this._currentPointerPosition = { x: event.pageX, y: event.pageY };
+    }
+
     private onKeyUp(event: KeyboardEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y))
+        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y))
             Object.values(this._domEventListeners).forEach(e => e.onKeyUp(event));
     }
 
-    private onKeyDownMousePositionHelper(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
-        this._currentMousePosition = { x: event.pageX, y: event.pageY };
-    }
-
-    private onMouseDown(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onMouseDown(event));
-    }
-
-    private onMouseMove(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onMouseMove(event));
-    }
-
-    private onMouseUp(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onMouseUp(event));
-        Object.values(this._domEventListeners).forEach(e => e.onMouseEnd(event));
-    }
-
-    private onMouseOut(event: MouseEvent): void {
-        if(this._systemInfo.isMobile === true) return;
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onMouseOut(event));
-        Object.values(this._domEventListeners).forEach(e => e.onMouseEnd(event));
-    }
-
     private onMouseWheel(event: Event): void {
-        if(this._systemInfo.isMobile === true) return;
         event.preventDefault();
         event.stopPropagation();
         Object.values(this._domEventListeners).forEach(e => e.onMouseWheel(<WheelEvent>event));
     }
 
-    private onTouchUp(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.stopPropagation();
-            Object.values(this._domEventListeners).forEach(e => e.onTouchUp(event));
-            Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
-        }
+    private onPointerDown(event: PointerEvent): void {
+        event.preventDefault();
+        Object.values(this._domEventListeners).forEach(e => e.onPointerDown(event));
     }
 
-    private onTouchCancel(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.stopPropagation();
-            Object.values(this._domEventListeners).forEach(e => e.onTouchCancel(event));
-            Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
-        }
+    private onPointerMove(event: PointerEvent): void {
+        event.preventDefault();
+        Object.values(this._domEventListeners).forEach(e => e.onPointerMove(event));
     }
 
-    private onTouchMove(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.stopPropagation();
-            Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
-        }
+    private onPointerOut(event: PointerEvent): void {
+        event.preventDefault();
+        Object.values(this._domEventListeners).forEach(e => e.onPointerOut(event));
+        Object.values(this._domEventListeners).forEach(e => e.onPointerEnd(event));
     }
 
-    private onTouchStart(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.stopPropagation();
-            Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
-        }
+    private onPointerUp(event: PointerEvent): void {
+        event.preventDefault();
+        Object.values(this._domEventListeners).forEach(e => e.onPointerUp(event));
+        Object.values(this._domEventListeners).forEach(e => e.onPointerEnd(event));
     }
 
     private removeEventListeners() {
-        if(typeof window === undefined) return;
-        
-        this._canvas.removeEventListener("mousewheel", this._onMouseWheel);
-        this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+        if (typeof window === undefined) return;
 
-        this._canvas.removeEventListener("mousedown", this._onMouseDown);
-        this._canvas.removeEventListener("mousemove", this._onMouseMove);
-        this._canvas.removeEventListener("mouseup", this._onMouseUp);
-        this._canvas.removeEventListener("mouseout", this._onMouseOut);
+        this._canvas.removeEventListener('mousewheel', this._onMouseWheel);
+        this._canvas.removeEventListener('MozMousePixelScroll', this._onMouseWheel); // firefox
 
-        window.removeEventListener("touchstart", this._onTouchStart);
-        window.removeEventListener("touchmove", this._onTouchMove);
-        window.removeEventListener("touchend", this._onTouchUp);
-        window.removeEventListener("touchcancel", this._onTouchCancel);
+        this._canvas.removeEventListener('pointerdown', this._onPointerDown);
+        this._canvas.removeEventListener('pointermove', this._onPointerMove);
+        this._canvas.removeEventListener('pointerup', this._onPointerUp);
+        this._canvas.removeEventListener('pointerout', this._onPointerOut);
 
-        window.removeEventListener("keydown", this._onKeyDown);
-        window.removeEventListener("keyup", this._onKeyUp);
-        window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);
-        this._canvas.removeEventListener("contextmenu", this._onContextMenu);
+        window.removeEventListener('keydown', this._onKeyDown);
+        window.removeEventListener('keyup', this._onKeyUp);
+        window.removeEventListener('pointermove', this._onKeyDownPointerPositionHelper);
+        this._canvas.removeEventListener('contextmenu', this._onContextMenu);
     }
 
-    // #endregion Private Methods (12)
+    // #endregion Private Methods (11)
 }
