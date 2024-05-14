@@ -1,5 +1,46 @@
-import { IEvent } from "@shapediver/viewer.shared.services";
+import { IEvent } from '@shapediver/viewer.shared.services';
 
+// #region Interfaces (1)
+
+/**
+ * Definition of the task event.
+ * These events are sent for task specific events ({@link EVENTTYPE_TASK}).
+ */
+export interface ITaskEvent extends IEvent {
+    // #region Properties (5)
+
+    /**
+     * The data of the task.
+     */
+    data?: unknown,
+    /**
+     * The id of the task.
+     */
+    id: string,
+    /**
+     * The progress of the task.
+     */
+    progress: number,
+    /**
+     * The status of the task.
+     */
+    status?: string
+    /**
+     * The type of the task.
+     */
+    type: TASK_TYPE,
+
+    // #endregion Properties (5)
+}
+
+// #endregion Interfaces (1)
+
+// #region Enums (1)
+
+/**
+ * Definition of the task types.
+ * These types are used to identify the type of a task in a task event {@link ITaskEvent}.
+ */
 export enum TASK_TYPE {
     AR_LOADING = 'ar_loading',
     ENVIRONMENT_MAP_LOADING = 'environment_map_loading',
@@ -17,10 +58,4 @@ export enum TASK_TYPE {
     EXPORT_REQUEST = 'export_request',
 }
 
-export interface ITaskEvent extends IEvent {
-    type: TASK_TYPE,
-    id: string,
-    progress: number,
-    data?: any,
-    status?: string
-}
+// #endregion Enums (1)

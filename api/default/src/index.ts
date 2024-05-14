@@ -44,7 +44,9 @@ import {
     IMaterialUnlitDataProperties,
     IMaterialVariantsData,
     IOutputEvent,
+    IParameterEvent,
     IPrimitiveData,
+    IRenderingEvent,
     ISceneEvent,
     ISDTFAttributeData,
     ISDTFAttributesData,
@@ -186,6 +188,7 @@ import {
     EVENTTYPE_DRAWING_TOOLS,
     EVENTTYPE_INTERACTION,
     EVENTTYPE_OUTPUT,
+    EVENTTYPE_PARAMETER,
     EVENTTYPE_RENDERING,
     EVENTTYPE_SCENE,
     EVENTTYPE_SESSION,
@@ -286,11 +289,11 @@ export { addListener, removeListener, sceneTree, generalOptions, version, IGener
 export { SessionCreationDefinition, ViewportCreationDefinition };
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };
 export { FLAG_TYPE, PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING };
-export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK };
+export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_PARAMETER, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK };
 export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutput, ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunkBackend, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, IDomEventListener, IEvent, IThreejsData, ThreejsData };
 export { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionGroup, ShapeDiverResponseParameter };
 
-export { EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, ISettingsSections, IViewportSettingsSections, ISessionSettingsSections };
+export { EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, IRenderingEvent, IParameterEvent, ISettingsSections, IViewportSettingsSections, ISessionSettingsSections };
 export { IMaterialAbstractData, IMaterialAbstractDataProperties, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialPointData, MaterialPointData, IMaterialPointDataProperties, IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMapData, MapData, ITexture, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 };
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData };
 export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData };

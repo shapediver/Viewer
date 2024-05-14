@@ -1,12 +1,15 @@
 import * as MimeTypeUtils from '@shapediver/viewer.utils.mime-type';
 import {
     Converter,
+    EVENTTYPE_PARAMETER,
+    EVENTTYPE_SESSION,
+    EventEngine,
     InputValidator,
     Logger,
     ShapeDiverViewerSessionError
 } from '@shapediver/viewer.shared.services';
 import { IParameter } from '../../interfaces/dto/IParameter';
-import { PARAMETER_TYPE, PARAMETER_VISUALIZATION } from '@shapediver/viewer.shared.types';
+import { ISessionEvent, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from '@shapediver/viewer.shared.types';
 import { SessionEngine } from '../SessionEngine';
 import { ShapeDiverResponseParameter, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from '@shapediver/sdk.geometry-api-sdk-v2';
 
@@ -18,6 +21,7 @@ export class Parameter<T> implements IParameter<T> {
     readonly #decimalplaces?: number;
     readonly #defaultValue: T | string;
     readonly #defval: string;
+    readonly #eventEngine = EventEngine.instance;
     readonly #expression?: string;
     readonly #format?: string[];
     readonly #group?: ShapeDiverResponseParameterGroup;
@@ -166,6 +170,13 @@ export class Parameter<T> implements IParameter<T> {
 
     public set sessionValue(value: T | string) {
         this.#sessionValue = value;
+
+        // emit event
+        this.#eventEngine.emitEvent(EVENTTYPE_PARAMETER.PARAMETER_SESSION_VALUE_CHANGED, <ISessionEvent>{
+            sessionId: this.#sessionEngine.id,
+            parameterId: this.#id,
+            value: value
+        });
     }
 
     public get structure(): ShapeDiverResponseParameterStructure | undefined {
@@ -190,6 +201,15 @@ export class Parameter<T> implements IParameter<T> {
 
     public set value(value: T | string) {
         this.#value = value;
+
+        // emit event
+        this.#eventEngine.emitEvent(EVENTTYPE_PARAMETER.PARAMETER_VALUE_CHANGED, <ISessionEvent>{
+            sessionId: this.#sessionEngine.id,
+            parameterId: this.#id,
+            value: value
+        });
+
+        // if customizeOnParameterChange is true, customize the session
         if (this.#sessionEngine.customizeOnParameterChange) this.#sessionEngine.customize();
     }
 
