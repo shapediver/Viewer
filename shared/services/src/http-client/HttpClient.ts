@@ -105,6 +105,8 @@ export class HttpClient {
             throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc);
         } else if (isGBError(e)) {
             throw new ShapeDiverGeometryBackendError(e.message);
+        } else {
+            throw e;
         }
     }
 
