@@ -62,6 +62,7 @@ import {
   MaterialBasicLineData,
   IViewportSettingsSections,
 } from '@shapediver/viewer.shared.types';
+import { css } from './styling/viewport-css';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (75)
@@ -186,6 +187,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // adapt some of the three.js shaders according to our needs
     adaptShaders();
+
+    // add css to the document
+    const style = document.createElement('style');
+    style.innerHTML = css;
+    document.head.appendChild(style);
 
     const prop = Object.assign({}, properties);
     const branding = Object.assign({}, prop.branding);
@@ -986,19 +992,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       (<HTMLElement>this.logoDivElement.children[i]).style.visibility = 'hidden';
 
     const d = <HTMLDivElement>document.createElement('div');
-    d.style.position = 'absolute';
-    d.style.top = '50%';
-    d.style.left = '50%';
-    d.style.transform = 'translateX(-50%) translateY(-50%)';
-    d.style.textAlign = 'center';
+    d.classList.add('sdv-error-message-container');
     this.logoDivElement.appendChild(d);
 
     const p = <HTMLParagraphElement>document.createElement('p');
     p.textContent = message;
-    p.style.fontFamily = '"CircularXXWeb-Book",sans-serif';
-    p.style.fontSize = 'x-large';
+    p.classList.add('sdv-error-message');
     p.style.color = this.logoDivElement.style.backgroundColor;
-    p.style['filter'] = 'invert(100%)';
     d.appendChild(p);
   }
 

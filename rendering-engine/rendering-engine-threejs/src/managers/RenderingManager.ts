@@ -119,19 +119,12 @@ export class RenderingManager implements IManager {
     }): HTMLDivElement {
         const logoDivElement = document.createElement('div');
         logoDivElement.style.backgroundColor = branding.backgroundColor;
-        logoDivElement.style.position = 'relative';
-        logoDivElement.style.height = '100%';
-        logoDivElement.style.width = '100%';
+        logoDivElement.classList.add('sdv-logo-container');
         canvas.parentElement?.insertBefore(logoDivElement, canvas.parentElement?.firstChild);
 
         if (branding.logo) {
             const img = new Image();
-            img.style.position = 'absolute';
-            img.style.top = '50%';
-            img.style.left = '50%';
-            img.style.maxWidth = 'calc(100% * 0.5)';
-            img.style.maxHeight = 'calc(100% * 0.5)';
-            img.style.transform = 'translateX(-50%) translateY(-50%)';
+            img.classList.add('sdv-logo');
             img.src = branding.logo;
             logoDivElement.appendChild(img);
         }
@@ -147,15 +140,7 @@ export class RenderingManager implements IManager {
         spinnerPositioning: SPINNER_POSITIONING
     }): HTMLDivElement {
         const spinnerDivElement = document.createElement('div');
-        spinnerDivElement.style.position = 'absolute';
-        spinnerDivElement.style.height = '100%';
-        spinnerDivElement.style.width = '100%';
-        spinnerDivElement.style.top = '0';
-        spinnerDivElement.style.left = '0';
-
-        spinnerDivElement.style.userSelect = 'none';
-        spinnerDivElement.style.cursor = 'default';
-        spinnerDivElement.style.pointerEvents = 'none';
+        spinnerDivElement.classList.add('sdv-spinner-container');
 
         spinnerDivElement.style.visibility = 'hidden';
         canvas.parentElement?.insertBefore(spinnerDivElement, canvas.parentElement?.firstChild);
@@ -163,36 +148,8 @@ export class RenderingManager implements IManager {
         if (branding.busyModeSpinner) {
             const img = new Image();
             img.src = branding.busyModeSpinner;
-            img.style.position = 'absolute';
-
-            if (branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
-                img.style.top = '50%';
-                img.style.left = '50%';
-                img.style.transform = 'translateX(-50%) translateY(-50%)';
-            } else {
-                if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
-                    img.style.right = 'calc(100% * 0.01)';
-                    img.style.bottom = 'calc(100% * 0.01)';
-                    img.style.float = 'right';
-                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
-                    img.style.left = 'calc(100% * 0.01)';
-                    img.style.bottom = 'calc(100% * 0.01)';
-                    img.style.float = 'left';
-                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
-                    img.style.right = 'calc(100% * 0.01)';
-                    img.style.top = 'calc(100% * 0.01)';
-                    img.style.float = 'right';
-                } else if (branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
-                    img.style.left = 'calc(100% * 0.01)';
-                    img.style.top = 'calc(100% * 0.01)';
-                    img.style.float = 'left';
-                }
-            }
-
-            img.style.maxWidth = 'calc(100% * 0.15)';
-            img.style.maxHeight = 'calc(100% * 0.15)';
-            img.style.mixBlendMode = 'difference';
-            img.style.filter = 'invert(1) grayscale(100%)';
+            img.classList.add('sdv-spinner');
+            img.classList.add('sdv-spinner-' + branding.spinnerPositioning.replace('_', '-').toLowerCase());
             spinnerDivElement.appendChild(img);
         }
 
