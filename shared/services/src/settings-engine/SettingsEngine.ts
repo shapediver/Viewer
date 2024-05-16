@@ -3,8 +3,8 @@ import {
     Defaults,
     ISettings,
     latestVersion,
-    validate,
-    versions
+    previousVersion,
+    validate
 } from '@shapediver/viewer.settings';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 
@@ -84,12 +84,11 @@ export class SettingsEngine {
     public loadSettings(json: unknown) {
         this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
-            const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1'];
-            for (let i = 0; i < prevVersions.length; i++) {
-                const v = prevVersions[i];
+            for (let i = 0; i < previousVersion.length; i++) {
+                const v = previousVersion[i];
 
                 try {
-                    validate(json, v as versions);
+                    validate(json, v);
                     this._settings = convert(json, latestVersion) as ISettings;
                     this.cleanSettings(this._settings);
                     return;
