@@ -6,8 +6,6 @@ import {
     validate,
     versions
 } from '@shapediver/viewer.settings';
-import { EventEngine } from '../event-engine/EventEngine';
-import { Logger } from '../logger/Logger';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 
 // #region Type aliases (8)
@@ -28,11 +26,8 @@ type ISessionSettings = ISettings['session'];
 export class SettingsEngine {
     // #region Properties (4)
 
-    private readonly _eventEngine: EventEngine = EventEngine.instance;
-    private readonly _logger: Logger = Logger.instance;
-    private readonly _settings: ISettings = Defaults();
-
-    private _settingsJson: any;
+    private _settings: ISettings = Defaults();
+    private _settingsJson: unknown;
 
     // #endregion Properties (4)
 
@@ -78,35 +73,15 @@ export class SettingsEngine {
         return this._settings;
     }
 
-    public get settingsJson(): any {
+    public get settingsJson(): unknown {
         return this._settingsJson;
     }
 
     // #endregion Public Getters And Setters (11)
 
-    // #region Public Methods (3)
+    // #region Public Methods (2)
 
-    public flatten() {
-        const flattenObject = (ob: any) => {
-            const toReturn: { [key: string]: any } = {};
-            for (const i in ob) {
-                if (!ob.hasOwnProperty(i)) continue;
-                if ((typeof ob[i]) == 'object') {
-                    const flatObject = flattenObject(ob[i]);
-                    for (const x in flatObject) {
-                        if (!flatObject.hasOwnProperty(x)) continue;
-                        toReturn[i + '.' + x] = flatObject[x];
-                    }
-                } else {
-                    toReturn[i] = ob[i];
-                }
-            }
-            return toReturn;
-        };
-        return flattenObject(this.settings);
-    }
-
-    public loadSettings(json: any) {
+    public loadSettings(json: unknown) {
         this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
             const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1'];
@@ -115,31 +90,34 @@ export class SettingsEngine {
 
                 try {
                     validate(json, v as versions);
-                    (<any>this._settings) = convert(json, latestVersion);
+                    this._settings = convert(json, latestVersion) as ISettings;
                     this.cleanSettings(this._settings);
                     return;
-                } catch (e) { }
+                } catch (e) {
+                    // it's ok, we just try the next version
+                    // only the latest version is expected to be valid
+                }
             }
 
             try {
                 validate(json, latestVersion);
-                (<any>this._settings) = convert(json, latestVersion);
+                this._settings = convert(json, latestVersion) as ISettings;
                 this.cleanSettings(this._settings);
                 return;
             } catch (e) {
                 throw new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
             }
         } else {
-            (<any>this._settings) = Defaults();
+            this._settings = Defaults();
             return;
         }
     }
 
     public reset() {
-        (<any>this._settings) = Defaults();
+        this._settings = Defaults();
     }
 
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (2)
 
     // #region Private Methods (1)
 
@@ -147,7 +125,7 @@ export class SettingsEngine {
         for (const c in json.camera.cameras) {
             const camera = json.camera.cameras[c];
             if (camera.type === 'perspective') {
-                const restrictions = (<any>camera.controls).restrictions;
+                const restrictions = camera.controls.restrictions;
                 if (restrictions.position.cube.min.x === null) restrictions.position.cube.min.x = -Infinity;
                 if (restrictions.position.cube.min.y === null) restrictions.position.cube.min.y = -Infinity;
                 if (restrictions.position.cube.min.z === null) restrictions.position.cube.min.z = -Infinity;
