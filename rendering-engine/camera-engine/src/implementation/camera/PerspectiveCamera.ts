@@ -3,7 +3,7 @@ import { Box, IBox, Plane } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
 import { ICameraControls } from '../../interfaces/controls/ICameraControls';
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera';
-import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings';
+import { IPerspectiveCameraSettings } from '@shapediver/viewer.settings';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import {
@@ -75,7 +75,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   // #region Public Methods (6)
 
   public applySettings(settingsEngine: SettingsEngine) {
-    const cameraSetting = <IPerspectiveCameraSettingsV3>settingsEngine.camera.cameras[this.id];
+    const cameraSetting = <IPerspectiveCameraSettings>settingsEngine.camera.cameras[this.id];
     if (cameraSetting) {
       this.name = cameraSetting.name;
       this.autoAdjust = cameraSetting.autoAdjust;
@@ -83,6 +83,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
       this.enableCameraControls = cameraSetting.enableCameraControls;
       this.revertAtMouseUp = cameraSetting.revertAtMouseUp;
       this.revertAtMouseUpDuration = cameraSetting.revertAtMouseUpDuration;
+      this.sceneRotation = vec2.fromValues(cameraSetting.sceneRotation.x, cameraSetting.sceneRotation.y);
       this.zoomExtentsFactor = cameraSetting.zoomExtentsFactor;
 
       const position = this.#converter.toVec3(cameraSetting.position);
