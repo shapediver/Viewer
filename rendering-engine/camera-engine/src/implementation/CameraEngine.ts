@@ -233,6 +233,7 @@ export class CameraEngine implements ICameraEngine {
                     target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
                     type: camera.type,
                     fov: (<PerspectiveCamera>camera).fov,
+                    sceneRotation: { x: (<PerspectiveCamera>camera).sceneRotation[0], y: (<PerspectiveCamera>camera).sceneRotation[1] },
                     controls: {
                         autoRotationSpeed: controls.autoRotationSpeed,
                         damping: controls.damping,
@@ -270,7 +271,13 @@ export class CameraEngine implements ICameraEngine {
                             },
                             rotation: controls.rotationRestriction,
                             zoom: controls.zoomRestriction,
-                        }
+                        },
+                        enableAzimuthRotation: controls.enableAzimuthRotation,
+                        enablePolarRotation: controls.enablePolarRotation,
+                        enableObjectControls: controls.enableObjectControls,
+                        enableTurntableControls: controls.enableTurntableControls,
+                        turntableCenter: { x: controls.turntableCenter[0], y: controls.turntableCenter[1], z: controls.turntableCenter[2] },
+                        objectControlsCenter: { x: controls.objectControlsCenter[0], y: controls.objectControlsCenter[1], z: controls.objectControlsCenter[2] },
                     }
                 };
 
@@ -304,16 +311,51 @@ export class CameraEngine implements ICameraEngine {
                     position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
                     target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
                     type: (<OrthographicCamera>camera).direction,
+                    sceneRotation: { x: (<OrthographicCamera>camera).sceneRotation[0], y: (<OrthographicCamera>camera).sceneRotation[1] },
                     controls: {
+                        autoRotationSpeed: controls.autoRotationSpeed,
                         damping: controls.damping,
+                        enableAutoRotation: controls.enableAutoRotation,
                         enableKeyPan: controls.enableKeyPan,
                         enablePan: controls.enablePan,
+                        enableRotation: controls.enableRotation,
                         enableZoom: controls.enableZoom,
                         input: controls.input,
                         keyPanSpeed: controls.keyPanSpeed,
                         movementSmoothness: controls.movementSmoothness,
+                        rotationSpeed: controls.rotationSpeed,
                         panSpeed: controls.panSpeed,
                         zoomSpeed: controls.zoomSpeed,
+                        restrictions: {
+                            position: {
+                                cube: {
+                                    min: { x: controls.cubePositionRestriction.min[0], y: controls.cubePositionRestriction.min[1], z: controls.cubePositionRestriction.min[2] },
+                                    max: { x: controls.cubePositionRestriction.max[0], y: controls.cubePositionRestriction.max[1], z: controls.cubePositionRestriction.max[2] },
+                                },
+                                sphere: {
+                                    center: { x: controls.spherePositionRestriction.center[0], y: controls.spherePositionRestriction.center[1], z: controls.spherePositionRestriction.center[2] },
+                                    radius: controls.spherePositionRestriction.radius,
+                                },
+                            },
+                            target: {
+                                cube: {
+                                    min: { x: controls.cubeTargetRestriction.min[0], y: controls.cubeTargetRestriction.min[1], z: controls.cubeTargetRestriction.min[2] },
+                                    max: { x: controls.cubeTargetRestriction.max[0], y: controls.cubeTargetRestriction.max[1], z: controls.cubeTargetRestriction.max[2] },
+                                },
+                                sphere: {
+                                    center: { x: controls.sphereTargetRestriction.center[0], y: controls.sphereTargetRestriction.center[1], z: controls.sphereTargetRestriction.center[2] },
+                                    radius: controls.sphereTargetRestriction.radius,
+                                },
+                            },
+                            rotation: controls.rotationRestriction,
+                            zoom: controls.zoomRestriction,
+                        },
+                        enableAzimuthRotation: controls.enableAzimuthRotation,
+                        enablePolarRotation: controls.enablePolarRotation,
+                        enableObjectControls: controls.enableObjectControls,
+                        enableTurntableControls: controls.enableTurntableControls,
+                        turntableCenter: { x: controls.turntableCenter[0], y: controls.turntableCenter[1], z: controls.turntableCenter[2] },
+                        objectControlsCenter: { x: controls.objectControlsCenter[0], y: controls.objectControlsCenter[1], z: controls.objectControlsCenter[2] },
                     }
                 };
             }

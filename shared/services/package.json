@@ -41,7 +41,7 @@
   "dependencies": {
     "@ctrl/tinycolor": "^3.4.0",
     "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
-    "@shapediver/viewer.settings": "0.5.7",
+    "@shapediver/viewer.settings": "1.0.1",
     "@shapediver/viewer.shared.build-data": "2.13.0-rc.5",
     "@types/dompurify": "^2.3.1",
     "@types/ua-parser-js": "^0.7.36",
