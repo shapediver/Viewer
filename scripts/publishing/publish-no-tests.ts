@@ -17,12 +17,21 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         const versionComponents: string[] = packageJson.version.split('-');
 
         // if this was already a release-candidate (versionComponents.length > 1) we don't need to ask for the version, as it was already updated.
-        let versionInput = "";
+        let versionInput = '';
         if(versionComponents.length === 1) {
             /**
              * How do we increment the version?
              */
-            versionInput = await readAnswerOptions('Which part of the version would you like to increment? (major, minor, patch)\n', ['major', 'minor', 'patch'])
+            versionInput = await readAnswerOptions('Which part of the version would you like to increment? (major, minor, patch)\n', ['major', 'minor', 'patch']);
+        } else {
+            /**
+             * How do we increment the version?
+             */
+            const option = await readAnswer('Would you like to increase a different version than specified in the release candidate?\n');
+
+            if(option === 'yes' || option === 'y') {
+                versionInput = await readAnswerOptions('Which part of the version would you like to increment? (major, minor, patch)\n', ['major', 'minor', 'patch']);
+            }
         }
 
 
@@ -30,14 +39,14 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         /**
          * Check for changes that have not been committed.
          */
-        const changes = await execPromise(`git status --porcelain`);
+        const changes = await execPromise('git status --porcelain');
         if(changes) {
             throw new Error(`Please stage and commit your files first.\n${changes}`);
         } else {
             console.log(changes);
         }
 
-        console.log('checking versioning...')
+        console.log('checking versioning...');
 
 
 
@@ -60,23 +69,30 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
                 // public release before, release candidate now
                 // we increased the version according to the type of release candidate (patch, minor, major)
                 // and add the release candidate suffix
-                newVersion += "-rc.0";
+                newVersion += '-rc.0';
             }
         } else {
             if(publicRelease) {
-                // in this case we had a release candidate and now do a public release
-                // therefore we just remove the release candidate part, as the version has already been updated
-                // the type of upgrade is ignored here, but the initial update is used
-                newVersion = versionComponents[0];
+                if(versionInput === 'major' || versionInput === 'minor' || versionInput === 'patch') {
+                    const versions: string[] = versionComponents[0].split('.');
+                    newVersion = (+versions[0] + (versionInput === 'major' ? 1 : 0)) + '.' +
+                        (versionInput === 'major' ? 0 : (+versions[1] + (versionInput === 'minor' ? 1 : 0))) + '.' +
+                        (versionInput === 'major' ? 0 : versionInput === 'minor' ? 0 : (+versions[2] + (versionInput === 'patch' ? 1 : 0)));
+                } else {   
+                    // in this case we had a release candidate and now do a public release
+                    // therefore we just remove the release candidate part, as the version has already been updated
+                    // the type of upgrade is ignored here, but the initial update is used
+                    newVersion = versionComponents[0];
+                }
             } else {
                 // in this case, we had a release candidate and have another one
                 // therefore we increase the number and disregard the type of upgrade
                 const releaseCandidateVersion: string[] = versionComponents[1].split('.');
-                newVersion = versionComponents[0] + "-rc." + (+releaseCandidateVersion[1] + 1);
+                newVersion = versionComponents[0] + '-rc.' + (+releaseCandidateVersion[1] + 1);
             }
         }
 
-
+        console.log('new version: ' + newVersion);
 
         /**
          * Update the build-data file
@@ -98,7 +114,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         /**
          * re-build the whole project and all examples
          */
-        console.log('re-building for deployment...')
+        console.log('re-building for deployment...');
         console.log(await execPromise('npm run build-current'));
         console.log(await execPromise('npm run build-prod'));
 
@@ -106,7 +122,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         /**
          * build the doc
          */
-        console.log('creating doc...')
+        console.log('creating doc...');
         console.log(await execPromise('npm run doc'));
 
 
@@ -114,7 +130,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         /**
          * as we have made file changes now, commit them so that lerna version doesn't fail
          */
-        console.log('creating automatic pre-publishing commit...')
+        console.log('creating automatic pre-publishing commit...');
         console.log(await execPromise('git add .'));
         console.log(await execPromise('git commit -m "automatic pre-publishing commit"'));
 
@@ -127,7 +143,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         console.log(await execPromise('git tag -l "@shapediver*" | xargs -n 1 git push --delete origin'));
         console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
 
-        console.log(await execPromise(`npm whoami`));
+        console.log(await execPromise('npm whoami'));
 
 
 
@@ -137,21 +153,21 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
          */
         const prefix = 'v3/' + newVersion;
 
-        console.log('deploying to s3...')
-        deployToS3('docs', 'api', prefix, publicRelease)
+        console.log('deploying to s3...');
+        deployToS3('docs', 'api', prefix, publicRelease);
 
         const examples = await getDirectories('examples');
 
         for (let i = 0; i < examples.length; i++) {
-            console.log('deploying example ' + (i + 1) + '/' + examples.length + '...')
+            console.log('deploying example ' + (i + 1) + '/' + examples.length + '...');
             const example = examples[i];
-            if (example === "main-pages") continue;
+            if (example === 'main-pages') continue;
             console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-            deployToS3('examples/' + example + '/dist-prod', example, prefix, publicRelease)
+            deployToS3('examples/' + example + '/dist-prod', example, prefix, publicRelease);
         }
             
-        deployToS3('examples/cdn/dist-prod', undefined, prefix, publicRelease)
-        deployToS3('examples/main-pages', undefined, prefix, publicRelease)
+        deployToS3('examples/cdn/dist-prod', undefined, prefix, publicRelease);
+        deployToS3('examples/main-pages', undefined, prefix, publicRelease);
 
 
 
@@ -168,14 +184,14 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
          * Package releases to npm and github
          */
         if(publicRelease) {
-            console.log('publishing to npm...')
-            console.log(await execPromise(`npm run lerna-publish-npm`));
+            console.log('publishing to npm...');
+            console.log(await execPromise('npm run lerna-publish-npm'));
         }
 
-        console.log('publishing to github...')
-        console.log(await execPromise(`npm run lerna-publish-github`));
+        console.log('publishing to github...');
+        console.log(await execPromise('npm run lerna-publish-github'));
 
     } catch (e) {
-        console.log(e)
+        console.log(e);
     }
-})()
+})();
