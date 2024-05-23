@@ -24,7 +24,7 @@ The ShapeDiver Viewer consists of simple components that you can use in your own
 The [session](./interfaces/ISessionApi.html) is the component that connects to the ShapeDiver servers. This component is used to change [parameters](./interfaces/IParameterApi.html), to create [exports](./interfaces/IExportApi.html) and to manage the [outputs](./interfaces/IOutputApi.html). For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/sessions).
 
 ```typescript
-import { createSession } from '@shapediver/viewer';
+import { createSession } from '@shapediver/viewer.session';
 
 const session = await createSession({
     id: 'mySession',

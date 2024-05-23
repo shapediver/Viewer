@@ -24,7 +24,7 @@ The ShapeDiver Viewer consists of simple components that you can use in your own
 The [viewport](./interfaces/IViewportApi.html) is the component where the rendering takes place. To create it, a canvas is needed that is somewhere in your page. 
 
 ```typescript
-import { createViewport } from '@shapediver/viewer';
+import { createViewport } from '@shapediver/viewer.viewport';
 
 const viewport = await createViewport({
     id: 'myViewport',
