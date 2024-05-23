@@ -1,3 +1,4 @@
+
 #define STANDARD
 #ifdef PHYSICAL
 	#define IOR
@@ -122,8 +123,7 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 
 vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 	
-	GeometricContext currentGeometry;
-	currentGeometry.position = (modelMatrix * vec4(position, 1.0)).xyz;
+	vec3 currentGeometryPosition = (modelMatrix * vec4(position, 1.0)).xyz;
 
 	mat3 normalMatrix;
 	normalMatrix[0] = normalize(modelMatrix[0].xyz);
@@ -131,13 +131,15 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 	normalMatrix[2] = normalize(modelMatrix[2].xyz);
 	
 	// Calculate the normal vector in world space
-	currentGeometry.normal = normalize(normalMatrix * normal);
+	vec3 currentGeometryNormal = normalize(normalMatrix * normal);
 	
 	// Calculate the view direction vector in world space
-	currentGeometry.viewDir = normalize(normalMatrix * -viewDir);
+	vec3 currentGeometryViewDir = normalize(normalMatrix * -viewDir);
 
-    #ifdef USE_CLEARCOAT
-        currentGeometry.clearcoatNormal = clearcoatNormal;
+    vec3 currentGeometryClearcoatNormal;
+	
+	#ifdef USE_CLEARCOAT
+        currentGeometryClearcoatNormal = clearcoatNormal;
     #endif
 
 	ReflectedLight rLight;
@@ -156,12 +158,12 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 	    #pragma unroll_loop_start
 		for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
 			pointLight = pointLights[ i ];
-            getPointLightInfo( pointLight, currentGeometry, dLight );
+            getPointLightInfo( pointLight, currentGeometryPosition, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )
                 pointLightShadow = pointLightShadows[ i ];
                 dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
             #endif
-		    RE_Direct( dLight, currentGeometry, material, rLight );
+		    RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
 		}
         #pragma unroll_loop_end
 	#endif
@@ -173,12 +175,12 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
         #pragma unroll_loop_start
         for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
             spotLight = spotLights[ i ];
-            getSpotLightInfo( spotLight, currentGeometry, dLight );
+            getSpotLightInfo( spotLight, currentGeometryPosition, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )
                 spotLightShadow = spotLightShadows[ i ];
                 dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
             #endif
-            RE_Direct( dLight, currentGeometry, material, rLight );
+            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
         }
         #pragma unroll_loop_end
 	#endif
@@ -191,12 +193,12 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
         #pragma unroll_loop_start
         for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
             directionalLight = directionalLights[ i ];
-            getDirectionalLightInfo( directionalLight, currentGeometry, dLight );
+            getDirectionalLightInfo( directionalLight, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )
                 directionalLightShadow = directionalLightShadows[ i ];
                 dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
             #endif
-            RE_Direct( dLight, currentGeometry, material, rLight );
+            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
         }
         #pragma unroll_loop_end
     #endif
@@ -207,18 +209,21 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
         #pragma unroll_loop_start
         for ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {
             rectAreaLight = rectAreaLights[ i ];
-            RE_Direct_RectArea( rectAreaLight, currentGeometry, material, rLight );
+            RE_Direct_RectArea( rectAreaLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
         }
         #pragma unroll_loop_end
     #endif
     #if defined( RE_IndirectDiffuse )
         vec3 iblIrradiance = vec3( 0.0 );
         vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
-        irradiance += getLightProbeIrradiance( lightProbe, currentGeometry.normal );
+		
+		#if defined( USE_LIGHT_PROBES )
+        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
+		#endif
         #if ( NUM_HEMI_LIGHTS > 0 )
             #pragma unroll_loop_start
             for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
-                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometry.normal );
+                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
             }
             #pragma unroll_loop_end
         #endif
@@ -236,21 +241,21 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
             irradiance += lightMapIrradiance;
         #endif
         #if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )
-            iblIrradiance += getIBLIrradiance( currentGeometry.normal );
+            iblIrradiance += getIBLIrradiance( currentGeometryNormal );
         #endif
     #endif
     #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
-        radiance += getIBLRadianceVariation( currentGeometry.viewDir, currentGeometry.normal, material.roughness );
+        radiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryNormal, material.roughness );
         #ifdef USE_CLEARCOAT
-            clearcoatRadiance += getIBLRadianceVariation( currentGeometry.viewDir, currentGeometry.clearcoatNormal, material.clearcoatRoughness );
+            clearcoatRadiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryClearcoatNormal, material.clearcoatRoughness );
         #endif
     #endif
 
     #if defined( RE_IndirectDiffuse )
-        RE_IndirectDiffuse( irradiance, currentGeometry, material, rLight );
+        RE_IndirectDiffuse( irradiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
     #endif
     #if defined( RE_IndirectSpecular )
-        RE_IndirectSpecular( radiance, iblIrradiance, clearcoatRadiance, currentGeometry, material, rLight );
+        RE_IndirectSpecular( radiance, iblIrradiance, clearcoatRadiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
     #endif
 
 	if(depth >= 0) {
@@ -384,7 +389,7 @@ void main() {
 		vec3 Fcc = F_Schlick( material.clearcoatF0, material.clearcoatF90, dotNVcc );
 		outgoingLight = outgoingLight * ( 1.0 - material.clearcoat * Fcc ) + clearcoatSpecular * material.clearcoat;
 	#endif
-	#include <output_fragment>
+	#include <opaque_fragment>
 
     // CUSTOM START
 	
@@ -510,7 +515,7 @@ void main() {
     // CUSTOM END
 
 	#include <tonemapping_fragment>
-	#include <encodings_fragment>
+	#include <colorspace_fragment>
 	#include <fog_fragment>
 	#include <premultiplied_alpha_fragment>
 	#include <dithering_fragment>

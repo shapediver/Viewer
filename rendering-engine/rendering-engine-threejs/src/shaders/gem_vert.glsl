@@ -1,3 +1,4 @@
+
 #define STANDARD
 varying vec3 vViewPosition;
 #ifdef USE_TRANSMISSION
@@ -22,7 +23,6 @@ varying vec3 frag_normal;
 
 void main() {
 	#include <uv_vertex>
-	#include <uv2_vertex>
 	#include <color_vertex>
 	#include <morphcolor_vertex>
 	#include <beginnormal_vertex>
