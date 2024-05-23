@@ -1,8 +1,14 @@
 # `@shapediver/viewer`
 
-This is the npm package for the ShapeDiver Viewer. 
+This is the npm package for the ShapeDiver Viewer.
+For more information on ShapeDiver, please visit our [homepage](https://shapediver.com/). 
 
-For more information on ShapeDiver, please visit our [homepage](https://shapediver.com/). If you need help, have a look at our [help desk](https://help.shapediver.com/doc/Viewer.1836580882.html).
+For the documentation of the Viewer, there are three main pages:
+- [The Viewer help desk](https://help.shapediver.com/doc/viewer) which offers introductions, descriptions and guides.
+- [The Viewer API documentation](https://viewer.shapediver.com/v3/latest/api/index.html) which offers the technical documentation of the API.
+- [The Viewer examples page](https://viewer.shapediver.com/v3/examples/index.html) which offers various examples (with github links and CodeSandBoxes).
+
+If you have any questions or need help with the viewer, please visit the [ShapeDiver Forum](https://forum.shapediver.com/).
 
 ## Installation
 ```
