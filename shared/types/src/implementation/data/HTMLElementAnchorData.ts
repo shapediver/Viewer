@@ -50,10 +50,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
         this.#intersectionTarget = properties.intersectionTarget;
 
         this.internalHtmlElement = <HTMLDivElement>document.createElement('div');
-        this.internalHtmlElement.style.position = 'absolute';
-        this.internalHtmlElement.style.whiteSpace = 'nowrap';
-        this.internalHtmlElement.style.textOverflow = 'clip';
-        this.internalHtmlElement.style.fontFamily = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+        this.internalHtmlElement.classList.add('sdv-anchor-inner-container');
     }
 
     // #endregion Constructors (1)
@@ -227,15 +224,9 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
     public create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
 
         const span = document.createElement('span');
-        span.style.display = 'none';
-        span.style.userSelect = 'none';
-        span.style.cursor = 'default';
-        span.style.pointerEvents = 'none';
+        span.classList.add('sdv-anchor-text');
         span.style.color = properties.anchor.data.color?.toString();
         span.innerHTML = properties.anchor.data.text;
-        span.style.display = 'block';
-        span.style.textOverflow = 'clip';
-        span.style.overflow = 'hidden';
         properties.parent.appendChild(span);
 
         if (properties.anchor.data.textAlign && (properties.anchor.data.textAlign === 'right' || properties.anchor.data.textAlign === 'center')) {
@@ -296,9 +287,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
     public create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
         
         const img = document.createElement('img');
-        img.style.userSelect = 'none';
-        img.style.cursor = 'default';
-        img.style.pointerEvents = 'none';
+        img.classList.add('sdv-anchor-image');
         properties.parent.appendChild(img);
         img.src = properties.anchor.data.src;
         if (properties.anchor.data.height) img.height = properties.anchor.data.height;

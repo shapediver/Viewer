@@ -41,27 +41,48 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
     public async upload(v?: File | Blob | string): Promise<string> {
         const value = v !== undefined ? v : this.value;
-        
+
         if (value === undefined) return this.defval;
         if (typeof value === 'string' && ((value.length === 36 && this.#uuidGenerator.validate(value)) || value === '')) return value;
 
-        const data = new File(
-            [
-                typeof value === 'string' ?
-                    new Blob([value], { type: 'text/plain' }) :
-                    value
-            ],
-            value instanceof File ? value.name : '',
-            { type: (<Blob | File>value).type }
-        );
+        // get the type of the file
+        let fileType: string | string[];
+        if (value instanceof File) {
+            if (value.type === '') {
+                // try to get type from file name
+                const types = MimeTypeUtils.guessMimeTypeFromFilename(value.name);
+                if (types.length === 0) {
+                    throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, provided File has no type and could not be guessed from filename. Has to be ${this.format}.`);
+                } else {
+                    fileType = types;
+                }
+            } else {
+                fileType = value.type;
+            }
+        } else if (value instanceof Blob) {
+            if (value.type === '') {
+                throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, provided File has no type and could not be guessed from filename. Has to be ${this.format}.`);
+            } else {
+                fileType = value.type;
+            }
+        } else {
+            fileType = 'text/plain';
+        }
 
-        let types = [data.type];
+        /**
+         * Get all possible mime types for the provided fileType.
+         */
+        let types = typeof fileType === 'string' ? [fileType] : fileType;
         // get all endings that are possible for this type
         const endings = MimeTypeUtils.mapMimeTypeToFileEndings(types);
         // get all mimeTypes that are possible for these endings
         endings.forEach((e: string) => types = types.concat(MimeTypeUtils.guessMimeTypeFromFilename(e)));
 
-        let type: string;
+        /**
+         * Check if the provided fileType is allowed for this parameter.
+         * If not, throw an error.
+         */
+        let type: string | undefined = undefined;
         // check if one of the mime types is allowed
         let allowedType = false;
         for (let i = 0; i < types.length; i++) {
@@ -72,8 +93,20 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             }
         }
 
-        if (!allowedType)
-            throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
+        // if the type is not allowed, throw an error
+        if (allowedType === false || type === undefined)
+            throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${fileType}) is not a valid type. Has to be ${this.format}.`);
+
+        // create a File object
+        const data = new File(
+            [
+                typeof value === 'string' ?
+                    new Blob([value], { type: 'text/plain' }) :
+                    value
+            ],
+            value instanceof File && value.name !== undefined ? value.name : '',
+            { type }
+        );
 
         this.#logger.debug(`Parameter(${this.id}).upload: Uploading FileParameter.`);
 

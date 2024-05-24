@@ -219,6 +219,7 @@ describe('device testing', () => {
             let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
+            camera.direction = SDV.ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
@@ -247,6 +248,7 @@ describe('device testing', () => {
             let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
+            camera.direction = SDV.ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
@@ -296,6 +298,7 @@ describe('device testing', () => {
             let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
+            camera.direction = SDV.ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
@@ -365,6 +368,7 @@ describe('device testing', () => {
             let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
+            camera.direction = SDV.ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {

@@ -141,9 +141,10 @@ export class MaterialEngine {
         // ambient is ignored
 
         if (data.color) {
-            presetData.color = data.color;
+            presetData.color = this.multiplyColors(data.color, presetData.color);
         } else if (data.diffuse) {
-            presetData.color = data.diffuse;
+            // multiply color with diffuse
+            presetData.color = this.multiplyColors(data.diffuse, presetData.color);
         }
 
         // emission is ignored
@@ -180,7 +181,7 @@ export class MaterialEngine {
         // ambient is ignored
 
         if (data.color)
-            presetData.color = data.color;
+            presetData.color = this.multiplyColors(data.color, presetData.color);
 
         presetData.side = data.side;
 
@@ -233,7 +234,7 @@ export class MaterialEngine {
         // ambient is ignored
 
         if (data.color)
-            presetData.color = data.color;
+            presetData.color = this.multiplyColors(data.color, presetData.color);
 
         presetData.side = data.side;
 
@@ -506,6 +507,23 @@ export class MaterialEngine {
             class: cast(Math.floor(id / 100)),
             specific: cast(id - (Math.floor(id / 100) * 100))
         };
+    }
+
+    /**
+     * Multiply two colors
+     * 
+     * @param color1 
+     * @param color2 
+     * @returns 
+     */
+    private multiplyColors(color1: number[], color2?: number[]): number[] {
+        if (!color2) return color1;
+        return [
+            Math.min(255, (color1[0] * color2[0]) / 255),
+            Math.min(255, (color1[1] * color2[1]) / 255),
+            Math.min(255, (color1[2] * color2[2]) / 255),
+            Math.min(255, ((color1[3] !== undefined ? color1[3] : 255) * (color2[3] !== undefined ? color2[3] : 255)) / 255)
+        ];
     }
 
     // #endregion Private Methods (3)

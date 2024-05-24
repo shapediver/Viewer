@@ -67,7 +67,7 @@ export const extensionToMimeTypeMapping: {
  * @return {string[]} guessed mime type, empty array in case none could be guessed
  */
 export const guessMimeTypeFromFilename = (filename: string): string[] => {
-    const parts = filename.split('.');
+    const parts = filename.toLowerCase().split('.');
 
     if (!(parts.length > 0)) return [];
 
@@ -77,7 +77,7 @@ export const guessMimeTypeFromFilename = (filename: string): string[] => {
     if (!supportedExtensions.includes(extension)) return [];
 
     return extensionToMimeTypeMapping[(extension as keyof typeof extensionToMimeTypeMapping)];
-}
+};
 
 /**
  * Returns the corresponding file endings for each mime type.
@@ -86,12 +86,13 @@ export const guessMimeTypeFromFilename = (filename: string): string[] => {
  */
 export const mapMimeTypeToFileEndings = (mimeTypes: string[]): string[] => {
     const fileEndings = [];
-    for (let i = 0; i < mimeTypes.length; i++) {
-        const fileEnding = Object.keys(extensionToMimeTypeMapping).find(key => extensionToMimeTypeMapping[key].includes(mimeTypes[i]));
-        if (fileEnding) fileEndings.push('.' + fileEnding)
+    const types = mimeTypes.map(type => type.toLowerCase());
+    for (let i = 0; i < types.length; i++) {
+        const fileEnding = Object.keys(extensionToMimeTypeMapping).find(key => extensionToMimeTypeMapping[key].includes(types[i]));
+        if (fileEnding) fileEndings.push('.' + fileEnding);
     }
     return fileEndings;
-}
+};
 
 
 /**
@@ -103,7 +104,7 @@ export const mapMimeTypeToFileEndings = (mimeTypes: string[]): string[] => {
  * @return {string[]}
  */
 export const extendMimeTypes = (mimeTypes: string[]): string[] => {
-    let types = mimeTypes;
+    let types = mimeTypes.map(type => type.toLowerCase());
     // get all endings that are possible for this type
     const endings = mapMimeTypeToFileEndings(types);
     // get all mimeTypes that are possible for these endings
@@ -111,6 +112,6 @@ export const extendMimeTypes = (mimeTypes: string[]): string[] => {
 
     types = types.filter(function (item, pos) {
         return types.indexOf(item) == pos;
-    })
+    });
     return types;
-}
+};

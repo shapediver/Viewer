@@ -73,6 +73,8 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
 import {
   MaterialStandardData,
 } from './implementation/material/MaterialStandardData';
+import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
+import { IParameterEvent } from './interfaces/events/IParameterEvent';
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties,
@@ -100,7 +102,7 @@ export {
 };
 
 export {
-  EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, TASK_TYPE
+  EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, IRenderingEvent, IParameterEvent, ISceneEvent, ITaskEvent, TASK_TYPE
 };
 
 export {

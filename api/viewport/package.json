@@ -62,7 +62,7 @@
     "@shapediver/viewer.rendering-engine.light-engine": "3.0.2",
     "@shapediver/viewer.rendering-engine.rendering-engine": "3.0.2",
     "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.0.2",
-    "@shapediver/viewer.settings": "0.5.7",
+    "@shapediver/viewer.settings": "1.0.2",
     "@shapediver/viewer.shared.build-data": "3.0.2",
     "@shapediver/viewer.shared.math": "3.0.2",
     "@shapediver/viewer.shared.node-tree": "3.0.2",

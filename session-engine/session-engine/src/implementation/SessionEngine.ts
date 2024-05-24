@@ -969,15 +969,28 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public async requestExports(body: ShapeDiverRequestExport, loadOutputs: boolean = false, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
+        let processId;
         this.checkAvailability('export');
         try {
+
+            // activate the busy mode if outputs are loaded
+            if (loadOutputs === true && this._allowOutputLoading === true &&
+                body.outputs && Object.keys(body.outputs).length > 0) {
+                processId = this._uuidGenerator.create();
+                this.addBusyMode(processId);
+            }
+
             await this.uploadFileParameters(body.parameters as { [key: string]: string | File | Blob });
             const requestParameterSet = this.cleanExportParameters(body.parameters);
+
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
             if (loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
+
+            if (processId) this.removeBusyMode(processId);
             return responseDto;
         } catch (e) {
+            if (processId) this.removeBusyMode(processId);
             await this.handleError(e, retry);
             return await this.requestExports(body, loadOutputs, maxWaitMsec, true);
         }

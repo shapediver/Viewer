@@ -16,6 +16,7 @@ import {
 import { basic as vertexShader } from '../utils/shader/basic';
 import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
 import { poissionDenoise as fragmentShader } from './shader/poissionDenoise';
+import { Converter, HttpClient } from '@shapediver/viewer.shared.services';
 
 const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>', sampleBlueNoise);
 
@@ -35,13 +36,9 @@ export class PoissionDenoisePass extends Pass {
 	// #region Properties (9)
 
 	public static DefaultOptions = defaultPoissonBlurOptions;
-	public static blueNoiseTexture = new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
-		blueNoiseTexture.minFilter = NearestFilter;
-		blueNoiseTexture.magFilter = NearestFilter;
-		blueNoiseTexture.wrapS = RepeatWrapping;
-		blueNoiseTexture.wrapT = RepeatWrapping;
-		blueNoiseTexture.colorSpace = NoColorSpace;
-	});
+
+	public static blueNoiseTextureImage = HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
+	public static blueNoiseTexture: Texture;
 
 	public index = 0;
 	public inputTexture: Texture;
@@ -58,6 +55,19 @@ export class PoissionDenoisePass extends Pass {
 
 	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
 		super('PoissionBlurPass');
+
+		if(!PoissionDenoisePass.blueNoiseTexture) {
+			PoissionDenoisePass.blueNoiseTextureImage.then((response) => {
+				Converter.instance.responseToImage(response).then((image) => {
+					PoissionDenoisePass.blueNoiseTexture = new Texture(image);
+					PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
+					PoissionDenoisePass.blueNoiseTexture.magFilter = NearestFilter;
+					PoissionDenoisePass.blueNoiseTexture.wrapS = RepeatWrapping;
+					PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
+					PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
+				});
+			});
+		}
 
 		options = { ...defaultPoissonBlurOptions, ...options };
 
