@@ -5,10 +5,10 @@ import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 // #region Type aliases (1)
 
 type Callbacks = {
-    onDown: (event: MouseEvent | TouchEvent, ray: IRay) => void,
-    onMove: (event: MouseEvent | TouchEvent, ray: IRay) => void,
-    onUp: (event: MouseEvent | TouchEvent, ray: IRay) => void,
-    onOut: (event: MouseEvent | TouchEvent, ray: IRay) => void,
+    onDown: (event: PointerEvent, ray: IRay) => void,
+    onMove: (event: PointerEvent, ray: IRay) => void,
+    onUp: (event: PointerEvent, ray: IRay) => void,
+    onOut: (event: PointerEvent, ray: IRay) => void,
     onKeyDown: (event: KeyboardEvent) => void,
     onKeyUp: (event: KeyboardEvent) => void
 }
@@ -36,7 +36,7 @@ export class EventManager implements IDomEventListener, IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (14)
+    // #region Public Methods (9)
 
     public close(): void {
         this.#viewport.removeCanvasEventListener(this.#canvasEventListenerToken);
@@ -50,74 +50,31 @@ export class EventManager implements IDomEventListener, IManager {
         this.#callbacks.onKeyUp(event);
     }
 
-    public onMouseDown(event: MouseEvent): void {
-        const ray = this.#viewport.mouseEventToRay(event);
-        this.#callbacks.onDown(event, ray);
-    }
-
-    public onMouseEnd(): void {
-        // const ray = this.#viewport.mouseEventToRay(event);
-        // this.#callbacks.onEnd(event, ray);
-    }
-
-    public onMouseMove(event: MouseEvent): void {
-        const ray = this.#viewport.mouseEventToRay(event);
-        this.#callbacks.onMove(event, ray);
-    }
-
-    public onMouseOut(event: MouseEvent): void {
-        const ray = this.#viewport.mouseEventToRay(event);
-        this.#callbacks.onOut(event, ray);
-    }
-
-    public onMouseUp(event: MouseEvent): void {
-        const ray = this.#viewport.mouseEventToRay(event);
-        this.#callbacks.onUp(event, ray);
-    }
-
     public onMouseWheel(): void { }
 
-    public onTouchCancel(event: TouchEvent): void {
-        if (event.touches.length > 1) return;
-        const touch = event.changedTouches[0];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.#callbacks.onOut(event, ray);
-    }
-
-    public onTouchEnd(): void {
-        // if (event.touches.length > 1) return;
-        // const touch = event.changedTouches[0];
-
-        // const ray = this.#viewport.touchToRay(touch);
-        // this.#callbacks.onEnd(event, ray);
-    }
-
-    public onTouchMove(event: TouchEvent): void {
-        if (event.touches.length > 1) return;
-        const touch = event.changedTouches[0];
-
-        const ray = this.#viewport.touchToRay(touch);
-        this.#callbacks.onMove(event, ray);
-    }
-
-    public onTouchStart(event: TouchEvent): void {
-        if (event.touches.length > 1) return;
-        const touch = event.changedTouches[0];
-
-        const ray = this.#viewport.touchToRay(touch);
+    public onPointerDown(event: PointerEvent): void {
+        const ray = this.#viewport.pointerEventToRay(event);
         this.#callbacks.onDown(event, ray);
     }
 
-    public onTouchUp(event: TouchEvent): void {
-        if (event.touches.length > 1) return;
-        const touch = event.changedTouches[0];
+    public onPointerEnd(): void { }
 
-        const ray = this.#viewport.touchToRay(touch);
+    public onPointerMove(event: PointerEvent): void {
+        const ray = this.#viewport.pointerEventToRay(event);
+        this.#callbacks.onMove(event, ray);
+    }
+
+    public onPointerOut(event: PointerEvent): void {
+        const ray = this.#viewport.pointerEventToRay(event);
+        this.#callbacks.onOut(event, ray);
+    }
+
+    public onPointerUp(event: PointerEvent): void {
+        const ray = this.#viewport.pointerEventToRay(event);
         this.#callbacks.onUp(event, ray);
     }
 
-    // #endregion Public Methods (14)
+    // #endregion Public Methods (9)
 }
 
 // #endregion Classes (1)

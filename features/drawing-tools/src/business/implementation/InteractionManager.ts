@@ -23,7 +23,7 @@ export class InteractionManager implements IManager {
     #insertionActive: boolean = false;
     #insertionActiveClosed: boolean = false;
     #justSelected: boolean = false;
-    #lastEvent?: MouseEvent | TouchEvent;
+    #lastEvent?: PointerEvent;
     #midPointInsertionActive: boolean = false;
     #midPointInsertionIndex: number = -1;
     #moving: boolean = false;
@@ -84,8 +84,8 @@ export class InteractionManager implements IManager {
      * @param ray 
      * @returns 
      */
-    public checkHover(event: MouseEvent | TouchEvent, ray: IRay): void {
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
+    public checkHover(event: PointerEvent, ray: IRay): void {
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
 
         // check if there is a point close to the ray
         const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
@@ -150,12 +150,12 @@ export class InteractionManager implements IManager {
         this.#draggedPointPosition = vec3.create();
     }
 
-    public onDown(event: MouseEvent | TouchEvent, ray: IRay): void {
+    public onDown(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
         this.#moving = false;
 
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.insert);
 
         /**
          * IF DELETE AND INSERT KEY ARE PRESSED
@@ -382,7 +382,7 @@ export class InteractionManager implements IManager {
                     return;
                 }
                 // get current ray
-                const ray = this.#lastEvent instanceof MouseEvent ? this.#drawingToolsManager.viewport.mouseEventToRay(this.#lastEvent) : this.#drawingToolsManager.viewport.touchEventToRay(this.#lastEvent);
+                const ray = this.#drawingToolsManager.viewport.pointerEventToRay(this.#lastEvent);
 
                 // add a point at the ray intersection
                 const restrictedPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray);
@@ -432,13 +432,13 @@ export class InteractionManager implements IManager {
      * @param event 
      * @param ray 
      */
-    public onMove(event: MouseEvent | TouchEvent, ray: IRay): void {
+    public onMove(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
         this.#moving = true;
         this.#lastEvent = event;
 
-        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.insert);
-        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event as MouseEvent, this.#drawingToolsManager.settings.controls.delete);
+        const insertKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.insert);
+        const deleteKeyPressed = this.#drawingToolsManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
 
         /**
          * IF WE ARE DRAGGING A POINT
