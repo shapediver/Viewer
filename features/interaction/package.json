@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.features.interaction",
-  "version": "3.0.2",
+  "version": "3.0.3-rc.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -41,15 +41,15 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "3.0.2",
-    "@shapediver/viewer.rendering-engine.rendering-engine": "3.0.2",
-    "@shapediver/viewer.shared.math": "3.0.2",
-    "@shapediver/viewer.shared.node-tree": "3.0.2",
-    "@shapediver/viewer.shared.services": "3.0.2",
-    "@shapediver/viewer.shared.types": "3.0.2"
+    "@shapediver/viewer": "3.0.3-rc.0",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "3.0.3-rc.0",
+    "@shapediver/viewer.shared.math": "3.0.3-rc.0",
+    "@shapediver/viewer.shared.node-tree": "3.0.3-rc.0",
+    "@shapediver/viewer.shared.services": "3.0.3-rc.0",
+    "@shapediver/viewer.shared.types": "3.0.3-rc.0"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.intersection-engine": "3.0.2",
+    "@shapediver/viewer.rendering-engine.intersection-engine": "3.0.3-rc.0",
     "detect-it": "4.0.1",
     "gl-matrix": "3.3.0"
   },
