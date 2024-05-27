@@ -38,8 +38,9 @@ export type OutputLoaderTaskEventInfo = {
 export class OutputLoader {
     // #region Properties (6)
 
-    private readonly _dataEngine?: { loadContent: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode> };
+    private _dataEngine?: { loadContent: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode> };
     private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private _loadingPromise: Promise<void> | boolean;
     private readonly _lastOutputNodes: {
         [key: string]: {
             [key: string]: ISessionTreeNode
@@ -64,16 +65,13 @@ export class OutputLoader {
      * @param _session the session for this output loader
      */
     constructor(private readonly _sessionEngine: ISessionEngine) {
-        try {
-            // Attempt to load the package
-            require.resolve('@shapediver/viewer.data-engine.data-engine');
-
-            // If the package is installed, set the exported properties
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            this._dataEngine = require('@shapediver/viewer.data-engine.data-engine').DataEngine.instance;
-        } catch (error) {
-            // data engine not available
-        }
+        this._loadingPromise = this.loadDataEngine()
+            .then(() => {
+                this._loadingPromise = true;
+            })
+            .catch(() => {
+                this._loadingPromise = false;
+            });
     }
 
     // #endregion Constructors (1)
@@ -86,7 +84,7 @@ export class OutputLoader {
 
     // #endregion Public Getters And Setters (1)
 
-    // #region Public Methods (2)
+    // #region Public Methods (3)
 
     public getCurrentOutputVersions(): { [key: string]: string } {
         const versions: { [key: string]: string } = {};
@@ -94,6 +92,19 @@ export class OutputLoader {
             versions[o] = Object.keys(this._lastOutputNodes[o])[0];
 
         return versions;
+    }
+
+    public async loadDataEngine() {
+        try {
+            // Dynamically import the module
+            const module = await import('@shapediver/viewer.data-engine.data-engine');
+
+            // Set the exported properties
+            this._dataEngine = module.DataEngine.instance;
+        } catch (error) {
+            // Handle the case where the module is not available
+            console.error('Data engine not available', error);
+        }
     }
 
     /**
@@ -104,6 +115,10 @@ export class OutputLoader {
      * @returns promise with a scene graph node
      */
     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {
+        if(typeof this._loadingPromise !== 'boolean') {
+            await this._loadingPromise;
+        }
+
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
         const currentNodes: {
@@ -236,7 +251,7 @@ export class OutputLoader {
         return node;
     }
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (3)
 
     // #region Private Methods (2)
 
