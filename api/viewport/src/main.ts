@@ -55,10 +55,14 @@ creationControlCenterViewport.updateViewports = (
 export const createViewport = async (properties?: ViewportCreationDefinition): Promise<IViewportApi> => {
     showConsoleMessage();
 
-    logger.debug(`createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+    const prop = Object.assign({}, properties);
+    const copy = Object.fromEntries(
+        Object.entries(prop).filter(([key]) => key !== 'canvas')
+    );
+
+    logger.debug(`createSession: Creating and initializing session with properties ${JSON.stringify(copy)}.`);
     inputValidator.validateAndError('createViewport', properties, 'object', false);
 
-    const prop = Object.assign({}, properties);
     inputValidator.validateAndError('createViewport', prop.canvas, 'HTMLCanvasElement', false);
     inputValidator.validateAndError('createViewport', prop.id, 'string', false);
     inputValidator.validateAndError('createViewport', prop.sessionSettingsId, 'string', false);
