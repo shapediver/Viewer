@@ -1,7 +1,8 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
-import { DrawingToolsManager } from '../../../DrawingToolsManager';
-import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
+import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
+import { IBox } from '@shapediver/viewer';
+import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 
@@ -15,7 +16,7 @@ export type GridRestrictionProperties = {
      * Size of the grid unit
      */
     gridUnit?: number;
-    
+
     /**
      * If the grid unit is editable for change to the end user.
      * If it is not editable, the grid unit cannot be changed from the default value.
@@ -28,8 +29,9 @@ export type GridRestrictionProperties = {
 // #region Classes (1)
 
 export class GridRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (11)
+    // #region Properties (13)
 
+    readonly #inputBoundingBox: IBox;
     readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
@@ -44,13 +46,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     #vectorU: vec3;
     #vectorV: vec3;
 
-    // #endregion Properties (11)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, planeRestriction: PlaneRestriction, properties?: GridRestrictionProperties) {
         super(drawingToolsManager, 'grid');
 
+        this.#inputBoundingBox = drawingToolsManager.inputBoundingBox;
         this.#planeRestriction = planeRestriction;
 
         // we store the properties of the plane restriction
@@ -76,7 +79,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (6)
+    // #region Public Getters And Setters (8)
 
     public get active(): boolean {
         return this.#active;
@@ -84,7 +87,6 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     public set active(value: boolean) {
         this.#active = value;
-        if (this.#gridHelper) this.#gridHelper.visible = value;
     }
 
     public get enabledEditable(): boolean {
@@ -115,7 +117,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.#priority = value;
     }
 
-    // #endregion Public Getters And Setters (6)
+    // #endregion Public Getters And Setters (8)
 
     // #region Public Methods (2)
 
@@ -178,7 +180,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #region Protected Methods (1)
 
-    protected visibilityChanged(visible: boolean): void { }
+    protected visibilityChanged(): void { }
 
     // #endregion Protected Methods (1)
 
@@ -190,8 +192,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
             this.#gridHelper.dispose();
         }
 
-        this.#gridSize = this.drawingToolsManager.inputBoundingBox.boundingSphere.radius * 5;
-        if(this.#gridSize === Infinity)
+        this.#gridSize = this.#inputBoundingBox.boundingSphere.radius * 5;
+        if (this.#gridSize === Infinity)
             this.#gridSize = 100;
 
         // if the grid size is not divisible by the grid unit, we need to adjust the grid size
@@ -203,7 +205,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // todo  adjust grid size so that is divisible by grid unit
         this.#gridHelper = new THREE.GridHelper(gridSize, gridSize / this.#gridUnit, 0x666666, 0x222222);
         this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
-        this.#gridHelper.visible = false;
+        this.#gridHelper.visible = true;
 
         this.#gridHelper.renderOrder = -1;
         (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;

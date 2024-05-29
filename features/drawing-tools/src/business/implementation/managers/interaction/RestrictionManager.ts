@@ -1,29 +1,36 @@
-import { DrawingToolsManager } from './DrawingToolsManager';
-import { IManager } from '../interfaces/IManager';
+import { DrawingToolsManager, Settings } from '../../DrawingToolsManager';
+import { IManager } from '../../../interfaces/IManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestriction, RESTRICTION_TYPE, RestrictionMetaData, RestrictionProperties } from '../interfaces/IRestriction';
-import { vec3 } from 'gl-matrix';
-import { UuidGenerator } from '@shapediver/viewer.shared.services';
+import {
+    IRestriction,
+    RESTRICTION_TYPE,
+    RestrictionMetaData,
+    RestrictionProperties
+} from '../../../interfaces/IRestriction';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
+import { vec3 } from 'gl-matrix';
 
 export class RestrictionManager implements IManager {
-    // #region Properties (3)
+    // #region Properties (5)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #restrictions: { [token: string]: IRestriction } = {};
+    readonly #settings: Settings;
     readonly #uuidGenerator = UuidGenerator.instance;
 
     #showRestrictionVisualization: boolean = false;
 
-    // #endregion Properties (3)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor(drawToolsManager: DrawingToolsManager) {
-        this.#drawingToolsManager = drawToolsManager;
+    constructor(drawingToolsManager: DrawingToolsManager) {
+        this.#drawingToolsManager = drawingToolsManager;
+        this.#settings = drawingToolsManager.settings;
 
-        for(const restrictionToken in this.#drawingToolsManager.settings.restrictions) {
-            this.addRestriction(this.#drawingToolsManager.settings.restrictions[restrictionToken], restrictionToken);
+        for (const restrictionToken in this.#settings.restrictions) {
+            this.addRestriction(this.#settings.restrictions[restrictionToken], restrictionToken);
         }
     }
 
@@ -57,11 +64,11 @@ export class RestrictionManager implements IManager {
         token = token || this.#uuidGenerator.create();
 
         let restriction: IRestriction | undefined;
-        if(properties.type === RESTRICTION_TYPE.PLANE) {
+        if (properties.type === RESTRICTION_TYPE.PLANE) {
             restriction = new PlaneRestriction(this.#drawingToolsManager, token, properties as PlaneRestrictionProperties);
         }
 
-        if(restriction) {
+        if (restriction) {
             this.#restrictions[token] = restriction;
             return token;
         }

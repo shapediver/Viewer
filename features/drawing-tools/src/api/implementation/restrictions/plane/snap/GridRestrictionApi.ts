@@ -1,5 +1,5 @@
 import { AbstractSnapRestrictionApi } from '../../AbstractSnapRestrictionApi';
-import { GridRestriction } from '../../../../../business/implementation/restrictions/plane/snap/GridRestriction';
+import { GridRestriction } from '../../../../../business/implementation/managers/interaction/restrictions/plane/snap/GridRestriction';
 
 export class GridRestrictionApi extends AbstractSnapRestrictionApi {
     // #region Properties (1)

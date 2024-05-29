@@ -1,17 +1,16 @@
 import { AbstractRestriction } from '../AbstractRestriction';
 import { AngularRestriction, AngularRestrictionProperties } from './snap/AngularRestriction';
-import { DrawingToolsManager } from '../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../../../DrawingToolsManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../interfaces/IRestriction';
-import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
+import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../../../interfaces/IRestriction';
+import { ISnapRestriction } from '../../../../../interfaces/ISnapRestriction';
+import { mat4, vec3 } from 'gl-matrix';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
-import { vec3, mat4 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
 export type PlaneRestrictionProperties = {
-
     /**
      * The origin of the plane.
      * 
@@ -69,20 +68,20 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         super(drawingToolsManager, id);
         properties.vector_u = properties.vector_u ? vec3.normalize(vec3.create(), properties.vector_u) : vec3.fromValues(1, 0, 0);
         properties.vector_v = properties.vector_v ? vec3.normalize(vec3.create(), properties.vector_v) : vec3.fromValues(0, 1, 0);
-        
+
         this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), properties.vector_u, properties.vector_v));
-        if(vec3.dot(properties.vector_u, properties.vector_v) !== 0)
+        if (vec3.dot(properties.vector_u, properties.vector_v) !== 0)
             properties.vector_v = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, properties.vector_u));
-        
+
         this.#vectorU = properties.vector_u;
         this.#vectorV = properties.vector_v;
         this.#origin = properties.origin || vec3.create();
 
         this.createTransformationMatrices();
 
-        this.#gridRestriction = new GridRestriction(this.drawingToolsManager, this, properties.gridSnapRestriction);
-        this.#angularRestriction = new AngularRestriction(this.drawingToolsManager, this, properties.angularSnapRestriction);
-    
+        this.#gridRestriction = new GridRestriction(drawingToolsManager, this, properties.gridSnapRestriction);
+        this.#angularRestriction = new AngularRestriction(drawingToolsManager, this, properties.angularSnapRestriction);
+
         this.#snapRestrictions = {
             grid: this.#gridRestriction,
             angular: this.#angularRestriction
@@ -91,7 +90,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (13)
+    // #region Public Getters And Setters (12)
 
     public get angularRestriction(): AngularRestriction {
         return this.#angularRestriction;
@@ -135,7 +134,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         this.#vectorU = value;
         this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#vectorU, this.#vectorV));
 
-        if(vec3.dot(this.#vectorU, this.#vectorV) !== 0) 
+        if (vec3.dot(this.#vectorU, this.#vectorV) !== 0)
             this.#vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, this.#vectorU));
 
         this.createTransformationMatrices();
@@ -151,7 +150,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         this.#vectorV = value;
         this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#vectorU, this.#vectorV));
 
-        if(vec3.dot(this.#vectorU, this.#vectorV) !== 0) 
+        if (vec3.dot(this.#vectorU, this.#vectorV) !== 0)
             this.#vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, this.#vectorU));
 
         this.createTransformationMatrices();
@@ -159,7 +158,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         this.#angularRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
     }
 
-    // #endregion Public Getters And Setters (13)
+    // #endregion Public Getters And Setters (12)
 
     // #region Public Methods (2)
 
@@ -167,7 +166,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         if (this.enabled === false) return vec3.create();
 
         let origin = this.#origin;
-        if(metaData?.referencePoint)
+        if (metaData?.referencePoint)
             origin = vec3.sub(vec3.create(), this.#origin, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), this.#origin, metaData.referencePoint), this.#normal)));
 
         // find intersection of ray and plane
@@ -204,7 +203,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
                 return vec3.squaredDistance(point, a.value) - vec3.squaredDistance(point, b.value);
             });
 
-            for(const snapRestriction of snapRestrictions) {
+            for (const snapRestriction of snapRestrictions) {
                 snapRestriction.active = false;
             }
 
@@ -220,7 +219,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #region Protected Methods (1)
 
-    protected visibilityChanged(visible: boolean): void { }
+    protected visibilityChanged(): void { }
 
     // #endregion Protected Methods (1)
 

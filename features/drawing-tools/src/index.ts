@@ -1,10 +1,16 @@
 import { AngularRestrictionApi } from './api/implementation/restrictions/plane/snap/AngularRestrictionApi';
-import { AngularRestrictionProperties } from './business/implementation/restrictions/plane/snap/AngularRestriction';
+import { AngularRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/AngularRestriction';
 import { Callbacks, PointsData, SettingsOptional } from './business/implementation/DrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
 import { GridRestrictionApi } from './api/implementation/restrictions/plane/snap/GridRestrictionApi';
-import { GridRestrictionProperties } from './business/implementation/restrictions/plane/snap/GridRestriction';
+import { GridRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/GridRestriction';
 import { IDrawingToolsApi } from './api/interfaces/IDrawingToolsApi';
+import {
+    IMapData,
+    IViewportApi,
+    MaterialEngine,
+    ShapeDiverViewerDrawingToolsError
+} from '@shapediver/viewer';
 import {
     IRestriction,
     RESTRICTION_TYPE,
@@ -14,12 +20,14 @@ import {
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
 import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
-import { IMapData, IViewportApi, MaterialEngine, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
-import { PlaneRestrictionProperties } from './business/implementation/restrictions/plane/PlaneRestriction';
+import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
+import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 
 export {
     SettingsOptional as Settings, Callbacks,
+    DrawingToolsEventResponseMapping, IDrawingToolsEvent,
     IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,
@@ -39,7 +47,6 @@ defaultTextures['variation_1'] = MaterialEngine.instance.loadMap('https://viewer
         defaultTextures['variation_1'] = mapData!;
         return mapData!;
     });
-
 
 let drawingTools: IDrawingToolsApi | undefined;
 

@@ -1,10 +1,13 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
-import { DrawingToolsManager } from '../../../DrawingToolsManager';
-import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
+import { CSS2DObject } from '../../../../../../../three/CSS2DRenderer';
+import { DrawingToolsManager, Settings } from '../../../../../DrawingToolsManager';
+import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
+import { IBox } from '@shapediver/viewer';
+import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
+import { numberCleaner } from '../../../../../utils/numberCleaner';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
-import { CSS2DObject } from '../../../../../three/CSS2DRenderer';
 
 // #region Type aliases (1)
 
@@ -26,7 +29,13 @@ export type AngularRestrictionProperties = {
 // #region Classes (1)
 
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (13)
+    // #region Properties (18)
+
+    readonly #drawingToolsManager: DrawingToolsManager;
+    readonly #geometryMathManager: GeometryMathManager;
+    readonly #inputBoundingBox: IBox;
+    readonly #planeRestriction: PlaneRestriction;
+    readonly #settings: Settings;
 
     #active: boolean = false;
     #activePolarGrids = {
@@ -39,19 +48,23 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     #labelNext?: CSS2DObject;
     #labelPrevious?: CSS2DObject;
     #normal: vec3;
-    #planeRestriction: PlaneRestriction;
     #polarGridHelperNext?: THREE.PolarGridHelper;
     #polarGridHelperPrevious?: THREE.PolarGridHelper;
     #priority: number = 0;
     #vectorU: vec3;
     #vectorV: vec3;
 
-    // #endregion Properties (13)
+    // #endregion Properties (18)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, planeRestriction: PlaneRestriction, properties?: AngularRestrictionProperties) {
         super(drawingToolsManager, 'angular');
+
+        this.#drawingToolsManager = drawingToolsManager;
+        this.#geometryMathManager = drawingToolsManager.geometryMathManager;
+        this.#inputBoundingBox = drawingToolsManager.inputBoundingBox;
+        this.#settings = drawingToolsManager.settings;
 
         this.#planeRestriction = planeRestriction;
 
@@ -74,7 +87,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (6)
+    // #region Public Getters And Setters (8)
 
     public get active(): boolean {
         return this.#active;
@@ -93,7 +106,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     public set angleStep(value: number) {
-        if(this.#angleStepEditable === false) return;
+        if (this.#angleStepEditable === false) return;
 
         this.#angleStep = value;
         this.calculateAngles();
@@ -115,7 +128,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#priority = value;
     }
 
-    // #endregion Public Getters And Setters (6)
+    // #endregion Public Getters And Setters (8)
 
     // #region Public Methods (2)
 
@@ -141,7 +154,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             previous: false
         };
 
-        const positionArray = this.drawingToolsManager.geometryManager.positionArray;
+        const positionArray = this.#drawingToolsManager.positionArray;
 
         let previousIndex, nextIndex;
         if (metaData !== undefined && metaData.index !== undefined) {
@@ -168,7 +181,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
          * 6. Reverse the projection to the original coordinate system
          */
 
-
         // get the next and previous point from the position array
         const nextPointFromData = vec3.fromValues(positionArray.at((nextIndex * 3))!, positionArray.at((nextIndex * 3) + 1)!, positionArray.at((nextIndex * 3) + 2)!);
         const previousPointFromData = vec3.fromValues(positionArray.at((previousIndex * 3))!, positionArray.at((previousIndex * 3) + 1)!, positionArray.at((previousIndex * 3) + 2)!);
@@ -188,9 +200,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         // calculate the distances in screen space so we can check how close it is
         const resultPointNextAngle = vec3.rotateZ(vec3.create(), pointProjected, nextPointProjected, crossProductNext[2] < 0 ? -angularDifferenceNext : angularDifferenceNext);
-        const screenSpaceDistanceCheckNextAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointNextAngle, pointProjected, this.drawingToolsManager.settings.visualization.points.size_0! * this.drawingToolsManager.settings.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckNextAngle = this.#geometryMathManager.screenSpaceDistanceCheck(resultPointNextAngle, pointProjected, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor);
         const resultPointPreviousAngle = vec3.rotateZ(vec3.create(), pointProjected, previousPointProjected, crossProductPrevious[2] < 0 ? -angularDifferencePrevious : angularDifferencePrevious);
-        const screenSpaceDistanceCheckPreviousAngle = this.drawingToolsManager.geometryMathManager.screenSpaceDistanceCheck(resultPointPreviousAngle, pointProjected, this.drawingToolsManager.settings.visualization.points.size_0! * this.drawingToolsManager.settings.visualization.distanceMultiplicationFactor);
+        const screenSpaceDistanceCheckPreviousAngle = this.#geometryMathManager.screenSpaceDistanceCheck(resultPointPreviousAngle, pointProjected, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor);
 
         if (screenSpaceDistanceCheckNextAngle.check === false && screenSpaceDistanceCheckPreviousAngle.check === false) return;
 
@@ -290,8 +302,8 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             this._object3D.remove(polarGridHelper);
         }
 
-        let radius = this.drawingToolsManager.inputBoundingBox.boundingSphere.radius / 2;
-        if(radius === Infinity)
+        let radius = this.#inputBoundingBox.boundingSphere.radius / 2;
+        if (radius === Infinity)
             radius = 1;
 
         polarGridHelper = new THREE.PolarGridHelper(radius, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
@@ -304,7 +316,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const text = document.createElement('div');
         text.className = 'label';
         text.style.marginTop = '2.5em';
-        text.textContent = `${this.drawingToolsManager.textVisualizationManager.numberCleaner((angle / Math.PI) * 180)}°`;
+        text.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
 
         const label = new CSS2DObject(text);
         label.position.set(0, 0, 0);

@@ -3,7 +3,7 @@ import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
 import { IViewportApi } from '@shapediver/viewer';
 import { IRestrictionApi } from '../interfaces/IRestrictionApi';
 import { vec3 } from 'gl-matrix';
-import { PlaneRestriction } from '../../business/implementation/restrictions/plane/PlaneRestriction';
+import { PlaneRestriction } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 export class DrawingToolsApi implements IDrawingToolsApi {
@@ -34,7 +34,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     }
 
     public get pointsData(): PointsData {
-        return this.#drawingToolsManager.geometryManager.getPointsData();
+        return this.#drawingToolsManager.geometryState.getPointsData();
     }
 
     public get restrictions(): { [key: string]: IRestrictionApi; } {
@@ -59,7 +59,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (8)
+    // #region Public Methods (12)
 
     public addPoint(index: number, position?: vec3 | undefined): void {
         this.#drawingToolsManager.addPoint(index, position);
@@ -74,6 +74,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         return this.#restrictions[token];
     }
 
+    public canRedo(): boolean {
+        return this.#drawingToolsManager.historyManager.canRedo();
+    }
+
+    public canUndo(): boolean {
+        return this.#drawingToolsManager.historyManager.canUndo();
+    }
+
     public cancel(): void {
         this.#drawingToolsManager.cancel();
     }
@@ -86,6 +94,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         return this.#drawingToolsManager.finish();
     }
 
+    public redo(): void {
+        this.#drawingToolsManager.historyManager.redo();
+    }
+
     public removePoint(index: number): void {
         this.#drawingToolsManager.removePoint(index);
     }
@@ -95,9 +107,13 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         delete this.#restrictions[token];
     }
 
+    public undo(): void {
+        this.#drawingToolsManager.historyManager.undo();
+    }
+
     public update(): PointsData | undefined {
         return this.#drawingToolsManager.update();
     }
 
-    // #endregion Public Methods (8)
+    // #endregion Public Methods (12)
 }

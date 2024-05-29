@@ -1,15 +1,26 @@
 import * as THREE from 'three';
-import { DrawingToolsManager } from './DrawingToolsManager';
-import { IManager } from '../interfaces/IManager';
-import { ThreejsData, TreeNode } from '@shapediver/viewer';
+import {
+    addListener,
+    EVENTTYPE_DRAWING_TOOLS,
+    ITreeNode,
+    IViewportApi,
+    ThreejsData,
+    TreeNode
+} from '@shapediver/viewer';
+import { CSS2DObject, CSS2DRenderer } from '../../../three/CSS2DRenderer';
+import { DrawingToolsManager, Settings } from '../DrawingToolsManager';
+import { IManager } from '../../interfaces/IManager';
+import { numberCleaner } from '../utils/numberCleaner';
 import { vec3 } from 'gl-matrix';
-import { CSS2DObject, CSS2DRenderer } from '../../three/CSS2DRenderer';
 
 export class TextVisualizationManager implements IManager {
-    // #region Properties (8)
+    // #region Properties (11)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #labelRenderer: CSS2DRenderer;
+    readonly #parentNode: ITreeNode;
+    readonly #settings: Settings;
+    readonly #viewport: IViewportApi;
     readonly #visualizationNode: TreeNode = new TreeNode('TextVisualizationNode');
 
     #distanceObject3D: THREE.Object3D;
@@ -18,13 +29,18 @@ export class TextVisualizationManager implements IManager {
     #showDistanceLabels: boolean = true;
     #showPointLabels: boolean = true;
 
-    // #endregion Properties (8)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager) {
+        this.#drawingToolsManager = drawingToolsManager;
+        this.#viewport = drawingToolsManager.viewport;
+        this.#settings = drawingToolsManager.settings;
+        this.#parentNode = drawingToolsManager.parentNode;
+
         this.#labelRenderer = new CSS2DRenderer();
-        this.#labelRenderer.setSize(drawingToolsManager.viewport.canvas.clientWidth, drawingToolsManager.viewport.canvas.clientHeight);
+        this.#labelRenderer.setSize(this.#viewport.canvas.clientWidth, this.#viewport.canvas.clientHeight);
         this.#labelRenderer.domElement.style.userSelect = 'none';
         this.#labelRenderer.domElement.style.cursor = 'default';
         this.#labelRenderer.domElement.style.pointerEvents = 'none';
@@ -34,11 +50,10 @@ export class TextVisualizationManager implements IManager {
         this.#labelRenderer.domElement.style.height = '100%';
         this.#labelRenderer.domElement.style.left = '0%';
         this.#labelRenderer.domElement.style.top = '0%';
-        drawingToolsManager.viewport.canvas.parentElement!.appendChild(this.#labelRenderer.domElement);
+        this.#viewport.canvas.parentElement!.appendChild(this.#labelRenderer.domElement);
 
-        this.#drawingToolsManager = drawingToolsManager;
-        this.#drawingToolsManager.viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
-            if(this.#labelRenderer.domElement.clientWidth !== renderer.domElement.clientWidth || this.#labelRenderer.domElement.clientHeight !== renderer.domElement.clientHeight) {
+        this.#viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
+            if (this.#labelRenderer.domElement.clientWidth !== renderer.domElement.clientWidth || this.#labelRenderer.domElement.clientHeight !== renderer.domElement.clientHeight) {
                 this.#labelRenderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
             }
             this.#labelRenderer.render(scene, camera);
@@ -46,15 +61,15 @@ export class TextVisualizationManager implements IManager {
 
         this.#object3D = new THREE.Object3D();
         this.#positionObject3D = new THREE.Object3D();
-        this.#positionObject3D.visible = this.#drawingToolsManager.settings.visualization.pointLabels;
+        this.#positionObject3D.visible = this.#settings.visualization.pointLabels;
         this.#distanceObject3D = new THREE.Object3D();
-        this.#distanceObject3D.visible = this.#drawingToolsManager.settings.visualization.distanceLabels;
+        this.#distanceObject3D.visible = this.#settings.visualization.distanceLabels;
 
         this.#object3D.add(this.#positionObject3D);
         this.#object3D.add(this.#distanceObject3D);
 
-        this.#showPointLabels = this.#drawingToolsManager.settings.visualization.pointLabels;
-        this.#showDistanceLabels = this.#drawingToolsManager.settings.visualization.distanceLabels;
+        this.#showPointLabels = this.#settings.visualization.pointLabels;
+        this.#showDistanceLabels = this.#settings.visualization.distanceLabels;
 
         const node = new TreeNode('ThreeJsDataNode');
 
@@ -63,12 +78,22 @@ export class TextVisualizationManager implements IManager {
 
         this.#visualizationNode.addChild(node);
         this.#visualizationNode.updateVersion();
-        this.#drawingToolsManager.parentNode.addChild(this.#visualizationNode);
-        this.#drawingToolsManager.parentNode.updateVersion(false, false);
-        this.#drawingToolsManager.viewport.updateNode(this.#drawingToolsManager.parentNode);
+        this.#parentNode.addChild(this.#visualizationNode);
+        this.#parentNode.updateVersion(false, false);
+        this.#viewport.updateNode(this.#parentNode);
 
         this.createPointLabels();
         this.createDistanceLabels();
+
+        addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+            this.createPointLabels();
+            this.createDistanceLabels();
+        });
+
+        addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, () => {
+            this.createPointLabels();
+            this.createDistanceLabels();
+        });
     }
 
     // #endregion Constructors (1)
@@ -103,7 +128,7 @@ export class TextVisualizationManager implements IManager {
 
     // #endregion Public Getters And Setters (4)
 
-    // #region Public Methods (4)
+    // #region Public Methods (3)
 
     public close(): void {
         this.#positionObject3D.remove(...this.#positionObject3D.children);
@@ -114,8 +139,8 @@ export class TextVisualizationManager implements IManager {
         if (!this.#showDistanceLabels) return;
         this.#distanceObject3D.remove(...this.#distanceObject3D.children);
 
-        const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
-        const indicesArrayLines = this.#drawingToolsManager.geometryManager.indicesArrayLines;
+        const positionArray = this.#drawingToolsManager.positionArray;
+        const indicesArrayLines = this.#drawingToolsManager.indicesArrayLines;
 
         if (!indicesArrayLines) return;
 
@@ -139,7 +164,7 @@ export class TextVisualizationManager implements IManager {
             const text = document.createElement('div');
             text.className = 'label';
             text.style.marginTop = '1em';
-            text.textContent = `${this.numberCleaner(vec3.distance(firstPoint, secondPoint))}`;
+            text.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}`;
 
             const label = new CSS2DObject(text);
             label.position.set(midPoint[0], midPoint[1], midPoint[2]);
@@ -151,13 +176,13 @@ export class TextVisualizationManager implements IManager {
         if (!this.#showPointLabels) return;
         this.#positionObject3D.remove(...this.#positionObject3D.children);
 
-        const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
+        const positionArray = this.#drawingToolsManager.positionArray;
         for (let i = 0; i < positionArray.length; i += 3) {
             const text = document.createElement('div');
             text.className = 'label';
             text.style.marginTop = '1em';
 
-            text.textContent = `[${this.numberCleaner(positionArray[i])}, ${this.numberCleaner(positionArray[i + 1])}, ${this.numberCleaner(positionArray[i + 2])}]`;
+            text.textContent = `[${numberCleaner(positionArray[i])}, ${numberCleaner(positionArray[i + 1])}, ${numberCleaner(positionArray[i + 2])}]`;
 
             const label = new CSS2DObject(text);
             label.position.set(positionArray[i], positionArray[i + 1], positionArray[i + 2]);
@@ -165,17 +190,5 @@ export class TextVisualizationManager implements IManager {
         }
     }
 
-    public numberCleaner(value: number): number {
-        const roundedThreshold = 100;
-        const rounded = Math.round(value * roundedThreshold) / roundedThreshold;
-
-        // if the rounded number is within (1 / roundedThreshold) of the next integer, round to that integer
-        if (rounded % 1 < 1 / roundedThreshold) {
-            return Math.round(rounded);
-        }
-
-        return rounded;
-    }
-
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (3)
 }

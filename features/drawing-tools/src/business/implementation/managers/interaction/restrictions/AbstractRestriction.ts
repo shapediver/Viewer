@@ -1,28 +1,31 @@
 import THREE from 'three';
-import { DrawingToolsManager } from '../DrawingToolsManager';
-import { IRestrictionBase } from '../../interfaces/IRestrictionBase';
-import { ThreejsData, TreeNode } from '@shapediver/viewer';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
+import { IRestrictionBase } from '../../../../interfaces/IRestrictionBase';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
+import { ThreejsData } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 
 export abstract class AbstractRestriction implements IRestrictionBase {
-    // #region Properties (7)
+    // #region Properties (8)
 
     readonly #id: string;
+    readonly #parentNode: ITreeNode;
+    readonly #viewport: IViewportApi;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
     #showVisualization: boolean = false;
-
-    protected readonly drawingToolsManager: DrawingToolsManager;
 
     protected _enabled: boolean = true;
     protected _enabledEditable: boolean = true;
     protected _object3D!: THREE.Object3D;
 
-    // #endregion Properties (7)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string) {
-        this.drawingToolsManager = drawingToolsManager;
+        this.#parentNode = drawingToolsManager.parentNode;
+        this.#viewport = drawingToolsManager.viewport;
         this.#id = id;
         this.createGridHelperObject();
     }
@@ -36,7 +39,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     }
 
     public set enabled(value: boolean) {
-        if(this._enabledEditable === false) return;
+        if (this._enabledEditable === false) return;
 
         this._enabled = value;
         this._object3D.visible = this.isVisible();
@@ -62,9 +65,9 @@ export abstract class AbstractRestriction implements IRestrictionBase {
     // #region Public Methods (1)
 
     public removeVisualization(): void {
-        this.drawingToolsManager.parentNode.removeChild(this.#visualizationNode);
-        this.drawingToolsManager.parentNode.updateVersion(false, false);
-        this.drawingToolsManager.viewport.updateNode(this.drawingToolsManager.parentNode);
+        this.#parentNode.removeChild(this.#visualizationNode);
+        this.#parentNode.updateVersion(false, false);
+        this.#viewport.updateNode(this.#parentNode);
     }
 
     // #endregion Public Methods (1)
@@ -88,9 +91,9 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
         this.#visualizationNode.addChild(node);
         this.#visualizationNode.updateVersion();
-        this.drawingToolsManager.parentNode.addChild(this.#visualizationNode);
-        this.drawingToolsManager.parentNode.updateVersion(false, false);
-        this.drawingToolsManager.viewport.updateNode(this.drawingToolsManager.parentNode);
+        this.#parentNode.addChild(this.#visualizationNode);
+        this.#parentNode.updateVersion(false, false);
+        this.#viewport.updateNode(this.#parentNode);
     }
 
     private isVisible(): boolean {
