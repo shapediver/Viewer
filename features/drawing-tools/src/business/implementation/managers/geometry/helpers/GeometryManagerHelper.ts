@@ -54,7 +54,8 @@ export class GeometryManagerHelper {
         newPositionArray.set([...this.#geometryState.positionArray.slice(0, scaledIndex), ...p, ...this.#geometryState.positionArray.slice(scaledIndex, this.#geometryState.positionArray.length)]);
 
         // set the material index at that point to 0 and move the other indices back
-        this.#geometryState.updateMaterialIndexArray(this.#geometryState.materialIndexArray.slice(0, insertionIndex).concat([0], this.#geometryState.materialIndexArray.slice(insertionIndex, this.#geometryState.materialIndexArray.length)));
+        const materialIndexArray = this.#geometryState.materialIndexArray.slice(0, insertionIndex).concat([0], this.#geometryState.materialIndexArray.slice(insertionIndex, this.#geometryState.materialIndexArray.length - 1));
+        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
         this.#geometryState.updateData(newPositionArray, temporary);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.ADDED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: insertionIndex });

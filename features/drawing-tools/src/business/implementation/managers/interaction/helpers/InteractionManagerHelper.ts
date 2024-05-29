@@ -7,7 +7,7 @@ import { vec3 } from 'gl-matrix';
 import { addListener } from '@shapediver/viewer';
 
 export class InteractionManagerHelper {
-    // #region Properties (14)
+    // #region Properties (15)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #eventEngine = EventEngine.instance;
@@ -20,12 +20,13 @@ export class InteractionManagerHelper {
     #dragging: boolean = false;
     #hoveredPoint?: number;
     #justSelected: boolean = false;
+    #lastRay: IRay | undefined;
     #moving: boolean = false;
     #selectedMovedPointPositions: vec3[] = [];
     #selectedPointIndices: number[] = [];
     #selectedPointPositions: vec3[] = [];
 
-    // #endregion Properties (14)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -107,7 +108,11 @@ export class InteractionManagerHelper {
      * @param ray 
      * @returns 
      */
-    public checkHover(event: PointerEvent, ray: IRay): void {
+    public checkHover(event: PointerEvent | KeyboardEvent, ray?: IRay): void {
+        if (!ray && !this.#lastRay) return;
+        if (!ray) ray = this.#lastRay!;
+        this.#lastRay = ray;
+
         const deleteKeyPressed = this.#interactionManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
 
         // check if there is a point close to the ray
@@ -241,8 +246,6 @@ export class InteractionManagerHelper {
             this.toggleSelection(element);
         });
         this.#selectedPointIndices = [];
-
-        this.#drawingToolsManager.resetMaterialIndices();
     }
 
     /**

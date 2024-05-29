@@ -242,6 +242,7 @@ export class InteractionManager implements IManager {
          */
         if (deleteKeyPressed) {
             this.#midPointInteractionHandler.stopMidPointInsertion();
+            this.#interactionManagerHelper.checkHover(event);
         }
 
         /**
