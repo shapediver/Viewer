@@ -87,7 +87,6 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     public set active(value: boolean) {
         this.#active = value;
-        if (this.#gridHelper) this.#gridHelper.visible = value;
     }
 
     public get enabledEditable(): boolean {
@@ -206,7 +205,7 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         // todo  adjust grid size so that is divisible by grid unit
         this.#gridHelper = new THREE.GridHelper(gridSize, gridSize / this.#gridUnit, 0x666666, 0x222222);
         this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
-        this.#gridHelper.visible = false;
+        this.#gridHelper.visible = true;
 
         this.#gridHelper.renderOrder = -1;
         (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
