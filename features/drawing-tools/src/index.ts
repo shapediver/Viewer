@@ -22,9 +22,12 @@ import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
+import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 
 export {
     SettingsOptional as Settings, Callbacks,
+    DrawingToolsEventResponseMapping, IDrawingToolsEvent,
     IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,

@@ -47,7 +47,7 @@ export class MidPointInteractionHandler {
             if (distances) {
                 // finish mid point insertion if it is the current index
                 if (distances[0].index === this.#midPointInsertionIndex) {
-                    this.#geometryState.makePointPersistent(this.#midPointInsertionIndex);
+                    this.#geometryState.makePointPersistent(this.#midPointInsertionIndex, false);
                     this.#midPointInsertionActive = false;
                     this.#midPointInsertionIndex = -1;
                 }

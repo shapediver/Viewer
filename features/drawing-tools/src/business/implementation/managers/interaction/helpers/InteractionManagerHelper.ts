@@ -4,9 +4,10 @@ import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
 import { vec3 } from 'gl-matrix';
+import { addListener } from '@shapediver/viewer';
 
 export class InteractionManagerHelper {
-    // #region Properties (13)
+    // #region Properties (14)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #eventEngine = EventEngine.instance;
@@ -20,10 +21,11 @@ export class InteractionManagerHelper {
     #hoveredPoint?: number;
     #justSelected: boolean = false;
     #moving: boolean = false;
+    #selectedMovedPointPositions: vec3[] = [];
     #selectedPointIndices: number[] = [];
     #selectedPointPositions: vec3[] = [];
 
-    // #endregion Properties (13)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
@@ -31,6 +33,10 @@ export class InteractionManagerHelper {
         this.#drawingToolsManager = drawingToolsManager;
         this.#interactionManager = interactionManager;
         this.#geometryState = this.#drawingToolsManager.geometryState;
+
+        addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+            this.removeAllSelectedPoints();
+        });
     }
 
     // #endregion Constructors (1)
@@ -163,6 +169,7 @@ export class InteractionManagerHelper {
         this.#dragging = false;
         this.#dragStart = vec3.create();
         this.#selectedPointPositions = [];
+        this.#selectedMovedPointPositions = [];
         this.#draggedPointPosition = vec3.create();
     }
 
@@ -183,8 +190,8 @@ export class InteractionManagerHelper {
 
                     for (let i = 0; i < this.#selectedPointIndices.length; i++) {
                         // add difference to selected point
-                        const selectedPoint = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
-                        this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], selectedPoint);
+                        this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
+                        this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
                     }
 
                     this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
@@ -194,12 +201,12 @@ export class InteractionManagerHelper {
     }
 
     public onOut(): void {
-        // reset all selected points to their original position
-        this.#selectedPointIndices.forEach((element, i) => {
-            this.#drawingToolsManager.movePointTemporary(element, this.#selectedPointPositions[i]);
-        });
-
         if (this.#dragging === true) {
+            // reset all selected points to their original position
+            this.#selectedPointIndices.forEach((element, i) => {
+                this.#drawingToolsManager.movePointTemporary(element, this.#selectedPointPositions[i]);
+            });
+
             // reset the dragged point position
             this.#drawingToolsManager.movePointTemporary(this.#draggedPoint!, this.#draggedPointPosition);
         }
@@ -214,7 +221,14 @@ export class InteractionManagerHelper {
         } else if (this.#justSelected === true && this.#moving === true && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
             this.toggleSelection(this.#hoveredPoint);
         } if (this.#moving === true && this.#dragging === true) {
+            const positionArray = new Float32Array(this.#geometryState.positionArray);
+            for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+                const index = this.#selectedPointIndices[i];
+                positionArray.set([...positionArray.slice(0, index * 3), ...this.#selectedMovedPointPositions[i], ...positionArray.slice(index * 3 + 3, positionArray.length)]);
+            }
             this.removeAllSelectedPoints();
+            this.#geometryState.updateData(positionArray);
+
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         }
     }
@@ -263,6 +277,7 @@ export class InteractionManagerHelper {
         this.#moving = false;
         this.#dragging = false;
         this.#selectedPointPositions = [];
+        this.#selectedMovedPointPositions = [];
         this.#hoveredPoint = undefined;
     }
 
@@ -293,6 +308,9 @@ export class InteractionManagerHelper {
                 this.#selectedPointIndices.forEach(element =>
                     this.#selectedPointPositions.push(this.#geometryState.getPosition(element * 3))
                 );
+
+                // copy values into selected moved point positions
+                this.#selectedMovedPointPositions = this.#selectedPointPositions.map(element => vec3.clone(element));
 
                 this.#draggedPointPosition = this.#geometryState.getPosition(this.#hoveredPoint * 3);
 

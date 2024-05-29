@@ -22,8 +22,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
         initialParameterValues: {
-            "Grid Unit Editable": "false",
-            "Angle Step Editable": "false",
+            'Grid Unit Editable': 'false',
+            'Angle Step Editable': 'false',
         }
     });
 
@@ -42,7 +42,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     const onUpdate = async (pointsData: PointsData) => {
         console.log('Drawing tools updated');
 
-        pointsParameter.value = JSON.stringify({ "points": pointsData });
+        pointsParameter.value = JSON.stringify({ 'points': pointsData });
         await session.customize();
 
     };
@@ -174,5 +174,58 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         }
     };
     document.body.appendChild(imgCameraSwitch);
+
+    /**
+     * 
+     * UNDO / REDO
+     * 
+     */
+
+    const imgUndo = document.createElement('img');
+    imgUndo.src = 'https://viewer.shapediver.com/v3/graphics/undo.svg';
+    imgUndo.width = 50;
+    imgUndo.height = 50;
+    imgUndo.style.position = 'absolute';
+    imgUndo.style.left = '1rem';
+    imgUndo.style.top = '1rem';
+    imgUndo.style.cursor = 'not-allowed';
+    imgUndo.style.filter = 'brightness(50%)';
+    imgUndo.onclick = () => {
+        drawingToolsApi.undo();
+    };
+    document.body.appendChild(imgUndo);
+
+    const imgRedo = document.createElement('img');
+    imgRedo.src = 'https://viewer.shapediver.com/v3/graphics/redo.svg';
+    imgRedo.width = 50;
+    imgRedo.height = 50;
+    imgRedo.style.position = 'absolute';
+    imgRedo.style.left = '5rem';
+    imgRedo.style.top = '1rem';
+    imgRedo.style.cursor = 'not-allowed';
+    imgRedo.style.filter = 'brightness(50%)';
+    imgRedo.onclick = () => {
+        drawingToolsApi.redo();
+    };
+    document.body.appendChild(imgRedo);
+
+
+    SDV.addListener(SDV.EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+        if(drawingToolsApi.canRedo()) {
+            imgRedo.style.filter = 'brightness(0%)';
+            imgRedo.style.cursor = 'pointer';
+        } else {
+            imgRedo.style.filter = 'brightness(50%)';
+            imgRedo.style.cursor = 'not-allowed';
+        }
+
+        if(drawingToolsApi.canUndo()) {
+            imgUndo.style.filter = 'brightness(0%)';
+            imgUndo.style.cursor = 'pointer';
+        } else {
+            imgUndo.style.filter = 'brightness(50%)';
+            imgUndo.style.cursor = 'not-allowed';
+        }
+    });
 
 })();

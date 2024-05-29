@@ -59,7 +59,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (8)
+    // #region Public Methods (12)
 
     public addPoint(index: number, position?: vec3 | undefined): void {
         this.#drawingToolsManager.addPoint(index, position);
@@ -72,6 +72,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
             this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
         return this.#restrictions[token];
+    }
+
+    public canRedo(): boolean {
+        return this.#drawingToolsManager.historyManager.canRedo();
+    }
+
+    public canUndo(): boolean {
+        return this.#drawingToolsManager.historyManager.canUndo();
     }
 
     public cancel(): void {
@@ -107,5 +115,5 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         return this.#drawingToolsManager.update();
     }
 
-    // #endregion Public Methods (8)
+    // #endregion Public Methods (12)
 }

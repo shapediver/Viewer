@@ -137,7 +137,7 @@ export class GeometryState {
 
     // #endregion Public Getters And Setters (12)
 
-    // #region Public Methods (16)
+    // #region Public Methods (17)
 
     public canAddPoint(): boolean {
         return this.#settings.geometry.maxPoints !== undefined &&
@@ -327,7 +327,7 @@ export class GeometryState {
         this.updateData(this.#positionArray);
     }
 
-    public makePointPersistent(index: number): void {
+    public makePointPersistent(index: number, recordHistory = true): void {
         // check if the number of points is within the minimum and maximum range
         this.wasWithinMinimumMaximumPointsRange = this.checkNumberOfPoints();
 
@@ -336,15 +336,17 @@ export class GeometryState {
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
             points: this.getPointsData(),
-            temporary: false
+            temporary: false,
+            fromHistory: recordHistory === false
         });
     }
 
     public updateData(
-        positionArray: Float32Array | PointsData,
-        temporary: boolean = false
+        positionArray: Float32Array,
+        temporary: boolean = false,
+        fromHistory: boolean = false
     ): void {
-        this.#positionArray = positionArray instanceof Float32Array ? positionArray : this.convertToFloat32Array(positionArray);
+        this.#positionArray = positionArray;
         this.#positionIndexArray = this.createAndSetPositionIndexArray();
 
         this.geometryDataPoints.primitive.attributes['POSITION'] =
@@ -398,8 +400,14 @@ export class GeometryState {
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
             points: this.getPointsData(),
-            temporary
+            temporary,
+            fromHistory
         });
+    }
+
+    public updateDataFromHistory(points: PointsData): void {
+        const positionArray = this.convertToFloat32Array(points);
+        this.updateData(positionArray, false, true);
     }
 
     public updateMaterialIndexArray(materialIndexArray: number[]): void {
@@ -420,7 +428,7 @@ export class GeometryState {
         this.#viewport.updateNode(this.#parentNode);
     }
 
-    // #endregion Public Methods (16)
+    // #endregion Public Methods (17)
 
     // #region Private Methods (1)
 

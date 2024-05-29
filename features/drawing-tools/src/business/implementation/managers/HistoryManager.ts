@@ -29,7 +29,7 @@ export class HistoryManager implements IManager {
 
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
             const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-            if (event.temporary === false && event.points !== undefined) {
+            if (event.temporary === false && event.points !== undefined && event.fromHistory !== true) {
                 this.recordState({
                     points: event.points
                 });
@@ -39,10 +39,18 @@ export class HistoryManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (6)
+    // #region Public Methods (8)
 
     public applyState(state: HistoryState): void {
-        this.#drawingToolsManager.geometryState.updateData(state.points);
+        this.#drawingToolsManager.geometryState.updateDataFromHistory(state.points);
+    }
+
+    public canRedo(): boolean {
+        return this.#currentStateIndex < this.#history.length - 1;
+    }
+
+    public canUndo(): boolean {
+        return this.#currentStateIndex > 0;
     }
 
     public close(): void {
@@ -61,6 +69,8 @@ export class HistoryManager implements IManager {
     }
 
     public redo(): void {
+        if(!this.canRedo()) return;
+
         if (this.#currentStateIndex < this.#history.length - 1)
             this.#currentStateIndex++;
 
@@ -68,13 +78,15 @@ export class HistoryManager implements IManager {
     }
 
     public undo(): void {
+        if(!this.canUndo()) return;
+
         if (this.#currentStateIndex > 0)
             this.#currentStateIndex--;
 
         this.applyState(this.#history[this.#currentStateIndex]);
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (8)
 }
 
 // #endregion Classes (1)
