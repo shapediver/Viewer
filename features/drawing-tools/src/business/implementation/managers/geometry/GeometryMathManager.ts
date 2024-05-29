@@ -1,24 +1,28 @@
-import { DrawingToolsManager } from './DrawingToolsManager';
-import { IManager } from '../interfaces/IManager';
-import { IRay } from '@shapediver/viewer.features.interaction';
+import { DrawingToolsManager, Settings } from '../../DrawingToolsManager';
+import { IManager } from '../../../interfaces/IManager';
+import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryMathManager implements IManager {
-    // #region Properties (1)
+    // #region Properties (3)
 
     readonly #drawingToolsManager: DrawingToolsManager;
+    readonly #settings: Settings;
+    readonly #viewport: IViewportApi;
 
-    // #endregion Properties (1)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
-    constructor(drawToolsManager: DrawingToolsManager) {
-        this.#drawingToolsManager = drawToolsManager;
+    constructor(drawingToolsManager: DrawingToolsManager) {
+        this.#drawingToolsManager = drawingToolsManager;
+        this.#viewport = drawingToolsManager.viewport;
+        this.#settings = drawingToolsManager.settings;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (3)
+    // #region Public Methods (4)
 
     /**
      * Check which distances of lines to ray
@@ -27,8 +31,8 @@ export class GeometryMathManager implements IManager {
      * @returns 
      */
     public checkLineDistances(ray: IRay): { index: number[]; distance: number; }[] | undefined {
-        const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
-        const indicesArrayLines = this.#drawingToolsManager.geometryManager.indicesArrayLines;
+        const positionArray = this.#drawingToolsManager.positionArray;
+        const indicesArrayLines = this.#drawingToolsManager.indicesArrayLines;
 
         // if there are no line array indices, return
         if (!indicesArrayLines) return;
@@ -47,8 +51,8 @@ export class GeometryMathManager implements IManager {
             const lineStart = vec3.fromValues(positionArray.at(firstIndex * 3)!, positionArray.at(firstIndex * 3 + 1)!, positionArray.at(firstIndex * 3 + 2)!);
             const lineEnd = vec3.fromValues(positionArray.at(secondIndex * 3)!, positionArray.at(secondIndex * 3 + 1)!, positionArray.at(secondIndex * 3 + 2)!);
 
-            const {closestPointOnRay, closestPointOnLine} = this.closestPointsRayLine(ray, lineStart, lineEnd);
-            if (this.screenSpaceDistanceCheck(closestPointOnRay, closestPointOnLine, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === false) continue;
+            const { closestPointOnRay, closestPointOnLine } = this.closestPointsRayLine(ray, lineStart, lineEnd);
+            if (this.screenSpaceDistanceCheck(closestPointOnRay, closestPointOnLine, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: [firstIndex, secondIndex], distance: vec3.distance(closestPointOnRay, closestPointOnLine) });
         }
@@ -58,7 +62,7 @@ export class GeometryMathManager implements IManager {
 
         return distances.sort((a, b) => a.distance - b.distance);
     }
-    
+
     /**
      * Check which distances of points to ray
      * 
@@ -69,7 +73,7 @@ export class GeometryMathManager implements IManager {
         index: number;
         distance: number;
     }[] | undefined {
-        const positionArray = this.#drawingToolsManager.geometryManager.positionArray;
+        const positionArray = this.#drawingToolsManager.positionArray;
 
         /**
          * Calculate point distances to ray
@@ -83,7 +87,7 @@ export class GeometryMathManager implements IManager {
 
             // distance from point to ray
             const closestPoint = this.closestPoint(ray, point);
-            if (this.screenSpaceDistanceCheck(point, closestPoint, this.#drawingToolsManager.settings.visualization.points.size_0! * this.#drawingToolsManager.settings.visualization.distanceMultiplicationFactor).check === false) continue;
+            if (this.screenSpaceDistanceCheck(point, closestPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === false) continue;
 
             distances.push({ index: i / 3, distance: vec3.distance(point, closestPoint) });
         }
@@ -95,16 +99,18 @@ export class GeometryMathManager implements IManager {
         return distances.sort((a, b) => a.distance - b.distance);
     }
 
+    public close(): void { }
+
     public screenSpaceDistanceCheck(point1: vec3, point2: vec3, threshold: number) {
-        const camera = this.#drawingToolsManager.viewport.camera!;
+        const camera = this.#viewport.camera!;
 
         // Project points to NDC
         const screenPos1 = camera.project(vec3.clone(point1));
         const screenPos2 = camera.project(vec3.clone(point2));
 
-        const width = this.#drawingToolsManager.viewport.canvas.width;
-        const height = this.#drawingToolsManager.viewport.canvas.height;
-    
+        const width = this.#viewport.canvas.width;
+        const height = this.#viewport.canvas.height;
+
         const x1 = ((screenPos1[0] * (width / 2)) + (width / 2));
         const y1 = - ((screenPos1[1] * (height / 2)) + (height / 2));
 
@@ -128,11 +134,23 @@ export class GeometryMathManager implements IManager {
         };
     }
 
-    public close(): void { }
-
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (4)
 
     // #region Private Methods (2)
+
+    /**
+     * Calculate the closest point on a ray to a point
+     * 
+     * @param ray 
+     * @param point 
+     * @returns 
+     */
+    private closestPoint(ray: IRay, point: vec3): vec3 {
+        // distance from point to ray
+        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
+        // closest point on ray to point
+        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
+    }
 
     /**
      * Calculate the distance between a ray and a line segment
@@ -148,7 +166,7 @@ export class GeometryMathManager implements IManager {
 
         // cross product of ray direction and line direction
         const crossProduct = vec3.cross(vec3.create(), ray.direction, lineDirection);
-        
+
         // length of cross product
         const crossProductLength = vec3.length(crossProduct);
 
@@ -161,7 +179,6 @@ export class GeometryMathManager implements IManager {
             };
         }
 
-        
         const t = vec3.sub(vec3.create(), lineStart, ray.origin);
         const u = vec3.cross(vec3.create(), t, lineDirection);
         const v = vec3.cross(vec3.create(), t, ray.direction);
@@ -180,24 +197,10 @@ export class GeometryMathManager implements IManager {
         } else {
             closestPointOnLine = vec3.add(vec3.create(), lineStart, vec3.scale(vec3.create(), lineDirection, uValue));
         }
-        
+
         return {
             closestPointOnRay, closestPointOnLine
         };
-    }
-
-    /**
-     * Calculate the closest point on a ray to a point
-     * 
-     * @param ray 
-     * @param point 
-     * @returns 
-     */
-    private closestPoint(ray: IRay, point: vec3): vec3 {
-        // distance from point to ray
-        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
-        // closest point on ray to point
-        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
     }
 
     // #endregion Private Methods (2)

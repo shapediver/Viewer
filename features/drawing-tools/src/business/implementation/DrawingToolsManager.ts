@@ -1,28 +1,34 @@
-import { EventManager } from './EventManager';
-import { Box, FLAG_TYPE, IBox, ITreeNode, TreeNode, sceneTree } from '@shapediver/viewer';
-import { GeometryManager } from './GeometryManager';
-import { GeometryMathManager } from './GeometryMathManager';
-import { IMapData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
+import {
+    Box,
+    FLAG_TYPE,
+    IBox,
+    IMapData,
+    IMaterialBasicLineDataProperties,
+    IMaterialMultiPointDataProperties,
+    ITreeNode,
+    IViewportApi,
+    sceneTree,
+    TreeNode
+} from '@shapediver/viewer';
+import {
+    EventEngine,
+    EVENTTYPE_DRAWING_TOOLS,
+    ShapeDiverViewerDrawingToolsError,
+    UuidGenerator
+} from '@shapediver/viewer.shared.services';
+import { GeometryManager } from './managers/geometry/GeometryManager';
+import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
+import { GeometryState } from './managers/geometry/GeometryState';
+import { HistoryManager } from './managers/HistoryManager';
 import { IManager } from '../interfaces/IManager';
-import { InteractionManager } from './InteractionManager';
-import { IViewportApi } from '@shapediver/viewer.features.interaction';
+import { InteractionManager } from './managers/interaction/InteractionManager';
+import { PlaneRestrictionProperties } from './managers/interaction/restrictions/plane/PlaneRestriction';
 import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
-import { RestrictionManager } from './RestrictionManager';
-import { TextVisualizationManager } from './TextVisualizationManager';
-import { EVENTTYPE_DRAWING_TOOLS, EventEngine, ShapeDiverViewerDrawingToolsError, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { RestrictionManager } from './managers/interaction/RestrictionManager';
+import { TextVisualizationManager } from './managers/TextVisualizationManager';
 import { vec3 } from 'gl-matrix';
-import { PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 
-// #region Type aliases (6)
-
-/**
- * The data of the points.
- * The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point.
- * 
- * @example [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 0]]
- * @typedef PointsData
- */
-export type PointsData = number[][];
+// #region Type aliases (5)
 
 /**
  * The callbacks of the drawing tool.
@@ -49,7 +55,16 @@ export type Callbacks = {
      */
     onUpdate(pointsData: PointsData): void;
 };
+export type DefaultTextures = { [key: string]: Promise<IMapData> | IMapData }
 
+/**
+ * The data of the points.
+ * The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point.
+ * 
+ * @example [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 0]]
+ * @typedef PointsData
+ */
+export type PointsData = number[][];
 /**
  * The initial settings of the drawing tool.
  * Here you can define the initial settings of the drawing tool.
@@ -64,7 +79,6 @@ export type Settings = {
      * Here you can define the points, the mode and specific details of the geometry.
      */
     geometry: {
-        
         /**
          * The points that are used when starting the drawing tool.
          * The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point.
@@ -134,7 +148,7 @@ export type Settings = {
         autoClose: boolean;
 
     },
-    
+
     /**
      * The restrictions of the drawing tool.
      * 
@@ -143,7 +157,7 @@ export type Settings = {
      * 
      * At the moment, only the plane restriction is supported.
      */
-    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties};
+    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties };
 
     /**
      * The visualization settings of the drawing tool.
@@ -151,7 +165,6 @@ export type Settings = {
      * Here you can define the visualization of the drawing tool.
      */
     visualization: {
-
         /**
          * The multiplication factor of the point size when interactions are performed.
          * If the factor is set to 2, the point size is doubled when interacting.
@@ -194,14 +207,13 @@ export type Settings = {
      * Here you can define which keys are used for the different actions of the drawing tool.
      */
     controls: {
-
         /**
          * The key that is used to insert a point.
          * 
          * @default 'Ctrl'
          */
-        insert: string, 
-        
+        insert: string,
+
         /**
          * The key that is used to delete a point.
          * 
@@ -230,9 +242,8 @@ export type Settings = {
          */
         cancel: string, // cancel drawing (default: Escape)
     };
-    
-};
 
+};
 export type SettingsOptional = {
     geometry?: Partial<Settings['geometry']>;
     restrictions?: Partial<Settings['restrictions']>;
@@ -240,25 +251,22 @@ export type SettingsOptional = {
     controls?: Partial<Settings['controls']>;
 };
 
-export type DefaultTextures = { [key: string]: Promise<IMapData> | IMapData }
-
-// #endregion Type aliases (6)
+// #endregion Type aliases (5)
 
 // #region Classes (1)
 
 export class DrawingToolsManager implements IManager {
-    // #region Properties (17)
+    // #region Properties (16)
 
     readonly #callbacks: Callbacks;
-    readonly #settings: Settings;
     readonly #defaultTextures: DefaultTextures;
     readonly #eventEngine = EventEngine.instance;
-    readonly #eventManager: EventManager;
     readonly #geometryManager: GeometryManager;
     readonly #geometryMathManager: GeometryMathManager;
+    readonly #historyManager: HistoryManager;
     readonly #interactionManager: InteractionManager;
     readonly #parentNode: ITreeNode;
-    readonly #restrictionManager: RestrictionManager;
+    readonly #settings: Settings;
     readonly #textVisualizationManager: TextVisualizationManager;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
@@ -268,7 +276,7 @@ export class DrawingToolsManager implements IManager {
     #inputBoundingBox: IBox = new Box();
     #uuid = this.#uuidGenerator.create();
 
-    // #endregion Properties (17)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
@@ -282,20 +290,11 @@ export class DrawingToolsManager implements IManager {
         sceneTree.root.addChild(this.#parentNode);
         sceneTree.root.updateVersion(false, false);
 
+        this.#historyManager = new HistoryManager(this);
         this.#geometryMathManager = new GeometryMathManager(this);
-        this.#restrictionManager = new RestrictionManager(this);
         this.#geometryManager = new GeometryManager(this);
         this.#interactionManager = new InteractionManager(this);
         this.#textVisualizationManager = new TextVisualizationManager(this);
-
-        this.#eventManager = new EventManager(viewport, {
-            onDown: this.#interactionManager.onDown.bind(this.#interactionManager),
-            onUp: this.#interactionManager.onUp.bind(this.#interactionManager),
-            onOut: this.#interactionManager.onOut.bind(this.#interactionManager),
-            onMove: this.#interactionManager.onMove.bind(this.#interactionManager),
-            onKeyDown: this.#interactionManager.onKeyDown.bind(this.#interactionManager),
-            onKeyUp: this.#interactionManager.onKeyUp.bind(this.#interactionManager)
-        });
 
         this.#continuousRenderingFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
 
@@ -306,7 +305,7 @@ export class DrawingToolsManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (13)
+    // #region Public Getters And Setters (17)
 
     public get callbacks(): Callbacks {
         return this.#callbacks;
@@ -314,10 +313,6 @@ export class DrawingToolsManager implements IManager {
 
     public get closed(): boolean {
         return this.#closed;
-    }
-
-    public get settings(): Settings {
-        return this.#settings;
     }
 
     public get defaultTextures(): DefaultTextures {
@@ -332,6 +327,18 @@ export class DrawingToolsManager implements IManager {
         return this.#geometryMathManager;
     }
 
+    public get geometryState(): GeometryState {
+        return this.#geometryManager.geometryState;
+    }
+
+    public get historyManager(): HistoryManager {
+        return this.#historyManager;
+    }
+
+    public get indicesArrayLines(): Uint8Array | null | undefined {
+        return this.#geometryManager.geometryState.indicesArrayLines;
+    }
+
     public get inputBoundingBox(): IBox {
         return this.#inputBoundingBox;
     }
@@ -344,8 +351,16 @@ export class DrawingToolsManager implements IManager {
         return this.#parentNode;
     }
 
+    public get positionArray(): Float32Array {
+        return this.#geometryManager.geometryState.positionArray;
+    }
+
     public get restrictionManager(): RestrictionManager {
-        return this.#restrictionManager;
+        return this.#interactionManager.restrictionManager;
+    }
+
+    public get settings(): Settings {
+        return this.#settings;
     }
 
     public get textVisualizationManager(): TextVisualizationManager {
@@ -360,9 +375,9 @@ export class DrawingToolsManager implements IManager {
         return this.#viewport;
     }
 
-    // #endregion Public Getters And Setters (13)
+    // #endregion Public Getters And Setters (17)
 
-    // #region Public Methods (9)
+    // #region Public Methods (15)
 
     /**
      * Add a point to the drawing tool.
@@ -371,11 +386,15 @@ export class DrawingToolsManager implements IManager {
      * @param position 
      * @returns 
      */
-    public addPoint(index: number, position?: vec3 | undefined): void {
+    public addPoint(index: number, position?: vec3 | undefined, temporary = false): void {
         if (this.#closed) return;
-        if (!this.#geometryManager.canAddPoint()) 
+        if (!this.#geometryManager.canAddPoint())
             throw new ShapeDiverViewerDrawingToolsError('The maximum amount of points is reached.');
-        this.#interactionManager.addPoint(index, position);
+        this.#geometryManager.addPoint(index, position, temporary);
+    }
+
+    public addPointTemporary(index: number, position?: vec3 | undefined): void {
+        this.addPoint(index, position, true);
     }
 
     /**
@@ -385,7 +404,7 @@ export class DrawingToolsManager implements IManager {
      * @returns 
      */
     public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
-        return this.#restrictionManager.addRestriction(properties, token);
+        return this.#interactionManager.restrictionManager.addRestriction(properties, token);
     }
 
     public cancel(): void {
@@ -402,9 +421,7 @@ export class DrawingToolsManager implements IManager {
     public close(): void {
         if (this.#closed) return;
         this.#viewport.removeFlag(this.#continuousRenderingFlag);
-        this.#eventManager.close();
         this.#geometryMathManager.close();
-        this.#restrictionManager.close();
         this.#geometryManager.close();
         this.#interactionManager.close();
         this.#textVisualizationManager.close();
@@ -416,7 +433,7 @@ export class DrawingToolsManager implements IManager {
 
     public finish(): PointsData | undefined {
         if (this.#closed) return;
-        const pointsData = this.#geometryManager.getPointsData();
+        const pointsData = this.geometryState.getPointsData();
         try {
             this.#callbacks.onFinish(pointsData);
         } catch (e) {
@@ -427,27 +444,12 @@ export class DrawingToolsManager implements IManager {
         return pointsData;
     }
 
-    public keyPressed(event: MouseEvent | KeyboardEvent, key: string): boolean {
-        if (event instanceof MouseEvent) {
-            if (key === 'Ctrl') {
-                return event.ctrlKey;
-            } else if (key === 'Shift') {
-                return event.shiftKey;
-            } else if (key === 'Alt') {
-                return event.altKey;
-            }
-        } else if (event instanceof KeyboardEvent) {
-            if (key === 'Ctrl') {
-                return event.key === 'Control' || event.ctrlKey;
-            } else if (key === 'Shift') {
-                return event.key === 'Shift' || event.shiftKey;
-            } else if (key === 'Alt') {
-                return event.key === 'Alt' || event.altKey;
-            } else {
-                return event.code === key;
-            }
-        }
-        return false;
+    public movePoint(index: number, position: vec3, temporary = false): void {
+        this.#geometryManager.movePoint(index, position, temporary);
+    }
+
+    public movePointTemporary(index: number, position: vec3): void {
+        this.movePoint(index, position, true);
     }
 
     /**
@@ -456,13 +458,16 @@ export class DrawingToolsManager implements IManager {
      * @param index 
      * @returns 
      */
-    public removePoint(index: number): void {
+    public removePoint(index: number, temporary = false): void {
         if (this.#closed) return;
-        if (!this.#geometryManager.canRemovePoint())
+        if (!this.geometryState.canRemovePoint())
             throw new ShapeDiverViewerDrawingToolsError('The minimum amount of points is reached.');
 
-        this.#interactionManager.removePoint(index);
-        this.#geometryManager.removePoint(index);
+        this.#geometryManager.removePoint(index, temporary);
+    }
+
+    public removePointTemporary(index: number): void {
+        this.removePoint(index, true);
     }
 
     /**
@@ -471,13 +476,17 @@ export class DrawingToolsManager implements IManager {
      * @param token 
      */
     public removeRestriction(token: string): void {
-        this.#restrictionManager.removeRestriction(token);
+        this.#interactionManager.restrictionManager.removeRestriction(token);
+    }
+
+    public resetMaterialIndices(): void {
+        this.#geometryManager.resetMaterialIndices();
     }
 
     public update(): PointsData | undefined {
         if (this.#closed) return;
-        const pointsData = this.#geometryManager.getPointsData();
-        try{
+        const pointsData = this.geometryState.getPointsData();
+        try {
             this.#callbacks.onUpdate(pointsData);
         } catch (e) {
             throw new ShapeDiverViewerDrawingToolsError('An error occurred while updating the drawing tool.');
@@ -486,12 +495,21 @@ export class DrawingToolsManager implements IManager {
         return pointsData;
     }
 
-    // #endregion Public Methods (9)
+    public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {
+        this.#geometryManager.updateMaterialIndex(index, materialIndex);
+    }
+
+    public updateTextVisualization(): void {
+        this.#textVisualizationManager.createPointLabels();
+        this.#textVisualizationManager.createDistanceLabels();
+    }
+
+    // #endregion Public Methods (15)
 
     // #region Private Methods (1)
 
     private cleanSettings(settingsOptional: SettingsOptional): Settings {
-        if(typeof settingsOptional === 'string') settingsOptional = JSON.parse(settingsOptional);
+        if (typeof settingsOptional === 'string') settingsOptional = JSON.parse(settingsOptional);
 
         const settings: Settings = {
             geometry: {
@@ -536,9 +554,9 @@ export class DrawingToolsManager implements IManager {
 
         const min = vec3.fromValues(Infinity, Infinity, Infinity);
         const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
-        for(let i = 0; i < settings.geometry.points.length; i++) {
+        for (let i = 0; i < settings.geometry.points.length; i++) {
             const point = settings.geometry.points[i];
-            
+
             min[0] = Math.min(min[0], point[0]);
             min[1] = Math.min(min[1], point[1]);
             min[2] = Math.min(min[2], point[2]);
@@ -562,3 +580,17 @@ export class DrawingToolsManager implements IManager {
 }
 
 // #endregion Classes (1)
+
+// #region Enums (1)
+
+export enum MATERIAL_INDEX {
+    DEFAULT = 0,
+    HOVERED = 1,
+    SELECTED = 2,
+    SELECTED_HOVERED = 3,
+    DELETION_HOVERED = 4,
+    INSERTION = 5,
+    INSERTION_HOVERED = 6
+}
+
+// #endregion Enums (1)

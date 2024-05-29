@@ -64,6 +64,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 
 
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel, onFinish }, customizationProperties);
+    (window as any).drawingToolsApi = drawingToolsApi;
 
     /**
      * 

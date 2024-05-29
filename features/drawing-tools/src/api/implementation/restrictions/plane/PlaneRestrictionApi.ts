@@ -1,7 +1,7 @@
 import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
 import { AngularRestrictionApi } from './snap/AngularRestrictionApi';
 import { GridRestrictionApi } from './snap/GridRestrictionApi';
-import { PlaneRestriction } from '../../../../business/implementation/restrictions/plane/PlaneRestriction';
+import { PlaneRestriction } from '../../../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 
 export class PlaneRestrictionApi extends AbstractRestrictionApi {

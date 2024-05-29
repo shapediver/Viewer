@@ -1,4 +1,3 @@
-import { IGeometryData } from '@shapediver/viewer.shared.types';
 import { IRestrictionApi } from './IRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
@@ -74,6 +73,11 @@ export interface IDrawingToolsApi {
     finish(): PointsData | undefined;
 
     /**
+     * Redo the last action of the drawing tool.
+     */
+    redo(): void;
+
+    /**
      * Remove a point from the drawing tool.
      * 
      * @param index The index of the point in the position array.
@@ -86,6 +90,11 @@ export interface IDrawingToolsApi {
      * @param id 
      */
     removeRestriction(id: string): void;
+
+    /**
+     * Undo the last action of the drawing tool.
+     */
+    undo(): void;
     
     /**
      * Receive an update of the drawing tool.
