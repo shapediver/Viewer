@@ -1,11 +1,12 @@
-import { build_data } from '@shapediver/viewer.shared.build-data';
 import {
     atobCustom,
     Converter,
     EventEngine,
     EVENTTYPE,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
+import { build_data } from '@shapediver/viewer.shared.build-data';
+import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { mat4, vec3 } from 'gl-matrix';
 import {
@@ -51,6 +52,7 @@ export class GLTFConverter {
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _globalAccessObjects: GlobalAccessObjects = GlobalAccessObjects.instance;
     private readonly _globalTransformationInverse = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -64,7 +66,6 @@ export class GLTFConverter {
     private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
-    private _combineTextures?: (red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>;
     private _content: IGLTF_v2 = {
         asset: {
             copyright: '2023 (c) ShapeDiver',
@@ -102,18 +103,6 @@ export class GLTFConverter {
     }
 
     // #endregion Public Static Getters And Setters (1)
-
-    // #region Public Getters And Setters (2)
-
-    public get combineTextures() {
-        return this._combineTextures;
-    }
-
-    public set combineTextures(value: ((red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>) | undefined) {
-        this._combineTextures = value;
-    }
-
-    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (1)
 
@@ -622,20 +611,20 @@ export class GLTFConverter {
                 const textureIndex = this.convertTexture(standardMaterialData.metalnessRoughnessMap);
                 if (textureIndex !== undefined) materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: textureIndex };
             } else if (standardMaterialData.metalnessMap && standardMaterialData.roughnessMap && includeMaps) {
-                if(this.combineTextures) {
+                if (this._globalAccessObjects.combineTextures) {
                     this._promises.push(new Promise<void>((resolve, reject) => {
                         try {
                             // no support for combining textures
-                            if(!this.combineTextures) return standardMaterialData.roughnessMap;
+                            if (!this._globalAccessObjects.combineTextures) return standardMaterialData.roughnessMap;
 
-                            this.combineTextures(
+                            this._globalAccessObjects.combineTextures(
                                 undefined,
                                 standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined,
                                 standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
                             )
                                 .then(imageData => {
                                     const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
-    
+
                                     const mapData = new MapData(imageData.image,
                                         {
                                             blob: imageData.blob,
@@ -680,7 +669,7 @@ export class GLTFConverter {
             const textureIndex = this.convertTexture(data.normalMap);
             if (textureIndex !== undefined) materialDef.normalTexture = { index: textureIndex };
         }
-        
+
         if (data.aoMap && includeMaps) {
             const textureIndex = this.convertTexture(data.aoMap);
             if (textureIndex !== undefined) materialDef.occlusionTexture = { index: textureIndex };
@@ -690,7 +679,7 @@ export class GLTFConverter {
             const textureIndex = this.convertTexture(data.emissiveMap);
             if (textureIndex !== undefined) materialDef.emissiveTexture = { index: textureIndex };
         }
-        
+
         if (data.emissiveness) materialDef.emissiveFactor = this._converter.toColorArray(data.emissiveness);
         materialDef.alphaMode = data.alphaMode.toUpperCase();
         if (data.alphaMode === MATERIAL_ALPHA.MASK) materialDef.alphaCutoff = data.alphaCutoff;
@@ -833,7 +822,7 @@ export class GLTFConverter {
         if (!this._content.textures) this._content.textures = [];
 
         const imageIndex = this.convertImage(data);
-        if(!imageIndex) return;
+        if (!imageIndex) return;
         const textureDef: IGLTF_v2_Texture = {
             source: imageIndex
         };
