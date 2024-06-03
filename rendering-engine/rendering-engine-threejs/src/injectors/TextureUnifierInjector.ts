@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 
-export class TextureUnifierInjector implements IManager {
+export class TextureUnifierInjector {
     // #region Properties (5)
 
     private _mergeShader?: THREE.ShaderMaterial;
@@ -19,21 +17,9 @@ export class TextureUnifierInjector implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
-    public close(): void {
-        GLTFConverter.instance.combineTextures = undefined;
-    }
-
-    public init(): void {
-        GLTFConverter.instance.combineTextures = this.combineTextures.bind(this);
-    }
-
-    // #endregion Public Methods (2)
-
-    // #region Private Methods (2)
-
-    private async combineTextures(red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer): Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }> {
+    public async combineTextures(red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer): Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }> {
         if (!red && !green && !blue)
             throw new Error('No maps supplied.');
 
@@ -138,6 +124,10 @@ export class TextureUnifierInjector implements IManager {
         return { image: imageOut, blob };
     }
 
+    // #endregion Public Methods (1)
+
+    // #region Private Methods (1)
+
     private createThreeJsUtils() {
         this._mergeShader = new THREE.ShaderMaterial({
             uniforms: {
@@ -220,5 +210,5 @@ export class TextureUnifierInjector implements IManager {
         this._renderer = new THREE.WebGLRenderer();
     }
 
-    // #endregion Private Methods (2)
+    // #endregion Private Methods (1)
 }

@@ -11,11 +11,9 @@ import { font } from '../three/font';
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { StateEngine } from '@shapediver/viewer.shared.services';
-import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine';
 import { TextGeometry } from '../three/geometries/TextGeometry';
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
-export class Tag3dGeometryCreationInjector implements IManager {
+export class Tag3dGeometryCreationInjector {
     // #region Properties (2)
 
     readonly #stateEngine: StateEngine = StateEngine.instance;
@@ -26,30 +24,16 @@ export class Tag3dGeometryCreationInjector implements IManager {
 
     // #region Constructors (1)
 
-    constructor() {}
+    constructor() {
+        this._font = new Font(font);
+        this.#stateEngine.fontLoaded.resolve(true);
+    }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
-    public close(): void {
-        Tag3dEngine.instance.geometryCreator = undefined;
-    }
-
-    public init(): void {
-        if (!this._font) {
-            this._font = new Font(font);
-            this.#stateEngine.fontLoaded.resolve(true);
-        }
-
-        Tag3dEngine.instance.geometryCreator = this.convertTag3dToGeometry.bind(this);
-    }
-
-    // #endregion Public Methods (2)
-
-    // #region Private Methods (1)
-
-    private convertTag3dToGeometry(tag3dInfo: ITag3D): ITreeNode | undefined {
+    public convertTag3dToGeometry(tag3dInfo: ITag3D): ITreeNode | undefined {
         const node = new TreeNode('tag3d_' + tag3dInfo.version);
 
         tag3dInfo.size = tag3dInfo.size ? +tag3dInfo.size : 1;
@@ -166,5 +150,5 @@ export class Tag3dGeometryCreationInjector implements IManager {
         return node;
     }
 
-    // #endregion Private Methods (1)
+    // #endregion Public Methods (1)
 }
