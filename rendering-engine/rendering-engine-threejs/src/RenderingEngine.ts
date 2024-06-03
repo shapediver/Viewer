@@ -18,7 +18,6 @@ import { RenderingManager } from './managers/RenderingManager';
 import { SceneTracingManager } from './managers/SceneTracingManager';
 import { SceneTreeManager } from './managers/SceneTreeManager';
 import { SDColor } from './objects/SDColor';
-import { Tag3dGeometryCreationInjector } from './injectors/Tag3dGeometryCreationInjector';
 import {
   CameraEngine,
 } from '@shapediver/viewer.rendering-engine.camera-engine';
@@ -107,7 +106,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = StateEngine.instance;
   private readonly _systemInfo: SystemInfo = SystemInfo.instance;
-  private readonly _tag3dGeometryCreationInjector: Tag3dGeometryCreationInjector;
   private readonly _tree: ITree = Tree.instance;
   private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
   private readonly _visibility: VISIBILITY_MODE;
@@ -232,9 +230,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
     this._lightLoader = new LightLoader(this);
 
-    // injectors
-    this._tag3dGeometryCreationInjector = new Tag3dGeometryCreationInjector();
-
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
@@ -254,9 +249,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._geometryLoader.init();
     this._htmlElementAnchorLoader.init();
     this._lightLoader.init();
-
-    // injectors
-    this._tag3dGeometryCreationInjector.init();
   }
 
   // #endregion Constructors (1)
@@ -949,7 +941,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public async close(): Promise<void> {
     this._closed = true;
     this._lightEngine.close();
-    this._tag3dGeometryCreationInjector.close();
     this._renderer.clear(true, true, true);
     this._renderer.dispose();
     this._domEventEngine.removeAllDomEventListener();

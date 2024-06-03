@@ -49,6 +49,7 @@
     "@shapediver/viewer.rendering-engine.intersection-engine": "3.0.4",
     "@shapediver/viewer.rendering-engine.light-engine": "3.0.4",
     "@shapediver/viewer.rendering-engine.rendering-engine": "3.0.4",
+    "@shapediver/viewer.shared.global-access-objects": "3.0.4",
     "@shapediver/viewer.shared.math": "3.0.4",
     "@shapediver/viewer.shared.node-tree": "3.0.4",
     "@shapediver/viewer.shared.services": "3.0.4",

@@ -1,4 +1,5 @@
 import { CustomData } from '@shapediver/viewer.shared.types';
+import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
@@ -7,11 +8,10 @@ import { ShapeDiverViewerDataProcessingError, StateEngine } from '@shapediver/vi
 export class Tag3dEngine {
     // #region Properties (3)
 
+    private readonly _globalAccessObjects: GlobalAccessObjects = GlobalAccessObjects.instance;
     private readonly _stateEngine: StateEngine = StateEngine.instance;
 
     private static _instance: Tag3dEngine;
-
-    #geometryCreator: ((tag3dInfo: ITag3D) => ITreeNode | undefined) | undefined;
 
     // #endregion Properties (3)
 
@@ -22,18 +22,6 @@ export class Tag3dEngine {
     }
 
     // #endregion Public Static Getters And Setters (1)
-
-    // #region Public Getters And Setters (2)
-
-    public get geometryCreator() {
-        return this.#geometryCreator;
-    }
-
-    public set geometryCreator(value: ((tag3dInfo: ITag3D) => ITreeNode | undefined) | undefined) {
-        this.#geometryCreator = value;
-    }
-
-    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (1)
 
@@ -46,17 +34,14 @@ export class Tag3dEngine {
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode('tag3d');
 
-        if (this._stateEngine.fontLoaded.resolved === false)
-            await this._stateEngine.fontLoaded;
-
         if (!content)
             throw new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
 
         if (content.data && Array.isArray(content.data)) {
-            if (this.#geometryCreator) {
+            if (this._globalAccessObjects.loadTag3D) {
                 for (let i = 0; i < content.data.length; i++) {
                     const tag3dInfo: ITag3D = content.data[i];
-                    const child = this.#geometryCreator(tag3dInfo);
+                    const child = this._globalAccessObjects.loadTag3D(tag3dInfo);
                     if (child) node.addChild(child);
                 }
             } else {
