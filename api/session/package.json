@@ -57,7 +57,8 @@
     "@shapediver/viewer.session-engine.session-engine": "3.1.0-rc.0",
     "@shapediver/viewer.shared.math": "3.1.0-rc.0",
     "@shapediver/viewer.shared.node-tree": "3.1.0-rc.0",
-    "@shapediver/viewer.shared.services": "3.1.0-rc.0"
+    "@shapediver/viewer.shared.services": "3.1.0-rc.0",
+    "@shapediver/viewer.shared.types": "3.1.0-rc.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

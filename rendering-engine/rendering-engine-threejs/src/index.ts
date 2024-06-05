@@ -1,11 +1,64 @@
-import { RenderingEngine } from './RenderingEngine';
-import { ThreejsData } from './types/ThreejsData';
+import {
+  ANTI_ALIASING_TECHNIQUE,
+  IBloomEffectDefinition,
+  IChromaticAberrationEffectDefinition,
+  IDepthOfFieldEffectDefinition,
+  IDotScreenEffectDefinition,
+  IGodRaysEffectDefinition,
+  IGridEffectDefinition,
+  IHBAOEffectDefinition,
+  IHueSaturationEffectDefinition,
+  INoiseEffectDefinition,
+  IOutlineEffectDefinition,
+  IPixelationEffectDefinition,
+  IPostProcessingEffectDefinition,
+  IPostProcessingEffectsArray,
+  IScanlineEffectDefinition,
+  ISelectiveBloomEffectDefinition,
+  ISepiaEffectDefinition,
+  ISSAOEffectDefinition,
+  ITiltShiftEffectDefinition,
+  IVignetteEffectDefinition,
+  POST_PROCESSING_EFFECT_TYPE
+  } from './interfaces/IPostProcessingEffectDefinitions';
+import {
+  BlendFunction,
+  BloomEffect,
+  ChromaticAberrationEffect,
+  DepthOfFieldEffect,
+  DotScreenEffect,
+  EdgeDetectionMode,
+  Effect,
+  EffectComposer,
+  FXAAEffect,
+  GodRaysEffect,
+  GridEffect,
+  HueSaturationEffect,
+  KernelSize,
+  NoiseEffect,
+  OutlineEffect,
+  PixelationEffect,
+  PredicationMode,
+  Resolution,
+  ScanlineEffect,
+  SelectiveBloomEffect,
+  SepiaEffect,
+  SMAAEffect,
+  SMAAPreset,
+  SSAOEffect,
+  TiltShiftEffect,
+  VignetteEffect,
+  VignetteTechnique
+  } from 'postprocessing';
 import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY } from './loaders/EnvironmentMapLoader';
+import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { IThreejsData } from './types/IThreejsData';
-import { POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IDepthOfFieldEffectDefinition, IOutlineEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, ISSAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IPixelationEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, IGridEffectDefinition, ANTI_ALIASING_TECHNIQUE, IHBAOEffectDefinition, IPostProcessingEffectsArray } from './interfaces/IPostProcessingEffectDefinitions';
-import { PostProcessingManager } from './managers/PostProcessingManager';
-import { BlendFunction, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, EdgeDetectionMode, Effect, EffectComposer, FXAAEffect, GodRaysEffect, GridEffect, HueSaturationEffect, KernelSize, NoiseEffect, OutlineEffect, PixelationEffect, PredicationMode, Resolution, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, SMAAEffect, SMAAPreset, SSAOEffect, TiltShiftEffect, VignetteEffect, VignetteTechnique } from 'postprocessing';
 import { MultiPointsMaterial } from './materials/MultiPointsMaterial';
+import { PostProcessingManager } from './managers/PostProcessingManager';
+import { RenderingEngine } from './RenderingEngine';
+import { Tag3dGeometryCreationInjector } from './injectors/Tag3dGeometryCreationInjector';
+import { TextureUnifierInjector } from './injectors/TextureUnifierInjector';
+import { ThreejsData } from './types/ThreejsData';
 
 export {
   RenderingEngine, IThreejsData, ThreejsData, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY
@@ -21,3 +74,8 @@ export {
   BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, FXAAEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SMAAEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect,
   BlendFunction, VignetteTechnique, KernelSize, SMAAPreset, EdgeDetectionMode, PredicationMode, Resolution
 };
+
+const tag3dGeometryCreationInjector = new Tag3dGeometryCreationInjector();
+GlobalAccessObjects.instance.loadTag3D = tag3dGeometryCreationInjector.convertTag3dToGeometry.bind(tag3dGeometryCreationInjector);
+const textureUnifierInjector = new TextureUnifierInjector();
+GlobalAccessObjects.instance.combineTextures = textureUnifierInjector.combineTextures.bind(textureUnifierInjector);

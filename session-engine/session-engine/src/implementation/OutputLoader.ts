@@ -11,13 +11,14 @@ import {
     IEvent,
     PerformanceEvaluator
 } from '@shapediver/viewer.shared.services';
+import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { ISessionEngine } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { OutputDelayException } from './OutputDelayException';
 import { SessionOutputData } from './SessionOutputData';
 import { SessionTreeNode } from './SessionTreeNode';
-import { ShapeDiverResponseOutput, ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 // #region Type aliases (1)
 
@@ -38,9 +39,8 @@ export type OutputLoaderTaskEventInfo = {
 export class OutputLoader {
     // #region Properties (6)
 
-    private _dataEngine?: { loadContent: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode> };
     private readonly _eventEngine: EventEngine = EventEngine.instance;
-    private _loadingPromise: Promise<void> | boolean;
+    private readonly _globalAccessObjects: GlobalAccessObjects = GlobalAccessObjects.instance;
     private readonly _lastOutputNodes: {
         [key: string]: {
             [key: string]: ISessionTreeNode
@@ -64,15 +64,7 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor(private readonly _sessionEngine: ISessionEngine) {
-        this._loadingPromise = this.loadDataEngine()
-            .then(() => {
-                this._loadingPromise = true;
-            })
-            .catch(() => {
-                this._loadingPromise = false;
-            });
-    }
+    constructor(private readonly _sessionEngine: ISessionEngine) { }
 
     // #endregion Constructors (1)
 
@@ -84,7 +76,7 @@ export class OutputLoader {
 
     // #endregion Public Getters And Setters (1)
 
-    // #region Public Methods (3)
+    // #region Public Methods (2)
 
     public getCurrentOutputVersions(): { [key: string]: string } {
         const versions: { [key: string]: string } = {};
@@ -92,19 +84,6 @@ export class OutputLoader {
             versions[o] = Object.keys(this._lastOutputNodes[o])[0];
 
         return versions;
-    }
-
-    public async loadDataEngine() {
-        try {
-            // Dynamically import the module
-            const module = await import('@shapediver/viewer.data-engine.data-engine');
-
-            // Set the exported properties
-            this._dataEngine = module.DataEngine.instance;
-        } catch (error) {
-            // Handle the case where the module is not available
-            console.error('Data engine not available', error);
-        }
     }
 
     /**
@@ -115,10 +94,6 @@ export class OutputLoader {
      * @returns promise with a scene graph node
      */
     public async loadOutputs(nodeName: string, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, taskEventInfo: OutputLoaderTaskEventInfo, throwDelay = true): Promise<SessionTreeNode> {
-        if(typeof this._loadingPromise !== 'boolean') {
-            await this._loadingPromise;
-        }
-
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(nodeName);
         const currentNodes: {
@@ -175,7 +150,7 @@ export class OutputLoader {
 
             if (this._reloadSdtf && outputs[outputID].content) {
                 const sdtfContents = outputs[outputID].content?.filter(c => c.format === 'sdtf');
-                if(sdtfContents && sdtfContents.length > 0) 
+                if (sdtfContents && sdtfContents.length > 0)
                     delete this._loadedOutputNodes[outputID][outputInfo[outputID].version];
             }
 
@@ -191,8 +166,8 @@ export class OutputLoader {
                 if (outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
                         if (outputs[outputID].content![i].format === 'sdtf' && !this._sessionEngine.loadSdtf) continue;
-                        if (this._dataEngine)
-                            promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + '_' + outputInfo[outputID].version + '_' + i));
+                        if (this._globalAccessObjects.loadContent)
+                            promises.push(this._globalAccessObjects.loadContent(outputs[outputID].content![i], this._sessionEngine.jwtToken, outputID + '_' + outputInfo[outputID].version + '_' + i));
                         promisesNodes.push(currentNodes[outputID][outputInfo[outputID].version]);
                     }
                 }
@@ -251,7 +226,7 @@ export class OutputLoader {
         return node;
     }
 
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (2)
 
     // #region Private Methods (2)
 

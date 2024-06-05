@@ -41,6 +41,7 @@
   "dependencies": {
     "@shapediver/viewer.data-engine.shared-types": "3.1.0-rc.0",
     "@shapediver/viewer.shared.build-data": "3.1.0-rc.0",
+    "@shapediver/viewer.shared.global-access-objects": "3.1.0-rc.0",
     "@shapediver/viewer.shared.node-tree": "3.1.0-rc.0",
     "@shapediver/viewer.shared.services": "3.1.0-rc.0",
     "@shapediver/viewer.shared.types": "3.1.0-rc.0",
