@@ -37,7 +37,6 @@ export class PoissionDenoisePass extends Pass {
 
 	public static DefaultOptions = defaultPoissonBlurOptions;
 	public static blueNoiseTexture?: Texture;
-	public static blueNoiseTextureImage = HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
 
 	public index = 0;
 	public inputTexture: Texture;
@@ -56,16 +55,18 @@ export class PoissionDenoisePass extends Pass {
 		super('PoissionBlurPass');
 
 		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
-			PoissionDenoisePass.blueNoiseTextureImage.then((response) => {
-				Converter.instance.responseToImage(response).then((image) => {
-					PoissionDenoisePass.blueNoiseTexture = new Texture(image);
+			HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png').then(result => {
+				const url = URL.createObjectURL(result.data.blob);
+				new TextureLoader().load(url, texture => {
+					URL.revokeObjectURL(url);
+					PoissionDenoisePass.blueNoiseTexture = texture;
 					PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
 					PoissionDenoisePass.blueNoiseTexture.magFilter = NearestFilter;
 					PoissionDenoisePass.blueNoiseTexture.wrapS = RepeatWrapping;
 					PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
 					PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
 					PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
-
+	
 					(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 				});
 			});
