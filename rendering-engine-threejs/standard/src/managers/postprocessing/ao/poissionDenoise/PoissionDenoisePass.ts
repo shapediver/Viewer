@@ -1,4 +1,4 @@
-import { Pass } from 'postprocessing';
+import { basic as vertexShader } from '../utils/shader/basic';
 import {
 	Camera,
 	HalfFloatType,
@@ -10,12 +10,13 @@ import {
 	Texture,
 	TextureLoader,
 	Vector2,
-	WebGLRenderTarget,
-	WebGLRenderer
+	WebGLRenderer,
+	WebGLRenderTarget
 } from 'three';
-import { basic as vertexShader } from '../utils/shader/basic';
-import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
+import { Converter, HttpClient } from '@shapediver/viewer.shared.services';
+import { Pass } from 'postprocessing';
 import { poissionDenoise as fragmentShader } from './shader/poissionDenoise';
+import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
 
 const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>', sampleBlueNoise);
 
@@ -32,16 +33,10 @@ const defaultPoissonBlurOptions = {
 };
 
 export class PoissionDenoisePass extends Pass {
-	// #region Properties (9)
+	// #region Properties (11)
 
 	public static DefaultOptions = defaultPoissonBlurOptions;
-	public static blueNoiseTexture = new TextureLoader().load('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png', blueNoiseTexture => {
-		blueNoiseTexture.minFilter = NearestFilter;
-		blueNoiseTexture.magFilter = NearestFilter;
-		blueNoiseTexture.wrapS = RepeatWrapping;
-		blueNoiseTexture.wrapT = RepeatWrapping;
-		blueNoiseTexture.colorSpace = NoColorSpace;
-	});
+	public static blueNoiseTexture?: Texture;
 
 	public index = 0;
 	public inputTexture: Texture;
@@ -52,12 +47,30 @@ export class PoissionDenoisePass extends Pass {
 	public rings = 5.625;
 	public samples = 16;
 
-	// #endregion Properties (9)
+	// #endregion Properties (11)
 
 	// #region Constructors (1)
 
 	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
 		super('PoissionBlurPass');
+
+		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
+			HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png').then(result => {
+				const url = URL.createObjectURL(result.data.blob);
+				new TextureLoader().load(url, texture => {
+					URL.revokeObjectURL(url);
+					PoissionDenoisePass.blueNoiseTexture = texture;
+					PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
+					PoissionDenoisePass.blueNoiseTexture.magFilter = NearestFilter;
+					PoissionDenoisePass.blueNoiseTexture.wrapS = RepeatWrapping;
+					PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
+					PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
+					PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
+	
+					(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+				});
+			});
+		}
 
 		options = { ...defaultPoissonBlurOptions, ...options };
 
@@ -117,19 +130,17 @@ export class PoissionDenoisePass extends Pass {
 				}
 			});
 		}
-
-		(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 	}
 
 	// #endregion Constructors (1)
 
-	// #region Public Accessors (1)
+	// #region Public Getters And Setters (1)
 
 	public get texture() {
 		return this.renderTargetB.texture;
 	}
 
-	// #endregion Public Accessors (1)
+	// #endregion Public Getters And Setters (1)
 
 	// #region Public Methods (4)
 
@@ -147,10 +158,10 @@ export class PoissionDenoisePass extends Pass {
 				.multiply(texelSize)
 				.multiplyScalar(r);
 
-			if(isNaN(v.x) || v.x === Infinity || v.x === -Infinity)
+			if (isNaN(v.x) || v.x === Infinity || v.x === -Infinity)
 				v.x = 0;
 
-			if(isNaN(v.y) || v.y === Infinity || v.y === -Infinity)
+			if (isNaN(v.y) || v.y === Infinity || v.y === -Infinity)
 				v.y = 0;
 
 			samples.push(v);
@@ -186,7 +197,7 @@ export class PoissionDenoisePass extends Pass {
 		(this.fullscreenMaterial as ShaderMaterial).uniforms.index.value = 0;
 
 		const noiseTexture = (this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value;
-		if (noiseTexture) {
+		if (noiseTexture !== undefined && noiseTexture !== null && noiseTexture instanceof Texture) {
 			const { width, height } = (noiseTexture as Texture).source.data;
 
 			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseRepeat.value.set(
