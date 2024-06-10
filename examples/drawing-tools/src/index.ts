@@ -1,9 +1,11 @@
 import * as SDV from '@shapediver/viewer';
 import {
     createDrawingTools,
+    GeometryRestrictionApi,
     IDrawingToolsApi,
     PlaneRestrictionApi,
     PointsData,
+    RESTRICTION_TYPE,
     Settings
 } from '@shapediver/viewer.features.drawing-tools';
 import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/viewer.shared.demo-helper';
@@ -65,6 +67,12 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel, onFinish }, customizationProperties);
     (window as any).drawingToolsApi = drawingToolsApi;
+
+    const towerNode = session.getOutputByName('Tower')[0].node!;
+    const geometryRestrictionApi = drawingToolsApi.addRestriction({
+        type: RESTRICTION_TYPE.GEOMETRY,
+        nodes: [towerNode]
+    }) as GeometryRestrictionApi;
 
     /**
      * 
@@ -150,6 +158,33 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             }
         });
     }
+
+    elements.push({
+        name: 'snap to vertices',
+        type: 'boolean',
+        value: geometryRestrictionApi.snapToVertices,
+        onInputCallback: (value: boolean) => {
+            geometryRestrictionApi.snapToVertices = value;
+        }
+    });
+
+    elements.push({
+        name: 'snap to edges',
+        type: 'boolean',
+        value: geometryRestrictionApi.snapToEdges,
+        onInputCallback: (value: boolean) => {
+            geometryRestrictionApi.snapToEdges = value;
+        }
+    });
+
+    elements.push({
+        name: 'snap to faces',
+        type: 'boolean',
+        value: geometryRestrictionApi.snapToFaces,
+        onInputCallback: (value: boolean) => {
+            geometryRestrictionApi.snapToFaces = value;
+        }
+    });
 
     createCustomUi(elements, menuDiv);
 

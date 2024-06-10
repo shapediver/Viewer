@@ -8,6 +8,7 @@ import {
     RestrictionProperties
 } from '../../../interfaces/IRestriction';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
+import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
 
@@ -66,6 +67,8 @@ export class RestrictionManager implements IManager {
         let restriction: IRestriction | undefined;
         if (properties.type === RESTRICTION_TYPE.PLANE) {
             restriction = new PlaneRestriction(this.#drawingToolsManager, token, properties as PlaneRestrictionProperties);
+        } else if (properties.type === RESTRICTION_TYPE.GEOMETRY) {
+            restriction = new GeometryRestriction(this.#drawingToolsManager, token, properties as GeometryRestrictionProperties);
         }
 
         if (restriction) {
@@ -80,36 +83,41 @@ export class RestrictionManager implements IManager {
     }
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
-        let result: vec3 | undefined;
-        let distance = Number.MAX_VALUE;
+        const rayTracingResult: {
+            result: vec3 | undefined;
+            distance: number;
+            restriction: IRestriction | undefined;
+        } = {
+            result: undefined,
+            distance: Number.MAX_VALUE,
+            restriction: undefined
+        };
         for (const restriction of Object.values(this.#restrictions)) {
             const hit = restriction.rayTrace(ray, metaData);
-            if (hit && vec3.squaredLength(hit) < distance) {
-                result = hit;
-                distance = vec3.squaredLength(hit);
+            if (hit && vec3.squaredLength(hit) < rayTracingResult.distance) {
+                rayTracingResult.result = hit;
+                rayTracingResult.distance = vec3.squaredLength(hit);
+                rayTracingResult.restriction = restriction;
             }
         }
-        return result ? this.snap(result, metaData) : result;
+
+        // deactivate the visualization of all restrictions that are not hit
+        for (const restriction of Object.values(this.#restrictions)) {
+            if (restriction !== rayTracingResult.restriction) {
+                for (const snapRestriction of Object.values(restriction.snapRestrictions)) {
+                    snapRestriction.active = false;
+                }
+            }
+        }
+        return rayTracingResult.result;
     }
 
     public removeRestriction(token: string): void {
         if (this.#restrictions[token]) {
             Object.values(this.#restrictions[token].snapRestrictions).forEach(r => r.removeVisualization());
+            this.#restrictions[token].removeVisualization();
+            delete this.#restrictions[token];
         }
-    }
-
-    public snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
-        let result: vec3 | undefined;
-        let distance = Number.MAX_VALUE;
-
-        for (const restriction of Object.values(this.#restrictions)) {
-            const snapped = restriction.snap(point, metaData);
-            if (snapped && vec3.squaredLength(snapped) < distance) {
-                result = snapped;
-                distance = vec3.squaredLength(snapped);
-            }
-        }
-        return result || point;
     }
 
     // #endregion Public Methods (5)

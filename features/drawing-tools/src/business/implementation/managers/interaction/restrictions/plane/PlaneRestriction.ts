@@ -162,7 +162,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #region Public Methods (2)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 {
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return vec3.create();
 
         let origin = this.#origin;
@@ -172,10 +172,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         // find intersection of ray and plane
         const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
         const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
-        return intersection;
+        return this.snap(intersection, metaData);
     }
 
-    public snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
+    private snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
         if (this.enabled === false) return;
 
         const sortedSnapRestrictions = Object.values(this.#snapRestrictions).sort((a, b) => b.priority - a.priority);

@@ -42,15 +42,6 @@ export interface IRestriction extends IRestrictionBase {
      * @returns The intersection point of the ray with the restriction.
      */
     rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined;
-    /**
-     * Traverse the snap restrictions and sort them by priority.
-     * Then for the highest priority snap restriction, call the snap method.
-     * If there are multiple snap restrictions with the same priority, call the snap method for each of them.
-     * 
-     * @param point 
-     * @param metaData 
-     */
-    snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined;
 
     // #endregion Public Methods (2)
 }
@@ -60,7 +51,8 @@ export interface IRestriction extends IRestrictionBase {
 // #region Enums (1)
 
 export enum RESTRICTION_TYPE {
-    PLANE = 'plane'
+    PLANE = 'plane',
+    GEOMETRY = 'geometry',
 }
 
 // #endregion Enums (1)

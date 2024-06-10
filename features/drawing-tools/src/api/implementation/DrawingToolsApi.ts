@@ -6,6 +6,8 @@ import { vec3 } from 'gl-matrix';
 import { PlaneRestriction } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
+import { GeometryRestriction } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
+import { GeometryRestrictionApi } from './restrictions/geometry/GeometryRestrictionApi';
 export class DrawingToolsApi implements IDrawingToolsApi {
     // #region Properties (2)
 
@@ -22,6 +24,8 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         for(const token in this.#drawingToolsManager.restrictionManager.restrictions) {
             if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
                 this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
+            if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof GeometryRestriction)
+                this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GeometryRestriction);
         }
     }
 
@@ -71,6 +75,9 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
         if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
             this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
+        if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof GeometryRestriction)
+            this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GeometryRestriction);
+
         return this.#restrictions[token];
     }
 
