@@ -2,6 +2,8 @@ import { IRestrictionApi } from './IRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 import { PointsData } from '../../business/implementation/DrawingToolsManager';
+import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 
 export interface IDrawingToolsApi {
     // #region Properties (5)
@@ -48,7 +50,7 @@ export interface IDrawingToolsApi {
      * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
-    addRestriction(properties: RestrictionProperties, token?: string): IRestrictionApi | undefined;
+    addRestriction(properties: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties, token?: string): IRestrictionApi | undefined;
     /**
      * Check if the drawing tool can redo the last action.
      */

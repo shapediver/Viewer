@@ -22,6 +22,8 @@ import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { GeometryRestrictionApi } from './api/implementation/restrictions/geometry/GeometryRestrictionApi';
+import { GeometryRestrictionProperties } from './business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
 import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 
@@ -30,7 +32,8 @@ export {
     DrawingToolsEventResponseMapping, IDrawingToolsEvent,
     IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
-    IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi,
+    GeometryRestrictionProperties,
+    IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi, GeometryRestrictionApi,
     IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
 };
 

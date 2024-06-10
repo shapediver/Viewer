@@ -198,6 +198,9 @@ export class InteractionManager implements IManager {
         const deleteKeyPressed = this.keyPressed(event, this.#settings.controls.delete);
         const updateKeyPressed = this.keyPressed(event, this.#settings.controls.update);
 
+        // check if the hovered point is still hovered, or if another state is active
+        this.#interactionManagerHelper.checkHover(event);
+
         /**
          * IF FINISH KEY IS PRESSED
          * CLOSE THE DRAWING TOOLS
@@ -242,7 +245,6 @@ export class InteractionManager implements IManager {
          */
         if (deleteKeyPressed) {
             this.#midPointInteractionHandler.stopMidPointInsertion();
-            this.#interactionManagerHelper.checkHover(event);
         }
 
         /**

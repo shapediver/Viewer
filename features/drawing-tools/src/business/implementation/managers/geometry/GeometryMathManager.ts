@@ -153,6 +153,33 @@ export class GeometryMathManager implements IManager {
     }
 
     /**
+     * Calculate the closest point on a line to a point
+     * 
+     * @param start 
+     * @param end 
+     * @param point 
+     */
+    public closestPointOnLine(start: vec3, end: vec3, point: vec3): vec3 {
+        const lineDir = vec3.sub(vec3.create(), end, start);
+        // Vector from linePoint to point
+        const v = vec3.sub(vec3.create(), point, start);
+
+        // Line direction dot product with itself
+        const dirDotDir = vec3.dot(lineDir, lineDir);
+
+        // If the direction vector is a zero vector, return the line point as closest point
+        if (dirDotDir === 0) return start;
+
+        // Projection factor t
+        const t = vec3.dot(v, lineDir) / dirDotDir;
+
+        // Closest point on the line
+        const closestPoint = vec3.add(vec3.create(), start, vec3.scale(vec3.create(), lineDir, t));
+
+        return closestPoint;
+    }
+
+    /**
      * Calculate the distance between a ray and a line segment
      * 
      * @param ray 

@@ -27,6 +27,7 @@ import { RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestrict
 import { RestrictionManager } from './managers/interaction/RestrictionManager';
 import { TextVisualizationManager } from './managers/TextVisualizationManager';
 import { vec3 } from 'gl-matrix';
+import { GeometryRestrictionProperties } from './managers/interaction/restrictions/geometry/GeometryRestriction';
 
 // #region Type aliases (5)
 
@@ -157,7 +158,7 @@ export type Settings = {
      * 
      * At the moment, only the plane restriction is supported.
      */
-    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties };
+    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties };
 
     /**
      * The visualization settings of the drawing tool.

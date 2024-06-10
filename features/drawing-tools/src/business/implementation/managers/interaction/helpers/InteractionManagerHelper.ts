@@ -14,7 +14,6 @@ export class InteractionManagerHelper {
     readonly #geometryState: GeometryState;
     readonly #interactionManager: InteractionManager;
 
-    #dragStart: vec3 = vec3.create();
     #draggedPoint?: number;
     #draggedPointPosition: vec3 = vec3.create();
     #dragging: boolean = false;
@@ -172,7 +171,6 @@ export class InteractionManagerHelper {
         this.#hoveredPoint = undefined;
         this.#draggedPoint = undefined;
         this.#dragging = false;
-        this.#dragStart = vec3.create();
         this.#selectedPointPositions = [];
         this.#selectedMovedPointPositions = [];
         this.#draggedPointPosition = vec3.create();
@@ -182,25 +180,18 @@ export class InteractionManagerHelper {
         if (this.#selectedPointIndices.length > 0 && this.#dragging) {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
-            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { referencePoint: this.#dragStart });
+            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { referencePoint: this.#draggedPointPosition });
 
             if (intersectionPoint) {
-                const difference = vec3.sub(vec3.create(), intersectionPoint, this.#dragStart);
+                const differenceToIntersected = vec3.sub(vec3.create(), intersectionPoint, this.#draggedPointPosition);
 
-                const selectedPoint = vec3.add(vec3.create(), difference, this.#draggedPointPosition);
-                const restrictedPoint = this.#drawingToolsManager.restrictionManager.snap(selectedPoint, { index: this.#draggedPoint });
-
-                if (restrictedPoint) {
-                    const differenceToRestricted = vec3.sub(vec3.create(), restrictedPoint, this.#draggedPointPosition);
-
-                    for (let i = 0; i < this.#selectedPointIndices.length; i++) {
-                        // add difference to selected point
-                        this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToRestricted, this.#selectedPointPositions[i]);
-                        this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
-                    }
-
-                    this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
+                for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+                    // add difference to selected point
+                    this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToIntersected, this.#selectedPointPositions[i]);
+                    this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
                 }
+
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
             }
         }
     }
@@ -306,7 +297,6 @@ export class InteractionManagerHelper {
             const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { referencePoint: draggedPoint });
 
             if (intersectionPoint) {
-                this.#dragStart = intersectionPoint;
                 // store selected point positions
                 this.#selectedPointIndices.forEach(element =>
                     this.#selectedPointPositions.push(this.#geometryState.getPosition(element * 3))
