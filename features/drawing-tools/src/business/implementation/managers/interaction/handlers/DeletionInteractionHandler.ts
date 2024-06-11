@@ -25,7 +25,7 @@ export class DeletionInteractionHandler {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     public deletePoint(ray: IRay): void {
         // check if there is a point close to the ray
@@ -38,5 +38,10 @@ export class DeletionInteractionHandler {
         }
     }
 
-    // #endregion Public Methods (1)
+    public deleteSelection(indices: number[]): void {
+        this.#drawingToolsManager.removePoints(indices);
+        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
+    }
+
+    // #endregion Public Methods (2)
 }

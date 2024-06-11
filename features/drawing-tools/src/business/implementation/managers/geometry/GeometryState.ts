@@ -139,16 +139,16 @@ export class GeometryState {
 
     // #region Public Methods (17)
 
-    public canAddPoint(): boolean {
+    public canAddPoint(number: number = 1): boolean {
         return this.#settings.geometry.maxPoints !== undefined &&
-            this.pointsLength < this.#settings.geometry.maxPoints &&
+            this.pointsLength + number <= this.#settings.geometry.maxPoints &&
             this.wasWithinMinimumMaximumPointsRange &&
             this.#settings.geometry.strictMinMaxPoints === true;
     }
 
-    public canRemovePoint(): boolean {
+    public canRemovePoint(number: number = 1): boolean {
         return this.#settings.geometry.minPoints !== undefined &&
-            this.pointsLength > this.#settings.geometry.minPoints &&
+            this.pointsLength - number >= this.#settings.geometry.minPoints &&
             this.wasWithinMinimumMaximumPointsRange &&
             this.#settings.geometry.strictMinMaxPoints === true;
     }
@@ -291,22 +291,13 @@ export class GeometryState {
             this.updateParentNode();
         };
 
-        const variation_0 = ['map_0', 'map_1', 'map_4', 'map_5', 'map_6', 'map_7'];
-        const variation_1 = ['map_2', 'map_3'];
+        const variation_0 = ['map_0', 'map_1', 'map_2', 'map_3', 'map_4', 'map_5', 'map_6', 'map_7'];
 
         if (this.#defaultTextures.variation_0 instanceof MapData) {
             updateMaterialVariation(variation_0, this.#defaultTextures.variation_0);
         } else {
             (this.#defaultTextures.variation_0 as Promise<IMapData>).then((map) => {
                 updateMaterialVariation(variation_0, map);
-            });
-        }
-
-        if (this.#defaultTextures.variation_1 instanceof MapData) {
-            updateMaterialVariation(variation_1, this.#defaultTextures.variation_1);
-        } else {
-            (this.#defaultTextures.variation_1 as Promise<IMapData>).then((map) => {
-                updateMaterialVariation(variation_1, map);
             });
         }
 

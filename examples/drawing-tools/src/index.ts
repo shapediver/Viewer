@@ -59,13 +59,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         }
     };
 
-    const onFinish = async (pointsData: PointsData) => {
-        onUpdate(pointsData);
-        onCancel();
-    };
 
-
-    const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel, onFinish }, customizationProperties);
+    const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, customizationProperties);
     (window as any).drawingToolsApi = drawingToolsApi;
 
     const towerNode = session.getOutputByName('Tower')[0].node!;

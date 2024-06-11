@@ -46,7 +46,7 @@ export class GeometryManager implements IManager {
 
     // #endregion Public Getters And Setters (2)
 
-    // #region Public Methods (9)
+    // #region Public Methods (10)
 
     public addPoint(index: number, position?: vec3, temporary = false): void {
         this.#geometryManagerHelper.addPoint(index, position, temporary);
@@ -78,6 +78,10 @@ export class GeometryManager implements IManager {
         this.#geometryManagerHelper.removePoint(removalIndex, temporary);
     }
 
+    public removePoints(removalIndices: number[]): void {
+        this.#geometryManagerHelper.removePoints(removalIndices);
+    }
+
     public resetMaterialIndices(): void {
         this.#geometryManagerHelper.resetMaterialIndices();
     }
@@ -86,5 +90,5 @@ export class GeometryManager implements IManager {
         this.#geometryManagerHelper.updateMaterialIndex(index, materialIndex);
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (10)
 }

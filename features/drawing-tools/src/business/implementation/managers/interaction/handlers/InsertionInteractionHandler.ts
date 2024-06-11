@@ -64,7 +64,7 @@ export class InsertionInteractionHandler {
                 } else if (this.#settings.geometry.maxPoints !== undefined && numberOfPoints > this.#settings.geometry.maxPoints) {
                     throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#settings.geometry.maxPoints);
                 } else {
-                    this.#drawingToolsManager.finish();
+                    this.#drawingToolsManager.update();
                     return;
                 }
             } else {
@@ -78,19 +78,11 @@ export class InsertionInteractionHandler {
     }
 
     public onMove(ray: IRay): void {
+        if (this.#insertionActive === false) return;
+
         if (this.#insertionActiveClosed === false) this.#restrictionManager.showRestrictionVisualization = true;
 
-        if (this.#insertionActive === false && this.#alreadyInserted === false) {
-            // add a point at the ray intersection
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray);
-            // add at last position
-            this.#insertionActiveIndex = this.#geometryState.getPointCount();
-            this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);
-            this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.INSERTION_HOVERED);
-
-            this.#insertionActive = true;
-            this.#alreadyInserted = true;
-        } else if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
+        if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
             if (restrictedPoint) {
                 this.#drawingToolsManager.movePointTemporary(this.#geometryState.getPointCount() - 1, restrictedPoint);
@@ -124,17 +116,13 @@ export class InsertionInteractionHandler {
         }
     }
 
-    public startInsertion(lastEvent?: PointerEvent): void {
+    public startInsertion(event: PointerEvent): void {
         if (this.#insertionActiveClosed === false)
             this.#restrictionManager.showRestrictionVisualization = true;
 
         if (this.#insertionActive === false) {
-            if (!lastEvent) {
-                this.#alreadyInserted = false;
-                return;
-            }
             // get current ray
-            const ray = this.#viewport.pointerEventToRay(lastEvent);
+            const ray = this.#viewport.pointerEventToRay(event);
 
             // add a point at the ray intersection
             const restrictedPoint = this.#restrictionManager.rayTrace(ray);

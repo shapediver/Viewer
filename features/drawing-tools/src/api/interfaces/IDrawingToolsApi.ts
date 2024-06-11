@@ -68,12 +68,6 @@ export interface IDrawingToolsApi {
      */
     close(): void;
     /**
-     * Finish the drawing tool.
-     * 
-     * @returns The points data of the drawing tool.
-     */
-    finish(): PointsData | undefined;
-    /**
      * Redo the last action of the drawing tool.
      */
     redo(): void;

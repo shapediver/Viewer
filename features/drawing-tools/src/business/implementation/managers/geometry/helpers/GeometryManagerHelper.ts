@@ -7,14 +7,14 @@ import { IViewportApi } from '@shapediver/viewer';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryManagerHelper {
-    // #region Properties (6)
+    // #region Properties (4)
 
     readonly #eventEngine = EventEngine.instance;
     readonly #geometryManager: GeometryManager;
     readonly #geometryState: GeometryState;
     readonly #viewport: IViewportApi;
 
-    // #endregion Properties (6)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -26,7 +26,7 @@ export class GeometryManagerHelper {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (5)
+    // #region Public Methods (6)
 
     public addPoint(insertionIndex: number, position?: vec3 | undefined, temporary = false): void {
         const positionArrayLength = this.#geometryState.positionArray.length / 3;
@@ -103,13 +103,45 @@ export class GeometryManagerHelper {
             newPositionArray.set(this.#geometryState.positionArray.slice(0, this.#geometryState.positionArray.length - 3));
         }
 
-        // remove material index
-        const materialIndexArray = this.#geometryState.materialIndexArray.slice(0, removalIndex).concat(this.#geometryState.materialIndexArray.slice(removalIndex + 1, this.#geometryState.materialIndexArray.length));
-        materialIndexArray.push(0);
-        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
+        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
         this.#geometryState.updateData(newPositionArray, temporary);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: removalIndex });
+    }
+
+    public removePoints(indices: number[]): void {
+        // sort indices so that highest is first
+        indices.sort((a, b) => b - a);
+
+        let positionArray = new Float32Array(this.#geometryState.positionArray);
+        for(const removalIndex of indices) {
+            const positionArrayLength = positionArray.length / 3;
+            if (removalIndex < 0 || removalIndex >= positionArrayLength) {
+                throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
+            }
+
+            /**
+             * Adjust the position attribute
+             * 
+             * Logic:
+             *  - remove :D
+             */
+            const newPositionArray = new Float32Array(positionArray.length - 3);
+            if (removalIndex > 0 && removalIndex < positionArrayLength) {
+                newPositionArray.set([...positionArray.slice(0, Math.max(removalIndex, 0) * 3), ...positionArray.slice(Math.min(removalIndex + 1, positionArray.length) * 3, positionArray.length)]);
+            } else if (removalIndex === 0) {
+                newPositionArray.set(positionArray.slice(3, positionArray.length));
+            } else {
+                newPositionArray.set(positionArray.slice(0, positionArray.length - 3));
+            }
+
+            positionArray = newPositionArray;
+        }
+        
+        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
+        this.#geometryState.updateData(positionArray);
+
+        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary: false, index: indices });
     }
 
     public resetMaterialIndices(): void {
@@ -122,5 +154,5 @@ export class GeometryManagerHelper {
         this.#geometryState.updateMaterialIndexArray(this.#geometryState.materialIndexArray);
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (6)
 }

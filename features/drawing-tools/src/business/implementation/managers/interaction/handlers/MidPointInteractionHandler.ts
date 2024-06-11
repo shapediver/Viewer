@@ -29,13 +29,17 @@ export class MidPointInteractionHandler {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (1)
+    // #region Public Getters And Setters (2)
+
+    public get midPointInsertionActive(): boolean {
+        return this.#midPointInsertionActive;
+    }
 
     public get midPointInsertionIndex(): number {
         return this.#midPointInsertionIndex;
     }
 
-    // #endregion Public Getters And Setters (1)
+    // #endregion Public Getters And Setters (2)
 
     // #region Public Methods (3)
 

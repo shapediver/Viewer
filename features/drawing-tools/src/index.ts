@@ -45,12 +45,6 @@ defaultTextures['variation_0'] = MaterialEngine.instance.loadMap('https://viewer
         return mapData!;
     });
 
-defaultTextures['variation_1'] = MaterialEngine.instance.loadMap('https://viewer.shapediver.com/v3/graphics/point_soft_v2.png')
-    .then((mapData: IMapData | null) => {
-        defaultTextures['variation_1'] = mapData!;
-        return mapData!;
-    });
-
 let drawingTools: IDrawingToolsApi | undefined;
 
 /**

@@ -97,10 +97,6 @@ export class DrawingToolsApi implements IDrawingToolsApi {
         this.#drawingToolsManager.close();
     }
 
-    public finish(): PointsData | undefined {
-        return this.#drawingToolsManager.finish();
-    }
-
     public redo(): void {
         this.#drawingToolsManager.historyManager.redo();
     }

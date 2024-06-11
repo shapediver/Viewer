@@ -112,8 +112,6 @@ export class InteractionManagerHelper {
         if (!ray) ray = this.#lastRay!;
         this.#lastRay = ray;
 
-        const deleteKeyPressed = this.#interactionManager.keyPressed(event, this.#drawingToolsManager.settings.controls.delete);
-
         // check if there is a point close to the ray
         const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
         if (pointDistances) {
@@ -121,31 +119,27 @@ export class InteractionManagerHelper {
             // remove it if it is in the array
             const index = pointDistances[0].index;
 
-            if (deleteKeyPressed && this.#geometryState.canRemovePoint()) {
-                this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.DELETION_HOVERED);
-            } else {
-                if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
-                if (this.#hoveredPoint !== undefined) {
-                    if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-                        this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
-                    } else if (this.#interactionManager.midPointInteractionHandler.midPointInsertionIndex === index) {
-                        this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
-                    } else if (this.#interactionManager.insertionInteractionHandler.insertionActive === true && this.#interactionManager.insertionInteractionHandler.alreadyInserted === true && this.#hoveredPoint === this.#geometryState.getPointCount() - 1) {
-                        this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
-                    } else {
-                        this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.DEFAULT);
-                    }
-                }
-
-                if (this.#selectedPointIndices.includes(index)) {
-                    this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.SELECTED_HOVERED);
+            if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
+            if (this.#hoveredPoint !== undefined) {
+                if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+                    this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.SELECTED);
                 } else if (this.#interactionManager.midPointInteractionHandler.midPointInsertionIndex === index) {
-                    this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
-                } else if (this.#interactionManager.insertionInteractionHandler.insertionActive === true && this.#interactionManager.insertionInteractionHandler.alreadyInserted === true && index === this.#geometryState.getPointCount() - 1) {
-                    this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
+                    this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
+                } else if (this.#interactionManager.insertionInteractionHandler.insertionActive === true && this.#interactionManager.insertionInteractionHandler.alreadyInserted === true && this.#hoveredPoint === this.#geometryState.getPointCount() - 1) {
+                    this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.INSERTION);
                 } else {
-                    this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.HOVERED);
+                    this.#drawingToolsManager.updateMaterialIndex(this.#hoveredPoint, MATERIAL_INDEX.DEFAULT);
                 }
+            }
+
+            if (this.#selectedPointIndices.includes(index)) {
+                this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.SELECTED_HOVERED);
+            } else if (this.#interactionManager.midPointInteractionHandler.midPointInsertionIndex === index) {
+                this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
+            } else if (this.#interactionManager.insertionInteractionHandler.insertionActive === true && this.#interactionManager.insertionInteractionHandler.alreadyInserted === true && index === this.#geometryState.getPointCount() - 1) {
+                this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.INSERTION_HOVERED);
+            } else {
+                this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.HOVERED);
             }
 
             this.#hoveredPoint = index;
