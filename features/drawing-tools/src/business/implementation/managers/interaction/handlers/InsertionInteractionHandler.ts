@@ -57,7 +57,6 @@ export class InsertionInteractionHandler {
 
             if (this.#insertionActiveClosed === true) {
                 this.#insertionActiveClosed = false;
-                this.#restrictionManager.showRestrictionVisualization = true;
                 const numberOfPoints = this.#geometryState.getPointCount();
                 if (this.#settings.geometry.minPoints !== undefined && numberOfPoints < this.#settings.geometry.minPoints) {
                     throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#settings.geometry.minPoints);
@@ -80,8 +79,6 @@ export class InsertionInteractionHandler {
     public onMove(ray: IRay): void {
         if (this.#insertionActive === false) return;
 
-        if (this.#insertionActiveClosed === false) this.#restrictionManager.showRestrictionVisualization = true;
-
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
             if (restrictedPoint) {
@@ -95,7 +92,6 @@ export class InsertionInteractionHandler {
                         this.#geometryState.closeLoop = true;
                         this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
                         this.#insertionActiveClosed = true;
-                        this.#restrictionManager.showRestrictionVisualization = false;
                     }
                 }
             }
@@ -110,16 +106,12 @@ export class InsertionInteractionHandler {
                     this.#insertionActiveIndex = this.#geometryState.getPointCount();
                     this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);
                     this.#insertionActiveClosed = false;
-                    this.#restrictionManager.showRestrictionVisualization = true;
                 }
             }
         }
     }
 
     public startInsertion(event: PointerEvent): void {
-        if (this.#insertionActiveClosed === false)
-            this.#restrictionManager.showRestrictionVisualization = true;
-
         if (this.#insertionActive === false) {
             // get current ray
             const ray = this.#viewport.pointerEventToRay(event);
@@ -138,10 +130,10 @@ export class InsertionInteractionHandler {
 
     public stopInsertion(): void {
         if (this.#insertionActive === true) {
+
             if (this.#insertionActiveClosed === true) {
                 this.#geometryState.closeLoop = false;
                 this.#insertionActiveClosed = false;
-                this.#restrictionManager.showRestrictionVisualization = true;
             } else {
                 // remove last added point
                 this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);

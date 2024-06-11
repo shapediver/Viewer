@@ -195,6 +195,8 @@ export class InteractionManager implements IManager {
     }
 
     public startInsertion(): void {
+        this.#restrictionManager.showRestrictionVisualization = true;
+
         this.#midPointInteractionHandler.stopMidPointInsertion();
 
         if (!this.#cameraFreezeFlag)
@@ -204,6 +206,7 @@ export class InteractionManager implements IManager {
     }
 
     public stopInsertion(): void {
+        this.#restrictionManager.showRestrictionVisualization = false;
         this.#insertionInteractionHandler.stopInsertion();
         this.#viewport.removeFlag(this.#cameraFreezeFlag);
         this.#cameraFreezeFlag = '';
@@ -214,8 +217,9 @@ export class InteractionManager implements IManager {
     // #region Private Methods (1)
 
     private reset(): void {
+        if(this.#insertionInteractionHandler.insertionActive === false)
+            this.#restrictionManager.showRestrictionVisualization = false;
         this.#interactionManagerHelper.reset();
-        this.#restrictionManager.showRestrictionVisualization = false;
         this.#viewport.removeFlag(this.#cameraFreezeFlag);
         this.#cameraFreezeFlag = '';
     }

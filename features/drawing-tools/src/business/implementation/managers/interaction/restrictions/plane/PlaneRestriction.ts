@@ -213,6 +213,8 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
                 return indexedResults[0].value;
             }
         }
+
+        return point;
     }
 
     // #endregion Public Methods (2)

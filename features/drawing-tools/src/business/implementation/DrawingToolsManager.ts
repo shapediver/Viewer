@@ -9,13 +9,13 @@ import {
     IViewportApi,
     sceneTree,
     TreeNode
-    } from '@shapediver/viewer';
+} from '@shapediver/viewer';
 import {
     EventEngine,
     EVENTTYPE_DRAWING_TOOLS,
     ShapeDiverViewerDrawingToolsError,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { EventManager } from './managers/interaction/EventManager';
 import { GeometryManager } from './managers/geometry/GeometryManager';
 import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
@@ -475,13 +475,13 @@ export class DrawingToolsManager implements IManager {
             // there are more keys pressed than the keys in the combination
             if (keys.length !== pressedKeys.length) return false;
             let result = true;
-            for (let i = 0; i < keys.length; i++) 
+            for (let i = 0; i < keys.length; i++)
                 result = result && (this.#keysPressed[keys[i]] || false);
 
             return result;
         } else {
             // there are also other keys pressed
-            if(pressedKeys.length > 1) return false;
+            if (pressedKeys.length > 1) return false;
 
             return this.#keysPressed[key] || false;
         }
@@ -513,7 +513,7 @@ export class DrawingToolsManager implements IManager {
          * - IF INSERTION IS NOT ACTIVE, UPDATE DRAWING TOOL
          */
         if (confirmKeyPressed) {
-            if(this.insertionActive) {
+            if (this.insertionActive) {
                 this.#interactionManager.stopInsertion();
             } else {
                 this.update();
@@ -526,7 +526,7 @@ export class DrawingToolsManager implements IManager {
          * - IF INSERTION IS NOT ACTIVE, CANCEL DRAWING TOOL
          */
         if (cancelKeyPressed) {
-            if(this.insertionActive) {
+            if (this.insertionActive) {
                 this.#interactionManager.stopInsertion();
             } else {
                 this.cancel();
@@ -563,7 +563,7 @@ export class DrawingToolsManager implements IManager {
          */
         if (redoKeyPressed) {
             this.#historyManager.redo();
-        }   
+        }
     }
 
     public onKeyUp(event: KeyboardEvent): void {
@@ -594,7 +594,7 @@ export class DrawingToolsManager implements IManager {
 
         if (!this.geometryState.canRemovePoint(indices.length))
             throw new ShapeDiverViewerDrawingToolsError('The minimum amount of points is reached.');
-        
+
         this.#geometryManager.removePoints(indices);
     }
 

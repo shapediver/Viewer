@@ -94,9 +94,12 @@ export class RestrictionManager implements IManager {
         };
         for (const restriction of Object.values(this.#restrictions)) {
             const hit = restriction.rayTrace(ray, metaData);
-            if (hit && vec3.squaredLength(hit) < rayTracingResult.distance) {
+
+            if(!hit) continue;
+            const distance = vec3.squaredDistance(ray.origin, hit);
+            if (distance < rayTracingResult.distance) {
                 rayTracingResult.result = hit;
-                rayTracingResult.distance = vec3.squaredLength(hit);
+                rayTracingResult.distance = distance;
                 rayTracingResult.restriction = restriction;
             }
         }
