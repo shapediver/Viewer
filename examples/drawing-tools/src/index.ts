@@ -22,18 +22,13 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         ticket:
             'e68eb247669db1dd9143edfddb621e97cf631d54757781eb66cd25a36224a8c3e4d803fa1f8d67552469920526ebe969b906541d2041d85702f7b4f46df3b76909c034a3d7f00618356dc0b485115092cb21f304c3f592a9ccc2e48240e8ca933a8280c8660ab0-a71165b362ca9e696710c2d7bc86e88b',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-        id: 'mySession',
-        initialParameterValues: {
-            'Grid Unit Editable': 'false',
-            'Angle Step Editable': 'false',
-        }
+        id: 'mySession'
     });
 
     const pointsParameter = session.getParameterByName('points')[0];
 
     // get the output for the drawing tools options
     const customizationProperties: Settings = (session.getOutputByName('AppBuilder')[0].content![0].data as any).containers[1].tabs[0].widgets[0].props.drawingToolsSettings;
-    console.log(customizationProperties);
 
     /**
      * Callback function for the drawing tool
@@ -144,7 +139,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         elements.push({
             name: 'angle step',
             type: 'slider',
-            value: 8,
+            value: 12,
             min: 1,
             max: 16,
             step: 1,

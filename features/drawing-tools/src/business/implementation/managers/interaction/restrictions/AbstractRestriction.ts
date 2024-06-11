@@ -42,7 +42,6 @@ export abstract class AbstractRestriction implements IRestrictionBase {
         if (this._enabledEditable === false) return;
 
         this._enabled = value;
-        this._object3D.visible = this.isVisible();
         this.visibilityChanged(this._object3D.visible);
     }
 
@@ -56,7 +55,7 @@ export abstract class AbstractRestriction implements IRestrictionBase {
 
     public set showVisualization(value: boolean) {
         this.#showVisualization = value;
-        this._object3D.visible = this.isVisible();
+        this._object3D.visible = value;
         this.visibilityChanged(this._object3D.visible);
     }
 
@@ -94,10 +93,6 @@ export abstract class AbstractRestriction implements IRestrictionBase {
         this.#parentNode.addChild(this.#visualizationNode);
         this.#parentNode.updateVersion(false, false);
         this.#viewport.updateNode(this.#parentNode);
-    }
-
-    private isVisible(): boolean {
-        return this._enabled && this.#showVisualization;
     }
 
     // #endregion Private Methods (2)

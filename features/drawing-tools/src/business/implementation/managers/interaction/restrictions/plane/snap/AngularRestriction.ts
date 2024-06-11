@@ -31,6 +31,7 @@ export type AngularRestrictionProperties = {
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
     // #region Properties (18)
 
+    readonly #activationKey: string;
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #geometryMathManager: GeometryMathManager;
     readonly #inputBoundingBox: IBox;
@@ -75,9 +76,10 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#vectorV = planeRestriction.vectorV!;
         this.#normal = planeRestriction.normal;
 
-        this.enabled = properties?.enabled ?? true;
+        this.#activationKey = properties?.activationKey || 'a';
+        this.enabled = properties?.enabled ?? false;
         this._enabledEditable = properties?.enabledEditable ?? true;
-        this.#angleStep = properties?.angleStep || Math.PI / 8;
+        this.#angleStep = properties?.angleStep || Math.PI / 12;
         this.#angleStepEditable = properties?.angleStepEditable ?? true;
         this.#priority = properties?.priority || 0;
 
@@ -133,7 +135,10 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     // #region Public Methods (2)
 
     public snap(point: vec3, metaData?: { index?: number }): vec3 | undefined {
-        if (this.enabled === false || metaData === undefined || metaData.index === undefined) return;
+        // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
+        if (this.enabled === false && this.#drawingToolsManager.keyPressed(this.#activationKey) === false) return;
+
+        if (metaData === undefined || metaData.index === undefined) return;
 
         if (this.#polarGridHelperNext) {
             this.#polarGridHelperNext.remove(...this.#polarGridHelperNext.children);

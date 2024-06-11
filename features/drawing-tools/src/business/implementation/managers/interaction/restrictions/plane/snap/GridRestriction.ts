@@ -29,8 +29,10 @@ export type GridRestrictionProperties = {
 // #region Classes (1)
 
 export class GridRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (13)
+    // #region Properties (15)
 
+    readonly #activationKey: string;
+    readonly #drawingToolsManager: DrawingToolsManager;
     readonly #inputBoundingBox: IBox;
     readonly #planeRestriction: PlaneRestriction;
 
@@ -46,13 +48,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
     #vectorU: vec3;
     #vectorV: vec3;
 
-    // #endregion Properties (13)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, planeRestriction: PlaneRestriction, properties?: GridRestrictionProperties) {
         super(drawingToolsManager, 'grid');
 
+        this.#drawingToolsManager = drawingToolsManager;
         this.#inputBoundingBox = drawingToolsManager.inputBoundingBox;
         this.#planeRestriction = planeRestriction;
 
@@ -64,7 +67,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         this.#normal = planeRestriction.normal;
         this.#origin = planeRestriction.origin;
 
-        this.enabled = properties?.enabled ?? true;
+        this.#activationKey = properties?.activationKey || 'g';
+        this.enabled = properties?.enabled ?? false;
         this._enabledEditable = properties?.enabledEditable ?? true;
         this.#gridUnit = properties?.gridUnit || 1;
         this.#gridUnitEditable = properties?.gridUnitEditable ?? true;
@@ -123,7 +127,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // public get
     public snap(point: vec3): vec3 | undefined {
-        if (this.enabled === false) return;
+        // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
+        if (this.enabled === false && this.#drawingToolsManager.keyPressed(this.#activationKey) === false) return;
 
         /**
          * Explanation of the following code:

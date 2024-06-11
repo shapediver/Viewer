@@ -20,6 +20,12 @@ export type SnapRestrictionProperties = {
      * If the priority is the same, the result that is closer to the original point is chosen.
      */
     priority?: number;
+    /**
+     * The activation key of the restriction.
+     * If the key is not provided, no key is assigned.
+     * If the key is provided, the restriction is only active when the key is pressed.
+     */
+    activationKey?: string;
 };
 
 // #endregion Type aliases (1)
