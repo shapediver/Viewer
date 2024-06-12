@@ -1,10 +1,9 @@
 import { addListener, FLAG_TYPE, IViewportApi } from '@shapediver/viewer';
 import { DeletionInteractionHandler } from './handlers/DeletionInteractionHandler';
 import { DrawingToolsEventResponseMapping } from '../../../interfaces/events/EventResponseMapping';
-import { DrawingToolsManager, Settings } from '../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { EVENTTYPE_DRAWING_TOOLS, IEvent } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../geometry/GeometryMathManager';
-import { GeometryState } from '../geometry/GeometryState';
 import { IManager } from '../../../interfaces/IManager';
 import { InsertionInteractionHandler } from './handlers/InsertionInteractionHandler';
 import { InteractionManagerHelper } from './helpers/InteractionManagerHelper';
@@ -18,12 +17,10 @@ export class InteractionManager implements IManager {
     readonly #deletionInteractionHandler: DeletionInteractionHandler;
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #geometryMathManager: GeometryMathManager;
-    readonly #geometryState: GeometryState;
     readonly #insertionInteractionHandler: InsertionInteractionHandler;
     readonly #interactionManagerHelper: InteractionManagerHelper;
     readonly #midPointInteractionHandler: MidPointInteractionHandler;
     readonly #restrictionManager: RestrictionManager;
-    readonly #settings: Settings;
     readonly #viewport: IViewportApi;
 
     #cameraFreezeFlag: string = '';
@@ -35,10 +32,8 @@ export class InteractionManager implements IManager {
 
     constructor(drawingToolsManager: DrawingToolsManager) {
         this.#drawingToolsManager = drawingToolsManager;
-        this.#settings = drawingToolsManager.settings;
         this.#viewport = drawingToolsManager.viewport;
         this.#geometryMathManager = this.#drawingToolsManager.geometryMathManager;
-        this.#geometryState = this.#drawingToolsManager.geometryState;
 
         this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager);
 
@@ -124,6 +119,7 @@ export class InteractionManager implements IManager {
          */
         if (this.#midPointInteractionHandler.midPointInsertionActive === true) {
             this.#midPointInteractionHandler.finishMidPointInsertion(distances);
+            this.#interactionManagerHelper.midPointInserted = true;
         }
 
         this.#interactionManagerHelper.selectPoint(distances);

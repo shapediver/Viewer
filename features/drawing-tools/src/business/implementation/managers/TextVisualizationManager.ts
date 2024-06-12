@@ -163,8 +163,8 @@ export class TextVisualizationManager implements IManager {
 
             const text = document.createElement('div');
             text.className = 'label';
-            text.style.marginTop = '1em';
-            text.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}`;
+            text.style.marginTop = '0.5em';
+            text.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
 
             const label = new CSS2DObject(text);
             label.position.set(midPoint[0], midPoint[1], midPoint[2]);
@@ -180,10 +180,10 @@ export class TextVisualizationManager implements IManager {
         for (let i = 0; i < positionArray.length; i += 3) {
             const text = document.createElement('div');
             text.className = 'label';
-            text.style.marginTop = '1em';
+            text.style.marginTop = '0.5em';
 
-            text.textContent = `[${numberCleaner(positionArray[i])}, ${numberCleaner(positionArray[i + 1])}, ${numberCleaner(positionArray[i + 2])}]`;
-
+            text.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
+            
             const label = new CSS2DObject(text);
             label.position.set(positionArray[i], positionArray[i + 1], positionArray[i + 2]);
             this.#positionObject3D.add(label);

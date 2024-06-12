@@ -29,7 +29,7 @@ export class HistoryManager implements IManager {
 
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
             const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-            if (event.temporary === false && event.points !== undefined && event.fromHistory !== true) {
+            if (event.temporary === false && event.points !== undefined && event.fromHistory !== true && event.recordHistory !== false) {
                 this.recordState({
                     points: event.points
                 });

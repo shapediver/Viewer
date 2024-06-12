@@ -6,6 +6,7 @@ export interface IDrawingToolsEvent extends IViewportEvent {
 
     drawingToolId: string;
     fromHistory?: boolean;
+    recordHistory?: boolean;
     index?: number;
     points?: PointsData;
     temporary?: boolean;

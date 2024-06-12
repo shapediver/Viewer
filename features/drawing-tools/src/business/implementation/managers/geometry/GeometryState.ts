@@ -328,7 +328,7 @@ export class GeometryState {
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
             points: this.getPointsData(),
             temporary: false,
-            fromHistory: recordHistory === false
+            recordHistory
         });
     }
 

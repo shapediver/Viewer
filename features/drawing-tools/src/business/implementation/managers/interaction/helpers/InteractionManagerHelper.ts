@@ -20,6 +20,7 @@ export class InteractionManagerHelper {
     #hoveredPoint?: number;
     #justSelected: boolean = false;
     #lastRay: IRay | undefined;
+    #midPointInserted: boolean = false;
     #moving: boolean = false;
     #selectedMovedPointPositions: vec3[] = [];
     #selectedPointIndices: number[] = [];
@@ -41,7 +42,7 @@ export class InteractionManagerHelper {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (5)
+    // #region Public Getters And Setters (7)
 
     public get dragging(): boolean {
         return this.#dragging;
@@ -49,6 +50,14 @@ export class InteractionManagerHelper {
 
     public get hoveredPoint(): number | undefined {
         return this.#hoveredPoint;
+    }
+
+    public get midPointInserted(): boolean {
+        return this.#midPointInserted;
+    }
+
+    public set midPointInserted(value: boolean) {
+        this.#midPointInserted = value;
     }
 
     public get moving(): boolean {
@@ -63,7 +72,7 @@ export class InteractionManagerHelper {
         return this.#selectedPointIndices;
     }
 
-    // #endregion Public Getters And Setters (5)
+    // #endregion Public Getters And Setters (7)
 
     // #region Public Methods (11)
 
@@ -206,11 +215,7 @@ export class InteractionManagerHelper {
     }
 
     public onUp(): void {
-        if (this.#justSelected === false && this.#moving === false && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            this.toggleSelection(this.#hoveredPoint);
-        } else if (this.#justSelected === true && this.#moving === true && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            this.toggleSelection(this.#hoveredPoint);
-        } if (this.#moving === true && this.#dragging === true) {
+        if (this.#moving === true && this.#dragging === true) {
             const positionArray = new Float32Array(this.#geometryState.positionArray);
             for (let i = 0; i < this.#selectedPointIndices.length; i++) {
                 const index = this.#selectedPointIndices[i];
@@ -220,6 +225,20 @@ export class InteractionManagerHelper {
             this.#geometryState.updateData(positionArray);
 
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
+        } else if (this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+            this.toggleSelection(this.#hoveredPoint);
+
+            if (this.#midPointInserted) {
+                /**
+                 * SPECIAL CASE:
+                 * - A MIDPOINT WAS ADDED, BUT NOT DRAGGED
+                 * - HAS TO BE ADDED TO THE HISTORY NOW
+                 */
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+                    points: this.#geometryState.getPointsData(),
+                    temporary: false
+                });
+            }
         }
     }
 
@@ -262,6 +281,7 @@ export class InteractionManagerHelper {
 
     public reset(): void {
         this.#justSelected = false;
+        this.#midPointInserted = false;
         this.#moving = false;
         this.#dragging = false;
         this.#selectedPointPositions = [];

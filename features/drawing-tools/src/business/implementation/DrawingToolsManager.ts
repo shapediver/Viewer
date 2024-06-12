@@ -9,13 +9,15 @@ import {
     IViewportApi,
     sceneTree,
     TreeNode
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
+import { DrawingToolsEventResponseMapping } from '../interfaces/events/EventResponseMapping';
 import {
     EventEngine,
     EVENTTYPE_DRAWING_TOOLS,
+    IEvent,
     ShapeDiverViewerDrawingToolsError,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { EventManager } from './managers/interaction/EventManager';
 import { GeometryManager } from './managers/geometry/GeometryManager';
 import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
@@ -253,11 +255,24 @@ export type Settings = {
      */
     general: {
         /**
+         * If the drawing tool is updated automatically when the drawing is changed.
+         * 
+         * @default false
+         */
+        autoUpdate: boolean;
+        /**
          * If the drawing tool is closed when the drawing is updated.
          * 
          * @default false
          */
         closeOnUpdate: boolean;
+
+        /** 
+         * The unit that will be displayed in the distance and point labels. 
+         * 
+         * @default ''
+         */
+        displayUnit: string;
     }
 
 };
@@ -330,6 +345,16 @@ export class DrawingToolsManager implements IManager {
         // special case, the scene is still empty, so we create a grid by default and show the scene
         if (sceneTree.root.boundingBox.isEmpty())
             this.#viewport.show = true;
+
+        // add listener for geometry changes, if autoUpdate is enabled the drawing tool will update automatically
+        this.#eventEngine.addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
+            const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+            if (event.temporary === false && event.points !== undefined && event.recordHistory !== false) {
+                if (this.#settings.general.autoUpdate) {
+                    this.update();
+                }
+            }
+        });
     }
 
     // #endregion Constructors (1)
@@ -685,7 +710,9 @@ export class DrawingToolsManager implements IManager {
                 redo: settingsOptional.controls?.redo === undefined ? 'Control+y' : settingsOptional.controls.redo
             },
             general: {
-                closeOnUpdate: settingsOptional.general?.closeOnUpdate === undefined ? false : settingsOptional.general.closeOnUpdate
+                autoUpdate: settingsOptional.general?.autoUpdate === undefined ? false : settingsOptional.general.autoUpdate,
+                closeOnUpdate: settingsOptional.general?.closeOnUpdate === undefined ? false : settingsOptional.general.closeOnUpdate,
+                displayUnit: settingsOptional.general?.displayUnit === undefined ? '' : settingsOptional.general.displayUnit
             }
         };
 

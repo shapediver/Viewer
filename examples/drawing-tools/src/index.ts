@@ -29,7 +29,10 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 
     // get the output for the drawing tools options
     const customizationProperties: Settings = (session.getOutputByName('AppBuilder')[0].content![0].data as any).containers[1].tabs[0].widgets[0].props.drawingToolsSettings;
-
+    customizationProperties.general = {
+        displayUnit: 'm',
+        autoUpdate: true,
+    };
     /**
      * Callback function for the drawing tool
      * executed when the drawing tool is finished
@@ -37,7 +40,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
      * @param geometryData 
      */
     const onUpdate = async (pointsData: PointsData) => {
-        console.log('Drawing tools updated');
+        console.log('Drawing tools updated', pointsData);
 
         pointsParameter.value = JSON.stringify({ 'points': pointsData });
         await session.customize();
