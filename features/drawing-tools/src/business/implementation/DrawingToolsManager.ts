@@ -55,7 +55,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     #closed: boolean = false;
     #continuousRenderingFlag: string = '';
-    #inputBoundingBox: IBox = new Box();
     #uuid = this.#uuidGenerator.create();
 
     // #endregion Properties (18)
@@ -138,10 +137,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     public get indicesArrayLines(): Uint8Array | null | undefined {
         return this.#geometryManager.geometryState.indicesArrayLines;
-    }
-
-    public get inputBoundingBox(): IBox {
-        return this.#inputBoundingBox;
     }
 
     public get insertionActive(): boolean {
@@ -528,7 +523,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
             max[1] = Math.max(max[1], point[1]);
             max[2] = Math.max(max[2], point[2]);
         }
-        this.#inputBoundingBox = new Box(min, max);
 
         if (settingsOptional.restrictions === undefined || Object.keys(settingsOptional.restrictions).length === 0) {
             settings.restrictions['plane'] = { type: RESTRICTION_TYPE.PLANE };

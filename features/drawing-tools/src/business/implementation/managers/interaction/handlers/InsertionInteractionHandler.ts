@@ -81,7 +81,7 @@ export class InsertionInteractionHandler {
         if (this.#insertionActive === false) return;
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
+            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1});
             if (restrictedPoint) {
                 this.#drawingToolsManager.movePointTemporary(this.#geometryState.getPointCount() - 1, restrictedPoint);
 

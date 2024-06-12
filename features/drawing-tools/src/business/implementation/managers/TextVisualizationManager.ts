@@ -164,8 +164,20 @@ export class TextVisualizationManager implements IManager {
 
             const text = document.createElement('div');
             text.className = 'label';
-            text.style.marginTop = '0.5em';
-            text.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
+            text.style.marginTop = '1em';
+            
+            const child = document.createElement('div');
+            child.style.display = 'flex';
+            child.style.justifyContent = 'center';
+            child.style.alignItems = 'center';
+            child.style.color = 'white';
+            child.style.backgroundColor = '#197aeb80';
+            child.style.borderRadius = '5px';
+            child.style.fontSize = '16px';
+            child.style.textAlign = 'center';
+            child.style.padding = '0px 2px';
+            child.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
+            text.appendChild(child);
 
             const label = new CSS2DObject(text);
             label.position.set(midPoint[0], midPoint[1], midPoint[2]);
@@ -181,9 +193,20 @@ export class TextVisualizationManager implements IManager {
         for (let i = 0; i < positionArray.length; i += 3) {
             const text = document.createElement('div');
             text.className = 'label';
-            text.style.marginTop = '0.5em';
-
-            text.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
+            text.style.marginTop = '1em';
+            
+            const child = document.createElement('div');
+            child.style.display = 'flex';
+            child.style.justifyContent = 'center';
+            child.style.alignItems = 'center';
+            child.style.color = 'white';
+            child.style.backgroundColor = '#197aeb80';
+            child.style.borderRadius = '5px';
+            child.style.fontSize = '16px';
+            child.style.textAlign = 'center';
+            child.style.padding = '0px 2px';
+            child.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
+            text.appendChild(child);
 
             const label = new CSS2DObject(text);
             label.position.set(positionArray[i], positionArray[i + 1], positionArray[i + 2]);

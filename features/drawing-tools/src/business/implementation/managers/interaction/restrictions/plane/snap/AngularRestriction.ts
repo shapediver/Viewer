@@ -1,14 +1,14 @@
-import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { CSS2DObject } from '../../../../../../../three/CSS2DRenderer';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
-import { IBox } from '@shapediver/viewer';
+import { sceneTree } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { numberCleaner } from '../../../../../utils/numberCleaner';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { Settings } from '../../../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
+import { RestrictionMetaData } from '../../../../../../interfaces/IRestriction';
 
 // #region Type aliases (1)
 
@@ -30,12 +30,11 @@ export type AngularRestrictionProperties = {
 // #region Classes (1)
 
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (19)
+    // #region Properties (16)
 
     readonly #activationKey: string;
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #geometryMathManager: GeometryMathManager;
-    readonly #inputBoundingBox: IBox;
     readonly #planeRestriction: PlaneRestriction;
     readonly #settings: Settings;
 
@@ -50,13 +49,11 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     #labelNext?: CSS2DObject;
     #labelPrevious?: CSS2DObject;
     #normal: vec3;
-    #polarGridHelperNext?: THREE.PolarGridHelper;
-    #polarGridHelperPrevious?: THREE.PolarGridHelper;
     #priority: number = 0;
     #vectorU: vec3;
     #vectorV: vec3;
 
-    // #endregion Properties (19)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
@@ -65,7 +62,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         this.#drawingToolsManager = drawingToolsManager;
         this.#geometryMathManager = drawingToolsManager.geometryMathManager;
-        this.#inputBoundingBox = drawingToolsManager.inputBoundingBox;
         this.#settings = drawingToolsManager.settings;
 
         this.#planeRestriction = planeRestriction;
@@ -98,9 +94,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     public set active(value: boolean) {
         this.#active = value;
-        if (this.#polarGridHelperNext && this.#activePolarGrids.next === value) this.#polarGridHelperNext.visible = value;
         if (this.#labelNext && this.#activePolarGrids.next === value) this.#labelNext.visible = value;
-        if (this.#polarGridHelperPrevious && this.#activePolarGrids.previous === value) this.#polarGridHelperPrevious.visible = value;
         if (this.#labelPrevious && this.#activePolarGrids.previous === value) this.#labelPrevious.visible = value;
     }
 
@@ -135,24 +129,11 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     // #region Public Methods (2)
 
-    public snap(point: vec3, metaData?: { index?: number }): vec3 | undefined {
+    public snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
         if (this.enabled === false && this.#drawingToolsManager.keyPressed(this.#activationKey) === false) return;
 
-        if (metaData === undefined || metaData.index === undefined) return;
-
-        if (this.#polarGridHelperNext) {
-            this.#polarGridHelperNext.remove(...this.#polarGridHelperNext.children);
-            this.#polarGridHelperNext.visible = false;
-        }
-
         if (this.#labelNext) this.#labelNext.visible = false;
-
-        if (this.#polarGridHelperPrevious) {
-            this.#polarGridHelperPrevious.remove(...this.#polarGridHelperPrevious.children);
-            this.#polarGridHelperPrevious.visible = false;
-        }
-
         if (this.#labelPrevious) this.#labelPrevious.visible = false;
 
         this.#activePolarGrids = {
@@ -164,13 +145,16 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         let previousIndex, nextIndex;
         if (metaData !== undefined && metaData.index !== undefined) {
-            previousIndex = metaData.index - 1 < 0 ? positionArray.length / 3 - 1 : metaData.index - 1;
-            nextIndex = metaData.index + 1 > positionArray.length / 3 - 1 ? 0 : metaData.index + 1;
+            previousIndex = this.getPreviousIndex(metaData.index);
+            nextIndex = this.getNextIndex(metaData.index);
         } else {
             // if no index was provided, it is a new point
             previousIndex = positionArray.length / 3 - 1;
             nextIndex = 0;
         }
+
+        const previousPreviousIndex = this.getPreviousIndex(previousIndex);
+        const nextNextIndex = this.getNextIndex(nextIndex);
 
         if (positionArray.length / 3 < 2) return;
 
@@ -189,20 +173,26 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         // get the next and previous point from the position array
         const nextPointFromData = vec3.fromValues(positionArray.at((nextIndex * 3))!, positionArray.at((nextIndex * 3) + 1)!, positionArray.at((nextIndex * 3) + 2)!);
+        const nextNextPointFromData = vec3.fromValues(positionArray.at((nextNextIndex * 3))!, positionArray.at((nextNextIndex * 3) + 1)!, positionArray.at((nextNextIndex * 3) + 2)!);
         const previousPointFromData = vec3.fromValues(positionArray.at((previousIndex * 3))!, positionArray.at((previousIndex * 3) + 1)!, positionArray.at((previousIndex * 3) + 2)!);
+        const previousPreviousPointFromData = vec3.fromValues(positionArray.at((previousPreviousIndex * 3))!, positionArray.at((previousPreviousIndex * 3) + 1)!, positionArray.at((previousPreviousIndex * 3) + 2)!);
 
         // project them onto the same plane as the point
         const nextPointProjected = vec3.sub(vec3.create(), nextPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), nextPointFromData, point), this.#normal)));
+        const nextNextPointProjected = vec3.sub(vec3.create(), nextNextPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), nextNextPointFromData, point), this.#normal)));
         const previousPointProjected = vec3.sub(vec3.create(), previousPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), previousPointFromData, point), this.#normal)));
+        const previousPreviousPointProjected = vec3.sub(vec3.create(), previousPreviousPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), previousPreviousPointFromData, point), this.#normal)));
 
         // project the point onto the XY-Plane
         const pointProjected = vec3.transformMat4(vec3.create(), point, this.#planeRestriction.transformationToXYPlaneMatrix);
         vec3.transformMat4(nextPointProjected, nextPointProjected, this.#planeRestriction.transformationToXYPlaneMatrix);
+        vec3.transformMat4(nextNextPointProjected, nextNextPointProjected, this.#planeRestriction.transformationToXYPlaneMatrix);
         vec3.transformMat4(previousPointProjected, previousPointProjected, this.#planeRestriction.transformationToXYPlaneMatrix);
+        vec3.transformMat4(previousPreviousPointProjected, previousPreviousPointProjected, this.#planeRestriction.transformationToXYPlaneMatrix);
 
         // calculate the angle between the next and previous point and the point to restrict on the axis
-        const { angularDifference: angularDifferenceNext, crossProduct: crossProductNext, closestAngle: closestAngleNext } = this.getAngularDifference(pointProjected, nextPointProjected);
-        const { angularDifference: angularDifferencePrevious, crossProduct: crossProductPrevious, closestAngle: closestAnglePrevious } = this.getAngularDifference(pointProjected, previousPointProjected);
+        const { angularDifference: angularDifferenceNext, crossProduct: crossProductNext, closestAngle: closestAngleNext } = this.getAngularDifference({ start: nextPointProjected, end: nextNextPointProjected }, { start: nextPointProjected, end: pointProjected });
+        const { angularDifference: angularDifferencePrevious, crossProduct: crossProductPrevious, closestAngle: closestAnglePrevious } = this.getAngularDifference({ start: previousPointProjected, end: previousPreviousPointProjected }, { start: previousPointProjected, end: pointProjected });
 
         // calculate the distances in screen space so we can check how close it is
         const resultPointNextAngle = vec3.rotateZ(vec3.create(), pointProjected, nextPointProjected, crossProductNext[2] < 0 ? -angularDifferenceNext : angularDifferenceNext);
@@ -238,9 +228,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
             }
 
             const intersection = vec3.add(vec3.create(), nextPointProjected, vec3.scale(vec3.create(), rayDirectionNext, tValue));
-            [this.#polarGridHelperNext, this.#labelNext] = this.createGrid(this.#polarGridHelperNext, nextPointFromData, closestAngleNext);
+            this.#labelNext = this.createGrid(this.#labelNext, nextPointFromData, closestAngleNext);
             this.#activePolarGrids.next = true;
-            [this.#polarGridHelperPrevious, this.#labelPrevious] = this.createGrid(this.#polarGridHelperPrevious, previousPointFromData, closestAnglePrevious);
+            this.#labelPrevious = this.createGrid(this.#labelPrevious, previousPointFromData, closestAnglePrevious);
             this.#activePolarGrids.previous = true;
 
             // reverse the projection to the original coordinate system
@@ -250,14 +240,14 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         // check which distance to the projection is smaller
         if (screenSpaceDistanceCheckNextAngle.distanceSquared < screenSpaceDistanceCheckPreviousAngle.distanceSquared) {
-            [this.#polarGridHelperNext, this.#labelNext] = this.createGrid(this.#polarGridHelperNext, nextPointFromData, closestAngleNext);
+            this.#labelNext = this.createGrid(this.#labelNext, nextPointFromData, closestAngleNext);
             this.#activePolarGrids.next = true;
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
             return resultPointNextAngle;
         } else {
-            [this.#polarGridHelperPrevious, this.#labelPrevious] = this.createGrid(this.#polarGridHelperPrevious, previousPointFromData, closestAnglePrevious);
+            this.#labelPrevious = this.createGrid(this.#labelPrevious, previousPointFromData, closestAnglePrevious);
             this.#activePolarGrids.previous = true;
 
             // reverse the projection to the original coordinate system
@@ -278,21 +268,14 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     protected visibilityChanged(visible: boolean): void {
         if (visible === false) {
-            if (this.#polarGridHelperNext) {
-                this.#polarGridHelperNext.remove(...this.#polarGridHelperNext.children);
-                this.#polarGridHelperNext.visible = false;
-            }
-
-            if (this.#polarGridHelperPrevious) {
-                this.#polarGridHelperPrevious.remove(...this.#polarGridHelperPrevious.children);
-                this.#polarGridHelperPrevious.visible = false;
-            }
+            if (this.#labelNext) this.#labelNext.visible = false;
+            if (this.#labelPrevious) this.#labelPrevious.visible = false;
         }
     }
 
     // #endregion Protected Methods (1)
 
-    // #region Private Methods (3)
+    // #region Private Methods (5)
 
     private calculateAngles() {
         this.#angles = [];
@@ -301,59 +284,57 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         }
     }
 
-    private createGrid(polarGridHelper: THREE.PolarGridHelper | undefined, position: vec3, angle: number): [THREE.PolarGridHelper, CSS2DObject] {
-        if (polarGridHelper) {
-            polarGridHelper.remove(...polarGridHelper.children);
-            polarGridHelper.dispose();
-            this._object3D.remove(polarGridHelper);
-        }
+    private createGrid(label: CSS2DObject | undefined, position: vec3, angle: number): CSS2DObject {
+        if(label) 
+            this._object3D.remove(label);
 
-        let radius = this.#inputBoundingBox.boundingSphere.radius / 2;
+        let radius = sceneTree.root.boundingBox.boundingSphere.radius / 100;
         if (radius === Infinity)
             radius = 1;
 
-        polarGridHelper = new THREE.PolarGridHelper(radius, (this.#angles.length - 1) * 2, 3, 64, 0xb352fd, 0x0d44f0);
-        polarGridHelper.renderOrder = -1;
-        (polarGridHelper.material as THREE.LineBasicMaterial).depthTest = false;
-        (polarGridHelper.material as THREE.LineBasicMaterial).transparent = true;
-        polarGridHelper.position.copy(new THREE.Vector3(position[0], position[1], position[2]));
-        polarGridHelper.visible = false;
-
         const text = document.createElement('div');
         text.className = 'label';
-        text.style.marginTop = '2.5em';
-        text.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
+        
+        const child = document.createElement('div');
+        child.style.display = 'flex';
+        child.style.justifyContent = 'center';
+        child.style.alignItems = 'center';
+        child.style.width = '40px';
+        child.style.height = '40px';
+        child.style.color = 'white';
+        child.style.backgroundColor = '#197aeb';
+        child.style.borderRadius = '50%';
+        child.style.fontSize = '16px';
+        child.style.textAlign = 'center';
+        child.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
+        text.appendChild(child);
 
-        const label = new CSS2DObject(text);
-        label.position.set(0, 0, 0);
+        label = new CSS2DObject(text);
+        label.position.set(position[0], position[1], position[2]);
         label.visible = false;
-        polarGridHelper.add(label);
+        this._object3D.add(label);
 
-        // rotate grid helper to match axis       
-        // three.js uses a right-handed coordinate system, so we need to rotate the grid helper
-        const rotationMatrix = new THREE.Matrix4().fromArray([
-            this.#vectorU[0], this.#vectorU[1], this.#vectorU[2], 0,
-            this.#vectorV[0], this.#vectorV[1], this.#vectorV[2], 0,
-            this.#normal[0], this.#normal[1], this.#normal[2], 0,
-            0, 0, 0, 1
-        ]);
-        polarGridHelper.rotation.setFromRotationMatrix(rotationMatrix);
-        polarGridHelper.rotateX(Math.PI / 2);
-
-        this._object3D.add(polarGridHelper);
-
-        return [polarGridHelper, label];
+        return label;
     }
 
-    private getAngularDifference(point: vec3, referencePoint: vec3): {
+    private getAngularDifference(
+        line: {
+            start: vec3, end: vec3
+        }, 
+        referenceLine: {
+            start: vec3, end: vec3
+        }
+    ): {
         angularDifference: number,
         crossProduct: vec3,
         closestAngle: number
     } {
-        // calculate the angle between the previous point and the point to restrict on the axis
-        const direction = vec3.sub(vec3.create(), point, referencePoint);
-        const angleReference = vec3.angle(direction, vec3.fromValues(0, 1, 0));
-        const crossProduct = vec3.cross(vec3.create(), vec3.fromValues(0, 1, 0), direction);
+        const lineDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), line.end, line.start));
+        const referenceLineDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), referenceLine.end, referenceLine.start));
+
+        // calculate the angle between the lineDirection and the referenceLineDirection
+        const angleReference = vec3.angle(lineDirection, referenceLineDirection);
+        const crossProduct = vec3.cross(vec3.create(), lineDirection, referenceLineDirection);
 
         // find the angle that is closest to the angle of the previous point
         let closestAngle = this.#angles[0];
@@ -374,7 +355,15 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         };
     }
 
-    // #endregion Private Methods (3)
+    private getNextIndex(index: number): number {
+        return index + 1 > this.#drawingToolsManager.positionArray.length / 3 - 1 ? 0 : index + 1;
+    }
+
+    private getPreviousIndex(index: number): number {
+        return index - 1 < 0 ? this.#drawingToolsManager.positionArray.length / 3 - 1 : index - 1;
+    }
+
+    // #endregion Private Methods (5)
 }
 
 // #endregion Classes (1)

@@ -175,7 +175,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         return this.snap(intersection, metaData);
     }
 
-    private snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
+    private snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return;
 
         const sortedSnapRestrictions = Object.values(this.#snapRestrictions).sort((a, b) => b.priority - a.priority);

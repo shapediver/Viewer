@@ -1,7 +1,7 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
-import { IBox } from '@shapediver/viewer';
+import { EVENTTYPE_SCENE, IBox, addListener, sceneTree } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
@@ -33,7 +33,6 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     readonly #activationKey: string;
     readonly #drawingToolsManager: DrawingToolsManager;
-    readonly #inputBoundingBox: IBox;
     readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
@@ -56,7 +55,6 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         super(drawingToolsManager, 'grid');
 
         this.#drawingToolsManager = drawingToolsManager;
-        this.#inputBoundingBox = drawingToolsManager.inputBoundingBox;
         this.#planeRestriction = planeRestriction;
 
         // we store the properties of the plane restriction
@@ -91,6 +89,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     public set active(value: boolean) {
         this.#active = value;
+
+        if (this.#gridHelper) this.#gridHelper.visible = value;
     }
 
     public get enabledEditable(): boolean {
@@ -143,11 +143,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
         const dot = vec3.dot(v, this.#normal);
 
         // projection of the origin onto the plane that is created by the point and the normal
-        const projectedOrigin = vec3.sub(vec3.create(), this.#origin, vec3.scale(vec3.create(), this.#normal, dot));
+        const adjustedOrigin = vec3.add(vec3.create(), this.#origin, this.#offsetFromUnit);
+        const projectedOrigin = vec3.sub(vec3.create(), adjustedOrigin, vec3.scale(vec3.create(), this.#normal, dot));
 
         // we move the grid helper to the projected origin
-        if (this.#gridHelper)
+        if (this.#gridHelper) {
             this.#gridHelper.position.copy(new THREE.Vector3(projectedOrigin[0], projectedOrigin[1], projectedOrigin[2]));
+            this.#gridHelper.visible = false;
+        }
 
         /**
          * Explanation of the following code:
@@ -161,8 +164,8 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
         // Snap the offset to the grid
         const snappedOffset = vec3.create();
-        snappedOffset[0] = Math.round(rotatedPoint[0] / this.#gridUnit) * this.#gridUnit - this.#offsetFromUnit[0];
-        snappedOffset[1] = Math.round(rotatedPoint[1] / this.#gridUnit) * this.#gridUnit - this.#offsetFromUnit[1];
+        snappedOffset[0] = Math.round(rotatedPoint[0] / this.#gridUnit) * this.#gridUnit;
+        snappedOffset[1] = Math.round(rotatedPoint[1] / this.#gridUnit) * this.#gridUnit;
         snappedOffset[2] = rotatedPoint[2];
 
         // Move the snapped point back to the original coordinate system
@@ -185,7 +188,13 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
     // #region Protected Methods (1)
 
-    protected visibilityChanged(): void { }
+    protected visibilityChanged(visible: boolean): void {
+        if (visible === false) {
+            if (this.#gridHelper) {
+                this.#gridHelper.visible = false;
+            }
+        }
+    }
 
     // #endregion Protected Methods (1)
 
@@ -197,8 +206,9 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
             this.#gridHelper.dispose();
         }
 
-        this.#gridSize = this.#inputBoundingBox.boundingSphere.radius * 5;
-        if (this.#gridSize === Infinity)
+        const radius = sceneTree.root.boundingBox.boundingSphere.radius;
+        this.#gridSize = radius * 2;
+        if (this.#gridSize === Infinity || this.#gridSize === -Infinity || isNaN(this.#gridSize) || this.#gridSize === 0)
             this.#gridSize = 100;
 
         // if the grid size is not divisible by the grid unit, we need to adjust the grid size
@@ -209,10 +219,11 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
 
         // todo  adjust grid size so that is divisible by grid unit
         this.#gridHelper = new THREE.GridHelper(gridSize, gridSize / this.#gridUnit, 0x666666, 0x222222);
-        this.#gridHelper.position.copy(new THREE.Vector3(this.#origin[0], this.#origin[1], this.#origin[2]));
-        this.#gridHelper.visible = true;
+        const adjustedOrigin = vec3.add(vec3.create(), this.#origin, this.#offsetFromUnit);
+        this.#gridHelper.position.copy(new THREE.Vector3(adjustedOrigin[0], adjustedOrigin[1], adjustedOrigin[2]));
+        this.#gridHelper.visible = false;
 
-        this.#gridHelper.renderOrder = -1;
+        this.#gridHelper.renderOrder = 100;
         (this.#gridHelper.material as THREE.LineBasicMaterial).depthTest = false;
         (this.#gridHelper.material as THREE.LineBasicMaterial).transparent = true;
 
