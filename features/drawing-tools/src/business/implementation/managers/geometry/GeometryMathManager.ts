@@ -1,6 +1,7 @@
-import { DrawingToolsManager, Settings } from '../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { IManager } from '../../../interfaces/IManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
+import { Settings } from '../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryMathManager implements IManager {
@@ -22,7 +23,7 @@ export class GeometryMathManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     /**
      * Check which distances of lines to ray
@@ -101,6 +102,33 @@ export class GeometryMathManager implements IManager {
 
     public close(): void { }
 
+    /**
+     * Calculate the closest point on a line to a point
+     * 
+     * @param start 
+     * @param end 
+     * @param point 
+     */
+    public closestPointOnLine(start: vec3, end: vec3, point: vec3): vec3 {
+        const lineDir = vec3.sub(vec3.create(), end, start);
+        // Vector from linePoint to point
+        const v = vec3.sub(vec3.create(), point, start);
+
+        // Line direction dot product with itself
+        const dirDotDir = vec3.dot(lineDir, lineDir);
+
+        // If the direction vector is a zero vector, return the line point as closest point
+        if (dirDotDir === 0) return start;
+
+        // Projection factor t
+        const t = vec3.dot(v, lineDir) / dirDotDir;
+
+        // Closest point on the line
+        const closestPoint = vec3.add(vec3.create(), start, vec3.scale(vec3.create(), lineDir, t));
+
+        return closestPoint;
+    }
+
     public screenSpaceDistanceCheck(point1: vec3, point2: vec3, threshold: number) {
         const camera = this.#viewport.camera!;
 
@@ -134,7 +162,7 @@ export class GeometryMathManager implements IManager {
         };
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 
     // #region Private Methods (2)
 
@@ -150,33 +178,6 @@ export class GeometryMathManager implements IManager {
         const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
         // closest point on ray to point
         return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
-    }
-
-    /**
-     * Calculate the closest point on a line to a point
-     * 
-     * @param start 
-     * @param end 
-     * @param point 
-     */
-    public closestPointOnLine(start: vec3, end: vec3, point: vec3): vec3 {
-        const lineDir = vec3.sub(vec3.create(), end, start);
-        // Vector from linePoint to point
-        const v = vec3.sub(vec3.create(), point, start);
-
-        // Line direction dot product with itself
-        const dirDotDir = vec3.dot(lineDir, lineDir);
-
-        // If the direction vector is a zero vector, return the line point as closest point
-        if (dirDotDir === 0) return start;
-
-        // Projection factor t
-        const t = vec3.dot(v, lineDir) / dirDotDir;
-
-        // Closest point on the line
-        const closestPoint = vec3.add(vec3.create(), start, vec3.scale(vec3.create(), lineDir, t));
-
-        return closestPoint;
     }
 
     /**

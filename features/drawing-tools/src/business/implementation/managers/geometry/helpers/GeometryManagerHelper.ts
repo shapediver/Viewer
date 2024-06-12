@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { DrawingToolsManager, MATERIAL_INDEX } from '../../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer.shared.services';
 import { GeometryManager } from '../GeometryManager';
 import { GeometryState } from '../GeometryState';
 import { IViewportApi } from '@shapediver/viewer';
+import { MATERIAL_INDEX } from '../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryManagerHelper {
@@ -114,7 +115,7 @@ export class GeometryManagerHelper {
         indices.sort((a, b) => b - a);
 
         let positionArray = new Float32Array(this.#geometryState.positionArray);
-        for(const removalIndex of indices) {
+        for (const removalIndex of indices) {
             const positionArrayLength = positionArray.length / 3;
             if (removalIndex < 0 || removalIndex >= positionArrayLength) {
                 throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
@@ -137,7 +138,7 @@ export class GeometryManagerHelper {
 
             positionArray = newPositionArray;
         }
-        
+
         this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
         this.#geometryState.updateData(positionArray);
 

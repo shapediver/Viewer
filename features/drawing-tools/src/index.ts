@@ -1,10 +1,14 @@
 import { AngularRestrictionApi } from './api/implementation/restrictions/plane/snap/AngularRestrictionApi';
 import { AngularRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/AngularRestriction';
-import { Callbacks, PointsData, SettingsOptional } from './business/implementation/DrawingToolsManager';
+import { Callbacks, PointsData, SettingsOptional } from './business/interfaces/IDrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
+import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
+import { GeometryRestrictionApi } from './api/implementation/restrictions/geometry/GeometryRestrictionApi';
+import { GeometryRestrictionProperties } from './business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 import { GridRestrictionApi } from './api/implementation/restrictions/plane/snap/GridRestrictionApi';
 import { GridRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/GridRestriction';
 import { IDrawingToolsApi } from './api/interfaces/IDrawingToolsApi';
+import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 import {
     IMapData,
     IViewportApi,
@@ -22,10 +26,6 @@ import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
-import { GeometryRestrictionApi } from './api/implementation/restrictions/geometry/GeometryRestrictionApi';
-import { GeometryRestrictionProperties } from './business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
-import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 
 export {
     SettingsOptional as Settings, Callbacks,

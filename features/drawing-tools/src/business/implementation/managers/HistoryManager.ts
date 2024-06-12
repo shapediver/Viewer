@@ -1,7 +1,8 @@
 import { addListener, EVENTTYPE_DRAWING_TOOLS, IEvent } from '@shapediver/viewer';
 import { DrawingToolsEventResponseMapping } from '../../interfaces/events/EventResponseMapping';
-import { DrawingToolsManager, PointsData } from '../DrawingToolsManager';
+import { DrawingToolsManager } from '../DrawingToolsManager';
 import { IManager } from '../../interfaces/IManager';
+import { PointsData } from '../../interfaces/IDrawingToolsManager';
 
 // #region Type aliases (1)
 
@@ -69,7 +70,7 @@ export class HistoryManager implements IManager {
     }
 
     public redo(): void {
-        if(!this.canRedo()) return;
+        if (!this.canRedo()) return;
 
         if (this.#currentStateIndex < this.#history.length - 1)
             this.#currentStateIndex++;
@@ -78,7 +79,7 @@ export class HistoryManager implements IManager {
     }
 
     public undo(): void {
-        if(!this.canUndo()) return;
+        if (!this.canUndo()) return;
 
         if (this.#currentStateIndex > 0)
             this.#currentStateIndex--;

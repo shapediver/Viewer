@@ -1,8 +1,9 @@
-import { DrawingToolsManager, MATERIAL_INDEX } from '../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { GeometryManagerHelper } from './helpers/GeometryManagerHelper';
 import { GeometryState } from './GeometryState';
 import { IManager } from '../../../interfaces/IManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { MATERIAL_INDEX } from '../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class GeometryManager implements IManager {

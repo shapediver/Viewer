@@ -1,4 +1,5 @@
-import { DrawingToolsManager, Settings } from '../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../DrawingToolsManager';
+import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
 import { IManager } from '../../../interfaces/IManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
 import {
@@ -8,7 +9,7 @@ import {
     RestrictionProperties
 } from '../../../interfaces/IRestriction';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
-import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
+import { Settings } from '../../../interfaces/IDrawingToolsManager';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 import { vec3 } from 'gl-matrix';
 
@@ -59,7 +60,7 @@ export class RestrictionManager implements IManager {
 
     // #endregion Public Getters And Setters (3)
 
-    // #region Public Methods (5)
+    // #region Public Methods (4)
 
     public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
         token = token || this.#uuidGenerator.create();
@@ -95,7 +96,7 @@ export class RestrictionManager implements IManager {
         for (const restriction of Object.values(this.#restrictions)) {
             const hit = restriction.rayTrace(ray, metaData);
 
-            if(!hit) continue;
+            if (!hit) continue;
             const distance = vec3.squaredDistance(ray.origin, hit);
             if (distance < rayTracingResult.distance) {
                 rayTracingResult.result = hit;
@@ -123,5 +124,5 @@ export class RestrictionManager implements IManager {
         }
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (4)
 }

@@ -1,12 +1,13 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { CSS2DObject } from '../../../../../../../three/CSS2DRenderer';
-import { DrawingToolsManager, Settings } from '../../../../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
 import { IBox } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { numberCleaner } from '../../../../../utils/numberCleaner';
 import { PlaneRestriction } from '../PlaneRestriction';
+import { Settings } from '../../../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -29,7 +30,7 @@ export type AngularRestrictionProperties = {
 // #region Classes (1)
 
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (18)
+    // #region Properties (19)
 
     readonly #activationKey: string;
     readonly #drawingToolsManager: DrawingToolsManager;
@@ -55,7 +56,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     #vectorU: vec3;
     #vectorV: vec3;
 
-    // #endregion Properties (18)
+    // #endregion Properties (19)
 
     // #region Constructors (1)
 

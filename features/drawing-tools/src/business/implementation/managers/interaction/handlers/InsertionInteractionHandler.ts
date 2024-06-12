@@ -1,8 +1,9 @@
-import { DrawingToolsManager, MATERIAL_INDEX, Settings } from '../../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../geometry/GeometryMathManager';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
+import { MATERIAL_INDEX, Settings } from '../../../../interfaces/IDrawingToolsManager';
 import { RestrictionManager } from '../RestrictionManager';
 import { ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer.shared.services';
 
@@ -130,7 +131,6 @@ export class InsertionInteractionHandler {
 
     public stopInsertion(): void {
         if (this.#insertionActive === true) {
-
             if (this.#insertionActiveClosed === true) {
                 this.#geometryState.closeLoop = false;
                 this.#insertionActiveClosed = false;

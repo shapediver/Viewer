@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AbstractRestriction } from '../AbstractRestriction';
-import { DefaultTextures, DrawingToolsManager, Settings } from '../../../../DrawingToolsManager';
+import { DefaultTextures, Settings } from '../../../../../interfaces/IDrawingToolsManager';
+import { DrawingToolsManager } from '../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../geometry/GeometryMathManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../../../interfaces/IRestriction';
@@ -20,12 +21,13 @@ export type GeometryRestrictionProperties = {
 // #region Classes (1)
 
 export class GeometryRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (10)
+    // #region Properties (11)
 
     readonly #raycaster = new THREE.Raycaster();
     readonly #uuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
+    #defaultTextures: DefaultTextures;
     #geometryMathManager: GeometryMathManager;
     #nodes: ITreeNode[] = [];
     #settings: Settings;
@@ -33,9 +35,8 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #snapToEdges: boolean = true;
     #snapToFaces: boolean = true;
     #snapToVertices: boolean = true;
-    #defaultTextures: DefaultTextures;
 
-    // #endregion Properties (10)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -98,7 +99,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
     // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return;
@@ -185,7 +186,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                 }
             }
 
-            if(this.#snapToFaces === true) {
+            if (this.#snapToFaces === true) {
                 // part 3 - face intersection
                 return vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
             }
@@ -194,10 +195,18 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         return;
     }
 
+    // #endregion Public Methods (1)
+
+    // #region Protected Methods (1)
+
+    protected visibilityChanged(): void { }
+
+    // #endregion Protected Methods (1)
+
+    // #region Private Methods (1)
+
     private snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
         if (this.enabled === false) return;
-
-
 
         return point;
 
@@ -234,13 +243,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         // return;
     }
 
-    // #endregion Public Methods (2)
-
-    // #region Protected Methods (1)
-
-    protected visibilityChanged(): void { }
-
-    // #endregion Protected Methods (1)
+    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)

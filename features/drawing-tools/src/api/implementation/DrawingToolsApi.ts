@@ -1,17 +1,24 @@
-import { Callbacks, DefaultTextures, DrawingToolsManager, PointsData, SettingsOptional } from '../../business/implementation/DrawingToolsManager';
+import {
+    Callbacks,
+    DefaultTextures,
+    IDrawingToolsManager,
+    PointsData,
+    SettingsOptional
+} from '../../business/interfaces/IDrawingToolsManager';
+import { DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
+import { GeometryRestriction } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
+import { GeometryRestrictionApi } from './restrictions/geometry/GeometryRestrictionApi';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
-import { IViewportApi } from '@shapediver/viewer';
 import { IRestrictionApi } from '../interfaces/IRestrictionApi';
-import { vec3 } from 'gl-matrix';
+import { IViewportApi } from '@shapediver/viewer';
 import { PlaneRestriction } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
-import { GeometryRestriction } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { GeometryRestrictionApi } from './restrictions/geometry/GeometryRestrictionApi';
+import { vec3 } from 'gl-matrix';
 export class DrawingToolsApi implements IDrawingToolsApi {
     // #region Properties (2)
 
-    readonly #drawingToolsManager: DrawingToolsManager;
+    readonly #drawingToolsManager: IDrawingToolsManager;
     readonly #restrictions: { [key: string]: IRestrictionApi; } = {};
 
     // #endregion Properties (2)
@@ -21,11 +28,11 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     constructor(viewport: IViewportApi, callbacks: Callbacks, settings: SettingsOptional, defaultTextures?: DefaultTextures) {
         this.#drawingToolsManager = new DrawingToolsManager(viewport, callbacks, settings, defaultTextures);
 
-        for(const token in this.#drawingToolsManager.restrictionManager.restrictions) {
-            if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
-                this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
-            if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof GeometryRestriction)
-                this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GeometryRestriction);
+        for (const token in this.#drawingToolsManager.restrictions) {
+            if (this.#drawingToolsManager.restrictions[token] instanceof PlaneRestriction)
+                this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
+            if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
+                this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
         }
     }
 
@@ -38,7 +45,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     }
 
     public get pointsData(): PointsData {
-        return this.#drawingToolsManager.geometryState.getPointsData();
+        return this.#drawingToolsManager.getPointsData();
     }
 
     public get restrictions(): { [key: string]: IRestrictionApi; } {
@@ -46,24 +53,24 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     }
 
     public get showDistanceLabels(): boolean {
-        return this.#drawingToolsManager.textVisualizationManager.showDistanceLabels;
+        return this.#drawingToolsManager.showDistanceLabels;
     }
 
     public set showDistanceLabels(value: boolean) {
-        this.#drawingToolsManager.textVisualizationManager.showDistanceLabels = value;
+        this.#drawingToolsManager.showDistanceLabels = value;
     }
 
     public get showPointLabels(): boolean {
-        return this.#drawingToolsManager.textVisualizationManager.showPointLabels;
+        return this.#drawingToolsManager.showPointLabels;
     }
 
     public set showPointLabels(value: boolean) {
-        this.#drawingToolsManager.textVisualizationManager.showPointLabels = value;
+        this.#drawingToolsManager.showPointLabels = value;
     }
 
     // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (12)
+    // #region Public Methods (11)
 
     public addPoint(index: number, position?: vec3 | undefined): void {
         this.#drawingToolsManager.addPoint(index, position);
@@ -71,22 +78,22 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
     public addRestriction(properties: RestrictionProperties, incomingToken?: string): IRestrictionApi | undefined {
         const token = this.#drawingToolsManager.addRestriction(properties, incomingToken);
-        if(!token) return;
+        if (!token) return;
 
-        if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof PlaneRestriction)
-            this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as PlaneRestriction);
-        if(this.#drawingToolsManager.restrictionManager.restrictions[token] instanceof GeometryRestriction)
-            this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictionManager.restrictions[token] as GeometryRestriction);
+        if (this.#drawingToolsManager.restrictions[token] instanceof PlaneRestriction)
+            this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
+        if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
+            this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
 
         return this.#restrictions[token];
     }
 
     public canRedo(): boolean {
-        return this.#drawingToolsManager.historyManager.canRedo();
+        return this.#drawingToolsManager.canRedo();
     }
 
     public canUndo(): boolean {
-        return this.#drawingToolsManager.historyManager.canUndo();
+        return this.#drawingToolsManager.canUndo();
     }
 
     public cancel(): void {
@@ -98,7 +105,7 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     }
 
     public redo(): void {
-        this.#drawingToolsManager.historyManager.redo();
+        this.#drawingToolsManager.redo();
     }
 
     public removePoint(index: number): void {
@@ -111,12 +118,12 @@ export class DrawingToolsApi implements IDrawingToolsApi {
     }
 
     public undo(): void {
-        this.#drawingToolsManager.historyManager.undo();
+        this.#drawingToolsManager.undo();
     }
 
     public update(): PointsData | undefined {
         return this.#drawingToolsManager.update();
     }
 
-    // #endregion Public Methods (12)
+    // #endregion Public Methods (11)
 }

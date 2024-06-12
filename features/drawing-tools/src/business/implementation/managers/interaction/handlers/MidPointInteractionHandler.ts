@@ -1,8 +1,9 @@
-import { DrawingToolsManager, MATERIAL_INDEX } from '../../../DrawingToolsManager';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../geometry/GeometryMathManager';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
+import { MATERIAL_INDEX } from '../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class MidPointInteractionHandler {

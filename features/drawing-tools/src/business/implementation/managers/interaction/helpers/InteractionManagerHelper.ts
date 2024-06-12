@@ -1,10 +1,11 @@
-import { DrawingToolsManager, MATERIAL_INDEX } from '../../../DrawingToolsManager';
+import { addListener } from '@shapediver/viewer';
+import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
+import { MATERIAL_INDEX } from '../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
-import { addListener } from '@shapediver/viewer';
 
 export class InteractionManagerHelper {
     // #region Properties (15)

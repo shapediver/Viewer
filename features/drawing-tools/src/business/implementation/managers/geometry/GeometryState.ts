@@ -17,13 +17,9 @@ import {
     PRIMITIVE_MODE,
     PrimitiveData
 } from '@shapediver/viewer.shared.types';
-import {
-    DefaultTextures,
-    DrawingToolsManager,
-    PointsData,
-    Settings
-} from '../../DrawingToolsManager';
+import { DefaultTextures, PointsData, Settings } from '../../../interfaces/IDrawingToolsManager';
 import { DrawingToolsEventResponseMapping } from '../../../interfaces/events/EventResponseMapping';
+import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { EventEngine, IEvent } from '@shapediver/viewer.shared.services';
 import { GeometryManager } from './GeometryManager';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';

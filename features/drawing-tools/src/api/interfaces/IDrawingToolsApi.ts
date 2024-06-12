@@ -1,9 +1,9 @@
+import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 import { IRestrictionApi } from './IRestrictionApi';
+import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { PointsData } from '../../business/interfaces/IDrawingToolsManager';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
-import { PointsData } from '../../business/implementation/DrawingToolsManager';
-import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
-import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 
 export interface IDrawingToolsApi {
     // #region Properties (5)
@@ -34,7 +34,7 @@ export interface IDrawingToolsApi {
 
     // #endregion Properties (5)
 
-    // #region Public Methods (12)
+    // #region Public Methods (11)
 
     /**
      * Add a point to the drawing tool.
@@ -94,5 +94,5 @@ export interface IDrawingToolsApi {
      */
     update(): PointsData | undefined;
 
-    // #endregion Public Methods (12)
+    // #endregion Public Methods (11)
 }

@@ -8,9 +8,10 @@ import {
     TreeNode
 } from '@shapediver/viewer';
 import { CSS2DObject, CSS2DRenderer } from '../../../three/CSS2DRenderer';
-import { DrawingToolsManager, Settings } from '../DrawingToolsManager';
+import { DrawingToolsManager } from '../DrawingToolsManager';
 import { IManager } from '../../interfaces/IManager';
 import { numberCleaner } from '../utils/numberCleaner';
+import { Settings } from '../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class TextVisualizationManager implements IManager {
@@ -183,7 +184,7 @@ export class TextVisualizationManager implements IManager {
             text.style.marginTop = '0.5em';
 
             text.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
-            
+
             const label = new CSS2DObject(text);
             label.position.set(positionArray[i], positionArray[i + 1], positionArray[i + 2]);
             this.#positionObject3D.add(label);
