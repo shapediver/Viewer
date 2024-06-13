@@ -1,13 +1,4 @@
 import {
-    Box,
-    FLAG_TYPE,
-    IBox,
-    ITreeNode,
-    IViewportApi,
-    sceneTree,
-    TreeNode
-} from '@shapediver/viewer';
-import {
     Callbacks,
     DefaultTextures,
     IDrawingToolsManager,
@@ -25,18 +16,26 @@ import {
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
 import { EventManager } from './managers/interaction/EventManager';
+import {
+    FLAG_TYPE,
+    ITreeNode,
+    IViewportApi,
+    sceneTree,
+    TreeNode
+} from '@shapediver/viewer';
 import { GeometryManager } from './managers/geometry/GeometryManager';
 import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
 import { GeometryState } from './managers/geometry/GeometryState';
 import { HistoryManager } from './managers/HistoryManager';
 import { InteractionManager } from './managers/interaction/InteractionManager';
+import { IRay } from '@shapediver/viewer.features.interaction';
 import { IRestriction, RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
 import { RestrictionManager } from './managers/interaction/RestrictionManager';
 import { TextVisualizationManager } from './managers/TextVisualizationManager';
 import { vec3 } from 'gl-matrix';
 
 export class DrawingToolsManager implements IDrawingToolsManager {
-    // #region Properties (18)
+    // #region Properties (17)
 
     readonly #callbacks: Callbacks;
     readonly #defaultTextures: DefaultTextures;
@@ -54,10 +53,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
     readonly #viewport: IViewportApi;
 
     #closed: boolean = false;
-    #continuousRenderingFlag: string = '';
+    #continuousRenderingFlag?: string;
     #uuid = this.#uuidGenerator.create();
 
-    // #endregion Properties (18)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -78,10 +77,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#textVisualizationManager = new TextVisualizationManager(this);
 
         this.#eventManager = new EventManager(this.#viewport, {
-            onDown: this.#interactionManager.onDown.bind(this.#interactionManager),
-            onUp: this.#interactionManager.onUp.bind(this.#interactionManager),
-            onOut: this.#interactionManager.onOut.bind(this.#interactionManager),
-            onMove: this.#interactionManager.onMove.bind(this.#interactionManager),
+            onDown: this.onDown.bind(this),
+            onUp: this.onUp.bind(this),
+            onOut: this.onOut.bind(this),
+            onMove: this.onMove.bind(this),
             onKeyDown: this.onKeyDown.bind(this),
             onKeyUp: this.onKeyUp.bind(this)
         });
@@ -105,7 +104,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (23)
+    // #region Public Getters And Setters (22)
 
     public get callbacks(): Callbacks {
         return this.#callbacks;
@@ -195,9 +194,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         return this.#viewport;
     }
 
-    // #endregion Public Getters And Setters (23)
+    // #endregion Public Getters And Setters (22)
 
-    // #region Public Methods (24)
+    // #region Public Methods (28)
 
     /**
      * Add a point to the drawing tool.
@@ -248,7 +247,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     public close(): void {
         if (this.#closed) return;
-        this.#viewport.removeFlag(this.#continuousRenderingFlag);
+        if (this.#continuousRenderingFlag)
+            this.#viewport.removeFlag(this.#continuousRenderingFlag);
         this.#eventManager.close();
         this.#geometryMathManager.close();
         this.#geometryManager.close();
@@ -292,6 +292,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     public movePointTemporary(index: number, position: vec3): void {
         this.movePoint(index, position, true);
+    }
+
+    public onDown(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
+        this.#interactionManager.onDown(event, ray);
     }
 
     public onKeyDown(event: KeyboardEvent): void {
@@ -368,6 +373,27 @@ export class DrawingToolsManager implements IDrawingToolsManager {
     public onKeyUp(event: KeyboardEvent): void {
         if (this.closed) return;
         this.#keysPressed[event.key] = false;
+    }
+
+    public onMove(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
+        if (!this.#continuousRenderingFlag)
+            this.#continuousRenderingFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
+        this.#interactionManager.onMove(event, ray);
+    }
+
+    public onOut(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
+        this.#interactionManager.onOut(event, ray);
+        if (this.#continuousRenderingFlag) {
+            this.#viewport.removeFlag(this.#continuousRenderingFlag);
+            this.#continuousRenderingFlag = undefined;
+        }
+    }
+
+    public onUp(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
+        this.#interactionManager.onUp(event, ray);
     }
 
     public redo(): void {
@@ -456,7 +482,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#textVisualizationManager.createDistanceLabels();
     }
 
-    // #endregion Public Methods (24)
+    // #endregion Public Methods (28)
 
     // #region Private Methods (1)
 

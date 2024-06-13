@@ -174,7 +174,7 @@ export class InteractionManager implements IManager {
     /**
      * On mouse out, deselect the hovered point and remove the stop dragging
      */
-    public onOut(): void {
+    public onOut(event: PointerEvent, ray: IRay): void {
         this.#restrictionManager.showRestrictionVisualization = false;
         this.#insertionInteractionHandler.stopInsertion();
         this.#interactionManagerHelper.onOut();
@@ -184,7 +184,7 @@ export class InteractionManager implements IManager {
     /**
      * On mouse up, check if a point is close to the ray and deselect it
      */
-    public onUp(): void {
+    public onUp(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
         this.#interactionManagerHelper.onUp();
         this.reset();
