@@ -1,5 +1,6 @@
 import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
 import { GeometryRestriction } from '../../../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export class GeometryRestrictionApi extends AbstractRestrictionApi {
     // #region Properties (1)
@@ -15,13 +16,9 @@ export class GeometryRestrictionApi extends AbstractRestrictionApi {
         this.#geometryRestriction = restriction;
     }
 
-    public get snapToVertices(): boolean {
-        return this.#geometryRestriction.snapToVertices;
-    }
+    // #endregion Constructors (1)
 
-    public set snapToVertices(value: boolean) {
-        this.#geometryRestriction.snapToVertices = value;
-    }
+    // #region Public Getters And Setters (6)
 
     public get snapToEdges(): boolean {
         return this.#geometryRestriction.snapToEdges;
@@ -39,5 +36,21 @@ export class GeometryRestrictionApi extends AbstractRestrictionApi {
         this.#geometryRestriction.snapToFaces = value;
     }
 
-    // #endregion Constructors (1)
+    public get snapToVertices(): boolean {
+        return this.#geometryRestriction.snapToVertices;
+    }
+
+    public set snapToVertices(value: boolean) {
+        this.#geometryRestriction.snapToVertices = value;
+    }
+
+    // #endregion Public Getters And Setters (6)
+
+    // #region Public Methods (1)
+
+    public updateNodes(nodes: ITreeNode[]): void {
+        this.#geometryRestriction.updateNodes(nodes);
+    }
+
+    // #endregion Public Methods (1)
 }

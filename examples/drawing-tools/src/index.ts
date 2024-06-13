@@ -70,11 +70,21 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, customizationProperties);
     (window as any).drawingToolsApi = drawingToolsApi;
 
-    const towerNode = session.getOutputByName('Tower')[0].node!;
     const geometryRestrictionApi = drawingToolsApi.addRestriction({
         type: RESTRICTION_TYPE.GEOMETRY,
-        nodes: [towerNode]
+        nodes: []
     }) as GeometryRestrictionApi;
+
+    const towerOutput = session.getOutputByName('Tower')[0];
+    const cb = (newNode?: SDV.ITreeNode) => {
+
+        if (!newNode)  return;
+        new Promise((resolve) => setTimeout(resolve, 0)).then(() => geometryRestrictionApi.updateNodes([newNode]));
+    };
+    towerOutput.updateCallback = cb;
+    cb(towerOutput.node);
+    
+    
 
     /**
      * 

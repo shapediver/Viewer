@@ -221,6 +221,8 @@ export class TextVisualizationManager implements IManager {
                     padding: 0px 2px;
                 }
             `;
+            document.head.appendChild(style);
+
             child.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
             text.appendChild(child);
 

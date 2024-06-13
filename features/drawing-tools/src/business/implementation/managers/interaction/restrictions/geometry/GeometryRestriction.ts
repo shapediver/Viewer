@@ -35,6 +35,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #snapToEdges: boolean = true;
     #snapToFaces: boolean = true;
     #snapToVertices: boolean = true;
+    #visualizationObject: THREE.Object3D = new THREE.Object3D();
 
     // #endregion Properties (11)
 
@@ -47,22 +48,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#geometryMathManager = drawingToolsManager.geometryMathManager;
         this.#defaultTextures = drawingToolsManager.defaultTextures;
 
-        this.#nodes = properties.nodes;
-
-        const visualizationObject = new THREE.Object3D();
-        this.#nodes.forEach(node => {
-            const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
-            if (threeJsObject) {
-                threeJsObject.traverse((object) => {
-                    if (object instanceof THREE.Mesh) {
-                        const wireframe = new THREE.WireframeGeometry(object.geometry);
-                        const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x000000 }));
-                        visualizationObject.add(line);
-                    }
-                });
-            }
-        });
-        this._object3D.add(visualizationObject);
+        this.updateNodes(properties.nodes);
     }
 
     // #endregion Constructors (1)
@@ -98,6 +84,33 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     }
 
     // #endregion Public Getters And Setters (7)
+
+    public updateNodes(nodes: ITreeNode[]) {
+        this.#nodes = nodes;
+
+        this.#visualizationObject.traverse((object) => {
+            if (object instanceof THREE.LineSegments) {
+                object.geometry.dispose();
+                object.material.dispose();
+            }
+        });
+        this._object3D.remove(this.#visualizationObject);
+
+        this.#visualizationObject = new THREE.Object3D();
+        this.#nodes.forEach(node => {
+            const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
+            if (threeJsObject) {
+                threeJsObject.traverse((object) => {
+                    if (object instanceof THREE.Mesh) {
+                        const wireframe = new THREE.WireframeGeometry(object.geometry);
+                        const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                        this.#visualizationObject.add(line);
+                    }
+                });
+            }
+        });
+        this._object3D.add(this.#visualizationObject);
+    }
 
     // #region Public Methods (1)
 
@@ -207,40 +220,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
     private snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
         if (this.enabled === false) return;
-
         return point;
-
-        // // snap to nodes
-        // let intersections: THREE.Intersection[] = [];
-        // this.#nodes.forEach(node => {
-        //     const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
-        //     if (threeJsObject) {
-        //         // get the bounding sphere center
-        //         const bs = node.boundingBox.boundingSphere;
-        //         const center  = bs.center;
-
-        //         // create a vector from the center to the point
-        //         const centerToP = vec3.normalize(vec3.create(), vec3.fromValues(point[0] - center[0], point[1] - center[1], point[2] - center[2]));
-
-        //         // intersect with the raycaster
-        //         this.#raycaster.ray.origin.set(center[0], center[1], center[2]);
-        //         this.#raycaster.ray.direction.set(centerToP[0], centerToP[1], centerToP[2]);
-
-        //         // intersect
-        //         const currentIntersections = this.#raycaster.intersectObject(threeJsObject);
-        //         intersections = intersections.concat(currentIntersections);
-        //     }
-        // });
-
-        // // sort
-        // intersections.sort((a, b) => a.distance - b.distance);
-
-        // // return first intersection
-        // if (intersections.length > 0) {
-        //     return vec3.fromValues(intersections[0].point.x, intersections[0].point.y, intersections[0].point.z);
-        // }
-
-        // return;
     }
 
     // #endregion Private Methods (1)
