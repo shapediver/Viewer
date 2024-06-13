@@ -192,6 +192,14 @@ export class InteractionManager implements IManager {
                 this.#midPointInteractionHandler.onMove(ray, this.#interactionManagerHelper.hoveredPoint);
             }
         }
+        
+        if (this.#interactionManagerHelper.dragging) {
+            document.body.style.cursor = 'grabbing';
+        } else if(this.#interactionManagerHelper.hoveredPoint !== undefined) {
+            document.body.style.cursor = 'pointer';
+        } else {
+            document.body.style.cursor = 'default';
+        }
     }
 
     /**

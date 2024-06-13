@@ -296,16 +296,25 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         text.className = 'label';
         
         const child = document.createElement('div');
-        child.style.display = 'flex';
-        child.style.justifyContent = 'center';
-        child.style.alignItems = 'center';
-        child.style.width = '40px';
-        child.style.height = '40px';
-        child.style.color = 'white';
-        child.style.backgroundColor = '#197aeb';
-        child.style.borderRadius = '50%';
-        child.style.fontSize = '16px';
-        child.style.textAlign = 'center';
+        child.className = 'angular-label';
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .angular-label {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 40px;
+                height: 40px;
+                color: white;
+                background-color: #197aeb;
+                border-radius: 50%;
+                font-size: 16px;
+                text-align: center;
+            }
+        `;
+        document.head.appendChild(style);
+
         child.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
         text.appendChild(child);
 

@@ -167,15 +167,24 @@ export class TextVisualizationManager implements IManager {
             text.style.marginTop = '1em';
             
             const child = document.createElement('div');
-            child.style.display = 'flex';
-            child.style.justifyContent = 'center';
-            child.style.alignItems = 'center';
-            child.style.color = 'white';
-            child.style.backgroundColor = '#197aeb80';
-            child.style.borderRadius = '5px';
-            child.style.fontSize = '16px';
-            child.style.textAlign = 'center';
-            child.style.padding = '0px 2px';
+            child.className = 'distance-label';
+
+            const style = document.createElement('style');
+            style.textContent = `
+                .distance-label {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    background-color: #197aeb80;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    text-align: center;
+                    padding: 0px 2px;
+                }
+            `;
+            document.head.appendChild(style);
+            
             child.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
             text.appendChild(child);
 
@@ -196,15 +205,22 @@ export class TextVisualizationManager implements IManager {
             text.style.marginTop = '1em';
             
             const child = document.createElement('div');
-            child.style.display = 'flex';
-            child.style.justifyContent = 'center';
-            child.style.alignItems = 'center';
-            child.style.color = 'white';
-            child.style.backgroundColor = '#197aeb80';
-            child.style.borderRadius = '5px';
-            child.style.fontSize = '16px';
-            child.style.textAlign = 'center';
-            child.style.padding = '0px 2px';
+            child.className = 'point-label';
+
+            const style = document.createElement('style');
+            style.textContent = `
+                .point-label {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    background-color: #197aeb80;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    text-align: center;
+                    padding: 0px 2px;
+                }
+            `;
             child.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
             text.appendChild(child);
 
