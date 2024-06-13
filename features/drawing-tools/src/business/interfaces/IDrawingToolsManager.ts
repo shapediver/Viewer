@@ -228,6 +228,13 @@ export type Settings = {
      */
     general: {
         /**
+         * If the drawing tool is started automatically when no points are defined.
+         * 
+         * @default true
+         */
+        autoStart: boolean;
+
+        /**
          * If the drawing tool is updated automatically when the drawing is changed.
          * 
          * @default false

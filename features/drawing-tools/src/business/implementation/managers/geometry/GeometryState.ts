@@ -136,17 +136,17 @@ export class GeometryState {
     // #region Public Methods (17)
 
     public canAddPoint(number: number = 1): boolean {
-        return this.#settings.geometry.maxPoints !== undefined &&
-            this.pointsLength + number <= this.#settings.geometry.maxPoints &&
-            this.wasWithinMinimumMaximumPointsRange &&
-            this.#settings.geometry.strictMinMaxPoints === true;
+        if(this.wasWithinMinimumMaximumPointsRange === true && this.#settings.geometry.strictMinMaxPoints === true) {
+            return this.#settings.geometry.maxPoints !== undefined && this.pointsLength + number <= this.#settings.geometry.maxPoints;
+        }
+        return true;
     }
 
     public canRemovePoint(number: number = 1): boolean {
-        return this.#settings.geometry.minPoints !== undefined &&
-            this.pointsLength - number >= this.#settings.geometry.minPoints &&
-            this.wasWithinMinimumMaximumPointsRange &&
-            this.#settings.geometry.strictMinMaxPoints === true;
+        if(this.wasWithinMinimumMaximumPointsRange === true && this.#settings.geometry.strictMinMaxPoints === true) {
+            return this.#settings.geometry.minPoints !== undefined && this.pointsLength - number >= this.#settings.geometry.minPoints;
+        }
+        return true;
     }
 
     public checkMaximumNumberOfPoints(number?: number): boolean {
@@ -187,7 +187,7 @@ export class GeometryState {
      * optionally connect the last point with the first point
      */
     public createLineIndices(loop: boolean): Uint8Array | undefined {
-        if (!this.#geometryDataLines || !this.#indicesArrayLines) return;
+        if (!this.#geometryDataLines) return;
 
         const positionArrayLength = this.#positionArray.length / 3;
 
@@ -224,9 +224,9 @@ export class GeometryState {
 
     public getPosition(index: number): vec3 {
         return vec3.fromValues(
-            this.#positionArray[index]!,
-            this.#positionArray[index + 1]!,
-            this.#positionArray[index + 2]!
+            this.#positionArray[(index * 3)]!,
+            this.#positionArray[(index * 3) + 1]!,
+            this.#positionArray[(index * 3) + 2]!
         );
     }
 
@@ -259,7 +259,7 @@ export class GeometryState {
             );
             this.#geometryDataLines.renderOrder = 999;
             this.#parentNode.addData(this.#geometryDataLines);
-            this.createLineIndices(this.#settings.geometry.close && this.#settings.geometry.autoClose);
+            this.#indicesArrayLines = this.createLineIndices(this.#settings.geometry.close && this.#settings.geometry.autoClose);
         }
 
         // create material index array

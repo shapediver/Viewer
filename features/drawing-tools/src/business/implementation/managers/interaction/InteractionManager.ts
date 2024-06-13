@@ -102,11 +102,16 @@ export class InteractionManager implements IManager {
          * FINALIZE INSERTION AND START A NEW ONE
          */
         if (this.#insertionInteractionHandler.insertionActive === true) {
-            this.#insertionInteractionHandler.finalizeInsertion();
+            const result = this.#insertionInteractionHandler.finalizeInsertion();
             const distances = this.#geometryMathManager.checkPointDistances(ray);
             this.#interactionManagerHelper.checkHover(distances, ray);
-            this.#insertionInteractionHandler.startInsertion(event);
-            return;
+            if(result) {
+                this.#drawingToolsManager.update();
+                return;
+            } else {
+                this.#insertionInteractionHandler.startInsertion(event);
+                return;
+            }
         }
         const distances = this.#geometryMathManager.checkPointDistances(ray);
 
@@ -118,7 +123,7 @@ export class InteractionManager implements IManager {
             this.#midPointInteractionHandler.finishMidPointInsertion(distances);
             this.#interactionManagerHelper.midPointInserted = true;
         }
-        
+
         /**
          * CHECK HOVERED POINT
          */
@@ -147,13 +152,19 @@ export class InteractionManager implements IManager {
     public onMove(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
 
+        // if there are no points, start with the insertion right away
+        if (this.#drawingToolsManager.settings.general.autoStart && this.#insertionInteractionHandler.insertionActive === false && this.#drawingToolsManager.getPointsData().length === 0) {
+            this.#lastEvent = event;
+            this.startInsertion();
+        }
+
         const distanceSquared = this.#onDownPointer ? Math.pow(event.clientX - this.#onDownPointer.clientX, 2) + Math.pow(event.clientY - this.#onDownPointer.clientY, 2) : Infinity;
         const clickThresholdSquared = 25;
         const pointerMoved = distanceSquared > clickThresholdSquared;
 
         this.#interactionManagerHelper.moving = pointerMoved;
 
-        if(pointerMoved) {
+        if (pointerMoved) {
             this.#lastEvent = event;
             /**
              * IF WE ARE DRAGGING A POINT
@@ -165,14 +176,14 @@ export class InteractionManager implements IManager {
         const distances = this.#geometryMathManager.checkPointDistances(ray);
         this.#interactionManagerHelper.checkHover(distances, ray);
 
-        if(pointerMoved) {
+        if (pointerMoved) {
             /**
              * IF INSERT KEY IS PRESSED
              * ADD POINT AT RAY INTERSECTION IF THERE IS NONE WAS ADDED
              * MOVE LAST ADDED POINT IF THERE IS ONE
              */
             this.#insertionInteractionHandler.onMove(ray);
-    
+
             /**
              * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
              * CHECK IF THERE IS A LINE CLOSE TO THE RAY AND ADD A MID POINT TO IT
@@ -229,7 +240,7 @@ export class InteractionManager implements IManager {
     // #region Private Methods (1)
 
     private reset(): void {
-        if(this.#insertionInteractionHandler.insertionActive === false)
+        if (this.#insertionInteractionHandler.insertionActive === false)
             this.#restrictionManager.showRestrictionVisualization = false;
         this.#interactionManagerHelper.reset();
         this.#viewport.removeFlag(this.#cameraFreezeFlag);

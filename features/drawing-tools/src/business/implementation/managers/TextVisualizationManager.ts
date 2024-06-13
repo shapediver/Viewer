@@ -143,7 +143,7 @@ export class TextVisualizationManager implements IManager {
         const positionArray = this.#drawingToolsManager.positionArray;
         const indicesArrayLines = this.#drawingToolsManager.indicesArrayLines;
 
-        if (!indicesArrayLines) return;
+        if (!indicesArrayLines || positionArray.length <= 3) return;
 
         for (let i = 0; i < indicesArrayLines.length; i += 2) {
             // calculate the midpoint of the line

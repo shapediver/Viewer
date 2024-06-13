@@ -298,7 +298,7 @@ export class InteractionManagerHelper {
 
     public startDragging(ray: IRay): boolean {
         if (this.#selectedPointIndices.length > 0 && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            const draggedPoint = this.#geometryState.getPosition(this.#hoveredPoint * 3);
+            const draggedPoint = this.#geometryState.getPosition(this.#hoveredPoint);
 
             // store drag start
             const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
@@ -309,13 +309,13 @@ export class InteractionManagerHelper {
             if (intersectionPoint) {
                 // store selected point positions
                 this.#selectedPointIndices.forEach(element =>
-                    this.#selectedPointPositions.push(this.#geometryState.getPosition(element * 3))
+                    this.#selectedPointPositions.push(this.#geometryState.getPosition(element))
                 );
 
                 // copy values into selected moved point positions
                 this.#selectedMovedPointPositions = this.#selectedPointPositions.map(element => vec3.clone(element));
 
-                this.#draggedPointPosition = this.#geometryState.getPosition(this.#hoveredPoint * 3);
+                this.#draggedPointPosition = this.#geometryState.getPosition(this.#hoveredPoint);
 
                 this.#draggedPoint = this.#hoveredPoint;
 

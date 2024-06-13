@@ -94,8 +94,8 @@ export class MidPointInteractionHandler {
                 }
 
                 if (this.#midPointInsertionActive === false) {
-                    const firstPoint = this.#geometryState.getPosition(firstIndex * 3);
-                    const secondPoint = this.#geometryState.getPosition(secondIndex * 3);
+                    const firstPoint = this.#geometryState.getPosition(firstIndex);
+                    const secondPoint = this.#geometryState.getPosition(secondIndex);
                     const midPoint = vec3.add(vec3.create(), firstPoint, secondPoint);
                     vec3.scale(midPoint, midPoint, 0.5);
 

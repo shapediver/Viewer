@@ -95,7 +95,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#eventEngine.addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
             const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
             if (event.temporary === false && event.points !== undefined && event.recordHistory !== false) {
-                if (this.#settings.general.autoUpdate) {
+                if (this.#settings.general.autoUpdate && this.#interactionManager.insertionInteractionHandler.insertionActive === false) {
                     this.update();
                 }
             }
@@ -325,6 +325,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         if (confirmKeyPressed) {
             if (this.insertionActive) {
                 this.#interactionManager.stopInsertion();
+                this.update();
             } else {
                 this.update();
             }
@@ -551,6 +552,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 redo: settingsOptional.controls?.redo === undefined ? 'Control+y' : settingsOptional.controls.redo
             },
             general: {
+                autoStart: settingsOptional.general?.autoStart === undefined ? true : settingsOptional.general.autoStart,
                 autoUpdate: settingsOptional.general?.autoUpdate === undefined ? false : settingsOptional.general.autoUpdate,
                 closeOnUpdate: settingsOptional.general?.closeOnUpdate === undefined ? false : settingsOptional.general.closeOnUpdate,
                 displayUnit: settingsOptional.general?.displayUnit === undefined ? '' : settingsOptional.general.displayUnit

@@ -18,7 +18,6 @@ export class InsertionInteractionHandler {
 
     #alreadyInserted: boolean = false;
     #insertionActive: boolean = false;
-    #insertionActiveClosed: boolean = false;
     #insertionActiveIndex: number = -1;
 
     // #endregion Properties (11)
@@ -51,13 +50,25 @@ export class InsertionInteractionHandler {
 
     // #region Public Methods (4)
 
-    public finalizeInsertion(): void {
+    public finalizeInsertion(): boolean {
+        let result = false;
+
         if (this.#insertionActive === true && this.#alreadyInserted === true) {
             this.#geometryState.makePointPersistent(this.#insertionActiveIndex);
 
-            if (this.#insertionActiveClosed === true) {
-                this.#insertionActiveClosed = false;
-                this.#drawingToolsManager.update();
+            // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
+            if (this.#geometryState.getPointCount() > 2 && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
+                // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                const firstPoint = this.#geometryState.getPosition(0);
+                const lastPoint = this.#geometryState.getPosition(this.#geometryState.getPointCount() - 1);
+
+                if (this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
+                    this.#geometryState.closeLoop = true;
+                    this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
+                    result = true;
+                } else {
+                    this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
+                }
             } else {
                 this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
             }
@@ -66,40 +77,17 @@ export class InsertionInteractionHandler {
         this.#insertionActive = false;
         this.#alreadyInserted = false;
         this.#insertionActiveIndex = -1;
+
+        return result;
     }
 
     public onMove(ray: IRay): void {
         if (this.#insertionActive === false) return;
 
-        if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
+        if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true) {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
-            if (restrictedPoint) {
+            if (restrictedPoint) 
                 this.#drawingToolsManager.movePointTemporary(this.#geometryState.getPointCount() - 1, restrictedPoint);
-
-                if (this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false && this.#insertionActiveClosed === false) {
-                    // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
-                    const firstPoint = this.#geometryState.getPosition(0);
-
-                    if (this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
-                        this.#geometryState.closeLoop = true;
-                        this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
-                        this.#insertionActiveClosed = true;
-                    }
-                }
-            }
-        } else if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === true) {
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
-            if (restrictedPoint) {
-                // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
-                const firstPoint = this.#geometryState.getPosition(0);
-
-                if (this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, restrictedPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
-                    this.#geometryState.closeLoop = false;
-                    this.#insertionActiveIndex = this.#geometryState.getPointCount();
-                    this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);
-                    this.#insertionActiveClosed = false;
-                }
-            }
         }
     }
 
@@ -122,13 +110,8 @@ export class InsertionInteractionHandler {
 
     public stopInsertion(): void {
         if (this.#insertionActive === true) {
-            if (this.#insertionActiveClosed === true) {
-                this.#geometryState.closeLoop = false;
-                this.#insertionActiveClosed = false;
-            } else {
-                // remove last added point
-                this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
-            }
+            // remove last added point
+            this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
             this.#insertionActive = false;
             this.#alreadyInserted = false;
             this.#insertionActiveIndex = -1;
