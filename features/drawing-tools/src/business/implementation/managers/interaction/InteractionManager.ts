@@ -101,16 +101,11 @@ export class InteractionManager implements IManager {
          */
         if (this.#insertionInteractionHandler.insertionActive === true) {
             this.#insertionInteractionHandler.finalizeInsertion();
-            this.#interactionManagerHelper.checkHover(event, ray);
+            const distances = this.#geometryMathManager.checkPointDistances(ray);
+            this.#interactionManagerHelper.checkHover(distances, ray);
             this.#insertionInteractionHandler.startInsertion(event);
             return;
         }
-
-        /**
-         * CHECK HOVERED POINT
-         */
-        this.#interactionManagerHelper.checkHover(event, ray);
-
         const distances = this.#geometryMathManager.checkPointDistances(ray);
 
         /**
@@ -121,7 +116,15 @@ export class InteractionManager implements IManager {
             this.#midPointInteractionHandler.finishMidPointInsertion(distances);
             this.#interactionManagerHelper.midPointInserted = true;
         }
+        
+        /**
+         * CHECK HOVERED POINT
+         */
+        this.#interactionManagerHelper.checkHover(distances, ray);
 
+        /**
+         * IF THERE IS A POINT CLOSE TO THE RAY
+         */
         this.#interactionManagerHelper.selectPoint(distances);
 
         /**
@@ -149,7 +152,8 @@ export class InteractionManager implements IManager {
          */
         this.#interactionManagerHelper.moveSelectedPoints(ray);
 
-        this.#interactionManagerHelper.checkHover(event, ray);
+        const distances = this.#geometryMathManager.checkPointDistances(ray);
+        this.#interactionManagerHelper.checkHover(distances, ray);
 
         /**
          * IF INSERT KEY IS PRESSED

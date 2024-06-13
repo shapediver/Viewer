@@ -104,7 +104,11 @@ export class GeometryManagerHelper {
             newPositionArray.set(this.#geometryState.positionArray.slice(0, this.#geometryState.positionArray.length - 3));
         }
 
-        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
+        // remove the material index at that point and move the other indices one forward
+        const materialIndexArray = this.#geometryState.materialIndexArray.slice(0, removalIndex).concat(this.#geometryState.materialIndexArray.slice(removalIndex + 1, this.#geometryState.materialIndexArray.length));
+        // add a 0 at the end
+        materialIndexArray.push(0);
+        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
         this.#geometryState.updateData(newPositionArray, temporary);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: removalIndex });
@@ -139,14 +143,21 @@ export class GeometryManagerHelper {
             positionArray = newPositionArray;
         }
 
-        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
+        // remove the material index at the points and move the other indices one forward
+        let materialIndexArray = this.#geometryState.materialIndexArray;
+        for (const removalIndex of indices) {
+            materialIndexArray = this.#geometryState.materialIndexArray.slice(0, removalIndex).concat(this.#geometryState.materialIndexArray.slice(removalIndex + 1, this.#geometryState.materialIndexArray.length));
+            // add a 0 at the end
+            materialIndexArray.push(0);
+        }
+        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
         this.#geometryState.updateData(positionArray);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary: false, index: indices });
     }
 
     public resetMaterialIndices(): void {
-        this.#geometryState.updateMaterialIndexArray(new Array(this.#geometryState.materialIndexArray.length).fill(0));
+        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
     }
 
     public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {

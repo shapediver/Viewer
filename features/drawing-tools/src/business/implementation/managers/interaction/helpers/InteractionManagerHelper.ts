@@ -1,6 +1,7 @@
 import { addListener } from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
+import { GeometryMathManager } from '../../geometry/GeometryMathManager';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -12,6 +13,7 @@ export class InteractionManagerHelper {
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #eventEngine = EventEngine.instance;
+    readonly #geometryMathManager: GeometryMathManager;
     readonly #geometryState: GeometryState;
     readonly #interactionManager: InteractionManager;
 
@@ -34,6 +36,7 @@ export class InteractionManagerHelper {
     constructor(drawingToolsManager: DrawingToolsManager, interactionManager: InteractionManager) {
         this.#drawingToolsManager = drawingToolsManager;
         this.#interactionManager = interactionManager;
+        this.#geometryMathManager = drawingToolsManager.geometryMathManager;
         this.#geometryState = this.#drawingToolsManager.geometryState;
 
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
@@ -117,17 +120,16 @@ export class InteractionManagerHelper {
      * @param ray 
      * @returns 
      */
-    public checkHover(event: PointerEvent | KeyboardEvent, ray?: IRay): void {
+    public checkHover(distances?: { index: number; distance: number; }[], ray?: IRay): void {
         if (!ray && !this.#lastRay) return;
         if (!ray) ray = this.#lastRay!;
         this.#lastRay = ray;
 
         // check if there is a point close to the ray
-        const pointDistances = this.#drawingToolsManager.geometryMathManager.checkPointDistances(ray);
-        if (pointDistances) {
+        if (distances) {
             // add the id if it is not already in the array
             // remove it if it is in the array
-            const index = pointDistances[0].index;
+            const index = distances[0].index;
 
             if (this.#hoveredPoint !== undefined && this.#hoveredPoint === index) return;
             if (this.#hoveredPoint !== undefined) {
@@ -230,7 +232,8 @@ export class InteractionManagerHelper {
 
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         } else if (this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            this.toggleSelection(this.#hoveredPoint);
+            if(this.#justSelected === this.#moving) 
+                this.toggleSelection(this.#hoveredPoint);
 
             if (this.#midPointInserted) {
                 /**
@@ -250,6 +253,7 @@ export class InteractionManagerHelper {
      * Remove all selected points
      */
     public removeAllSelectedPoints(): void {
+        this.#selectedPointIndices.sort((a, b) => b - a);
         this.#selectedPointIndices.forEach(element => {
             this.toggleSelection(element);
         });
@@ -290,7 +294,6 @@ export class InteractionManagerHelper {
         this.#dragging = false;
         this.#selectedPointPositions = [];
         this.#selectedMovedPointPositions = [];
-        this.#hoveredPoint = undefined;
     }
 
     public selectPoint(distances: {
@@ -354,11 +357,11 @@ export class InteractionManagerHelper {
         const indexInArray = this.#selectedPointIndices.indexOf(index);
         if (indexInArray === -1) {
             this.#selectedPointIndices.push(index);
-            this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.SELECTED);
+            this.#drawingToolsManager.updateMaterialIndex(index, this.#hoveredPoint === index ? MATERIAL_INDEX.SELECTED_HOVERED : MATERIAL_INDEX.SELECTED);
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.SELECTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid, index });
         } else {
             this.#selectedPointIndices.splice(indexInArray, 1);
-            this.#drawingToolsManager.updateMaterialIndex(index, MATERIAL_INDEX.DEFAULT);
+            this.#drawingToolsManager.updateMaterialIndex(index, this.#hoveredPoint === index ? MATERIAL_INDEX.HOVERED : MATERIAL_INDEX.DEFAULT);
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DESELECTED, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid, index });
         }
     }
