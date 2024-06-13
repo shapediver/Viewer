@@ -2,6 +2,7 @@ import * as SDV from '@shapediver/viewer';
 import {
     createDrawingTools,
     GeometryRestrictionApi,
+    IDrawingToolsEvent,
     IDrawingToolsApi,
     PlaneRestrictionApi,
     PointsData,
@@ -56,6 +57,14 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             menuDiv.remove();
         }
     };
+
+    SDV.addListener(SDV.EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, (event: SDV.IEvent) => {
+        alert((event as IDrawingToolsEvent).message);
+    });
+
+    SDV.addListener(SDV.EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, (event: SDV.IEvent) => {
+        alert((event as IDrawingToolsEvent).message);
+    });
 
 
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, customizationProperties);

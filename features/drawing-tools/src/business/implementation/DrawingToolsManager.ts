@@ -6,7 +6,7 @@ import {
     PointsData,
     Settings,
     SettingsOptional
-} from '../interfaces/IDrawingToolsManager';
+    } from '../interfaces/IDrawingToolsManager';
 import { DrawingToolsEventResponseMapping } from '../interfaces/events/EventResponseMapping';
 import {
     EventEngine,
@@ -14,7 +14,7 @@ import {
     IEvent,
     ShapeDiverViewerDrawingToolsError,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { EventManager } from './managers/interaction/EventManager';
 import {
     FLAG_TYPE,
@@ -22,7 +22,7 @@ import {
     IViewportApi,
     sceneTree,
     TreeNode
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
 import { GeometryManager } from './managers/geometry/GeometryManager';
 import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
 import { GeometryState } from './managers/geometry/GeometryState';
@@ -207,8 +207,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
      */
     public addPoint(index: number, position?: vec3 | undefined, temporary = false): void {
         if (this.#closed) return;
-        if (!this.#geometryManager.canAddPoint())
-            throw new ShapeDiverViewerDrawingToolsError('The maximum amount of points is reached.');
+        if (!this.#geometryManager.canAddPoint()) {
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded.`);
+        }
         this.#geometryManager.addPoint(index, position, temporary);
     }
 
@@ -408,8 +414,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
      */
     public removePoint(index: number, temporary = false): void {
         if (this.#closed) return;
-        if (!this.geometryState.canRemovePoint())
-            throw new ShapeDiverViewerDrawingToolsError('The minimum amount of points is reached.');
+        if (!this.geometryState.canRemovePoint()) {
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The minimum amount of points (${this.#settings.geometry.minPoints}) would be subceeded.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.minPoints}) would be subceeded.`);
+        }
 
         this.#geometryManager.removePoint(index, temporary);
     }
@@ -421,8 +433,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
     public removePoints(indices: number[]): void {
         if (this.#closed) return;
 
-        if (!this.geometryState.canRemovePoint(indices.length))
-            throw new ShapeDiverViewerDrawingToolsError('The minimum amount of points is reached.');
+        if (!this.geometryState.canRemovePoint(indices.length)) {
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The minimum amount of points (${this.#settings.geometry.minPoints}) would be subceeded.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.minPoints}) would be subceeded.`);
+        }
 
         this.#geometryManager.removePoints(indices);
     }
@@ -444,7 +462,12 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         if (this.geometryState.canAddPoint()) {
             this.#interactionManager.startInsertion();
         } else {
-            throw new ShapeDiverViewerDrawingToolsError('The maximum amount of points is reached.');
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded.`);
         }
     }
 
@@ -457,17 +480,27 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
         const pointsCount = this.geometryState.getPointCount();
         if (this.#settings.geometry.minPoints !== undefined && pointsCount < this.#settings.geometry.minPoints) {
-            throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#settings.geometry.minPoints);
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The minimum amount of points (${this.#settings.geometry.minPoints}) has been subceeded. Current number of points: ${pointsCount}.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.maxPoints}) has been subceeded. Current number of points: ${pointsCount}.`);
         } else if (this.#settings.geometry.maxPoints !== undefined && pointsCount > this.#settings.geometry.maxPoints) {
-            throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#settings.geometry.maxPoints);
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded. Current number of points: ${pointsCount}.`
+            });
+            throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) would be exceeded. Current number of points: ${pointsCount}.`);
         } else {
             const pointsData = this.geometryState.getPointsData();
             try {
                 this.#callbacks.onUpdate(pointsData);
+                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UPDATE, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
             } catch (e) {
                 throw new ShapeDiverViewerDrawingToolsError('An error occurred while updating the drawing tool.');
             }
-            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UPDATE, { viewportId: this.viewport.id, drawingToolsId: this.#uuid });
             if (this.#settings.general.closeOnUpdate) this.close();
             return pointsData;
         }

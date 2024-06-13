@@ -5,10 +5,9 @@ import { InteractionManager } from '../InteractionManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { MATERIAL_INDEX, Settings } from '../../../../interfaces/IDrawingToolsManager';
 import { RestrictionManager } from '../RestrictionManager';
-import { ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer.shared.services';
 
 export class InsertionInteractionHandler {
-    // #region Properties (10)
+    // #region Properties (11)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #geometryMathManager: GeometryMathManager;
@@ -22,7 +21,7 @@ export class InsertionInteractionHandler {
     #insertionActiveClosed: boolean = false;
     #insertionActiveIndex: number = -1;
 
-    // #endregion Properties (10)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -58,15 +57,7 @@ export class InsertionInteractionHandler {
 
             if (this.#insertionActiveClosed === true) {
                 this.#insertionActiveClosed = false;
-                const numberOfPoints = this.#geometryState.getPointCount();
-                if (this.#settings.geometry.minPoints !== undefined && numberOfPoints < this.#settings.geometry.minPoints) {
-                    throw new ShapeDiverViewerDrawingToolsError('Not enough points, minimum points: ' + this.#settings.geometry.minPoints);
-                } else if (this.#settings.geometry.maxPoints !== undefined && numberOfPoints > this.#settings.geometry.maxPoints) {
-                    throw new ShapeDiverViewerDrawingToolsError('Too many points, maximum points: ' + this.#settings.geometry.maxPoints);
-                } else {
-                    this.#drawingToolsManager.update();
-                    return;
-                }
+                this.#drawingToolsManager.update();
             } else {
                 this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
             }
@@ -81,7 +72,7 @@ export class InsertionInteractionHandler {
         if (this.#insertionActive === false) return;
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true && this.#insertionActiveClosed === false) {
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1});
+            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
             if (restrictedPoint) {
                 this.#drawingToolsManager.movePointTemporary(this.#geometryState.getPointCount() - 1, restrictedPoint);
 

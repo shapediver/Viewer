@@ -2,14 +2,15 @@ import { IViewportEvent } from '@shapediver/viewer';
 import { PointsData } from '../IDrawingToolsManager';
 
 export interface IDrawingToolsEvent extends IViewportEvent {
-    // #region Properties (6)
+    // #region Properties (7)
 
     drawingToolId: string;
     fromHistory?: boolean;
     index?: number;
+    message?: string;
     points?: PointsData;
     recordHistory?: boolean;
     temporary?: boolean;
 
-    // #endregion Properties (6)
+    // #endregion Properties (7)
 }

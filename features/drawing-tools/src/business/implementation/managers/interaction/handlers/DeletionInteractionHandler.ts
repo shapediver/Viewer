@@ -39,6 +39,7 @@ export class DeletionInteractionHandler {
     }
 
     public deleteSelection(indices: number[]): void {
+        if(indices.length === 0) return;
         this.#drawingToolsManager.removePoints(indices);
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
     }
