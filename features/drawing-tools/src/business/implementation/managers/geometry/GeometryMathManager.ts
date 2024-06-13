@@ -23,7 +23,7 @@ export class GeometryMathManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (5)
+    // #region Public Methods (7)
 
     /**
      * Check which distances of lines to ray
@@ -129,57 +129,6 @@ export class GeometryMathManager implements IManager {
         return closestPoint;
     }
 
-    public screenSpaceDistanceCheck(point1: vec3, point2: vec3, threshold: number) {
-        const camera = this.#viewport.camera!;
-
-        // Project points to NDC
-        const screenPos1 = camera.project(vec3.clone(point1));
-        const screenPos2 = camera.project(vec3.clone(point2));
-
-        const width = this.#viewport.canvas.width;
-        const height = this.#viewport.canvas.height;
-
-        const x1 = ((screenPos1[0] * (width / 2)) + (width / 2));
-        const y1 = - ((screenPos1[1] * (height / 2)) + (height / 2));
-
-        const x2 = ((screenPos2[0] * (width / 2)) + (width / 2));
-        const y2 = - ((screenPos2[1] * (height / 2)) + (height / 2));
-
-        const distanceSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
-
-        /**
-         * Logic: The actual calculation would be
-         * distance * 2 < threshold
-         * the multiplication by 2 is to account for the fact that the distance is from the center of the point
-         * 
-         * However, we work with the squared distance to avoid the sqrt operation
-         * Therefore we square all values:
-         * distanceSquared * 4 < threshold ** 2
-         */
-        return {
-            distanceSquared: distanceSquared,
-            check: distanceSquared * 4 < threshold ** 2
-        };
-    }
-
-    // #endregion Public Methods (5)
-
-    // #region Private Methods (2)
-
-    /**
-     * Calculate the closest point on a ray to a point
-     * 
-     * @param ray 
-     * @param point 
-     * @returns 
-     */
-    private closestPoint(ray: IRay, point: vec3): vec3 {
-        // distance from point to ray
-        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
-        // closest point on ray to point
-        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
-    }
-
     /**
      * Calculate the distance between a ray and a line segment
      * 
@@ -188,7 +137,7 @@ export class GeometryMathManager implements IManager {
      * @param lineEnd 
      * @returns 
      */
-    private closestPointsRayLine(ray: IRay, lineStart: vec3, lineEnd: vec3): { closestPointOnRay: vec3, closestPointOnLine: vec3 } {
+    public closestPointsRayLine(ray: IRay, lineStart: vec3, lineEnd: vec3): { closestPointOnRay: vec3, closestPointOnLine: vec3 } {
         // direction of line
         const lineDirection = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), lineEnd, lineStart));
 
@@ -231,5 +180,94 @@ export class GeometryMathManager implements IManager {
         };
     }
 
-    // #endregion Private Methods (2)
+    /**
+     * Calculate the distance between two rays
+     * 
+     * @param ray1 
+     * @param ray2 
+     * @returns 
+     */
+    public closestPointsRayRay(ray1: IRay, ray2: IRay): { closestPointOnRay1: vec3, closestPointOnRay2: vec3 } {
+        // cross product of ray1 direction and ray2 direction
+        const crossProduct = vec3.cross(vec3.create(), ray1.direction, ray2.direction);
+
+        // length of cross product
+        const crossProductLength = vec3.length(crossProduct);
+
+        if (crossProductLength < 0.0001) {
+            // ray1 and ray2 are parallel, calculate the distance differently
+            const closestPointOnRay1 = ray1.origin;
+            const closestPointOnRay2 = vec3.add(vec3.create(), ray2.origin, vec3.scale(vec3.create(), ray2.direction, vec3.dot(vec3.subtract(vec3.create(), ray1.origin, ray2.origin), ray2.direction)));
+            return {
+                closestPointOnRay1, closestPointOnRay2
+            };
+        }
+
+        const t = vec3.sub(vec3.create(), ray2.origin, ray1.origin);
+        const u = vec3.cross(vec3.create(), t, ray2.direction);
+        const v = vec3.cross(vec3.create(), t, ray1.direction);
+
+        const tValue = vec3.dot(u, crossProduct) / crossProductLength ** 2;
+        const uValue = vec3.dot(v, crossProduct) / crossProductLength ** 2;
+
+        const closestPointOnRay1 = vec3.add(vec3.create(), ray1.origin, vec3.scale(vec3.create(), ray1.direction, tValue));
+        const closestPointOnRay2 = vec3.add(vec3.create(), ray2.origin, vec3.scale(vec3.create(), ray2.direction, uValue));
+
+        return {
+            closestPointOnRay1, closestPointOnRay2
+        };
+    }
+
+    public screenSpaceDistanceCheck(point1: vec3, point2: vec3, threshold: number) {
+        const camera = this.#viewport.camera!;
+
+        // Project points to NDC
+        const screenPos1 = camera.project(vec3.clone(point1));
+        const screenPos2 = camera.project(vec3.clone(point2));
+
+        const width = this.#viewport.canvas.width;
+        const height = this.#viewport.canvas.height;
+
+        const x1 = ((screenPos1[0] * (width / 2)) + (width / 2));
+        const y1 = - ((screenPos1[1] * (height / 2)) + (height / 2));
+
+        const x2 = ((screenPos2[0] * (width / 2)) + (width / 2));
+        const y2 = - ((screenPos2[1] * (height / 2)) + (height / 2));
+
+        const distanceSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+
+        /**
+         * Logic: The actual calculation would be
+         * distance * 2 < threshold
+         * the multiplication by 2 is to account for the fact that the distance is from the center of the point
+         * 
+         * However, we work with the squared distance to avoid the sqrt operation
+         * Therefore we square all values:
+         * distanceSquared * 4 < threshold ** 2
+         */
+        return {
+            distanceSquared: distanceSquared,
+            check: distanceSquared * 4 < threshold ** 2
+        };
+    }
+
+    // #endregion Public Methods (7)
+
+    // #region Private Methods (1)
+
+    /**
+     * Calculate the closest point on a ray to a point
+     * 
+     * @param ray 
+     * @param point 
+     * @returns 
+     */
+    private closestPoint(ray: IRay, point: vec3): vec3 {
+        // distance from point to ray
+        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
+        // closest point on ray to point
+        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
+    }
+
+    // #endregion Private Methods (1)
 }

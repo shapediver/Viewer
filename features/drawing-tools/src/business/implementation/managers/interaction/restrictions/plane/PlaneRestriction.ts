@@ -90,7 +90,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (12)
+    // #region Public Getters And Setters (13)
 
     public get angularRestriction(): AngularRestriction {
         return this.#angularRestriction;
@@ -112,6 +112,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         this.#origin = value;
         this.#gridRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
         this.createTransformationMatrices();
+    }
+
+    public get priority(): number {
+        return -1;
     }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
@@ -158,9 +162,9 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         this.#angularRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
     }
 
-    // #endregion Public Getters And Setters (12)
+    // #endregion Public Getters And Setters (13)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return vec3.create();
@@ -173,6 +177,36 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
         const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
         return this.snap(intersection, metaData);
+    }
+
+    // #endregion Public Methods (1)
+
+    // #region Protected Methods (1)
+
+    protected visibilityChanged(): void { }
+
+    // #endregion Protected Methods (1)
+
+    // #region Private Methods (2)
+
+    private createTransformationMatrices(): void {
+        // Calculate the transformation matrix for the rotation
+        const rotationMatrix = mat4.fromValues(
+            this.#vectorU[0], this.#vectorV[0], this.#normal[0], 0,
+            this.#vectorU[1], this.#vectorV[1], this.#normal[1], 0,
+            this.#vectorU[2], this.#vectorV[2], this.#normal[2], 0,
+            0, 0, 0, 1
+        );
+
+        const rotationMatrixInverse = mat4.invert(mat4.create(), rotationMatrix);
+        const pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(this.#origin[0], this.#origin[1], this.#origin[2]));
+        const pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-this.#origin[0], -this.#origin[1], -this.#origin[2]));
+
+        mat4.multiply(this.#transformationToXYPlaneMatrix, pivotMatrix, rotationMatrix);
+        mat4.multiply(this.#transformationToXYPlaneMatrix, this.#transformationToXYPlaneMatrix, pivotMatrixInverse);
+
+        mat4.multiply(this.#transformationFromXYPlaneMatrix, pivotMatrix, rotationMatrixInverse);
+        mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
     }
 
     private snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
@@ -217,37 +251,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         return point;
     }
 
-    // #endregion Public Methods (2)
-
-    // #region Protected Methods (1)
-
-    protected visibilityChanged(): void { }
-
-    // #endregion Protected Methods (1)
-
-    // #region Private Methods (1)
-
-    private createTransformationMatrices(): void {
-        // Calculate the transformation matrix for the rotation
-        const rotationMatrix = mat4.fromValues(
-            this.#vectorU[0], this.#vectorV[0], this.#normal[0], 0,
-            this.#vectorU[1], this.#vectorV[1], this.#normal[1], 0,
-            this.#vectorU[2], this.#vectorV[2], this.#normal[2], 0,
-            0, 0, 0, 1
-        );
-
-        const rotationMatrixInverse = mat4.invert(mat4.create(), rotationMatrix);
-        const pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(this.#origin[0], this.#origin[1], this.#origin[2]));
-        const pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-this.#origin[0], -this.#origin[1], -this.#origin[2]));
-
-        mat4.multiply(this.#transformationToXYPlaneMatrix, pivotMatrix, rotationMatrix);
-        mat4.multiply(this.#transformationToXYPlaneMatrix, this.#transformationToXYPlaneMatrix, pivotMatrixInverse);
-
-        mat4.multiply(this.#transformationFromXYPlaneMatrix, pivotMatrix, rotationMatrixInverse);
-        mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
-    }
-
-    // #endregion Private Methods (1)
+    // #endregion Private Methods (2)
 }
 
 // #endregion Classes (1)

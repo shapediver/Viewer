@@ -70,6 +70,11 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, customizationProperties);
     (window as any).drawingToolsApi = drawingToolsApi;
 
+    const axisRestrictionApi = drawingToolsApi.addRestriction({
+        type: RESTRICTION_TYPE.AXIS,
+        nodes: []
+    });
+
     const geometryRestrictionApi = drawingToolsApi.addRestriction({
         type: RESTRICTION_TYPE.GEOMETRY,
         nodes: []

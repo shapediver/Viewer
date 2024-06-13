@@ -1,3 +1,4 @@
+import { AxisRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/axis/AxisRestriction';
 import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 import { IRestrictionApi } from './IRestrictionApi';
 import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
@@ -50,7 +51,7 @@ export interface IDrawingToolsApi {
      * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
-    addRestriction(properties: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties, token?: string): IRestrictionApi | undefined;
+    addRestriction(properties: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties | AxisRestrictionProperties, token?: string): IRestrictionApi | undefined;
     /**
      * Check if the drawing tool can redo the last action.
      */

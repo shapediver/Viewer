@@ -22,16 +22,21 @@ export type RestrictionProperties = {
 // #region Interfaces (1)
 
 export interface IRestriction extends IRestrictionBase {
-    // #region Properties (1)
+    // #region Properties (2)
+
+    /**
+     * Priority of the restriction
+     */
+    readonly priority: number;
 
     /**
      * The snap restrictions of the restriction.
      */
     snapRestrictions: { [key: string]: ISnapRestriction; }
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
     /**
      * Ray trace the restriction.
@@ -43,7 +48,7 @@ export interface IRestriction extends IRestrictionBase {
      */
     rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined;
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (1)
 }
 
 // #endregion Interfaces (1)
@@ -51,6 +56,7 @@ export interface IRestriction extends IRestrictionBase {
 // #region Enums (1)
 
 export enum RESTRICTION_TYPE {
+    AXIS = 'axis',
     PLANE = 'plane',
     GEOMETRY = 'geometry',
 }

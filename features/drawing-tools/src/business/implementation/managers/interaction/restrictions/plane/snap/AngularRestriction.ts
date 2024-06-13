@@ -2,13 +2,13 @@ import { AbstractRestriction } from '../../AbstractRestriction';
 import { CSS2DObject } from '../../../../../../../three/CSS2DRenderer';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
-import { sceneTree } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { numberCleaner } from '../../../../../utils/numberCleaner';
 import { PlaneRestriction } from '../PlaneRestriction';
+import { RestrictionMetaData } from '../../../../../../interfaces/IRestriction';
+import { sceneTree } from '@shapediver/viewer';
 import { Settings } from '../../../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
-import { RestrictionMetaData } from '../../../../../../interfaces/IRestriction';
 
 // #region Type aliases (1)
 
@@ -94,8 +94,8 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     public set active(value: boolean) {
         this.#active = value;
-        if (this.#labelNext && this.#activePolarGrids.next === value) this.#labelNext.visible = value;
-        if (this.#labelPrevious && this.#activePolarGrids.previous === value) this.#labelPrevious.visible = value;
+        if (this.#labelNext) this.#labelNext.visible = value;
+        if (this.#labelPrevious) this.#labelPrevious.visible = value;
     }
 
     public get angleStep(): number {
@@ -285,7 +285,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     }
 
     private createGrid(label: CSS2DObject | undefined, position: vec3, angle: number): CSS2DObject {
-        if(label) 
+        if (label)
             this._object3D.remove(label);
 
         let radius = sceneTree.root.boundingBox.boundingSphere.radius / 100;
@@ -294,7 +294,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         const text = document.createElement('div');
         text.className = 'label';
-        
+
         const child = document.createElement('div');
         child.className = 'angular-label';
 
@@ -329,7 +329,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     private getAngularDifference(
         line: {
             start: vec3, end: vec3
-        }, 
+        },
         referenceLine: {
             start: vec3, end: vec3
         }

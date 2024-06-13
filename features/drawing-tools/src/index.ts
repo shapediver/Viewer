@@ -1,5 +1,7 @@
 import { AngularRestrictionApi } from './api/implementation/restrictions/plane/snap/AngularRestrictionApi';
 import { AngularRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/AngularRestriction';
+import { AxisRestrictionApi } from './api/implementation/restrictions/axis/AxisRestrictionApi';
+import { AxisRestrictionProperties } from './business/implementation/managers/interaction/restrictions/axis/AxisRestriction';
 import { Callbacks, PointsData, SettingsOptional } from './business/interfaces/IDrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
 import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
@@ -14,13 +16,13 @@ import {
     IViewportApi,
     MaterialEngine,
     ShapeDiverViewerDrawingToolsError
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
 import {
     IRestriction,
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties
-} from './business/interfaces/IRestriction';
+    } from './business/interfaces/IRestriction';
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
 import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
@@ -33,7 +35,8 @@ export {
     IDrawingToolsApi, DrawingToolsApi, PointsData,
     PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
     GeometryRestrictionProperties,
-    IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi, GeometryRestrictionApi,
+    AxisRestrictionProperties,
+    IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi, GeometryRestrictionApi, AxisRestrictionApi,
     IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
 };
 

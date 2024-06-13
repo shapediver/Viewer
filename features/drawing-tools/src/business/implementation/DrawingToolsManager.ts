@@ -6,7 +6,7 @@ import {
     PointsData,
     Settings,
     SettingsOptional
-    } from '../interfaces/IDrawingToolsManager';
+} from '../interfaces/IDrawingToolsManager';
 import { DrawingToolsEventResponseMapping } from '../interfaces/events/EventResponseMapping';
 import {
     EventEngine,
@@ -14,7 +14,7 @@ import {
     IEvent,
     ShapeDiverViewerDrawingToolsError,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { EventManager } from './managers/interaction/EventManager';
 import {
     FLAG_TYPE,
@@ -22,7 +22,7 @@ import {
     IViewportApi,
     sceneTree,
     TreeNode
-    } from '@shapediver/viewer';
+} from '@shapediver/viewer';
 import { GeometryManager } from './managers/geometry/GeometryManager';
 import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
 import { GeometryState } from './managers/geometry/GeometryState';
@@ -587,6 +587,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
         if (settingsOptional.restrictions === undefined || Object.keys(settingsOptional.restrictions).length === 0) {
             settings.restrictions['plane'] = { type: RESTRICTION_TYPE.PLANE };
+            settings.restrictions['axis'] = { type: RESTRICTION_TYPE.AXIS };
         } else {
             settings.restrictions = settingsOptional.restrictions as { [key: string]: RestrictionProperties };
         }

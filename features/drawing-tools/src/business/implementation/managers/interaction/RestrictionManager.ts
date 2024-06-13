@@ -1,3 +1,4 @@
+import { AxisRestriction, AxisRestrictionProperties } from './restrictions/axis/AxisRestriction';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
 import { IManager } from '../../../interfaces/IManager';
@@ -70,6 +71,8 @@ export class RestrictionManager implements IManager {
             restriction = new PlaneRestriction(this.#drawingToolsManager, token, properties as PlaneRestrictionProperties);
         } else if (properties.type === RESTRICTION_TYPE.GEOMETRY) {
             restriction = new GeometryRestriction(this.#drawingToolsManager, token, properties as GeometryRestrictionProperties);
+        } else if (properties.type === RESTRICTION_TYPE.AXIS) {
+            restriction = new AxisRestriction(this.#drawingToolsManager, token, properties as AxisRestrictionProperties);
         }
 
         if (restriction) {
@@ -84,36 +87,40 @@ export class RestrictionManager implements IManager {
     }
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
-        const rayTracingResult: {
+        let rayTracingResult: {
             result: vec3 | undefined;
             distance: number;
-            restriction: IRestriction | undefined;
-        } = {
-            result: undefined,
-            distance: Number.MAX_VALUE,
-            restriction: undefined
-        };
-        for (const restriction of Object.values(this.#restrictions)) {
+            restriction: IRestriction;
+        } | undefined = undefined;
+
+        // create an array of arrays with the restrictions sorted by priority
+        const restrictionsSorted = Object.values(this.#restrictions).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+        for (const restriction of restrictionsSorted) {
+            if (rayTracingResult && rayTracingResult.restriction.priority > restriction.priority) break;
+
             const hit = restriction.rayTrace(ray, metaData);
 
             if (!hit) continue;
             const distance = vec3.squaredDistance(ray.origin, hit);
-            if (distance < rayTracingResult.distance) {
-                rayTracingResult.result = hit;
-                rayTracingResult.distance = distance;
-                rayTracingResult.restriction = restriction;
+            if (distance < (rayTracingResult ? rayTracingResult.distance : Infinity)) {
+                rayTracingResult = {
+                    result: hit,
+                    distance: distance,
+                    restriction: restriction
+                };
             }
         }
 
         // deactivate the visualization of all restrictions that are not hit
         for (const restriction of Object.values(this.#restrictions)) {
-            if (restriction !== rayTracingResult.restriction) {
+            if (rayTracingResult && restriction !== rayTracingResult.restriction) {
                 for (const snapRestriction of Object.values(restriction.snapRestrictions)) {
                     snapRestriction.active = false;
                 }
             }
         }
-        return rayTracingResult.result;
+        return rayTracingResult?.result;
     }
 
     public removeRestriction(token: string): void {

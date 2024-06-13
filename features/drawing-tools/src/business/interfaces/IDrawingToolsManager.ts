@@ -1,3 +1,4 @@
+import { AxisRestrictionProperties } from '../implementation/managers/interaction/restrictions/axis/AxisRestriction';
 import { GeometryRestrictionProperties } from '../implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
 import { IManager } from './IManager';
 import { IMapData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
@@ -128,7 +129,7 @@ export type Settings = {
      * 
      * At the moment, only the plane restriction is supported.
      */
-    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties };
+    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties | AxisRestrictionProperties };
 
     /**
      * The visualization settings of the drawing tool.

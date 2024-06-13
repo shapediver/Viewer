@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import { AbstractRestriction } from '../AbstractRestriction';
-import { DefaultTextures, Settings } from '../../../../../interfaces/IDrawingToolsManager';
 import { DrawingToolsManager } from '../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../geometry/GeometryMathManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../../../interfaces/ISnapRestriction';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { UuidGenerator } from '@shapediver/viewer.shared.services';
+import { Settings } from '../../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -21,13 +20,11 @@ export type GeometryRestrictionProperties = {
 // #region Classes (1)
 
 export class GeometryRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (11)
+    // #region Properties (10)
 
     readonly #raycaster = new THREE.Raycaster();
-    readonly #uuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
-    #defaultTextures: DefaultTextures;
     #geometryMathManager: GeometryMathManager;
     #nodes: ITreeNode[] = [];
     #settings: Settings;
@@ -37,7 +34,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #snapToVertices: boolean = true;
     #visualizationObject: THREE.Object3D = new THREE.Object3D();
 
-    // #endregion Properties (11)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -46,14 +43,17 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#viewport = drawingToolsManager.viewport;
         this.#settings = drawingToolsManager.settings;
         this.#geometryMathManager = drawingToolsManager.geometryMathManager;
-        this.#defaultTextures = drawingToolsManager.defaultTextures;
 
         this.updateNodes(properties.nodes);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (7)
+    // #region Public Getters And Setters (8)
+
+    public get priority(): number {
+        return 0;
+    }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
         return this.#snapRestrictions;
@@ -83,36 +83,9 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#snapToVertices = value;
     }
 
-    // #endregion Public Getters And Setters (7)
+    // #endregion Public Getters And Setters (8)
 
-    public updateNodes(nodes: ITreeNode[]) {
-        this.#nodes = nodes;
-
-        this.#visualizationObject.traverse((object) => {
-            if (object instanceof THREE.LineSegments) {
-                object.geometry.dispose();
-                object.material.dispose();
-            }
-        });
-        this._object3D.remove(this.#visualizationObject);
-
-        this.#visualizationObject = new THREE.Object3D();
-        this.#nodes.forEach(node => {
-            const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
-            if (threeJsObject) {
-                threeJsObject.traverse((object) => {
-                    if (object instanceof THREE.Mesh) {
-                        const wireframe = new THREE.WireframeGeometry(object.geometry);
-                        const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x000000 }));
-                        this.#visualizationObject.add(line);
-                    }
-                });
-            }
-        });
-        this._object3D.add(this.#visualizationObject);
-    }
-
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return;
@@ -208,22 +181,40 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         return;
     }
 
-    // #endregion Public Methods (1)
+    public updateNodes(nodes: ITreeNode[]) {
+        this.#nodes = nodes;
+
+        this.#visualizationObject.traverse((object) => {
+            if (object instanceof THREE.LineSegments) {
+                object.geometry.dispose();
+                object.material.dispose();
+            }
+        });
+        this._object3D.remove(this.#visualizationObject);
+
+        this.#visualizationObject = new THREE.Object3D();
+        this.#nodes.forEach(node => {
+            const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
+            if (threeJsObject) {
+                threeJsObject.traverse((object) => {
+                    if (object instanceof THREE.Mesh) {
+                        const wireframe = new THREE.WireframeGeometry(object.geometry);
+                        const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                        this.#visualizationObject.add(line);
+                    }
+                });
+            }
+        });
+        this._object3D.add(this.#visualizationObject);
+    }
+
+    // #endregion Public Methods (2)
 
     // #region Protected Methods (1)
 
     protected visibilityChanged(): void { }
 
     // #endregion Protected Methods (1)
-
-    // #region Private Methods (1)
-
-    private snap(point: vec3, metaData?: { index?: number | undefined; } | undefined): vec3 | undefined {
-        if (this.enabled === false) return;
-        return point;
-    }
-
-    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)
