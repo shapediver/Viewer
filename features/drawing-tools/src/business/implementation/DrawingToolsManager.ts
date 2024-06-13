@@ -388,18 +388,18 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#interactionManager.onMove(event, ray);
     }
 
-    public onOut(event: PointerEvent, ray: IRay): void {
+    public onOut(): void {
         if (this.closed) return;
-        this.#interactionManager.onOut(event, ray);
+        this.#interactionManager.onOut();
         if (this.#continuousRenderingFlag) {
             this.#viewport.removeFlag(this.#continuousRenderingFlag);
             this.#continuousRenderingFlag = undefined;
         }
     }
 
-    public onUp(event: PointerEvent, ray: IRay): void {
+    public onUp(): void {
         if (this.closed) return;
-        this.#interactionManager.onUp(event, ray);
+        this.#interactionManager.onUp();
     }
 
     public redo(): void {

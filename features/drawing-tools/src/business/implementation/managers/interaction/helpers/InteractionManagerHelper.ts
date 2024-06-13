@@ -1,7 +1,6 @@
 import { addListener } from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
-import { GeometryMathManager } from '../../geometry/GeometryMathManager';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -13,7 +12,6 @@ export class InteractionManagerHelper {
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #eventEngine = EventEngine.instance;
-    readonly #geometryMathManager: GeometryMathManager;
     readonly #geometryState: GeometryState;
     readonly #interactionManager: InteractionManager;
 
@@ -36,7 +34,6 @@ export class InteractionManagerHelper {
     constructor(drawingToolsManager: DrawingToolsManager, interactionManager: InteractionManager) {
         this.#drawingToolsManager = drawingToolsManager;
         this.#interactionManager = interactionManager;
-        this.#geometryMathManager = drawingToolsManager.geometryMathManager;
         this.#geometryState = this.#drawingToolsManager.geometryState;
 
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
@@ -78,7 +75,7 @@ export class InteractionManagerHelper {
 
     // #endregion Public Getters And Setters (7)
 
-    // #region Public Methods (11)
+    // #region Public Methods (10)
 
     /**
      * A point was added so we have to move the selected indices one forward if they are after the insertion index
@@ -186,9 +183,9 @@ export class InteractionManagerHelper {
         if (this.#selectedPointIndices.length > 0 && this.#dragging) {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
-            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { 
+            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
                 index: this.#draggedPoint!,
-                referencePoint: this.#draggedPointPosition 
+                referencePoint: this.#draggedPointPosition
             });
 
             if (intersectionPoint) {
@@ -232,7 +229,7 @@ export class InteractionManagerHelper {
 
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         } else if (this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            if(this.#justSelected === this.#moving) 
+            if (this.#justSelected === this.#moving)
                 this.toggleSelection(this.#hoveredPoint);
 
             if (this.#midPointInserted) {
@@ -247,17 +244,6 @@ export class InteractionManagerHelper {
                 });
             }
         }
-    }
-
-    /**
-     * Remove all selected points
-     */
-    public removeAllSelectedPoints(): void {
-        this.#selectedPointIndices.sort((a, b) => b - a);
-        this.#selectedPointIndices.forEach(element => {
-            this.toggleSelection(element);
-        });
-        this.#selectedPointIndices = [];
     }
 
     /**
@@ -315,9 +301,9 @@ export class InteractionManagerHelper {
             const draggedPoint = this.#geometryState.getPosition(this.#hoveredPoint * 3);
 
             // store drag start
-            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, { 
+            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
                 index: this.#hoveredPoint,
-                referencePoint: draggedPoint 
+                referencePoint: draggedPoint
             });
 
             if (intersectionPoint) {
@@ -342,9 +328,17 @@ export class InteractionManagerHelper {
         return false;
     }
 
-    // #endregion Public Methods (11)
+    // #endregion Public Methods (10)
 
-    // #region Private Methods (1)
+    // #region Private Methods (2)
+
+    /**
+     * Remove all selected points
+     */
+    private removeAllSelectedPoints(): void {
+        while (this.#selectedPointIndices.length > 0)
+            this.toggleSelection(this.#selectedPointIndices[0]);
+    }
 
     /**
      * Select a point, deselect it if it is already selected
@@ -366,5 +360,5 @@ export class InteractionManagerHelper {
         }
     }
 
-    // #endregion Private Methods (1)
+    // #endregion Private Methods (2)
 }

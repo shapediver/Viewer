@@ -12,7 +12,7 @@ import { MidPointInteractionHandler } from './handlers/MidPointInteractionHandle
 import { RestrictionManager } from './RestrictionManager';
 
 export class InteractionManager implements IManager {
-    // #region Properties (12)
+    // #region Properties (11)
 
     readonly #deletionInteractionHandler: DeletionInteractionHandler;
     readonly #drawingToolsManager: DrawingToolsManager;
@@ -25,8 +25,9 @@ export class InteractionManager implements IManager {
 
     #cameraFreezeFlag: string = '';
     #lastEvent?: PointerEvent;
+    #onDownPointer?: PointerEvent;
 
-    // #endregion Properties (12)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -93,6 +94,7 @@ export class InteractionManager implements IManager {
 
     public onDown(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
+        this.#onDownPointer = event;
         this.#interactionManagerHelper.moving = false;
 
         /**
@@ -144,37 +146,47 @@ export class InteractionManager implements IManager {
      */
     public onMove(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
-        this.#interactionManagerHelper.moving = true;
-        this.#lastEvent = event;
-        /**
-         * IF WE ARE DRAGGING A POINT
-         * MOVE THE SELECTED POINTS
-         */
-        this.#interactionManagerHelper.moveSelectedPoints(ray);
+
+        const distanceSquared = this.#onDownPointer ? Math.pow(event.clientX - this.#onDownPointer.clientX, 2) + Math.pow(event.clientY - this.#onDownPointer.clientY, 2) : Infinity;
+        const clickThresholdSquared = 25;
+        const pointerMoved = distanceSquared > clickThresholdSquared;
+
+        this.#interactionManagerHelper.moving = pointerMoved;
+
+        if(pointerMoved) {
+            this.#lastEvent = event;
+            /**
+             * IF WE ARE DRAGGING A POINT
+             * MOVE THE SELECTED POINTS
+             */
+            this.#interactionManagerHelper.moveSelectedPoints(ray);
+        }
 
         const distances = this.#geometryMathManager.checkPointDistances(ray);
         this.#interactionManagerHelper.checkHover(distances, ray);
 
-        /**
-         * IF INSERT KEY IS PRESSED
-         * ADD POINT AT RAY INTERSECTION IF THERE IS NONE WAS ADDED
-         * MOVE LAST ADDED POINT IF THERE IS ONE
-         */
-        this.#insertionInteractionHandler.onMove(ray);
-
-        /**
-         * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
-         * CHECK IF THERE IS A LINE CLOSE TO THE RAY AND ADD A MID POINT TO IT
-         */
-        if (this.#insertionInteractionHandler.insertionActive === false && this.#interactionManagerHelper.dragging === false && this.#interactionManagerHelper.selectedPointIndices.length === 0) {
-            this.#midPointInteractionHandler.onMove(ray, this.#interactionManagerHelper.hoveredPoint);
+        if(pointerMoved) {
+            /**
+             * IF INSERT KEY IS PRESSED
+             * ADD POINT AT RAY INTERSECTION IF THERE IS NONE WAS ADDED
+             * MOVE LAST ADDED POINT IF THERE IS ONE
+             */
+            this.#insertionInteractionHandler.onMove(ray);
+    
+            /**
+             * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
+             * CHECK IF THERE IS A LINE CLOSE TO THE RAY AND ADD A MID POINT TO IT
+             */
+            if (this.#insertionInteractionHandler.insertionActive === false && this.#interactionManagerHelper.dragging === false && this.#interactionManagerHelper.selectedPointIndices.length === 0) {
+                this.#midPointInteractionHandler.onMove(ray, this.#interactionManagerHelper.hoveredPoint);
+            }
         }
     }
 
     /**
      * On mouse out, deselect the hovered point and remove the stop dragging
      */
-    public onOut(event: PointerEvent, ray: IRay): void {
+    public onOut(): void {
         this.#restrictionManager.showRestrictionVisualization = false;
         this.#insertionInteractionHandler.stopInsertion();
         this.#interactionManagerHelper.onOut();
@@ -184,7 +196,7 @@ export class InteractionManager implements IManager {
     /**
      * On mouse up, check if a point is close to the ray and deselect it
      */
-    public onUp(event: PointerEvent, ray: IRay): void {
+    public onUp(): void {
         if (this.#drawingToolsManager.closed) return;
         this.#interactionManagerHelper.onUp();
         this.reset();
