@@ -23,10 +23,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         ticket:
             '1636173cca09293804fb0084bb4726040b742d1a17fb18dd1801ef70a2cd3c76a45c2a442c6dc602495c43c39f2a5dd1e168a8f8f5edfebca7ad13b6b3fecdb60b0e1d914a8a25a1b16ba61ac9ff2a5a84e27cbfed31c5a4d1e5b416e78abd86a8f76a99b1eb5c-39e4dbd01454d7afbd92052722e1743f',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-        id: 'mySession',
-        initialParameterValues: {
-            "points": "{points:[]}"
-        }
+        id: 'mySession'
     });
 
     const pointsParameter = session.getParameterByName('points')[0];
