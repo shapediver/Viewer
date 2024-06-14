@@ -30,6 +30,9 @@ export class TextVisualizationManager implements IManager {
     #showDistanceLabels: boolean = true;
     #showPointLabels: boolean = true;
 
+    #prevWidth: number = 0;
+    #prevHeight: number = 0;
+
     // #endregion Properties (11)
 
     // #region Constructors (1)
@@ -54,6 +57,12 @@ export class TextVisualizationManager implements IManager {
         this.#viewport.canvas.parentElement!.appendChild(this.#labelRenderer.domElement);
 
         this.#viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
+            if(this.#prevWidth !== renderer.domElement.clientWidth || this.#prevHeight !== renderer.domElement.clientHeight) {
+                this.#prevWidth = renderer.domElement.clientWidth;
+                this.#prevHeight = renderer.domElement.clientHeight;
+                this.#labelRenderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
+            }
+
             if (this.#labelRenderer.domElement.clientWidth !== renderer.domElement.clientWidth || this.#labelRenderer.domElement.clientHeight !== renderer.domElement.clientHeight) {
                 this.#labelRenderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
             }
