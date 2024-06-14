@@ -94,8 +94,14 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     public set active(value: boolean) {
         this.#active = value;
-        if (this.#labelNext) this.#labelNext.visible = value;
-        if (this.#labelPrevious) this.#labelPrevious.visible = value;
+
+        if (value === false) {
+            if (this.#labelNext) this.#labelNext.visible = false;
+            if (this.#labelPrevious) this.#labelPrevious.visible = false;
+        } else {
+            if (this.#labelNext && this.#activePolarGrids.next) this.#labelNext.visible = true;
+            if (this.#labelPrevious && this.#activePolarGrids.previous) this.#labelPrevious.visible = true;
+        }
     }
 
     public get angleStep(): number {
