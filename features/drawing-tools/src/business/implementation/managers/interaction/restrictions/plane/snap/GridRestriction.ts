@@ -1,7 +1,7 @@
 import THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
-import { EVENTTYPE_SCENE, IBox, addListener, sceneTree } from '@shapediver/viewer';
+import { Box, EVENTTYPE_SCENE, IBox, addListener, sceneTree } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';
@@ -206,7 +206,14 @@ export class GridRestriction extends AbstractRestriction implements ISnapRestric
             this.#gridHelper.dispose();
         }
 
-        const radius = sceneTree.root.boundingBox.boundingSphere.radius;
+        const bb = new Box();
+        for(let i = 0; i < sceneTree.root.children.length; i++) {
+            if((sceneTree.root.children[i] as unknown as { sessionNode?: boolean }).sessionNode === true) {
+                bb.union(sceneTree.root.children[i].boundingBox);
+            }
+        }
+
+        const radius = bb.boundingSphere.radius;
         this.#gridSize = radius * 2;
         if (this.#gridSize === Infinity || this.#gridSize === -Infinity || isNaN(this.#gridSize) || this.#gridSize === 0)
             this.#gridSize = 100;
