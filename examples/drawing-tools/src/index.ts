@@ -21,19 +21,20 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            'e68eb247669db1dd9143edfddb621e97cf631d54757781eb66cd25a36224a8c3e4d803fa1f8d67552469920526ebe969b906541d2041d85702f7b4f46df3b76909c034a3d7f00618356dc0b485115092cb21f304c3f592a9ccc2e48240e8ca933a8280c8660ab0-a71165b362ca9e696710c2d7bc86e88b',
+            '1636173cca09293804fb0084bb4726040b742d1a17fb18dd1801ef70a2cd3c76a45c2a442c6dc602495c43c39f2a5dd1e168a8f8f5edfebca7ad13b6b3fecdb60b0e1d914a8a25a1b16ba61ac9ff2a5a84e27cbfed31c5a4d1e5b416e78abd86a8f76a99b1eb5c-39e4dbd01454d7afbd92052722e1743f',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-        id: 'mySession'
+        id: 'mySession',
+        initialParameterValues: {
+            "points": "{points:[]}"
+        }
     });
 
     const pointsParameter = session.getParameterByName('points')[0];
 
     // get the output for the drawing tools options
-    const customizationProperties: Settings = (session.getOutputByName('AppBuilder')[0].content![0].data as any).containers[1].tabs[0].widgets[0].props.drawingToolsSettings;
-    customizationProperties.general = {
-        displayUnit: 'm',
-        autoUpdate: true,
-    };
+    const customizationProperties: Settings = (session.getOutputByName('DrawingToolsSettings')[0].content![0].data as any);
+    console.log('Customization properties', customizationProperties);
+
     /**
      * Callback function for the drawing tool
      * executed when the drawing tool is finished
