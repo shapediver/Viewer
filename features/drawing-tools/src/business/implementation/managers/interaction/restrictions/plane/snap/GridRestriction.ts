@@ -1,7 +1,7 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
-import { Box, EVENTTYPE_SCENE, IBox, addListener, sceneTree } from '@shapediver/viewer';
+import { Box, sceneTree } from '@shapediver/viewer';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
 import { vec3 } from 'gl-matrix';

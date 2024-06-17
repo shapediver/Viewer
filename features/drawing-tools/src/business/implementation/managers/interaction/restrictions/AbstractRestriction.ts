@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { IRestrictionBase } from '../../../../interfaces/IRestrictionBase';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
