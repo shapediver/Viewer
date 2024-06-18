@@ -57,14 +57,14 @@ export class InsertionInteractionHandler {
             this.#geometryState.makePointPersistent(this.#insertionActiveIndex);
 
             // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
-            if (this.#geometryState.getPointCount() > 2 && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
+            if (this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1) && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
                 // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
                 const firstPoint = this.#geometryState.getPosition(0);
-                const lastPoint = this.#geometryState.getPosition(this.#geometryState.getPointCount() - 1);
+                const lastPoint = this.#geometryState.getPosition(this.#insertionActiveIndex);
 
                 if (this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
                     this.#geometryState.closeLoop = true;
-                    this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
+                    this.#drawingToolsManager.removePoint(this.#insertionActiveIndex);
                     result = true;
                 } else {
                     this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
@@ -85,9 +85,30 @@ export class InsertionInteractionHandler {
         if (this.#insertionActive === false) return;
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true) {
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#geometryState.getPointCount() - 1 });
-            if (restrictedPoint) 
-                this.#drawingToolsManager.movePointTemporary(this.#geometryState.getPointCount() - 1, restrictedPoint);
+            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#insertionActiveIndex });
+
+            if (restrictedPoint) {
+                // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
+                if (this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1) && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
+                    // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                    const firstPoint = this.#geometryState.getPosition(0);
+                    const lastPoint = restrictedPoint;
+    
+                    if (lastPoint && this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
+                        // close the geometry
+                        this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.SELECTED_HOVERED);
+                        this.#drawingToolsManager.movePointTemporary(this.#insertionActiveIndex, firstPoint);
+                    } else {
+                        // not close enough to close the geometry
+                        this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.INSERTION_HOVERED);
+                        this.#drawingToolsManager.movePointTemporary(this.#insertionActiveIndex, restrictedPoint);
+                    }
+                } else {
+                    // not enough points to close the geometry or auto close is enabled
+                    this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.INSERTION_HOVERED);
+                    this.#drawingToolsManager.movePointTemporary(this.#insertionActiveIndex, restrictedPoint);
+                }
+            }
         }
     }
 
