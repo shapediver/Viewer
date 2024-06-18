@@ -162,8 +162,10 @@ export class GeometryManagerHelper {
 
     public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {
         // change material index
-        this.#geometryState.materialIndexArray[index] = materialIndex;
-        this.#geometryState.updateMaterialIndexArray(this.#geometryState.materialIndexArray);
+        if(this.#geometryState.materialIndexArray[index] !== materialIndex) {
+            this.#geometryState.materialIndexArray[index] = materialIndex;
+            this.#geometryState.updateMaterialIndexArray(this.#geometryState.materialIndexArray);
+        }
     }
 
     // #endregion Public Methods (6)
