@@ -125,9 +125,7 @@ export type Settings = {
      * The restrictions of the drawing tool.
      * 
      * Here you can define the restrictions that are used when interacting with the drawing tool.
-     * At least one restriction is required, the plane restriction is added by default if no restrictions are defined.
-     * 
-     * At the moment, only the plane restriction is supported.
+     * At least one restriction is required, the plane and axis restrictions are added by default if no restrictions are defined.
      */
     restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties | AxisRestrictionProperties };
 

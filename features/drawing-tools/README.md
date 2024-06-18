@@ -143,14 +143,14 @@ import {
     };
 
     /**
-     * Add an event when the minimum number of points have been subceeded.
+     * Add an event when the condition for the minimum number of points is not met.
      */
     addListener(EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, (event: IEvent) => {
         console.log((event as IDrawingToolsEvent).message);
     });
 
     /**
-     * Add an event when the maximum number of points have been exceeded.
+     * Add an event when the maximum number of points has been exceeded.
      */
     addListener(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, (event: IEvent) => {
         console.log((event as IDrawingToolsEvent).message);

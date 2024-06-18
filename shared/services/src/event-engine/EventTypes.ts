@@ -83,11 +83,11 @@ export enum EVENTTYPE_DRAWING_TOOLS {
      */
     DRAG_END = 'drawing_tools.drag.end',
     /**
-     * The MINIMUM_POINTS-event is sent when the minimum number of points would be or has been subceeded.
+     * The MINIMUM_POINTS-event is sent when the minimum number of points has not been met.
      */
     MINIMUM_POINTS = 'drawing_tools.minimumPoints',
     /**
-     * The MAXIMUM_POINTS-event is sent when the maximum number of points would be or has been exceeded.
+     * The MAXIMUM_POINTS-event is sent when the maximum number of points has been exceeded.
      */
     MAXIMUM_POINTS = 'drawing_tools.maximumPoints',
 }
