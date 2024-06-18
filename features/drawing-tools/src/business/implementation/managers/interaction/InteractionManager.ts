@@ -248,11 +248,12 @@ export class InteractionManager implements IManager {
     // #region Private Methods (1)
 
     private reset(): void {
-        if (this.#insertionInteractionHandler.insertionActive === false)
+        if (this.#insertionInteractionHandler.insertionActive === false) {
             this.#restrictionManager.showRestrictionVisualization = false;
+            this.#viewport.removeFlag(this.#cameraFreezeFlag);
+            this.#cameraFreezeFlag = '';
+        }
         this.#interactionManagerHelper.reset();
-        this.#viewport.removeFlag(this.#cameraFreezeFlag);
-        this.#cameraFreezeFlag = '';
     }
 
     // #endregion Private Methods (1)
