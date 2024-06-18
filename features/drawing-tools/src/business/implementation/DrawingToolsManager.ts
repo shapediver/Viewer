@@ -270,25 +270,16 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         return this.geometryState.getPointsData();
     }
 
-    public keyPressed(key: string): boolean {
-        const pressedKeys = Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
-
-        // check if it the only key that is pressed
-        if (key.includes('+')) {
-            const keys = key.split('+');
-
-            // there are more keys pressed than the keys in the combination
-            if (keys.length !== pressedKeys.length) return false;
-            let result = true;
-            for (let i = 0; i < keys.length; i++)
-                result = result && (this.#keysPressed[keys[i]] || false);
-
+    public keyPressed(key: string | string[]): boolean {
+        if (Array.isArray(key)) {
+            // check if one of the keys is pressed
+            let result = false;
+            for (let i = 0; i < key.length; i++) {
+                result = result || this.keyPressCheck(key[i]);
+            }
             return result;
         } else {
-            // there are also other keys pressed
-            if (pressedKeys.length > 1) return false;
-
-            return this.#keysPressed[key] || false;
+            return this.keyPressCheck(key);
         }
     }
 
@@ -518,7 +509,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     // #endregion Public Methods (28)
 
-    // #region Private Methods (1)
+    // #region Private Methods (2)
 
     private cleanSettings(settingsOptional: SettingsOptional): Settings {
         if (typeof settingsOptional === 'string') settingsOptional = JSON.parse(settingsOptional);
@@ -544,8 +535,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 } : settingsOptional.visualization.lines
             },
             controls: {
-                insert: settingsOptional.controls?.insert === undefined ? 'Insert' : settingsOptional.controls.insert,
-                delete: settingsOptional.controls?.delete === undefined ? 'Delete' : settingsOptional.controls.delete,
+                insert: settingsOptional.controls?.insert === undefined ? ['Insert', '+'] : settingsOptional.controls.insert,
+                delete: settingsOptional.controls?.delete === undefined ? ['Delete', '-'] : settingsOptional.controls.delete,
                 confirm: settingsOptional.controls?.confirm === undefined ? 'Enter' : settingsOptional.controls.confirm,
                 cancel: settingsOptional.controls?.cancel === undefined ? 'Escape' : settingsOptional.controls.cancel,
                 undo: settingsOptional.controls?.undo === undefined ? 'Control+z' : settingsOptional.controls.undo,
@@ -595,5 +586,27 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         return settings;
     }
 
-    // #endregion Private Methods (1)
+    private keyPressCheck(key: string): boolean {
+        const pressedKeys = Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
+
+        // check if it the only key that is pressed
+        if (key.includes('+') && key.length > 1) {
+            const keys = key.split('+');
+
+            // there are more keys pressed than the keys in the combination
+            if (keys.length !== pressedKeys.length) return false;
+            let result = true;
+            for (let i = 0; i < keys.length; i++)
+                result = result && (this.#keysPressed[keys[i]] || false);
+
+            return result;
+        } else {
+            // there are also other keys pressed
+            if (pressedKeys.length > 1) return false;
+
+            return this.#keysPressed[key] || false;
+        }
+    }
+
+    // #endregion Private Methods (2)
 }

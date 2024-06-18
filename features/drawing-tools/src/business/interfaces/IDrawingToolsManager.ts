@@ -180,44 +180,44 @@ export type Settings = {
         /**
          * The key that is used to insert a point.
          * 
-         * @default 'Insert'
+         * @default ['Insert','+']
          */
-        insert: string,
+        insert: string | string[],
 
         /**
          * The key that is used to delete a point.
          * 
-         * @default 'Delete'
+         * @default ['Delete','-']
          */
-        delete: string,
+        delete: string | string[],
 
         /**
          * The key that is used to confirm actions.
          * 
          * @default 'Enter'
          */
-        confirm: string,
+        confirm: string | string[],
 
         /**
          * The key that is used to cancel drawing.
          * 
          * @default 'Escape'
          */
-        cancel: string,
+        cancel: string | string[],
 
         /**
          * The keys that are used to undo the last action.
          * 
          * @default 'Control+Z'
          */
-        undo: string,
+        undo: string | string[],
 
         /**
          * The keys that are used to redo the last action.
          * 
          * @default 'Control+Y'
          */
-        redo: string
+        redo: string | string[]
     };
 
     /**
