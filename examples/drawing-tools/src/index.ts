@@ -59,14 +59,25 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         }
     };
 
+    const sendNotification = (title: string, message: string) => {
+        if (Notification.permission === 'granted') {
+            new Notification(title, { body: message });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification(title, { body: message });
+                }
+            });
+        }
+    };
+
     SDV.addListener(SDV.EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, (event: SDV.IEvent) => {
-        alert((event as IDrawingToolsEvent).message);
+        sendNotification('Minimum points reached', (event as IDrawingToolsEvent).message!);
     });
 
     SDV.addListener(SDV.EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, (event: SDV.IEvent) => {
-        alert((event as IDrawingToolsEvent).message);
+        sendNotification('Maximum points reached', (event as IDrawingToolsEvent).message!);
     });
-
 
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, {
         geometry: {
@@ -74,7 +85,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             maxPoints: 10,
             autoClose: false,
             close: true,
-            
+
         }
     });
     (window as any).drawingToolsApi = drawingToolsApi;
