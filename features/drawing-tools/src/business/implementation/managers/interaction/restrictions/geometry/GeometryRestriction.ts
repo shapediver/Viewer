@@ -12,7 +12,18 @@ import { vec3 } from 'gl-matrix';
 // #region Type aliases (1)
 
 export type GeometryRestrictionProperties = {
+    /**
+     * The nodes to restrict the interaction to.
+     */
     nodes: ITreeNode[];
+    /**
+     * If the geometry should be displayed as wireframe.
+     */
+    wireframe?: boolean;
+    /**
+     * The color of the wireframe.
+     */
+    wireframeColor?: string;
 } & RestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -33,6 +44,8 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #snapToFaces: boolean = true;
     #snapToVertices: boolean = true;
     #visualizationObject: THREE.Object3D = new THREE.Object3D();
+    #wireframe: boolean;
+    #wireframeColor: string;
 
     // #endregion Properties (10)
 
@@ -43,6 +56,8 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#viewport = drawingToolsManager.viewport;
         this.#settings = drawingToolsManager.settings;
         this.#geometryMathManager = drawingToolsManager.geometryMathManager;
+        this.#wireframe = properties.wireframe ?? true;
+        this.#wireframeColor = properties.wireframeColor ?? this.#settings.visualization.points.color_1 as string;
 
         this.updateNodes(properties.nodes);
     }
@@ -184,28 +199,30 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     public updateNodes(nodes: ITreeNode[]) {
         this.#nodes = nodes;
 
-        this.#visualizationObject.traverse((object) => {
-            if (object instanceof THREE.LineSegments) {
-                object.geometry.dispose();
-                object.material.dispose();
-            }
-        });
-        this._object3D.remove(this.#visualizationObject);
+        if (this.#wireframe) {
+            this.#visualizationObject.traverse((object) => {
+                if (object instanceof THREE.LineSegments) {
+                    object.geometry.dispose();
+                    object.material.dispose();
+                }
+            });
+            this._object3D.remove(this.#visualizationObject);
 
-        this.#visualizationObject = new THREE.Object3D();
-        this.#nodes.forEach(node => {
-            const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
-            if (threeJsObject) {
-                threeJsObject.traverse((object) => {
-                    if (object instanceof THREE.Mesh) {
-                        const wireframe = new THREE.WireframeGeometry(object.geometry);
-                        const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x000000 }));
-                        this.#visualizationObject.add(line);
-                    }
-                });
-            }
-        });
-        this._object3D.add(this.#visualizationObject);
+            this.#visualizationObject = new THREE.Object3D();
+            this.#nodes.forEach(node => {
+                const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
+                if (threeJsObject) {
+                    threeJsObject.traverse((object) => {
+                        if (object instanceof THREE.Mesh) {
+                            const wireframe = new THREE.WireframeGeometry(object.geometry);
+                            const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: new THREE.Color(this.#wireframeColor) }));
+                            this.#visualizationObject.add(line);
+                        }
+                    });
+                }
+            });
+            this._object3D.add(this.#visualizationObject);
+        }
     }
 
     // #endregion Public Methods (2)

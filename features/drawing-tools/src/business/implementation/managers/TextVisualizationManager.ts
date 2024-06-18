@@ -185,7 +185,7 @@ export class TextVisualizationManager implements IManager {
                     justify-content: center;
                     align-items: center;
                     color: white;
-                    background-color: #197aeb80;
+                    background-color: ${this.#settings.visualization.points.color_1}80;
                     border-radius: 5px;
                     font-size: 16px;
                     text-align: center;
@@ -223,7 +223,7 @@ export class TextVisualizationManager implements IManager {
                     justify-content: center;
                     align-items: center;
                     color: white;
-                    background-color: #197aeb80;
+                    background-color: ${this.#settings.visualization.points.color_1}80;
                     border-radius: 5px;
                     font-size: 16px;
                     text-align: center;
