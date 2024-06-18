@@ -313,7 +313,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
                 width: 40px;
                 height: 40px;
                 color: white;
-                background-color: #197aeb;
+                background-color: ${this.#settings.visualization.points.color_1};
                 border-radius: 50%;
                 font-size: 16px;
                 text-align: center;
