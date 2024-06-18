@@ -94,53 +94,61 @@ export class InteractionManager implements IManager {
 
     public onDown(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
-        this.#onDownPointer = event;
-        this.#interactionManagerHelper.moving = false;
 
-        /**
-         * IF INSERT KEY IS PRESSED
-         * FINALIZE INSERTION AND START A NEW ONE
-         */
-        if (this.#insertionInteractionHandler.insertionActive === true) {
-            const result = this.#insertionInteractionHandler.finalizeInsertion();
-            const distances = this.#geometryMathManager.checkPointDistances(ray);
-            this.#interactionManagerHelper.checkHover(distances, ray);
-            if(result) {
-                this.#drawingToolsManager.update();
-                return;
-            } else {
-                this.#insertionInteractionHandler.startInsertion(event);
-                return;
+        if(event.button === 0) {
+            this.#onDownPointer = event;
+            this.#interactionManagerHelper.moving = false;
+    
+            /**
+             * IF INSERT KEY IS PRESSED
+             * FINALIZE INSERTION AND START A NEW ONE
+             */
+            if (this.#insertionInteractionHandler.insertionActive === true) {
+                const result = this.#insertionInteractionHandler.finalizeInsertion();
+                const distances = this.#geometryMathManager.checkPointDistances(ray);
+                this.#interactionManagerHelper.checkHover(distances, ray);
+                if(result) {
+                    this.#drawingToolsManager.update();
+                    return;
+                } else {
+                    this.#insertionInteractionHandler.startInsertion(event);
+                    return;
+                }
             }
+            const distances = this.#geometryMathManager.checkPointDistances(ray);
+    
+            /**
+             * IF MID POINT INSERTION IS ACTIVE
+             * FINISH MID POINT INSERTION IF THE CURRENT INDEX IS THE MID POINT INSERTION INDEX
+             */
+            if (this.#midPointInteractionHandler.midPointInsertionActive === true) {
+                this.#midPointInteractionHandler.finishMidPointInsertion(distances);
+                this.#interactionManagerHelper.midPointInserted = true;
+            }
+    
+            /**
+             * CHECK HOVERED POINT
+             */
+            this.#interactionManagerHelper.checkHover(distances, ray);
+    
+            /**
+             * IF THERE IS A POINT CLOSE TO THE RAY
+             */
+            this.#interactionManagerHelper.selectPoint(distances);
+    
+            /**
+             * IF THE CURRENTLY HOVERED POINT IS SELECTED
+             * START DRAGGING
+             */
+            const draggingStarted = this.#interactionManagerHelper.startDragging(ray);
+            if (draggingStarted && !this.#cameraFreezeFlag)
+                this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
+        } else if(event.button === 2) {
+            /**
+             * WHEN RIGHT MOUSE BUTTON IS PRESSED
+             */
+            this.onOut();
         }
-        const distances = this.#geometryMathManager.checkPointDistances(ray);
-
-        /**
-         * IF MID POINT INSERTION IS ACTIVE
-         * FINISH MID POINT INSERTION IF THE CURRENT INDEX IS THE MID POINT INSERTION INDEX
-         */
-        if (this.#midPointInteractionHandler.midPointInsertionActive === true) {
-            this.#midPointInteractionHandler.finishMidPointInsertion(distances);
-            this.#interactionManagerHelper.midPointInserted = true;
-        }
-
-        /**
-         * CHECK HOVERED POINT
-         */
-        this.#interactionManagerHelper.checkHover(distances, ray);
-
-        /**
-         * IF THERE IS A POINT CLOSE TO THE RAY
-         */
-        this.#interactionManagerHelper.selectPoint(distances);
-
-        /**
-         * IF THE CURRENTLY HOVERED POINT IS SELECTED
-         * START DRAGGING
-         */
-        const draggingStarted = this.#interactionManagerHelper.startDragging(ray);
-        if (draggingStarted && !this.#cameraFreezeFlag)
-            this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
     }
 
     /**
