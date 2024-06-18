@@ -119,6 +119,8 @@ export class GeometryManagerHelper {
         indices.sort((a, b) => b - a);
 
         let positionArray = new Float32Array(this.#geometryState.positionArray);
+        let materialIndexArray = this.#geometryState.materialIndexArray;
+
         for (const removalIndex of indices) {
             const positionArrayLength = positionArray.length / 3;
             if (removalIndex < 0 || removalIndex >= positionArrayLength) {
@@ -141,12 +143,8 @@ export class GeometryManagerHelper {
             }
 
             positionArray = newPositionArray;
-        }
 
-        // remove the material index at the points and move the other indices one forward
-        let materialIndexArray = this.#geometryState.materialIndexArray;
-        for (const removalIndex of indices) {
-            materialIndexArray = this.#geometryState.materialIndexArray.slice(0, removalIndex).concat(this.#geometryState.materialIndexArray.slice(removalIndex + 1, this.#geometryState.materialIndexArray.length));
+            materialIndexArray = materialIndexArray.slice(0, removalIndex).concat(materialIndexArray.slice(removalIndex + 1, materialIndexArray.length));
             // add a 0 at the end
             materialIndexArray.push(0);
         }
