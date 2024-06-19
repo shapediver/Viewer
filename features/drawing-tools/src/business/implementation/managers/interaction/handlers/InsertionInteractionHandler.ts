@@ -55,9 +55,12 @@ export class InsertionInteractionHandler {
 
         if (this.#insertionActive === true && this.#alreadyInserted === true) {
             this.#geometryState.makePointPersistent(this.#insertionActiveIndex);
+            
+            const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+            const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
             // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
-            if (this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1) && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
+            if (canBeClosed && shouldBeClosed) {
                 // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
                 const firstPoint = this.#geometryState.getPosition(0);
                 const lastPoint = this.#geometryState.getPosition(this.#insertionActiveIndex);
@@ -88,8 +91,11 @@ export class InsertionInteractionHandler {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#insertionActiveIndex });
 
             if (restrictedPoint) {
+                const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+                const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
+
                 // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
-                if (this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1) && this.#settings.geometry.close === true && this.#settings.geometry.autoClose === false) {
+                if (canBeClosed && shouldBeClosed) {
                     // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
                     const firstPoint = this.#geometryState.getPosition(0);
                     const lastPoint = restrictedPoint;

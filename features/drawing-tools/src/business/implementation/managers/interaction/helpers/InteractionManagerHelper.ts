@@ -1,19 +1,22 @@
 import { addListener } from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
+import { GeometryMathManager } from '../../geometry/GeometryMathManager';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { MATERIAL_INDEX } from '../../../../interfaces/IDrawingToolsManager';
+import { MATERIAL_INDEX, Settings } from '../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class InteractionManagerHelper {
-    // #region Properties (15)
+    // #region Properties (17)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #eventEngine = EventEngine.instance;
+    readonly #geometryMathManager: GeometryMathManager;
     readonly #geometryState: GeometryState;
     readonly #interactionManager: InteractionManager;
+    readonly #settings: Settings;
 
     #draggedPoint?: number;
     #draggedPointPosition: vec3 = vec3.create();
@@ -27,7 +30,7 @@ export class InteractionManagerHelper {
     #selectedPointIndices: number[] = [];
     #selectedPointPositions: vec3[] = [];
 
-    // #endregion Properties (15)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -35,6 +38,8 @@ export class InteractionManagerHelper {
         this.#drawingToolsManager = drawingToolsManager;
         this.#interactionManager = interactionManager;
         this.#geometryState = this.#drawingToolsManager.geometryState;
+        this.#geometryMathManager = this.#drawingToolsManager.geometryMathManager;
+        this.#settings = this.#drawingToolsManager.settings;
 
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
             this.removeAllSelectedPoints();
@@ -192,9 +197,29 @@ export class InteractionManagerHelper {
                 const differenceToIntersected = vec3.sub(vec3.create(), intersectionPoint, this.#draggedPointPosition);
 
                 for (let i = 0; i < this.#selectedPointIndices.length; i++) {
-                    // add difference to selected point
-                    this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToIntersected, this.#selectedPointPositions[i]);
-                    this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
+                    const isLastPoint = this.#selectedPointIndices.length === 1 && this.#selectedPointIndices[0] === this.#geometryState.getPointCount() - 1;
+                    const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+                    const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
+
+                    if (isLastPoint && canBeClosed && shouldBeClosed) {
+                        // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                        const firstPoint = this.#geometryState.getPosition(0);
+                        const lastPoint = intersectionPoint;
+
+                        if (lastPoint && this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
+                            // close the geometry
+                            this.#selectedMovedPointPositions[i] = vec3.clone(firstPoint);
+                            this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], firstPoint);
+                        } else {
+                            // not close enough to close the geometry
+                            this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToIntersected, this.#selectedPointPositions[i]);
+                            this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
+                        }
+                    } else {
+                        // add difference to selected point
+                        this.#selectedMovedPointPositions[i] = vec3.add(vec3.create(), differenceToIntersected, this.#selectedPointPositions[i]);
+                        this.#drawingToolsManager.movePointTemporary(this.#selectedPointIndices[i], this.#selectedMovedPointPositions[i]);
+                    }
                 }
 
                 this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
@@ -219,13 +244,35 @@ export class InteractionManagerHelper {
 
     public onUp(): void {
         if (this.#moving === true && this.#dragging === true) {
-            const positionArray = new Float32Array(this.#geometryState.positionArray);
-            for (let i = 0; i < this.#selectedPointIndices.length; i++) {
-                const index = this.#selectedPointIndices[i];
-                positionArray.set([...positionArray.slice(0, index * 3), ...this.#selectedMovedPointPositions[i], ...positionArray.slice(index * 3 + 3, positionArray.length)]);
+            const selectedPointIndices = this.#selectedPointIndices.slice();
+            for (let i = 0; i < this.#selectedPointIndices.length; i++)
+                this.#geometryState.makePointPersistent(this.#selectedPointIndices[i], false);
+
+            /**
+             * Check if the geometry should be closed
+             */
+            const isLastPoint = selectedPointIndices.length === 1 && selectedPointIndices[0] === this.#geometryState.getPointCount() - 1;
+            const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+            const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
+
+            if (isLastPoint && canBeClosed && shouldBeClosed) {
+                // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
+                const firstPoint = this.#geometryState.getPosition(0);
+                const lastPoint = this.#selectedMovedPointPositions[0];
+
+                if (lastPoint && this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
+                    // close the geometry          
+                    this.#geometryState.closeLoop = true;
+                    this.#drawingToolsManager.removePoint(selectedPointIndices[0]);
+                }
             }
             this.removeAllSelectedPoints();
-            this.#geometryState.updateData(positionArray);
+
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+                points: this.#geometryState.getPointsData(),
+                temporary: false,
+                fromHistory: false
+            });
 
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
         } else if (this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
