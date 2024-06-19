@@ -28,6 +28,7 @@ import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
 import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
 import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
 import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { SystemInfo } from '@shapediver/viewer.shared.services';
 
 export {
     SettingsOptional as Settings, Callbacks,
@@ -60,6 +61,9 @@ let drawingTools: IDrawingToolsApi | undefined;
  * @throws An error if there is already an active instance of DrawingTools.
  */
 export const createDrawingTools = (viewport: IViewportApi, callbacks: Callbacks, settings: SettingsOptional): IDrawingToolsApi => {
+    if (SystemInfo.instance.isMobile)
+        throw new ShapeDiverViewerDrawingToolsError('The DrawingTools are not supported on mobile devices.');
+
     if (drawingTools && drawingTools.closed === false)
         throw new ShapeDiverViewerDrawingToolsError('There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.');
 
