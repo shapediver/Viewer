@@ -70,11 +70,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         sceneTree.root.addChild(this.#parentNode);
         sceneTree.root.updateVersion(false, false);
 
-        this.#historyManager = new HistoryManager(this);
         this.#geometryMathManager = new GeometryMathManager(this);
         this.#geometryManager = new GeometryManager(this);
         this.#interactionManager = new InteractionManager(this);
         this.#textVisualizationManager = new TextVisualizationManager(this);
+        this.#historyManager = new HistoryManager(this);
 
         this.#eventManager = new EventManager(this.#viewport, {
             onDown: this.onDown.bind(this),

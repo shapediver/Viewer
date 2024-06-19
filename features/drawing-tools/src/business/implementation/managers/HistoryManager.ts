@@ -31,6 +31,14 @@ export class HistoryManager implements IManager {
         addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
             const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
             if (event.temporary === false && event.points !== undefined && event.fromHistory !== true && event.recordHistory !== false) {
+                /**
+                 * DO SOME CHECKS TO ENSURE THAT THE STATE IS CORRECT
+                 */
+                // 1. within number of points
+                if (this.#drawingToolsManager.geometryState.checkNumberOfPoints(event.points.length) === false) return;
+                // 2. closed loop if it should be closed
+                if (this.#drawingToolsManager.settings.geometry.close === true && this.#drawingToolsManager.geometryState.closeLoop === false && this.#drawingToolsManager.settings.geometry.autoClose === false) return;
+
                 this.recordState({
                     points: event.points
                 });
