@@ -14,5 +14,6 @@ export type DrawingToolsEventResponseMapping = {
     [EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE]: IDrawingToolsEvent,
     [EVENTTYPE_DRAWING_TOOLS.DRAG_END]: IDrawingToolsEvent,
     [EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS]: IDrawingToolsEvent,
-    [EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS]: IDrawingToolsEvent
+    [EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS]: IDrawingToolsEvent,
+    [EVENTTYPE_DRAWING_TOOLS.UNCLOSED_LOOP]: IDrawingToolsEvent,
 }

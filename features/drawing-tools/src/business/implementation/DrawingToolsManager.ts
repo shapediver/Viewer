@@ -95,7 +95,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#eventEngine.addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
             const event = e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
             if (event.temporary === false && event.points !== undefined && event.recordHistory !== false) {
-                if (this.#settings.general.autoUpdate && this.#interactionManager.insertionInteractionHandler.insertionActive === false) {
+                if (this.#settings.general.autoUpdate && this.#interactionManager.insertionInteractionHandler.insertionActive === false && (this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop)) {
                     this.update();
                 }
             }
@@ -485,7 +485,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`
             });
             throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`);
-        } else {
+        } else if(!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop)) {
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UNCLOSED_LOOP, {
+                viewportId: this.viewport.id,
+                drawingToolsId: this.#uuid,
+                message: 'The geometry is not closed, but is required to be closed.'
+            });
+            throw new ShapeDiverViewerDrawingToolsError('The geometry is not closed, but is required to be closed.');
+        } else{
             const pointsData = this.geometryState.getPointsData();
             try {
                 this.#callbacks.onUpdate(pointsData);

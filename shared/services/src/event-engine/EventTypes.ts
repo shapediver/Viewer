@@ -90,6 +90,10 @@ export enum EVENTTYPE_DRAWING_TOOLS {
      * The MAXIMUM_POINTS-event is sent when the maximum number of points has been exceeded.
      */
     MAXIMUM_POINTS = 'drawing_tools.maximumPoints',
+    /**
+     * The UNCLOSED_LOOP-event is sent when the loop is not closed, but should be.
+     */
+    UNCLOSED_LOOP = 'drawing_tools.unclosedLoop',
 }
 
 /**
