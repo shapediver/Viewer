@@ -477,7 +477,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 drawingToolsId: this.#uuid,
                 message: `The minimum amount of points (${this.#settings.geometry.minPoints}) has not been met. Current number of points: ${pointsCount}.`
             });
-            throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.maxPoints}) has not been met. Current number of points: ${pointsCount}.`);
+            throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.minPoints}) has not been met. Current number of points: ${pointsCount}.`);
         } else if (this.#settings.geometry.maxPoints !== undefined && pointsCount > this.#settings.geometry.maxPoints) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, {
                 viewportId: this.viewport.id,
