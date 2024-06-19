@@ -61,4 +61,8 @@ There are many options that you can already provide on initialization, please ha
 - __Attribute Visualization__: [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization/index.html)
 
     To visualize the attributes of objects, please use our attribute visualization feature package.
+    
+- __Drawing Tools__: [`@shapediver/viewer.features.drawing-tools`](./features/drawing-tools/index.html)
+
+    To create and edit point and line data.
 
