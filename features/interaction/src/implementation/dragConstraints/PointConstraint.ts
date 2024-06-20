@@ -1,10 +1,10 @@
-import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
-import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { mat4, vec3 } from "gl-matrix";
-import { IViewportApi } from "@shapediver/viewer";
-import { IDragAnchor, InteractionData } from "../InteractionData";
-import { calculateDragMatrix } from "./DragConstraintsHelper";
+import { calculateDragMatrix } from './DragConstraintsHelper';
+import { IDragAnchor, InteractionData } from '../InteractionData';
+import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
@@ -33,7 +33,7 @@ export class PointConstraint implements IDragConstraint {
      * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
      */
     constructor(
-        _point: vec3, 
+        _point: vec3,
         _radius: number = 0,
         _rotation?: {
             axis: vec3,
@@ -42,8 +42,12 @@ export class PointConstraint implements IDragConstraint {
     ) {
         this.#point = _point;
         this.#radius = _radius;
-        this.#rotation = _rotation || { axis: vec3.fromValues(0,0,1), angle: 0 };
+        this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
+
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (3)
 
     public get point(): vec3 {
         return this.#point;
@@ -57,21 +61,21 @@ export class PointConstraint implements IDragConstraint {
         return this.#rotation;
     }
 
-    // #endregion Constructors (1)
+    // #endregion Public Getters And Setters (3)
 
     // #region Public Methods (2)
 
     public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         const closestPoint = vec3.sub(vec3.create(), this.#point, ray.origin);
-		const directionDistance = vec3.dot(closestPoint, ray.direction);
+        const directionDistance = vec3.dot(closestPoint, ray.direction);
 
-		if ( directionDistance < 0 ) {
-			vec3.copy(closestPoint, ray.origin);
-		} else {
+        if (directionDistance < 0) {
+            vec3.copy(closestPoint, ray.origin);
+        } else {
             vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
             vec3.add(closestPoint, closestPoint, ray.origin);
         }
-        
+
         const distance = vec3.distance(closestPoint, this.#point);
         if (distance < this.#radius) {
             const { matrix, dragAnchor } = calculateDragMatrix(node, this.#point, this.#rotation, this.#dragOrigin!, closestPoint);
@@ -80,9 +84,14 @@ export class PointConstraint implements IDragConstraint {
         return;
     }
 
-    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {       
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, mat4.invert(mat4.create(), previousDragMatrix));
+
+        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
+        if (!invertedPreviousDragMatrix)
+            invertedPreviousDragMatrix = mat4.create();
+
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
         return this.intersect(viewport, node, ray);
     }
 

@@ -228,7 +228,9 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
     const aspect = this.aspect || 1.5;
     const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(m, m));
+    let inverse = mat4.invert(mat4.create(), m);
+    if (!inverse) inverse = mat4.create();
+    vec3.transformMat4(pos, pos, inverse);
     vec3.transformMat4(pos, pos, p);
     return vec2.fromValues(pos[0], pos[1]);
   }
@@ -237,7 +239,9 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
     const aspect = this.aspect || 1.5;
     const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(p, p));
+    let inverse = mat4.invert(mat4.create(), p);
+    if (!inverse) inverse = mat4.create();
+    vec3.transformMat4(pos, pos, inverse);
     vec3.transformMat4(pos, pos, m);
     return vec3.clone(pos);
   }

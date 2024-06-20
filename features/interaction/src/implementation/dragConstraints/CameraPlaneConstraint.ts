@@ -1,11 +1,11 @@
-import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
-import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { mat4, vec3 } from "gl-matrix";
-import { IViewportApi } from "@shapediver/viewer";
-import { IPlane, Plane } from "@shapediver/viewer.shared.math";
-import { IDragAnchor, InteractionData } from "../InteractionData";
-import { calculateDragMatrix } from "./DragConstraintsHelper";
+import { calculateDragMatrix } from './DragConstraintsHelper';
+import { IDragAnchor, InteractionData } from '../InteractionData';
+import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IPlane, Plane } from '@shapediver/viewer.shared.math';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 
 /**
  * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane parallel to the camera plane that passes through the origin of the node being dragged.
@@ -24,7 +24,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
     // #region Constructors (1)
 
     /**
-     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
+     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag constraint becomes active
      */
     constructor(
         _rotation?: {
@@ -35,11 +35,15 @@ export class CameraPlaneConstraint implements IDragConstraint {
         this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
 
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (1)
+
     public get rotation(): { axis: vec3, angle: number } | undefined {
         return this.#rotation;
     }
 
-    // #endregion Constructors (1)
+    // #endregion Public Getters And Setters (1)
 
     // #region Public Methods (2)
 
@@ -58,7 +62,12 @@ export class CameraPlaneConstraint implements IDragConstraint {
         this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
 
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, mat4.invert(mat4.create(), previousDragMatrix));
+
+        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
+        if (!invertedPreviousDragMatrix)
+            invertedPreviousDragMatrix = mat4.create();
+
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
         return this.intersect(viewport, node, ray);
     }
 

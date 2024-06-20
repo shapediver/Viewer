@@ -198,7 +198,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
             0, 0, 0, 1
         );
 
-        const rotationMatrixInverse = mat4.invert(mat4.create(), rotationMatrix);
+        let rotationMatrixInverse = mat4.invert(mat4.create(), rotationMatrix);
+        if (!rotationMatrixInverse)
+            rotationMatrixInverse = mat4.create();
+        
         const pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(this.#origin[0], this.#origin[1], this.#origin[2]));
         const pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-this.#origin[0], -this.#origin[1], -this.#origin[2]));
 

@@ -1,10 +1,10 @@
-import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
-import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { mat4, vec3 } from "gl-matrix";
-import { IViewportApi } from "@shapediver/viewer";
-import { IDragAnchor, InteractionData } from "../InteractionData";
-import { calculateDragMatrix } from "./DragConstraintsHelper";
+import { calculateDragMatrix } from './DragConstraintsHelper';
+import { IDragAnchor, InteractionData } from '../InteractionData';
+import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 
 /**
  * The line constraint is used for dragging and allows the specification of a line along which objects can be dragged.
@@ -58,6 +58,10 @@ export class LineConstraint implements IDragConstraint {
         };
     }
 
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (4)
+
     public get point1(): vec3 {
         return this.#point1;
     }
@@ -65,7 +69,7 @@ export class LineConstraint implements IDragConstraint {
     public get point2(): vec3 {
         return this.#point2;
     }
-    
+
     public get radius(): number {
         return this.#radius;
     }
@@ -74,7 +78,7 @@ export class LineConstraint implements IDragConstraint {
         return this.#rotation;
     }
 
-    // #endregion Constructors (1)
+    // #endregion Public Getters And Setters (4)
 
     // #region Public Methods (2)
 
@@ -114,7 +118,12 @@ export class LineConstraint implements IDragConstraint {
 
     public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, mat4.invert(mat4.create(), previousDragMatrix));
+
+        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
+        if (!invertedPreviousDragMatrix)
+            invertedPreviousDragMatrix = mat4.create();
+
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
         return this.intersect(viewport, node, ray);
     }
 
