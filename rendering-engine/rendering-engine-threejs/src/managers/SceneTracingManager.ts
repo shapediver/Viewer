@@ -31,15 +31,22 @@ export class SceneTracingManager implements IManager {
         if (!camera)
             throw new ShapeDiverViewerViewportError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
 
-        // should be anchor pos
-        const screenVector = new THREE.Vector3();
-        screenVector.set(p[0], p[1], p[2]);
 
-        this._raycaster.ray.direction.copy(screenVector);
-        this._raycaster.ray.origin.set(0, 0, 0);
-        (camera.convertedObject[this._renderingEngine.id] as THREE.Camera).localToWorld(this._raycaster.ray.origin);
-        this._raycaster.ray.direction.sub(this._raycaster.ray.origin);
-        this._raycaster.ray.direction.normalize();
+        if(camera instanceof OrthographicCamera) {
+            const direction = vec3.sub(vec3.create(), camera.target, camera.position);
+            const length = vec3.length(direction);
+            vec3.divide(direction, direction, vec3.fromValues(length, length, length));
+            this._raycaster.ray.direction.set(direction[0], direction[1], direction[2]);
+
+            // set the origin of the ray to the opposite direction of the camera with the start at the initial provided point
+            this._raycaster.ray.origin.set(p[0] + direction[0] * length, p[1] + direction[1] * length, p[2] + direction[2] * length);
+        } else {
+            this._raycaster.ray.direction.set(p[0], p[1], p[2]);
+            this._raycaster.ray.origin.set(0, 0, 0);
+            (camera.convertedObject[this._renderingEngine.id] as THREE.Camera).localToWorld(this._raycaster.ray.origin);
+            this._raycaster.ray.direction.sub(this._raycaster.ray.origin);
+            this._raycaster.ray.direction.normalize();
+        }
 
         let closestIntersectionDistance = Number.MAX_VALUE;
         this._renderingEngine.sceneTreeManager.scene.traverseVisible((obj: THREE.Object3D) => {
