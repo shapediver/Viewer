@@ -4,12 +4,8 @@ import {
     EVENTTYPE,
     ShapeDiverViewerInteractionError,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
-import {
-    FLAG_TYPE,
-    IGeometryData,
-    IViewportApi
-    } from '@shapediver/viewer';
+} from '@shapediver/viewer.shared.services';
+import { FLAG_TYPE, IGeometryData, IViewportApi } from '@shapediver/viewer';
 import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
 import { IDragEvent } from '../../interfaces/events/IDragEvent';
@@ -317,6 +313,7 @@ export class DragManager extends AbstractInteractionManager {
         // store the initial world matrix and its inverse
         this.#nodeWorldMatrix = this.#node.worldMatrix;
         this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
+        if (!this.#nodeWorldMatrixInverse) this.#nodeWorldMatrixInverse = mat4.create();
 
         // apply the effect material if there is something to apply
         if (this.effectMaterial) {

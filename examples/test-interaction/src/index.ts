@@ -1,34 +1,29 @@
+import * as SDV from '@shapediver/viewer';
 import {
     addListener,
     createSession,
     createViewport,
     EVENTTYPE,
-    GeometryData,
-    IOutputApi,
     IParameterApi,
     ISessionApi,
     IViewportApi,
     MaterialStandardData,
-    MATERIAL_ALPHA,
-    PrimitiveData,
     removeListener,
-    sceneTree,
     VISIBILITY_MODE
 } from '@shapediver/viewer';
+import { bottomShelf, ShelfDefinition, topShelf } from './definition';
 import {
-    InteractionEngine,
-    HoverManager,
     DragManager,
-    PointConstraint,
+    HoverManager,
     IDragEvent,
     InteractionData,
+    InteractionEngine,
     LineConstraint,
-    PlaneConstraint
+    PlaneConstraint,
+    PointConstraint
 } from '@shapediver/viewer.features.interaction';
 import { mat4, quat, vec3 } from 'gl-matrix';
 
-import * as SDV from '@shapediver/viewer';
-import { bottomShelf, ShelfDefinition, topShelf } from './definition';
 (<any>window).SDV = SDV;
 
 // monitor if the mouse is up or down
@@ -55,7 +50,6 @@ let dragManager: DragManager;
 let hoverManager: HoverManager;
 
 let customizationInProgress: boolean = false;
-
 
 const dragLineConstraintsIDs: string[] = [];
 const activateInteractionsToken: {
@@ -91,11 +85,13 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean }) => {
             const data = new InteractionData(interactionTypes);
 
             // we set an anchor at the bottom back middle of the BB
+
+            let inverse = mat4.invert(mat4.create(), shelves[i].matrices[j].rotation);
+            if (!inverse) inverse = mat4.create();
+
             const bb = node.boundingBox
                 .clone()
-                .applyMatrix(
-                    mat4.invert(mat4.create(), shelves[i].matrices[j].rotation)
-                );
+                .applyMatrix(inverse);
             const position = vec3.fromValues(
                 (bb.max[0] + bb.min[0]) / 2,
                 bb.max[1],
@@ -149,7 +145,7 @@ const activateInteractions = () => {
     activateInteractionsToken.start = addListener(
         EVENTTYPE.INTERACTION.DRAG_START,
         async (e) => {
-            if(customizationInProgress) {
+            if (customizationInProgress) {
                 dragManager.removeNode();
                 return;
             }
@@ -234,7 +230,7 @@ const activateInteractions = () => {
                     const node = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
                     node.visible = false;
                     node.updateVersion();
-                    viewport.update();            
+                    viewport.update();
 
                     removeListener(activateInteractionsToken.end);
                     activateInteractions();
@@ -253,7 +249,7 @@ const activateInteractions = () => {
  * @param def
  */
 const addShelf = async (def: ShelfDefinition) => {
-    if(customizationInProgress) return;
+    if (customizationInProgress) return;
     deactivateInteractions();
 
     // create snap points for this shelf
@@ -285,7 +281,7 @@ const addShelf = async (def: ShelfDefinition) => {
     const data = new InteractionData({ drag: true });
 
     // we set an anchor at the bottom back middle of the BB
-    data.dragOrigin = vec3.fromValues( (newNode.boundingBox.max[0] + newNode.boundingBox.min[0]) / 2, newNode.boundingBox.max[1], newNode.boundingBox.min[2]);
+    data.dragOrigin = vec3.fromValues((newNode.boundingBox.max[0] + newNode.boundingBox.min[0]) / 2, newNode.boundingBox.max[1], newNode.boundingBox.min[2]);
 
     // we add the data and make the node invisible for now
     newNode.data.push(data);

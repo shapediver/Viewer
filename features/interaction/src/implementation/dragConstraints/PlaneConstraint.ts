@@ -1,11 +1,11 @@
-import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
-import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { mat4, vec3 } from "gl-matrix";
-import { IViewportApi } from "@shapediver/viewer";
-import { IPlane, Plane } from "@shapediver/viewer.shared.math";
-import { IDragAnchor, InteractionData } from "../InteractionData";
-import { calculateDragMatrix } from "./DragConstraintsHelper";
+import { calculateDragMatrix } from './DragConstraintsHelper';
+import { IDragAnchor, InteractionData } from '../InteractionData';
+import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IPlane, Plane } from '@shapediver/viewer.shared.math';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 
 /**
  * The plane constraint is used for dragging and allows to specify a plane on which an object can be dragged.
@@ -17,7 +17,7 @@ export class PlaneConstraint implements IDragConstraint {
 
     #coplanarPoint?: vec3;
     #dragOrigin?: vec3;
-    #dragPlane?: IPlane;;
+    #dragPlane?: IPlane;
     #normal: vec3;
     #rotation: {
         axis: vec3,
@@ -45,7 +45,11 @@ export class PlaneConstraint implements IDragConstraint {
         this.#coplanarPoint = _coplanarPoint;
         this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
-    
+
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (3)
+
     public get coplanarPoint(): vec3 | undefined {
         return this.#coplanarPoint;
     }
@@ -58,7 +62,7 @@ export class PlaneConstraint implements IDragConstraint {
         return this.#rotation;
     }
 
-    // #endregion Constructors (1)
+    // #endregion Public Getters And Setters (3)
 
     // #region Public Methods (2)
 
@@ -66,7 +70,7 @@ export class PlaneConstraint implements IDragConstraint {
         const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
-            
+
             const { matrix, dragAnchor } = calculateDragMatrix(node, point, this.#rotation, this.#dragOrigin!, point);
             return { distance, transformation: matrix, dragAnchor };
         }
@@ -80,7 +84,12 @@ export class PlaneConstraint implements IDragConstraint {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, intersection.point);
         }
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, mat4.invert(mat4.create(), previousDragMatrix));
+
+        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
+        if (!invertedPreviousDragMatrix)
+            invertedPreviousDragMatrix = mat4.create();
+
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
         return this.intersect(viewport, node, ray);
     }
 

@@ -76,11 +76,11 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
         this.up = vec3.fromValues(0, 1, 0);
         break;
       case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
-        case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
+      case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
         this.up = vec3.fromValues(0, 0, 1);
         break;
       case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
-        case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
+      case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
         this.up = vec3.fromValues(0, 0, 1);
         break;
       default:
@@ -205,7 +205,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     const target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
     if (startingPosition[0] === startingTarget[0] && startingPosition[1] === startingTarget[1] && startingPosition[2] === startingTarget[2])
       startingPosition = vec3.fromValues(target[0], target[1] - 7.5, target[2] + 5);
-      
+
     const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
 
     switch (this.#direction) {
@@ -261,7 +261,9 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   public project(pos: vec3): vec2 {
     const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
     const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(m, m));
+    let inverse = mat4.invert(mat4.create(), m);
+    if (!inverse) inverse = mat4.create();
+    vec3.transformMat4(pos, pos, inverse);
     vec3.transformMat4(pos, pos, p);
     return vec2.fromValues(pos[0], pos[1]);
   }
@@ -269,7 +271,9 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   public unproject(pos: vec3): vec3 {
     const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
     const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(p, p));
+    let inverse = mat4.invert(mat4.create(), p);
+    if (!inverse) inverse = mat4.create();
+    vec3.transformMat4(pos, pos, inverse);
     vec3.transformMat4(pos, pos, m);
     return vec3.clone(pos);
   }
