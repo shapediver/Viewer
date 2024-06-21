@@ -58,9 +58,9 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         settingsEngine.loadSettings(settings);
 
         const promises: Promise<unknown>[] = [];
-        this.#stateEngine.viewportEngines[viewportId].settingsAssigned.reset();
+        this.#stateEngine.viewportEngines[viewportId]?.settingsAssigned.reset();
         promises.push(new Promise<void>(resolve => {
-            this.#stateEngine.viewportEngines[viewportId].settingsAssigned.then(() => {
+            this.#stateEngine.viewportEngines[viewportId]?.settingsAssigned.then(() => {
                 resolve();
             });
         }));
@@ -73,12 +73,12 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         if (!this.viewportEngines[id]) return;
 
         this.#logger.debugLow(`CreationControlCenter.closeViewportEngine: Closing viewport ${id}.`);
-        if (this.#stateEngine.viewportEngines[id].initialized.resolved === false)
-            await new Promise<void>(resolve => { this.#stateEngine.viewportEngines[id].initialized.then(() => resolve()); });
+        if (this.#stateEngine.viewportEngines[id]?.initialized.resolved === false)
+            await new Promise<void>(resolve => { this.#stateEngine.viewportEngines[id]?.initialized.then(() => resolve()); });
 
-        this.#stateEngine.viewportEngines[id].settingsAssigned.reset();
-        this.#stateEngine.viewportEngines[id].environmentMapLoaded.reset();
-        this.#stateEngine.viewportEngines[id].initialized.reset();
+        this.#stateEngine.viewportEngines[id]?.settingsAssigned.reset();
+        this.#stateEngine.viewportEngines[id]?.environmentMapLoaded.reset();
+        this.#stateEngine.viewportEngines[id]?.initialized.reset();
 
         await this.viewportEngines[id].close();
 
@@ -126,7 +126,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
                     // in createSession
                 }
             } else if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
-                const firstSessionEngine = Object.values(this.#stateEngine.sessionEngines).find(sessionEngine => sessionEngine.isFirstSession === true);
+                const firstSessionEngine = Object.values(this.#stateEngine.sessionEngines).find(sessionEngine => sessionEngine && sessionEngine.isFirstSession === true);
                 if (firstSessionEngine) {
                     await this.assignSettings(viewportEngine.id, firstSessionEngine.id, true);
                 } else {
@@ -149,10 +149,10 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
                             if (boundingBox.isEmpty()) {
                                 viewportEngine.show = false;
                             } else {
-                                if (this.#stateEngine.viewportEngines[viewportEngineId].settingsAssigned.resolved) {
+                                if (this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.resolved) {
                                     viewportEngine.show = true;
                                 } else {
-                                    this.#stateEngine.viewportEngines[viewportEngineId].settingsAssigned.then(() => {
+                                    this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.then(() => {
                                         viewportEngine.show = true;
                                     });
                                 }
@@ -160,17 +160,17 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
                         }
                     });
                 } else {
-                    if (this.#stateEngine.viewportEngines[viewportEngineId].settingsAssigned.resolved) {
+                    if (this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.resolved) {
                         viewportEngine.show = true;
                     } else {
-                        this.#stateEngine.viewportEngines[viewportEngineId].settingsAssigned.then(() => {
+                        this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.then(() => {
                             viewportEngine.show = true;
                         });
                     }
                 }
             }
 
-            this.#stateEngine.viewportEngines[viewportEngineId].initialized.resolve(true);
+            this.#stateEngine.viewportEngines[viewportEngineId]?.initialized.resolve(true);
 
             this.#logger.debug(`CreationControlCenter.createViewport: Viewport(${viewportEngineId}) created.`);
 
@@ -210,16 +210,19 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
 
     private async assignSettings(viewportEngineId: string, sessionEngineId: string, updateViewport: boolean = false) {
         const viewportEngine = this.#stateEngine.viewportEngines[viewportEngineId];
+        if (!viewportEngine) return;
 
-        if (this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolved === true) {
+        if (this.#stateEngine.sessionEngines[sessionEngineId] && this.#stateEngine.sessionEngines[sessionEngineId]!.initialized.resolved === true) {
             // immediate
-            viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId].settingsEngine);
+            viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId]!.settingsEngine);
             await viewportEngine.applySettings(undefined, undefined, updateViewport);
         } else {
             await new Promise<void>(resolve => {
-                this.#stateEngine.sessionEngines[sessionEngineId].initialized.then(async () => {
-                    viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId].settingsEngine);
-                    await viewportEngine.applySettings(undefined, undefined, updateViewport);
+                this.#stateEngine.sessionEngines[sessionEngineId]?.initialized.then(async () => {
+                    if(this.#stateEngine.sessionEngines[sessionEngineId]) {
+                        viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId]!.settingsEngine);
+                        await viewportEngine.applySettings(undefined, undefined, updateViewport);
+                    }
                     resolve();
                 });
             });

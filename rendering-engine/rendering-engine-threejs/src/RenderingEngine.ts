@@ -880,7 +880,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public addFlag(flag: FLAG_TYPE): string {
     const token = this._uuidGenerator.create();
     if (flag === FLAG_TYPE.BUSY_MODE) {
-      this.stateEngine.viewportEngines[this.id].busy.push(token);
+      this.stateEngine.viewportEngines[this.id]?.busy.push(token);
     } else {
       this.#flags[flag].push(token);
     }
@@ -907,7 +907,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       await new Promise<void>((resolve, reject) => {
-        this._stateEngine.viewportEngines[this.id].environmentMapLoaded.then(() => {
+        this._stateEngine.viewportEngines[this.id]?.environmentMapLoaded.then(() => {
           try {
             if (!settingsEngine) return;
             this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
@@ -997,7 +997,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // busy
     {
       const currentBusyState = this.busy;
-      if (this.stateEngine.viewportEngines[this.id] && this.stateEngine.viewportEngines[this.id].busy.length > 0) {
+      if (this.stateEngine.viewportEngines[this.id] && this.stateEngine.viewportEngines[this.id]!.busy.length > 0) {
         if (!currentBusyState) {
           this.busy = true;
           this._renderingManager.render();
@@ -1100,8 +1100,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     const Flags = Object.values(FLAG_TYPE);
     for (const f of Flags) {
       if (f === FLAG_TYPE.BUSY_MODE) {
-        if (this.stateEngine.viewportEngines[this.id].busy.includes(token)) {
-          this.stateEngine.viewportEngines[this.id].busy.splice(this.stateEngine.viewportEngines[this.id].busy.indexOf(token), 1);
+        if (this.stateEngine.viewportEngines[this.id] && this.stateEngine.viewportEngines[this.id]!.busy.includes(token)) {
+          this.stateEngine.viewportEngines[this.id]!.busy.splice(this.stateEngine.viewportEngines[this.id]!.busy.indexOf(token), 1);
           success = true;
           break;
         }
@@ -1118,11 +1118,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public reset() {
-    this._stateEngine.viewportEngines[this.id].settingsAssigned.reset();
-    this._stateEngine.viewportEngines[this.id].boundingBoxCreated.reset();
-    this._stateEngine.viewportEngines[this.id].environmentMapLoaded.reset();
+    this._stateEngine.viewportEngines[this.id]?.settingsAssigned.reset();
+    this._stateEngine.viewportEngines[this.id]?.boundingBoxCreated.reset();
+    this._stateEngine.viewportEngines[this.id]?.environmentMapLoaded.reset();
 
-    this._stateEngine.viewportEngines[this.id].boundingBoxCreated.then(() => {
+    this._stateEngine.viewportEngines[this.id]?.boundingBoxCreated.then(() => {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
     });
   }
@@ -1180,7 +1180,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public start() {
     this._renderingManager.start();
 
-    this._stateEngine.viewportEngines[this.id].boundingBoxCreated.then(() => {
+    this._stateEngine.viewportEngines[this.id]?.boundingBoxCreated.then(() => {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
     });
 
@@ -1325,7 +1325,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // call adjust camera to load the three.js camera objects
     this.cameraManager.adjustCamera(1);
 
-    this._stateEngine.viewportEngines[this.id].settingsAssigned.resolve(true);
+    this._stateEngine.viewportEngines[this.id]?.settingsAssigned.resolve(true);
     if (updateViewport) this.update('RenderingEngine.applySyncSettings');
   }
 

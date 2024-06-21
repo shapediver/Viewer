@@ -393,8 +393,8 @@ export class SceneTreeManager implements IManager {
 
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] &&
             this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {
-            if (!this._stateEngine.viewportEngines[this._renderingEngine.id].boundingBoxCreated.resolved && !this._boundingBox.isEmpty())
-                this._stateEngine.viewportEngines[this._renderingEngine.id].boundingBoxCreated.resolve(true);
+            if (!this._stateEngine.viewportEngines[this._renderingEngine.id]?.boundingBoxCreated.resolved && !this._boundingBox.isEmpty())
+                this._stateEngine.viewportEngines[this._renderingEngine.id]?.boundingBoxCreated.resolve(true);
 
             this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, {
                 viewportId: this._renderingEngine.id, boundingBox: {
@@ -407,7 +407,7 @@ export class SceneTreeManager implements IManager {
         if (this._boundingBox.isEmpty()) {
             // check if all outputs that should be loaded at the start of a session are loaded
             // if the bounding box is empty then, emit the event
-            if (Object.values(this._stateEngine.sessionEngines).every(s => s.initialOutputsLoaded.resolved === true)) {
+            if (Object.values(this._stateEngine.sessionEngines).every(s => s && s.initialOutputsLoaded.resolved === true)) {
                 this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_EMPTY, {
                     viewportId: this._renderingEngine.id
                 });

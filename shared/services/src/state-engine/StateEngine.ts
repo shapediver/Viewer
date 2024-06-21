@@ -6,8 +6,8 @@ export class StateEngine {
     // #region Properties (4)
 
     private readonly _fontLoaded: StatePromise<boolean> = new StatePromise();
-    private readonly _sessionEngines: { [key: string]: ISessionGlobalAccessObjectDefinition } = {};
-    private readonly _viewportEngines: { [key: string]: IViewportGlobalAccessObjectDefinition } = {};
+    private readonly _sessionEngines: { [key: string]: ISessionGlobalAccessObjectDefinition | undefined } = {};
+    private readonly _viewportEngines: { [key: string]: IViewportGlobalAccessObjectDefinition | undefined } = {};
 
     private static _instance: StateEngine;
 
@@ -35,11 +35,11 @@ export class StateEngine {
         return this._fontLoaded;
     }
 
-    public get sessionEngines(): { [key: string]: ISessionGlobalAccessObjectDefinition } {
+    public get sessionEngines(): { [key: string]: ISessionGlobalAccessObjectDefinition | undefined } {
         return this._sessionEngines;
     }
 
-    public get viewportEngines(): { [key: string]: IViewportGlobalAccessObjectDefinition } {
+    public get viewportEngines(): { [key: string]: IViewportGlobalAccessObjectDefinition | undefined } {
         return this._viewportEngines;
     }
 

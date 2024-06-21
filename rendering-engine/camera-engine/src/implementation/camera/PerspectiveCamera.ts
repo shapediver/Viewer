@@ -98,7 +98,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
       if (this._viewportId) {
-        this._stateEngine.viewportEngines[this._viewportId].boundingBoxCreated.then(async () => {
+        this._stateEngine.viewportEngines[this._viewportId]?.boundingBoxCreated.then(async () => {
           await this.zoomTo(undefined, { duration: 0 });
           this.defaultPosition = vec3.clone(this._controls.position);
           this.defaultTarget = vec3.clone(this._controls.target);
@@ -123,7 +123,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     this.boundingBox = this.#tree.root.boundingBox.clone();
 
-    this._stateEngine.viewportEngines[renderingEngine.id].boundingBoxCreated.then(async () => {
+    this._stateEngine.viewportEngines[renderingEngine.id]?.boundingBoxCreated.then(async () => {
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
         await this.zoomTo(undefined, { duration: 0 });
     });
