@@ -753,7 +753,8 @@ export class ViewportApi implements IViewportApi {
 
         let sessionEngineId: string | undefined = undefined;
         for (const s in this.#stateEngine.sessionEngines) {
-            if (this.#stateEngine.sessionEngines[s].canUploadGLTF) {
+            const state = this.#stateEngine.sessionEngines[s];
+            if (state !== undefined && state.canUploadGLTF) {
                 sessionEngineId = s;
                 break;
             }
@@ -780,7 +781,7 @@ export class ViewportApi implements IViewportApi {
 
         this.update('createArSessionLink.end');
 
-        const response = await this.#stateEngine.sessionEngines[sessionEngineId!].uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
+        const response = await this.#stateEngine.sessionEngines[sessionEngineId!]?.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
 
         const backends: {
             [key: string]: string
@@ -794,15 +795,15 @@ export class ViewportApi implements IViewportApi {
             'sduse1': 'https://model-view.shapediver.com',
         };
 
-        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === this.#stateEngine.sessionEngines[sessionEngineId!].modelViewUrl);
+        let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === this.#stateEngine.sessionEngines[sessionEngineId!]?.modelViewUrl);
         if (!backendIdentifier) {
-            const modelViewUrl = this.#stateEngine.sessionEngines[sessionEngineId!].modelViewUrl;
-            backendIdentifier = modelViewUrl.replace('https://', '').replace('.shapediver.com', '');
+            const modelViewUrl = this.#stateEngine.sessionEngines[sessionEngineId!]?.modelViewUrl;
+            backendIdentifier = modelViewUrl?.replace('https://', '').replace('.shapediver.com', '');
         }
 
         const fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : '';
 
-        if (!response.gltf || !response.gltf.sceneId)
+        if (!response || !response.gltf || !response.gltf.sceneId)
             throw new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
 
         const sceneId = response.gltf!.sceneId!;
@@ -1021,7 +1022,8 @@ export class ViewportApi implements IViewportApi {
 
         let sessionEngineId: string | undefined = undefined;
         for (const s in this.#stateEngine.sessionEngines) {
-            if (this.#stateEngine.sessionEngines[s].canUploadGLTF) {
+            const state = this.#stateEngine.sessionEngines[s];
+            if (state !== undefined && state.canUploadGLTF) {
                 sessionEngineId = s;
                 break;
             }
@@ -1048,8 +1050,9 @@ export class ViewportApi implements IViewportApi {
 
         this.update('viewInAR.end');
 
-        const response = await this.#stateEngine.sessionEngines[sessionEngineId!].uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
-        return this.#renderingEngine.viewInAR(response.gltf!.href);
+        const response = await this.#stateEngine.sessionEngines[sessionEngineId!]?.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+        const href = response?.gltf?.href;
+        if (href) this.#renderingEngine.viewInAR(href);
     }
 
     public viewableInAR(): boolean {

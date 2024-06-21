@@ -58,11 +58,11 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
         for (const r in this.#stateEngine.viewportEngines) {
             const viewportEngineState = this.#stateEngine.viewportEngines[r];
-            if ((viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
-                (viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngineState.sessionSettingsId)) {
-                this.#stateEngine.viewportEngines[r].settingsAssigned.reset();
+            if ((viewportEngineState && viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+                (viewportEngineState && viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngineState.sessionSettingsId)) {
+                viewportEngineState.settingsAssigned.reset();
                 promises.push(new Promise<void>(resolve => {
-                    this.#stateEngine.viewportEngines[r].settingsAssigned.then(() => {
+                    this.#stateEngine.viewportEngines[r]?.settingsAssigned.then(() => {
                         resolve();
                     });
                 }));
@@ -78,16 +78,16 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
         this.#logger.debugLow(`CreationControlCenter.closeSession: Closing session ${id}.`);
 
-        if (this.#stateEngine.sessionEngines[id].initialized.resolved === false)
-            await new Promise<void>(resolve => { this.#stateEngine.sessionEngines[id].initialized.then(() => resolve()); });
+        if (this.#stateEngine.sessionEngines[id]?.initialized.resolved === false)
+            await new Promise<void>(resolve => { this.#stateEngine.sessionEngines[id]?.initialized.then(() => resolve()); });
 
         await this.sessionEngines[id].close();
 
         // remove from rendering engines (also directly assigned)
         for (const r in this.#stateEngine.viewportEngines) {
             const viewportEngineState = this.#stateEngine.viewportEngines[r];
-            if ((viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && viewportEngineState.sessionSettingsId === id) ||
-                (viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
+            if (viewportEngineState && (viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && viewportEngineState.sessionSettingsId === id) ||
+                (viewportEngineState && viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
                 viewportEngineState.reset();
             }
         }
@@ -96,16 +96,17 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             const engines = Object.values(this.sessionEngines).filter(s => s.id !== id);
             this.#firstSessionEngine = engines.length === 0 ? undefined : engines[0];
             if (this.#firstSessionEngine) {
-                Object.values(this.#stateEngine.sessionEngines).forEach(s => s.isFirstSession = false);
-                this.#stateEngine.sessionEngines[this.#firstSessionEngine.id].isFirstSession = true;
+                if (!this.#stateEngine.sessionEngines[this.#firstSessionEngine.id]) return;
+                Object.values(this.#stateEngine.sessionEngines).forEach(s => { if (s) s.isFirstSession = false; });
+                this.#stateEngine.sessionEngines[this.#firstSessionEngine.id]!.isFirstSession = true;
 
                 const promises: StatePromise<boolean>[] = [];
 
                 for (const r in this.#stateEngine.viewportEngines) {
                     const viewportEngineState = this.#stateEngine.viewportEngines[r];
-                    if (this.#stateEngine.viewportEngines[r].settingsAssigned.resolved === false) {
-                        if (viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
-                            promises.push(this.#stateEngine.viewportEngines[r].settingsAssigned);
+                    if (this.#stateEngine.viewportEngines[r]?.settingsAssigned.resolved === false) {
+                        if (viewportEngineState && viewportEngineState.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
+                            promises.push(viewportEngineState.settingsAssigned);
                             this.assignSettings(viewportEngineState.id, this.#firstSessionEngine?.id);
                         }
                     }
@@ -117,7 +118,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             }
         }
 
-        this.#stateEngine.sessionEngines[id].settingsRegistered.reset();
+        this.#stateEngine.sessionEngines[id]?.settingsRegistered.reset();
 
         (<unknown>this.sessionEngines[id]) = undefined;
         delete this.sessionEngines[id];
@@ -125,7 +126,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
         this.#logger.debug('CreationControlCenter.closeSessionEngine: Session closed.');
         for (const r in this.#stateEngine.viewportEngines)
-            this.#stateEngine.viewportEngines[r].update('CreationControlCenter.closeSessionEngine');
+            this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.closeSessionEngine');
         if (this.updateSession) this.updateSession(this.sessionEngines);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
     }
@@ -181,7 +182,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                         },
                         data: { sessionId: sessionEngineId }
                     });
-                    this.#stateEngine.sessionEngines[sessionEngineId].initialOutputsLoaded.resolve(true);
+                    this.#stateEngine.sessionEngines[sessionEngineId]?.initialOutputsLoaded.resolve(true);
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
                 } else {
                     sessionEngine.updateOutputs({
@@ -193,11 +194,11 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
                         },
                         data: { sessionId: sessionEngineId }
                     }).then(() => {
-                        this.#stateEngine.sessionEngines[sessionEngineId].initialOutputsLoaded.resolve(true);
+                        this.#stateEngine.sessionEngines[sessionEngineId]?.initialOutputsLoaded.resolve(true);
                         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
                         for (const r in this.#stateEngine.viewportEngines)
-                            this.#stateEngine.viewportEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=false');
+                            this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.createSessionEngine.waitForOutputs=false');
                     });
                 }
             }
@@ -205,22 +206,24 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             // save the session
             this.sessionEngines[sessionEngineId] = sessionEngine;
 
-            this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolve(true);
+            this.#stateEngine.sessionEngines[sessionEngineId]?.initialized.resolve(true);
             this.#logger.debug(`CreationControlCenter.createSession: Session(${sessionEngine.id}) created.`);
 
             if (!this.#firstSessionEngine) {
-                this.#firstSessionEngine = sessionEngine;
-                Object.values(this.#stateEngine.sessionEngines).forEach(s => s.isFirstSession = false);
-                this.#stateEngine.sessionEngines[this.#firstSessionEngine.id].isFirstSession = true;
+                if (this.#stateEngine.sessionEngines[sessionEngine.id]) {
+                    this.#firstSessionEngine = sessionEngine;
+                    Object.values(this.#stateEngine.sessionEngines).forEach(s => { if (s) s.isFirstSession = false; });
+                    this.#stateEngine.sessionEngines[this.#firstSessionEngine.id]!.isFirstSession = true;
+                }
             }
 
             const promises: StatePromise<boolean>[] = [];
 
             for (const r in this.#stateEngine.viewportEngines) {
                 const viewportEngine = this.#stateEngine.viewportEngines[r];
-                if (this.#stateEngine.viewportEngines[r].settingsAssigned.resolved === false) {
-                    if (viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST || (viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && viewportEngine.sessionSettingsId === sessionEngineId)) {
-                        promises.push(this.#stateEngine.viewportEngines[r].settingsAssigned);
+                if (this.#stateEngine.viewportEngines[r]?.settingsAssigned.resolved === false) {
+                    if (viewportEngine && viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST || (viewportEngine && viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && viewportEngine.sessionSettingsId === sessionEngineId)) {
+                        promises.push(viewportEngine.settingsAssigned);
                         this.assignSettings(viewportEngine.id, sessionEngineId);
                     }
                 }
@@ -229,7 +232,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             await Promise.all(promises);
 
             for (const r in this.#stateEngine.viewportEngines)
-                this.#stateEngine.viewportEngines[r].update('CreationControlCenter.createSessionEngine');
+                this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.createSessionEngine');
 
             if (this.updateSession) this.updateSession(this.sessionEngines);
 
@@ -242,7 +245,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             if (isViewerError(e)) {
                 if ((this.sessionEngines[sessionEngineId] && Object.values(this.sessionEngines).length === 1) || (!this.sessionEngines[sessionEngineId] && Object.values(this.sessionEngines).length === 0)) {
                     for (const r in this.#stateEngine.viewportEngines)
-                        this.#stateEngine.viewportEngines[r].displayErrorMessage((e as Error).message);
+                        this.#stateEngine.viewportEngines[r]?.displayErrorMessage((e as Error).message);
                 }
             }
 
@@ -269,11 +272,11 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
         for (const r in this.#stateEngine.viewportEngines) {
             const viewportEngine = this.#stateEngine.viewportEngines[r];
-            if ((viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
-                (viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngine.sessionSettingsId)) {
-                this.#stateEngine.viewportEngines[r].settingsAssigned.reset();
+            if ((viewportEngine && viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+                (viewportEngine && viewportEngine.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngine.sessionSettingsId)) {
+                this.#stateEngine.viewportEngines[r]?.settingsAssigned.reset();
                 promises.push(new Promise<void>(resolve => {
-                    this.#stateEngine.viewportEngines[r].settingsAssigned.then(() => {
+                    this.#stateEngine.viewportEngines[r]?.settingsAssigned.then(() => {
                         resolve();
                     });
                 }));
@@ -304,14 +307,15 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
     private async assignSettings(viewportEngineId: string, sessionId: string, updateViewport: boolean = false) {
         const viewportEngine = this.#stateEngine.viewportEngines[viewportEngineId];
+        if (!viewportEngine) return;
 
-        if (this.#stateEngine.sessionEngines[sessionId].initialized.resolved === true) {
+        if (this.#stateEngine.sessionEngines[sessionId]?.initialized.resolved === true) {
             // immediate
             viewportEngine.assignSettingsEngine(this.sessionEngines[sessionId].settingsEngine);
             await viewportEngine.applySettings(undefined, undefined, updateViewport);
         } else {
             await new Promise<void>(resolve => {
-                this.#stateEngine.sessionEngines[sessionId].initialized.then(async () => {
+                this.#stateEngine.sessionEngines[sessionId]?.initialized.then(async () => {
                     viewportEngine.assignSettingsEngine(this.sessionEngines[sessionId].settingsEngine);
                     await viewportEngine.applySettings(undefined, undefined, updateViewport);
                     resolve();
@@ -333,8 +337,8 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
         } else {
             for (const r in this.#stateEngine.viewportEngines) {
                 const viewportEngineToCheck = this.#stateEngine.viewportEngines[r];
-                if ((viewportEngineToCheck.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
-                    (viewportEngineToCheck.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngineToCheck.sessionSettingsId)) {
+                if ((viewportEngineToCheck && viewportEngineToCheck.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+                    (viewportEngineToCheck && viewportEngineToCheck.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === viewportEngineToCheck.sessionSettingsId)) {
                     viewportEngine = viewportEngineToCheck;
                     continue;
                 }
