@@ -1,22 +1,15 @@
-import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, ISessionApi, IViewportApi, MaterialUnlitData } from '@shapediver/viewer';
-import { HoverManager, IHoverEvent, InteractionData, InteractionEngine, ISelectEvent, SelectManager } from '@shapediver/viewer.features.interaction';
+import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, IViewportApi, MaterialUnlitData, SdtfPrimitiveTypeGuard } from '@shapediver/viewer';
+import { HoverManager, InteractionData, InteractionEngine, ISelectEvent, SelectManager } from '@shapediver/viewer.features.interaction';
 import { AttributeVisualizationEngine } from '@shapediver/viewer.features.attribute-visualization';
 import * as  SDV from '@shapediver/viewer';
-import { SDTF_TYPEHINT } from '@shapediver/viewer';
-import { INumberAttribute, ATTRIBUTE_VISUALIZATION } from '@shapediver/viewer.features.attribute-visualization';
-import { mat4, vec3 } from 'gl-matrix';
+import { IBooleanElement, createCustomUi, createUi } from '@shapediver/viewer.utils.demo-helper';
+import { createAttributeVisualizationUi } from './attributeVisualizationUi';
 
-let viewport: IViewportApi;
-let interactionEngine: InteractionEngine;
-let attributeVisualizationEngine: AttributeVisualizationEngine;
-let attributeSelectManager: SelectManager;
-let attributeHoverManager: HoverManager;
-let attributeSelectManagerToken: string;
-let attributeHoverManagerToken: string;
 let nodeInteractionDataPairs: {
     node: ITreeNode,
     data: InteractionData
 }[] = [];
+let viewport: IViewportApi;
 
 const addInteractionDataToSDTFItems = (node: ITreeNode) => {
     for (let i = 0; i < node.data.length; i++) {
@@ -24,6 +17,7 @@ const addInteractionDataToSDTFItems = (node: ITreeNode) => {
             const data = new InteractionData({ select: true, hover: true });
             node.addData(data);
             nodeInteractionDataPairs.push({node, data});
+            viewport.updateNode(node);
         }
     }
 
@@ -32,24 +26,11 @@ const addInteractionDataToSDTFItems = (node: ITreeNode) => {
 };
 
 const removeInteractionDataFromSDTFItems = () => {
-    for (let i = 0; i < nodeInteractionDataPairs.length; i++)
+    for (let i = 0; i < nodeInteractionDataPairs.length; i++) {
         nodeInteractionDataPairs[i].node.removeData(nodeInteractionDataPairs[i].data);
-    nodeInteractionDataPairs = [];
-};
-
-const activationBox = <HTMLInputElement>document.getElementById('activate');
-activationBox.onclick = () => {
-    if (activationBox.checked) {
-        viewport.type = RENDERER_TYPE.ATTRIBUTES;
-        attributeSelectManagerToken = interactionEngine.addInteractionManager(attributeSelectManager);
-        attributeHoverManagerToken = interactionEngine.addInteractionManager(attributeHoverManager);
-        addInteractionDataToSDTFItems(sceneTree.root);
-    } else {
-        viewport.type = RENDERER_TYPE.STANDARD;
-        interactionEngine.removeInteractionManager(attributeSelectManagerToken);
-        interactionEngine.removeInteractionManager(attributeHoverManagerToken);
-        removeInteractionDataFromSDTFItems();
+        viewport.updateNode(nodeInteractionDataPairs[i].node);
     }
+    nodeInteractionDataPairs = [];
 };
 
 addListener(EVENTTYPE.INTERACTION.SELECT_OFF, (e) => {
@@ -67,16 +48,6 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
     console.log(itemData.attributes);
 });
 
-// addListener(EVENTTYPE.INTERACTION.HOVER_OFF, (e) => {
-//     const hoverEvent = <IHoverEvent>e;
-//     console.log("HOVER_OFF")
-// });
-
-// addListener(EVENTTYPE.INTERACTION.HOVER_ON, (e) => {
-//     const hoverEvent = <IHoverEvent>e;
-//     console.log("HOVER_ON")
-// });
-
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -85,50 +56,117 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
         id: 'myViewport'
     });
 
-    const promises = [];
+    // Get the URL of the current page
+    const url = window.location.href;
 
-    for(let i = 0; i < 11; i++) {
-        const session = await createSession({
-            ticket:
-                '1c435edaf9425ed63ce9e3fcb11048ada9d83a1108e22bc153cfb27c33b00936b8a1e2e97315fa3cde5dd5cda839e4bfbeb6c076e9716737b13a3b17a24198d61e519978d9b93e7fb328e9727b92ed0e8c74a83f42f6f1e8006f2fc28a399f40b6065acebf5143-cb17ee872b8abab457e8b6669c996ffa',
-            modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-            id: 'mySession' + i,
-            loadSdtf: true
-        });
+    // Create a URL object
+    const urlObject = new URL(url);
+
+    // Get the URLSearchParams object from the URL
+    const queryParams = urlObject.searchParams;
+
+    // Reading individual query parameters
+    const ticket = queryParams.get('ticket') || '2327f137cfe00be4b3dcb87def2d7906d8575d7b1b8b4e2a225433284e2ac3712203456f10b6b7dca19b645b758c4463c08ce73641d38d85695bf6da5a4d6e85acc5205f33c0611c68b8663a107c4167e9487679386cc9b1319f66633394bc24597c012bad4ce4-109c9925ede0bc853d18abcccfd5d37c';
+    const modelViewUrl = queryParams.get('modelViewUrl') || 'https://sdeuc1.eu-central-1.shapediver.com';
+
+    const session = await createSession({
+        ticket,
+        modelViewUrl,
+        id: 'mySession',
+        loadSdtf: true
+    });
+
+    // create the attribute visualization engine
+    const attributeVisualizationEngine = new AttributeVisualizationEngine(viewport);
+
+    // create the parameter UI to the right of the canvas
+    const parameterUI = document.createElement('div');
+    parameterUI.style.position = 'absolute';
+    parameterUI.style.right = '0.5rem';
+    parameterUI.style.top = '0.5rem';
+    parameterUI.style.width = '15rem';
+    document.body.appendChild(parameterUI);
+    createUi(session, parameterUI);
+
+    // create the custom UI to the left of the canvas
+    const customUI = document.createElement('div');
+    customUI.style.position = 'absolute';
+    customUI.style.left = '0.5rem';
+    customUI.style.top = '0.5rem';
+    customUI.style.width = '20rem';
+    customUI.style.maxHeight = 'calc(100vh - 1rem)';
+    customUI.style.overflowY = 'auto';
+    document.body.appendChild(customUI);
     
-        session.node.addTransformation({ id: 'abc', matrix: mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, i*25))});
-    }
-
-    // attributeVisualizationEngine = new AttributeVisualizationEngine(viewport);
-
-    // // create the interactionEngine and provide it the viewport object
-    // interactionEngine = new InteractionEngine(viewport);
-    // // interactionEngine.intersectionOpacity = 0.1;
-
-    // // create the selectionManager and add it
-    // attributeSelectManager = new SelectManager();
-    // attributeSelectManager.deselectOnEmpty = false;
-    // attributeSelectManager.effectMaterial = new MaterialUnlitData({color: '#FFFF00'});
     
-    // attributeHoverManager = new HoverManager();
-    // attributeHoverManager.effectMaterial = new MaterialUnlitData({color: '#FF0000'});
-    // interactionEngine.addInteractionManager(attributeHoverManager)
+    let interactionEngine: InteractionEngine | undefined;
+    let attributeVisualizationActive = false;
 
-    // // attributeVisualizationEngine.layers['envelope'].opacity = 0;
-    // // // attributeVisualizationEngine.layers['panels'].opacity = 0.1;
-    // // attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers);
-    // attributeVisualizationEngine.updateAttributes([
-    //     <INumberAttribute>{
-    //         key: 'DCR',
-    //         type: SDTF_TYPEHINT.DOUBLE,
-    //         visualization: ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
-    //     }
-    // ])
+    const initializeAttributeVisualization = () => {
+        // create the interaction engine and add the interaction managers
+        interactionEngine = new InteractionEngine(viewport);
 
-    // viewport.type = RENDERER_TYPE.ATTRIBUTES;
-    // attributeSelectManagerToken = interactionEngine.addInteractionManager(attributeSelectManager);
-    // attributeHoverManagerToken = interactionEngine.addInteractionManager(attributeHoverManager);
-    // addInteractionDataToSDTFItems(sceneTree.root);
+        // create the selectionManager and add it
+        const attributeSelectManager = new SelectManager();
+        attributeSelectManager.deselectOnEmpty = false;
+        attributeSelectManager.effectMaterial = new MaterialUnlitData({color: '#FFFF00'});
+        interactionEngine.addInteractionManager(attributeSelectManager);
 
-    viewport.update();
+        // create the hoverManager and add it
+        const attributeHoverManager = new HoverManager();
+        attributeHoverManager.effectMaterial = new MaterialUnlitData({color: '#FF0000'});
+        interactionEngine.addInteractionManager(attributeHoverManager);
+
+        viewport.type = RENDERER_TYPE.ATTRIBUTES;
+        addInteractionDataToSDTFItems(sceneTree.root);
+
+        viewport.update();
+    };
+
+    const closeAttributeVisualization = () => {
+        interactionEngine?.close();
+        viewport.type = RENDERER_TYPE.STANDARD;
+        removeInteractionDataFromSDTFItems();
+
+        viewport.update();
+    };
+
+    const createAVUi = () => {
+        // remove all elements in the custom UI
+        while (customUI.childNodes.length > 0) {
+            customUI.removeChild(customUI.lastChild!);
+        }
+
+        createCustomUi([<IBooleanElement>{
+            type: 'boolean',
+            name: 'Activate',
+            value: false,
+            onChangeCallback: (value: boolean) => {
+                console.log('Activate', value);
+                attributeVisualizationActive = value;
+                if (value) {
+                    initializeAttributeVisualization();
+                    createAttributeVisualizationUi(customUI, attributeVisualizationEngine!);
+                } else {
+                    closeAttributeVisualization();
+    
+                    // remove all elements in the custom UI after the first one
+                    while (customUI.childNodes.length > 1) {
+                        customUI.removeChild(customUI.lastChild!);
+                    }
+                }
+            }
+        }], customUI);
+    };
+    
+    const cb = () => {
+        if(attributeVisualizationActive) {
+            closeAttributeVisualization();
+            attributeVisualizationActive = false;
+        }
+
+        createAVUi();
+    };
+    session.updateCallback = cb;
+    cb();
 })();

@@ -1,11 +1,12 @@
-import { ILayer } from "../interfaces/ILayer";
-import { addListener, IViewportApi, sceneTree } from "@shapediver/viewer";
-import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from "../interfaces/IAttribute";
-import { mat4 } from "gl-matrix";
-import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
-import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
-import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialGemData, MaterialShadowData, MaterialSpecularGlossinessData, MaterialStandardData, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
-import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
+/* eslint-disable no-case-declarations */
+import { ILayer } from '../interfaces/ILayer';
+import { addListener, ITreeNode, IViewportApi, sceneTree } from '@shapediver/viewer';
+import { IAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from '../interfaces/IAttribute';
+import { mat4 } from 'gl-matrix';
+import { EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { IAttributeVisualizationEngine } from '../interfaces/IAttributeVisualizationEngine';
+import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialGemData, MaterialShadowData, MaterialSpecularGlossinessData, MaterialStandardData, MaterialUnlitData, SDTFItemData, SdtfPrimitiveTypeGuard } from '@shapediver/viewer.shared.types';
+import { AttributeVisualizationUtils } from './AttributeVisualizationUtils';
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
     // #region Properties (7)
@@ -29,6 +30,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     } = {};
     #visualizedMaterialType: 'unlit' | 'standard' = 'unlit';
     #layerMaterialType: 'unlit' | 'standard' = 'unlit';
+    #nodesWithAttributeData: ITreeNode[] = [];
 
     // #endregion Properties (7)
 
@@ -40,26 +42,39 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
         this.createLayers();
         this.constructAttributeVisualization();
+        this.gatherNodesWithAttributeData();
+
         addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
             this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
             
             const layers = this.#layers;
             this.createLayers();
-            for (let l in layers) {
+            for (const l in layers) {
                 if (this.#layers[l])
                     this.#layers[l] = layers[l];
             }
 
             this.constructAttributeVisualization();
+            this.gatherNodesWithAttributeData();
 
-            for (let l in this.#listeners)
+            for (const l in this.#listeners)
                 this.#listeners[l]();
-        })
+        });
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (3)
+
+    private gatherNodesWithAttributeData() {
+        this.#nodesWithAttributeData = [];
+
+        sceneTree.root.traverse((node: ITreeNode) => {
+            if (node.data.some(d => d instanceof SDTFItemData)) {
+                this.#nodesWithAttributeData.push(node);
+            }
+        });
+    }
 
     public get defaultMaterial(): IMaterialAbstractData {
         return this.#defaultMaterial;
@@ -158,7 +173,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     return {
                         matrix: mat4.create(),
                         material
-                    }
+                    };
                 } else {
                     // return default layer material
                     let material;
@@ -176,7 +191,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     return {
                         matrix: mat4.create(),
                         material
-                    }
+                    };
                 }
             }
 
@@ -194,7 +209,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 return {
                     matrix: mat4.create(),
                     material: mat
-                }
+                };
             }
 
             if (this.#attributes.length === 0) {
@@ -215,7 +230,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 return {
                     matrix: mat4.create(),
                     material
-                }
+                };
             } else {
                 // attributes are specified, we go into attribute visualization mode
                 const material = this.#visualizedMaterialType === 'unlit' ? new MaterialUnlitData() : new MaterialStandardData();
@@ -275,9 +290,10 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 return {
                     matrix: mat4.create(),
                     material: mat
-                }
+                };
             }
-        }
+        };
+        this.#nodesWithAttributeData.forEach(n => this.#viewport.updateNode(n));
     }
 
     private createMaterialCopy(material: IMaterialAbstractData): IMaterialAbstractData {
@@ -316,7 +332,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                         enabled: true,
                         opacity: 1,
                         color: this.defaultMaterial.color
-                    }
+                    };
                 }
             }
         }

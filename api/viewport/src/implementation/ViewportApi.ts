@@ -678,7 +678,7 @@ export class ViewportApi implements IViewportApi {
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'function', false);
         this.#renderingEngine.visualizeAttributes = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
-        this.update('visualizeAttributes');
+        this.render();
     }
 
     // #endregion Public Getters And Setters (94)
