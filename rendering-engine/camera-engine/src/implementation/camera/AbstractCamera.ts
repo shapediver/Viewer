@@ -17,7 +17,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     // #region Properties (24)
 
     #active: boolean = false;
-    #autoAdjust: boolean = false;
+    #autoAdjust: boolean = true;
     #cameraMovementDuration: number = 800;
     #defaultPosition: vec3 = vec3.create();
     #defaultTarget: vec3 = vec3.create();
