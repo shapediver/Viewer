@@ -1,5 +1,3 @@
-import { AxisRestriction } from '../../business/implementation/managers/interaction/restrictions/axis/AxisRestriction';
-import { AxisRestrictionApi } from './restrictions/axis/AxisRestrictionApi';
 import {
     Callbacks,
     DefaultTextures,
@@ -17,6 +15,7 @@ import { PlaneRestriction } from '../../business/implementation/managers/interac
 import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
 import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
+
 export class DrawingToolsApi implements IDrawingToolsApi {
     // #region Properties (2)
 
@@ -35,8 +34,6 @@ export class DrawingToolsApi implements IDrawingToolsApi {
                 this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
             if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
                 this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
-            if (this.#drawingToolsManager.restrictions[token] instanceof AxisRestriction)
-                this.#restrictions[token] = new AxisRestrictionApi(this.#drawingToolsManager.restrictions[token] as AxisRestriction);
         }
     }
 
@@ -88,8 +85,6 @@ export class DrawingToolsApi implements IDrawingToolsApi {
             this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
         if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
             this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
-        if (this.#drawingToolsManager.restrictions[token] instanceof AxisRestriction)
-            this.#restrictions[token] = new AxisRestrictionApi(this.#drawingToolsManager.restrictions[token] as AxisRestriction);
 
         return this.#restrictions[token];
     }

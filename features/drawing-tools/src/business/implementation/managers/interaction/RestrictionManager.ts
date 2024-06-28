@@ -1,4 +1,3 @@
-import { AxisRestriction, AxisRestrictionProperties } from './restrictions/axis/AxisRestriction';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
 import { IManager } from '../../../interfaces/IManager';
@@ -71,8 +70,6 @@ export class RestrictionManager implements IManager {
             restriction = new PlaneRestriction(this.#drawingToolsManager, token, properties as PlaneRestrictionProperties);
         } else if (properties.type === RESTRICTION_TYPE.GEOMETRY) {
             restriction = new GeometryRestriction(this.#drawingToolsManager, token, properties as GeometryRestrictionProperties);
-        } else if (properties.type === RESTRICTION_TYPE.AXIS) {
-            restriction = new AxisRestriction(this.#drawingToolsManager, token, properties as AxisRestrictionProperties);
         }
 
         if (restriction) {
