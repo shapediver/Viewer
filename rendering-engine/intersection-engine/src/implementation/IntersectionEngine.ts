@@ -1,39 +1,30 @@
+import * as THREE from 'three';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import {
-    GeometryData,
-    IMaterialAbstractData,
-    MATERIAL_SIDE,
-    PRIMITIVE_MODE
-} from '@shapediver/viewer.shared.types';
+import { GeometryData } from '@shapediver/viewer.shared.types';
 import { IIntersection } from '../interfaces/IIntersection';
 import { IIntersectionEngine } from '../interfaces/IIntersectionEngine';
 import { IIntersectionFilter } from '../interfaces/IIntersectionFilter';
 import { IRay } from '../interfaces/IRay';
-import {
-    ITree,
-    ITreeNode,
-    Tree
-} from '@shapediver/viewer.shared.node-tree';
-import { mat4, vec3 } from 'gl-matrix';
-import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { Triangle } from '@shapediver/viewer.shared.math';
+import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 
 export class IntersectionEngine implements IIntersectionEngine {
-    // #region Properties (4)
+    // #region Properties (5)
 
     private readonly _eventEngine: EventEngine = EventEngine.instance;
+    private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
     private readonly _tree: ITree = Tree.instance;
 
     private static _instance: IntersectionEngine;
 
     private _intersectNodes: {
         node: ITreeNode,
+        geometryData: { [key: string]: GeometryData },
         visible: boolean,
         excludeViewports: string[],
         restrictViewports: string[],
     }[] = [];
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -58,327 +49,50 @@ export class IntersectionEngine implements IIntersectionEngine {
 
     public intersect(
         ray: IRay,
-        filterCriteria?: IIntersectionFilter[],
-        intersectionOptions?: { opacity: number, rendererType: RENDERER_TYPE },
-        root: ITreeNode = this._tree.root,
-        viewerID?: string
+        viewportId: string,
+        filterCriteria?: IIntersectionFilter[]
     ): IIntersection[] {
         let intersections: IIntersection[] = [];
-        const intersectNode = (node: ITreeNode, visible: boolean, excludeViewports: string[], restrictViewports: string[]) => {
-            if (visible === false) return;
-
-            if (viewerID !== undefined) {
-                if (excludeViewports.includes(viewerID)) return;
-                if (restrictViewports.length > 0 && !restrictViewports.includes(viewerID)) return;
-            }
-
-            if (filterCriteria) {
-                for (let i = 0; i < filterCriteria.length; i++) {
-                    if (filterCriteria[i](node)) {
-                        const intersection = this.intersectNode(node, ray, intersectionOptions);
-                        if (intersection) {
-                            intersection.forEach(i => i.node = node);
-                            intersections = intersections.concat(intersection);
-                        }
-                        break;
-                    }
-                }
-            } else {
-                const intersection = this.intersectNode(node, ray);
-                if (intersection) {
-                    intersection.forEach(i => i.node = node);
-                    intersections = intersections.concat(intersection);
-                }
-            }
-
-            for (let i = 0; i < node.children.length; i++)
-                intersectNode(node.children[i], visible && node.children[i].visible, excludeViewports.concat(node.children[i].excludeViewports), restrictViewports.concat(node.children[i].restrictViewports));
-        };
-        for (let i = 0; i < this._intersectNodes.length; i++)
-            intersectNode(this._intersectNodes[i].node, this._intersectNodes[i].visible, this._intersectNodes[i].excludeViewports, this._intersectNodes[i].restrictViewports);
-
+        this._intersectNodes.forEach(i => {
+            const currentIntersections = this.intersectNode(ray, i.node, i.geometryData, viewportId, filterCriteria);
+            if (currentIntersections)
+                intersections = intersections.concat(currentIntersections);
+        });
         intersections.sort((a, b) => a.distance - b.distance);
         return intersections;
     }
 
-    public intersectNode(node: ITreeNode, rayIn: IRay, intersectionOptions?: { opacity: number, rendererType: RENDERER_TYPE }): IIntersection[] | undefined {
+    public intersectNode(
+        ray: IRay,
+        node: ITreeNode,
+        geometryData: { [key: string]: GeometryData },
+        viewportId: string,
+        filterCriteria?: IIntersectionFilter[]
+    ): IIntersection[] | undefined {
         if (node.visible === false) return;
 
-        let inverseMatrix = mat4.invert(mat4.create(), node.worldMatrix);
-        if (!inverseMatrix) inverseMatrix = mat4.create();
-
-        const ray = {
-            origin: vec3.transformMat4(vec3.create(), rayIn.origin, inverseMatrix),
-            direction: vec3.normalize(vec3.create(), vec3.fromValues(
-                inverseMatrix[0] * rayIn.direction[0] + inverseMatrix[4] * rayIn.direction[1] + inverseMatrix[8] * rayIn.direction[2],
-                inverseMatrix[1] * rayIn.direction[0] + inverseMatrix[5] * rayIn.direction[1] + inverseMatrix[9] * rayIn.direction[2],
-                inverseMatrix[2] * rayIn.direction[0] + inverseMatrix[6] * rayIn.direction[1] + inverseMatrix[10] * rayIn.direction[2]
-            ))
-        };
-
-        let geometryData: GeometryData | undefined;
-        for (let i = 0; i < node.data.length; i++) {
-            if (node.data[i] instanceof GeometryData) {
-                geometryData = <GeometryData>node.data[i];
-                break;
-            }
+        if (viewportId !== undefined) {
+            if (node.excludeViewports.includes(viewportId)) return;
+            if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(viewportId)) return;
         }
 
-        // quick out if the material does not fit the intersection options
-        if (geometryData && intersectionOptions) {
-            let materialData: IMaterialAbstractData | null = null;
-            if (geometryData.effectMaterials.length > 0) {
-                materialData = geometryData.effectMaterials[geometryData.effectMaterials.length - 1].material;
-            } else if (intersectionOptions.rendererType === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometryData.attributeMaterial;
-            } else {
-                materialData = geometryData.material;
+        if (filterCriteria) {
+            for (let i = 0; i < filterCriteria.length; i++) {
+                if (filterCriteria[i](node))
+                    return this.intersectionTest(ray, node, geometryData, viewportId);
             }
-
-            // if opacity <= intersectionOptions.opacity
-            if (materialData && materialData.opacity <= intersectionOptions.opacity)
-                return;
-        }
-
-        if (!geometryData) {
-            let intersections: IIntersection[] = [];
-            for (let i = 0; i < node.children.length; i++) {
-                const intersection = this.intersectNode(node.children[i], rayIn, intersectionOptions);
-                if (intersection)
-                    intersections = intersections.concat(intersection);
-            }
-            if (intersections.length > 0) {
-                intersections.sort((a, b) => a.distance - b.distance);
-                return intersections;
-            }
-            return;
-        } else if (geometryData.mode === PRIMITIVE_MODE.LINES) {
-            // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
-            if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
-
-            const index = geometryData.primitive.indices;
-            const position = geometryData.primitive.attributes['POSITION'];
-            const radius = 0.1;
-            const intersections: IIntersection[] = [];
-            if (index !== null) {
-                // indexed buffer geometry
-                for (let i = 0, il = +index.count; i < il; i += 2) {
-                    const a = index.array[(i) * index.itemSize];
-                    const b = index.array[(i + 1) * index.itemSize];
-
-                    const intersection = this.checkLineIntersection(node, ray, radius,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            } else if (position !== undefined) {
-                // non-indexed buffer geometry
-                for (let i = 0, il = +position.count; i < il; i += 2) {
-                    const a = i;
-                    const b = i + 1;
-                    const intersection = this.checkLineIntersection(node, ray, radius,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            }
-
-            intersections.sort((a, b) => a.distance - b.distance);
-            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
-            return intersections;
-        } else if (geometryData.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
-            if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
-
-            const index = geometryData.primitive.indices;
-            const position = geometryData.primitive.attributes['POSITION'];
-            const radius = 0.1;
-            const intersections: IIntersection[] = [];
-            if (index !== null) {
-                // indexed buffer geometry
-                for (let i = 0, il = +index.count - 1; i < il; i++) {
-                    const a = index.array[(i) * index.itemSize];
-                    const b = index.array[(i + 1) * index.itemSize];
-
-                    const intersection = this.checkLineIntersection(node, ray, radius,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            } else if (position !== undefined) {
-                // non-indexed buffer geometry
-                for (let i = 0, il = +position.count; i < il; i += 2) {
-                    const a = i;
-                    const b = i + 1;
-                    const intersection = this.checkLineIntersection(node, ray, radius,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            }
-
-            intersections.sort((a, b) => a.distance - b.distance);
-            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
-            return intersections;
-        } else if (geometryData.mode === PRIMITIVE_MODE.POINTS) {
-            const position = geometryData.primitive.attributes['POSITION'];
-            const radius = 0.1;
-            const intersections: IIntersection[] = [];
-            if (position !== undefined) {
-                // non-indexed buffer geometry
-                for (let i = 0, il = +position.count; i < il; i++) {
-                    const intersection = this.checkPointIntersection(node, ray, radius,
-                        vec3.fromValues(position.array[i * position.itemSize], position.array[i * position.itemSize + 1], position.array[i * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            }
-
-            intersections.sort((a, b) => a.distance - b.distance);
-            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
-            return intersections;
         } else {
-            // Here, Vector is a vector in Rn, not a dynamic array.
-            const v = vec3.sub(vec3.create(), node.boundingBox.boundingSphere.center, rayIn.origin);
-            let dotProd = vec3.dot(v, rayIn.direction);
-            dotProd = Math.max(dotProd, 0.0); // if dotProd is negative, the closest point is in the opposite direction to d.
-            const e = vec3.add(vec3.create(), rayIn.origin, vec3.scale(vec3.create(), rayIn.direction, dotProd));
-
-            const squaredDistance = vec3.squaredDistance(e, node.boundingBox.boundingSphere.center);
-            if (squaredDistance > node.boundingBox.boundingSphere.radius * node.boundingBox.boundingSphere.radius) return;
-
-            // if (node.boundingBox.boundingSphere.intersects(ray.origin, ray.direction) === false) return;
-            if (node.boundingBox.intersects(rayIn.origin, rayIn.direction) === false) return;
-
-            const material = geometryData.material;
-            const index = geometryData.primitive.indices;
-            const position = geometryData.primitive.attributes['POSITION'];
-
-            const intersections: IIntersection[] = [];
-
-            if (index !== null) {
-                // indexed buffer geometry
-                for (let i = 0, il = +index.count; i < il; i += 3) {
-                    const a = index.array[(i) * index.itemSize];
-                    const b = index.array[(i + 1) * index.itemSize];
-                    const c = index.array[(i + 2) * index.itemSize];
-
-                    const intersection = this.checkIntersection(node, material, ray,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
-                        vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            } else if (position !== undefined) {
-                // non-indexed buffer geometry
-                for (let i = 0, il = +position.count; i < il; i += 3) {
-                    const a = i;
-                    const b = i + 1;
-                    const c = i + 2;
-                    const intersection = this.checkIntersection(node, material, ray,
-                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
-                        vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
-                    if (intersection) intersections.push(Object.assign(intersection, { geometryData }));
-                }
-            }
-
-            intersections.sort((a, b) => a.distance - b.distance);
-            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
-            return intersections;
+            return this.intersectionTest(ray, node, geometryData, viewportId);
         }
     }
 
     // #endregion Public Methods (2)
 
-    // #region Private Methods (4)
+    // #region Private Methods (2)
 
-    private checkIntersection(node: ITreeNode, material: IMaterialAbstractData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        let point: vec3 | null;
-
-        if (material && material.side === MATERIAL_SIDE.BACK) {
-            const triangle = new Triangle(pC, pB, pA);
-            point = triangle.intersect(ray.origin, ray.direction);
-        } else {
-            const triangle = new Triangle(pA, pB, pC);
-            point = triangle.intersect(ray.origin, ray.direction);
-        }
-
-        if (point === null) return;
-
-        const distance = vec3.distance(ray.origin, point);
-        return {
-            distance: distance,
-            point: vec3.clone(point),
-            node
-        };
-    }
-
-    private checkLineIntersection(node: ITreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        const direction = vec3.sub(vec3.create(), pB, pA);
-        const lineLength = vec3.length(direction);
-        const lineRay = {
-            origin: pA,
-            direction: vec3.divide(vec3.create(), direction, vec3.fromValues(lineLength, lineLength, lineLength))
-        };
-        const planeNormal = vec3.cross(vec3.create(), ray.direction, lineRay.direction);
-
-        const Na = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), ray.direction, planeNormal));
-        const Nb = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), lineRay.direction, planeNormal));
-
-        const da = vec3.dot(vec3.sub(vec3.create(), pA, ray.origin), Nb) / vec3.dot(ray.direction, Nb);
-        const db = vec3.dot(vec3.sub(vec3.create(), ray.origin, pA), Na) / vec3.dot(lineRay.direction, Na);
-
-        let pointA: vec3 = vec3.create();
-        if (da < 0) {
-            vec3.copy(pointA, ray.origin);
-        } else {
-            pointA = vec3.add(vec3.create(), ray.origin, vec3.mul(vec3.create(), ray.direction, vec3.fromValues(da, da, da)));
-        }
-
-        let pointB: vec3 = vec3.create();
-        if (db < 0) {
-            vec3.copy(pointB, pA);
-        } else if (db < lineLength) {
-            pointB = vec3.add(vec3.create(), pA, vec3.mul(vec3.create(), lineRay.direction, vec3.fromValues(db, db, db)));
-        } else {
-            vec3.copy(pointB, pB);
-        }
-
-        const distance = vec3.distance(pointA, pointB);
-        if (distance < radius) {
-            return {
-                distance: distance,
-                point: vec3.clone(pointB),
-                node
-            };
-        } else {
-            return;
-        }
-    }
-
-    private checkPointIntersection(node: ITreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
-        const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
-        const directionDistance = vec3.dot(closestPoint, ray.direction);
-
-        if (directionDistance < 0) {
-            vec3.copy(closestPoint, ray.origin);
-        } else {
-            vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
-            vec3.add(closestPoint, closestPoint, ray.origin);
-        }
-
-        const distance = vec3.distance(closestPoint, p);
-        if (distance < radius) {
-            return {
-                distance: distance,
-                point: vec3.clone(closestPoint),
-                node
-            };
-        } else {
-            return;
-        }
-    }
-
+    /**
+     * Gather all nodes that contain geometry data.
+     */
     private gatherNodes() {
         this._intersectNodes = [];
         this._tree.root.traverse(node => {
@@ -386,6 +100,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
+                    const geometryData: GeometryData = node.data[i] as GeometryData;
                     let tempNode = node;
                     let visible = true, restrictViewports: string[] = [], excludeViewports: string[] = [];
                     while (tempNode.parent) {
@@ -397,6 +112,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
                     this._intersectNodes.push({
                         node,
+                        geometryData: { [`${geometryData.id}_${geometryData.version}`]: geometryData },
                         visible,
                         restrictViewports: [...new Set(restrictViewports)],
                         excludeViewports: [...new Set(excludeViewports)]
@@ -406,5 +122,44 @@ export class IntersectionEngine implements IIntersectionEngine {
         });
     }
 
-    // #endregion Private Methods (4)
+    /**
+     * Do the intersection test with the ray and the node.
+     * 
+     * @param ray the ray to test
+     * @param node the node to test
+     * @param geometryData the geometry data of the node
+     * @param viewportId the viewport id
+     * @returns 
+     */
+    private intersectionTest(
+        ray: IRay,
+        node: ITreeNode,
+        geometryData: { [key: string]: GeometryData },
+        viewportId: string
+    ): IIntersection[] | undefined {
+        this._raycaster.ray.direction.set(ray.direction[0], ray.direction[1], ray.direction[2]);
+        this._raycaster.ray.origin.set(ray.origin[0], ray.origin[1], ray.origin[2]);
+
+        let intersections: IIntersection[] = [];
+
+        const threeJsObject = node.convertedObject[viewportId!] as THREE.Object3D;
+        if (threeJsObject) {
+            const intersectionThree = this._raycaster.intersectObject(threeJsObject);
+            const intersection = intersectionThree.map(i => {
+                const intersection: IIntersection = {
+                    distance: i.distance,
+                    point: [i.point.x, i.point.y, i.point.z],
+                    node: node,
+                    geometryData: geometryData[`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`]
+                };
+                return intersection;
+            });
+            intersections = intersections.concat(intersection);
+        }
+
+        intersections.sort((a, b) => a.distance - b.distance);
+        return intersections;
+    }
+
+    // #endregion Private Methods (2)
 }
