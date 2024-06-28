@@ -120,8 +120,15 @@ export class SceneTreeManager implements IManager {
             obj.add(dataChild);
         }
 
-        if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES)
+        if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
             this.injectAttributeData(node, data);
+        } else {
+            const sdtfTransform = node.getTransformation('sdtf');
+            if (sdtfTransform) node.removeTransformation(sdtfTransform);
+
+            if (data instanceof GeometryData)
+                data.attributeMaterial = null;
+        }
 
         switch (true) {
             case data instanceof GeometryData:
@@ -364,7 +371,7 @@ export class SceneTreeManager implements IManager {
     }
 
     public updateSceneTree(root: ITreeNode): void {
-        if (this._tree.root.version === this._lastRootVersion && this._renderingEngine.type === RENDERER_TYPE.STANDARD) return;
+        if (this._tree.root.version === this._lastRootVersion) return;
         this._lastRootVersion = this._tree.root.version;
         this._lastRendererType = this._renderingEngine.type;
 

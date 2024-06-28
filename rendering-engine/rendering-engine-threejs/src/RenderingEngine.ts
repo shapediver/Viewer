@@ -854,7 +854,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set type(value: RENDERER_TYPE) {
     this._type = value;
-    this.update('RenderingEngine.type');
   }
 
   public get usingSwiftShader(): boolean {
