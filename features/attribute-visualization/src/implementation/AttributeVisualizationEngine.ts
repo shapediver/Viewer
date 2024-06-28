@@ -3,7 +3,7 @@ import { ILayer } from '../interfaces/ILayer';
 import { addListener, ITreeNode, IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from '../interfaces/IAttribute';
 import { mat4 } from 'gl-matrix';
-import { EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { Converter, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { IAttributeVisualizationEngine } from '../interfaces/IAttributeVisualizationEngine';
 import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialGemData, MaterialShadowData, MaterialSpecularGlossinessData, MaterialStandardData, MaterialUnlitData, SDTFItemData, SdtfPrimitiveTypeGuard } from '@shapediver/viewer.shared.types';
 import { AttributeVisualizationUtils } from './AttributeVisualizationUtils';
@@ -43,6 +43,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.createLayers();
         this.constructAttributeVisualization();
         this.gatherNodesWithAttributeData();
+        this.#nodesWithAttributeData.forEach(n => this.#viewport.updateNode(n));
 
         addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
             this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
@@ -242,7 +243,9 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
                         switch (true) {
                             case SdtfPrimitiveTypeGuard.isColorType(a.type):
-                                material.color = 'rgb(' + itemDataAttribute.value + ')';
+                                // multiply each color values with 255 to convert them to the range [0, 255]
+                                const convertedValue = itemDataAttribute.value.map((v: number) => v * 255);
+                                material.color = convertedValue;
                                 material.opacity *= layer.opacity;
                                 return {
                                     matrix: mat4.create(),
