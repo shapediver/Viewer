@@ -585,7 +585,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
         if (settingsOptional.restrictions === undefined || Object.keys(settingsOptional.restrictions).length === 0) {
             settings.restrictions['plane'] = { type: RESTRICTION_TYPE.PLANE };
-            settings.restrictions['axis'] = { type: RESTRICTION_TYPE.AXIS };
         } else {
             settings.restrictions = settingsOptional.restrictions as { [key: string]: RestrictionProperties };
         }

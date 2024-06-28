@@ -1,17 +1,19 @@
 import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
 import { AngularRestrictionApi } from './snap/AngularRestrictionApi';
+import { AxisRestrictionApi } from './snap/AxisRestrictionApi';
 import { GridRestrictionApi } from './snap/GridRestrictionApi';
 import { PlaneRestriction } from '../../../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { vec3 } from 'gl-matrix';
 
 export class PlaneRestrictionApi extends AbstractRestrictionApi {
-    // #region Properties (3)
+    // #region Properties (4)
 
     readonly #angularRestrictionApi: AngularRestrictionApi;
+    readonly #axisRestrictionApi: AxisRestrictionApi;
     readonly #gridRestrictionApi: GridRestrictionApi;
     readonly #planeRestriction: PlaneRestriction;
 
-    // #endregion Properties (3)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -21,18 +23,31 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
 
         this.#gridRestrictionApi = new GridRestrictionApi(restriction.gridRestriction);
         this.#angularRestrictionApi = new AngularRestrictionApi(restriction.angularRestriction);
+        this.#axisRestrictionApi = new AxisRestrictionApi(restriction.axisRestriction);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (8)
+    // #region Public Getters And Setters (9)
 
     public get angularRestrictionApi(): AngularRestrictionApi {
         return this.#angularRestrictionApi;
     }
 
+    public get axisRestrictionApi(): AxisRestrictionApi {
+        return this.#axisRestrictionApi;
+    }
+
     public get gridRestrictionApi(): GridRestrictionApi {
         return this.#gridRestrictionApi;
+    }
+
+    public get origin(): vec3 {
+        return this.#planeRestriction.origin;
+    }
+
+    public set origin(value: vec3) {
+        this.#planeRestriction.origin = value;
     }
 
     public get vectorU(): vec3 {
@@ -51,13 +66,5 @@ export class PlaneRestrictionApi extends AbstractRestrictionApi {
         this.#planeRestriction.vectorV = value;
     }
 
-    public get origin(): vec3 {
-        return this.#planeRestriction.origin;
-    }
-
-    public set origin(value: vec3) {
-        this.#planeRestriction.origin = value;
-    }
-
-    // #endregion Public Getters And Setters (8)
+    // #endregion Public Getters And Setters (9)
 }

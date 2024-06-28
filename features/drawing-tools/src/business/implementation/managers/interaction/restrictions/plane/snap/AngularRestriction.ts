@@ -2,6 +2,7 @@ import { AbstractRestriction } from '../../AbstractRestriction';
 import { CSS2DObject } from '../../../../../../../three/CSS2DRenderer';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
+import { IRay } from '@shapediver/viewer.features.interaction';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../../../interfaces/ISnapRestriction';
 import { numberCleaner } from '../../../../../utils/numberCleaner';
 import { PlaneRestriction } from '../PlaneRestriction';
@@ -30,7 +31,7 @@ export type AngularRestrictionProperties = {
 // #region Classes (1)
 
 export class AngularRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (16)
+    // #region Properties (13)
 
     readonly #activationKey: string;
     readonly #drawingToolsManager: DrawingToolsManager;
@@ -48,12 +49,9 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
     #angles: number[] = [];
     #labelNext?: CSS2DObject;
     #labelPrevious?: CSS2DObject;
-    #normal: vec3;
     #priority: number = 0;
-    #vectorU: vec3;
-    #vectorV: vec3;
 
-    // #endregion Properties (16)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -65,13 +63,6 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         this.#settings = drawingToolsManager.settings;
 
         this.#planeRestriction = planeRestriction;
-
-        // we store the properties of the plane restriction
-        // as we need them to calculate the transformation matrices
-        // and the offset of the grid size to the origin
-        this.#vectorU = planeRestriction.vectorU!;
-        this.#vectorV = planeRestriction.vectorV!;
-        this.#normal = planeRestriction.normal;
 
         this.#activationKey = properties?.activationKey || 'a';
         this.enabled = properties?.enabled ?? false;
@@ -135,7 +126,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
     // #region Public Methods (2)
 
-    public snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
+    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
         if (this.enabled === false && this.#drawingToolsManager.keyPressed(this.#activationKey) === false) return;
 
@@ -184,10 +175,10 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         const previousPreviousPointFromData = vec3.fromValues(positionArray.at((previousPreviousIndex * 3))!, positionArray.at((previousPreviousIndex * 3) + 1)!, positionArray.at((previousPreviousIndex * 3) + 2)!);
 
         // project them onto the same plane as the point
-        const nextPointProjected = vec3.sub(vec3.create(), nextPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), nextPointFromData, point), this.#normal)));
-        const nextNextPointProjected = vec3.sub(vec3.create(), nextNextPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), nextNextPointFromData, point), this.#normal)));
-        const previousPointProjected = vec3.sub(vec3.create(), previousPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), previousPointFromData, point), this.#normal)));
-        const previousPreviousPointProjected = vec3.sub(vec3.create(), previousPreviousPointFromData, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), previousPreviousPointFromData, point), this.#normal)));
+        const nextPointProjected = vec3.sub(vec3.create(), nextPointFromData, vec3.scale(vec3.create(), this.#planeRestriction.normal, vec3.dot(vec3.sub(vec3.create(), nextPointFromData, point), this.#planeRestriction.normal)));
+        const nextNextPointProjected = vec3.sub(vec3.create(), nextNextPointFromData, vec3.scale(vec3.create(), this.#planeRestriction.normal, vec3.dot(vec3.sub(vec3.create(), nextNextPointFromData, point), this.#planeRestriction.normal)));
+        const previousPointProjected = vec3.sub(vec3.create(), previousPointFromData, vec3.scale(vec3.create(), this.#planeRestriction.normal, vec3.dot(vec3.sub(vec3.create(), previousPointFromData, point), this.#planeRestriction.normal)));
+        const previousPreviousPointProjected = vec3.sub(vec3.create(), previousPreviousPointFromData, vec3.scale(vec3.create(), this.#planeRestriction.normal, vec3.dot(vec3.sub(vec3.create(), previousPreviousPointFromData, point), this.#planeRestriction.normal)));
 
         // project the point onto the XY-Plane
         const pointProjected = vec3.transformMat4(vec3.create(), point, this.#planeRestriction.transformationToXYPlaneMatrix);
@@ -262,11 +253,7 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
         }
     }
 
-    public updatePlaneDefinition(origin: vec3, vectorU: vec3, vectorV: vec3, normal: vec3): void {
-        this.#vectorU = vectorU;
-        this.#vectorV = vectorV;
-        this.#normal = normal;
-    }
+    public updatePlaneDefinition(): void { }
 
     // #endregion Public Methods (2)
 

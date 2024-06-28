@@ -1,8 +1,15 @@
 import { AbstractRestriction } from '../AbstractRestriction';
 import { AngularRestriction, AngularRestrictionProperties } from './snap/AngularRestriction';
+import { AxisRestriction, AxisRestrictionProperties } from './snap/AxisRestriction';
+import {
+    CAMERA_TYPE,
+    ICameraApi,
+    IOrthographicCameraApi,
+    ORTHOGRAPHIC_CAMERA_DIRECTION
+} from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../../DrawingToolsManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
-import { IRay } from '@shapediver/viewer.features.interaction';
+import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../../../interfaces/ISnapRestriction';
 import { mat4, vec3 } from 'gl-matrix';
@@ -39,6 +46,11 @@ export type PlaneRestrictionProperties = {
      * angular snap restriction
      */
     angularSnapRestriction?: AngularRestrictionProperties;
+
+    /**
+     * axis snap restriction
+     */
+    axisSnapRestriction?: AxisRestrictionProperties;
 } & RestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -46,54 +58,59 @@ export type PlaneRestrictionProperties = {
 // #region Classes (1)
 
 export class PlaneRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (10)
+    // #region Properties (14)
 
+    readonly #properties: PlaneRestrictionProperties;
     readonly #uuidGenerator = UuidGenerator.instance;
+    readonly #viewport: IViewportApi;
 
     #angularRestriction: AngularRestriction;
+    #axisRestriction: AxisRestriction;
+    #cameraId: string = '';
     #gridRestriction: GridRestriction;
-    #normal: vec3;
-    #origin: vec3;
+    #normal: vec3 = vec3.create();
+    #origin: vec3 = vec3.create();
     #snapRestrictions: { [key: string]: ISnapRestriction };
     #transformationFromXYPlaneMatrix: mat4 = mat4.create();
     #transformationToXYPlaneMatrix: mat4 = mat4.create();
-    #vectorU: vec3;
-    #vectorV: vec3;
+    #vectorU: vec3 = vec3.create();
+    #vectorV: vec3 = vec3.create();
 
-    // #endregion Properties (10)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, id: string, properties: PlaneRestrictionProperties) {
         super(drawingToolsManager, id);
-        properties.vector_u = properties.vector_u ? vec3.normalize(vec3.create(), properties.vector_u) : vec3.fromValues(1, 0, 0);
-        properties.vector_v = properties.vector_v ? vec3.normalize(vec3.create(), properties.vector_v) : vec3.fromValues(0, 1, 0);
 
-        this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), properties.vector_u, properties.vector_v));
-        if (vec3.dot(properties.vector_u, properties.vector_v) !== 0)
-            properties.vector_v = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, properties.vector_u));
+        this.#viewport = drawingToolsManager.viewport;
+        this.#cameraId = this.#viewport.camera!.id;
 
-        this.#vectorU = properties.vector_u;
-        this.#vectorV = properties.vector_v;
-        this.#origin = properties.origin || vec3.create();
+        this.#properties = properties;
 
-        this.createTransformationMatrices();
+        this.#gridRestriction = new GridRestriction(drawingToolsManager, this, this.#properties.gridSnapRestriction);
+        this.#angularRestriction = new AngularRestriction(drawingToolsManager, this, this.#properties.angularSnapRestriction);
+        this.#axisRestriction = new AxisRestriction(drawingToolsManager, this, this.#properties.axisSnapRestriction);
 
-        this.#gridRestriction = new GridRestriction(drawingToolsManager, this, properties.gridSnapRestriction);
-        this.#angularRestriction = new AngularRestriction(drawingToolsManager, this, properties.angularSnapRestriction);
+        this.updatePlaneDefinition();
 
         this.#snapRestrictions = {
             grid: this.#gridRestriction,
-            angular: this.#angularRestriction
+            angular: this.#angularRestriction,
+            axis: this.#axisRestriction
         };
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (13)
+    // #region Public Getters And Setters (14)
 
     public get angularRestriction(): AngularRestriction {
         return this.#angularRestriction;
+    }
+
+    public get axisRestriction(): AxisRestriction {
+        return this.#axisRestriction;
     }
 
     public get gridRestriction(): GridRestriction {
@@ -110,8 +127,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     public set origin(value: vec3) {
         this.#origin = value;
-        this.#gridRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
-        this.createTransformationMatrices();
+        this.updatePlaneDefinition();
     }
 
     public get priority(): number {
@@ -135,15 +151,8 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     }
 
     public set vectorU(value: vec3) {
-        this.#vectorU = value;
-        this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#vectorU, this.#vectorV));
-
-        if (vec3.dot(this.#vectorU, this.#vectorV) !== 0)
-            this.#vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, this.#vectorU));
-
-        this.createTransformationMatrices();
-        this.#gridRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
-        this.#angularRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
+        this.#properties.vector_u = value;
+        this.updatePlaneDefinition();
     }
 
     public get vectorV(): vec3 {
@@ -151,23 +160,18 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     }
 
     public set vectorV(value: vec3) {
-        this.#vectorV = value;
-        this.#normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#vectorU, this.#vectorV));
-
-        if (vec3.dot(this.#vectorU, this.#vectorV) !== 0)
-            this.#vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, this.#vectorU));
-
-        this.createTransformationMatrices();
-        this.#gridRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
-        this.#angularRestriction.updatePlaneDefinition(this.#origin, this.#vectorU, this.#vectorV, this.#normal);
+        this.#properties.vector_v = value;
+        this.updatePlaneDefinition();
     }
 
-    // #endregion Public Getters And Setters (13)
+    // #endregion Public Getters And Setters (14)
 
     // #region Public Methods (1)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return vec3.create();
+
+        if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
 
         let origin = this.#origin;
         if (metaData?.referencePoint)
@@ -176,7 +180,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         // find intersection of ray and plane
         const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
         const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
-        return this.snap(intersection, metaData);
+        return this.snap(ray, intersection, metaData);
     }
 
     // #endregion Public Methods (1)
@@ -187,7 +191,28 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #endregion Protected Methods (1)
 
-    // #region Private Methods (2)
+    // #region Private Methods (4)
+
+    private createDefaultPlane(camera: ICameraApi): void {
+        if (camera.type === CAMERA_TYPE.PERSPECTIVE ||
+            (camera.type === CAMERA_TYPE.ORTHOGRAPHIC && (camera as IOrthographicCameraApi).direction === ORTHOGRAPHIC_CAMERA_DIRECTION.CUSTOM)) {
+            this.#vectorU = vec3.fromValues(1, 0, 0);
+            this.#vectorV = vec3.fromValues(0, 1, 0);
+            this.#normal = vec3.fromValues(0, 0, 1);
+            this.#origin = vec3.fromValues(0, 0, 0);
+        } else {
+            const orthographicCamera = camera as IOrthographicCameraApi;
+            const direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), orthographicCamera.target, orthographicCamera.position));
+            const up =
+                orthographicCamera.direction === ORTHOGRAPHIC_CAMERA_DIRECTION.TOP || orthographicCamera.direction === ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM ?
+                    vec3.fromValues(0, 1, 0) : vec3.fromValues(0, 0, 1);
+
+            this.#origin = vec3.fromValues(0, 0, 0);
+            this.#normal = vec3.negate(vec3.create(), direction);
+            this.#vectorU = vec3.clone(up);
+            this.#vectorV = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this.#normal, this.#vectorU));
+        }
+    }
 
     private createTransformationMatrices(): void {
         // Calculate the transformation matrix for the rotation
@@ -201,7 +226,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         let rotationMatrixInverse = mat4.invert(mat4.create(), rotationMatrix);
         if (!rotationMatrixInverse)
             rotationMatrixInverse = mat4.create();
-        
+
         const pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(this.#origin[0], this.#origin[1], this.#origin[2]));
         const pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-this.#origin[0], -this.#origin[1], -this.#origin[2]));
 
@@ -212,8 +237,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
     }
 
-    private snap(point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
+    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
         if (this.enabled === false) return;
+
+        if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
 
         const sortedSnapRestrictions = Object.values(this.#snapRestrictions).sort((a, b) => b.priority - a.priority);
 
@@ -228,7 +255,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         for (const snapRestrictions of Object.values(groupedSnapRestrictions)) {
             const results = [];
             for (const snapRestriction of snapRestrictions) {
-                results.push(snapRestriction.snap(point, metaData));
+                results.push(snapRestriction.snap(ray, point, metaData));
             }
 
             const indexedResults = results.map((value, index) => ({ index, value }));
@@ -254,7 +281,57 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         return point;
     }
 
-    // #endregion Private Methods (2)
+    private updatePlaneDefinition(): void {
+        const camera = this.#viewport.camera!;
+        this.#cameraId = camera!.id;
+
+        const origin = this.#properties.origin ? vec3.clone(this.#properties.origin) : undefined;
+        const vectorU = this.#properties.vector_u ? vec3.clone(this.#properties.vector_u) : undefined;
+        const vectorV = this.#properties.vector_v ? vec3.clone(this.#properties.vector_v) : undefined;
+
+        const planeDefined = origin && vectorU && vectorV;
+
+        let normal = vec3.fromValues(0, 0, 1);
+
+        if (planeDefined) {
+            vec3.normalize(vectorU, vectorU);
+            vec3.normalize(vectorV, vectorV);
+
+            normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vectorU, vectorV));
+            if (vec3.dot(vectorU, vectorV) !== 0)
+                vec3.normalize(vectorV, vec3.cross(vec3.create(), normal, vectorU));
+
+            if (camera.type === CAMERA_TYPE.ORTHOGRAPHIC) {
+                const cameraApi = camera as IOrthographicCameraApi;
+                const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), cameraApi.target, cameraApi.position));
+
+                // if the dot product of the camera direction and the normal tells us that they are parallel
+                // the plane is perpendicular to the camera direction
+                if (Math.abs(vec3.dot(cameraDirection, normal)) < 0.0001) {
+                    this.createDefaultPlane(camera);
+                } else {
+                    this.#vectorU = vectorU;
+                    this.#vectorV = vectorV;
+                    this.#normal = normal;
+                    this.#origin = origin;
+                }
+            } else {
+                this.#vectorU = vectorU;
+                this.#vectorV = vectorV;
+                this.#normal = normal;
+                this.#origin = origin;
+            }
+        } else {
+            this.createDefaultPlane(camera);
+        }
+
+        this.createTransformationMatrices();
+        this.#gridRestriction.updatePlaneDefinition();
+        this.#angularRestriction.updatePlaneDefinition();
+        this.#axisRestriction.updatePlaneDefinition();
+    }
+
+    // #endregion Private Methods (4)
 }
 
 // #endregion Classes (1)

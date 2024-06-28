@@ -56,7 +56,6 @@ export interface IRestriction extends IRestrictionBase {
 // #region Enums (1)
 
 export enum RESTRICTION_TYPE {
-    AXIS = 'axis',
     PLANE = 'plane',
     GEOMETRY = 'geometry',
 }

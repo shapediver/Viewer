@@ -23,7 +23,7 @@ export class GeometryMathManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (7)
+    // #region Public Methods (8)
 
     /**
      * Check which distances of lines to ray
@@ -101,6 +101,20 @@ export class GeometryMathManager implements IManager {
     }
 
     public close(): void { }
+
+    /**
+     * Calculate the closest point on a ray to a point
+     * 
+     * @param ray 
+     * @param point 
+     * @returns 
+     */
+    public closestPoint(ray: IRay, point: vec3): vec3 {
+        // distance from point to ray
+        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
+        // closest point on ray to point
+        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
+    }
 
     /**
      * Calculate the closest point on a line to a point
@@ -251,23 +265,5 @@ export class GeometryMathManager implements IManager {
         };
     }
 
-    // #endregion Public Methods (7)
-
-    // #region Private Methods (1)
-
-    /**
-     * Calculate the closest point on a ray to a point
-     * 
-     * @param ray 
-     * @param point 
-     * @returns 
-     */
-    private closestPoint(ray: IRay, point: vec3): vec3 {
-        // distance from point to ray
-        const dot = vec3.dot(ray.direction, vec3.sub(vec3.create(), point, ray.origin));
-        // closest point on ray to point
-        return vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(dot, dot, dot)));
-    }
-
-    // #endregion Private Methods (1)
+    // #endregion Public Methods (8)
 }

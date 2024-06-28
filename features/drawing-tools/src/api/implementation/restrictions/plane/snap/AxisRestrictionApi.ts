@@ -1,7 +1,7 @@
-import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
-import { AxisRestriction } from '../../../../business/implementation/managers/interaction/restrictions/axis/AxisRestriction';
+import { AbstractSnapRestrictionApi } from '../../AbstractSnapRestrictionApi';
+import { AxisRestriction } from '../../../../../business/implementation/managers/interaction/restrictions/plane/snap/AxisRestriction';
 
-export class AxisRestrictionApi extends AbstractRestrictionApi {
+export class AxisRestrictionApi extends AbstractSnapRestrictionApi {
     // #region Properties (1)
 
     readonly #axisRestriction: AxisRestriction;
