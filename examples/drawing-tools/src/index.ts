@@ -70,10 +70,6 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
                 // The node to restrict is set below
                 nodes: [],
                 wireframeColor: '#ffffff',
-            },
-            // Add an axis restriction
-            'axis': {
-                type: RESTRICTION_TYPE.AXIS
             }
         }
     };
