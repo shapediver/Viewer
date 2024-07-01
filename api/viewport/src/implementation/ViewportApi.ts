@@ -898,11 +898,11 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.pointerEventToRay(event);
     }
 
-    public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
+    public raytraceScene(origin: vec3, direction: vec3): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
         const scope = 'raytraceScene';
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, origin, 'vec3');
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, direction, 'vec3');
-        return this.#renderingEngine.raytraceScene(origin, direction, root);
+        return this.#renderingEngine.raytraceScene(origin, direction);
     }
 
     public removeCamera(id: string): boolean {
