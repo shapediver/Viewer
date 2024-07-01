@@ -489,13 +489,10 @@ export interface IViewportApi {
    * If you want to raytrace the scene from an interaction with the the canvas, 
    * please use {@link pointerEventToRay} to create a ray first.
    * 
-   * An optional root node can be provided to intersect. Per default, the whole scene tree will be intersected.
-   * 
    * @param origin 
    * @param direction 
-   * @param root 
    */
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData }[];
+  raytraceScene(origin: vec3, direction: vec3): { distance: number, node: ITreeNode, data?: IGeometryData }[];
   /**
    * Remove the camera with the specified id and destroys it.
    * If you remove the current active camera, the rendering will be stopped until a new camera is assigned.
