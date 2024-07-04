@@ -1,5 +1,5 @@
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
-import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
+import { EventEngine, EVENTTYPE, EVENTTYPE_INTERACTION, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { IMultiSelectEvent } from '../../interfaces/events/IMultiSelectEvent';
@@ -9,7 +9,7 @@ import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 
 export class MultiSelectManager extends AbstractInteractionManager {
-    // #region Properties (7)
+    // #region Properties (9)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
@@ -32,17 +32,35 @@ export class MultiSelectManager extends AbstractInteractionManager {
     };
     #groupEffectMaterialToken: string[][] = [];
     #groupedNodes: ITreeNode[][] = [];
+    #maximumNodes: number = Infinity;
+    #minimumNodes: number = 0;
     #nodes: ITreeNode[] = [];
 
-    // #endregion Properties (7)
+    // #endregion Properties (9)
 
-    // #region Public Getters And Setters (1)
+    // #region Public Getters And Setters (5)
 
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
     }
 
-    // #endregion Public Getters And Setters (1)
+    public get maximumNodes(): number {
+        return this.#maximumNodes;
+    }
+
+    public set maximumNodes(value: number) {
+        this.#maximumNodes = value;
+    }
+
+    public get minimumNodes(): number {
+        return this.#minimumNodes;
+    }
+
+    public set minimumNodes(value: number) {
+        this.#minimumNodes = value;
+    }
+
+    // #endregion Public Getters And Setters (5)
 
     // #region Public Methods (8)
 
@@ -135,6 +153,21 @@ export class MultiSelectManager extends AbstractInteractionManager {
      */
     private activateNode(intersection: IIntersection, event?: PointerEvent, ray?: IRay) {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+
+        if(this.#nodes.length >= this.#maximumNodes) {
+            this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES, {
+                viewportId: this.viewport.id,
+                node: intersection.node,
+                nodes: this.#nodes,
+                intersectionPoint: intersection.point,
+                ray,
+                event,
+                manager: this,
+                groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
+            } as IMultiSelectEvent);
+            throw new ShapeDiverViewerInteractionError(`The maximum number of nodes ${this.maximumNodes} has been reached.`);
+        }
+
         this.#nodes.push(intersection.node);
 
         // find the interaction data
@@ -159,7 +192,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, {
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
             viewportId: this.viewport.id,
             nodes: this.#nodes,
             node: intersection.node,
@@ -169,6 +202,19 @@ export class MultiSelectManager extends AbstractInteractionManager {
             manager: this,
             groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
         } as IMultiSelectEvent);
+
+        if(this.#nodes.length < this.#minimumNodes) {
+            this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES, {
+                viewportId: this.viewport.id,
+                node: intersection.node,
+                nodes: this.#nodes,
+                intersectionPoint: intersection.point,
+                ray,
+                event,
+                manager: this,
+                groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
+            } as IMultiSelectEvent);
+        }
     }
 
     /**
@@ -200,7 +246,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport.render();
 
         this.#nodes.splice(index, 1);
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF,
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF,
             {
                 viewportId: this.viewport.id,
                 nodes: this.#nodes,
@@ -212,6 +258,17 @@ export class MultiSelectManager extends AbstractInteractionManager {
         );
         this.#groupedNodes.splice(index, 1);
         this.#groupEffectMaterialToken.splice(index, 1);
+        
+        if(this.#nodes.length < this.#minimumNodes) {
+            this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES, {
+                viewportId: this.viewport.id,
+                node: node,
+                nodes: this.#nodes,
+                event,
+                manager: this,
+                groupedNodes: this.#groupedNodes[index]
+            } as IMultiSelectEvent);
+        }
     }
 
     // #endregion Private Methods (2)
