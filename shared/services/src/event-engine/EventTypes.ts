@@ -130,6 +130,22 @@ export enum EVENTTYPE_INTERACTION {
      * The SELECT_OFF-event is sent when an object has been deselected.
      */
     SELECT_OFF = 'interaction.select.off',
+    /**
+     * The MULTI_SELECT_ON-event is sent when multiple objects have been selected.
+     */
+    MULTI_SELECT_ON = 'interaction.multiSelect.on',
+    /**
+     * The MULTI_SELECT_OFF-event is sent when multiple objects have been deselected.
+     */
+    MULTI_SELECT_OFF = 'interaction.multiSelect.off',
+    /**
+     * The MULTI_SELECT_MAXIMUM_NODES-event is sent when the maximum number of nodes has been selected.
+     */
+    MULTI_SELECT_MAXIMUM_NODES = 'interaction.multiSelect.maximumNodes',
+    /**
+     * The MULTI_SELECT_MINIMUM_NODES-event is sent when the minimum number of nodes has not been selected.
+     */
+    MULTI_SELECT_MINIMUM_NODES = 'interaction.multiSelect.minimumNodes',
 }
 
 /**

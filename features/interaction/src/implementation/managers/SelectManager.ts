@@ -82,7 +82,7 @@ export class SelectManager extends AbstractInteractionManager {
         if (this.#node) {
             if (intersections.length > 0 && intersection[0].node !== this.#node) {
                 // case other node was clicked, deselect then select
-                this.deactivateNode(event);
+                this.deactivateNode(event, true);
                 this.activateNode(intersections[0], event, ray);
             } else if (intersections.length > 0 && intersection[0].node === this.#node) {
                 // case same node was clicked, only deselect
@@ -119,7 +119,7 @@ export class SelectManager extends AbstractInteractionManager {
      */
     public select(intersection: IIntersection) {
         if (this.#node)
-            this.deactivateNode();
+            this.deactivateNode(undefined, true);
         this.activateNode(intersection);
     }
 
@@ -185,7 +185,7 @@ export class SelectManager extends AbstractInteractionManager {
      * 
      * @param event 
      */
-    private deactivateNode(event?: PointerEvent) {
+    private deactivateNode(event?: PointerEvent, reselection: boolean = false) {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
 
         // find the interaction data
@@ -211,7 +211,8 @@ export class SelectManager extends AbstractInteractionManager {
                 node: this.#node,
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes
+                groupedNodes: this.#groupedNodes,
+                reselection
             } as ISelectEvent
         );
 

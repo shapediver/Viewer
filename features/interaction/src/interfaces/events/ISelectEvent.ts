@@ -35,6 +35,10 @@ export interface ISelectEvent extends IViewportEvent {
      * The ray of the selection process. Only provided on SELECT_ON and only if it was not a manual selection. 
      */
     ray?: IRay,
+    /**
+     * If the deselection happened due to another selection.
+     */
+    reselection?: boolean
 
     // #endregion Properties (6)
 }
