@@ -14,7 +14,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
 
-    #effectMaterialTokens: (string | undefined)[] = [];
+    #effectMaterialTokens: { [key: string]: string } = {};
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.DOWN) {
             return (node: ITreeNode) => {
@@ -30,11 +30,11 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
         return (node: ITreeNode) => false;
     };
-    #groupEffectMaterialToken: string[][] = [];
-    #groupedNodes: ITreeNode[][] = [];
+    #groupEffectMaterialToken: { [key: string]: string[] } = {};
+    #groupedNodes: { [key: string]: ITreeNode[] } = {};
     #maximumNodes: number = Infinity;
     #minimumNodes: number = 0;
-    #nodes: ITreeNode[] = [];
+    #nodes: { [key: string]: ITreeNode } = {};
 
     // #endregion Properties (9)
 
@@ -74,7 +74,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * @param node 
      */
     public deselect(node: ITreeNode) {
-        if (this.#nodes.includes(node))
+        if (this.#nodes[this.createNodeKey(node)])
             this.deactivateNode(node);
     }
 
@@ -82,25 +82,27 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * Deselect all nodes.
      */
     public deselectAll() {
-        for (let i = 0; i < this.#nodes.length; i++)
-            this.deactivateNode(this.#nodes[i]);
+        for (const id in this.#nodes)
+            this.deactivateNode(this.#nodes[id]);
     }
 
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.DOWN)(i.node));
 
-        if (this.#nodes.length > 0) {
+        if (Object.keys(this.#nodes).length > 0) {
             let originalNode: ITreeNode | undefined;
-            this.#groupedNodes.forEach(array => {
-                if (intersections.length > 0 && array.includes(intersections[0].node))
-                    originalNode = this.#nodes.find(n => array.includes(n))!;
-            });
 
-            if (intersections.length > 0 && !this.#nodes.includes(intersections[0].node) && !originalNode) {
+            for (const id in this.#groupedNodes) {
+                const array = this.#groupedNodes[id];
+                if (intersections.length > 0 && array.includes(intersections[0].node))
+                    originalNode = Object.values(this.#nodes).find(n => array.includes(n));
+            }
+
+            if (intersections.length > 0 && !this.#nodes[this.createNodeKey(intersections[0].node)] && !originalNode) {
                 // case other node was clicked, deselect then select
                 this.activateNode(intersections[0], event, ray);
-            } else if (intersections.length > 0 && this.#nodes.includes(intersections[0].node)) {
+            } else if (intersections.length > 0 && this.#nodes[this.createNodeKey(intersections[0].node)]) {
                 // case same node was clicked, only deselect
                 this.deactivateNode(intersections[0].node, event);
             } else if (originalNode) {
@@ -122,8 +124,8 @@ export class MultiSelectManager extends AbstractInteractionManager {
     }
 
     public remove(): void {
-        for (let i = 0; i < this.#nodes.length; i++)
-            this.deactivateNode(this.#nodes[i]);
+        for (const id in this.#nodes)
+            this.deactivateNode(this.#nodes[id]);
         this.viewport = undefined;
     }
 
@@ -134,14 +136,14 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * @param intersection 
      */
     public select(intersection: IIntersection) {
-        if (this.#nodes.includes(intersection.node))
+        if (this.#nodes[this.createNodeKey(intersection.node)])
             this.deactivateNode(intersection.node);
         this.activateNode(intersection);
     }
 
     // #endregion Public Methods (8)
 
-    // #region Private Methods (2)
+    // #region Private Methods (3)
 
     /**
      * Utility function to make the node the current active node.
@@ -154,67 +156,73 @@ export class MultiSelectManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection, event?: PointerEvent, ray?: IRay) {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
 
-        if(this.#nodes.length >= this.#maximumNodes) {
+        const nodeKey = this.createNodeKey(intersection.node);
+        const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
+        const groupId = data.groupId;
+
+        if (Object.keys(this.#nodes).length >= this.#maximumNodes) {
             this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES, {
                 viewportId: this.viewport.id,
                 node: intersection.node,
-                nodes: this.#nodes,
+                nodes: Object.values(this.#nodes),
                 intersectionPoint: intersection.point,
                 ray,
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
+                groupedNodes: groupId && this.#groupedNodes[groupId] ? this.#groupedNodes[groupId] : undefined
             } as IMultiSelectEvent);
             throw new ShapeDiverViewerInteractionError(`The maximum number of nodes ${this.maximumNodes} has been reached.`);
         }
 
-        this.#nodes.push(intersection.node);
+        this.#nodes[nodeKey] = intersection.node;
 
         // find the interaction data
-        const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
         if (data) data.interactionStates.select = true;
 
         // find and store all nodes that are within the group
-        this.#groupedNodes[this.#nodes.length - 1] = [];
-        this.#groupEffectMaterialToken[this.#nodes.length - 1] = [];
-        if (data.groupId)
-            this.#groupedNodes[this.#nodes.length - 1] = this.gatheredGroupedNodes[data.groupId] || [];
+        if (groupId) {
+            this.#groupedNodes[groupId] = [];
+            this.#groupEffectMaterialToken[groupId] = [];
+            this.#groupedNodes[groupId] = this.gatheredGroupedNodes[groupId] || [];
+        }
 
         if (this.effectMaterial) {
-            this.#effectMaterialTokens.push(this.interactionEffectUtils.applyEffectMaterial(intersection.node, this.effectMaterial));
-            if (this.#groupedNodes[this.#nodes.length - 1]) this.#groupedNodes[this.#nodes.length - 1]!.forEach(n => this.#groupEffectMaterialToken[this.#nodes.length - 1]!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)));
-        } else {
-            this.#effectMaterialTokens.push(undefined);
+            this.#effectMaterialTokens[nodeKey] = this.interactionEffectUtils.applyEffectMaterial(intersection.node, this.effectMaterial);
+            if (groupId && this.#groupedNodes[groupId]) this.#groupedNodes[groupId]!.forEach(n => this.#groupEffectMaterialToken[groupId]!.push(this.interactionEffectUtils.applyEffectMaterial(n, this.effectMaterial!)));
         }
 
         this.viewport.updateNode(intersection.node);
-        if (this.#groupedNodes) this.#groupedNodes[this.#nodes.length - 1]!.forEach(n => this.viewport!.updateNode(n));
+        if (groupId && this.#groupedNodes[groupId]) this.#groupedNodes[groupId]!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
             viewportId: this.viewport.id,
-            nodes: this.#nodes,
+            nodes: Object.values(this.#nodes),
             node: intersection.node,
             intersectionPoint: intersection.point,
             ray,
             event,
             manager: this,
-            groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
+            groupedNodes: groupId && this.#groupedNodes[groupId] ? this.#groupedNodes[groupId] : undefined
         } as IMultiSelectEvent);
 
-        if(this.#nodes.length < this.#minimumNodes) {
+        if (Object.keys(this.#nodes).length < this.#minimumNodes) {
             this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES, {
                 viewportId: this.viewport.id,
                 node: intersection.node,
-                nodes: this.#nodes,
+                nodes: Object.values(this.#nodes),
                 intersectionPoint: intersection.point,
                 ray,
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes[this.#nodes.length - 1]
+                groupedNodes: groupId && this.#groupedNodes[groupId] ? this.#groupedNodes[groupId] : undefined
             } as IMultiSelectEvent);
         }
+    }
+
+    private createNodeKey(node: ITreeNode): string {
+        return node.id + '_' + node.version;
     }
 
     /**
@@ -230,46 +238,51 @@ export class MultiSelectManager extends AbstractInteractionManager {
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         if (data) data.interactionStates.select = false;
 
-        const index = this.#nodes.indexOf(node);
-        if (index === -1) return;
+        const groupId = data.groupId;
 
-        const effectMaterialToken = this.#effectMaterialTokens[index];
-        this.#effectMaterialTokens.splice(index, 1);
+        const nodeKey = this.createNodeKey(node);
+        if (!this.#nodes[nodeKey]) return;
+
+        const effectMaterialToken = this.#effectMaterialTokens[nodeKey];
+        delete this.#effectMaterialTokens[nodeKey];
         if (effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(node, effectMaterialToken);
-            if (this.#groupedNodes[index]) this.#groupedNodes[index]!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken[index]![i]));
+            if (groupId && this.#groupedNodes[groupId]) this.#groupedNodes[groupId]!.forEach((n, i) => this.interactionEffectUtils.removeEffectMaterial(n, this.#groupEffectMaterialToken[groupId]![i]));
         }
 
         this.viewport.updateNode(node);
-        if (this.#groupedNodes[index]) this.#groupedNodes[index]!.forEach(n => this.viewport!.updateNode(n));
+        if (groupId && this.#groupedNodes[groupId]) this.#groupedNodes[groupId]!.forEach(n => this.viewport!.updateNode(n));
 
         this.viewport.render();
 
-        this.#nodes.splice(index, 1);
+        delete this.#nodes[nodeKey];
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF,
             {
                 viewportId: this.viewport.id,
-                nodes: this.#nodes,
+                nodes: Object.values(this.#nodes),
                 node: node,
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes[index]
+                groupedNodes: groupId && this.#groupedNodes[groupId] ? this.#groupedNodes[groupId] : undefined
             } as IMultiSelectEvent
         );
-        this.#groupedNodes.splice(index, 1);
-        this.#groupEffectMaterialToken.splice(index, 1);
-        
-        if(this.#nodes.length < this.#minimumNodes) {
+
+        if (groupId) {
+            delete this.#groupedNodes[groupId];
+            delete this.#groupEffectMaterialToken[groupId];
+        }
+
+        if (Object.values(this.#nodes).length < this.#minimumNodes) {
             this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES, {
                 viewportId: this.viewport.id,
                 node: node,
-                nodes: this.#nodes,
+                nodes: Object.values(this.#nodes),
                 event,
                 manager: this,
-                groupedNodes: this.#groupedNodes[index]
+                groupedNodes: groupId && this.#groupedNodes[groupId] ? this.#groupedNodes[groupId] : undefined
             } as IMultiSelectEvent);
         }
     }
 
-    // #endregion Private Methods (2)
+    // #endregion Private Methods (3)
 }
