@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.rendering-engine",
-  "version": "3.2.0-rc.2",
+  "version": "3.2.0-rc.3",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,10 +39,10 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.math": "3.2.0-rc.2",
-    "@shapediver/viewer.shared.node-tree": "3.2.0-rc.2",
-    "@shapediver/viewer.shared.services": "3.2.0-rc.2",
-    "@shapediver/viewer.shared.types": "3.2.0-rc.2",
+    "@shapediver/viewer.shared.math": "3.2.0-rc.3",
+    "@shapediver/viewer.shared.node-tree": "3.2.0-rc.3",
+    "@shapediver/viewer.shared.services": "3.2.0-rc.3",
+    "@shapediver/viewer.shared.types": "3.2.0-rc.3",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"

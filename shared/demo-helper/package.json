@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.demo-helper",
-  "version": "3.2.0-rc.2",
+  "version": "3.2.0-rc.3",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,7 +39,7 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "3.2.0-rc.2"
+    "@shapediver/viewer": "3.2.0-rc.3"
   },
   "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
 }
