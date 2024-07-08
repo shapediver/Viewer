@@ -82,8 +82,8 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * Deselect all nodes.
      */
     public deselectAll() {
-        for (let i = 0; i < this.#nodes.length; i++)
-            this.deactivateNode(this.#nodes[i]);
+        while (this.#nodes.length > 0)
+            this.deactivateNode(this.#nodes[0]);
     }
 
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
@@ -122,8 +122,8 @@ export class MultiSelectManager extends AbstractInteractionManager {
     }
 
     public remove(): void {
-        for (let i = 0; i < this.#nodes.length; i++)
-            this.deactivateNode(this.#nodes[i]);
+        while (this.#nodes.length > 0)
+            this.deactivateNode(this.#nodes[0]);
         this.viewport = undefined;
     }
 
