@@ -158,7 +158,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
         const nodeKey = this.createNodeKey(intersection.node);
         const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
-        const groupId = data?.groupId;
+        const groupId = data.groupId;
 
         if (Object.keys(this.#nodes).length >= this.#maximumNodes) {
             this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES, {
@@ -238,7 +238,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         if (data) data.interactionStates.select = false;
 
-        const groupId = data?.groupId;
+        const groupId = data.groupId;
 
         const nodeKey = this.createNodeKey(node);
         if (!this.#nodes[nodeKey]) return;
