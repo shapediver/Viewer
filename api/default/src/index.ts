@@ -23,8 +23,10 @@ import {
     IAttributeData,
     ICameraEvent,
     ICustomData,
+    IGeneralInteractionParameterSettings,
     IGeometryData,
     IHTMLElementAnchorData,
+    IInteractionParameterSettings,
     IMapData,
     IMaterialAbstractData,
     IMaterialAbstractDataProperties,
@@ -43,6 +45,7 @@ import {
     IMaterialUnlitData,
     IMaterialUnlitDataProperties,
     IMaterialVariantsData,
+    InteractionParameterSettingsType,
     IOutputEvent,
     IParameterEvent,
     IPrimitiveData,
@@ -54,9 +57,11 @@ import {
     ISDTFItemData,
     ISDTFOverview,
     ISDTFOverviewData,
+    ISelectionParameterSettings,
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
+    isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
     IViewportSettingsSections,
@@ -85,7 +90,9 @@ import {
     SdtfPrimitiveTypeGuard,
     TASK_TYPE,
     TEXTURE_FILTERING,
-    TEXTURE_WRAPPING
+    TEXTURE_WRAPPING,
+    validateInteractionParameterSettings,
+    validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
 import {
     ANTI_ALIASING_TECHNIQUE,
@@ -160,6 +167,7 @@ import {
     IOutputApi,
     IOutputApiData,
     IParameterApi,
+    ISelectionParameterApi,
     ISessionApi,
     ISessionApiData,
     OutputApiData,
@@ -305,6 +313,7 @@ export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataP
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi };

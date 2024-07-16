@@ -1,7 +1,7 @@
 import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import { ExportApi } from './ExportApi';
-import { FileParameter, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
-import { FileParameterApi } from './FileParameterApi';
+import { FileParameter, SelectionParameter, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { FileParameterApi } from './parameter/FileParameterApi';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { IExportApi } from '../interfaces/IExportApi';
 import {
@@ -9,14 +9,15 @@ import {
     Logger,
     ShapeDiverViewerSessionError,
     StateEngine
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { IOutputApi } from '../interfaces/IOutputApi';
-import { IParameterApi } from '../interfaces//IParameterApi';
+import { IParameterApi } from '../interfaces/parameter/IParameterApi';
 import { ISessionApi } from '../interfaces/ISessionApi';
 import { ISettingsSections } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { OutputApi } from './OutputApi';
-import { ParameterApi } from './ParameterApi';
+import { ParameterApi } from './parameter/ParameterApi';
+import { SelectionParameterApi } from './parameter/SelectionParameterApi';
 import { SessionApiData } from './data/SessionApiData';
 import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
 
@@ -59,6 +60,8 @@ export class SessionApi implements ISessionApi {
         for (const p in this.#sessionEngine.parameters) {
             if (this.#sessionEngine.parameters[p] instanceof FileParameter) {
                 this.#parameters[p] = new FileParameterApi(<FileParameter>this.#sessionEngine.parameters[p]);
+            } if(this.#sessionEngine.parameters[p] instanceof SelectionParameter) {
+                this.#parameters[p] = new SelectionParameterApi(<SelectionParameter>this.#sessionEngine.parameters[p]);
             } else {
                 this.#parameters[p] = new ParameterApi(this.#sessionEngine.parameters[p]);
             }

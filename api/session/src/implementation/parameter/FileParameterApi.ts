@@ -1,5 +1,5 @@
 import { IFileParameter } from '@shapediver/viewer.session-engine.session-engine';
-import { IFileParameterApi } from '../interfaces/IFileParameterApi';
+import { IFileParameterApi } from '../../interfaces/parameter/IFileParameterApi';
 import { Logger } from '@shapediver/viewer.shared.services';
 import { ParameterApi } from './ParameterApi';
 

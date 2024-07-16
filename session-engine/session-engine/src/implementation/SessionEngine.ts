@@ -4,7 +4,7 @@ import {
     latestVersion,
     validate,
     versions
-} from '@shapediver/viewer.settings';
+    } from '@shapediver/viewer.settings';
 import {
     create,
     isGBResponseError,
@@ -20,9 +20,10 @@ import {
     ShapeDiverResponseFileInfo,
     ShapeDiverResponseModelComputationStatus,
     ShapeDiverResponseOutput,
+    ShapeDiverResponseParameter,
     ShapeDiverSdk,
     ShapeDiverSdkConfigType
-} from '@shapediver/sdk.geometry-api-sdk-v2';
+    } from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
     EventEngine,
     EVENTTYPE,
@@ -37,19 +38,21 @@ import {
     StateEngine,
     SystemInfo,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { Export } from './dto/Export';
 import { FileParameter } from './dto/FileParameter';
 import { IExport } from '../interfaces/dto/IExport';
 import { IFileParameter } from '../interfaces/dto/IFileParameter';
 import { IOutput } from '../interfaces/dto/IOutput';
 import {
+    IInteractionParameterSettings,
     IOutputEvent,
     ISettingsSections,
     ITaskEvent,
     PARAMETER_TYPE,
-    TASK_TYPE
-} from '@shapediver/viewer.shared.types';
+    TASK_TYPE,
+    validateInteractionParameterSettings
+    } from '@shapediver/viewer.shared.types';
 import { IParameter } from '../interfaces/dto/IParameter';
 import { ISessionEngine } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
@@ -58,11 +61,12 @@ import {
     ITreeNode,
     Tree,
     TreeNode
-} from '@shapediver/viewer.shared.node-tree';
+    } from '@shapediver/viewer.shared.node-tree';
 import { Output } from './dto/Output';
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader';
 import { Parameter } from './dto/Parameter';
+import { SelectionParameter } from './dto/interaction/SelectionParameter';
 import { SessionData } from './SessionData';
 import { SessionTreeNode } from './SessionTreeNode';
 import { vec3 } from 'gl-matrix';
@@ -168,7 +172,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (26)
+    // #region Public Getters And Setters (27)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -293,9 +297,9 @@ export class SessionEngine implements ISessionEngine {
         return this._viewerSettings;
     }
 
-    // #endregion Public Getters And Setters (26)
+    // #endregion Public Getters And Setters (27)
 
-    // #region Public Methods (30)
+    // #region Public Methods (29)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -972,7 +976,6 @@ export class SessionEngine implements ISessionEngine {
         let processId;
         this.checkAvailability('export');
         try {
-
             // activate the busy mode if outputs are loaded
             if (loadOutputs === true && this._allowOutputLoading === true &&
                 body.outputs && Object.keys(body.outputs).length > 0) {
@@ -1388,9 +1391,9 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (30)
+    // #endregion Public Methods (29)
 
-    // #region Private Methods (16)
+    // #region Private Methods (17)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1532,6 +1535,25 @@ export class SessionEngine implements ISessionEngine {
         }
 
         return requestParameterSet;
+    }
+
+    /**
+     * Create an interaction parameter based on the parameter definition.
+     * 
+     * @param parameter 
+     * @returns 
+     */
+    private createInteractionParameter(parameter: ShapeDiverResponseParameter): IParameter<unknown> {
+        const result = validateInteractionParameterSettings(parameter.settings);
+        if (result.success) {
+            switch ((parameter.settings as IInteractionParameterSettings).props.type) {
+                case 'selection':
+                    return new SelectionParameter(parameter, this);
+            }
+        } else {
+            this._logger.warn(`SessionEngine.createInteractionParameter: The value ${parameter.settings} is not a valid InteractionParameter: ${result.error.message}`);
+        }
+        return new Parameter<string>(parameter, this);
     }
 
     private async customizeInternal(cancelRequest: () => boolean, taskEventInfo: OutputLoaderTaskEventInfo): Promise<ISessionTreeNode> {
@@ -1718,6 +1740,9 @@ export class SessionEngine implements ISessionEngine {
                 case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.EVEN || this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.FLOAT || this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.INT || this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.ODD:
                     this.parameters[parameterId] = new Parameter<number>(this._responseDto.parameters[parameterId], this);
                     break;
+                case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.INTERACTION:
+                    this.parameters[parameterId] = this.createInteractionParameter(this._responseDto.parameters[parameterId]);
+                    break;
                 default:
                     this.parameters[parameterId] = new Parameter<string>(this._responseDto.parameters[parameterId], this);
                     break;
@@ -1794,5 +1819,5 @@ export class SessionEngine implements ISessionEngine {
         await Promise.all(promises);
     }
 
-    // #endregion Private Methods (16)
+    // #endregion Private Methods (17)
 }

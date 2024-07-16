@@ -9,7 +9,7 @@ import {
   IViewportSettingsSections,
   PARAMETER_TYPE,
   PARAMETER_VISUALIZATION
-} from './types';
+  } from './types';
 import { CustomData } from './implementation/data/CustomData';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
 import {
@@ -17,7 +17,7 @@ import {
   HTMLElementAnchorData,
   HTMLElementAnchorImageData,
   HTMLElementAnchorTextData
-} from './implementation/data/HTMLElementAnchorData';
+  } from './implementation/data/HTMLElementAnchorData';
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData';
 import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData';
 import {
@@ -25,10 +25,11 @@ import {
   IGeometryData,
   IPrimitiveData,
   PRIMITIVE_MODE
-} from './interfaces/data/IGeometryData';
+  } from './interfaces/data/IGeometryData';
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
+import { IGeneralInteractionParameterSettings, IInteractionParameterSettings, InteractionParameterSettingsType, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
 import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
@@ -37,7 +38,7 @@ import {
   MATERIAL_SHADING,
   MATERIAL_SIDE,
   MATERIAL_TYPE
-} from './interfaces/data/material/IMaterialAbstractData';
+  } from './interfaces/data/material/IMaterialAbstractData';
 import { IMaterialBasicLineData, IMaterialBasicLineDataProperties } from './interfaces/data/material/IMaterialBasicLineData';
 import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/material/IMaterialGemDataProperties';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties } from './interfaces/data/material/IMaterialMultiPointData';
@@ -48,11 +49,14 @@ import { IMaterialStandardData, IMaterialStandardDataProperties } from './interf
 import { IMaterialUnlitData, IMaterialUnlitDataProperties } from './interfaces/data/material/IMaterialUnlitData';
 import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVariantsData';
 import { IOutputEvent } from './interfaces/events/IOutputEvent';
+import { IParameterEvent } from './interfaces/events/IParameterEvent';
+import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
 import { ISceneEvent } from './interfaces/events/ISceneEvent';
 import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTFAttributesData';
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData';
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData';
 import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData';
+import { ISelectionParameterSettings, isInteractionSelectionParameterSettings } from './interfaces/parameter/ISelectionParameterSettings';
 import { ISessionEvent } from './interfaces/events/ISessionEvent';
 import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent';
 import { IViewportEvent } from './interfaces/events/IViewportEvent';
@@ -73,8 +77,6 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
 import {
   MaterialStandardData,
 } from './implementation/material/MaterialStandardData';
-import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
-import { IParameterEvent } from './interfaces/events/IParameterEvent';
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties,
@@ -112,4 +114,9 @@ export {
 
 export {
   Color, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ISettingsSections, ISessionSettingsSections, IViewportSettingsSections
+};
+
+export {
+  InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings,
+  ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings
 };

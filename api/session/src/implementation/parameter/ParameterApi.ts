@@ -1,6 +1,6 @@
 import { InputValidator, Logger } from '@shapediver/viewer.shared.services';
 import { IParameter } from '@shapediver/viewer.session-engine.session-engine';
-import { IParameterApi } from '../interfaces/IParameterApi';
+import { IParameterApi } from '../../interfaces/parameter/IParameterApi';
 import { PARAMETER_TYPE, PARAMETER_VISUALIZATION } from '@shapediver/viewer.shared.types';
 import { ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from '@shapediver/sdk.geometry-api-sdk-v2';
 
