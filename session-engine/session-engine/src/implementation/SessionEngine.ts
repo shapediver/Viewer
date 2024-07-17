@@ -1727,6 +1727,29 @@ export class SessionEngine implements ISessionEngine {
             if (this.parameters[parameterId]) continue;
             this._responseDto.parameters[parameterId].id = parameterId;
 
+            /**
+             * 
+             * REMOVE THIS LOGIC
+             * 
+             */
+            const fakeSelectionParameterName = 'FAKE_SELECTION_PARAMETER';
+            const nameStartsWithFakeSelectionParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeSelectionParameterName);
+            const displaynameStartsWithFakeSelectionParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeSelectionParameterName);
+
+            if (nameStartsWithFakeSelectionParameter || displaynameStartsWithFakeSelectionParameter) {
+                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.INTERACTION;
+                const name = nameStartsWithFakeSelectionParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
+                const urlParams = new URLSearchParams(name.replace(fakeSelectionParameterName + '?', ''));
+                const jsonString = urlParams.get('settings');
+                if(jsonString)
+                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString);
+            }
+            /**
+             * 
+             * REMOVE THIS LOGIC
+             * 
+             */
+
             switch (true) {
                 case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.BOOL:
                     this.parameters[parameterId] = new Parameter<boolean>(this._responseDto.parameters[parameterId], this);
