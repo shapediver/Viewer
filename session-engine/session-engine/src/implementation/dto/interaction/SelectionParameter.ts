@@ -1,5 +1,11 @@
+import {
+    IInteractionParameterSettings,
+    InteractionParameterSettingsType,
+    ISelectionParameterSettings,
+    validateInteractionParameterSettings,
+    validateSelectionParameterSettings
+} from '@shapediver/viewer.shared.types';
 import { ISelectionParameter } from '../../../interfaces/dto/interaction/ISelectionParameter';
-import { ISelectionParameterSettings, validateSelectionParameterSettings } from '@shapediver/viewer.shared.types';
 import { Parameter } from '../Parameter';
 import { SessionEngine } from '../../SessionEngine';
 import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
@@ -20,10 +26,14 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (5)
 
     public get hover(): boolean | undefined {
         return this.getSelectionProperties()?.hover;
+    }
+
+    public get interactionType(): InteractionParameterSettingsType {
+        return 'selection';
     }
 
     public get maximumSelection(): number | undefined {
@@ -38,14 +48,18 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
         return this.getSelectionProperties()?.nameFilter;
     }
 
-    // #endregion Public Getters And Setters (4)
+    // #endregion Public Getters And Setters (5)
 
     // #region Private Methods (1)
 
     private getSelectionProperties(): ISelectionParameterSettings | undefined {
-        const result = validateSelectionParameterSettings(this.settings);
-        if (result.success)
-            return this.settings as ISelectionParameterSettings;
+        const interactionResult = validateInteractionParameterSettings(this.settings);
+        if (interactionResult.success) {
+            const selectionResult = validateSelectionParameterSettings((this.settings as unknown as IInteractionParameterSettings).props);
+            if (selectionResult.success) {
+                return (this.settings as unknown as IInteractionParameterSettings).props.props;
+            }
+        }
     }
 
     // #endregion Private Methods (1)

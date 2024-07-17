@@ -1,6 +1,7 @@
 import { ISelectionParameter } from '@shapediver/viewer.session-engine.session-engine';
 import { ISelectionParameterApi } from '../../interfaces/parameter/ISelectionParameterApi';
 import { ParameterApi } from './ParameterApi';
+import { InteractionParameterSettingsType } from '@shapediver/viewer.shared.types';
 
 export class SelectionParameterApi extends ParameterApi<string> implements ISelectionParameterApi {
     // #region Properties (1)
@@ -18,10 +19,14 @@ export class SelectionParameterApi extends ParameterApi<string> implements ISele
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+    // #region Public Getters And Setters (5)
 
     public get hover(): boolean | undefined {
         return this.#parameter.hover;
+    }
+
+    public get interactionType(): InteractionParameterSettingsType {
+        return this.#parameter.interactionType;
     }
 
     public get maximumSelection(): number | undefined {
@@ -36,5 +41,5 @@ export class SelectionParameterApi extends ParameterApi<string> implements ISele
         return this.#parameter.nameFilter;
     }
 
-    // #endregion Public Getters And Setters (4)
+    // #endregion Public Getters And Setters (5)
 }

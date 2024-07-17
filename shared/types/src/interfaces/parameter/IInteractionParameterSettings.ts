@@ -67,10 +67,7 @@ export const validateInteractionParameterSettings = (param: unknown) => {
 };
 
 export const validateSelectionParameterSettings = (param: unknown) => {
-    return z.object({
-        props: ISelectionParameterJsonSchema,
-        type: z.literal('selection'),
-    }).safeParse(param);
+    return ISelectionParameterJsonSchema.safeParse(param);
 };
 
 // #endregion Interfaces (2)
