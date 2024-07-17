@@ -106,6 +106,10 @@ export class ParameterApi<T> implements IParameterApi<T> {
         this.#logger.debug(`ParameterApi.${scope}: ${scope} was set to ${this.#parameter.value}.`);
     }
 
+    public get settings(): Record<string, any> | undefined {
+        return this.#parameter.settings;
+    }
+
     public get structure(): ShapeDiverResponseParameterStructure | undefined {
         return this.#parameter.structure;
     }
