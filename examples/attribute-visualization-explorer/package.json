@@ -42,7 +42,7 @@
     "@shapediver/viewer": "*",
     "@shapediver/viewer.features.attribute-visualization": "*",
     "@shapediver/viewer.features.interaction": "*",
-    "@shapediver/viewer.utils.demo-helper": "*",
+    "@shapediver/viewer.shared.demo-helper": "*",
     "gl-matrix": "3.3.0"
   }
 }

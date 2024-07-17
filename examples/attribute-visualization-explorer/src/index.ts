@@ -2,7 +2,7 @@ import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDT
 import { HoverManager, InteractionData, InteractionEngine, ISelectEvent, SelectManager } from '@shapediver/viewer.features.interaction';
 import { AttributeVisualizationEngine } from '@shapediver/viewer.features.attribute-visualization';
 import * as  SDV from '@shapediver/viewer';
-import { IBooleanElement, createCustomUi, createUi } from '@shapediver/viewer.utils.demo-helper';
+import { IBooleanElement, createCustomUi, createUi } from '@shapediver/viewer.shared.demo-helper';
 import { createAttributeVisualizationUi } from './attributeVisualizationUi';
 
 let nodeInteractionDataPairs: {

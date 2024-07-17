@@ -12,8 +12,8 @@ import {
     IBooleanElement,
     IDropdownElement,
     ISliderElement
-} from '@shapediver/viewer.utils.demo-helper';
-import { ICustomUiElement } from '@shapediver/viewer.utils.demo-helper/dist/ui/CustomUI';
+} from '@shapediver/viewer.shared.demo-helper';
+import { ICustomUiElement } from '@shapediver/viewer.shared.demo-helper/dist/ui/CustomUI';
 import { SdtfPrimitiveTypeGuard } from '@shapediver/viewer';
 
 export const createAttributeVisualizationUi = (container: HTMLDivElement, attributeVisualizationEngine: IAttributeVisualizationEngine) => {
