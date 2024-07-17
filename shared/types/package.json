@@ -39,12 +39,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/sdk.geometry-api-sdk-v2": "1.8.2",
+    "@shapediver/sdk.geometry-api-sdk-v2": "1.9.1",
     "@shapediver/sdk.sdtf-v1": "1.5.1",
     "@shapediver/viewer.shared.math": "3.2.0-rc.5",
     "@shapediver/viewer.shared.node-tree": "3.2.0-rc.5",
     "@shapediver/viewer.shared.services": "3.2.0-rc.5",
-    "gl-matrix": "3.3.0"
+    "gl-matrix": "3.3.0",
+    "zod": "^3.23.8"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

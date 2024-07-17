@@ -32,6 +32,7 @@ export class Parameter<T> implements IParameter<T> {
     readonly #min?: number;
     readonly #name: string;
     readonly #sessionEngine: SessionEngine;
+    readonly #settings?: Record<string, unknown>;
     readonly #structure?: ShapeDiverResponseParameterStructure;
     readonly #type: PARAMETER_TYPE;
     readonly #visualization?: PARAMETER_VISUALIZATION;
@@ -67,6 +68,7 @@ export class Parameter<T> implements IParameter<T> {
         if (paramDef.visualization !== undefined) this.#visualization = <PARAMETER_VISUALIZATION>paramDef.visualization;
         if (paramDef.structure !== undefined) this.#structure = paramDef.structure;
         if (paramDef.group !== undefined) this.#group = paramDef.group;
+        if (paramDef.settings !== undefined) this.#settings = paramDef.settings;
         if (paramDef.tooltip !== undefined) this.#tooltip = paramDef.tooltip;
 
         if (paramDef.displayname !== undefined) this.#displayname = paramDef.displayname;
@@ -177,6 +179,10 @@ export class Parameter<T> implements IParameter<T> {
             parameterId: this.#id,
             value: value
         });
+    }
+
+    public get settings(): Record<string, unknown> | undefined {
+        return this.#settings;
     }
 
     public get structure(): ShapeDiverResponseParameterStructure | undefined {

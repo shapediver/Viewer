@@ -23,8 +23,10 @@ import {
     IAttributeData,
     ICameraEvent,
     ICustomData,
+    IGeneralInteractionParameterSettings,
     IGeometryData,
     IHTMLElementAnchorData,
+    IInteractionParameterSettings,
     IMapData,
     IMaterialAbstractData,
     IMaterialAbstractDataProperties,
@@ -43,6 +45,7 @@ import {
     IMaterialUnlitData,
     IMaterialUnlitDataProperties,
     IMaterialVariantsData,
+    InteractionParameterSettingsType,
     IOutputEvent,
     IParameterEvent,
     IPrimitiveData,
@@ -54,9 +57,11 @@ import {
     ISDTFItemData,
     ISDTFOverview,
     ISDTFOverviewData,
+    ISelectionParameterSettings,
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
+    isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
     IViewportSettingsSections,
@@ -85,7 +90,9 @@ import {
     SdtfPrimitiveTypeGuard,
     TASK_TYPE,
     TEXTURE_FILTERING,
-    TEXTURE_WRAPPING
+    TEXTURE_WRAPPING,
+    validateInteractionParameterSettings,
+    validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
 import {
     Box,
@@ -151,7 +158,7 @@ import {
     ShapeDiverViewerWebGLError
 } from '@shapediver/viewer.shared.services';
 import { IExportApi } from './interfaces/IExportApi';
-import { IFileParameterApi } from './interfaces/IFileParameterApi';
+import { IFileParameterApi } from './interfaces/parameter/IFileParameterApi';
 import {
     IMaterialContentDataV1,
     IMaterialContentDataV2,
@@ -163,7 +170,8 @@ import {
 } from '@shapediver/viewer.data-engine.shared-types';
 import { IOutputApi } from './interfaces/IOutputApi';
 import { IOutputApiData } from './interfaces/data/IOutputApiData';
-import { IParameterApi } from './interfaces/IParameterApi';
+import { IParameterApi } from './interfaces/parameter/IParameterApi';
+import { ISelectionParameterApi } from './interfaces/parameter/ISelectionParameterApi';
 import { ISessionApi } from './interfaces/ISessionApi';
 import { ISessionApiData } from './interfaces/data/ISessionApiData';
 import {
@@ -200,7 +208,8 @@ import {
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };
