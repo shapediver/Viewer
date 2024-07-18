@@ -53,12 +53,9 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
     // #region Private Methods (1)
 
     private getSelectionProperties(): ISelectionParameterSettings | undefined {
-        const interactionResult = validateInteractionParameterSettings(this.settings);
-        if (interactionResult.success) {
-            const selectionResult = validateSelectionParameterSettings((this.settings as unknown as IInteractionParameterSettings).props);
-            if (selectionResult.success) {
-                return (this.settings as unknown as IInteractionParameterSettings).props.props;
-            }
+        const result = validateSelectionParameterSettings((this.settings as unknown as IInteractionParameterSettings));
+        if (result.success) {
+            return (this.settings as unknown as IInteractionParameterSettings).props;
         }
     }
 

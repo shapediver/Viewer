@@ -32,14 +32,9 @@ export interface IInteractionParameterSettings {
     // #region Properties (2)
 
     /** Properties of the parameter definition. */
-    props: {
-        /** Type of the interaction parameters. */
-        type: InteractionParameterSettingsType,
-        /** Properties of the interaction parameters. */
-        props: ISelectionParameterSettings
-    },
+    props: ISelectionParameterSettings,
     /** Type of the interaction parameters. */
-    type: 'interaction'
+    type: InteractionParameterSettingsType,
 
     // #endregion Properties (2)
 }
@@ -57,10 +52,7 @@ const ISelectionParameterJsonSchema = z.object({
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
 
-const IInteractionParameterJsonSchema = z.object({
-    props: ISelectionParameterJsonSchema,
-    type: z.literal('interaction'),
-});
+const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema;
 
 export const validateInteractionParameterSettings = (param: unknown) => {
     return IInteractionParameterJsonSchema.safeParse(param);

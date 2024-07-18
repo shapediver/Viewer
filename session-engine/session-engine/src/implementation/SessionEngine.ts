@@ -1546,7 +1546,7 @@ export class SessionEngine implements ISessionEngine {
     private createInteractionParameter(parameter: ShapeDiverResponseParameter): IParameter<unknown> {
         const result = validateInteractionParameterSettings(parameter.settings);
         if (result.success) {
-            switch ((parameter.settings as IInteractionParameterSettings).props.type) {
+            switch ((parameter.settings as IInteractionParameterSettings).type) {
                 case 'selection':
                     return new SelectionParameter(parameter, this);
             }

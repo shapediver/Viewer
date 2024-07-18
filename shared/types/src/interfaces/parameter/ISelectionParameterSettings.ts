@@ -20,8 +20,8 @@ export interface ISelectionParameterSettings extends IGeneralInteractionParamete
 
 // #region Functions (1)
 
-export function isInteractionSelectionParameterSettings(def?: IInteractionParameterSettings): def is { type: 'interaction', props: { type: 'selection', props: ISelectionParameterSettings }} {
-    return def?.type === 'interaction' && def.props.type === 'selection';
+export function isInteractionSelectionParameterSettings(def?: IInteractionParameterSettings): def is { type: 'selection', props: ISelectionParameterSettings } {
+    return def?.type === 'selection';
 }
 
 // #endregion Functions (1)
