@@ -23,7 +23,7 @@ export class GeometryMathManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (8)
+    // #region Public Methods (9)
 
     /**
      * Check which distances of lines to ray
@@ -141,6 +141,26 @@ export class GeometryMathManager implements IManager {
         const closestPoint = vec3.add(vec3.create(), start, vec3.scale(vec3.create(), lineDir, t));
 
         return closestPoint;
+    }
+
+    /**
+     * Calculate the closest point on a plane to a point
+     * 
+     * @param point 
+     * @param planeNormal 
+     * @param planeOrigin 
+     * @returns 
+     */
+    public closestPointOnPlane(planeOrigin: vec3, planeNormal: vec3, point: vec3): vec3 {
+        // Calculate the vector from the plane origin to the point
+        const toPoint = vec3.sub(vec3.create(), point, planeOrigin);
+        
+        // Project the vector onto the plane normal
+        const projectionLength = vec3.dot(toPoint, planeNormal);
+        const projectionVector = vec3.scale(vec3.create(), planeNormal, projectionLength);
+        
+        // Subtract the projection vector from the original point to get the projected point
+        return vec3.sub(vec3.create(), point, projectionVector);
     }
 
     /**
@@ -265,5 +285,5 @@ export class GeometryMathManager implements IManager {
         };
     }
 
-    // #endregion Public Methods (8)
+    // #endregion Public Methods (9)
 }

@@ -13,6 +13,7 @@ export type AxisRestrictionProperties = {
     activationKeyX?: string;
     activationKeyY?: string;
     activationKeyZ?: string;
+    activationKeyPlane?: string;
 } & SnapRestrictionProperties;
 
 // #endregion Type aliases (1)
@@ -25,6 +26,7 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
     readonly #activationKeyX: string;
     readonly #activationKeyY: string;
     readonly #activationKeyZ: string;
+    readonly #activationKeyPlane: string;
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #planeRestriction: PlaneRestriction;
 
@@ -45,6 +47,7 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
         this.#activationKeyX = properties?.activationKeyX || 'x';
         this.#activationKeyY = properties?.activationKeyY || 'y';
         this.#activationKeyZ = properties?.activationKeyZ || 'z';
+        this.#activationKeyPlane = properties?.activationKeyPlane || 'p';
 
         this.#priority = properties?.priority || 1;
     }
@@ -86,6 +89,7 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
         const xPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyX);
         const yPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyY);
         const zPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyZ);
+        const pPressed = this.#drawingToolsManager.keyPressed('p');
 
         if (xPressed) {
             return this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorU }, point);
@@ -93,6 +97,8 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
             return this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorV }, point);
         } else if (zPressed) {
             return this.#geometryMathManager.closestPointsRayRay({ origin: metaData.referencePoint, direction: this.#planeRestriction.normal }, ray).closestPointOnRay1;
+        } else if (pPressed) {
+            return this.#geometryMathManager.closestPointOnPlane(this.#planeRestriction.origin, this.#planeRestriction.normal, point);
         }
     }
 

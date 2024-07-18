@@ -21,7 +21,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '34197323be1534c886330808d21d8b5f8cc79da35591fb865949f96163df04813c11cbdfc57543c229a62f9c30f9f80a071fdc1568eb40fae92b452ffb3cac54b9add5373f0def321838ada06dc6462c90da511b8161dda2c6249c90b2ef3aa12a7d2bce187ffb-84bf522404c7b78b236eae5b9efe9e27',
+            '1636173cca09293804fb0084bb4726040b742d1a17fb18dd1801ef70a2cd3c76a45c2a442c6dc602495c43c39f2a5dd1e168a8f8f5edfebca7ad13b6b3fecdb60b0e1d914a8a25a1b16ba61ac9ff2a5a84e27cbfed31c5a4d1e5b416e78abd86a8f76a99b1eb5c-39e4dbd01454d7afbd92052722e1743f',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'mySession',
         initialParameterValues: {
@@ -63,15 +63,15 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             // The maximum number of points
             maxPoints: 25,
         },
-        restrictions: {
-            // Add a geometry restriction
-            'geometry': {
-                type: RESTRICTION_TYPE.GEOMETRY,
-                // The node to restrict is set below
-                nodes: [],
-                wireframeColor: '#ffffff',
-            }
-        }
+        // restrictions: {
+        //     // Add a geometry restriction
+        //     'geometry': {
+        //         type: RESTRICTION_TYPE.GEOMETRY,
+        //         // The node to restrict is set below
+        //         nodes: [],
+        //         wireframeColor: '#ffffff',
+        //     }
+        // }
     };
 
     /**
@@ -131,19 +131,19 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     const drawingToolsApi: IDrawingToolsApi | undefined = createDrawingTools(viewport, { onUpdate, onCancel }, customizationProperties);
     (window as any).drawingToolsApi = drawingToolsApi;
 
-    const geometryRestrictionApi = drawingToolsApi.restrictions['geometry'] as GeometryRestrictionApi;
+    // const geometryRestrictionApi = drawingToolsApi.restrictions['geometry'] as GeometryRestrictionApi;
 
-    /**
-     * Set the node to restrict
-     */
-    const terrainOutput = session.getOutputByName('Terrain')[0];
-    const cb = (newNode?: SDV.ITreeNode) => {
+    // /**
+    //  * Set the node to restrict
+    //  */
+    // const terrainOutput = session.getOutputByName('Terrain')[0];
+    // const cb = (newNode?: SDV.ITreeNode) => {
 
-        if (!newNode)  return;
-        new Promise((resolve) => setTimeout(resolve, 0)).then(() => geometryRestrictionApi.updateNodes([newNode]));
-    };
-    terrainOutput.updateCallback = cb;
-    cb(terrainOutput.node);
+    //     if (!newNode)  return;
+    //     new Promise((resolve) => setTimeout(resolve, 0)).then(() => geometryRestrictionApi.updateNodes([newNode]));
+    // };
+    // terrainOutput.updateCallback = cb;
+    // cb(terrainOutput.node);
 
     /**
      * 
