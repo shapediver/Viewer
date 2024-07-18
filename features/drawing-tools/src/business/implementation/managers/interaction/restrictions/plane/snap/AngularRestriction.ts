@@ -287,31 +287,54 @@ export class AngularRestriction extends AbstractRestriction implements ISnapRest
 
         const text = document.createElement('div');
         text.className = 'label';
+        label = new CSS2DObject(text);
 
+        // remove the old style, if there is one 
+        document.head.querySelectorAll('style').forEach(style => {
+            if (style.textContent?.includes(label!.uuid))
+                document.head.removeChild(style);
+        });
+
+        const parent = document.createElement('div');
+        parent.className = `angular-label-parent-${label!.uuid}`;
         const child = document.createElement('div');
-        child.className = 'angular-label';
+        child.className = `angular-label-${label!.uuid}`;
 
         const style = document.createElement('style');
         style.textContent = `
-            .angular-label {
+            .angular-label-${label!.uuid} {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: 40px;
-                height: 40px;
+                width: 32px;
+                height: 32px;
                 color: white;
                 background-color: ${this.#settings.visualization.points.color_1};
                 border-radius: 50%;
                 font-size: 16px;
                 text-align: center;
             }
+
+            .angular-label-parent-${label!.uuid} {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 40px; /* 32px + 2 * 4px border width */
+                height: 40px; /* 32px + 2 * 4px border width */
+                border-radius: 50%;
+                background: conic-gradient(
+                    ${this.#settings.visualization.points.color_2} 0% ${(angle / Math.PI) * 100}%,
+                    ${this.#settings.visualization.points.color_1} ${(angle / Math.PI) * 100}% 100%
+                );
+            }
         `;
         document.head.appendChild(style);
 
-        child.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
-        text.appendChild(child);
+        parent.appendChild(child);
 
-        label = new CSS2DObject(text);
+        child.textContent = `${numberCleaner((angle / Math.PI) * 180)}°`;
+        text.appendChild(parent);
+
         label.position.set(position[0], position[1], position[2]);
         label.visible = false;
         this._object3D.add(label);
