@@ -178,21 +178,33 @@ export class TextVisualizationManager implements IManager {
             const child = document.createElement('div');
             child.className = 'distance-label';
 
-            const style = document.createElement('style');
-            style.textContent = `
-                .distance-label {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    color: white;
-                    background-color: ${this.#settings.visualization.points.color_1}80;
-                    border-radius: 5px;
-                    font-size: 16px;
-                    text-align: center;
-                    padding: 0px 2px;
+            // check if there is already a style tag in the head that defined the style for the point label
+            // if not, create one
+            let styleExists = false;
+            document.head.querySelectorAll('style').forEach(style => {
+                if (style.textContent?.includes('.distance-label')) {
+                    styleExists = true;
+                    return;
                 }
-            `;
-            document.head.appendChild(style);
+            });
+
+            if(!styleExists) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .distance-label {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        background-color: ${this.#settings.visualization.points.color_1}80;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        text-align: center;
+                        padding: 0px 2px;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
             child.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
             text.appendChild(child);
@@ -216,21 +228,33 @@ export class TextVisualizationManager implements IManager {
             const child = document.createElement('div');
             child.className = 'point-label';
 
-            const style = document.createElement('style');
-            style.textContent = `
-                .point-label {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    color: white;
-                    background-color: ${this.#settings.visualization.points.color_1}80;
-                    border-radius: 5px;
-                    font-size: 16px;
-                    text-align: center;
-                    padding: 0px 2px;
+            // check if there is already a style tag in the head that defined the style for the point label
+            // if not, create one
+            let styleExists = false;
+            document.head.querySelectorAll('style').forEach(style => {
+                if (style.textContent?.includes('.point-label')) {
+                    styleExists = true;
+                    return;
                 }
-            `;
-            document.head.appendChild(style);
+            });
+
+            if(!styleExists) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .point-label {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        background-color: ${this.#settings.visualization.points.color_1}80;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        text-align: center;
+                        padding: 0px 2px;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
 
             child.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
             text.appendChild(child);
