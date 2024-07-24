@@ -471,7 +471,7 @@ export class GLTFConverter {
     private convertImage(data: IMapData): number | undefined {
         if (!this._content.images) this._content.images = [];
         if (data.image instanceof ArrayBuffer) return;
-        if (this._imageCache[data.image.src]) return this._imageCache[data.image.src];
+        if (this._imageCache[data.image.src] !== undefined) return this._imageCache[data.image.src];
         const imageDef: IGLTF_v2_Image = {};
         const canvas = document.createElement('canvas');
 
@@ -551,7 +551,7 @@ export class GLTFConverter {
 
     private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
-        if (this._materialCache[data.id + '_' + data.version]) return this._materialCache[data.id + '_' + data.version];
+        if (this._materialCache[data.id + '_' + data.version] !== undefined) return this._materialCache[data.id + '_' + data.version];
 
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
@@ -693,7 +693,7 @@ export class GLTFConverter {
 
     private convertMesh(data: IGeometryData): number {
         if (!this._content.meshes) this._content.meshes = [];
-        if (this._meshCache[data.id + '_' + data.version]) return this._meshCache[data.id + '_' + data.version];
+        if (this._meshCache[data.id + '_' + data.version] !== undefined) return this._meshCache[data.id + '_' + data.version];
 
         const meshDef: IGLTF_v2_Mesh = {
             primitives: [],
@@ -822,7 +822,7 @@ export class GLTFConverter {
         if (!this._content.textures) this._content.textures = [];
 
         const imageIndex = this.convertImage(data);
-        if (!imageIndex) return;
+        if (imageIndex === undefined) return;
         const textureDef: IGLTF_v2_Texture = {
             source: imageIndex
         };
