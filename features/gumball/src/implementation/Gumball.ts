@@ -27,6 +27,7 @@ export class Gumball implements IGumball {
     #initialOffset: vec3 = vec3.create();
     #scale: number = 0.005;
     #show: boolean = true;
+    #space: 'local' | 'world' = 'local';
     #tokenContinuousRendering?: string;
     #tokenContinuousShadowMapUpdate?: string;
 
@@ -53,7 +54,7 @@ export class Gumball implements IGumball {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (10)
+    // #region Public Getters And Setters (12)
 
     public get enableRotation(): boolean {
         return this.#enableRotation;
@@ -61,6 +62,7 @@ export class Gumball implements IGumball {
 
     public set enableRotation(value: boolean) {
         this.#enableRotation = value;
+        this.#transformControls.enableRotation = value;
     }
 
     public get enableScaling(): boolean {
@@ -69,6 +71,7 @@ export class Gumball implements IGumball {
 
     public set enableScaling(value: boolean) {
         this.#enableScaling = value;
+        this.#transformControls.enableScaling = value;
     }
 
     public get enableTranslation(): boolean {
@@ -77,6 +80,7 @@ export class Gumball implements IGumball {
 
     public set enableTranslation(value: boolean) {
         this.#enableTranslation = value;
+        this.#transformControls.enableTranslation = value;
     }
 
     public get scale(): number {
@@ -97,7 +101,16 @@ export class Gumball implements IGumball {
         this.#show = value;
     }
 
-    // #endregion Public Getters And Setters (10)
+    public get space(): 'local' | 'world' {
+        return this.#space;
+    }
+
+    public set space(value: 'local' | 'world') {
+        this.#space = value;
+        this.#transformControls.space = value;
+    }
+
+    // #endregion Public Getters And Setters (12)
 
     // #region Public Methods (1)
 

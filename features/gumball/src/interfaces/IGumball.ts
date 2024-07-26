@@ -1,12 +1,13 @@
 export interface IGumball {
-    // #region Properties (4)
+    // #region Properties (5)
 
     enableRotation: boolean;
     enableScaling: boolean;
     enableTranslation: boolean;
     show: boolean;
+    space: 'local' | 'world';
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Public Methods (1)
 
