@@ -1,5 +1,13 @@
 import { IGeneralInteractionParameterSettings, IInteractionParameterSettings } from './IInteractionParameterSettings';
 
+// #region Type aliases (1)
+
+export type SelectionParameterValue = {
+    names: string[]
+};
+
+// #endregion Type aliases (1)
+
 // #region Interfaces (1)
 
 /**

@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { ISelectionParameterSettings } from './ISelectionParameterSettings';
+import { IGumballParameterSettings } from './IGumballParameterSettings';
 
 // #region Type aliases (1)
 
-export type InteractionParameterSettingsType = 'selection';
+export type InteractionParameterSettingsType = 'selection' | 'gumball';
 
 // #endregion Type aliases (1)
 
@@ -32,12 +33,16 @@ export interface IInteractionParameterSettings {
     // #region Properties (2)
 
     /** Properties of the parameter definition. */
-    props: ISelectionParameterSettings,
+    props: ISelectionParameterSettings | IGumballParameterSettings,
     /** Type of the interaction parameters. */
     type: InteractionParameterSettingsType,
 
     // #endregion Properties (2)
 }
+
+// #endregion Interfaces (2)
+
+// #region Variables (7)
 
 const IGeneralInteractionParameterJsonSchema = z.object({
     hover: z.boolean().optional(),
@@ -51,15 +56,27 @@ const ISelectionParameterJsonSchema = z.object({
         minimumSelection: z.number().optional(),
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
+const IGumballParameterJsonSchema = z.object({
+    type: z.literal('gumball'),
+    props: z.object({
+        enableRotation: z.boolean().optional(),
+        enableScaling: z.boolean().optional(),
+        enableTranslation: z.boolean().optional(),
+        scale: z.number().optional(),
+        space: z.literal('local').or(z.literal('world')).optional(),
+    }).merge(IGeneralInteractionParameterJsonSchema),
+});
 
-const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema;
+const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema);
 
 export const validateInteractionParameterSettings = (param: unknown) => {
     return IInteractionParameterJsonSchema.safeParse(param);
 };
-
 export const validateSelectionParameterSettings = (param: unknown) => {
     return ISelectionParameterJsonSchema.safeParse(param);
 };
+export const validateGumballParameterSettings = (param: unknown) => {
+    return IGumballParameterJsonSchema.safeParse(param);
+};
 
-// #endregion Interfaces (2)
+// #endregion Variables (7)

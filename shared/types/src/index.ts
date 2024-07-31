@@ -29,7 +29,7 @@ import {
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
-import { IGeneralInteractionParameterSettings, IInteractionParameterSettings, InteractionParameterSettingsType, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
+import { IGeneralInteractionParameterSettings, IInteractionParameterSettings, InteractionParameterSettingsType, validateGumballParameterSettings, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
 import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
@@ -56,7 +56,7 @@ import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTF
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData';
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData';
 import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData';
-import { ISelectionParameterSettings, isInteractionSelectionParameterSettings } from './interfaces/parameter/ISelectionParameterSettings';
+import { ISelectionParameterSettings, isInteractionSelectionParameterSettings, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
 import { ISessionEvent } from './interfaces/events/ISessionEvent';
 import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent';
 import { IViewportEvent } from './interfaces/events/IViewportEvent';
@@ -77,6 +77,7 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
 import {
   MaterialStandardData,
 } from './implementation/material/MaterialStandardData';
+import { IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties,
@@ -118,5 +119,6 @@ export {
 
 export {
   InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings,
-  ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings
+  ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, validateSelectionParameterSettings,
+  IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, validateGumballParameterSettings
 };

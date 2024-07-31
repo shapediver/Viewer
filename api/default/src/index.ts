@@ -12,6 +12,7 @@ import {
     CustomData,
     EventResponseMapping,
     GeometryData,
+    GumballParameterValue,
     HTMLElementAnchorCustomData,
     HTMLElementAnchorData,
     HTMLElementAnchorImageData,
@@ -25,6 +26,7 @@ import {
     ICustomData,
     IGeneralInteractionParameterSettings,
     IGeometryData,
+    IGumballParameterSettings,
     IHTMLElementAnchorData,
     IInteractionParameterSettings,
     IMapData,
@@ -61,6 +63,7 @@ import {
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
+    isInteractionGumballParameterSettings,
     isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
@@ -88,9 +91,11 @@ import {
     SDTFItemData,
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
+    SelectionParameterValue,
     TASK_TYPE,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
+    validateGumballParameterSettings,
     validateInteractionParameterSettings,
     validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
@@ -314,6 +319,6 @@ export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isVie
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
-export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, validateGumballParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi };

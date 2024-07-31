@@ -12,6 +12,7 @@ import {
     CustomData,
     EventResponseMapping,
     GeometryData,
+    GumballParameterValue,
     HTMLElementAnchorCustomData,
     HTMLElementAnchorData,
     HTMLElementAnchorImageData,
@@ -25,6 +26,7 @@ import {
     ICustomData,
     IGeneralInteractionParameterSettings,
     IGeometryData,
+    IGumballParameterSettings,
     IHTMLElementAnchorData,
     IInteractionParameterSettings,
     IMapData,
@@ -61,6 +63,7 @@ import {
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
+    isInteractionGumballParameterSettings,
     isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
@@ -88,9 +91,11 @@ import {
     SDTFItemData,
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
+    SelectionParameterValue,
     TASK_TYPE,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
+    validateGumballParameterSettings,
     validateInteractionParameterSettings,
     validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
@@ -209,7 +214,7 @@ import {
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
-export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, validateGumballParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };
