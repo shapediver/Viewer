@@ -11,7 +11,7 @@ import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 
 export class Gumball implements IGumball {
-    // #region Properties (16)
+    // #region Properties (17)
 
     readonly #node: ITreeNode | undefined;
     readonly #nodes: ITreeNode[] | undefined;
@@ -25,13 +25,14 @@ export class Gumball implements IGumball {
     #enableScaling: boolean = true;
     #enableTranslation: boolean = true;
     #initialOffset: vec3 = vec3.create();
+    #matrix: mat4 = mat4.create();
     #scale: number = 0.005;
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
     #tokenContinuousRendering?: string;
     #tokenContinuousShadowMapUpdate?: string;
 
-    // #endregion Properties (16)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -54,7 +55,7 @@ export class Gumball implements IGumball {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (12)
+    // #region Public Getters And Setters (13)
 
     public get enableRotation(): boolean {
         return this.#enableRotation;
@@ -81,6 +82,10 @@ export class Gumball implements IGumball {
     public set enableTranslation(value: boolean) {
         this.#enableTranslation = value;
         this.#transformControls.enableTranslation = value;
+    }
+
+    public get matrix(): mat4 {
+        return this.#matrix;
     }
 
     public get scale(): number {
@@ -110,7 +115,7 @@ export class Gumball implements IGumball {
         this.#transformControls.space = value;
     }
 
-    // #endregion Public Getters And Setters (12)
+    // #endregion Public Getters And Setters (13)
 
     // #region Public Methods (1)
 
@@ -154,7 +159,6 @@ export class Gumball implements IGumball {
         this.#parentObject.add(this.#transformControls);
         this.#parentObject.add(this.#transformationControlsPlaceholder);
         this.#viewport.threeJsCoreObjects.scene.add(this.#parentObject);
-        console.log(this.#transformControls);
 
         // we register the CAMERA_FREEZE whenever the dragging happens
         this.#transformControls.addEventListener('dragging-changed', (event: unknown) => {
@@ -178,16 +182,16 @@ export class Gumball implements IGumball {
     }
 
     private updateObjects() {
-        //     const matrix = mat4.fromValues(
-        //         ...this.#transformationControlsPlaceholder.matrix.toArray()
-        //     );
+        this.#matrix = mat4.fromValues(
+            ...this.#transformationControlsPlaceholder.matrix.toArray()
+        );
 
-        //     // we reset the offset here to not apply it two times
-        //     mat4.translate(
-        //         matrix,
-        //         matrix,
-        //         vec3.negate(vec3.create(), this.#initialOffset)
-        //     );
+        // we reset the offset here to not apply it two times
+        mat4.translate(
+            this.#matrix,
+            this.#matrix,
+            vec3.negate(vec3.create(), this.#initialOffset)
+        );
 
         const positionWithInitialOffset = this.#transformationControlsPlaceholder.position.clone();
         const position = new THREE.Vector3().subVectors(positionWithInitialOffset, new THREE.Vector3().fromArray(this.#initialOffset));
