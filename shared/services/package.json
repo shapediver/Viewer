@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.services",
-  "version": "3.2.0-rc.9",
+  "version": "3.2.0-rc.10",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -42,7 +42,7 @@
     "@ctrl/tinycolor": "^3.4.0",
     "@shapediver/sdk.geometry-api-sdk-v2": "1.9.1",
     "@shapediver/viewer.settings": "1.0.2",
-    "@shapediver/viewer.shared.build-data": "3.2.0-rc.9",
+    "@shapediver/viewer.shared.build-data": "3.2.0-rc.10",
     "@types/dompurify": "^2.3.1",
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^9.0.0",
