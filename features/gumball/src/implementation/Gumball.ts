@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import {
     Box,
     FLAG_TYPE,
+    GeometryData,
     ITreeNode,
     IViewportApi,
     sceneTree
 } from '@shapediver/viewer';
 import { IGumball } from '../interfaces/IGumball';
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, vec3, quat } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 
 export class Gumball implements IGumball {
@@ -31,6 +32,7 @@ export class Gumball implements IGumball {
     #space: 'local' | 'world' = 'local';
     #tokenContinuousRendering?: string;
     #tokenContinuousShadowMapUpdate?: string;
+    #initialMatrix: mat4 = mat4.create();
 
     // #endregion Properties (17)
 
@@ -39,7 +41,11 @@ export class Gumball implements IGumball {
     constructor(viewport: IViewportApi, nodeOrNodes: ITreeNode | ITreeNode[]) {
         this.#viewport = viewport;
         if (Array.isArray(nodeOrNodes)) {
-            this.#nodes = nodeOrNodes;
+            if(nodeOrNodes.length === 1) {
+                this.#node = nodeOrNodes[0];
+            } else {
+                this.#nodes = nodeOrNodes;
+            }
         } else {
             this.#node = nodeOrNodes;
         }
@@ -47,7 +53,8 @@ export class Gumball implements IGumball {
         this.#transformControls = new TransformControls(
             viewport.threeJsCoreObjects.camera,
             viewport.threeJsCoreObjects.renderer.domElement,
-            this.updateObjects.bind(this)
+            this.updateObjects.bind(this),
+            this.updateObjectMatrices.bind(this)
         );
 
         this.setup();
@@ -138,6 +145,11 @@ export class Gumball implements IGumball {
     private setup() {
         // assign the position to the transformation controls objects
         if (this.#node) {
+            const translation = mat4.getTranslation(vec3.create(), this.#node.worldMatrix);
+            const rotation = mat4.getRotation(quat.create(), this.#node.worldMatrix);
+            const scale = mat4.getScaling(vec3.create(), this.#node.worldMatrix);
+
+            mat4.copy(this.#initialMatrix, this.#node.worldMatrix);
             vec3.copy(this.#initialOffset, this.#node.boundingBox.boundingSphere.center);
         } else if (this.#nodes) {
             const boundingBox = new Box();
@@ -182,29 +194,45 @@ export class Gumball implements IGumball {
     }
 
     private updateObjects() {
-        this.#matrix = mat4.fromValues(
-            ...this.#transformationControlsPlaceholder.matrix.toArray()
-        );
-
-        // we reset the offset here to not apply it two times
-        mat4.translate(
-            this.#matrix,
-            this.#matrix,
-            vec3.negate(vec3.create(), this.#initialOffset)
-        );
-
-        const positionWithInitialOffset = this.#transformationControlsPlaceholder.position.clone();
-        const position = new THREE.Vector3().subVectors(positionWithInitialOffset, new THREE.Vector3().fromArray(this.#initialOffset));
-        const rotation = this.#transformationControlsPlaceholder.quaternion.clone();
-        const scale = this.#transformationControlsPlaceholder.scale.clone();
+        const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
+            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
 
         const applyTransformation = (node: ITreeNode) => {
             const threeJsObject: THREE.Object3D | undefined = node.convertedObject[this.#viewport.id] as THREE.Object3D;
             if (threeJsObject) {
-                threeJsObject.position.copy(position);
-                threeJsObject.quaternion.copy(rotation);
-                threeJsObject.scale.copy(scale);
+                threeJsObject.matrixAutoUpdate = false;
+                threeJsObject.matrix.copy(m).multiply(new THREE.Matrix4().fromArray(this.#initialMatrix));
+                threeJsObject.matrixWorldNeedsUpdate = true;
             }
+        };
+
+        if (this.#node) {
+            applyTransformation(this.#node);
+        } else if (this.#nodes) {
+            this.#nodes.forEach(node => {
+                applyTransformation(node);
+            });
+        }
+    }
+
+    private updateObjectMatrices() {
+        const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
+        .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
+
+        this.#matrix = mat4.fromValues(...m.toArray());
+
+        const applyTransformation = (node: ITreeNode) => {
+            const matrixId = 'SD_gumball_matrix';
+            const transformation = node.transformations.find(t => t.id === matrixId);
+            if (transformation) {
+                mat4.multiply(transformation.matrix, this.#matrix, this.#initialMatrix);
+            } else {
+                node.transformations.push({
+                    id: matrixId,
+                    matrix: mat4.clone(this.#matrix)
+                });
+            }
+            node.updateVersion();
         };
 
         if (this.#node) {

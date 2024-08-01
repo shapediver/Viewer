@@ -12,6 +12,7 @@ import {
     Matrix4,
     Mesh,
     MeshBasicMaterial,
+    MeshNormalMaterial,
     Object3D,
     OctahedronGeometry,
     OrthographicCamera,
@@ -88,6 +89,7 @@ class TransformControls extends Object3D {
     private _startNorm: Vector3;
     private _translationSnap: number | null = null;
     private _updateCallback: (() => void) | undefined;
+    private _updateMatricesCallback: (() => void) | undefined;
     private _worldPosition: Vector3 = new Vector3();
     private _worldPositionStart: Vector3 = new Vector3();
     private _worldQuaternion: Quaternion = new Quaternion();
@@ -103,11 +105,14 @@ class TransformControls extends Object3D {
 
     // #region Constructors (1)
 
-    constructor(camera: Camera, domElement?: HTMLElement, updateCallback?: () => void) {
+    constructor(camera: Camera, domElement?: HTMLElement, updateCallback?: () => void, updateMatricesCallback?: () => void) {
         super();
+
+        this.userData.ambientOcclusion = false;
 
         this._camera = camera;
         this._updateCallback = updateCallback;
+        this._updateMatricesCallback = updateMatricesCallback;
 
         if (domElement === undefined) {
             console.warn('THREE.TransformControls: The second parameter "domElement" is now mandatory.');
@@ -729,9 +734,10 @@ class TransformControls extends Object3D {
     public pointerUp(pointer: { x: number, y: number, button: any }) {
         if (pointer !== null && pointer.button !== 0) return;
 
-        // if (this.dragging && (this.axis !== null)) {
-        //     _mouseUpEvent.mode = this.mode;
-        // }
+        if (this.dragging && (this.axis !== null)) {
+            if(this._updateMatricesCallback) 
+                this._updateMatricesCallback();
+        }
 
         this.dragging = false;
         this.axis = null;
@@ -1195,6 +1201,7 @@ class TransformControlsGizmo extends Object3D {
 
                     // name and tag properties are essential for picking and updating logic.
                     object.name = name;
+                    object.userData.ambientOcclusion = false;
                     (object as any).tag = tag;
 
                     if (position) {
@@ -1275,7 +1282,6 @@ class TransformControlsGizmo extends Object3D {
         let quaternion = new Quaternion();
         if (space === 'local') {
             this._transformControls.object?.getWorldQuaternion(quaternion);
-            console.log(quaternion);
         } else {
             quaternion = _identityQuaternion;
         }
@@ -1503,25 +1509,25 @@ class TransformControlsGizmo extends Object3D {
             handle.object.visible = handle.object.visible && (handle.object.name.indexOf('E') === - 1 || (this._transformControls.showX && this._transformControls.showY && this._transformControls.showZ));
 
             // highlight selected axis
-
-            (handle.object.material as any)._color = (handle.object.material as any)._color || handle.object.material.color.clone();
-            (handle.object.material as any)._opacity = (handle.object.material as any)._opacity || handle.object.material.opacity;
-
-            handle.object.material.color.copy((handle.object.material as any)._color);
-            handle.object.material.opacity = (handle.object.material as any)._opacity;
-
-            if (this._transformControls.enabled && this._transformControls.axis && handle.mode === this._transformControls.mode) {
-                console.log(handle);
-                if (handle.object.name === this._transformControls.axis) {
-                    handle.object.material.color.setHex(0xffff00);
-                    handle.object.material.opacity = 1.0;
-
-                } else if (this._transformControls.axis.split('').some(function (a) {
-                    return handle.object.name === a;
-
-                })) {
-                    handle.object.material.color.setHex(0xffff00);
-                    handle.object.material.opacity = 1.0;
+            if(!(handle.object.material instanceof MeshNormalMaterial)) {
+                (handle.object.material as any)._color = (handle.object.material as any)._color || handle.object.material.color.clone();
+                (handle.object.material as any)._opacity = (handle.object.material as any)._opacity || handle.object.material.opacity;
+    
+                handle.object.material.color.copy((handle.object.material as any)._color);
+                handle.object.material.opacity = (handle.object.material as any)._opacity;
+    
+                if (this._transformControls.enabled && this._transformControls.axis && handle.mode === this._transformControls.mode) {
+                    if (handle.object.name === this._transformControls.axis) {
+                        handle.object.material.color.setHex(0xffff00);
+                        handle.object.material.opacity = 1.0;
+    
+                    } else if (this._transformControls.axis.split('').some(function (a) {
+                        return handle.object.name === a;
+    
+                    })) {
+                        handle.object.material.color.setHex(0xffff00);
+                        handle.object.material.opacity = 1.0;
+                    }
                 }
             }
         }
