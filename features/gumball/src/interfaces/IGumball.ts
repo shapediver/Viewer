@@ -6,7 +6,7 @@ export type Settings = {
     enableTranslation: boolean;
     scale: number;
     space: 'local' | 'world';
-    resetTransformation: boolean;
+    reuseTransformation: boolean;
 };
 export type SettingsOptional = Partial<Settings>;
 
@@ -17,7 +17,7 @@ export type SettingsOptional = Partial<Settings>;
 export interface IGumball {
     // #region Properties (6)
 
-    readonly resetTransformation: boolean;
+    readonly reuseTransformation: boolean;
     readonly space: 'local' | 'world';
 
     enableRotation: boolean;

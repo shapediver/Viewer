@@ -2,7 +2,7 @@ import * as SDV from '@shapediver/viewer';
 import { addListener } from '@shapediver/viewer';
 import { Gumball } from '@shapediver/viewer.features.gumball';
 import { InteractionData, InteractionEngine, MultiSelectManager, InteractionEventResponseMapping, HoverManager, IMultiSelectEvent } from '@shapediver/viewer.features.interaction';
-import { createCustomUi, IBooleanElement, IDropdownElement } from '@shapediver/viewer.shared.demo-helper';
+import { createCustomUi, IBooleanElement } from '@shapediver/viewer.shared.demo-helper';
 
 (<any>window).SDV = SDV;
 
@@ -59,18 +59,7 @@ import { createCustomUi, IBooleanElement, IDropdownElement } from '@shapediver/v
             console.log('Create Gumball');
 
             gumball = new Gumball(viewport, e.nodes);
-
-            const spaces: ('local' | 'world')[] = ['local', 'world'];
             createCustomUi([
-                <IDropdownElement>{
-                    name: 'space',
-                    type: 'dropdown',
-                    value: spaces.indexOf(gumball.space),
-                    choices: spaces,
-                    onInputCallback: (value: number) => {
-                        gumball!.space = spaces[value];
-                    }
-                },
                 <IBooleanElement>{
                     name: 'enableTranslation',
                     type: 'boolean',
