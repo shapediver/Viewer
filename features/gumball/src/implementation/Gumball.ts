@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as THREE from 'three';
 import {
     Box,
@@ -12,8 +13,9 @@ import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 
 export class Gumball implements IGumball {
-    // #region Properties (20)
+    // #region Properties (22)
 
+    readonly #keysPressed: { [key: string]: boolean } = {};
     readonly #node: ITreeNode | undefined;
     readonly #nodes: ITreeNode[] | undefined;
     readonly #parentObject: THREE.Object3D = new THREE.Object3D();
@@ -22,6 +24,10 @@ export class Gumball implements IGumball {
     readonly #viewport: IViewportApi;
 
     #cameraFreezeFlag?: string;
+    #canvasEventListenerToken: string;
+    #closed: boolean = false;
+    #continuousRenderingFlag?: string;
+    #continuousShadowMapUpdateFlag?: string;
     #enableRotation: boolean = true;
     #enableScaling: boolean = true;
     #enableTranslation: boolean = true;
@@ -32,15 +38,14 @@ export class Gumball implements IGumball {
     #scale: number = 0.005;
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
-    #tokenContinuousRendering?: string;
-    #tokenContinuousShadowMapUpdate?: string;
 
-    // #endregion Properties (20)
+    // #endregion Properties (22)
 
     // #region Constructors (1)
 
     constructor(viewport: IViewportApi, nodeOrNodes: ITreeNode | ITreeNode[], settings?: SettingsOptional) {
         this.#viewport = viewport;
+        this.#canvasEventListenerToken = this.#viewport.addCanvasEventListener(this);
         if (Array.isArray(nodeOrNodes)) {
             if (nodeOrNodes.length === 1) {
                 this.#node = nodeOrNodes[0];
@@ -73,7 +78,11 @@ export class Gumball implements IGumball {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (13)
+    // #region Public Getters And Setters (14)
+
+    public get closed(): boolean {
+        return this.#closed;
+    }
 
     public get enableRotation(): boolean {
         return this.#enableRotation;
@@ -132,9 +141,9 @@ export class Gumball implements IGumball {
         return this.#space;
     }
 
-    // #endregion Public Getters And Setters (13)
+    // #endregion Public Getters And Setters (14)
 
-    // #region Public Methods (1)
+    // #region Public Methods (10)
 
     public close(): void {
         this.#parentObject.remove(this.#transformControls);
@@ -143,14 +152,91 @@ export class Gumball implements IGumball {
         this.#transformControls.dispose();
         this.#viewport.threeJsCoreObjects.scene.remove(this.#parentObject);
 
-        if (this.#tokenContinuousRendering) this.#viewport.removeFlag(this.#tokenContinuousRendering);
-        if (this.#tokenContinuousShadowMapUpdate) this.#viewport.removeFlag(this.#tokenContinuousShadowMapUpdate);
+        this.#viewport.removeCanvasEventListener(this.#canvasEventListenerToken);
+        if (this.#continuousRenderingFlag) this.#viewport.removeFlag(this.#continuousRenderingFlag);
+        if (this.#continuousShadowMapUpdateFlag) this.#viewport.removeFlag(this.#continuousShadowMapUpdateFlag);
         if (this.#cameraFreezeFlag) this.#viewport.removeFlag(this.#cameraFreezeFlag);
     }
 
-    // #endregion Public Methods (1)
+    public keyPressed(key: string | string[]): boolean {
+        if (Array.isArray(key)) {
+            // check if one of the keys is pressed
+            let result = false;
+            for (let i = 0; i < key.length; i++) {
+                result = result || this.keyPressCheck(key[i]);
+            }
+            return result;
+        } else {
+            return this.keyPressCheck(key);
+        }
+    }
 
-    // #region Private Methods (3)
+    public onKeyDown(event: KeyboardEvent): void {
+        if (this.closed) return;
+        this.#keysPressed[event.key] = true;
+    }
+
+    public onKeyUp(event: KeyboardEvent): void {
+        if (this.closed) return;
+        delete this.#keysPressed[event.key];
+    }
+
+    public onMouseWheel(event: WheelEvent): void {}
+
+    public onPointerDown(event: PointerEvent): void {}
+
+    public onPointerEnd(event: PointerEvent): void {}
+
+    public onPointerMove(event: PointerEvent): void {
+        if (this.closed) return;
+
+        if (!this.#continuousRenderingFlag)
+            this.#continuousRenderingFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
+        if (!this.#continuousShadowMapUpdateFlag)
+            this.#continuousShadowMapUpdateFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE);
+    }
+
+    public onPointerOut(event: PointerEvent): void {
+        if (this.closed) return;
+
+        if (this.#continuousRenderingFlag) {
+            this.#viewport.removeFlag(this.#continuousRenderingFlag);
+            this.#continuousRenderingFlag = undefined;
+        }
+        if (this.#continuousShadowMapUpdateFlag) {
+            this.#viewport.removeFlag(this.#continuousShadowMapUpdateFlag);
+            this.#continuousShadowMapUpdateFlag = undefined;
+        }
+        this.#viewport.render();
+    }
+
+    public onPointerUp(event: PointerEvent): void {}
+
+    // #endregion Public Methods (10)
+
+    // #region Private Methods (4)
+
+    private keyPressCheck(key: string): boolean {
+        const pressedKeys = Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
+
+        // check if it the only key that is pressed
+        if (key.includes('+') && key.length > 1) {
+            const keys = key.split('+');
+
+            // there are more keys pressed than the keys in the combination
+            if (keys.length !== pressedKeys.length) return false;
+            let result = true;
+            for (let i = 0; i < keys.length; i++)
+                result = result && (this.#keysPressed[keys[i]] || false);
+
+            return result;
+        } else {
+            // there are also other keys pressed
+            if (pressedKeys.length > 1) return false;
+
+            return this.#keysPressed[key] || false;
+        }
+    }
 
     private setup() {
         // assign the position to the transformation controls objects
@@ -217,15 +303,6 @@ export class Gumball implements IGumball {
                 this.#cameraFreezeFlag = undefined;
             }
         });
-
-        // register the CONTINUOUS_RENDERING to continuously render the scene
-        this.#tokenContinuousRendering = this.#viewport.addFlag(
-            FLAG_TYPE.CONTINUOUS_RENDERING
-        );
-        // register the CONTINUOUS_SHADOW_MAP_UPDATE to continuously update the shadows
-        this.#tokenContinuousShadowMapUpdate = this.#viewport.addFlag(
-            FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE
-        );
     }
 
     private updateObjectMatrices() {
@@ -323,5 +400,5 @@ export class Gumball implements IGumball {
         }
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (4)
 }

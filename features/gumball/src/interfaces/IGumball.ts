@@ -1,3 +1,5 @@
+import { IDomEventListener } from '@shapediver/viewer';
+
 // #region Type aliases (2)
 
 export type Settings = {
@@ -14,7 +16,7 @@ export type SettingsOptional = Partial<Settings>;
 
 // #region Interfaces (1)
 
-export interface IGumball {
+export interface IGumball extends IDomEventListener {
     // #region Properties (6)
 
     readonly reuseTransformation: boolean;
