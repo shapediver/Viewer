@@ -7,12 +7,12 @@ import {
     IViewportApi,
     sceneTree
 } from '@shapediver/viewer';
-import { IGumball } from '../interfaces/IGumball';
-import { mat4, vec3, quat } from 'gl-matrix';
+import { IGumball, SettingsOptional } from '../interfaces/IGumball';
+import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 
 export class Gumball implements IGumball {
-    // #region Properties (17)
+    // #region Properties (20)
 
     readonly #node: ITreeNode | undefined;
     readonly #nodes: ITreeNode[] | undefined;
@@ -25,23 +25,25 @@ export class Gumball implements IGumball {
     #enableRotation: boolean = true;
     #enableScaling: boolean = true;
     #enableTranslation: boolean = true;
+    #initialMatrix: mat4 = mat4.create();
     #initialOffset: vec3 = vec3.create();
     #matrix: mat4 = mat4.create();
+    #previousGumballMatrix: mat4 | mat4[] | undefined = undefined;
+    #resetTransformation: boolean;
     #scale: number = 0.005;
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
     #tokenContinuousRendering?: string;
     #tokenContinuousShadowMapUpdate?: string;
-    #initialMatrix: mat4 = mat4.create();
 
-    // #endregion Properties (17)
+    // #endregion Properties (20)
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, nodeOrNodes: ITreeNode | ITreeNode[]) {
+    constructor(viewport: IViewportApi, nodeOrNodes: ITreeNode | ITreeNode[], settings?: SettingsOptional) {
         this.#viewport = viewport;
         if (Array.isArray(nodeOrNodes)) {
-            if(nodeOrNodes.length === 1) {
+            if (nodeOrNodes.length === 1) {
                 this.#node = nodeOrNodes[0];
             } else {
                 this.#nodes = nodeOrNodes;
@@ -58,6 +60,16 @@ export class Gumball implements IGumball {
         );
 
         this.setup();
+
+        this.enableRotation = settings?.enableRotation ?? true;
+        this.enableScaling = settings?.enableScaling ?? false;
+        this.enableTranslation = settings?.enableTranslation ?? true;
+        this.scale = settings?.scale ?? 0.005;
+        // we don't allow to change the space for now
+        this.#space = settings?.space ?? 'local';
+        this.#transformControls.space = this.#space;
+        // we don't allow to change the resetTransformation for now
+        this.#resetTransformation = settings?.resetTransformation ?? false;
     }
 
     // #endregion Constructors (1)
@@ -95,6 +107,10 @@ export class Gumball implements IGumball {
         return this.#matrix;
     }
 
+    public get resetTransformation(): boolean {
+        return this.#resetTransformation;
+    }
+
     public get scale(): number {
         return this.#scale;
     }
@@ -117,11 +133,6 @@ export class Gumball implements IGumball {
         return this.#space;
     }
 
-    public set space(value: 'local' | 'world') {
-        this.#space = value;
-        this.#transformControls.space = value;
-    }
-
     // #endregion Public Getters And Setters (13)
 
     // #region Public Methods (1)
@@ -140,29 +151,49 @@ export class Gumball implements IGumball {
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (2)
+    // #region Private Methods (3)
 
     private setup() {
         // assign the position to the transformation controls objects
         if (this.#node) {
-            const translation = mat4.getTranslation(vec3.create(), this.#node.worldMatrix);
-            const rotation = mat4.getRotation(quat.create(), this.#node.worldMatrix);
-            const scale = mat4.getScaling(vec3.create(), this.#node.worldMatrix);
+            this.#initialMatrix = mat4.clone(this.#node.worldMatrix);
 
-            mat4.copy(this.#initialMatrix, this.#node.worldMatrix);
-            vec3.copy(this.#initialOffset, this.#node.boundingBox.boundingSphere.center);
+            const trueBB = new Box();
+            this.#node.traverseData(d => {
+                if (d instanceof GeometryData) {
+                    trueBB.union(d.boundingBox);
+                }
+            });
+            this.#initialOffset = vec3.clone(trueBB.boundingSphere.center);
+
+            const index = this.#node.transformations.findIndex(t => t.id === 'SD_gumball_matrix');
+            if (index !== -1) {
+                this.#previousGumballMatrix = mat4.clone(this.#node.transformations[index].matrix);
+            }
+
+            this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset)));
+            this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().fromArray(this.#initialMatrix));
+
         } else if (this.#nodes) {
             const boundingBox = new Box();
+            this.#previousGumballMatrix = [];
             for (const node of this.#nodes) {
                 boundingBox.union(node.boundingBox);
+
+                const index = node.transformations.findIndex(t => t.id === 'SD_gumball_matrix');
+                if (index !== -1) {
+                    this.#previousGumballMatrix.push(mat4.clone(node.transformations[index].matrix));
+                } else {
+                    this.#previousGumballMatrix.push(mat4.create());
+                }
             }
             vec3.copy(this.#initialOffset, boundingBox.boundingSphere.center);
+            this.#transformationControlsPlaceholder.position.set(
+                this.#initialOffset[0],
+                this.#initialOffset[1],
+                this.#initialOffset[2]
+            );
         }
-        this.#transformationControlsPlaceholder.position.set(
-            this.#initialOffset[0],
-            this.#initialOffset[1],
-            this.#initialOffset[2]
-        );
 
         this.#transformControls.attach(this.#transformationControlsPlaceholder);
 
@@ -193,56 +224,77 @@ export class Gumball implements IGumball {
         );
     }
 
-    private updateObjects() {
+    private updateObjectMatrices() {
         const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
             .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
 
-        const applyTransformation = (node: ITreeNode) => {
-            const threeJsObject: THREE.Object3D | undefined = node.convertedObject[this.#viewport.id] as THREE.Object3D;
-            if (threeJsObject) {
-                threeJsObject.matrixAutoUpdate = false;
-                threeJsObject.matrix.copy(m).multiply(new THREE.Matrix4().fromArray(this.#initialMatrix));
-                threeJsObject.matrixWorldNeedsUpdate = true;
-            }
-        };
+        this.#matrix = mat4.fromValues(...m.toArray());
+        const matrixId = 'SD_gumball_matrix';
 
         if (this.#node) {
-            applyTransformation(this.#node);
-        } else if (this.#nodes) {
-            this.#nodes.forEach(node => {
-                applyTransformation(node);
-            });
-        }
-    }
-
-    private updateObjectMatrices() {
-        const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
-        .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
-
-        this.#matrix = mat4.fromValues(...m.toArray());
-
-        const applyTransformation = (node: ITreeNode) => {
-            const matrixId = 'SD_gumball_matrix';
-            const transformation = node.transformations.find(t => t.id === matrixId);
+            const transformation = this.#node.transformations.find(t => t.id === matrixId);
             if (transformation) {
-                mat4.multiply(transformation.matrix, this.#matrix, this.#initialMatrix);
+                transformation.matrix = mat4.clone(this.#matrix);
             } else {
-                node.transformations.push({
+                this.#node.transformations.push({
                     id: matrixId,
                     matrix: mat4.clone(this.#matrix)
                 });
             }
-            node.updateVersion();
-        };
-
-        if (this.#node) {
-            applyTransformation(this.#node);
+            this.#node.updateVersion();
         } else if (this.#nodes) {
-            this.#nodes.forEach(node => {
-                applyTransformation(node);
+            this.#nodes.forEach((node, i) => {
+                const transformation = node.transformations.find(t => t.id === matrixId);
+
+                // in the case of multiple nodes, we need to apply the previous gumball matrix
+                // as this way we can ensure that the previous transformations are kept
+                const finalMatrix = mat4.clone(this.#matrix);
+                if ((this.#previousGumballMatrix as mat4[])[i]) {
+                    mat4.multiply(finalMatrix, this.#matrix, (this.#previousGumballMatrix as mat4[])[i]);
+                }
+
+                if (transformation) {
+                    transformation.matrix = finalMatrix;
+                } else {
+                    node.transformations.push({
+                        id: matrixId,
+                        matrix: finalMatrix
+                    });
+                }
+                node.updateVersion();
             });
         }
     }
 
-    // #endregion Private Methods (2)
+    private updateObjects() {
+        const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
+            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
+
+        if (this.#node) {
+            const threeJsObject: THREE.Object3D | undefined = this.#node.convertedObject[this.#viewport.id] as THREE.Object3D;
+            if (threeJsObject) {
+                threeJsObject.matrixAutoUpdate = false;
+                threeJsObject.matrix.copy(m);
+                threeJsObject.matrixWorldNeedsUpdate = true;
+            }
+        } else if (this.#nodes) {
+            this.#nodes.forEach((node, i) => {
+                const threeJsObject: THREE.Object3D | undefined = node.convertedObject[this.#viewport.id] as THREE.Object3D;
+                if (threeJsObject) {
+                    threeJsObject.matrixAutoUpdate = false;
+
+                    // in the case of multiple nodes, we need to apply the previous gumball matrix
+                    // as this way we can ensure that the previous transformations are kept
+                    if ((this.#previousGumballMatrix as mat4[])[i]) {
+                        threeJsObject.matrix.copy(new THREE.Matrix4().multiplyMatrices(m, new THREE.Matrix4().fromArray((this.#previousGumballMatrix as mat4[])[i])));
+                    } else {
+                        threeJsObject.matrix.copy(m);
+                    }
+                    threeJsObject.matrixWorldNeedsUpdate = true;
+                }
+            });
+        }
+    }
+
+    // #endregion Private Methods (3)
 }
