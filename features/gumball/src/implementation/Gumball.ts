@@ -13,7 +13,7 @@ import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 
 export class Gumball implements IGumball {
-    // #region Properties (22)
+    // #region Properties (26)
 
     readonly #keysPressed: { [key: string]: boolean } = {};
     readonly #node: ITreeNode | undefined;
@@ -28,18 +28,22 @@ export class Gumball implements IGumball {
     #closed: boolean = false;
     #continuousRenderingFlag?: string;
     #continuousShadowMapUpdateFlag?: string;
+    #currentPosition: THREE.Vector3 = new THREE.Vector3();
     #enableRotation: boolean = true;
     #enableScaling: boolean = true;
     #enableTranslation: boolean = true;
     #initialOffset: vec3 = vec3.create();
     #matrix: mat4 = mat4.create();
+    #moving: boolean = false;
+    #pivotDragging: boolean = false;
+    #pivotOffset: vec3 = vec3.create();
     #previousGumballMatrix: mat4[] | mat4 | undefined = undefined;
     #reuseTransformation: boolean = true;
     #scale: number = 0.005;
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
 
-    // #endregion Properties (22)
+    // #endregion Properties (26)
 
     // #region Constructors (1)
 
@@ -174,6 +178,16 @@ export class Gumball implements IGumball {
     public onKeyDown(event: KeyboardEvent): void {
         if (this.closed) return;
         this.#keysPressed[event.key] = true;
+
+        if (this.#moving === false && Object.values(this.#keysPressed).length === 1 && this.keyPressed('p') && this.#pivotDragging === false) {
+            this.#pivotDragging = true;
+            this.#transformControls.space = 'world';
+            this.#transformControls.enableTranslation = true;
+            this.#transformControls.enableRotation = false;
+            this.#transformControls.enableScaling = false;
+
+            this.#currentPosition = this.#transformationControlsPlaceholder.position.clone();
+        }
     }
 
     public onKeyUp(event: KeyboardEvent): void {
@@ -181,11 +195,19 @@ export class Gumball implements IGumball {
         delete this.#keysPressed[event.key];
     }
 
-    public onMouseWheel(event: WheelEvent): void {}
+    public onMouseWheel(event: WheelEvent): void { }
 
-    public onPointerDown(event: PointerEvent): void {}
+    public onPointerDown(event: PointerEvent): void {
+        if (this.closed) return;
 
-    public onPointerEnd(event: PointerEvent): void {}
+        this.#moving = true;
+    }
+
+    public onPointerEnd(event: PointerEvent): void {
+        if (this.closed) return;
+
+        this.#moving = false;
+    }
 
     public onPointerMove(event: PointerEvent): void {
         if (this.closed) return;
@@ -194,6 +216,24 @@ export class Gumball implements IGumball {
             this.#continuousRenderingFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
         if (!this.#continuousShadowMapUpdateFlag)
             this.#continuousShadowMapUpdateFlag = this.#viewport.addFlag(FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE);
+
+        if (this.#moving === false && Object.values(this.#keysPressed).length === 1 && this.keyPressed('p') && this.#pivotDragging === false) {
+            this.#pivotDragging = true;
+            this.#transformControls.space = 'world';
+            this.#transformControls.enableTranslation = true;
+            this.#transformControls.enableRotation = false;
+            this.#transformControls.enableScaling = false;
+
+            this.#currentPosition = this.#transformationControlsPlaceholder.position.clone();
+        }
+
+        if (this.#pivotDragging === true && !this.keyPressed('p')) {
+            this.#pivotDragging = false;
+            this.#transformControls.space = this.#space;
+            this.#transformControls.enableTranslation = this.#enableTranslation;
+            this.#transformControls.enableRotation = this.#enableRotation;
+            this.#transformControls.enableScaling = this.#enableScaling;
+        }
     }
 
     public onPointerOut(event: PointerEvent): void {
@@ -208,9 +248,15 @@ export class Gumball implements IGumball {
             this.#continuousShadowMapUpdateFlag = undefined;
         }
         this.#viewport.render();
+
+        this.#moving = false;
     }
 
-    public onPointerUp(event: PointerEvent): void {}
+    public onPointerUp(event: PointerEvent): void {
+        if (this.closed) return;
+
+        this.#moving = false;
+    }
 
     // #endregion Public Methods (10)
 
@@ -306,64 +352,82 @@ export class Gumball implements IGumball {
     }
 
     private updateObjectMatrices() {
-        const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
-            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
+        if (this.#pivotDragging === true) {
+            const currentPosition = this.#transformationControlsPlaceholder.position.clone();
+            const delta = new THREE.Vector3().subVectors(this.#currentPosition, currentPosition);
 
-        this.#matrix = mat4.fromValues(...m.toArray());
-        const matrixId = 'SD_gumball_matrix';
+            this.#pivotOffset = vec3.add(this.#pivotOffset, this.#pivotOffset, vec3.fromValues(delta.x, delta.y, delta.z));
 
-        if (this.#node) {
-            if (this.reuseTransformation === true) {
-                const transformation = this.#node.transformations.find(t => t.id === matrixId);
-                if (transformation) {
-                    transformation.matrix = mat4.clone(this.#matrix);
+            this.#pivotDragging = false;
+            this.#transformControls.space = this.#space;
+            this.#transformControls.enableTranslation = this.#enableTranslation;
+            this.#transformControls.enableRotation = this.#enableRotation;
+            this.#transformControls.enableScaling = this.#enableScaling;
+
+        } else {
+            const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
+                .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))))
+                .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#pivotOffset.map(v => v))));
+
+            this.#matrix = mat4.fromValues(...m.toArray());
+            const matrixId = 'SD_gumball_matrix';
+
+            if (this.#node) {
+                if (this.reuseTransformation === true) {
+                    const transformation = this.#node.transformations.find(t => t.id === matrixId);
+                    if (transformation) {
+                        transformation.matrix = mat4.clone(this.#matrix);
+                    } else {
+                        this.#node.transformations.push({
+                            id: matrixId,
+                            matrix: mat4.clone(this.#matrix)
+                        });
+                    }
+                    this.#node.updateVersion();
                 } else {
-                    this.#node.transformations.push({
-                        id: matrixId,
-                        matrix: mat4.clone(this.#matrix)
-                    });
+                    const transformation = this.#node.transformations.find(t => t.id === matrixId);
+                    if (transformation) {
+                        mat4.multiply(transformation.matrix, this.#matrix, this.#previousGumballMatrix as mat4);
+                    } else {
+                        this.#node.transformations.push({
+                            id: matrixId,
+                            matrix: mat4.clone(this.#matrix)
+                        });
+                    }
+                    this.#node.updateVersion();
                 }
-                this.#node.updateVersion();
-            } else {
-                const transformation = this.#node.transformations.find(t => t.id === matrixId);
-                if (transformation) {
-                    mat4.multiply(transformation.matrix, this.#matrix, this.#previousGumballMatrix as mat4);
-                } else {
-                    this.#node.transformations.push({
-                        id: matrixId,
-                        matrix: mat4.clone(this.#matrix)
-                    });
-                }
-                this.#node.updateVersion();
+
+            } else if (this.#nodes) {
+                this.#nodes.forEach((node, i) => {
+                    const transformation = node.transformations.find(t => t.id === matrixId);
+
+                    // in the case of multiple nodes, we need to apply the previous gumball matrix
+                    // as this way we can ensure that the previous transformations are kept
+                    const finalMatrix = mat4.clone(this.#matrix);
+                    if (this.#previousGumballMatrix) {
+                        mat4.multiply(finalMatrix, this.#matrix, this.#previousGumballMatrix[i] as mat4);
+                    }
+
+                    if (transformation) {
+                        transformation.matrix = finalMatrix;
+                    } else {
+                        node.transformations.push({
+                            id: matrixId,
+                            matrix: finalMatrix
+                        });
+                    }
+                    node.updateVersion();
+                });
             }
-
-        } else if (this.#nodes) {
-            this.#nodes.forEach((node, i) => {
-                const transformation = node.transformations.find(t => t.id === matrixId);
-
-                // in the case of multiple nodes, we need to apply the previous gumball matrix
-                // as this way we can ensure that the previous transformations are kept
-                const finalMatrix = mat4.clone(this.#matrix);
-                if (this.#previousGumballMatrix) {
-                    mat4.multiply(finalMatrix, this.#matrix, this.#previousGumballMatrix[i] as mat4);
-                }
-
-                if (transformation) {
-                    transformation.matrix = finalMatrix;
-                } else {
-                    node.transformations.push({
-                        id: matrixId,
-                        matrix: finalMatrix
-                    });
-                }
-                node.updateVersion();
-            });
         }
     }
 
     private updateObjects() {
+        if (this.#pivotDragging === true) return;
+
         const m = new THREE.Matrix4().copy(this.#transformationControlsPlaceholder.matrix)
-            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))));
+            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset.map(v => -v))))
+            .multiply(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#pivotOffset.map(v => v))));
 
         if (this.#node) {
             if (this.reuseTransformation === true) {
