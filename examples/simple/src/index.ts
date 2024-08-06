@@ -58,7 +58,7 @@ import { createCustomUi, IBooleanElement } from '@shapediver/viewer.shared.demo-
         if (e.nodes.length > 0) {
             console.log('Create Gumball');
 
-            gumball = new Gumball(viewport, e.nodes);
+            gumball = new Gumball(viewport, e.nodes, { reuseTransformation: true });
             createCustomUi([
                 <IBooleanElement>{
                     name: 'enableTranslation',
