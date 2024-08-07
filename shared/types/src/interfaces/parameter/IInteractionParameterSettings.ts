@@ -18,6 +18,8 @@ export interface IGeneralInteractionParameterSettings {
 
     /** If the objects are hoverable. (default: true) */
     hover?: boolean,
+    /** The color of the objects when hovered. (default: '#00ff78') */
+    hoverColor?: string,
     /** The names of the objects that can be interacted with. (see Jira document and discussion result) */
     nameFilter?: string[]
 
@@ -46,6 +48,7 @@ export interface IInteractionParameterSettings {
 
 const IGeneralInteractionParameterJsonSchema = z.object({
     hover: z.boolean().optional(),
+    hoverColor: z.string().optional(),
     nameFilter: z.array(z.string()).optional(),
 });
 
@@ -54,6 +57,7 @@ const ISelectionParameterJsonSchema = z.object({
     props: z.object({
         maximumSelection: z.number().optional(),
         minimumSelection: z.number().optional(),
+        selectionColor: z.string().optional(),
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
 const IGumballParameterJsonSchema = z.object({
@@ -64,6 +68,7 @@ const IGumballParameterJsonSchema = z.object({
         enableTranslation: z.boolean().optional(),
         scale: z.number().optional(),
         space: z.literal('local').or(z.literal('world')).optional(),
+        selectionColor: z.string().optional(),
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
 

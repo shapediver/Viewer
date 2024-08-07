@@ -20,6 +20,8 @@ export interface ISelectionParameterSettings extends IGeneralInteractionParamete
     maximumSelection?: number,
     /** The minimum number of objects that can be selected. (default: 1) */
     minimumSelection?: number,
+    /** The color of the objects when selected. (default: '#0d44f0') */
+    selectionColor?: string,
 
     // #endregion Properties (2)
 }

@@ -27,6 +27,8 @@ export interface IGumballParameterSettings extends IGeneralInteractionParameterS
     scale?: number,
     /** The space in which the controls operate. In world space, scaling is not available. (default: 'local') */
     space?: 'local' | 'world',
+    /** The color of the objects when selected. (default: '#0d44f0') */
+    selectionColor?: string,
 
     // #endregion Properties (5)
 }
