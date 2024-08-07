@@ -71,6 +71,7 @@ class TransformControls extends Object3D {
     private _parentQuaternion: Quaternion;
     private _parentQuaternionInv: Quaternion = new Quaternion();
     private _parentScale: Vector3;
+    private _pivotDragged: boolean = false;
     private _plane: TransformControlsPlane;
     private _pointEnd: Vector3 = new Vector3();
     private _pointStart: Vector3 = new Vector3();
@@ -249,6 +250,14 @@ class TransformControls extends Object3D {
 
     public set object(value: Object3D | undefined) {
         this._object = value;
+    }
+
+    public get pivotDragged(): boolean {
+        return this._pivotDragged;
+    }
+
+    public set pivotDragged(value: boolean) {
+        this._pivotDragged = value;
     }
 
     public get pointEnd(): Vector3 {
@@ -1336,7 +1345,7 @@ class TransformControlsGizmo extends Object3D {
                 factor = this._transformControls.worldPosition.distanceTo(this._transformControls.cameraPosition) * Math.min(1.9 * Math.tan(Math.PI * (this._transformControls.camera as PerspectiveCamera).fov / 360) / (this._transformControls.camera as PerspectiveCamera).zoom, 7);
             }
 
-            handle.object.scale.set(1, 1, 1).multiplyScalar(factor * this._transformControls.size / 4);
+            handle.object.scale.set(1, 1, 1).multiplyScalar(factor * this._transformControls.size);
 
             // TODO: simplify helpers and consider decoupling from gizmo
 
@@ -1528,6 +1537,9 @@ class TransformControlsGizmo extends Object3D {
                         handle.object.material.color.setHex(0xffff00);
                         handle.object.material.opacity = 1.0;
                     }
+                } else if(this._transformControls.enabled && this._transformControls.pivotDragged) {
+                    handle.object.material.color.setHex(0xffff00);
+                    handle.object.material.opacity = 1.0;
                 }
             }
         }

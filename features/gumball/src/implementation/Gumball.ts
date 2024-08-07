@@ -41,7 +41,7 @@ export class Gumball implements IGumball {
     #pivotOffset: mat4 = mat4.create();
     #previousGumballMatrix: mat4[] = [];
     #reuseTransformation: boolean = true;
-    #scale: number = 0.005;
+    #scale: number = 0.15;
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
 
@@ -65,7 +65,7 @@ export class Gumball implements IGumball {
         this.enableRotation = settings?.enableRotation ?? true;
         this.enableScaling = settings?.enableScaling ?? false;
         this.enableTranslation = settings?.enableTranslation ?? true;
-        this.scale = settings?.scale ?? 0.005;
+        this.scale = settings?.scale ?? 0.15;
         // we don't allow to change the space for now
         this.#space = settings?.space ?? 'local';
         this.#transformControls.space = this.#space;
@@ -182,6 +182,10 @@ export class Gumball implements IGumball {
     public onKeyUp(event: KeyboardEvent): void {
         if (this.closed) return;
         delete this.#keysPressed[event.key];
+        
+        if (this.#pivotDragging === true && !this.keyPressed('p')) {
+            this.deactivatePivotDragging();
+        }
     }
 
     public onMouseWheel(event: WheelEvent): void { }
@@ -243,6 +247,8 @@ export class Gumball implements IGumball {
 
     private activatePivotDragging() {
         this.#pivotDragging = true;
+
+        this.#transformControls.pivotDragged = true;
         this.#transformControls.enableTranslation = true;
         this.#transformControls.enableRotation = false;
         this.#transformControls.enableScaling = false;
@@ -262,6 +268,8 @@ export class Gumball implements IGumball {
 
     private deactivatePivotDragging() {
         this.#pivotDragging = false;
+
+        this.#transformControls.pivotDragged = false;
         this.#transformControls.enableTranslation = this.#enableTranslation;
         this.#transformControls.enableRotation = this.#enableRotation;
         this.#transformControls.enableScaling = this.#enableScaling;
@@ -359,9 +367,7 @@ export class Gumball implements IGumball {
         }
 
         this.#transformControls.attach(this.#transformationControlsPlaceholder);
-
-        const size = sceneTree.root.boundingBox.boundingSphere.radius * 0.005;
-        this.#transformControls.setSize(size);
+        this.#transformControls.setSize(this.#scale);
         this.#parentObject.add(this.#transformControls);
         this.#parentObject.add(this.#transformationControlsPlaceholder);
         this.#viewport.threeJsCoreObjects.scene.add(this.#parentObject);
