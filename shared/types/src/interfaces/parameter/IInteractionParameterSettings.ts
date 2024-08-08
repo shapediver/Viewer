@@ -52,7 +52,7 @@ const IGeneralInteractionParameterJsonSchema = z.object({
     nameFilter: z.array(z.string()).optional(),
 });
 
-const ISelectionParameterJsonSchema = z.object({
+export const ISelectionParameterJsonSchema = z.object({
     type: z.literal('selection'),
     props: z.object({
         maximumSelection: z.number().optional(),
@@ -60,7 +60,7 @@ const ISelectionParameterJsonSchema = z.object({
         selectionColor: z.string().optional(),
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
-const IGumballParameterJsonSchema = z.object({
+export const IGumballParameterJsonSchema = z.object({
     type: z.literal('gumball'),
     props: z.object({
         enableRotation: z.boolean().optional(),
@@ -72,7 +72,7 @@ const IGumballParameterJsonSchema = z.object({
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
 
-const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema);
+export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema);
 
 export const validateInteractionParameterSettings = (param: unknown) => {
     return IInteractionParameterJsonSchema.safeParse(param);

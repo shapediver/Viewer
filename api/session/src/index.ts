@@ -26,8 +26,10 @@ import {
     ICustomData,
     IGeneralInteractionParameterSettings,
     IGeometryData,
+    IGumballParameterJsonSchema,
     IGumballParameterSettings,
     IHTMLElementAnchorData,
+    IInteractionParameterJsonSchema,
     IInteractionParameterSettings,
     IMapData,
     IMaterialAbstractData,
@@ -59,6 +61,7 @@ import {
     ISDTFItemData,
     ISDTFOverview,
     ISDTFOverviewData,
+    ISelectionParameterJsonSchema,
     ISelectionParameterSettings,
     ISessionEvent,
     ISessionSettingsSections,
@@ -214,7 +217,7 @@ import {
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
-export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, validateGumballParameterSettings };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };

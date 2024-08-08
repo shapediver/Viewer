@@ -29,7 +29,7 @@ import {
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
-import { IGeneralInteractionParameterSettings, IInteractionParameterSettings, InteractionParameterSettingsType, validateGumballParameterSettings, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
+import { IGeneralInteractionParameterSettings, IGumballParameterJsonSchema, IInteractionParameterJsonSchema, IInteractionParameterSettings, InteractionParameterSettingsType, ISelectionParameterJsonSchema, validateGumballParameterSettings, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
 import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
@@ -118,7 +118,7 @@ export {
 };
 
 export {
-  InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings,
-  ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, validateSelectionParameterSettings,
-  IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, validateGumballParameterSettings
+  InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
+  ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
+  IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings
 };
