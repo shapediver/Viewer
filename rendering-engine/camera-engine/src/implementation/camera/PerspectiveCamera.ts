@@ -36,8 +36,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   // #region Constructors (1)
 
-  constructor(id: string, version?: string, initialAspect?: number) {
-    super(id, CAMERA_TYPE.PERSPECTIVE, version);
+  constructor(id: string, version?: string, initialAspect?: number, isDefault: boolean = false) {
+    super(id, CAMERA_TYPE.PERSPECTIVE, version, isDefault);
     this.#aspect = initialAspect;
     this._controls = new PerspectiveCameraControls(this, true);
   }

@@ -260,6 +260,10 @@ export abstract class AbstractCameraApi implements ICameraApi {
         return this.#camera.id;
     }
 
+    public get isDefault(): boolean {
+        return this.#camera.isDefault;
+    }
+
     public get keyPanSpeed(): number {
         return this.#camera.controls.keyPanSpeed;
     }

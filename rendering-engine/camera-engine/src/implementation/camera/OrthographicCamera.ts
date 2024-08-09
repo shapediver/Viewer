@@ -37,8 +37,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   // #region Constructors (1)
 
-  constructor(id: string, version?: string) {
-    super(id, CAMERA_TYPE.ORTHOGRAPHIC, version);
+  constructor(id: string, version?: string, isDefault: boolean = false) {
+    super(id, CAMERA_TYPE.ORTHOGRAPHIC, version, isDefault);
     this._controls = new OrthographicCameraControls(this, true);
   }
 

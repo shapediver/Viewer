@@ -152,14 +152,14 @@ export class CameraEngine implements ICameraEngine {
         return true;
     }
 
-    public createCamera(type: CAMERA_TYPE, id?: string): ICamera {
+    public createCamera(type: CAMERA_TYPE, id?: string, isDefault: boolean = false): ICamera {
         const cameras = this.cameras;
         const cameraId = id || this._uuidGenerator.create();
         if (cameras[cameraId])
             throw new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
 
         const initialAspectRatio = (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientWidth / (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientHeight;
-        const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId, undefined, initialAspectRatio) : new OrthographicCamera(cameraId);
+        const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId, undefined, initialAspectRatio, isDefault) : new OrthographicCamera(cameraId, undefined, isDefault);
         camera.assignViewer(this._renderingEngine);
 
         cameras[cameraId] = camera;
@@ -175,17 +175,17 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public createDefaultCameras(): void {
-        const topCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'top');
+        const topCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'top', true);
         topCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
-        const bottomCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'bottom');
+        const bottomCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'bottom', true);
         bottomCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
-        const leftCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'left');
+        const leftCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'left', true);
         leftCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
-        const rightCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'right');
+        const rightCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'right', true);
         rightCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
-        const frontCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'front');
+        const frontCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'front', true);
         frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
-        const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back');
+        const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back', true);
         backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
         this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'orthographic');
         const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');

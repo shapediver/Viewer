@@ -13,6 +13,7 @@ export interface ICamera extends ITreeNodeData {
     readonly controls: ICameraControls;
     readonly id: string;
     readonly type: CAMERA_TYPE;
+    readonly isDefault: boolean;
 
     active: boolean;
     autoAdjust: boolean;
