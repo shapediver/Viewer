@@ -167,6 +167,7 @@ import {
 } from '@shapediver/viewer.shared.services';
 import { IExportApi } from './interfaces/IExportApi';
 import { IFileParameterApi } from './interfaces/parameter/IFileParameterApi';
+import { IGumballParameterApi } from './interfaces/parameter/IGumballParameterApi';
 import {
     IMaterialContentDataV1,
     IMaterialContentDataV2,
@@ -216,7 +217,7 @@ import {
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi };
 export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 

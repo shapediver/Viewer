@@ -4,7 +4,7 @@ import {
     latestVersion,
     validate,
     versions
-    } from '@shapediver/viewer.settings';
+} from '@shapediver/viewer.settings';
 import {
     create,
     isGBResponseError,
@@ -23,7 +23,7 @@ import {
     ShapeDiverResponseParameter,
     ShapeDiverSdk,
     ShapeDiverSdkConfigType
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
     EventEngine,
     EVENTTYPE,
@@ -38,12 +38,12 @@ import {
     StateEngine,
     SystemInfo,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { Export } from './dto/Export';
 import { FileParameter } from './dto/FileParameter';
+import { GumballParameter } from './dto/interaction/GumballParameter';
 import { IExport } from '../interfaces/dto/IExport';
 import { IFileParameter } from '../interfaces/dto/IFileParameter';
-import { IOutput } from '../interfaces/dto/IOutput';
 import {
     IInteractionParameterSettings,
     IOutputEvent,
@@ -52,7 +52,8 @@ import {
     PARAMETER_TYPE,
     TASK_TYPE,
     validateInteractionParameterSettings
-    } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
+import { IOutput } from '../interfaces/dto/IOutput';
 import { IParameter } from '../interfaces/dto/IParameter';
 import { ISessionEngine } from '../interfaces/ISessionEngine';
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
@@ -61,7 +62,7 @@ import {
     ITreeNode,
     Tree,
     TreeNode
-    } from '@shapediver/viewer.shared.node-tree';
+} from '@shapediver/viewer.shared.node-tree';
 import { Output } from './dto/Output';
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader, OutputLoaderTaskEventInfo } from './OutputLoader';
@@ -235,7 +236,7 @@ export class SessionEngine implements ISessionEngine {
 
     public set loadSdtf(value: boolean) {
         this._loadSdtf = value;
-        if(this._initialized === true && this._loadSdtf === true) {
+        if (this._initialized === true && this._loadSdtf === true) {
             (async () => {
                 this._outputLoader.reloadSdtf = true;
                 await this.updateOutputs();
@@ -1367,9 +1368,9 @@ export class SessionEngine implements ISessionEngine {
                     parameterValues[parameterId] = fileParameterValues[parameterId];
 
                     // if the parameter value of the file parameter was used, set the value to the parameter
-                    if(parameterValues[parameterId] === undefined && this.parameters[parameterId].value !== fileParameterValues[parameterId]) 
+                    if (parameterValues[parameterId] === undefined && this.parameters[parameterId].value !== fileParameterValues[parameterId])
                         this.parameters[parameterId].value = fileParameterValues[parameterId];
-                } else if(this.parameters[parameterId].value !== fileParameterValues[parameterId]) {
+                } else if (this.parameters[parameterId].value !== fileParameterValues[parameterId]) {
                     this.parameters[parameterId].value = fileParameterValues[parameterId];
                 }
             }
@@ -1549,6 +1550,8 @@ export class SessionEngine implements ISessionEngine {
             switch ((parameter.settings as IInteractionParameterSettings).type) {
                 case 'selection':
                     return new SelectionParameter(parameter, this);
+                case 'gumball':
+                    return new GumballParameter(parameter, this);
             }
         } else {
             this._logger.warn(`SessionEngine.createInteractionParameter: The value ${parameter.settings} is not a valid InteractionParameter: ${result.error.message}`);
@@ -1729,7 +1732,7 @@ export class SessionEngine implements ISessionEngine {
 
             /**
              * 
-             * REMOVE THIS LOGIC
+             * REMOVE THIS LOGIC - START
              * 
              */
             const fakeSelectionParameterName = 'FAKE_SELECTION_PARAMETER';
@@ -1741,12 +1744,25 @@ export class SessionEngine implements ISessionEngine {
                 const name = nameStartsWithFakeSelectionParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
                 const urlParams = new URLSearchParams(name.replace(fakeSelectionParameterName + '?', ''));
                 const jsonString = urlParams.get('settings');
-                if(jsonString)
+                if (jsonString)
+                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString);
+            }
+
+            const fakeGumballParameterName = 'FAKE_GUMBALL_PARAMETER';
+            const nameStartsWithFakeGumballParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeGumballParameterName);
+            const displaynameStartsWithFakeGumballParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeGumballParameterName);
+
+            if (nameStartsWithFakeGumballParameter || displaynameStartsWithFakeGumballParameter) {
+                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.INTERACTION;
+                const name = nameStartsWithFakeGumballParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
+                const urlParams = new URLSearchParams(name.replace(fakeGumballParameterName + '?', ''));
+                const jsonString = urlParams.get('settings');
+                if (jsonString)
                     this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString);
             }
             /**
              * 
-             * REMOVE THIS LOGIC
+             * REMOVE THIS LOGIC - END
              * 
              */
 

@@ -2,7 +2,6 @@ import {
     IInteractionParameterSettings,
     InteractionParameterSettingsType,
     ISelectionParameterSettings,
-    validateInteractionParameterSettings,
     validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
 import { ISelectionParameter } from '../../../interfaces/dto/interaction/ISelectionParameter';
@@ -26,7 +25,7 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (5)
+    // #region Public Getters And Setters (6)
 
     public get hover(): boolean | undefined {
         return this.getSelectionProperties()?.hover;
@@ -48,7 +47,11 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
         return this.getSelectionProperties()?.nameFilter;
     }
 
-    // #endregion Public Getters And Setters (5)
+    public get selectionColor(): string | undefined {
+        return this.getSelectionProperties()?.selectionColor;
+    }
+
+    // #endregion Public Getters And Setters (6)
 
     // #region Private Methods (1)
 
