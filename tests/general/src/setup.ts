@@ -16,7 +16,10 @@ export const screenshotCompare = async (image: any, name: string) => {
 
 export const createDriver = async (): Promise<webdriver.WebDriver> => {
 
-    const tempDriver1 = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
+    const opt = new Options();
+    opt.addArguments('--disable-search-engine-choice-screen');
+
+    const tempDriver1 = await new webdriver.Builder().setChromeOptions(opt).withCapabilities(webdriver.Capabilities.chrome()).build();
     await tempDriver1.navigate().to('https://viewer.shapediver.com/v3/latest/test-cdn/index.html')
     const dpr: number = await tempDriver1.executeAsyncScript(async (cb: any) => {
         cb((<any>window).devicePixelRatio);
@@ -24,7 +27,6 @@ export const createDriver = async (): Promise<webdriver.WebDriver> => {
     await tempDriver1.close();
     await tempDriver1.quit();
 
-    const opt = new Options();
     opt.excludeSwitches('enable-automation');
     const dprSize = {width: 1920/dpr, height: 1080/dpr};
     opt.windowSize(dprSize);
