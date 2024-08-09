@@ -1,15 +1,21 @@
 import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import { ExportApi } from './ExportApi';
-import { FileParameter, SelectionParameter, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import {
+    FileParameter,
+    GumballParameter,
+    SelectionParameter,
+    SessionEngine
+} from '@shapediver/viewer.session-engine.session-engine';
 import { FileParameterApi } from './parameter/FileParameterApi';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
+import { GumballParameterApi } from './parameter/GumballParameterApi';
 import { IExportApi } from '../interfaces/IExportApi';
 import {
     InputValidator,
     Logger,
     ShapeDiverViewerSessionError,
     StateEngine
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { IOutputApi } from '../interfaces/IOutputApi';
 import { IParameterApi } from '../interfaces/parameter/IParameterApi';
 import { ISessionApi } from '../interfaces/ISessionApi';
@@ -60,8 +66,10 @@ export class SessionApi implements ISessionApi {
         for (const p in this.#sessionEngine.parameters) {
             if (this.#sessionEngine.parameters[p] instanceof FileParameter) {
                 this.#parameters[p] = new FileParameterApi(<FileParameter>this.#sessionEngine.parameters[p]);
-            } if(this.#sessionEngine.parameters[p] instanceof SelectionParameter) {
+            } if (this.#sessionEngine.parameters[p] instanceof SelectionParameter) {
                 this.#parameters[p] = new SelectionParameterApi(<SelectionParameter>this.#sessionEngine.parameters[p]);
+            } else if (this.#sessionEngine.parameters[p] instanceof GumballParameter) {
+                this.#parameters[p] = new GumballParameterApi(<GumballParameter>this.#sessionEngine.parameters[p]);
             } else {
                 this.#parameters[p] = new ParameterApi(this.#sessionEngine.parameters[p]);
             }
@@ -70,7 +78,7 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (28)
+    // #region Public Getters And Setters (29)
 
     public get automaticSceneUpdate(): boolean {
         return this.#sessionEngine.automaticSceneUpdate;
@@ -225,9 +233,9 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
-    // #endregion Public Getters And Setters (28)
+    // #endregion Public Getters And Setters (29)
 
-    // #region Public Methods (31)
+    // #region Public Methods (30)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -404,8 +412,8 @@ export class SessionApi implements ISessionApi {
     public async uploadFileParameters(values: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }> {
         const fileParameters: { [key: string]: string | File | Blob } = values || {};
         const fileParameterIds = await this.#sessionEngine.uploadFileParameters(fileParameters);
-        return fileParameterIds; 
+        return fileParameterIds;
     }
 
-    // #endregion Public Methods (31)
+    // #endregion Public Methods (30)
 }

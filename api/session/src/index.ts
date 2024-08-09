@@ -12,6 +12,7 @@ import {
     CustomData,
     EventResponseMapping,
     GeometryData,
+    GumballParameterValue,
     HTMLElementAnchorCustomData,
     HTMLElementAnchorData,
     HTMLElementAnchorImageData,
@@ -25,7 +26,10 @@ import {
     ICustomData,
     IGeneralInteractionParameterSettings,
     IGeometryData,
+    IGumballParameterJsonSchema,
+    IGumballParameterSettings,
     IHTMLElementAnchorData,
+    IInteractionParameterJsonSchema,
     IInteractionParameterSettings,
     IMapData,
     IMaterialAbstractData,
@@ -57,10 +61,12 @@ import {
     ISDTFItemData,
     ISDTFOverview,
     ISDTFOverviewData,
+    ISelectionParameterJsonSchema,
     ISelectionParameterSettings,
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
+    isInteractionGumballParameterSettings,
     isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
@@ -88,9 +94,11 @@ import {
     SDTFItemData,
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
+    SelectionParameterValue,
     TASK_TYPE,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
+    validateGumballParameterSettings,
     validateInteractionParameterSettings,
     validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
@@ -159,6 +167,7 @@ import {
 } from '@shapediver/viewer.shared.services';
 import { IExportApi } from './interfaces/IExportApi';
 import { IFileParameterApi } from './interfaces/parameter/IFileParameterApi';
+import { IGumballParameterApi } from './interfaces/parameter/IGumballParameterApi';
 import {
     IMaterialContentDataV1,
     IMaterialContentDataV2,
@@ -208,8 +217,8 @@ import {
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi };
-export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, validateInteractionParameterSettings, ISelectionParameterSettings, isInteractionSelectionParameterSettings, validateSelectionParameterSettings };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi };
+export { InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings, ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings, IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };

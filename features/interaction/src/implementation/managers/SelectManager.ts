@@ -10,12 +10,12 @@ import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 
 export class SelectManager extends AbstractInteractionManager {
-    // #region Properties (9)
+    // #region Properties (11)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
 
-    #deselectOnEmpty: boolean = true;
+    #deselectOnEmpty: boolean = false;
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.DOWN) {
@@ -36,21 +36,17 @@ export class SelectManager extends AbstractInteractionManager {
     #groupedNodes?: ITreeNode[];
     #intersection: IIntersection | null = null;
     #node: ITreeNode | null = null;
+    #removalKey = 'Control';
+    #useModifierKeys: boolean = false;
 
-    // #endregion Properties (9)
+    // #endregion Properties (11)
 
-    // #region Public Getters And Setters (3)
+    // #region Public Getters And Setters (7)
 
-    /**
-     * Deselect the selected node when clicking on an empty space in the Viewport.
-     */
     public get deselectOnEmpty(): boolean {
         return this.#deselectOnEmpty;
     }
 
-    /**
-     * Deselect the selected node when clicking on an empty space in the Viewport.
-     */
     public set deselectOnEmpty(value: boolean) {
         this.#deselectOnEmpty = value;
     }
@@ -59,7 +55,23 @@ export class SelectManager extends AbstractInteractionManager {
         return this.#filter;
     }
 
-    // #endregion Public Getters And Setters (3)
+    public get removalKey(): string {
+        return this.#removalKey;
+    }
+
+    public set removalKey(value: string) {
+        this.#removalKey = value;
+    }
+
+    public get useModifierKeys(): boolean {
+        return this.#useModifierKeys;
+    }
+
+    public set useModifierKeys(value: boolean) {
+        this.#useModifierKeys = value;
+    }
+
+    // #endregion Public Getters And Setters (7)
 
     // #region Public Methods (7)
 
@@ -78,22 +90,42 @@ export class SelectManager extends AbstractInteractionManager {
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.DOWN)(i.node));
-
-        if (this.#node) {
-            if (intersections.length > 0 && intersection[0].node !== this.#node) {
-                // case other node was clicked, deselect then select
-                this.deactivateNode(event, true);
+        
+        if(this.#useModifierKeys === false) {
+            if (this.#node) {
+                if (intersections.length > 0 && intersection[0].node !== this.#node) {
+                    // case other node was clicked, deselect then select
+                    this.deactivateNode(event);
+                    this.activateNode(intersections[0], event, ray);
+                } else if (intersections.length > 0 && intersection[0].node === this.#node) {
+                    // case same node was clicked, only deselect
+                    this.deactivateNode(event);
+                } else if (intersections.length === 0 && this.#deselectOnEmpty) {
+                    // case no node was clicked, only deselect when option is on
+                    this.deactivateNode(event);
+                }
+            } else if (intersections.length > 0) {
+                // easy case, no node select, just select this one
                 this.activateNode(intersections[0], event, ray);
-            } else if (intersections.length > 0 && intersection[0].node === this.#node) {
-                // case same node was clicked, only deselect
-                this.deactivateNode(event);
-            } else if (intersections.length === 0 && this.#deselectOnEmpty) {
-                // case no node was clicked, only deselect when option is on
-                this.deactivateNode(event);
             }
-        } else if (intersections.length > 0) {
-            // easy case, no node select, just select this one
-            this.activateNode(intersections[0], event, ray);
+        } else {
+            const controlPressed = event.ctrlKey;
+            if (this.#node) {
+                if (intersections.length > 0 && intersection[0].node !== this.#node) {
+                    // case other node was clicked, deselect then select
+                    this.deactivateNode(event);
+                    this.activateNode(intersections[0], event, ray);
+                } else if (controlPressed && intersections.length > 0 && intersection[0].node === this.#node) {
+                    // case same node was clicked, only deselect
+                    this.deactivateNode(event);
+                } else if (intersections.length === 0 && this.#deselectOnEmpty) {
+                    // case no node was clicked, only deselect when option is on
+                    this.deactivateNode(event);
+                }
+            } else if (intersections.length > 0) {
+                // easy case, no node select, just select this one
+                this.activateNode(intersections[0], event, ray);
+            }
         }
     }
 

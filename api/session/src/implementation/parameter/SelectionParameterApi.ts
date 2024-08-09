@@ -41,5 +41,9 @@ export class SelectionParameterApi extends ParameterApi<string> implements ISele
         return this.#parameter.nameFilter;
     }
 
+    public get selectionColor(): string | undefined {
+        return this.#parameter.selectionColor;
+    }
+
     // #endregion Public Getters And Setters (5)
 }
