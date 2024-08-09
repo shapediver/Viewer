@@ -18,6 +18,10 @@ export interface ICameraApi {
      * The type of camera that is being used.
      */
     readonly type: CAMERA_TYPE;
+    /**
+     * If the camera is the default camera of the viewport.
+     */
+    readonly isDefault: boolean;
 
     /**
      * Option to automatically adjust the camera to the size of the scene whenever a call to 
