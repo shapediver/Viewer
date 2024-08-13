@@ -1,0 +1,22 @@
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IViewportEvent } from '@shapediver/viewer.shared.types';
+import { mat4 } from 'gl-matrix';
+
+/**
+ * Definition of the gumball event.
+ * These events are sent for gumball specific events ({@link EVENTTYPE_GUMBALL}).
+ */
+export interface IGumballEvent extends IViewportEvent {
+    // #region Properties (2)
+
+    /** 
+     * The currently used matrix.
+     */
+    matrix: mat4,
+    /** 
+     * All currently selected nodes. 
+     */
+    nodes: ITreeNode[],
+
+    // #endregion Properties (2)
+}

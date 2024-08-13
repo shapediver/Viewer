@@ -12,10 +12,12 @@ import {
 import { IGumball, SettingsOptional } from '../interfaces/IGumball';
 import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
+import { EventEngine, EVENTTYPE_GUMBALL } from '@shapediver/viewer.shared.services';
 
 export class Gumball implements IGumball {
     // #region Properties (27)
 
+    readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #keysPressed: { [key: string]: boolean } = {};
     readonly #matrixId: string = 'SD_gumball_matrix';
     readonly #nodes: ITreeNode[] = [];
@@ -406,6 +408,12 @@ export class Gumball implements IGumball {
                     });
                 }
                 node.updateVersion();
+            });
+
+            // emit the event
+            this.#eventEngine.emitEvent(EVENTTYPE_GUMBALL.MATRIX_CHANGED, {
+                matrix: mat4.clone(this.#matrix),
+                nodes: this.#nodes
             });
         }
     }

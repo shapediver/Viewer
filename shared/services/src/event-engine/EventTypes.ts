@@ -1,6 +1,6 @@
 // #region Type aliases (1)
 
-export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_OUTPUT | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_PARAMETER | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_DRAWING_TOOLS | typeof EVENTTYPE_TASK;
+export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_OUTPUT | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_PARAMETER | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_GUMBALL | typeof EVENTTYPE_DRAWING_TOOLS | typeof EVENTTYPE_TASK;
 
 // #endregion Type aliases (1)
 
@@ -94,6 +94,18 @@ export enum EVENTTYPE_DRAWING_TOOLS {
      * The UNCLOSED_LOOP-event is sent when the loop is not closed, but should be.
      */
     UNCLOSED_LOOP = 'drawing_tools.unclosedLoop',
+}
+
+/**
+ * Event types for all gumball events
+ * The gumball events are used to notify about gumball changes, like matrix changes.
+ * The events that are sent with the gumball events are of type {@link IGumballEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ */
+export enum EVENTTYPE_GUMBALL {
+    /**
+     * The MATRIX_CHANGED-event is sent when the matrix of the gumball has changed
+     */
+    MATRIX_CHANGED = 'gumball.matrixChanged',
 }
 
 /**
@@ -314,6 +326,7 @@ export const EVENTTYPE = {
     PARAMETER: EVENTTYPE_PARAMETER,
     VIEWPORT: EVENTTYPE_VIEWPORT,
     INTERACTION: EVENTTYPE_INTERACTION,
+    GUMBALL: EVENTTYPE_GUMBALL,
     TASK: EVENTTYPE_TASK,
     DRAWING_TOOLS: EVENTTYPE_DRAWING_TOOLS
 };
