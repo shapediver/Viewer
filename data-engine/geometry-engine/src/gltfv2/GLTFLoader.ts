@@ -281,6 +281,7 @@ export class GLTFLoader {
         if (!this._content.cameras[cameraId]) throw new Error('Cameras not available.');
         const cameraDef = this._content.cameras[cameraId];
         const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
+        cameraNode.originalName = cameraDef.name;
 
         let cameraData: PerspectiveCamera | OrthographicCamera;
         if (cameraDef.type === 'perspective') {
@@ -314,6 +315,7 @@ export class GLTFLoader {
         if (!this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId]) throw new Error('Light not available.');
         const lightDef = this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId];
         const lightNode = new TreeNode(lightDef.name || 'light_' + lightId);
+        lightNode.originalName = lightDef.name;
 
         let color: Color = '#ffffffff';
         if (lightDef.color !== undefined)
@@ -370,6 +372,7 @@ export class GLTFLoader {
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.');
         const node = this._content.nodes[nodeId];
         const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
+        nodeDef.originalName = node.name;
         this._nodes[nodeId] = nodeDef;
 
         if (node.matrix) {
@@ -445,6 +448,7 @@ export class GLTFLoader {
         if (!this._content.scenes[sceneId]) throw new Error('Scene not available.');
         const scene = this._content.scenes[sceneId];
         const sceneDef = new TreeNode(scene.name || 'scene_' + sceneId + '');
+        sceneDef.originalName = scene.name;
         sceneDef.addTransformation({
             id: this._uuidGenerator.create(),
             matrix: this._globalTransformation

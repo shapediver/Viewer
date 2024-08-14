@@ -45,6 +45,7 @@ export class GeometryLoader {
         
         const mesh = this._content.meshes[meshId];
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
+        meshNode.originalName = mesh.name;
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
