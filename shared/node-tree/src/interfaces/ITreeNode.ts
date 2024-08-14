@@ -55,6 +55,10 @@ export interface ITreeNode {
      */
     readonly originalId: string;
     /**
+     * The original name of the tree node, if one was supplied.
+     */
+    readonly originalName?: string;
+    /**
      * The parent of the tree node.
      * This property is automatically managed by {@link addChild} and {@link removeChild}. 
      */

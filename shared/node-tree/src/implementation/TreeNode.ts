@@ -20,6 +20,7 @@ export class TreeNode implements ITreeNode {
   #excludeViewports: string[] = [];
   #name: string = '';
   #originalId: string;
+  #originalName?: string;
   #parent?: ITreeNode;
   #restrictViewports: string[] = [];
   #skinNode: boolean = false;
@@ -134,6 +135,14 @@ export class TreeNode implements ITreeNode {
 
   public set originalId(value: string) {
     this.#originalId = value;
+  }
+
+  public get originalName(): string | undefined {
+    return this.#originalName;
+  }
+
+  public set originalName(value: string | undefined) {
+    this.#originalName = value;
   }
 
   public get parent(): ITreeNode | undefined {
