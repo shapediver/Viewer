@@ -1,9 +1,35 @@
-/* eslint-disable no-prototype-builtins */
-import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Converter, HttpClient, Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
 import {
+    Converter,
+    HttpClient,
+    Logger,
+    ShapeDiverViewerDataProcessingError
+} from '@shapediver/viewer.shared.services';
+import {
+    IMaterialContentData,
+    IMaterialContentDataV1,
+    IMaterialContentDataV2,
+    IMaterialContentDataV3,
+    IPresetMaterialDefinition,
+    ITexture
+} from '@shapediver/viewer.data-engine.shared-types';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { materialDatabase } from './materialDatabase';
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { vec2, vec4 } from 'gl-matrix';
+/* eslint-disable no-prototype-builtins */
+import {
+    IMapDataPropertiesDefinition,
     IMaterialAbstractData,
     IMaterialAbstractDataProperties,
+    IMaterialAbstractDataPropertiesDefinition,
+    IMaterialGemDataProperties,
+    IMaterialGemDataPropertiesDefinition,
+    IMaterialSpecularGlossinessDataProperties,
+    IMaterialSpecularGlossinessDataPropertiesDefinition,
+    IMaterialStandardDataProperties,
+    IMaterialStandardDataPropertiesDefinition,
+    IMaterialUnlitDataProperties,
+    IMaterialUnlitDataPropertiesDefinition,
     MapData,
     MATERIAL_SIDE,
     MATERIAL_TYPE,
@@ -14,11 +40,6 @@ import {
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
 } from '@shapediver/viewer.shared.types';
-import { vec2, vec4 } from 'gl-matrix';
-
-import { materialDatabase } from './materialDatabase';
-import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types';
 
 export class MaterialEngine {
     // #region Properties (4)
@@ -31,15 +52,15 @@ export class MaterialEngine {
 
     // #endregion Properties (4)
 
-    // #region Public Static Accessors (1)
+    // #region Public Static Getters And Setters (1)
 
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
 
-    // #endregion Public Static Accessors (1)
+    // #endregion Public Static Getters And Setters (1)
 
-    // #region Public Methods (9)
+    // #region Public Methods (12)
 
     /**
      * Create a material data based on the material properties
@@ -48,7 +69,7 @@ export class MaterialEngine {
      * @returns 
      */
     public createMaterialData(materialProperties: IMaterialAbstractDataProperties): IMaterialAbstractData {
-        const materialType = materialProperties.type  || MATERIAL_TYPE.STANDARD;
+        const materialType = materialProperties.type || MATERIAL_TYPE.STANDARD;
         switch (materialType) {
             case MATERIAL_TYPE.SPECULAR_GLOSSINESS:
                 return new MaterialSpecularGlossinessData(materialProperties);
@@ -58,6 +79,204 @@ export class MaterialEngine {
                 return new MaterialGemData(materialProperties);
             default:
                 return new MaterialStandardData(materialProperties);
+        }
+    }
+
+    public async createMaterialDataFromDefinition(definition: IMaterialAbstractDataPropertiesDefinition): Promise<IMaterialAbstractData> {
+        const materialType = definition.type || MATERIAL_TYPE.STANDARD;
+
+        const promises: Promise<MapData | undefined>[] = [];
+
+        const abstractProperties: IMaterialAbstractDataProperties = {};
+
+        abstractProperties.alphaCutoff = definition.alphaCutoff;
+        promises.push(this.loadMapFromDefinition(definition.alphaMap).then(map => {
+            if (map) abstractProperties.alphaMap = map;
+            return map;
+        }));
+        abstractProperties.alphaMode = definition.alphaMode;
+        promises.push(this.loadMapFromDefinition(definition.aoMap).then(map => {
+            if (map) abstractProperties.aoMap = map;
+            return map;
+        }));
+        abstractProperties.aoMapIntensity = definition.aoMapIntensity;
+        promises.push(this.loadMapFromDefinition(definition.bumpMap).then(map => {
+            if (map) abstractProperties.bumpMap = map;
+            return map;
+        }));
+        abstractProperties.bumpScale = definition.bumpScale;
+        abstractProperties.color = definition.color ? this._converter.toColorArray(definition.color) : undefined;
+        abstractProperties.depthTest = definition.depthTest;
+        abstractProperties.depthWrite = definition.depthWrite;
+        promises.push(this.loadMapFromDefinition(definition.emissiveMap).then(map => {
+            if (map) abstractProperties.emissiveMap = map;
+            return map;
+        }));
+        abstractProperties.emissiveness = definition.emissiveness ? this._converter.toColorArray(definition.emissiveness) : undefined;
+        promises.push(this.loadMapFromDefinition(definition.map).then(map => {
+            if (map) abstractProperties.map = map;
+            return map;
+        }));
+        abstractProperties.name = definition.name;
+        promises.push(this.loadMapFromDefinition(definition.normalMap).then(map => {
+            if (map) abstractProperties.normalMap = map;
+            return map;
+        }));
+        abstractProperties.normalScale = definition.normalScale;
+        abstractProperties.opacity = definition.opacity;
+        abstractProperties.shading = definition.shading;
+        abstractProperties.side = definition.side;
+        abstractProperties.transparent = definition.transparent;
+        abstractProperties.type = materialType;
+
+        switch (materialType) {
+            case MATERIAL_TYPE.SPECULAR_GLOSSINESS:
+                {
+                    const specularGlossinessProperties: IMaterialSpecularGlossinessDataProperties = abstractProperties;
+                    const specularGlossinessDefinition: IMaterialSpecularGlossinessDataPropertiesDefinition = definition as IMaterialSpecularGlossinessDataPropertiesDefinition;
+
+                    specularGlossinessProperties.envMap = specularGlossinessDefinition.envMap;
+                    specularGlossinessProperties.glossiness = specularGlossinessDefinition.glossiness;
+                    specularGlossinessProperties.specular = specularGlossinessDefinition.specular;
+
+                    if (specularGlossinessDefinition.specularGlossinessMap) {
+                        promises.push(this.loadMapFromDefinition(specularGlossinessDefinition.specularGlossinessMap).then(map => {
+                            if (map) specularGlossinessProperties.specularGlossinessMap = map;
+                            return map;
+                        }));
+                    } else {
+                        promises.push(this.loadMapFromDefinition(specularGlossinessDefinition.specularMap).then(map => {
+                            if (map) specularGlossinessProperties.specularMap = map;
+                            return map;
+                        }));
+                        promises.push(this.loadMapFromDefinition(specularGlossinessDefinition.glossinessMap).then(map => {
+                            if (map) specularGlossinessProperties.glossinessMap = map;
+                            return map;
+                        }));
+                    }
+
+                    await Promise.all(promises);
+                    return new MaterialSpecularGlossinessData(specularGlossinessProperties);
+                }
+            case MATERIAL_TYPE.UNLIT:
+                {
+                    const unlitProperties: IMaterialUnlitDataProperties = abstractProperties;
+                    const unlitDefinition: IMaterialUnlitDataPropertiesDefinition = definition;
+                    unlitProperties.envMap = unlitDefinition.envMap;
+                    await Promise.all(promises);
+                    return new MaterialUnlitData(unlitProperties);
+                }
+            case MATERIAL_TYPE.GEM:
+                {
+                    const gemProperties: IMaterialGemDataProperties = abstractProperties;
+                    const gemDefinition: IMaterialGemDataPropertiesDefinition = definition;
+
+                    gemProperties.brightness = gemDefinition.brightness;
+                    gemProperties.center = gemDefinition.center;
+                    gemProperties.colorTransferBegin = gemDefinition.colorTransferBegin;
+                    gemProperties.colorTransferEnd = gemDefinition.colorTransferEnd;
+                    gemProperties.contrast = gemDefinition.contrast;
+                    gemProperties.dispersion = gemDefinition.dispersion;
+                    gemProperties.envMap = gemDefinition.envMap;
+                    gemProperties.gamma = gemDefinition.gamma;
+                    promises.push(this.loadMapFromDefinition(gemDefinition.impurityMap).then(map => {
+                        if (map) gemProperties.impurityMap = map;
+                        return map;
+                    }));
+                    gemProperties.impurityScale = gemDefinition.impurityScale;
+                    gemProperties.radius = gemDefinition.radius;
+                    gemProperties.refractionIndex = gemDefinition.refractionIndex;
+                    promises.push(this.loadMapFromDefinition(gemDefinition.sphericalNormalMap).then(map => {
+                        if (map) gemProperties.sphericalNormalMap = map;
+                        return map;
+                    }));
+                    gemProperties.tracingDepth = gemDefinition.tracingDepth;
+                    gemProperties.tracingOpacity = gemDefinition.tracingOpacity;
+
+                    await Promise.all(promises);
+                    return new MaterialGemData(gemProperties);
+                }
+            default:
+                {
+                    const standardProperties: IMaterialStandardDataProperties = abstractProperties;
+                    const standardDefinition: IMaterialStandardDataPropertiesDefinition = definition;
+
+                    standardProperties.attenuationColor = standardDefinition.attenuationColor;
+                    standardProperties.attenuationDistance = standardDefinition.attenuationDistance;
+                    standardProperties.clearcoat = standardDefinition.clearcoat;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.clearcoatMap).then(map => {
+                        if (map) standardProperties.clearcoatMap = map;
+                        return map;
+                    }));
+                    promises.push(this.loadMapFromDefinition(standardDefinition.clearcoatNormalMap).then(map => {
+                        if (map) standardProperties.clearcoatNormalMap = map;
+                        return map;
+                    }));
+                    standardProperties.clearcoatRoughness = standardDefinition.clearcoatRoughness;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.clearcoatRoughnessMap).then(map => {
+                        if (map) standardProperties.clearcoatRoughnessMap = map;
+                        return map;
+                    }));
+                    standardProperties.displacementBias = standardDefinition.displacementBias;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.displacementMap).then(map => {
+                        if (map) standardProperties.displacementMap = map;
+                        return map;
+                    }));
+                    standardProperties.displacementScale = standardDefinition.displacementScale;
+                    standardProperties.envMap = standardDefinition.envMap;
+                    standardProperties.ior = standardDefinition.ior;
+                    standardProperties.metalness = standardDefinition.metalness;
+                    if (standardDefinition.metalnessRoughnessMap) {
+                        promises.push(this.loadMapFromDefinition(standardDefinition.metalnessMap).then(map => {
+                            if (map) standardProperties.metalnessMap = map;
+                            return map;
+                        }));
+                    } else {
+                        promises.push(this.loadMapFromDefinition(standardDefinition.metalnessMap).then(map => {
+                            if (map) standardProperties.metalnessMap = map;
+                            return map;
+                        }));
+                        promises.push(this.loadMapFromDefinition(standardDefinition.roughnessMap).then(map => {
+                            if (map) standardProperties.roughnessMap = map;
+                            return map;
+                        }));
+                    }
+                    standardProperties.roughness = standardDefinition.roughness;
+                    standardProperties.sheen = standardDefinition.sheen;
+                    standardProperties.sheenColor = standardDefinition.sheenColor;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.sheenColorMap).then(map => {
+                        if (map) standardProperties.sheenColorMap = map;
+                        return map;
+                    }));
+                    standardProperties.sheenRoughness = standardDefinition.sheenRoughness;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.sheenRoughnessMap).then(map => {
+                        if (map) standardProperties.sheenRoughnessMap = map;
+                        return map;
+                    }));
+                    standardProperties.specularColor = standardDefinition.specularColor;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.specularColorMap).then(map => {
+                        if (map) standardProperties.specularColorMap = map;
+                        return map;
+                    }));
+                    standardProperties.specularIntensity = standardDefinition.specularIntensity;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.specularIntensityMap).then(map => {
+                        if (map) standardProperties.specularIntensityMap = map;
+                        return map;
+                    }));
+                    standardProperties.thickness = standardDefinition.thickness;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.thicknessMap).then(map => {
+                        if (map) standardProperties.thicknessMap = map;
+                        return map;
+                    }));
+                    standardProperties.transmission = standardDefinition.transmission;
+                    promises.push(this.loadMapFromDefinition(standardDefinition.transmissionMap).then(map => {
+                        if (map) standardProperties.transmissionMap = map;
+                        return map;
+                    }));
+
+                    await Promise.all(promises);
+                    return new MaterialStandardData(standardProperties);
+                }
         }
     }
 
@@ -103,15 +322,15 @@ export class MaterialEngine {
         return node;
     }
 
-    public async loadMap(url: string, id?: string): Promise<MapData | null> {
+    public async loadMap(url: string, id?: string): Promise<MapData> {
         let response;
         if (!id) {
             response = await this._httpClient.loadTexture(url);
         } else {
             response = await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
         }
-        
-        if(typeof window !== 'undefined') {
+
+        if (typeof window !== 'undefined') {
             const image = await Converter.instance.responseToImage(response);
             return new MapData(image, { blob: response.data.blob });
         } else {
@@ -119,7 +338,35 @@ export class MaterialEngine {
         }
     }
 
-    public async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
+    /**
+     * Load a map from a definition.
+     * 
+     * @param definition 
+     * @returns 
+     */
+    public async loadMapFromDefinition(definition?: IMapDataPropertiesDefinition): Promise<MapData | undefined> {
+        if (!definition) return undefined;
+
+        if (definition.image) {
+            if (typeof definition.image === 'string') {
+                return this.loadMapWithProperties({
+                    href: definition.image,
+                    wrapS: definition.wrapS,
+                    wrapT: definition.wrapT,
+                    center: definition.center as number[] | undefined,
+                    color: definition.color ? this._converter.toColorArray(definition.color) : undefined,
+                    offset: definition.offset as number[] | undefined,
+                    repeat: definition.repeat as number[] | undefined,
+                    rotation: definition.rotation
+                });
+            } else {
+                return new MapData(definition.image);
+            }
+        }
+        return;
+    }
+
+    public async loadMapWithProperties(texture: ITexture): Promise<MapData> {
         const response = await this._httpClient.loadTexture(texture.href!);
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
@@ -129,7 +376,7 @@ export class MaterialEngine {
         const offset = texture.offset ? vec2.fromValues(texture.offset[0], texture.offset[1]) : vec2.fromValues(0, 0);
         const repeat = texture.repeat ? vec2.fromValues(texture.repeat[0], texture.repeat[1]) : vec2.fromValues(1, 1);
 
-        if(typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
             const image = await Converter.instance.responseToImage(response);
             return new MapData(image, { blob: response.data.blob, wrapS, wrapT, minFilter: TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, magFilter: TEXTURE_FILTERING.LINEAR, center, color, offset, repeat, rotation: texture.rotation || 0 });
         } else {
@@ -381,9 +628,9 @@ export class MaterialEngine {
         return definition;
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (12)
 
-    // #region Private Methods (3)
+    // #region Private Methods (4)
 
     private assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
         if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture)
@@ -526,5 +773,5 @@ export class MaterialEngine {
         ];
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (4)
 }

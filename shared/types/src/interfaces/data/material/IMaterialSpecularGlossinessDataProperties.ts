@@ -1,32 +1,17 @@
-import { Color } from "../../../types";
-import { IMapData } from "./IMapData";
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
+import { Color } from '../../../types';
+import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
+import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
 
-export interface IMaterialSpecularGlossinessDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (6)
+// #region Type aliases (2)
 
-    envMap?: string | string[];
-    glossiness?: number,
-    glossinessMap?: IMapData,
-    specular?: Color,
-    specularGlossinessMap?: IMapData,
-    specularMap?: IMapData,
+export type IMaterialSpecularGlossinessDataProperties = Partial<IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>>;
+export type IMaterialSpecularGlossinessDataPropertiesDefinition = Partial<IMaterialSpecularGlossinessDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
 
-    // #endregion Properties (6)
-};
+// #endregion Type aliases (2)
 
-export interface IMaterialSpecularGlossinessData extends IMaterialAbstractData {
-    // #region Properties (6)
+// #region Interfaces (2)
 
-    envMap?: string | string[];
-    glossiness: number,
-    glossinessMap?: IMapData,
-    specular: Color,
-    specularGlossinessMap?: IMapData,
-    specularMap?: IMapData,
-
-    // #endregion Properties (6)
-
+export interface IMaterialSpecularGlossinessData extends IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>, IMaterialAbstractData {
     // #region Public Methods (2)
 
     clone(): IMaterialSpecularGlossinessData;
@@ -34,3 +19,18 @@ export interface IMaterialSpecularGlossinessData extends IMaterialAbstractData {
 
     // #endregion Public Methods (2)
 }
+
+interface IMaterialSpecularGlossinessDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
+    // #region Properties (6)
+
+    envMap?: string | string[];
+    glossiness?: number,
+    glossinessMap?: T,
+    specular?: Color,
+    specularGlossinessMap?: T,
+    specularMap?: T
+
+    // #endregion Properties (6)
+}
+
+// #endregion Interfaces (2)

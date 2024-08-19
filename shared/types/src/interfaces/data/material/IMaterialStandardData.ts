@@ -1,80 +1,17 @@
-import { Color } from "../../../types";
-import { IMapData } from "./IMapData";
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
+import { Color } from '../../../types';
+import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
+import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
 
-export interface IMaterialStandardDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (30)
+// #region Type aliases (2)
 
-    attenuationColor?: Color,
-    attenuationDistance?: number;
-    clearcoat?: number;
-    clearcoatMap?: IMapData;
-    clearcoatNormalMap?: IMapData;
-    clearcoatRoughness?: number;
-    clearcoatRoughnessMap?: IMapData;
-    displacementBias?: number;
-    displacementMap?: IMapData;
-    displacementScale?: number;
-    envMap?: string | string[];
-    ior?: number;
-    metalness?: number,
-    metalnessMap?: IMapData,
-    metalnessRoughnessMap?: IMapData,
-    roughness?: number,
-    roughnessMap?: IMapData,
-    sheen?: number,
-    sheenColor?: Color,
-    sheenColorMap?: IMapData,
-    sheenRoughness?: number,
-    sheenRoughnessMap?: IMapData,
-    specularColor?: Color,
-    specularColorMap?: IMapData,
-    specularIntensity?: number,
-    specularIntensityMap?: IMapData,
-    thickness?: number;
-    thicknessMap?: IMapData;
-    transmission?: number;
-    transmissionMap?: IMapData;
+export type IMaterialStandardDataProperties = Partial<IMaterialStandardDataPropertiesGeneric<IMapData>>;
+export type IMaterialStandardDataPropertiesDefinition = Partial<IMaterialStandardDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
 
-    // #endregion Properties (30)
-};
+// #endregion Type aliases (2)
 
-export interface IMaterialStandardData extends IMaterialAbstractData {
-    // #region Properties (30)
+// #region Interfaces (2)
 
-    attenuationColor: Color,
-    attenuationDistance: number;
-    clearcoat: number;
-    clearcoatMap?: IMapData;
-    clearcoatNormalMap?: IMapData;
-    clearcoatRoughness: number;
-    clearcoatRoughnessMap?: IMapData;
-    displacementBias: number;
-    displacementMap?: IMapData;
-    displacementScale: number;
-    envMap?: string | string[];
-    ior: number;
-    metalness: number,
-    metalnessMap?: IMapData,
-    metalnessRoughnessMap?: IMapData,
-    roughness: number,
-    roughnessMap?: IMapData,
-    sheen: number,
-    sheenColor: Color,
-    sheenColorMap?: IMapData,
-    sheenRoughness: number,
-    sheenRoughnessMap?: IMapData,
-    specularColor: Color,
-    specularColorMap?: IMapData,
-    specularIntensity: number,
-    specularIntensityMap?: IMapData,
-    thickness: number;
-    thicknessMap?: IMapData;
-    transmission: number;
-    transmissionMap?: IMapData;
-
-    // #endregion Properties (30)
-
+export interface IMaterialStandardData extends IMaterialStandardDataPropertiesGeneric<IMapData>, IMaterialAbstractData {
     // #region Public Methods (2)
 
     clone(): IMaterialStandardData;
@@ -82,3 +19,42 @@ export interface IMaterialStandardData extends IMaterialAbstractData {
 
     // #endregion Public Methods (2)
 }
+
+interface IMaterialStandardDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
+    // #region Properties (30)
+
+    attenuationColor: Color,
+    attenuationDistance: number;
+    clearcoat: number;
+    clearcoatMap?: T;
+    clearcoatNormalMap?: T;
+    clearcoatRoughness: number;
+    clearcoatRoughnessMap?: T;
+    displacementBias: number;
+    displacementMap?: T;
+    displacementScale: number;
+    envMap?: string | string[];
+    ior: number;
+    metalness: number,
+    metalnessMap?: T,
+    metalnessRoughnessMap?: T,
+    roughness: number,
+    roughnessMap?: T,
+    sheen: number,
+    sheenColor: Color,
+    sheenColorMap?: T,
+    sheenRoughness: number,
+    sheenRoughnessMap?: T,
+    specularColor: Color,
+    specularColorMap?: T,
+    specularIntensity: number,
+    specularIntensityMap?: T,
+    thickness: number;
+    thicknessMap?: T;
+    transmission: number;
+    transmissionMap?: T;
+
+    // #endregion Properties (30)
+}
+
+// #endregion Interfaces (2)

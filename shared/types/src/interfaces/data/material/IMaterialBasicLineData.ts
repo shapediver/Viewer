@@ -1,10 +1,11 @@
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from './IMaterialAbstractData';
+import { IMaterialAbstractData, IMaterialAbstractDataProperties, IMaterialAbstractDataPropertiesDefinition } from './IMaterialAbstractData';
 
-// #region Type aliases (1)
+// #region Type aliases (2)
 
 export type IMaterialBasicLineDataProperties = IMaterialAbstractDataProperties;
+export type IMaterialBasicLineDataPropertiesDefinition = IMaterialAbstractDataPropertiesDefinition;
 
-// #endregion Type aliases (1)
+// #endregion Type aliases (2)
 
 // #region Interfaces (1)
 

@@ -1,35 +1,22 @@
 import { Color } from '../../../types';
-import { IMapData } from './IMapData';
+import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+
+// #region Type aliases (2)
+
+export type IMaterialAbstractDataProperties = Partial<IMaterialAbstractDataPropertiesGeneric<IMapData>>;
+export type IMaterialAbstractDataPropertiesDefinition = Partial<IMaterialAbstractDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
+
+// #endregion Type aliases (2)
 
 // #region Interfaces (2)
 
-export interface IMaterialAbstractData extends ITreeNodeData {
-    // #region Properties (21)
+export interface IMaterialAbstractData extends ITreeNodeData, IMaterialAbstractDataPropertiesGeneric<IMapData> {
+    // #region Properties (1)
 
-    alphaCutoff: number,
-    alphaMap?: IMapData,
-    alphaMode: MATERIAL_ALPHA,
-    aoMap?: IMapData,
-    aoMapIntensity: number,
-    bumpMap?: IMapData,
-    bumpScale: number,
-    color: Color,
-    depthTest?: boolean,
-    depthWrite?: boolean,
-    emissiveMap?: IMapData,
-    emissiveness: Color,
-    map?: IMapData,
     materialOutput: boolean;
-    name?: string,
-    normalMap?: IMapData,
-    normalScale: number,
-    opacity: number,
-    shading: MATERIAL_SHADING,
-    side: MATERIAL_SIDE,
-    transparent?: boolean,
 
-    // #endregion Properties (21)
+    // #endregion Properties (1)
 
     // #region Public Methods (3)
 
@@ -40,28 +27,28 @@ export interface IMaterialAbstractData extends ITreeNodeData {
     // #endregion Public Methods (3)
 }
 
-export interface IMaterialAbstractDataProperties {
+export interface IMaterialAbstractDataPropertiesGeneric<T> {
     // #region Properties (21)
 
-    alphaCutoff?: number,
-    alphaMap?: IMapData,
-    alphaMode?: MATERIAL_ALPHA,
-    aoMap?: IMapData,
-    aoMapIntensity?: number,
-    bumpMap?: IMapData,
-    bumpScale?: number,
-    color?: Color,
+    alphaCutoff: number,
+    alphaMap?: T,
+    alphaMode: MATERIAL_ALPHA,
+    aoMap?: T,
+    aoMapIntensity: number,
+    bumpMap?: T,
+    bumpScale: number,
+    color: Color,
     depthTest?: boolean,
     depthWrite?: boolean,
-    emissiveMap?: IMapData,
-    emissiveness?: Color,
-    map?: IMapData,
+    emissiveMap?: T,
+    emissiveness: Color,
+    map?: T,
     name?: string,
-    normalMap?: IMapData,
-    normalScale?: number,
-    opacity?: number,
-    shading?: MATERIAL_SHADING,
-    side?: MATERIAL_SIDE,
+    normalMap?: T,
+    normalScale: number,
+    opacity: number,
+    shading: MATERIAL_SHADING,
+    side: MATERIAL_SIDE,
     transparent?: boolean,
     type?: MATERIAL_TYPE
 

@@ -12,6 +12,7 @@ import {
   } from './types';
 import { CustomData } from './implementation/data/CustomData';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
+import { GumballParameterValue, IGumballParameterSettings, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
 import {
   HTMLElementAnchorCustomData,
   HTMLElementAnchorData,
@@ -29,24 +30,41 @@ import {
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
-import { IGeneralInteractionParameterSettings, IGumballParameterJsonSchema, IInteractionParameterJsonSchema, IInteractionParameterSettings, InteractionParameterSettingsType, ISelectionParameterJsonSchema, validateGumballParameterSettings, validateInteractionParameterSettings, validateSelectionParameterSettings } from './interfaces/parameter/IInteractionParameterSettings';
-import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './interfaces/data/material/IMapData';
+import {
+  IGeneralInteractionParameterSettings,
+  IGumballParameterJsonSchema,
+  IInteractionParameterJsonSchema,
+  IInteractionParameterSettings,
+  InteractionParameterSettingsType,
+  ISelectionParameterJsonSchema,
+  validateGumballParameterSettings,
+  validateInteractionParameterSettings,
+  validateSelectionParameterSettings
+  } from './interfaces/parameter/IInteractionParameterSettings';
+import {
+  IMapData,
+  IMapDataProperties,
+  IMapDataPropertiesDefinition,
+  TEXTURE_FILTERING,
+  TEXTURE_WRAPPING
+  } from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
   IMaterialAbstractDataProperties,
+  IMaterialAbstractDataPropertiesDefinition,
   MATERIAL_ALPHA,
   MATERIAL_SHADING,
   MATERIAL_SIDE,
   MATERIAL_TYPE
   } from './interfaces/data/material/IMaterialAbstractData';
-import { IMaterialBasicLineData, IMaterialBasicLineDataProperties } from './interfaces/data/material/IMaterialBasicLineData';
-import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/material/IMaterialGemDataProperties';
-import { IMaterialMultiPointData, IMaterialMultiPointDataProperties } from './interfaces/data/material/IMaterialMultiPointData';
-import { IMaterialPointData, IMaterialPointDataProperties } from './interfaces/data/material/IMaterialPointData';
-import { IMaterialShadowData, IMaterialShadowDataProperties } from './interfaces/data/material/IMaterialShadowData';
-import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
-import { IMaterialStandardData, IMaterialStandardDataProperties } from './interfaces/data/material/IMaterialStandardData';
-import { IMaterialUnlitData, IMaterialUnlitDataProperties } from './interfaces/data/material/IMaterialUnlitData';
+import { IMaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition } from './interfaces/data/material/IMaterialBasicLineData';
+import { IMaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition } from './interfaces/data/material/IMaterialGemDataProperties';
+import { IMaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialMultiPointData';
+import { IMaterialPointData, IMaterialPointDataProperties, IMaterialPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialPointData';
+import { IMaterialShadowData, IMaterialShadowDataProperties, IMaterialShadowDataPropertiesDefinition } from './interfaces/data/material/IMaterialShadowData';
+import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialSpecularGlossinessDataPropertiesDefinition } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
+import { IMaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition } from './interfaces/data/material/IMaterialStandardData';
+import { IMaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition } from './interfaces/data/material/IMaterialUnlitData';
 import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVariantsData';
 import { IOutputEvent } from './interfaces/events/IOutputEvent';
 import { IParameterEvent } from './interfaces/events/IParameterEvent';
@@ -77,19 +95,18 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
 import {
   MaterialStandardData,
 } from './implementation/material/MaterialStandardData';
-import { IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
 
 export {
-  IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties,
-  IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData,
-  IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties,
-  IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties,
-  IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties,
-  IMaterialGemData, MaterialGemData, IMaterialGemDataProperties,
-  IMaterialPointData, MaterialPointData, IMaterialPointDataProperties,
-  IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties,
-  IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties,
-  IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING
+  IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition,
+  IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData, IMaterialAbstractDataPropertiesDefinition,
+  IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition,
+  IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties, IMaterialShadowDataPropertiesDefinition,
+  IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialSpecularGlossinessDataPropertiesDefinition,
+  IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition,
+  IMaterialPointData, MaterialPointData, IMaterialPointDataProperties, IMaterialPointDataPropertiesDefinition,
+  IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition,
+  IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition,
+  IMapData, IMapDataProperties, IMapDataPropertiesDefinition, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING
 };
 
 export {

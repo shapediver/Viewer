@@ -1,20 +1,16 @@
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
+import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
+import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
 
-export interface IMaterialUnlitDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (1)
+// #region Type aliases (2)
 
-    envMap?: string | string[];
+export type IMaterialUnlitDataProperties = Partial<IMaterialUnlitDataPropertiesGeneric<IMapData>>;
+export type IMaterialUnlitDataPropertiesDefinition = Partial<IMaterialUnlitDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
 
-    // #endregion Properties (1)
-};
+// #endregion Type aliases (2)
 
-export interface IMaterialUnlitData extends IMaterialAbstractData {
-    // #region Properties (1)
+// #region Interfaces (2)
 
-    envMap?: string | string[];
-
-    // #endregion Properties (1)
-
+export interface IMaterialUnlitData extends IMaterialUnlitDataPropertiesGeneric<IMapData>, IMaterialAbstractData {
     // #region Public Methods (2)
 
     clone(): IMaterialUnlitData;
@@ -22,3 +18,13 @@ export interface IMaterialUnlitData extends IMaterialAbstractData {
 
     // #endregion Public Methods (2)
 }
+
+interface IMaterialUnlitDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
+    // #region Properties (1)
+
+    envMap?: string | string[];
+
+    // #endregion Properties (1)
+}
+
+// #endregion Interfaces (2)

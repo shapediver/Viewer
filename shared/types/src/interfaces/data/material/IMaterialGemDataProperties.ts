@@ -1,51 +1,18 @@
-import { mat3, mat4, vec3 } from "gl-matrix";
-import { Color } from "../../../types";
-import { IMapData } from "./IMapData";
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
+import { Color } from '../../../types';
+import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
+import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
+import { vec3 } from 'gl-matrix';
 
-export interface IMaterialGemDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (17)
+// #region Type aliases (2)
 
-    brightness?: number;
-    center?: vec3;
-    colorTransferBegin?: Color;
-    colorTransferEnd?: Color;
-    contrast?: number;
-    dispersion?: number;
-    envMap?: string | string[];
-    gamma?: number;
-    impurityMap?: IMapData;
-    impurityScale?: number;
-    radius?: number;
-    refractionIndex?: number;
-    sphericalNormalMap?: IMapData;
-    tracingDepth?: number;
-    tracingOpacity?: number;
+export type IMaterialGemDataProperties = Partial<IMaterialGemDataPropertiesGeneric<IMapData>>;
+export type IMaterialGemDataPropertiesDefinition = Partial<IMaterialGemDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
 
-    // #endregion Properties (17)
-};
+// #endregion Type aliases (2)
 
-export interface IMaterialGemData extends IMaterialAbstractData {
-    // #region Properties (17)
+// #region Interfaces (2)
 
-    brightness?: number;
-    center?: vec3;
-    colorTransferBegin?: Color;
-    colorTransferEnd?: Color;
-    contrast?: number;
-    dispersion?: number;
-    envMap?: string | string[];
-    gamma?: number;
-    impurityMap?: IMapData;
-    impurityScale?: number;
-    radius?: number;
-    refractionIndex?: number;
-    sphericalNormalMap?: IMapData;
-    tracingDepth?: number;
-    tracingOpacity?: number;
-
-    // #endregion Properties (17)
-
+export interface IMaterialGemData extends IMaterialAbstractData, IMaterialGemDataPropertiesGeneric<IMapData> {
     // #region Public Methods (2)
 
     clone(): IMaterialGemData;
@@ -53,3 +20,27 @@ export interface IMaterialGemData extends IMaterialAbstractData {
 
     // #endregion Public Methods (2)
 }
+
+interface IMaterialGemDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
+    // #region Properties (15)
+
+    brightness?: number;
+    center?: vec3;
+    colorTransferBegin?: Color;
+    colorTransferEnd?: Color;
+    contrast?: number;
+    dispersion?: number;
+    envMap?: string | string[];
+    gamma?: number;
+    impurityMap?: T;
+    impurityScale?: number;
+    radius?: number;
+    refractionIndex?: number;
+    sphericalNormalMap?: T;
+    tracingDepth?: number;
+    tracingOpacity?: number;
+
+    // #endregion Properties (15)
+}
+
+// #endregion Interfaces (2)

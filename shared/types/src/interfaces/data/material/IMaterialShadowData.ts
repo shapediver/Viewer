@@ -1,7 +1,13 @@
-import { IMapData } from "./IMapData";
-import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
+import { IMaterialAbstractData, IMaterialAbstractDataProperties, IMaterialAbstractDataPropertiesDefinition } from './IMaterialAbstractData';
 
-export interface IMaterialShadowDataProperties extends IMaterialAbstractDataProperties {};
+// #region Type aliases (2)
+
+export type IMaterialShadowDataProperties = IMaterialAbstractDataProperties;
+export type IMaterialShadowDataPropertiesDefinition = IMaterialAbstractDataPropertiesDefinition;
+
+// #endregion Type aliases (2)
+
+// #region Interfaces (1)
 
 export interface IMaterialShadowData extends IMaterialAbstractData {
     // #region Public Methods (2)
@@ -11,3 +17,5 @@ export interface IMaterialShadowData extends IMaterialAbstractData {
 
     // #endregion Public Methods (2)
 }
+
+// #endregion Interfaces (1)
