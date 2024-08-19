@@ -1330,15 +1330,21 @@ export class SessionEngine implements ISessionEngine {
     public async uploadFile(parameterId: string, data: File, type: string, retry = false): Promise<string> {
         this.checkAvailability('file-upload');
         try {
-            const responseDto = await this._sdk.file.requestUpload(this._sessionId!, {
-                [parameterId]: { size: data.size, format: type }
+            const result = await this._sdk.file.requestUpload(this._sessionId!, {
+                [parameterId]: { 
+                    size: data.size, 
+                    format: type,
+                    filename: data.name === '' ? undefined : data.name
+                }
             });
 
-            if (responseDto && responseDto.asset && responseDto.asset.file && responseDto.asset.file[parameterId]) {
-                const fileAsset = responseDto.asset.file[parameterId];
-                // if the name is empty, the filename is not set
-                const filename = data.name === '' ? undefined : data.name;
-                await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type, filename);
+            if (result && result.asset && result.asset.file && result.asset.file[parameterId]) {
+                const fileAsset = result.asset.file[parameterId];
+                await this._sdk.utils.uploadAsset(
+                    fileAsset.href,
+                    await data.arrayBuffer(),
+                    fileAsset.headers
+                );
                 return fileAsset.id;
             } else {
                 throw new ShapeDiverViewerSessionError('Session.uploadFile: Upload reply has not the required format.');
