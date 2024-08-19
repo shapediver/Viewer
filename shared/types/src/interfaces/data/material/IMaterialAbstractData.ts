@@ -77,10 +77,10 @@ export enum MATERIAL_SIDE {
 }
 
 export enum MATERIAL_TYPE {
-    STANDARD = 'Standard',
-    SPECULAR_GLOSSINESS = 'SpecularGlossiness',
-    UNLIT = 'Unlit',
-    GEM = 'Gem'
+    STANDARD = 'standard',
+    SPECULAR_GLOSSINESS = 'specular_glossiness',
+    UNLIT = 'unlit',
+    GEM = 'gem'
 }
 
 // #endregion Enums (4)
