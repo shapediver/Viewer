@@ -66,7 +66,7 @@ export class SessionApi implements ISessionApi {
         for (const p in this.#sessionEngine.parameters) {
             if (this.#sessionEngine.parameters[p] instanceof FileParameter) {
                 this.#parameters[p] = new FileParameterApi(<FileParameter>this.#sessionEngine.parameters[p]);
-            } if (this.#sessionEngine.parameters[p] instanceof SelectionParameter) {
+            } else if (this.#sessionEngine.parameters[p] instanceof SelectionParameter) {
                 this.#parameters[p] = new SelectionParameterApi(<SelectionParameter>this.#sessionEngine.parameters[p]);
             } else if (this.#sessionEngine.parameters[p] instanceof GumballParameter) {
                 this.#parameters[p] = new GumballParameterApi(<GumballParameter>this.#sessionEngine.parameters[p]);
