@@ -35,7 +35,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
 
     public readonly viewportEngines: { [key: string]: RenderingEngineThreeJs } = {};
 
-    public updateViewport?: (
+    public updateViewports?: (
         viewportEngines: { [key: string]: RenderingEngineThreeJs; },
     ) => void;
 
@@ -87,7 +87,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         delete this.#stateEngine.viewportEngines[id];
 
         this.#logger.debug('CreationControlCenter.closeViewportEngine: Viewport closed.');
-        if (this.updateViewport) this.updateViewport(this.viewportEngines);
+        if (this.updateViewports) this.updateViewports(this.viewportEngines);
 
         this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
     }
@@ -176,7 +176,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
 
             const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created', data: { viewportId: viewportEngineId } };
 
-            if (this.updateViewport) this.updateViewport(this.viewportEngines);
+            if (this.updateViewports) this.updateViewports(this.viewportEngines);
 
             this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CREATED, { viewportId: viewportEngineId });
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
@@ -208,20 +208,20 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
 
     // #region Private Methods (1)
 
-    private async assignSettings(viewportEngineId: string, sessionEngineId: string, updateViewport: boolean = false) {
+    private async assignSettings(viewportEngineId: string, sessionEngineId: string, updateViewports: boolean = false) {
         const viewportEngine = this.#stateEngine.viewportEngines[viewportEngineId];
         if (!viewportEngine) return;
 
         if (this.#stateEngine.sessionEngines[sessionEngineId] && this.#stateEngine.sessionEngines[sessionEngineId]!.initialized.resolved === true) {
             // immediate
             viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId]!.settingsEngine);
-            await viewportEngine.applySettings(undefined, undefined, updateViewport);
+            await viewportEngine.applySettings(undefined, undefined, updateViewports);
         } else {
             await new Promise<void>(resolve => {
                 this.#stateEngine.sessionEngines[sessionEngineId]?.initialized.then(async () => {
                     if(this.#stateEngine.sessionEngines[sessionEngineId]) {
                         viewportEngine.assignSettingsEngine(this.#stateEngine.sessionEngines[sessionEngineId]!.settingsEngine);
-                        await viewportEngine.applySettings(undefined, undefined, updateViewport);
+                        await viewportEngine.applySettings(undefined, undefined, updateViewports);
                     }
                     resolve();
                 });

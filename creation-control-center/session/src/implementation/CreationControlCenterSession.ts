@@ -31,7 +31,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
     public readonly sessionEngines: { [key: string]: SessionEngine } = {};
 
-    public updateSession?: (
+    public updateSessions?: (
         sessionEngines: { [key: string]: SessionEngine; },
     ) => void;
 
@@ -114,7 +114,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
                 await Promise.all(promises);
 
-                if (this.updateSession) this.updateSession(this.sessionEngines);
+                if (this.updateSessions) this.updateSessions(this.sessionEngines);
             }
         }
 
@@ -127,7 +127,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
         this.#logger.debug('CreationControlCenter.closeSessionEngine: Session closed.');
         for (const r in this.#stateEngine.viewportEngines)
             this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.closeSessionEngine');
-        if (this.updateSession) this.updateSession(this.sessionEngines);
+        if (this.updateSessions) this.updateSessions(this.sessionEngines);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: id });
     }
 
@@ -234,7 +234,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
             for (const r in this.#stateEngine.viewportEngines)
                 this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.createSessionEngine');
 
-            if (this.updateSession) this.updateSession(this.sessionEngines);
+            if (this.updateSessions) this.updateSessions(this.sessionEngines);
 
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created', data: { sessionId: sessionEngineId } };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
