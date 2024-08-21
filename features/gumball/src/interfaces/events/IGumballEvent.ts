@@ -12,7 +12,7 @@ export interface IGumballEvent extends IViewportEvent {
     /** 
      * The currently used matrix.
      */
-    matrix: mat4,
+    transformations: mat4[],
     /** 
      * All currently selected nodes. 
      */

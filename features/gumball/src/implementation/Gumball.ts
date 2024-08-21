@@ -13,6 +13,7 @@ import { IGumball, SettingsOptional } from '../interfaces/IGumball';
 import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
 import { EventEngine, EVENTTYPE_GUMBALL } from '@shapediver/viewer.shared.services';
+import { IGumballEvent } from '../interfaces/events/IGumballEvent';
 
 export class Gumball implements IGumball {
     // #region Properties (27)
@@ -409,8 +410,16 @@ export class Gumball implements IGumball {
 
             this.deactivatePivotDragging();
         } else {
+            const eventData: IGumballEvent = { viewportId: this.#viewport.id, transformations: [], nodes: [] };
+
             this.#nodes.forEach((node, i) => {
                 const matrix = this.getMatrix(this.#previousGumballMatrix[i]);
+
+                // create the event data
+                eventData.transformations.push(mat4.clone(matrix));
+                eventData.nodes.push(node);
+
+                // afterwards, remove the initial transformation, as otherwise the matrix will be applied twice
                 if (this.#initialTransform) 
                     mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform));
                 
@@ -427,10 +436,7 @@ export class Gumball implements IGumball {
             });
 
             // emit the event
-            this.#eventEngine.emitEvent(EVENTTYPE_GUMBALL.MATRIX_CHANGED, {
-                matrix: mat4.clone(this.#matrix),
-                nodes: this.#nodes
-            });
+            this.#eventEngine.emitEvent(EVENTTYPE_GUMBALL.MATRIX_CHANGED, eventData);
         }
     }
 
