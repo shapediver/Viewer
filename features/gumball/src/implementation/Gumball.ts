@@ -434,12 +434,10 @@ export class Gumball implements IGumball {
                 eventData.nodes.push(node);
                 if (this.#singleNode) {
                     eventData.transformations.push(mat4.clone(matrix));
-                } else {
-                    eventData.transformations.push(mat4.multiply(mat4.create(), this.#initialTransform[i], matrix));
-                }
-
-                if (this.#singleNode)
                     mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform[i]));
+                } else {
+                    eventData.transformations.push(mat4.multiply(mat4.create(), matrix, this.#initialTransform[i]));
+                }
 
                 const transformation = node.transformations.find(t => t.id === this.#matrixId);
                 if (transformation) {
