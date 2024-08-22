@@ -16,7 +16,7 @@ import { EventEngine, EVENTTYPE_GUMBALL } from '@shapediver/viewer.shared.servic
 import { IGumballEvent } from '../interfaces/events/IGumballEvent';
 
 export class Gumball implements IGumball {
-    // #region Properties (27)
+    // #region Properties (29)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #keysPressed: { [key: string]: boolean } = {};
@@ -38,7 +38,7 @@ export class Gumball implements IGumball {
     #enableScaling: boolean = true;
     #enableTranslation: boolean = true;
     #initialOffset: vec3 = vec3.create();
-    #initialTransform?: mat4;
+    #initialTransform: mat4[] = [];
     #matrix: mat4 = mat4.create();
     #moving: boolean = false;
     #pivotDragging: boolean = false;
@@ -49,7 +49,7 @@ export class Gumball implements IGumball {
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
 
-    // #endregion Properties (27)
+    // #endregion Properties (29)
 
     // #region Constructors (1)
 
@@ -186,7 +186,7 @@ export class Gumball implements IGumball {
     public onKeyUp(event: KeyboardEvent): void {
         if (this.closed) return;
         delete this.#keysPressed[event.key];
-        
+
         if (this.#pivotDragging === true && !this.keyPressed('p')) {
             this.deactivatePivotDragging();
         }
@@ -247,7 +247,7 @@ export class Gumball implements IGumball {
 
     // #endregion Public Methods (10)
 
-    // #region Private Methods (8)
+    // #region Private Methods (7)
 
     private activatePivotDragging() {
         this.#pivotDragging = true;
@@ -347,20 +347,23 @@ export class Gumball implements IGumball {
 
                 vec3.copy(this.#initialOffset, trueBB.boundingSphere.center);
                 this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset)));
-                
+
                 const transformations: { [key: string]: mat4 } = {};
                 this.#nodes[0].traverse(c => {
-                    if(c.name.startsWith('mesh_') && c.parent)
-                        transformations[c.parent.name] = mat4.clone(c.parent.worldMatrix);
+                    if (c.name.startsWith('mesh_') && c.parent)
+                        transformations[c.parent.name] = mat4.clone(c.parent.nodeMatrix);
                 });
 
-                if(Object.keys(transformations).length === 1) {
-                    this.#initialTransform = mat4.clone(transformations[Object.keys(transformations)[0]]);
-                    this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().fromArray(this.#initialTransform));
+                if (Object.keys(transformations).length === 1 && Object.keys(transformations)[0] !== 'no_transformations') {
+                    this.#initialTransform[0] = mat4.clone(transformations[Object.keys(transformations)[0]]);
+                    const initialWorldTransform = mat4.multiply(mat4.create(), this.#nodes[0].worldMatrix, this.#initialTransform[0]);
+                    this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().fromArray(initialWorldTransform));
                 } else {
+                    this.#initialTransform[0] = mat4.create();
                     this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().fromArray(this.#nodes[0].worldMatrix));
                 }
             } else {
+                this.#initialTransform[0] = mat4.create();
                 vec3.copy(this.#initialOffset, this.#nodes[0].boundingBox.boundingSphere.center);
                 this.#transformationControlsPlaceholder.applyMatrix4(new THREE.Matrix4().makeTranslation(new THREE.Vector3().fromArray(this.#initialOffset)));
             }
@@ -368,7 +371,8 @@ export class Gumball implements IGumball {
         } else {
             const boundingBox = new Box();
             this.#previousGumballMatrix = [];
-            for (const node of this.#nodes) {
+            for (let i = 0; i < this.#nodes.length; i++) {
+                const node = this.#nodes[i];
                 boundingBox.union(node.boundingBox);
 
                 const index = node.transformations.findIndex(t => t.id === 'SD_gumball_matrix');
@@ -376,6 +380,18 @@ export class Gumball implements IGumball {
                     this.#previousGumballMatrix.push(mat4.clone(node.transformations[index].matrix));
                 } else {
                     this.#previousGumballMatrix.push(mat4.create());
+                }
+
+                const transformations: { [key: string]: mat4 } = {};
+                node.traverse(c => {
+                    if (c.name.startsWith('mesh_') && c.parent) {
+                        transformations[c.parent.name] = mat4.clone(c.parent.nodeMatrix);
+                    }
+                });
+                if (Object.keys(transformations).length === 1 && Object.keys(transformations)[0] !== 'no_transformations') {
+                    this.#initialTransform[i] = mat4.clone(transformations[Object.keys(transformations)[0]]);
+                } else {
+                    this.#initialTransform[i] = mat4.create();
                 }
             }
             vec3.copy(this.#initialOffset, boundingBox.boundingSphere.center);
@@ -415,14 +431,16 @@ export class Gumball implements IGumball {
             this.#nodes.forEach((node, i) => {
                 const matrix = this.getMatrix(this.#previousGumballMatrix[i]);
 
-                // create the event data
-                eventData.transformations.push(mat4.clone(matrix));
                 eventData.nodes.push(node);
+                if (this.#singleNode) {
+                    eventData.transformations.push(mat4.clone(matrix));
+                } else {
+                    eventData.transformations.push(mat4.multiply(mat4.create(), this.#initialTransform[i], matrix));
+                }
 
-                // afterwards, remove the initial transformation, as otherwise the matrix will be applied twice
-                if (this.#initialTransform) 
-                    mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform));
-                
+                if (this.#singleNode)
+                    mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform[i]));
+
                 const transformation = node.transformations.find(t => t.id === this.#matrixId);
                 if (transformation) {
                     transformation.matrix = matrix;
@@ -447,8 +465,9 @@ export class Gumball implements IGumball {
             const threeJsObject: THREE.Object3D | undefined = node.convertedObject[this.#viewport.id] as THREE.Object3D;
             if (threeJsObject) {
                 const matrix = this.getMatrix(this.#previousGumballMatrix![i] as mat4);
-                if (this.#initialTransform)
-                    mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform));
+
+                if (this.#singleNode)
+                    mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform[i]));
 
                 threeJsObject.matrixAutoUpdate = false;
                 threeJsObject.matrix.copy(new THREE.Matrix4().fromArray(matrix));
@@ -457,5 +476,5 @@ export class Gumball implements IGumball {
         });
     }
 
-    // #endregion Private Methods (8)
+    // #endregion Private Methods (7)
 }
