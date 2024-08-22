@@ -116,14 +116,17 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
          */
         console.log('re-building for deployment...');
         console.log(await execPromise('npm run build-current'));
-        console.log(await execPromise('npm run build-prod'));
+        if(publicRelease)
+            console.log(await execPromise('npm run build-prod'));
 
 
-        /**
-         * build the doc
-         */
-        console.log('creating doc...');
-        console.log(await execPromise('npm run doc'));
+        if(publicRelease) {
+            /**
+             * build the doc
+             */
+            console.log('creating doc...');
+            console.log(await execPromise('npm run doc'));
+        }
 
 
 
@@ -147,30 +150,31 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
 
 
 
-        /**
-         * deploy to s3
-         * depending on if it is a public release or not, also deploy to the "latest" folder
-         */
-        const prefix = 'v3/' + newVersion;
+        if (publicRelease) {
+            /**
+             * deploy to s3
+             * depending on if it is a public release or not, also deploy to the "latest" folder
+             */
+            const prefix = 'v3/' + newVersion;
 
-        console.log('deploying to s3...');
-        deployToS3('docs', 'api', prefix, publicRelease);
+            console.log('deploying to s3...');
+            deployToS3('docs', 'api', prefix, publicRelease);
 
-        const examples = await getDirectories('examples');
+            const examples = await getDirectories('examples');
 
-        for (let i = 0; i < examples.length; i++) {
-            console.log('deploying example ' + (i + 1) + '/' + examples.length + '...');
-            const example = examples[i];
-            if (example === 'main-pages') continue;
-            console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-            deployToS3('examples/' + example + '/dist-prod', example, prefix, publicRelease);
+            for (let i = 0; i < examples.length; i++) {
+                console.log('deploying example ' + (i + 1) + '/' + examples.length + '...');
+                const example = examples[i];
+                if (example === 'main-pages') continue;
+                console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+                deployToS3('examples/' + example + '/dist-prod', example, prefix, publicRelease);
+            }
+
+            deployToS3('examples/cdn/dist-prod', undefined, prefix, publicRelease);
+            deployToS3('examples/main-pages', undefined, prefix, publicRelease);
         }
-            
-        deployToS3('examples/cdn/dist-prod', undefined, prefix, publicRelease);
-        deployToS3('examples/main-pages', undefined, prefix, publicRelease);
 
-
-
+        
 
         /**
          * create a tag for this version and push it
