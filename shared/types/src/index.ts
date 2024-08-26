@@ -12,7 +12,7 @@ import {
   } from './types';
 import { CustomData } from './implementation/data/CustomData';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
-import { GumballParameterValue, IGumballParameterSettings, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
+import { GumballParameterValue, IGumballParameterProps, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
 import {
   HTMLElementAnchorCustomData,
   HTMLElementAnchorData,
@@ -31,7 +31,7 @@ import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
 import {
-  IGeneralInteractionParameterSettings,
+  IInteractionParameterProps,
   IGumballParameterJsonSchema,
   IInteractionParameterJsonSchema,
   IInteractionParameterSettings,
@@ -74,7 +74,7 @@ import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTF
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData';
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData';
 import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData';
-import { ISelectionParameterSettings, isInteractionSelectionParameterSettings, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
+import { ISelectionParameterProps, isInteractionSelectionParameterSettings, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
 import { ISessionEvent } from './interfaces/events/ISessionEvent';
 import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent';
 import { IViewportEvent } from './interfaces/events/IViewportEvent';
@@ -135,7 +135,7 @@ export {
 };
 
 export {
-  InteractionParameterSettingsType, IGeneralInteractionParameterSettings, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
-  ISelectionParameterSettings, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
-  IGumballParameterSettings, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings
+  InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
+  ISelectionParameterProps, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
+  IGumballParameterProps, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings
 };

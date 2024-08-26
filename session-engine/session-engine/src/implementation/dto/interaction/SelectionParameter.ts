@@ -1,7 +1,7 @@
 import {
     IInteractionParameterSettings,
     InteractionParameterSettingsType,
-    ISelectionParameterSettings,
+    ISelectionParameterProps,
     validateSelectionParameterSettings
 } from '@shapediver/viewer.shared.types';
 import { ISelectionParameter } from '../../../interfaces/dto/interaction/ISelectionParameter';
@@ -55,7 +55,7 @@ export class SelectionParameter extends Parameter<string> implements ISelectionP
 
     // #region Private Methods (1)
 
-    private getSelectionProperties(): ISelectionParameterSettings | undefined {
+    private getSelectionProperties(): ISelectionParameterProps | undefined {
         const result = validateSelectionParameterSettings((this.settings as unknown as IInteractionParameterSettings));
         if (result.success) {
             return (this.settings as unknown as IInteractionParameterSettings).props;

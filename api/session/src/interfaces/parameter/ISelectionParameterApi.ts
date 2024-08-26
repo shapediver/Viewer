@@ -1,4 +1,4 @@
 import { IInteractionParameterApi } from './IInteractionParameterApi';
-import { ISelectionParameterSettings } from '@shapediver/viewer.shared.types';
+import { ISelectionParameterProps } from '@shapediver/viewer.shared.types';
 
-export interface ISelectionParameterApi extends IInteractionParameterApi, ISelectionParameterSettings { }
+export interface ISelectionParameterApi extends IInteractionParameterApi, ISelectionParameterProps { }

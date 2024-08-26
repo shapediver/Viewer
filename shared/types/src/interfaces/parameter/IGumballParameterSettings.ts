@@ -1,4 +1,4 @@
-import { IGeneralInteractionParameterSettings, IInteractionParameterSettings } from './IInteractionParameterSettings';
+import { IInteractionParameterProps, IInteractionParameterSettings } from './IInteractionParameterSettings';
 
 // #region Type aliases (1)
 
@@ -14,7 +14,7 @@ export type GumballParameterValue = {
 /**
  * Properties of a selection parameter.
  */
-export interface IGumballParameterSettings extends IGeneralInteractionParameterSettings {
+export interface IGumballParameterProps extends IInteractionParameterProps {
     // #region Properties (5)
 
     /** If the rotation is enabled. (default: true) */
@@ -37,7 +37,7 @@ export interface IGumballParameterSettings extends IGeneralInteractionParameterS
 
 // #region Functions (1)
 
-export function isInteractionGumballParameterSettings(def?: IInteractionParameterSettings): def is { type: 'gumball', props: IGumballParameterSettings } {
+export function isInteractionGumballParameterSettings(def?: IInteractionParameterSettings): def is { type: 'gumball', props: IGumballParameterProps } {
     return def?.type === 'gumball';
 }
 

@@ -1,4 +1,4 @@
-import { IGeneralInteractionParameterSettings, IInteractionParameterSettings } from './IInteractionParameterSettings';
+import { IInteractionParameterProps, IInteractionParameterSettings } from './IInteractionParameterSettings';
 
 // #region Type aliases (1)
 
@@ -13,7 +13,7 @@ export type SelectionParameterValue = {
 /**
  * Properties of a selection parameter.
  */
-export interface ISelectionParameterSettings extends IGeneralInteractionParameterSettings {
+export interface ISelectionParameterProps extends IInteractionParameterProps {
     // #region Properties (2)
 
     /** The maximum number of objects that can be selected. (default: 1) */
@@ -30,7 +30,7 @@ export interface ISelectionParameterSettings extends IGeneralInteractionParamete
 
 // #region Functions (1)
 
-export function isInteractionSelectionParameterSettings(def?: IInteractionParameterSettings): def is { type: 'selection', props: ISelectionParameterSettings } {
+export function isInteractionSelectionParameterSettings(def?: IInteractionParameterSettings): def is { type: 'selection', props: ISelectionParameterProps } {
     return def?.type === 'selection';
 }
 

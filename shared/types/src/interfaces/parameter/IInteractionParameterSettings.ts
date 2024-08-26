@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import { ISelectionParameterSettings } from './ISelectionParameterSettings';
-import { IGumballParameterSettings } from './IGumballParameterSettings';
 
 // #region Type aliases (1)
 
@@ -13,7 +11,7 @@ export type InteractionParameterSettingsType = 'selection' | 'gumball';
 /**
  * General properties of an interaction parameter.
  */
-export interface IGeneralInteractionParameterSettings {
+export interface IInteractionParameterProps {
     // #region Properties (2)
 
     /** If the objects are hoverable. (default: true) */
@@ -35,7 +33,7 @@ export interface IInteractionParameterSettings {
     // #region Properties (2)
 
     /** Properties of the parameter definition. */
-    props: ISelectionParameterSettings | IGumballParameterSettings,
+    props: IInteractionParameterProps,
     /** Type of the interaction parameters. */
     type: InteractionParameterSettingsType,
 

@@ -1,7 +1,7 @@
 import {
     IInteractionParameterSettings,
     InteractionParameterSettingsType,
-    IGumballParameterSettings,
+    IGumballParameterProps,
     validateGumballParameterSettings
 } from '@shapediver/viewer.shared.types';
 import { IGumballParameter } from '../../../interfaces/dto/interaction/IGumballParameter';
@@ -67,7 +67,7 @@ export class GumballParameter extends Parameter<string> implements IGumballParam
 
     // #region Private Methods (1)
 
-    private getGumballProperties(): IGumballParameterSettings | undefined {
+    private getGumballProperties(): IGumballParameterProps | undefined {
         const result = validateGumballParameterSettings((this.settings as unknown as IInteractionParameterSettings));
         if (result.success) {
             return (this.settings as unknown as IInteractionParameterSettings).props;
