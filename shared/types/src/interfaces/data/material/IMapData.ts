@@ -5,7 +5,7 @@ import { vec2 } from 'gl-matrix';
 // #region Type aliases (2)
 
 export type IMapDataProperties = IMapDataPropertiesGeneric<HTMLImageElement | ArrayBuffer>;
-export type IMapDataPropertiesDefinition = Partial<IMapDataPropertiesGeneric<HTMLImageElement | ArrayBuffer | string>>;
+export type IMapDataPropertiesDefinition = Partial<IMapDataPropertiesGeneric<HTMLImageElement | ArrayBuffer | string>> | string;
 
 // #endregion Type aliases (2)
 

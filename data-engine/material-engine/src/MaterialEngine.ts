@@ -105,14 +105,14 @@ export class MaterialEngine {
             return map;
         }));
         abstractProperties.bumpScale = definition.bumpScale;
-        abstractProperties.color = definition.color ? this._converter.toColorArray(definition.color) : undefined;
+        abstractProperties.color = definition.color ? definition.color : undefined;
         abstractProperties.depthTest = definition.depthTest;
         abstractProperties.depthWrite = definition.depthWrite;
         promises.push(this.loadMapFromDefinition(definition.emissiveMap).then(map => {
             if (map) abstractProperties.emissiveMap = map;
             return map;
         }));
-        abstractProperties.emissiveness = definition.emissiveness ? this._converter.toColorArray(definition.emissiveness) : undefined;
+        abstractProperties.emissiveness = definition.emissiveness ? definition.emissiveness : undefined;
         promises.push(this.loadMapFromDefinition(definition.map).then(map => {
             if (map) abstractProperties.map = map;
             return map;
@@ -347,7 +347,9 @@ export class MaterialEngine {
     public async loadMapFromDefinition(definition?: IMapDataPropertiesDefinition): Promise<MapData | undefined> {
         if (!definition) return undefined;
 
-        if (definition.image) {
+        if (typeof definition === 'string') {
+            return this.loadMap(definition);
+        } else if (definition.image) {
             if (typeof definition.image === 'string') {
                 return this.loadMapWithProperties({
                     href: definition.image,
