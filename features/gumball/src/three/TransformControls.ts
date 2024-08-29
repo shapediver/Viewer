@@ -44,7 +44,7 @@ enum TransformationType {
 }
 
 class TransformControls extends Object3D {
-    // #region Properties (52)
+    // #region Properties (50)
 
     private _axis: string | null = null;
     private _camera: Camera;
@@ -59,6 +59,7 @@ class TransformControls extends Object3D {
     private _endNorm: Vector3;
     private _eye: Vector3 = new Vector3();
     private _gizmo: TransformControlsGizmo;
+    private _hovering: boolean = false;
     private _mode?: TransformationType;
     private _object: Object3D | undefined = undefined;
     private _offset: Vector3;
@@ -97,7 +98,7 @@ class TransformControls extends Object3D {
     public domElement: HTMLElement;
     public isTransformControls: boolean;
 
-    // #endregion Properties (52)
+    // #endregion Properties (50)
 
     // #region Constructors (1)
 
@@ -154,7 +155,7 @@ class TransformControls extends Object3D {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (45)
+    // #region Public Getters And Setters (47)
 
     public get axis(): string | null {
         return this._axis;
@@ -219,6 +220,10 @@ class TransformControls extends Object3D {
 
     public get eye(): Vector3 {
         return this._eye;
+    }
+
+    public get hovering(): boolean {
+        return this._hovering;
     }
 
     public get mode(): TransformationType | undefined {
@@ -345,7 +350,7 @@ class TransformControls extends Object3D {
         return this._worldQuaternionStart;
     }
 
-    // #endregion Public Getters And Setters (45)
+    // #endregion Public Getters And Setters (47)
 
     // #region Public Methods (21)
 
@@ -519,6 +524,8 @@ class TransformControls extends Object3D {
             this.axis = null;
             this.mode = undefined;
         }
+
+        this._hovering = intersections.length > 0;
     }
 
     public pointerMove(pointer: { x: number; y: number; button: any; }) {

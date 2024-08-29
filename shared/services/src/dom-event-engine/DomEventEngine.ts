@@ -62,6 +62,7 @@ export class DomEventEngine {
     }
 
     public addRestrictedListenerToken(token: string): void {
+        if(this._restrictedListenerTokens.includes(token)) return;
         this._restrictedListenerTokens.push(token);
     }
 

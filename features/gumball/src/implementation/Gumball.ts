@@ -200,7 +200,7 @@ export class Gumball implements IGumball {
         this.#transformControls.onPointerDown(event);
         
         this.#moving = this.#transformControls.dragging;
-        if(this.#moving) 
+        if(this.#transformControls.dragging || this.#transformControls.hovering) 
             this.#viewport.addRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
     }
 
@@ -232,6 +232,12 @@ export class Gumball implements IGumball {
         this.#transformControls.onPointerHover(event);
         if(this.#moving)
             this.#transformControls.onPointerMove(event);
+
+        if(this.#transformControls.dragging || this.#transformControls.hovering) {
+            this.#viewport.addRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
+        } else {
+            this.#viewport.removeRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
+        }
     }
 
     public onPointerOut(event: PointerEvent): void {
