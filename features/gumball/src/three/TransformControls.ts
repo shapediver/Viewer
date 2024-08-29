@@ -58,15 +58,10 @@ class TransformControls extends Object3D {
     private _enabled: boolean = true;
     private _endNorm: Vector3;
     private _eye: Vector3 = new Vector3();
-    private _getPointer: (event: any) => { x: number; y: number; button: any; };
     private _gizmo: TransformControlsGizmo;
     private _mode?: TransformationType;
     private _object: Object3D | undefined = undefined;
     private _offset: Vector3;
-    private _onPointerDown: (event: any) => void;
-    private _onPointerHover: (event: any) => void;
-    private _onPointerMove: (event: any) => void;
-    private _onPointerUp: (event: any) => void;
     private _parentPosition: Vector3;
     private _parentQuaternion: Quaternion;
     private _parentQuaternionInv: Quaternion = new Quaternion();
@@ -155,16 +150,6 @@ class TransformControls extends Object3D {
         this._positionStart = new Vector3();
         this._quaternionStart = new Quaternion();
         this._scaleStart = new Vector3();
-
-        this._getPointer = this.getPointer.bind(this);
-        this._onPointerDown = this.onPointerDown.bind(this);
-        this._onPointerHover = this.onPointerHover.bind(this);
-        this._onPointerMove = this.onPointerMove.bind(this);
-        this._onPointerUp = this.onPointerUp.bind(this);
-
-        this.domElement.addEventListener('pointerdown', this._onPointerDown);
-        this.domElement.addEventListener('pointermove', this._onPointerHover);
-        this.domElement.addEventListener('pointerup', this._onPointerUp);
     }
 
     // #endregion Constructors (1)
@@ -382,11 +367,6 @@ class TransformControls extends Object3D {
     }
 
     public dispose() {
-        this.domElement.removeEventListener('pointerdown', this._onPointerDown);
-        this.domElement.removeEventListener('pointermove', this._onPointerHover);
-        this.domElement.removeEventListener('pointermove', this._onPointerMove);
-        this.domElement.removeEventListener('pointerup', this._onPointerUp);
-
         this.traverse(function (child) {
             if ((child as any).geometry) (child as any).geometry.dispose();
             if ((child as any).material) (child as any).material.dispose();
@@ -436,10 +416,8 @@ class TransformControls extends Object3D {
             this.domElement.setPointerCapture(event.pointerId);
         }
 
-        this.domElement.addEventListener('pointermove', this._onPointerMove);
-
-        this.pointerHover(this._getPointer(event));
-        this.pointerDown(this._getPointer(event));
+        this.pointerHover(this.getPointer(event));
+        this.pointerDown(this.getPointer(event));
     }
 
     public onPointerHover(event: PointerEvent) {
@@ -448,7 +426,7 @@ class TransformControls extends Object3D {
         switch (event.pointerType) {
             case 'mouse':
             case 'pen':
-                this.pointerHover(this._getPointer(event));
+                this.pointerHover(this.getPointer(event));
                 break;
         }
     }
@@ -456,7 +434,7 @@ class TransformControls extends Object3D {
     public onPointerMove(event: PointerEvent) {
         if (!this.enabled) return;
 
-        this.pointerMove(this._getPointer(event));
+        this.pointerMove(this.getPointer(event));
     }
 
     public onPointerUp(event: PointerEvent) {
@@ -464,9 +442,7 @@ class TransformControls extends Object3D {
 
         this.domElement.releasePointerCapture(event.pointerId);
 
-        this.domElement.removeEventListener('pointermove', this._onPointerMove);
-
-        this.pointerUp(this._getPointer(event));
+        this.pointerUp(this.getPointer(event));
     }
 
     public pointerDown(pointer: { x: number; y: number; button: any; }) {

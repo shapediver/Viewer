@@ -2,7 +2,7 @@ import { IDomEventListener } from './IDomEventListener';
 import { UuidGenerator } from '../uuid-generator/UuidGenerator';
 
 export class DomEventEngine {
-    // #region Properties (14)
+    // #region Properties (15)
 
     private readonly _domEventListeners: {
         [key: string]: IDomEventListener
@@ -30,8 +30,9 @@ export class DomEventEngine {
     private _onPointerMove: (event: PointerEvent) => void;
     private _onPointerOut: (event: PointerEvent) => void;
     private _onPointerUp: (event: PointerEvent) => void;
+    private _restrictedListenerTokens: string[] = [];
 
-    // #endregion Properties (14)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -52,12 +53,16 @@ export class DomEventEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (5)
+    // #region Public Methods (7)
 
     public addDomEventListener(listener: IDomEventListener): string {
         const id = this._uuidGenerator.create();
         this._domEventListeners[id] = listener;
         return id;
+    }
+
+    public addRestrictedListenerToken(token: string): void {
+        this._restrictedListenerTokens.push(token);
     }
 
     /**
@@ -166,17 +171,25 @@ export class DomEventEngine {
     public removeAllDomEventListener(): void {
         for (const id in this._domEventListeners)
             delete this._domEventListeners[id];
+
+        this._restrictedListenerTokens = [];
     }
 
     public removeDomEventListener(id: string): boolean {
         if (this._domEventListeners[id]) {
             delete this._domEventListeners[id];
+            this._restrictedListenerTokens = this._restrictedListenerTokens.filter(t => t !== id);
             return true;
         }
         return false;
     }
 
-    // #endregion Public Methods (5)
+    public removeRestrictedListenerToken(token: string): void {
+        const index = this._restrictedListenerTokens.indexOf(token);
+        if (index !== -1) this._restrictedListenerTokens.splice(index, 1);
+    }
+
+    // #endregion Public Methods (7)
 
     // #region Private Methods (11)
 
@@ -204,8 +217,13 @@ export class DomEventEngine {
     }
 
     private onKeyDown(event: KeyboardEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y))
-            Object.values(this._domEventListeners).forEach(e => e.onKeyDown(event));
+        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y)) {
+            Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+                if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                    listener.onKeyDown(event);
+                }
+            });
+        }
     }
 
     private onKeyDownPointerPositionHelper(event: PointerEvent): void {
@@ -213,36 +231,61 @@ export class DomEventEngine {
     }
 
     private onKeyUp(event: KeyboardEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y))
-            Object.values(this._domEventListeners).forEach(e => e.onKeyUp(event));
+        if (this._canvas === document.elementFromPoint(this._currentPointerPosition.x, this._currentPointerPosition.y)) {
+            Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+                if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                    listener.onKeyUp(event);
+                }
+            });
+        }
     }
 
     private onMouseWheel(event: Event): void {
         event.preventDefault();
         event.stopPropagation();
-        Object.values(this._domEventListeners).forEach(e => e.onMouseWheel(<WheelEvent>event));
+        Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+            if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                listener.onMouseWheel(<WheelEvent>event);
+            }
+        });
     }
 
     private onPointerDown(event: PointerEvent): void {
         event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onPointerDown(event));
+        Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+            if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                listener.onPointerDown(event);
+            }
+        });
     }
 
     private onPointerMove(event: PointerEvent): void {
         event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onPointerMove(event));
+        Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+            if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                listener.onPointerMove(event);
+            }
+        });
     }
 
     private onPointerOut(event: PointerEvent): void {
         event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onPointerOut(event));
-        Object.values(this._domEventListeners).forEach(e => e.onPointerEnd(event));
+        Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+            if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                listener.onPointerOut(event);
+                listener.onPointerEnd(event);
+            }
+        });
     }
 
     private onPointerUp(event: PointerEvent): void {
         event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onPointerUp(event));
-        Object.values(this._domEventListeners).forEach(e => e.onPointerEnd(event));
+        Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+            if (this._restrictedListenerTokens.length === 0 || this._restrictedListenerTokens.includes(key)) {
+                listener.onPointerUp(event);
+                listener.onPointerEnd(event);
+            }
+        });
     }
 
     private removeEventListeners() {

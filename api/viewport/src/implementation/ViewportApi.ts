@@ -683,7 +683,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Public Getters And Setters (94)
 
-    // #region Public Methods (39)
+    // #region Public Methods (41)
 
     public addCanvasEventListener(listener: IDomEventListener): string {
         const scope = 'addCanvasEventListener';
@@ -696,6 +696,10 @@ export class ViewportApi implements IViewportApi {
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, flag, 'enum', true, Object.values(FLAG_TYPE));
         const token = this.#renderingEngine.addFlag(flag);
         return token;
+    }
+
+    public addRestrictedCanvasListenerToken(token: string): void {
+        this.#renderingEngine.domEventEngine.addRestrictedListenerToken(token);
     }
 
     public applyViewportSettings(settings: ISettings, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; postprocessing?: boolean | undefined }) {
@@ -935,6 +939,10 @@ export class ViewportApi implements IViewportApi {
         return check;
     }
 
+    public removeRestrictedCanvasListenerToken(token: string): void {
+        this.#renderingEngine.domEventEngine.removeRestrictedListenerToken(token);
+    }
+
     public render(): void {
         this.#renderingEngine.renderingManager.render();
     }
@@ -1059,5 +1067,5 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.viewableInAR();
     }
 
-    // #endregion Public Methods (39)
+    // #endregion Public Methods (41)
 }

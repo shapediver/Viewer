@@ -315,7 +315,7 @@ export interface IViewportApi {
 
   // #endregion Properties (54)
 
-  // #region Public Methods (39)
+  // #region Public Methods (41)
 
   /**
    * Add an event listener that receives all canvas events.
@@ -328,6 +328,14 @@ export interface IViewportApi {
    * If you want to stop this again call {@link removeFlag} with the returned token.
    */
   addFlag(flag: FLAG_TYPE): string;
+  /**
+   * Add a token to the list of restricted canvas listener tokens.
+   * This can be used to restrict events for a viewport.
+   * Only listeners with a token in this list will receive events (if there is at least one item in the list).
+   * 
+   * @param token 
+   */
+  addRestrictedCanvasListenerToken(token: string): void;
   /**
    * Apply the settings of a viewport manually. You can get the settings via {@link getViewportSettings}.
    * You can choose which sections will be applied, by default they are all set to false.
@@ -520,6 +528,11 @@ export interface IViewportApi {
    */
   removeLightScene(id: string): boolean;
   /**
+   * Remove the token from the list of restricted canvas listener tokens.
+   * Only listeners with a token in this list will receive events (if there is at least one item in the list).
+   */
+  removeRestrictedCanvasListenerToken(token: string): void;
+  /**
    * Manual call to render the scene.
    */
   render(): void;
@@ -622,5 +635,5 @@ export interface IViewportApi {
    */
   viewableInAR(): boolean;
 
-  // #endregion Public Methods (39)
+  // #endregion Public Methods (41)
 }

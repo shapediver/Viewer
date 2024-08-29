@@ -197,13 +197,20 @@ export class Gumball implements IGumball {
     public onPointerDown(event: PointerEvent): void {
         if (this.closed) return;
 
-        this.#moving = true;
+        this.#transformControls.onPointerDown(event);
+        
+        this.#moving = this.#transformControls.dragging;
+        if(this.#moving) 
+            this.#viewport.addRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
     }
 
     public onPointerEnd(event: PointerEvent): void {
         if (this.closed) return;
 
         this.#moving = false;
+        this.#viewport.removeRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
+
+        this.#transformControls.onPointerUp(event);
     }
 
     public onPointerMove(event: PointerEvent): void {
@@ -221,6 +228,10 @@ export class Gumball implements IGumball {
         if (this.#pivotDragging === true && !this.keyPressed('p')) {
             this.deactivatePivotDragging();
         }
+
+        this.#transformControls.onPointerHover(event);
+        if(this.#moving)
+            this.#transformControls.onPointerMove(event);
     }
 
     public onPointerOut(event: PointerEvent): void {
