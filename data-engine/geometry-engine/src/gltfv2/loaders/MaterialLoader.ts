@@ -349,12 +349,15 @@ export class MaterialLoader {
 
     // #region Private Methods (1)
 
-    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number, texCoord?: number }): IMapData {
+    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number, texCoord?: number }): IMapData | undefined {
         if (!this._content.textures) throw new Error('Textures not available.');
         const texture = this._content.textures[textureId];
         if (!this._content.images) throw new Error('Images not available.');
         const sampler = this._content.samplers && texture.sampler && this._content.samplers[texture.sampler] ? this._content.samplers[texture.sampler] : {};
         const loadedTexture = this._textureLoader.getTexture(textureId);
+
+        if(!loadedTexture)
+            return;
 
         return new MapData(
             loadedTexture.image,

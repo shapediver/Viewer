@@ -13,7 +13,7 @@ import {
 	WebGLRenderer,
 	WebGLRenderTarget
 } from 'three';
-import { Converter, HttpClient } from '@shapediver/viewer.shared.services';
+import { HttpClient, Logger } from '@shapediver/viewer.shared.services';
 import { Pass } from 'postprocessing';
 import { poissionDenoise as fragmentShader } from './shader/poissionDenoise';
 import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
@@ -54,23 +54,8 @@ export class PoissionDenoisePass extends Pass {
 	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
 		super('PoissionBlurPass');
 
-		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
-			HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png').then(result => {
-				const url = URL.createObjectURL(result.data.blob);
-				new TextureLoader().load(url, texture => {
-					URL.revokeObjectURL(url);
-					PoissionDenoisePass.blueNoiseTexture = texture;
-					PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
-					PoissionDenoisePass.blueNoiseTexture.magFilter = NearestFilter;
-					PoissionDenoisePass.blueNoiseTexture.wrapS = RepeatWrapping;
-					PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
-					PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
-					PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
-	
-					(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
-				});
-			});
-		}
+		if (PoissionDenoisePass.blueNoiseTexture === undefined)
+			this.loadBlueNoiseTexture();
 
 		options = { ...defaultPoissonBlurOptions, ...options };
 
@@ -129,6 +114,34 @@ export class PoissionDenoisePass extends Pass {
 					this.setSize(this.renderTargetA.width, this.renderTargetA.height);
 				}
 			});
+		}
+	}
+
+	private async  loadBlueNoiseTexture() {
+		const result = await HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
+
+		if (result) {
+			const url = URL.createObjectURL(result.data.blob);
+			new TextureLoader().load(url, texture => {
+				URL.revokeObjectURL(url);
+				PoissionDenoisePass.blueNoiseTexture = texture;
+				PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
+				PoissionDenoisePass.blueNoiseTexture.magFilter = NearestFilter;
+				PoissionDenoisePass.blueNoiseTexture.wrapS = RepeatWrapping;
+				PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
+				PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
+				PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
+
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+			});
+		} else {
+			Logger.instance.warn('The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...');
+
+			// if there was an issue loading the texture
+			// set a timeout with 1 second to try again
+			setTimeout(() => {
+				this.loadBlueNoiseTexture();
+			}, 1000);
 		}
 	}
 

@@ -32,7 +32,6 @@ export class TextureLoader {
     } {
         if (!this._content.textures) throw new Error('TextureLoader.getTexture: Textures not available.');
         if (!this._content.textures[textureId]) throw new Error('TextureLoader.getTexture: Texture not available.');
-        if (!this._loaded[textureId]) throw new Error('TextureLoader.getTexture: Texture not loaded.');
         return this._loaded[textureId];
     }
 
@@ -83,21 +82,25 @@ export class TextureLoader {
                     new Promise<void>((resolve, reject) => {
                         this._httpClient.loadTexture(url!)
                             .then(response => {
-                                if(typeof window !== 'undefined') {
-                                    Converter.instance.responseToImage(response).then(img => {
+                                if (!response) {
+                                    resolve();
+                                } else {
+                                    if (typeof window !== 'undefined') {
+                                        Converter.instance.responseToImage(response).then(img => {
+                                            this._loaded[textureId] = {
+                                                image: img,
+                                                blob: response.data.blob
+                                            };
+                                            resolve();
+                                        })
+                                        .catch(e => reject(e));
+                                    } else {
                                         this._loaded[textureId] = {
-                                            image: img,
+                                            image: response.data.buffer,
                                             blob: response.data.blob
                                         };
                                         resolve();
-                                    })
-                                    .catch(e => reject(e));
-                                } else {
-                                    this._loaded[textureId] = {
-                                        image: response.data.buffer,
-                                        blob: response.data.blob
-                                    };
-                                    resolve();
+                                    }
                                 }
                             })
                             .catch(e => reject(e));

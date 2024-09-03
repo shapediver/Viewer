@@ -322,13 +322,16 @@ export class MaterialEngine {
         return node;
     }
 
-    public async loadMap(url: string, id?: string): Promise<MapData> {
+    public async loadMap(url: string, id?: string): Promise<MapData | undefined> {
         let response;
         if (!id) {
             response = await this._httpClient.loadTexture(url);
         } else {
             response = await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
         }
+
+        if(!response)
+            return;
 
         if (typeof window !== 'undefined') {
             const image = await Converter.instance.responseToImage(response);
@@ -368,8 +371,11 @@ export class MaterialEngine {
         return;
     }
 
-    public async loadMapWithProperties(texture: ITexture): Promise<MapData> {
+    public async loadMapWithProperties(texture: ITexture): Promise<MapData | undefined> {
         const response = await this._httpClient.loadTexture(texture.href!);
+
+        if(!response)
+            return;
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
@@ -527,7 +533,7 @@ export class MaterialEngine {
 
     public async loadMaterialV3(data: IMaterialContentDataV3): Promise<MaterialStandardData> {
         const material = new MaterialStandardData();
-        const promises: Promise<MapData | null>[] = [];
+        const promises: Promise<MapData | undefined>[] = [];
         // ambient is ignored
 
         if (data.color)

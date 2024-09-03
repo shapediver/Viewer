@@ -2,11 +2,14 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { ShapeDiverError as ShapeDiverBackendError, isGBResponseError, isGBRequestError, isGBError } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from '../logger/ShapeDiverBackendErrors';
 import { HttpResponse } from './HttpResponse';
-import { Converter } from '../converter/Converter';
 import { btoaCustom } from '../utilities/base64';
+import { Logger } from '../logger/Logger';
 
 export class HttpClient {
     // #region Properties (7)
+
+    private readonly _logger: Logger = Logger.instance;
+
     private static _instance: HttpClient;
 
     private _dataCache: Map<
@@ -36,15 +39,15 @@ export class HttpClient {
 
     // #endregion Constructors (1)
 
-    // #region Public Static Accessors (1)
+    // #region Public Static Getters And Setters (1)
 
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
 
-    // #endregion Public Static Accessors (1)
+    // #endregion Public Static Getters And Setters (1)
 
-    // #region Public Accessors (6)
+    // #region Public Getters And Setters (6)
 
     public get enableCaching(): boolean {
         return this._enableCaching;
@@ -72,7 +75,7 @@ export class HttpClient {
         this._maxCacheSize = value;
     }
 
-    // #endregion Public Accessors (6)
+    // #endregion Public Getters And Setters (6)
 
     // #region Public Methods (5)
 
@@ -122,7 +125,7 @@ export class HttpClient {
      * @param textureConversion 
      * @returns 
      */
-    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<unknown>> {        
+    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<unknown>> {
         const dataKey = this.hrefToDataKey(href);
 
         // return element if it exists in cache
@@ -204,23 +207,37 @@ export class HttpClient {
 
     /**
      * Get the requested texture either as a download or from the cache.
+     * If the texture is not available, undefined is returned.
      * 
-     * @param href 
-     * @returns 
+     * @param href The URL of the texture to load.
+     * @returns Either the texture as a buffer and blob or undefined if the texture could not be loaded.
      */
-    public async loadTexture(href: string): Promise<HttpResponse<{ buffer: ArrayBuffer, blob: Blob }>> {
-        const response = await (this.get(href, undefined, true) as Promise<HttpResponse<ArrayBuffer>>);
-        const buffer = response.data;
-        const arrayBufferView = new Uint8Array( response.data );
-        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
-        return {
-            data: {
-                buffer,
-                blob
-            },
-            size: response.data.byteLength,
-            headers: response.headers
-        };
+    public async loadTexture(href: string): Promise<HttpResponse<{ buffer: ArrayBuffer, blob: Blob }> | undefined> {
+        let result: HttpResponse<{ buffer: ArrayBuffer, blob: Blob }> | undefined;
+
+        try {
+            const response = await this.get(href, undefined, true) as HttpResponse<ArrayBuffer>;
+            const buffer = response.data;
+            const arrayBufferView = new Uint8Array(response.data);
+            const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
+
+            // assign the result
+            result = {
+                data: {
+                    buffer,
+                    blob
+                },
+                size: response.data.byteLength,
+                headers: response.headers
+            };
+        } catch (e) {
+            // log the error and return undefined
+            this._logger.error(`Failed to load texture: ${e}`);
+        }
+
+        // return undefined if the texture could not be loaded
+        // that way the loading can be continued without the texture
+        return result;
     }
 
     /**
