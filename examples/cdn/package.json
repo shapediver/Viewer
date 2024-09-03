@@ -42,6 +42,7 @@
     "@shapediver/viewer": "*",
     "@shapediver/viewer.features.attribute-visualization": "*",
     "@shapediver/viewer.features.drawing-tools": "*",
+    "@shapediver/viewer.features.gumball": "*",
     "@shapediver/viewer.features.interaction": "*",
     "gl-matrix": "3.3.0"
   }
