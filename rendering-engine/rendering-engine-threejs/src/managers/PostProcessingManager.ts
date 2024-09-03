@@ -70,9 +70,8 @@ import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
 import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { vec3 } from 'gl-matrix';
 
-
 export class PostProcessingManager implements IManager {
-    // #region Properties (19)
+    // #region Properties (22)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -82,6 +81,7 @@ export class PostProcessingManager implements IManager {
     private _antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.SMAA;
     private _antiAliasingTechniqueMobile: ANTI_ALIASING_TECHNIQUE = ANTI_ALIASING_TECHNIQUE.FXAA;
     private _composer?: EffectComposer;
+    private _currentCameraId: string = '';
     private _effectDefinitions: {
         token: string,
         definition: IPostProcessingEffectDefinition
@@ -101,16 +101,15 @@ export class PostProcessingManager implements IManager {
         [key: string]: OutlineManager
     } = {};
     private _renderPass?: RenderPass;
+    private _sceneExtents = 0;
     private _selectiveBloomManagers: {
         [key: string]: SelectiveBloomManager
     } = {};
     private _smaaEffect?: SMAAEffect;
     private _ssaaRenderPass?: SSAARenderPass;
-    private _sceneExtents = 0;
     private _suspendEffectPassUpdate = false;
-    private _currentCameraId: string = '';
 
-    // #endregion Properties (19)
+    // #endregion Properties (22)
 
     // #region Constructors (1)
 
@@ -135,7 +134,7 @@ export class PostProcessingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (15)
+    // #region Public Getters And Setters (15)
 
     public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
         return this._antiAliasingTechnique;
@@ -213,9 +212,9 @@ export class PostProcessingManager implements IManager {
             this._ssaaRenderPass.sampleLevel = value;
     }
 
-    // #endregion Public Accessors (15)
+    // #endregion Public Getters And Setters (15)
 
-    // #region Public Methods (10)
+    // #region Public Methods (13)
 
     public addEffect(definition: IPostProcessingEffectDefinition, t?: string): string {
         const token = t || this._uuidGenerator.create();
@@ -231,7 +230,6 @@ export class PostProcessingManager implements IManager {
                 if(!this._outlineManagers[token]) 
                     this._outlineManagers[token] = new OutlineManager(this._renderingEngine);
                 break;
-                
 
             case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
                 if(!this._selectiveBloomManagers[token]) 
@@ -240,7 +238,6 @@ export class PostProcessingManager implements IManager {
 
             default:
         }
-                
 
         this.changeEffectPass();
         return token;
@@ -288,9 +285,9 @@ export class PostProcessingManager implements IManager {
 
         const antiAliasingTechnique = this._systemInfo.isMobile === true ? this._antiAliasingTechniqueMobile : this._antiAliasingTechnique;
         if (antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.SSAA) {
-            this._composer.addPass(this._ssaaRenderPass!);
+            this.addPassToEffectComposer(this._ssaaRenderPass!);
         } else {
-            this._composer.addPass(this._renderPass!);
+            this.addPassToEffectComposer(this._renderPass!);
         }
 
         // remove the effects where the tokens are not in the effectDefinitions
@@ -641,12 +638,12 @@ export class PostProcessingManager implements IManager {
         }
 
         this._effectPass = new EffectPass(this._renderingEngine.camera, ...this._effects.map(v => v.effect));
-        this._composer.addPass(this._effectPass);
+        this.addPassToEffectComposer(this._effectPass);
 
         // for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
         if (this._effectDefinitions.find(e => e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO || e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO)) {
             // respect the AA choice if one of the effects was selected, use SMAA otherwise
-            this._composer.addPass(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect! : this._smaaEffect!));
+            this.addPassToEffectComposer(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect! : this._smaaEffect!));
         }
     }
 
@@ -1100,7 +1097,6 @@ export class PostProcessingManager implements IManager {
         } else {
             initComposer();
         }
-
     }
 
     public removeEffect(token: string): boolean {
@@ -1165,5 +1161,21 @@ export class PostProcessingManager implements IManager {
         this.addEffect(definition, token);
     }
 
-    // #endregion Public Methods (10)
+    // #endregion Public Methods (13)
+
+    // #region Private Methods (1)
+
+    private addPassToEffectComposer(pass: EffectPass | RenderPass | SSAARenderPass ) {
+        if (this._composer) {
+            try {
+                this._composer.addPass(pass);
+            } catch (e) {
+                // in this case a WebGL error is thrown, when the WebGL context is lost
+                // as we already throw an error in the rendering engine, we can ignore this error here
+                // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getContextAttributes
+            }
+        }
+    }
+
+    // #endregion Private Methods (1)
 }
