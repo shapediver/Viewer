@@ -171,7 +171,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     if (renderingEngine.closed)
       throw new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${renderingEngine.id} not found.`);
 
-    this.assignViewerInternal(renderingEngine.id, renderingEngine.canvas);
+    this.assignViewerInternal(renderingEngine.id);
     this._controls.assignViewer(renderingEngine.id, renderingEngine.canvas);
 
     if (this.domEventListenerToken && this.#domEventEngine)
