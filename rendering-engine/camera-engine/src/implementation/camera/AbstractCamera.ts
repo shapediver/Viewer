@@ -308,7 +308,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Protected Methods (1)
 
-    protected assignViewerInternal(viewportId: string, canvas: HTMLCanvasElement) {
+    protected assignViewerInternal(viewportId: string) {
         this._viewportId = viewportId;
         this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async () => {
             if (this.#autoAdjust === true) {
@@ -318,21 +318,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
                 });
             }
         });
-        const revert = () => {
-            if (this.#revertAtMouseUp === true)
-                this.reset({ duration: this.#revertAtMouseUpDuration });
-        };
-        canvas.addEventListener('mouseup', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener('mouseout', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener('touchend', () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-
-        let zoomResizeTimeout: NodeJS.Timeout;
-        const mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? 'DOMMouseScroll' : 'mousewheel'; //FF doesn't recognize mousewheel as of FF3.x
-        canvas.addEventListener(mouseWheelEvent,
-            () => {
-                clearTimeout(zoomResizeTimeout);
-                zoomResizeTimeout = setTimeout(revert, 300);
-            }, detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
     }
 
     // #endregion Protected Methods (1)

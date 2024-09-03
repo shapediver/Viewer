@@ -3,7 +3,9 @@ import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICam
 import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic';
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
-  // #region Properties (6)
+  // #region Properties (7)
+
+  private _zoomResizeTimeout: NodeJS.Timeout | undefined;
 
   protected _active = {
     rotation: false,
@@ -16,7 +18,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   protected _primaryPointerEvent?: PointerEvent;
   protected _secondaryPointerEvent?: PointerEvent;
 
-  // #endregion Properties (6)
+  // #endregion Properties (7)
 
   // #region Constructors (1)
 
@@ -182,6 +184,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   public onPointerOut(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
+    this.revert();
 
     if (event.isPrimary === true)
       this._primaryPointerEvent = undefined;
@@ -200,6 +203,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   public onUp(event: PointerEvent): void {
     if (this._controls.camera.active === false) return;
+    this.revert();
     this._active.rotation = false;
     this._active.zoom = false;
     this._active.pan = false;
@@ -209,6 +213,12 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if (this._controls.camera.active === false) return;
     if (!this._activeEvents) return;
     if (!this._controls.enableZoom) return;
+
+    if(this._controls.camera.revertAtMouseUp === true) {
+      clearTimeout(this._zoomResizeTimeout);
+      this._zoomResizeTimeout = setTimeout(this.revert.bind(this), 300);
+    }
+
     let delta = 0;
     if (event.deltaY !== undefined) {
       // WebKit / Opera / Explorer 9
@@ -266,4 +276,14 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   }
 
   // #endregion Protected Methods (2)
+
+  // #region Private Methods (1)
+
+  private revert() {
+    if(this._controls.camera.revertAtMouseUp === true) {
+      this._controls.camera.reset({ duration: this._controls.camera.revertAtMouseUpDuration });
+    }
+  }
+
+  // #endregion Private Methods (1)
 }
