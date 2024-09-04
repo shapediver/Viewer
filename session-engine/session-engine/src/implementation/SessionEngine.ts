@@ -6,25 +6,7 @@ import {
     versions
 } from '@shapediver/viewer.settings';
 import {
-    create,
-    isGBResponseError,
-    ShapeDiverError as ShapeDiverBackendError,
-    ShapeDiverRequestConfigure,
-    ShapeDiverRequestCustomization,
-    ShapeDiverRequestExport,
-    ShapeDiverRequestGltfUploadQueryConversion,
-    ShapeDiverResponseDto,
-    ShapeDiverResponseErrorType,
-    ShapeDiverResponseExport,
-    ShapeDiverResponseExportDefinitionType,
-    ShapeDiverResponseFileInfo,
-    ShapeDiverResponseModelComputationStatus,
-    ShapeDiverResponseOutput,
-    ShapeDiverResponseParameter,
-    ShapeDiverSdk,
-    ShapeDiverSdkConfigType
-} from '@shapediver/sdk.geometry-api-sdk-v2';
-import {
+    Converter,
     EventEngine,
     EVENTTYPE,
     HttpClient,
@@ -39,6 +21,28 @@ import {
     SystemInfo,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
+import {
+    create,
+    isGBResponseError,
+    ShapeDiverError as ShapeDiverBackendError,
+    ShapeDiverRequestConfigure,
+    ShapeDiverRequestCustomization,
+    ShapeDiverRequestExport,
+    ShapeDiverRequestFileUploadPart,
+    ShapeDiverRequestGltfUploadQueryConversion,
+    ShapeDiverRequestModelState,
+    ShapeDiverResponseDto,
+    ShapeDiverResponseErrorType,
+    ShapeDiverResponseExport,
+    ShapeDiverResponseExportDefinitionType,
+    ShapeDiverResponseFileInfo,
+    ShapeDiverResponseModelComputationStatus,
+    ShapeDiverResponseModelState,
+    ShapeDiverResponseOutput,
+    ShapeDiverResponseParameter,
+    ShapeDiverSdk,
+    ShapeDiverSdkConfigType
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import { Export } from './dto/Export';
 import { FileParameter } from './dto/FileParameter';
 import { GumballParameter } from './dto/interaction/GumballParameter';
@@ -74,8 +78,9 @@ import { vec3 } from 'gl-matrix';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (46)
+    // #region Properties (50)
 
+    private readonly _converter = Converter.instance;
     private readonly _eventEngine = EventEngine.instance;
     private readonly _exports: { [key: string]: IExport; } = {};
     private readonly _guid?: string;
@@ -130,6 +135,9 @@ export class SessionEngine implements ISessionEngine {
     private _jwtToken?: string;
     private _loadSdtf: boolean = false;
     private _modelId?: string;
+    private _modelState?: ShapeDiverResponseModelState;
+    private _modelStateId?: string;
+    private _modelStateValidationMode?: boolean;
     private _node: ITreeNode;
     private _refreshJwtToken?: () => Promise<string>;
     private _responseDto?: ShapeDiverResponseDto;
@@ -141,7 +149,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
 
-    // #endregion Properties (46)
+    // #endregion Properties (50)
 
     // #region Constructors (1)
 
@@ -149,7 +157,7 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean, loadSdtf: boolean }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean, loadSdtf: boolean, modelStateId?: string, modelStateValidationMode?: boolean }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._guid = properties.guid;
@@ -159,8 +167,12 @@ export class SessionEngine implements ISessionEngine {
         this._jwtToken = properties.jwtToken;
         this._allowOutputLoading = properties.allowOutputLoading;
         this._loadSdtf = properties.loadSdtf;
+        this._modelStateId = properties.modelStateId;
+        this._modelStateValidationMode = properties.modelStateValidationMode;
+
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
+
         this._outputLoader = new OutputLoader(this);
 
         try {
@@ -173,7 +185,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (27)
+    // #region Public Getters And Setters (28)
 
     public get automaticSceneUpdate(): boolean {
         return this._automaticSceneUpdate;
@@ -246,6 +258,10 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    public get modelState(): ShapeDiverResponseModelState | undefined {
+        return this._modelState;
+    }
+
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
@@ -298,7 +314,7 @@ export class SessionEngine implements ISessionEngine {
         return this._viewerSettings;
     }
 
-    // #endregion Public Getters And Setters (27)
+    // #endregion Public Getters And Setters (28)
 
     // #region Public Methods (29)
 
@@ -765,9 +781,9 @@ export class SessionEngine implements ISessionEngine {
                 parameterSet[parameterNameOrId] = (' ' + parameterValues[parameterNameOrId]).slice(1);
 
             if (this._ticket) {
-                this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
+                this._responseDto = await this._sdk.session.init(this._ticket, parameterSet, this._modelStateId, this._modelStateValidationMode);
             } else if (this._guid) {
-                this._responseDto = await this._sdk.session.initForModel(this._guid, parameterSet);
+                this._responseDto = await this._sdk.session.initForModel(this._guid, parameterSet, this._modelStateId, this._modelStateValidationMode);
             } else {
                 // we should never get here
                 throw new ShapeDiverViewerSessionError('Session.init: Initialization of session failed. Neither a ticket nor a guid are available.');
@@ -778,6 +794,7 @@ export class SessionEngine implements ISessionEngine {
             this._viewerSettingsVersionBackend = this._responseDto.viewerSettingsVersion || latestVersion;
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
+            this._modelState = this._responseDto.modelState;
 
             this._httpClient.addDataLoading(this._sessionId!, {
                 getAsset: this._sdk.asset.getAsset.bind(this._sdk.asset),

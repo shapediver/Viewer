@@ -3,7 +3,7 @@ import { IOutputApi } from './IOutputApi';
 import { IParameterApi } from './parameter/IParameterApi';
 import { ISettingsSections } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto, ShapeDiverResponseModelState } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 /**
  * The api for sessions.
@@ -48,6 +48,12 @@ export interface ISessionApi {
      * @see setJwtToken
      */
     readonly jwtToken: string | undefined;
+    /**
+     * The model state of the session.
+     * This object contains information about the model state.
+     * It is only available if a model state id was provided on session creation.
+     */
+    readonly modelState?: ShapeDiverResponseModelState;
     /**
      * The modelViewUrl of the 
      * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 

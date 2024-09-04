@@ -25,7 +25,7 @@ import { OutputApi } from './OutputApi';
 import { ParameterApi } from './parameter/ParameterApi';
 import { SelectionParameterApi } from './parameter/SelectionParameterApi';
 import { SessionApiData } from './data/SessionApiData';
-import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto, ShapeDiverResponseModelState } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class SessionApi implements ISessionApi {
     // #region Properties (9)
@@ -164,6 +164,10 @@ export class SessionApi implements ISessionApi {
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'boolean');
         this.#sessionEngine.loadSdtf = value;
         this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+    }
+
+    public get modelState(): ShapeDiverResponseModelState | undefined {
+        return this.#sessionEngine.modelState;
     }
 
     public get modelViewUrl(): string {

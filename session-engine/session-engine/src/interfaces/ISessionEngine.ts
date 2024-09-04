@@ -11,11 +11,12 @@ import {
   ShapeDiverRequestGltfUploadQueryConversion,
   ShapeDiverResponseDto,
   ShapeDiverResponseExport,
-  ShapeDiverResponseFileInfo
+  ShapeDiverResponseFileInfo,
+  ShapeDiverResponseModelState
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface ISessionEngine {
-  // #region Properties (14)
+  // #region Properties (15)
 
   readonly jwtToken?: string;
 
@@ -25,6 +26,7 @@ export interface ISessionEngine {
   id: string;
   initialized: boolean;
   loadSdtf: boolean;
+  modelState?: ShapeDiverResponseModelState;
   modelViewUrl: string;
   outputs: { [key: string]: IOutput };
   parameters: { [key: string]: IParameter<unknown> };
@@ -33,7 +35,7 @@ export interface ISessionEngine {
   ticket?: string;
   updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
-  // #endregion Properties (14)
+  // #endregion Properties (15)
 
   // #region Public Methods (24)
 

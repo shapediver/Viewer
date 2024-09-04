@@ -52,6 +52,8 @@ creationControlCenterSession.updateSessions = (
  * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}.
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @param properties.allowOutputLoading Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true)
+ * @param properties.modelStateId The optional model state id to use for the session. If not provided, no model state will be loaded.
+ * @param properties.modelStateValidationMode The optional model state validation mode to use for the session. If not provided, the default validation mode of the Geometry SDK will be used.
  * @returns 
  */
 export const createSession = async (properties: SessionCreationDefinition): Promise<ISessionApi> => {
@@ -70,6 +72,9 @@ export const createSession = async (properties: SessionCreationDefinition): Prom
     inputValidator.validateAndError('createSession', properties.loadSdtf, 'boolean', false);
     inputValidator.validateAndError('createSession', properties.excludeViewports, 'stringArray', false);
     inputValidator.validateAndError('createSession', properties.initialParameterValues, 'object', false);
+    inputValidator.validateAndError('createSession', properties.allowOutputLoading, 'boolean', false);
+    inputValidator.validateAndError('createSession', properties.modelStateId, 'string', false);
+    inputValidator.validateAndError('createSession', properties.modelStateValidationMode, 'boolean', false);
     if (properties.initialParameterValues)
         for (const p in properties.initialParameterValues)
             inputValidator.validateAndError('createSession', properties.initialParameterValues[p], 'string');
