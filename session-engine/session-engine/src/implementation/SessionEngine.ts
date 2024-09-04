@@ -488,8 +488,14 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async createModelState(parameterValues: { [key: string]: unknown; } = {}, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {
-        this.checkAvailability();
+    public async createModelState(
+        parameterValues: { [key: string]: unknown; } = {},
+        omitParameterValues: boolean = false,
+        image?: (() => string) | string | Blob | File,
+        data?: Record<string, any>,
+        arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File
+    ): Promise < string > {
+    this.checkAvailability();
 
         try {
             const promises = [];
@@ -499,6 +505,7 @@ export class SessionEngine implements ISessionEngine {
                 [key: string]: string
             } = {};
             promises.push(
+                omitParameterValues === true ? Promise.resolve() : 
                 this.uploadFileParameters(parameterValues).then(() => {
                     // create a set of the current validated parameter values
                     for (const parameterId in this.parameters)

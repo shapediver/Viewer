@@ -43,7 +43,7 @@ export interface ISessionEngine {
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
-  createModelState(parameterValues?: { [key: string]: unknown; }, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
+  createModelState(parameterValues?: { [key: string]: unknown; }, omitParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
   customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo>
