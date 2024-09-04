@@ -316,7 +316,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Getters And Setters (28)
 
-    // #region Public Methods (29)
+    // #region Public Methods (30)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -485,6 +485,69 @@ export class SessionEngine implements ISessionEngine {
         } catch (e) {
             await this.handleError(e, retry);
             return await this.close(true);
+        }
+    }
+
+    public async createModelState(parameterValues: { [key: string]: unknown; } = {}, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {
+        this.checkAvailability();
+
+        try {
+            const promises = [];
+
+            // process the parameters
+            const parameterSet: {
+                [key: string]: string
+            } = {};
+            promises.push(
+                this.uploadFileParameters(parameterValues).then(() => {
+                    // create a set of the current validated parameter values
+                    for (const parameterId in this.parameters)
+                        parameterSet[parameterId] = (' ' + this.parameters[parameterId].stringify(parameterValues[parameterId])).slice(1);
+                })
+            );
+
+            // process the image input
+            let imageData: ShapeDiverRequestFileUploadPart | undefined;
+            let imageArrayBuffer: ArrayBuffer | undefined;
+            if (image) {
+                promises.push(
+                    this.processImageInput(image)
+                        .then(result => {
+                            imageData = result?.imageData;
+                            imageArrayBuffer = result?.arrayBuffer;
+                        })
+                );
+            }
+
+            // process the arScene input
+            let arSceneId: string | undefined;
+            if (arScene) {
+                promises.push(
+                    this._converter.convertToArrayBuffer(arScene)
+                        .then(arSceneArrayBuffer => this._sdk.gltf.upload(this._sessionId!, arSceneArrayBuffer, 'model/gltf-binary', ShapeDiverRequestGltfUploadQueryConversion.SCENE))
+                        .then(arSceneResponseDto => {
+                            arSceneId = arSceneResponseDto.gltf?.sceneId;
+                        })
+                );
+            }
+
+            // wait for all promises to resolve
+            await Promise.all(promises);
+
+            // create the model state
+            const response = await this._sdk.modelState.create(this._sessionId!, {
+                parameters: parameterSet,
+                data: data,
+                image: imageData,
+                arSceneId: arSceneId
+            } as ShapeDiverRequestModelState);
+
+            if (imageData && imageArrayBuffer)
+                await this._sdk.utils.uploadAsset(response.asset!.modelState!.href, imageArrayBuffer, response.asset!.modelState!.headers);
+
+            return response.modelState!.id!;
+        } catch (e) {
+            throw this._httpClient.convertError(e);
         }
     }
 
@@ -1348,8 +1411,8 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('file-upload');
         try {
             const result = await this._sdk.file.requestUpload(this._sessionId!, {
-                [parameterId]: { 
-                    size: data.size, 
+                [parameterId]: {
+                    size: data.size,
                     format: type,
                     filename: data.name === '' ? undefined : data.name
                 }
@@ -1415,9 +1478,9 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (30)
 
-    // #region Private Methods (17)
+    // #region Private Methods (18)
 
     private _saveSessionSettings() {
         const parameters = this.parameters;
@@ -1683,6 +1746,54 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
+    /**
+     * Process the image input and return the image data and array buffer.
+     * 
+     * In the case of the image being a Blob or File, the image data is constructed from the Blob or File.
+     * In the case of the image being a string, we check if it is a data URL or a URL.
+     * If it is a data URL, we convert it to a Blob and construct the image data from the Blob.
+     * If it is a URL, we download the image and return the image data and array buffer.
+     * 
+     * @param image 
+     * @returns 
+     */
+    private async processImageInput(image: (() => string) | string | Blob | File): Promise<{
+        imageData: ShapeDiverRequestFileUploadPart,
+        arrayBuffer: ArrayBuffer
+    }> {
+        if (image instanceof File || image instanceof Blob)
+            return this._converter.constructImageData(image);
+
+        let imageString: string;
+        if (typeof image === 'function') {
+            imageString = image();
+        } else {
+            imageString = image;
+        }
+
+        if (imageString.startsWith('data:')) {
+            // case where the image is a data URL
+            const { blob, arrayBuffer } = this._converter.dataURLtoBlob(imageString);
+            return {
+                imageData: {
+                    format: blob.type,
+                    size: blob.size
+                },
+                arrayBuffer
+            };
+        } else {
+            // case where the image is a URL
+            const [arrayBuffer, type] = await this._sdk.asset.downloadImage(this._sessionId!, imageString);
+            return {
+                imageData: {
+                    format: type,
+                    size: arrayBuffer.byteLength
+                },
+                arrayBuffer
+            };
+        }
+    }
+
     private removeBusyMode(busyId: string) {
         for (const r in this._stateEngine.viewportEngines) {
             if (this._stateEngine.viewportEngines[r] && this._stateEngine.viewportEngines[r]!.busy.includes(busyId))
@@ -1881,5 +1992,5 @@ export class SessionEngine implements ISessionEngine {
         await Promise.all(promises);
     }
 
-    // #endregion Private Methods (17)
+    // #endregion Private Methods (18)
 }

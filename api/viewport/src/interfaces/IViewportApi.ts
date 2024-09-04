@@ -390,13 +390,14 @@ export interface IViewportApi {
   /**
    * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.
    * 
-   * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+   * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
    * 
    * @param node Optional node to provide to transform into a glTF. (default: scene tree)
+   * @param convertForAR Option to convert the scene for AR. In this case some specific use cases are target to ensure the best AR performance. (default: false)
    * 
    * @throws {@type ShapeDiverViewerError}
    */
-  convertToGlTF(node?: ITreeNode): Promise<Blob>;
+  convertToGlTF(node?: ITreeNode, convertForAR?: boolean): Promise<Blob>;
   /**
    * Create a link / QRCode that can be opened by mobile devices to display in AR.
    * 

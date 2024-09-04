@@ -204,9 +204,28 @@ export interface ISessionApi {
      * 
      * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
      * 
+     * @param convertForAR Option to convert the scene for AR. In this case some specific use cases are target to ensure the best AR performance. (default: false)
+     * 
      * @throws {@type ShapeDiverViewerError}
      */
-    convertToGlTF(): Promise<Blob>;
+    convertToGlTF(convertForAR?: boolean): Promise<Blob>;
+    /**
+     * Create a new model state.
+     * This function creates a new model state on the Geometry Backend.
+     * 
+     * The current state of the the session's parameter values is used if no parameter values are provided.
+     * For the image property, a function that returns a data URL, a data URL, a Blob, or a File can be provided. (Example: `() => viewport.getScreenShot()`)
+     * The data property can be used to provide additional data for the model state.
+     * The arScene property can be used to provide an AR scene for the model state. The AR scene can be provided as an ArrayBuffer, a function that returns an ArrayBuffer, a Blob, a function that returns an Blob, or a File. (Example: `() => viewport.convertToGlTF()`)
+     * 
+     * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * @param image The image to use for the model state. Can be a function that returns a data URL, a data URL, a Blob, or a File.
+     * @param data The additional data for the model state.
+     * @param arScene The AR scene for the model state. Can be a function that returns an ArrayBuffer, an ArrayBuffer, a function that returns a Blob, a Blob, or a File.
+     * 
+     * @returns The id of the created model state.
+     */
+    createModelState(parameterValues?: { [key: string]: unknown; }, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
     /**
      * Customize the session.
      * 

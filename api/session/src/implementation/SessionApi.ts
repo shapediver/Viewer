@@ -264,12 +264,17 @@ export class SessionApi implements ISessionApi {
         return await this.#creationControlCenterSession.closeSessionEngine(this.id);
     }
 
-    public async convertToGlTF(): Promise<Blob> {
+    public async convertToGlTF(convertForAr: boolean = false): Promise<Blob> {
         for (const r in this.#stateEngine.viewportEngines)
             this.#stateEngine.viewportEngines[r]?.update('SessionApi.convertToGlTF');
 
-        const result = await this.#gltfConverter.convert(this.node, false);
+        const result = await this.#gltfConverter.convert(this.node, convertForAr);
         return new Blob([result], { type: 'application/octet-stream' });
+    }
+
+    public async createModelState(parameterValues: { [key: string]: unknown; } = {}, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {        const scope = 'createModelState';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
+        return await this.#sessionEngine.createModelState(parameterValues, image, data, arScene);
     }
 
     public customize(parameterValues?: { [key: string]: unknown; }, force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
