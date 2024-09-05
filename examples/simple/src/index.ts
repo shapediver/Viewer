@@ -8,10 +8,7 @@ import * as SDV from '@shapediver/viewer';
     });
     const session = await SDV.createSession({
         id: 'mySession',
-        ticket: '15c0551e793c59b3b558655913c0f33efce8ea2effc58b6f6907a063e8c6bb77502f6e72db0408855ac0acb68e4b92a0490cf845bf782d357247a6d5b4604f01880bcf95c43f15c6c0789aa2e8bef59d6df321aac7292c3891e945e4101fbec6f584ef03c17442-710443a1a5148421098322a671d18b37',
-        modelViewUrl: 'https://sddev3.eu-central-1.shapediver.com'
+        ticket: '9600def8d1b57c806e8471b16c31ae26ba5d9964b1d925f58439d50e589bf5bdcd1610ae1e389b9ded8ae85020376406dda2323d5b4ff101b4b97633a9bc78f7ae7281ed6cdf42d52f4323066b5e77840b40c73ec56d50500833886aa531cc14b6828abf48e9c1-6cb0b81573229f3b7c1198ad32dcff9a',
+        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
     });
-
-
-    session.createModelState({}, () => viewport.getScreenshot(), undefined, () => viewport.convertToGlTF());
 })();
