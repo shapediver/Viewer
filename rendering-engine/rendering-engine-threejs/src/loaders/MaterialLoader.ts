@@ -197,10 +197,8 @@ export class MaterialLoader implements ILoader {
 
     public assignDefaultLineMaterial() {
         for (const cacheKey in this._materialCache) {
-            if (this._materialCache[cacheKey].material instanceof THREE.LineBasicMaterial && this._materialCache[cacheKey].materialData === undefined) {
+            if (this._materialCache[cacheKey].material instanceof THREE.LineBasicMaterial && this._materialCache[cacheKey].materialData === null) {
                 const material: THREE.LineBasicMaterial = <THREE.LineBasicMaterial>this._materialCache[cacheKey].material;
-                if (this._materialCache[cacheKey].materialData && this._materialCache[cacheKey].materialData instanceof MaterialBasicLineData) continue;
-
                 const { properties, mapCount } = this.getMaterialProperties(this._defaultLineMaterialData, MATERIAL_TYPE.LINE, undefined);
                 this.maxMapCount = Math.max(this.maxMapCount, mapCount);
                 material.copy(new THREE.LineBasicMaterial(properties));
@@ -211,10 +209,8 @@ export class MaterialLoader implements ILoader {
 
     public assignDefaultMaterial() {
         for (const cacheKey in this._materialCache) {
-            if (this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial && this._materialCache[cacheKey].materialData === undefined) {
+            if (this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial && this._materialCache[cacheKey].materialData === null) {
                 const material: THREE.MeshPhysicalMaterial = <THREE.MeshPhysicalMaterial>this._materialCache[cacheKey].material;
-                if (this._materialCache[cacheKey].materialData && this._materialCache[cacheKey].materialData instanceof MaterialStandardData) continue;
-
                 const { properties, mapCount } = this.getMaterialProperties(this._defaultMaterialData, MATERIAL_TYPE.MESH, this._materialCache[cacheKey].materialSettings);
                 this.maxMapCount = Math.max(this.maxMapCount, mapCount);
                 material.copy(new THREE.MeshPhysicalMaterial(properties));
@@ -225,10 +221,8 @@ export class MaterialLoader implements ILoader {
 
     public assignDefaultPointMaterial() {
         for (const cacheKey in this._materialCache) {
-            if (this._materialCache[cacheKey].material instanceof THREE.PointsMaterial && this._materialCache[cacheKey].materialData === undefined) {
+            if (this._materialCache[cacheKey].material instanceof THREE.PointsMaterial && this._materialCache[cacheKey].materialData === null) {
                 const material: THREE.PointsMaterial = <THREE.PointsMaterial>this._materialCache[cacheKey].material;
-                if (this._materialCache[cacheKey].materialData && this._materialCache[cacheKey].materialData instanceof MaterialPointData) continue;
-
                 const { properties, mapCount } = this.getMaterialProperties(this._defaultPointMaterialData, MATERIAL_TYPE.POINT, undefined);
                 this.maxMapCount = Math.max(this.maxMapCount, mapCount);
                 material.copy(new THREE.PointsMaterial(properties));
@@ -1150,7 +1144,7 @@ export class MaterialLoader implements ILoader {
             this._materialCache[cacheKey].material.copy(material);
             return this._materialCache[cacheKey].material;
         }
-
+        
         this._materialCache[cacheKey] = {
             material,
             materialData,

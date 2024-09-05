@@ -423,6 +423,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set defaultMaterialColor(value: Color) {
     this.materialLoader.defaultMaterialData.color = value;
     this.materialLoader.assignDefaultMaterial();
+    this.materialLoader.defaultLineMaterialData.color = value;
+    this.materialLoader.assignDefaultLineMaterial();
+    this.materialLoader.defaultPointMaterialData.color = value;
+    this.materialLoader.assignDefaultPointMaterial();
   }
 
   public get defaultPointMaterial(): MaterialPointData {
