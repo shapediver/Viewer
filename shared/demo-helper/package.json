@@ -39,7 +39,7 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "3.2.7"
+    "@shapediver/viewer.session": "3.2.7"
   },
   "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
 }

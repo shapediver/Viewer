@@ -1,7 +1,7 @@
 import {
     PARAMETER_TYPE,
     ISessionApi,
-} from '@shapediver/viewer';
+} from '@shapediver/viewer.session';
 
 export const updateUi = (
     parameters: { [key: string]: string },
