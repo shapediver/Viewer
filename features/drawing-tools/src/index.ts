@@ -44,7 +44,7 @@ export {
 const defaultTextures: { [key: string]: Promise<IMapData> | IMapData } = {};
 
 defaultTextures['variation_0'] = MaterialEngine.instance.loadMap('https://viewer.shapediver.com/v3/graphics/point_soft.png')
-    .then((mapData: IMapData | null) => {
+    .then((mapData: IMapData | undefined) => {
         defaultTextures['variation_0'] = mapData!;
         return mapData!;
     });
