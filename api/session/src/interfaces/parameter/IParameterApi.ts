@@ -47,9 +47,11 @@ export interface IParameterApi<T> extends ShapeDiverResponseParameter {
      */
     resetToSessionValue(): void;
     /**
-     * Returns the current value as a string
+     * Returns the current value as a string, or attempts to stringify a given value if provided.
+     * 
+     * @param value the value to stringify
      */
-    stringify(): string;
+    stringify(value?: unknown): string;
 
     // #endregion Public Methods (4)
 }

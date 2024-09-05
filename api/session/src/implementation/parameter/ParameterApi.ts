@@ -172,8 +172,8 @@ export class ParameterApi<T> implements IParameterApi<T> {
         return this.#parameter.resetToSessionValue();
     }
 
-    public stringify(): string {
-        return this.#parameter.stringify();
+    public stringify(value?: unknown): string {
+        return this.#parameter.stringify(value);
     }
 
     // #endregion Public Methods (4)
