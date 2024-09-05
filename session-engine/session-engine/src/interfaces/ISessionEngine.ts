@@ -11,11 +11,12 @@ import {
   ShapeDiverRequestGltfUploadQueryConversion,
   ShapeDiverResponseDto,
   ShapeDiverResponseExport,
-  ShapeDiverResponseFileInfo
+  ShapeDiverResponseFileInfo,
+  ShapeDiverResponseModelState
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export interface ISessionEngine {
-  // #region Properties (14)
+  // #region Properties (15)
 
   readonly jwtToken?: string;
 
@@ -25,6 +26,7 @@ export interface ISessionEngine {
   id: string;
   initialized: boolean;
   loadSdtf: boolean;
+  modelState?: ShapeDiverResponseModelState;
   modelViewUrl: string;
   outputs: { [key: string]: IOutput };
   parameters: { [key: string]: IParameter<unknown> };
@@ -33,14 +35,15 @@ export interface ISessionEngine {
   ticket?: string;
   updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
-  // #endregion Properties (14)
+  // #endregion Properties (15)
 
-  // #region Public Methods (24)
+  // #region Public Methods (25)
 
   applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
+  createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
   customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo>
@@ -62,5 +65,5 @@ export interface ISessionEngine {
   uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
-  // #endregion Public Methods (24)
+  // #endregion Public Methods (25)
 }

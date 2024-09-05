@@ -19,6 +19,89 @@ export class Converter {
         return this._instance || (this._instance = new this());
     }
 
+    /**
+     * Converts a data URL to a Blob object.
+     * 
+     * @param dataURL 
+     * @returns 
+     */
+    public dataURLtoBlob(dataURL: string) {
+        // Split the data URL to get the base64 data
+        const arr = dataURL.split(",");
+        const mime = arr[0].match(/:(.*?);/)![1];
+        const bstr = window.atob(arr[1]);
+
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+
+        // Convert the binary string to a Uint8Array
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+
+        // Create a Blob object from the Uint8Array
+        return {
+            blob: new Blob([u8arr], { type: mime }),
+            arrayBuffer: u8arr.buffer
+        };
+    }
+
+    /**
+     * Convert the given image to an ArrayBuffer and return the image data.
+     * 
+     * @param image The image to convert.
+     * @param arrayBuffer Optional: The ArrayBuffer of the image, if it was already converted.
+     * @returns 
+     */
+    public async constructImageData(image: Blob | File, arrayBuffer?: ArrayBuffer): Promise<{
+        imageData: {
+            filename?: string,
+            format: string,
+            size: number
+        },
+        arrayBuffer: ArrayBuffer
+    }> {
+        if(image instanceof File) {
+            return {
+                imageData: {
+                    filename: image.name,
+                    format: image.type,
+                    size: image.size
+                },
+                arrayBuffer: arrayBuffer || await image.arrayBuffer()
+            };
+        } else {
+            return {
+                imageData: {
+                    format: image.type,
+                    size: image.size
+                },
+                arrayBuffer: arrayBuffer || await image.arrayBuffer()
+            };
+        } 
+    }
+    
+    /**
+     * Convert the given input to an ArrayBuffer.
+     * 
+     * @param input 
+     * @returns 
+     */
+    public async convertToArrayBuffer(input: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<ArrayBuffer> {
+        if (input instanceof File) {
+            return await input.arrayBuffer();
+        } else if (input instanceof Blob) {
+            return await input.arrayBuffer();
+        } else if (input instanceof ArrayBuffer) {
+            return input;
+        } else {
+            const result = await input();
+            if (result instanceof Blob) {
+                return await result.arrayBuffer();
+            } else {
+                return result;
+            }
+        }
+    }
+
     // #endregion Public Static Getters And Setters (1)
 
     // #region Public Methods (8)

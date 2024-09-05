@@ -26,7 +26,11 @@ export type SessionCreationDefinition = {
     /** Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}. */
     excludeViewports?: string[],
     /** The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified. */
-    initialParameterValues?: { [key: string]: string }
+    initialParameterValues?: { [key: string]: string },
+    /** The optional model state id to use for the session. If not provided, no model state will be loaded. */
+    modelStateId?: string,
+    /** The optional model state validation mode to use for the session. If not provided, the default validation mode of the Geometry SDK will be used. */
+    modelStateValidationMode?: string
 };
 
 // #endregion Type aliases (1)

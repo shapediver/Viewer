@@ -25,7 +25,7 @@ import { OutputApi } from './OutputApi';
 import { ParameterApi } from './parameter/ParameterApi';
 import { SelectionParameterApi } from './parameter/SelectionParameterApi';
 import { SessionApiData } from './data/SessionApiData';
-import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto, ShapeDiverResponseModelState } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class SessionApi implements ISessionApi {
     // #region Properties (9)
@@ -166,6 +166,10 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
     }
 
+    public get modelState(): ShapeDiverResponseModelState | undefined {
+        return this.#sessionEngine.modelState;
+    }
+
     public get modelViewUrl(): string {
         return this.#sessionEngine.modelViewUrl;
     }
@@ -260,12 +264,18 @@ export class SessionApi implements ISessionApi {
         return await this.#creationControlCenterSession.closeSessionEngine(this.id);
     }
 
-    public async convertToGlTF(): Promise<Blob> {
+    public async convertToGlTF(convertForAr: boolean = false): Promise<Blob> {
         for (const r in this.#stateEngine.viewportEngines)
             this.#stateEngine.viewportEngines[r]?.update('SessionApi.convertToGlTF');
 
-        const result = await this.#gltfConverter.convert(this.node, false);
+        const result = await this.#gltfConverter.convert(this.node, convertForAr);
         return new Blob([result], { type: 'application/octet-stream' });
+    }
+
+    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {        const scope = 'createModelState';
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, omitSessionParameterValues, 'boolean', false);
+        return await this.#sessionEngine.createModelState(parameterValues, omitSessionParameterValues, image, data, arScene);
     }
 
     public customize(parameterValues?: { [key: string]: unknown; }, force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {

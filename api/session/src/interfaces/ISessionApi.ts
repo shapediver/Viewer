@@ -3,7 +3,7 @@ import { IOutputApi } from './IOutputApi';
 import { IParameterApi } from './parameter/IParameterApi';
 import { ISettingsSections } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { ShapeDiverRequestExport, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestExport, ShapeDiverResponseDto, ShapeDiverResponseModelState } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 /**
  * The api for sessions.
@@ -48,6 +48,12 @@ export interface ISessionApi {
      * @see setJwtToken
      */
     readonly jwtToken: string | undefined;
+    /**
+     * The model state of the session.
+     * This object contains information about the model state.
+     * It is only available if a model state id was provided on session creation.
+     */
+    readonly modelState?: ShapeDiverResponseModelState;
     /**
      * The modelViewUrl of the 
      * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
@@ -198,9 +204,29 @@ export interface ISessionApi {
      * 
      * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
      * 
+     * @param convertForAR Option to convert the scene for AR. In this case some specific use cases are target to ensure the best AR performance. (default: false)
+     * 
      * @throws {@type ShapeDiverViewerError}
      */
-    convertToGlTF(): Promise<Blob>;
+    convertToGlTF(convertForAR?: boolean): Promise<Blob>;
+    /**
+     * Create a new model state.
+     * This function creates a new model state on the Geometry Backend.
+     * 
+     * For each parameter, the current state of the parameter in the session is used if no parameter value is provided. The omitSessionParameterValues flag can be used to store the model state without the current parameter values of the session.
+     * For the image property, a function that returns a data URL (`() => string`), a data URL (`string`), a Blob (`Blob`) or a File (`File`) can be provided. (Example: `() => viewport.getScreenShot()`)
+     * The data property can be used to provide additional data for the model state. An example for this would be a UI state object of a web application.
+     * The arScene property can be used to provide a glTF representing an AR scene of the model state. The glTF can be provided as an ArrayBuffer ('ArrayBuffer'), a function that returns an ArrayBuffer (`() => ArrayBuffer`), a Blob (`Blob`), a function that returns an Blob (`() => Blob`), or a File (`File`). (Example: `() => viewport.convertToGlTF()`)
+     * 
+     * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     * @param omitSessionParameterValues If omitSessionParameterValues is set to true, the current parameter values of the session will not be stored with the model state, if no parameter value is provided. (Default: false)
+     * @param image The image to use for the model state. Can be a function that returns a data URL (`() => string`), a data URL (`string`), a Blob (`Blob`) or a File (`File`).
+     * @param data The additional data for the model state.
+     * @param arScene The AR scene for the model state. Can be a function that returns an ArrayBuffer ('ArrayBuffer'), a function that returns an ArrayBuffer (`() => ArrayBuffer`), a Blob (`Blob`), a function that returns an Blob (`() => Blob`), or a File (`File`).
+     * 
+     * @returns The id of the created model state.
+     */
+    createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
     /**
      * Customize the session.
      * 

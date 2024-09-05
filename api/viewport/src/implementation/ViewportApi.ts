@@ -739,13 +739,13 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.convert3Dto2D(p);
     }
 
-    public async convertToGlTF(node: ITreeNode = sceneTree.root): Promise<Blob> {
+    public async convertToGlTF(node: ITreeNode = sceneTree.root, convertForAr: boolean = false): Promise<Blob> {
         const scope = 'convertToGlTF';
         if (!(node instanceof TreeNode))
             throw new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
 
         this.update('convertToGlTF.start');
-        const result = await this.#gltfConverter.convert(node, false, this.id);
+        const result = await this.#gltfConverter.convert(node, convertForAr, this.id);
         this.update('convertToGlTF.end');
         return new Blob([result], { type: 'application/octet-stream' });
     }
