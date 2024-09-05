@@ -272,10 +272,10 @@ export class SessionApi implements ISessionApi {
         return new Blob([result], { type: 'application/octet-stream' });
     }
 
-    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {        const scope = 'createModelState';
+    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {        const scope = 'createModelState';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
-        this.#inputValidator.validateAndError(`SessionApi.${scope}`, omitParameterValues, 'boolean', false);
-        return await this.#sessionEngine.createModelState(parameterValues, omitParameterValues, image, data, arScene);
+        this.#inputValidator.validateAndError(`SessionApi.${scope}`, omitSessionParameterValues, 'boolean', false);
+        return await this.#sessionEngine.createModelState(parameterValues, omitSessionParameterValues, image, data, arScene);
     }
 
     public customize(parameterValues?: { [key: string]: unknown; }, force: boolean = false, waitForViewportUpdate: boolean = false): Promise<ITreeNode> {
