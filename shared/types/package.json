@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.11.0",
-    "@shapediver/sdk.sdtf-v1": "1.5.1",
+    "@shapediver/sdk.sdtf-v1": "1.5.3",
     "@shapediver/viewer.shared.math": "3.3.0",
     "@shapediver/viewer.shared.node-tree": "3.3.0",
     "@shapediver/viewer.shared.services": "3.3.0",
