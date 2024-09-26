@@ -446,8 +446,7 @@ export class Gumball implements IGumball {
             const eventData: IGumballEvent = { 
                 viewportId: this.#viewport.id, 
                 transformations: [], 
-                appliedTransformations: [],
-                initialTransformations: [],
+                localTransformations: [],
                 nodes: []
             };
 
@@ -455,7 +454,6 @@ export class Gumball implements IGumball {
                 const matrix = this.getMatrix(this.#previousGumballMatrix[i]);
 
                 eventData.nodes.push(node);
-                eventData.initialTransformations.push(mat4.clone(this.#initialTransform[i]));
                 if (this.#singleNode) {
                     eventData.transformations.push(mat4.clone(matrix));
                     mat4.multiply(matrix, matrix, mat4.invert(mat4.create(), this.#initialTransform[i]));
@@ -464,7 +462,7 @@ export class Gumball implements IGumball {
                 }
 
                 const transformation = node.transformations.find(t => t.id === this.#matrixId);
-                eventData.appliedTransformations.push(mat4.clone(matrix));
+                eventData.localTransformations.push(mat4.clone(matrix));
                 if (transformation) {
                     transformation.matrix = matrix;
                 } else {
