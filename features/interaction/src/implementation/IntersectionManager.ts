@@ -5,7 +5,8 @@ import {
     IIntersectionEngine,
     IIntersectionFilter,
     IntersectionEngine,
-    IRay
+    IRay,
+    RaycasterParameters
 } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { InteractionData } from './InteractionData';
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
@@ -50,13 +51,14 @@ export class IntersectionManager implements IIntersectionEngine {
     public intersect(
         ray: IRay,
         viewportId: string,
-        filterCriteria: IIntersectionFilter[] = []
+        filterCriteria: IIntersectionFilter[] = [],
+        rayCasterParams?: RaycasterParameters
     ): IIntersection[] {
         let intersections: IIntersection[] = [];
 
         // intersect all nodes
         this._intersectNodes.forEach(i => {
-            const currentIntersection = this._intersectionEngine.intersectNode(ray, i.node, i.geometryData, viewportId, filterCriteria);
+            const currentIntersection = this._intersectionEngine.intersectNode(ray, i.node, i.geometryData, viewportId, filterCriteria, rayCasterParams);
             if (currentIntersection)
                 intersections = intersections.concat(currentIntersection);
         });

@@ -50,11 +50,12 @@ export class IntersectionEngine implements IIntersectionEngine {
     public intersect(
         ray: IRay,
         viewportId: string,
-        filterCriteria?: IIntersectionFilter[]
+        filterCriteria?: IIntersectionFilter[],
+        rayCasterParams?: THREE.RaycasterParameters
     ): IIntersection[] {
         let intersections: IIntersection[] = [];
         this._intersectNodes.forEach(i => {
-            const currentIntersections = this.intersectNode(ray, i.node, i.geometryData, viewportId, filterCriteria);
+            const currentIntersections = this.intersectNode(ray, i.node, i.geometryData, viewportId, filterCriteria, rayCasterParams);
             if (currentIntersections)
                 intersections = intersections.concat(currentIntersections);
         });
@@ -67,7 +68,8 @@ export class IntersectionEngine implements IIntersectionEngine {
         node: ITreeNode,
         geometryData: { [key: string]: GeometryData },
         viewportId: string,
-        filterCriteria?: IIntersectionFilter[]
+        filterCriteria?: IIntersectionFilter[],
+        rayCasterParams?: THREE.RaycasterParameters
     ): IIntersection[] | undefined {
         if (node.visible === false) return;
 
@@ -79,10 +81,10 @@ export class IntersectionEngine implements IIntersectionEngine {
         if (filterCriteria) {
             for (let i = 0; i < filterCriteria.length; i++) {
                 if (filterCriteria[i](node))
-                    return this.intersectionTest(ray, node, geometryData, viewportId);
+                    return this.intersectionTest(ray, node, geometryData, viewportId, rayCasterParams);
             }
         } else {
-            return this.intersectionTest(ray, node, geometryData, viewportId);
+            return this.intersectionTest(ray, node, geometryData, viewportId, rayCasterParams);
         }
     }
 
@@ -135,8 +137,11 @@ export class IntersectionEngine implements IIntersectionEngine {
         ray: IRay,
         node: ITreeNode,
         geometryData: { [key: string]: GeometryData },
-        viewportId: string
+        viewportId: string,
+        rayCasterParams?: THREE.RaycasterParameters
     ): IIntersection[] | undefined {
+        if (rayCasterParams) this._raycaster.params = rayCasterParams;
+
         this._raycaster.ray.direction.set(ray.direction[0], ray.direction[1], ray.direction[2]);
         this._raycaster.ray.origin.set(ray.origin[0], ray.origin[1], ray.origin[2]);
 
