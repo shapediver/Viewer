@@ -17,6 +17,11 @@ export interface IGumballEvent extends IViewportEvent {
      * All currently selected nodes. 
      */
     nodes: ITreeNode[],
+    /**
+     * The local transformations.
+     * This is the transformation that is applied to the nodes, with the inverted initial transformations for single nodes and the multiplied initial transformations for multiple nodes.
+     */
+    localTransformations: mat4[]
 
     // #endregion Properties (2)
 }

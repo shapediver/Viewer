@@ -443,7 +443,12 @@ export class Gumball implements IGumball {
 
             this.deactivatePivotDragging();
         } else {
-            const eventData: IGumballEvent = { viewportId: this.#viewport.id, transformations: [], nodes: [] };
+            const eventData: IGumballEvent = { 
+                viewportId: this.#viewport.id, 
+                transformations: [], 
+                localTransformations: [],
+                nodes: []
+            };
 
             this.#nodes.forEach((node, i) => {
                 const matrix = this.getMatrix(this.#previousGumballMatrix[i]);
@@ -457,6 +462,7 @@ export class Gumball implements IGumball {
                 }
 
                 const transformation = node.transformations.find(t => t.id === this.#matrixId);
+                eventData.localTransformations.push(mat4.clone(matrix));
                 if (transformation) {
                     transformation.matrix = matrix;
                 } else {
