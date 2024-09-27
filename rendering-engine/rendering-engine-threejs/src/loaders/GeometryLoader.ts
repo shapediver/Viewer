@@ -57,7 +57,12 @@ export class GeometryLoader implements ILoader {
     // #region Public Methods (7)
 
     public emptyGeometryCache() {
+        for(const key in this._geometryCache)
+            this.removeFromGeometryCache(key);
         this._geometryCache = {};
+
+        for(const key in this._primitiveCache)
+            this.removeFromPrimitiveCache(key);
         this._primitiveCache = {};
     }
 
@@ -215,8 +220,17 @@ export class GeometryLoader implements ILoader {
     }
 
     public removeFromGeometryCache(id: string) {
-        if (this._geometryCache[id])
+        if (this._geometryCache[id]) {
+            this._geometryCache[id].obj.traverse(o => {
+                if (o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop || o instanceof THREE.Line) {
+                    o.geometry.dispose();
+                    for (const key in o.geometry.attributes)
+                        o.geometry.deleteAttribute(key);
+                    o.geometry.setIndex(null);
+                }
+            });
             delete this._geometryCache[id];
+        }
     }
 
     public removeFromPrimitiveCache(id: string) {

@@ -1158,6 +1158,7 @@ export class MaterialLoader implements ILoader {
         for (const cacheKey in this._materialCache) {
             const decodedCacheKey = atobCustom(cacheKey);
             if (decodedCacheKey.startsWith(id)) {
+                this._materialCache[cacheKey].material.dispose();
                 delete this._materialCache[cacheKey];
             }
         }
