@@ -21,7 +21,8 @@ export class HoverManager extends AbstractInteractionManager {
             return (node: ITreeNode) => {
                 for (let i = 0; i < node.data.length; i++) {
                     if (node.data[i] instanceof InteractionData) {
-                        if ((<InteractionData>node.data[i]).interactionTypes.hover)
+                        if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
+                            (<InteractionData>node.data[i]).interactionTypes.hover)
                             return true;
                     }
                 }
