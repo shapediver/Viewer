@@ -1,5 +1,5 @@
 import { DragConstraintUtils } from './utils/DragConstraintUtils';
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils';
 import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils';
 import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager';
@@ -19,6 +19,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #tree: Tree = Tree.instance;
+    readonly #id: string = UuidGenerator.instance.create();
 
     #dragConstraintUtils: IDragConstraintUtils = DragConstraintUtils.instance;
     #effectMaterial?: IMaterialAbstractData;
@@ -73,6 +74,10 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     public set interactionEffectUtils(value: IInteractionEffectUtils) {
         this.#interactionEffectUtils = value;
+    }
+
+    public get id(): string {
+        return this.#id;
     }
 
     public get viewport(): IViewportApi | undefined {

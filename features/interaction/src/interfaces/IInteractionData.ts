@@ -1,11 +1,7 @@
-import { vec3 } from "gl-matrix";
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { vec3 } from 'gl-matrix';
 
-export interface IInteractionTypes {
-    drag?: boolean,
-    hover?: boolean,
-    select?: boolean
-}
+// #region Interfaces (2)
 
 /**
  * InteractionData is used to make a TreeNode interactable.
@@ -28,7 +24,7 @@ export interface IInteractionTypes {
  * As this is not the easiest of topics, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1). There we explain the process to set this up with many examples.
  */
 export interface IInteractionData extends ITreeNodeData {
-    // #region Properties (4)
+    // #region Properties (6)
 
     /**
      * The drag anchors can be defined as various points in space that will be transformed according to the node matrix that this data item belongs to.
@@ -62,8 +58,13 @@ export interface IInteractionData extends ITreeNodeData {
      * The types of interactions that are activated for this node.
      */
     interactionTypes: IInteractionTypes;
+    /**
+     * The restricted managers are the managers that are allowed to interact with this node.
+     * If the array is empty, all managers are allowed to interact with this node.
+     */
+    restrictedManagers: string[];
 
-    // #endregion Properties (4)
+    // #endregion Properties (6)
 
     // #region Public Methods (1)
 
@@ -71,3 +72,15 @@ export interface IInteractionData extends ITreeNodeData {
 
     // #endregion Public Methods (1)
 }
+
+export interface IInteractionTypes {
+    // #region Properties (3)
+
+    drag?: boolean,
+    hover?: boolean,
+    select?: boolean
+
+    // #endregion Properties (3)
+}
+
+// #endregion Interfaces (2)

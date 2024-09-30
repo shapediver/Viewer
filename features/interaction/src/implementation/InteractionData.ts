@@ -1,25 +1,36 @@
-import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix';
+import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { IInteractionData, IInteractionTypes } from '../interfaces/IInteractionData';
+import { vec3 } from 'gl-matrix';
 
-export interface IDragAnchor { 
+// #region Interfaces (1)
+
+export interface IDragAnchor {
+    // #region Properties (2)
+
     position: vec3,
     rotation?: {
         axis: vec3,
         angle: number
     }
+
+    // #endregion Properties (2)
 }
 
-export class InteractionData extends AbstractTreeNodeData implements IInteractionData  {
-    // #region Properties (4)
+// #endregion Interfaces (1)
+
+// #region Classes (1)
+
+export class InteractionData extends AbstractTreeNodeData implements IInteractionData {
+    // #region Properties (6)
 
     #dragAnchors: IDragAnchor[] = [];
     #dragOrigin?: vec3;
+    #groupId?: string;
     #interactionStates: IInteractionTypes = {};
     #interactionTypes: IInteractionTypes = {};
-    #groupId?: string;
+    #restrictedManagers: string[] = [];
 
-    // #endregion Properties (4)
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -34,17 +45,19 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
     constructor(
         interactionTypes: IInteractionTypes,
         groupId?: string,
+        restrictedManagers?: string[],
         id?: string,
         version?: string
     ) {
         super(id, version);
         this.#interactionTypes = interactionTypes;
         this.#groupId = groupId;
+        if (restrictedManagers !== undefined) this.#restrictedManagers = restrictedManagers;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
+    // #region Public Getters And Setters (12)
 
     public get dragAnchors(): IDragAnchor[] {
         return this.#dragAnchors;
@@ -60,6 +73,14 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
 
     public set dragOrigin(value: vec3 | undefined) {
         this.#dragOrigin = value;
+    }
+
+    public get groupId(): string | undefined {
+        return this.#groupId;
+    }
+
+    public set groupId(value: string | undefined) {
+        this.#groupId = value;
     }
 
     public get interactionStates(): IInteractionTypes {
@@ -78,15 +99,15 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         this.#interactionTypes = value;
     }
 
-    public get groupId(): string | undefined {
-        return this.#groupId;
+    public get restrictedManagers(): string[] {
+        return this.#restrictedManagers;
     }
 
-    public set groupId(value: string | undefined) {
-        this.#groupId = value;
+    public set restrictedManagers(value: string[]) {
+        this.#restrictedManagers = value;
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Getters And Setters (12)
 
     // #region Public Methods (1)
 
@@ -94,8 +115,10 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      * Clones the scene graph data.
      */
     public clone(): IInteractionData {
-        return new InteractionData(this.#interactionTypes, this.#groupId, this.id, this.version);
+        return new InteractionData(this.#interactionTypes, this.#groupId, this.#restrictedManagers, this.id, this.version);
     }
 
     // #endregion Public Methods (1)
 }
+
+// #endregion Classes (1)
