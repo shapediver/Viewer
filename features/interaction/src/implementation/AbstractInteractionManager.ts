@@ -15,11 +15,11 @@ import { InteractionData } from './InteractionData';
 import { InteractionEffectUtils } from './utils/InteractionEffectUtils';
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
-    // #region Properties (8)
+    // #region Properties (9)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #id: string;
     readonly #tree: Tree = Tree.instance;
-    readonly #id: string = UuidGenerator.instance.create();
 
     #dragConstraintUtils: IDragConstraintUtils = DragConstraintUtils.instance;
     #effectMaterial?: IMaterialAbstractData;
@@ -31,11 +31,13 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     public abstract filter: IInteractionFilterOptions;
 
-    // #endregion Properties (8)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 
-    constructor() {
+    constructor(id?: string) {
+        this.#id = id || UuidGenerator.instance.create();
+
         this.gatherGroupNodes();
         this.#eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, () => {
             this.gatherGroupNodes();
@@ -44,7 +46,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (9)
+    // #region Public Getters And Setters (10)
 
     public get dragConstraintUtils(): IDragConstraintUtils {
         return this.#dragConstraintUtils;
@@ -68,16 +70,16 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         return this.#gatheredGroupedNodes;
     }
 
+    public get id(): string {
+        return this.#id;
+    }
+
     public get interactionEffectUtils(): IInteractionEffectUtils {
         return this.#interactionEffectUtils;
     }
 
     public set interactionEffectUtils(value: IInteractionEffectUtils) {
         this.#interactionEffectUtils = value;
-    }
-
-    public get id(): string {
-        return this.#id;
     }
 
     public get viewport(): IViewportApi | undefined {
@@ -88,7 +90,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#viewport = value;
     }
 
-    // #endregion Public Getters And Setters (9)
+    // #endregion Public Getters And Setters (10)
 
     // #region Public Abstract Methods (5)
 

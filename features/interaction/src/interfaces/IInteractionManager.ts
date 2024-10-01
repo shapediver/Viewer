@@ -15,7 +15,7 @@ export type IInteractionFilterOptions = {
 // #region Interfaces (1)
 
 export interface IInteractionManager {
-    // #region Properties (5)
+    // #region Properties (6)
 
     /**
      * Drag constraint utils that are automatically assigned by the {@link AbstractInteractionManager}.
@@ -33,6 +33,10 @@ export interface IInteractionManager {
      */
     filter: IInteractionFilterOptions;
     /**
+     * The unique id of the interaction manager.
+     */
+    id: string;
+    /**
      * Effect utils that are automatically assigned by the {@link AbstractInteractionManager}.
      */
     interactionEffectUtils: IInteractionEffectUtils;
@@ -41,7 +45,7 @@ export interface IInteractionManager {
      */
     viewport?: IViewportApi;
 
-    // #endregion Properties (5)
+    // #endregion Properties (6)
 
     // #region Public Methods (5)
 

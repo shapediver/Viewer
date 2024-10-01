@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import {
     EventEngine,
@@ -47,6 +48,14 @@ export class MultiSelectManager extends AbstractInteractionManager {
     #useModifierKeys: boolean = false;
 
     // #endregion Properties (13)
+
+    // #region Constructors (1)
+
+    constructor(id?: string) {
+        super(id);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Getters And Setters (13)
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
@@ -41,6 +42,14 @@ export class SelectManager extends AbstractInteractionManager {
     #useModifierKeys: boolean = false;
 
     // #endregion Properties (11)
+
+    // #region Constructors (1)
+
+    constructor(id?: string) {
+        super(id);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Getters And Setters (7)
 
@@ -91,8 +100,8 @@ export class SelectManager extends AbstractInteractionManager {
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.DOWN)(i.node));
-        
-        if(this.#useModifierKeys === false) {
+
+        if (this.#useModifierKeys === false) {
             if (this.#node) {
                 if (intersections.length > 0 && intersection[0].node !== this.#node) {
                     // case other node was clicked, deselect then select

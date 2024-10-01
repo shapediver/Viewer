@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import {
     EventEngine,
     EVENTTYPE,
     ShapeDiverViewerInteractionError,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { FLAG_TYPE, IGeometryData, IViewportApi } from '@shapediver/viewer';
 import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
@@ -59,6 +60,14 @@ export class DragManager extends AbstractInteractionManager {
     #tokenContinuousShadowMapUpdate!: string;
 
     // #endregion Properties (17)
+
+    // #region Constructors (1)
+
+    constructor(id?: string) {
+        super(id);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Getters And Setters (1)
 

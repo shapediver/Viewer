@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
 import { IHoverEvent } from '../../interfaces/events/IHoverEvent';
@@ -38,6 +39,14 @@ export class HoverManager extends AbstractInteractionManager {
     #node: ITreeNode | null = null;
 
     // #endregion Properties (8)
+
+    // #region Constructors (1)
+
+    constructor(id?: string) {
+        super(id);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Getters And Setters (1)
 

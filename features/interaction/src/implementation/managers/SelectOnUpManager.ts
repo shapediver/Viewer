@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
@@ -5,7 +6,7 @@ import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.ren
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { InteractionData } from '../InteractionData';
 import { ISelectEvent } from '../../interfaces/events/ISelectEvent';
-import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 
@@ -39,6 +40,14 @@ export class SelectOnUpManager extends AbstractInteractionManager {
     #node: ITreeNode | null = null;
 
     // #endregion Properties (9)
+
+    // #region Constructors (1)
+
+    constructor(id?: string) {
+        super(id);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Getters And Setters (3)
 
