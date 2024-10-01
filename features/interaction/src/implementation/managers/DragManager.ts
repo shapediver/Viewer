@@ -6,7 +6,7 @@ import {
     ShapeDiverViewerInteractionError,
     UuidGenerator
     } from '@shapediver/viewer.shared.services';
-import { FLAG_TYPE, IGeometryData, IViewportApi } from '@shapediver/viewer';
+import { FLAG_TYPE, IGeometryData, IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
 import { IDragEvent } from '../../interfaces/events/IDragEvent';
@@ -63,8 +63,8 @@ export class DragManager extends AbstractInteractionManager {
 
     // #region Constructors (1)
 
-    constructor(id?: string) {
-        super(id);
+    constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
+        super(id, effectMaterial);
     }
 
     // #endregion Constructors (1)
