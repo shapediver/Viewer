@@ -12,7 +12,7 @@ import { IMultiSelectEvent } from '../../interfaces/events/IMultiSelectEvent';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { InteractionData } from '../InteractionData';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
-import { IViewportApi } from '@shapediver/viewer';
+import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 
 export class MultiSelectManager extends AbstractInteractionManager {
     // #region Properties (13)
@@ -51,8 +51,10 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
     // #region Constructors (1)
 
-    constructor(id?: string) {
-        super(id);
+    constructor(id?: string, effectMaterial?: IMaterialAbstractData, minimumNodes?: number, maximumNodes?: number) {
+        super(id, effectMaterial);
+        if (minimumNodes) this.#minimumNodes = minimumNodes;
+        if (maximumNodes) this.#maximumNodes = maximumNodes;
     }
 
     // #endregion Constructors (1)

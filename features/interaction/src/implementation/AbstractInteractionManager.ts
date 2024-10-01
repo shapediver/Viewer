@@ -35,8 +35,9 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     // #region Constructors (1)
 
-    constructor(id?: string) {
+    constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
         this.#id = id || UuidGenerator.instance.create();
+        this.#effectMaterial = effectMaterial;
 
         this.gatherGroupNodes();
         this.#eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, () => {

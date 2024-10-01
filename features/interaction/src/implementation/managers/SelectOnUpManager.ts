@@ -8,7 +8,7 @@ import { InteractionData } from '../InteractionData';
 import { ISelectEvent } from '../../interfaces/events/ISelectEvent';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { IViewportApi } from '@shapediver/viewer';
+import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 
 export class SelectOnUpManager extends AbstractInteractionManager {
     // #region Properties (9)
@@ -43,8 +43,9 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
     // #region Constructors (1)
 
-    constructor(id?: string) {
-        super(id);
+    constructor(id?: string, effectMaterial?: IMaterialAbstractData, deselectOnEmpty?: boolean) {
+        super(id, effectMaterial);
+        if (deselectOnEmpty !== undefined) this.#deselectOnEmpty = deselectOnEmpty;
     }
 
     // #endregion Constructors (1)
