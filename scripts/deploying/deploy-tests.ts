@@ -1,4 +1,4 @@
-import { execPromise, getDirectories, deployToS3 } from '../utils/utils';
+import { execPromise, getDirectories, deployToS3Latest } from '../utils/utils';
 
 (async () => {
     try {
@@ -9,7 +9,7 @@ import { execPromise, getDirectories, deployToS3 } from '../utils/utils';
             const example = examples[i];
             if(example === 'main-pages' || example === 'scripts') continue;
             console.log(await execPromise('cd examples/' + example + ' && npm run build && cd ../..'));
-            deployToS3('examples/' + example + '/dist', example, undefined, true);
+            deployToS3Latest('examples/' + example + '/dist', example);
         }
     } catch (e) {
         console.log(e);

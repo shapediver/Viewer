@@ -159,7 +159,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
             const prefix = 'v3/' + newVersion;
 
             console.log('deploying to s3...');
-            deployToS3('docs', 'api', prefix, publicRelease);
+            deployToS3('docs', 'api', prefix);
 
             const examples = await getDirectories('examples');
 
@@ -168,11 +168,11 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
                 const example = examples[i];
                 if (example === 'main-pages' || example === 'scripts') continue;
                 console.log(await execPromise('cd examples/' + example + ' && npm run build && cd ../..'));
-                deployToS3('examples/' + example + '/dist', example, prefix, publicRelease);
+                deployToS3('examples/' + example + '/dist', example, prefix);
             }
 
-            deployToS3('examples/cdn/dist', undefined, prefix, publicRelease);
-            deployToS3('examples/main-pages', undefined, prefix, publicRelease);
+            deployToS3('examples/cdn/dist', undefined, prefix);
+            deployToS3('examples/main-pages', undefined, prefix);
         }
 
         

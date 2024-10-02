@@ -28,8 +28,52 @@ export const getDirectories = async (source: string) =>
         .filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name);
 
-export const deployToS3 = (directoryPath: string, name?: string, prefix?: string, latest = false) => {
+export const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
+    deployToS3Latest(directoryPath, name);
+    deployToS3Folder(directoryPath, name, prefix);
+};
+
+export const deployToS3Latest = (directoryPath: string, name?: string) => {
     const fileContents = <string[]>recursiveReadSync(directoryPath);
+    
+    let cacheControl;
+    if (name && name.startsWith('test')) {
+        // case 1, it is one of the test examples
+        cacheControl = 'max-age=0, s-maxage=608400, must-revalidate';
+    } else {
+        // case 2, it is a public release
+        cacheControl = 'max-age=3600, s-maxage=608400, must-revalidate';
+    }
+
+    // deploy under latest prefix
+    fileContents.map(function (f, cb) {
+        const key = (name ? prefixLatest + '/' + name : prefixLatest) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
+        s3.putObject({
+            Bucket: bucketName,
+            Key: key,
+            Body: pako.gzip(fs.readFileSync(f)),
+            ACL: 'public-read',
+            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
+            CacheControl: cacheControl,
+            ContentEncoding: 'gzip'
+        }, (err) => { if (err) console.log(err); });
+    });
+};
+
+export const deployToS3Folder = (directoryPath: string, name?: string, prefix?: string) => {
+    const fileContents = <string[]>recursiveReadSync(directoryPath);
+
+    let cacheControl;
+    if (name && name.startsWith('test')) {
+        // case 1, it is one of the test examples
+        cacheControl = 'max-age=0, s-maxage=608400, must-revalidate';
+    } else if (prefix && prefix.includes('demos')) {
+        // case 2, the example is deployed under the demos folder
+        cacheControl = 'max-age=0, s-maxage=608400, must-revalidate';
+    } else {
+        // case 3, it is a public release
+        cacheControl = 'max-age=86400, s-maxage=608400, must-revalidate';
+    }
     
     // deploy under specified prefix
     if(prefix) {
@@ -41,23 +85,7 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-                CacheControl: name && name.startsWith('test') ? 'max-age=0' : 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err); });
-        });
-    }
-
-    // deploy under latest prefix
-    if(latest) {
-        fileContents.map(function (f, cb) {
-            const key = (name ? prefixLatest + '/' + name : prefixLatest) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
-            s3.putObject({
-                Bucket: bucketName,
-                Key: key,
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-                CacheControl: name && name.startsWith('test') ? 'max-age=0' : 'max-age=3600',
+                CacheControl: cacheControl,
                 ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err); });
         });
