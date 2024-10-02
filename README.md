@@ -59,15 +59,11 @@ This works just similarly with `npm run add-dependency @shapediver/viewer.test.a
 
 ## 4. Building
 
-There are various build tasks for different scenarios in each package.
+In the main package.json, there is only one build script, please see the specific packages for further build tasks.
 
 | Usage | Description |
 | ------------- | ------------- |
-| `npm run build` | Builds just the current package. (folder: `dist`) |
-| `npm run build-current` | Builds all dependencies that are needed for the api package. (folder: `dist`) |
-| `npm run build-dep` | Builds this package and all internal dependencies that it has before that. (folder: `dist`) |
-| `npm run build-dev` | Builds this package and all internal dependencies with webpack and starts a http-server in watch mode. (folder: `dist-dev`, only for actual packages) |
-| `npm run build-prod` | Builds this package and all internal dependencies with webpack and puts them into a single file.  (folder: `dist-prod`, only for actual packages) |
+| `npm run build` | Builds each package. (folder: `dist`) |
 
 ## 5. Testing
 

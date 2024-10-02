@@ -6,7 +6,7 @@
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/bundle.js",
   "directories": {
     "test": "__tests__"
   },
@@ -22,10 +22,8 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bash ../../scripts/building/build.sh",
-    "build-dep": "bash ../../scripts/building/build-dep.sh",
-    "build-dev": "bash ../../scripts/building/build-dev.sh",
-    "build-prod": "bash ../../scripts/building/build-prod.sh"
+    "build-watch": "bash ../scripts/build-watch.sh",
+    "build": "bash ../scripts/build.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"

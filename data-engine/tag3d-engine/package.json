@@ -10,11 +10,10 @@
     "test": "__tests__"
   },
   "files": [
-    "dist",
-    "src",
     "package.json",
+    "dist/",
     "README.md",
-    "tsconfig.json"
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"

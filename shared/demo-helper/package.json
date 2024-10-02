@@ -10,11 +10,10 @@
     "test": "__tests__"
   },
   "files": [
-    "dist",
-    "src",
     "package.json",
+    "dist/",
     "README.md",
-    "tsconfig.json"
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"
@@ -27,7 +26,8 @@
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/building/build.sh",
     "build-watch": "bash ../../scripts/building/build-watch.sh",
-    "build-dep": "bash ../../scripts/building/build-dep.sh"
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
+    "build-all": "npm run build"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"

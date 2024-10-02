@@ -12,7 +12,6 @@
         "__tests__",
         "node_modules",
         "dist",
-        "dist-dev",
-        "dist-prod"
+        "dist-dev"
     ]
 }

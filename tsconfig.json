@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "composite": true,
         "module": "commonjs",
         "removeComments": false,
         "esModuleInterop": true,
@@ -8,7 +9,6 @@
         "declarationMap": true,
         "target": "ES6",
         "strict": true,
-        "rootDir": ".",
         "outDir": "dist",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -19,13 +19,12 @@
     ],
     "exclude": [
         "__tests__",
+        "../../node_modules",
         "node_modules",
         "dist",
-        "dist-dev",
-        "dist-prod"
+        "dist-dev"
     ],
     "paths": {
-        "@shapediver/viewer.shared.node-tree": "./shared/node-tree/src/index.ts",
         "@shapediver/viewer": "./api/default/src/index.ts",
     }
 }

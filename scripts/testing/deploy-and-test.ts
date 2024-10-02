@@ -24,7 +24,7 @@ const processError = async (e: unknown) => {
 (async () => {
     try {
         sendSlackMessage("Starting build before testing...")
-        console.log(await execPromise(`npm run build-current`))
+        console.log(await execPromise(`npm run build`))
         sendSlackMessage("Starting deployment of test pages...")
         console.log(await execPromise(`npm run deploy-tests`));
         const res = await execPromise(`npm run test`);
