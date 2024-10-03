@@ -152,30 +152,20 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
 
 
         if (publicRelease) {
-            /**
-             * deploy to s3
-             * depending on if it is a public release or not, also deploy to the "latest" folder
-             */
-            const prefix = 'v3/' + newVersion;
-
             console.log('deploying to s3...');
+            const prefix = 'v3/' + newVersion;
+            // deploy the api docs
             deployToS3('docs', 'api', prefix, publicRelease);
-
-            const examples = await getDirectories('examples');
-
-            for (let i = 0; i < examples.length; i++) {
-                console.log('deploying example ' + (i + 1) + '/' + examples.length + '...');
-                const example = examples[i];
-                if (example === 'main-pages' || example === 'scripts') continue;
-                console.log(await execPromise('cd examples/' + example + ' && npm run build && cd ../..'));
-                deployToS3('examples/' + example + '/dist', example, prefix, publicRelease);
-            }
-
+            // deploy the cdn
+            deployToS3('examples/cdn/dist', 'cdn', prefix, publicRelease);
             deployToS3('examples/cdn/dist', undefined, prefix, publicRelease);
+            // deploy the gltf page
+            deployToS3('examples/gltf/dist', 'gltf', prefix, publicRelease);
+            // deploy the main pages
             deployToS3('examples/main-pages', undefined, prefix, publicRelease);
         }
 
-        
+
 
         /**
          * create a tag for this version and push it
