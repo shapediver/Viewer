@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as fs from 'fs';
-import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer } from '../utils/utils';
+import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils/utils';
 
 (async () => {
     try {
@@ -117,9 +117,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
          */
         console.log('re-building for deployment...');
         console.log(await execPromise('npm run build'));
-        if(publicRelease)
-            console.log(await execPromise('npm run build'));
-
+        console.log(await execPromise('npm run build-examples'));
 
         if(publicRelease) {
             /**
