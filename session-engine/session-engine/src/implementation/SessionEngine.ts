@@ -43,6 +43,7 @@ import {
     ShapeDiverSdk,
     ShapeDiverSdkConfigType
 } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { DrawingParameter } from './dto/DrawingParameter';
 import { Export } from './dto/Export';
 import { FileParameter } from './dto/FileParameter';
 import { GumballParameter } from './dto/interaction/GumballParameter';
@@ -494,8 +495,8 @@ export class SessionEngine implements ISessionEngine {
         image?: (() => string) | string | Blob | File,
         data?: Record<string, any>,
         arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File
-    ): Promise < string > {
-    this.checkAvailability();
+    ): Promise<string> {
+        this.checkAvailability();
 
         try {
             const promises = [];
@@ -1889,7 +1890,7 @@ export class SessionEngine implements ISessionEngine {
                 const urlParams = new URLSearchParams(name.replace(fakeSelectionParameterName + '?', ''));
                 const jsonString = urlParams.get('settings');
                 if (jsonString)
-                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString);
+                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
             }
 
             const fakeGumballParameterName = 'FAKE_GUMBALL_PARAMETER';
@@ -1902,8 +1903,22 @@ export class SessionEngine implements ISessionEngine {
                 const urlParams = new URLSearchParams(name.replace(fakeGumballParameterName + '?', ''));
                 const jsonString = urlParams.get('settings');
                 if (jsonString)
-                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString);
+                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
             }
+
+            const fakeDrawingParameterName = 'FAKE_DRAWING_PARAMETER';
+            const nameStartsWithFakeDrawingParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeDrawingParameterName);
+            const displaynameStartsWithFakeDrawingParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeDrawingParameterName);
+
+            if (nameStartsWithFakeDrawingParameter || displaynameStartsWithFakeDrawingParameter) {
+                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.DRAWING;
+                const name = nameStartsWithFakeDrawingParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
+                const urlParams = new URLSearchParams(name.replace(fakeDrawingParameterName + '?', ''));
+                const jsonString = urlParams.get('settings');
+                if (jsonString)
+                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
+            }
+
             /**
              * 
              * REMOVE THIS LOGIC - END
@@ -1925,6 +1940,9 @@ export class SessionEngine implements ISessionEngine {
                     break;
                 case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.INTERACTION:
                     this.parameters[parameterId] = this.createInteractionParameter(this._responseDto.parameters[parameterId]);
+                    break;
+                case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.DRAWING:
+                    this.parameters[parameterId] = new DrawingParameter(this._responseDto.parameters[parameterId], this);
                     break;
                 default:
                     this.parameters[parameterId] = new Parameter<string>(this._responseDto.parameters[parameterId], this);

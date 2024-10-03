@@ -1,4 +1,4 @@
-import { IInteractionParameterProps, IInteractionParameterSettings } from './IInteractionParameterSettings';
+import { IInteractionParameterProps } from './IInteractionParameterSettings';
 
 // #region Type aliases (1)
 
@@ -34,11 +34,3 @@ export interface IGumballParameterProps extends IInteractionParameterProps {
 }
 
 // #endregion Interfaces (1)
-
-// #region Functions (1)
-
-export function isInteractionGumballParameterSettings(def?: IInteractionParameterSettings): def is { type: 'gumball', props: IGumballParameterProps } {
-    return def?.type === 'gumball';
-}
-
-// #endregion Functions (1)

@@ -1,11 +1,13 @@
 import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
-import { ExportApi } from './ExportApi';
 import {
+    DrawingParameter,
     FileParameter,
     GumballParameter,
     SelectionParameter,
     SessionEngine
 } from '@shapediver/viewer.session-engine.session-engine';
+import { DrawingParameterApi } from './parameter/DrawingParameterApi';
+import { ExportApi } from './ExportApi';
 import { FileParameterApi } from './parameter/FileParameterApi';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { GumballParameterApi } from './parameter/GumballParameterApi';
@@ -70,6 +72,8 @@ export class SessionApi implements ISessionApi {
                 this.#parameters[p] = new SelectionParameterApi(<SelectionParameter>this.#sessionEngine.parameters[p]);
             } else if (this.#sessionEngine.parameters[p] instanceof GumballParameter) {
                 this.#parameters[p] = new GumballParameterApi(<GumballParameter>this.#sessionEngine.parameters[p]);
+            } else if (this.#sessionEngine.parameters[p] instanceof DrawingParameter) {
+                this.#parameters[p] = new DrawingParameterApi(<DrawingParameter>this.#sessionEngine.parameters[p]);
             } else {
                 this.#parameters[p] = new ParameterApi(this.#sessionEngine.parameters[p]);
             }
@@ -78,7 +82,7 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (29)
+    // #region Public Getters And Setters (30)
 
     public get automaticSceneUpdate(): boolean {
         return this.#sessionEngine.automaticSceneUpdate;
@@ -237,9 +241,9 @@ export class SessionApi implements ISessionApi {
         this.#logger.debug(`SessionApi.${scope}: ${scope} was updated to ${value}.`);
     }
 
-    // #endregion Public Getters And Setters (29)
+    // #endregion Public Getters And Setters (30)
 
-    // #region Public Methods (30)
+    // #region Public Methods (31)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -272,7 +276,8 @@ export class SessionApi implements ISessionApi {
         return new Blob([result], { type: 'application/octet-stream' });
     }
 
-    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {        const scope = 'createModelState';
+    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {
+        const scope = 'createModelState';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, omitSessionParameterValues, 'boolean', false);
         return await this.#sessionEngine.createModelState(parameterValues, omitSessionParameterValues, image, data, arScene);
@@ -425,5 +430,5 @@ export class SessionApi implements ISessionApi {
         return fileParameterIds;
     }
 
-    // #endregion Public Methods (30)
+    // #endregion Public Methods (31)
 }
