@@ -53,7 +53,7 @@
     "build": "lerna run build-all --stream",
     "build-tests": "lerna run build-test --stream",
     "build-examples": "lerna run build-example --stream",
-    "publish": "ts-node ./scripts/publishing/publish.ts",
+    "publish-viewer": "ts-node ./scripts/publishing/publish-viewer.ts",
     "deploy-doc-version": "ts-node ./scripts/deploying/deploy-doc-version.ts",
     "deploy-example": "ts-node ./scripts/deploying/deploy-example.ts",
     "deploy-tests": "ts-node ./scripts/deploying/deploy-tests.ts",
