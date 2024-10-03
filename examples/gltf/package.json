@@ -22,7 +22,7 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build-watch": "bash ../scripts/build-watch.sh",
+    "build-dev": "bash ../scripts/build-dev.sh",
     "build": "bash ../scripts/build.sh",
     "build-example": "npm run build"
   },

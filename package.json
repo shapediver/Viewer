@@ -51,6 +51,7 @@
     "init": "bash ./scripts/other/init.sh",
     "test": "lerna run test --stream --no-bail",
     "build": "lerna run build-all --stream",
+    "build-watch": "lerna run build-watch --stream",
     "build-tests": "lerna run build-test --stream",
     "build-examples": "lerna run build-example --stream",
     "publish-viewer": "ts-node ./scripts/publishing/publish-viewer.ts",
