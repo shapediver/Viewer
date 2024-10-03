@@ -10,6 +10,7 @@ import {
     AnimationData,
     AttributeData,
     CustomData,
+    DrawingParameterValue,
     EventResponseMapping,
     GeometryData,
     GumballParameterValue,
@@ -24,12 +25,14 @@ import {
     IAttributeData,
     ICameraEvent,
     ICustomData,
-    IInteractionParameterProps,
+    IDrawingParameterJsonSchema,
+    IDrawingParameterSettings,
     IGeometryData,
     IGumballParameterJsonSchema,
     IGumballParameterProps,
     IHTMLElementAnchorData,
     IInteractionParameterJsonSchema,
+    IInteractionParameterProps,
     IInteractionParameterSettings,
     IMapData,
     IMapDataProperties,
@@ -79,8 +82,6 @@ import {
     ISessionEvent,
     ISessionSettingsSections,
     ISettingsSections,
-    isInteractionGumballParameterSettings,
-    isInteractionSelectionParameterSettings,
     ITaskEvent,
     IViewportEvent,
     IViewportSettingsSections,
@@ -111,10 +112,7 @@ import {
     SelectionParameterValue,
     TASK_TYPE,
     TEXTURE_FILTERING,
-    TEXTURE_WRAPPING,
-    validateGumballParameterSettings,
-    validateInteractionParameterSettings,
-    validateSelectionParameterSettings
+    TEXTURE_WRAPPING
 } from '@shapediver/viewer.shared.types';
 import {
     Box,
@@ -180,6 +178,7 @@ import {
     ShapeDiverViewerViewportError,
     ShapeDiverViewerWebGLError
 } from '@shapediver/viewer.shared.services';
+import { IDrawingParameterApi } from './interfaces/parameter/IDrawingParameterApi';
 import { IExportApi } from './interfaces/IExportApi';
 import { IFileParameterApi } from './interfaces/parameter/IFileParameterApi';
 import { IGumballParameterApi } from './interfaces/parameter/IGumballParameterApi';
@@ -232,8 +231,8 @@ import {
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi };
-export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings, ISelectionParameterProps, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings, IGumballParameterProps, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi };
+export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, DrawingParameterValue, IDrawingParameterSettings, IDrawingParameterJsonSchema };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };

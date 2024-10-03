@@ -1,6 +1,8 @@
+import { DrawingParameter } from './implementation/dto/DrawingParameter';
 import { Export } from './implementation/dto/Export';
 import { FileParameter } from './implementation/dto/FileParameter';
 import { GumballParameter } from './implementation/dto/interaction/GumballParameter';
+import { IDrawingParameter } from './interfaces/dto/IDrawingParameter';
 import { IExport } from './interfaces/dto/IExport';
 import { IFileParameter } from './interfaces/dto/IFileParameter';
 import { IGumballParameter } from './interfaces/dto/interaction/IGumballParameter';
@@ -23,5 +25,5 @@ export {
 };
 
 export {
-  ISessionEngine, SessionEngine, IOutput, Output, IParameter, Parameter, IFileParameter, FileParameter, IInteractionParameter, ISelectionParameter, SelectionParameter, IGumballParameter, GumballParameter, IExport, Export, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk
+  ISessionEngine, SessionEngine, IOutput, Output, IParameter, Parameter, IFileParameter, FileParameter, IInteractionParameter, ISelectionParameter, SelectionParameter, IGumballParameter, GumballParameter, IDrawingParameter, DrawingParameter, IExport, Export, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk
 };

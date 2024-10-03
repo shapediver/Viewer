@@ -1,4 +1,4 @@
-import { IInteractionParameterProps, IInteractionParameterSettings } from './IInteractionParameterSettings';
+import { IInteractionParameterProps } from './IInteractionParameterSettings';
 
 // #region Type aliases (1)
 
@@ -27,11 +27,3 @@ export interface ISelectionParameterProps extends IInteractionParameterProps {
 }
 
 // #endregion Interfaces (1)
-
-// #region Functions (1)
-
-export function isInteractionSelectionParameterSettings(def?: IInteractionParameterSettings): def is { type: 'selection', props: ISelectionParameterProps } {
-    return def?.type === 'selection';
-}
-
-// #endregion Functions (1)

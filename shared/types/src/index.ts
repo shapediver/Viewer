@@ -11,8 +11,14 @@ import {
   PARAMETER_VISUALIZATION
   } from './types';
 import { CustomData } from './implementation/data/CustomData';
+import {
+  DrawingParameterValue,
+  IDrawingParameterJsonSchema,
+  IDrawingParameterSettings,
+  validateDrawingParameterSettings
+  } from './interfaces/parameter/IDrawingParametersSettings';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
-import { GumballParameterValue, IGumballParameterProps, isInteractionGumballParameterSettings } from './interfaces/parameter/IGumballParameterSettings';
+import { GumballParameterValue, IGumballParameterProps } from './interfaces/parameter/IGumballParameterSettings';
 import {
   HTMLElementAnchorCustomData,
   HTMLElementAnchorData,
@@ -31,9 +37,9 @@ import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
 import {
-  IInteractionParameterProps,
   IGumballParameterJsonSchema,
   IInteractionParameterJsonSchema,
+  IInteractionParameterProps,
   IInteractionParameterSettings,
   InteractionParameterSettingsType,
   ISelectionParameterJsonSchema,
@@ -74,7 +80,7 @@ import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTF
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData';
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData';
 import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData';
-import { ISelectionParameterProps, isInteractionSelectionParameterSettings, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
+import { ISelectionParameterProps, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
 import { ISessionEvent } from './interfaces/events/ISessionEvent';
 import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent';
 import { IViewportEvent } from './interfaces/events/IViewportEvent';
@@ -136,6 +142,7 @@ export {
 
 export {
   InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
-  ISelectionParameterProps, SelectionParameterValue, isInteractionSelectionParameterSettings, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
-  IGumballParameterProps, GumballParameterValue, isInteractionGumballParameterSettings, IGumballParameterJsonSchema, validateGumballParameterSettings
+  ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
+  IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, validateGumballParameterSettings,
+  IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema, validateDrawingParameterSettings
 };
