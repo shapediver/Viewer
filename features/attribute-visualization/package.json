@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.features.attribute-visualization",
-  "version": "3.3.6",
+  "version": "3.3.7",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,9 +40,9 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "3.3.6",
-    "@shapediver/viewer.shared.services": "3.3.6",
-    "@shapediver/viewer.shared.types": "3.3.6"
+    "@shapediver/viewer": "3.3.7",
+    "@shapediver/viewer.shared.services": "3.3.7",
+    "@shapediver/viewer.shared.types": "3.3.7"
   },
   "dependencies": {
     "detect-it": "4.0.1",
