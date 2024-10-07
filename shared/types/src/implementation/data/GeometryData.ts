@@ -399,6 +399,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
           boundingBox,
           matrix: mat4.clone(matrix)
         });
+        return boundingBox;
       } else if (quat.equals(mat4.getRotation(quat.create(), matrix), quat.create())) {
         const identityBB = this.computeBoundingBox(mat4.create());
         const boundingBox = identityBB.clone().applyMatrix(matrix);
