@@ -259,7 +259,10 @@ export class GeometryState {
             );
             this.#geometryDataLines.renderOrder = 999;
             this.#parentNode.addData(this.#geometryDataLines);
-            this.#indicesArrayLines = this.createLineIndices(this.#settings.geometry.close && this.#settings.geometry.autoClose);
+
+            if(this.#settings.geometry.close && this.checkNumberOfPoints(geometryProperties.points.length))
+                this.#closeLoop = true;
+            this.#indicesArrayLines = this.createLineIndices(this.#closeLoop || (this.#settings.geometry.close && this.#settings.geometry.autoClose));
         }
 
         // create material index array
