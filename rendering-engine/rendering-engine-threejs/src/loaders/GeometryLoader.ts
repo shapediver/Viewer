@@ -35,17 +35,11 @@ export class GeometryLoader implements ILoader {
     private _geometryCache: {
         [key: string]: {
             obj: SDData,
+            clones: SDData[],
             counter: number
         }
     } = {};
     private _logger: Logger = Logger.instance;
-    private _primitiveCache: {
-        [key: string]: {
-            counter: number,
-            threeGeometry: THREE.BufferGeometry,
-            clones: THREE.BufferGeometry[]
-        }
-    } = {};
 
     // #endregion Properties (8)
 
@@ -61,10 +55,6 @@ export class GeometryLoader implements ILoader {
         for(const key in this._geometryCache)
             this.removeFromGeometryCache(key);
         this._geometryCache = {};
-
-        for(const key in this._primitiveCache)
-            this.removeFromPrimitiveCache(key);
-        this._primitiveCache = {};
     }
 
     public init(): void { }
@@ -76,16 +66,7 @@ export class GeometryLoader implements ILoader {
      * @returns the geometry object
      */
     public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
-        const threeGeometry = (() => {
-            if (!this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version]) {
-                return this.loadPrimitive(geometry.primitive);
-            } else {
-                this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].counter++;
-                const clone = this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry.clone();
-                this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].clones.push(clone);
-                return clone;
-            }
-        })();
+        const threeGeometry = this.loadPrimitive(geometry.primitive);
 
         let incomingMaterialData: IMaterialAbstractData | null;
         if (geometry.effectMaterials.length > 0) {
@@ -134,6 +115,7 @@ export class GeometryLoader implements ILoader {
             // case 2: it is a new child
             if (newChild === false && obj.parent !== parent || newChild === true) {
                 obj = obj.cloneObject() as SDData;
+                this._geometryCache[geometry.id + '_' + geometry.version].clones.push(obj);
                 parent.add(obj);
             }
 
@@ -149,7 +131,7 @@ export class GeometryLoader implements ILoader {
         } else {
             obj = new SDData(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, skeleton);
-            this._geometryCache[geometry.id + '_' + geometry.version] = { obj, counter: 1 };
+            this._geometryCache[geometry.id + '_' + geometry.version] = { obj, counter: 1, clones: [] };
             parent.add(obj);
         }
 
@@ -205,7 +187,6 @@ export class GeometryLoader implements ILoader {
         }
         primitive.convertedObject[this._renderingEngine.id] = geometry;
 
-        this._primitiveCache[primitive.id + '_' + primitive.version] = { threeGeometry: geometry, counter: 1, clones: [] };
         return geometry;
     }
 
@@ -232,31 +213,20 @@ export class GeometryLoader implements ILoader {
                         o.geometry.setIndex(null);
                     }
                 });
+
+                this._geometryCache[id].clones.forEach(c => {
+                    c.traverse(o => {
+                        if (o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop || o instanceof THREE.Line) {
+                            o.geometry.dispose();
+                            for (const key in o.geometry.attributes)
+                                o.geometry.deleteAttribute(key);
+                            o.geometry.setIndex(null);
+                        }
+                    });
+                });
                 delete this._geometryCache[id];
             } else {
                 this._geometryCache[id].counter--;
-            }
-        }
-    }
-
-    public removeFromPrimitiveCache(id: string) {
-        if (this._primitiveCache[id]) {
-            if (this._primitiveCache[id].counter === 1) {
-                this._primitiveCache[id].threeGeometry.dispose();
-                for (const key in this._primitiveCache[id].threeGeometry.attributes)
-                    this._primitiveCache[id].threeGeometry.deleteAttribute(key);
-                this._primitiveCache[id].threeGeometry.setIndex(null);
-
-                this._primitiveCache[id].clones.forEach(c => {
-                    c.dispose();
-                    for (const key in c.attributes)
-                        c.deleteAttribute(key);
-                    c.setIndex(null);
-                });
-
-                delete this._primitiveCache[id];
-            } else {
-                this._primitiveCache[id].counter--;
             }
         }
     }

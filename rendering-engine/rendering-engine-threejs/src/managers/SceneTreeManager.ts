@@ -520,7 +520,6 @@ export class SceneTreeManager implements IManager {
                     if (o instanceof THREE.Mesh || o instanceof THREE.Line || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop) {
                         this.scene.remove(o);
                         this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion);
-                        this._renderingEngine.geometryLoader.removeFromPrimitiveCache(o.geometry.userData.primitiveSDid + '_' + o.geometry.userData.primitiveSDversion);
                         this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion);
 
                         const texturesToRemove: THREE.Texture[] = [];
