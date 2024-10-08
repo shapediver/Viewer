@@ -47,7 +47,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist --force-local",
     "clean": "lerna clean --yes && rm -rf node_modules",
-    "hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf package-lock.json && npm run clean",
+    "hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf package-lock.json && lerna exec -- rm -rf tsconfig.tsbuildinfo && npm run clean",
     "init": "bash ./scripts/other/init.sh",
     "test": "lerna run test --stream --no-bail",
     "build": "lerna run build-all --stream",
