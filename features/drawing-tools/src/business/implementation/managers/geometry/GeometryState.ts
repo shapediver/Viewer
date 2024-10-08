@@ -24,9 +24,11 @@ import { EventEngine, IEvent } from '@shapediver/viewer.shared.services';
 import { GeometryManager } from './GeometryManager';
 import { MultiPointsMaterial } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { vec3 } from 'gl-matrix';
+import { IDrawingToolsEvent } from '../../../interfaces/events/IDrawingToolsEvent';
 export class GeometryState {
-    // #region Properties (15)
+    // #region Properties (16)
 
+    readonly #drawingToolsId: string;
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #geometryManager: GeometryManager;
     readonly #parentNode: ITreeNode;
@@ -44,13 +46,14 @@ export class GeometryState {
     #temporaryIndices: number[] = [];
     #wasWithinMinimumMaximumPointsRange: boolean = false;
 
-    // #endregion Properties (15)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
     constructor(drawingToolsManager: DrawingToolsManager, geometryManager: GeometryManager) {
         this.#geometryManager = geometryManager;
 
+        this.#drawingToolsId = drawingToolsManager.uuid;
         this.#settings = drawingToolsManager.settings;
         this.#viewport = drawingToolsManager.viewport;
         this.#parentNode = geometryManager.parentNode;
@@ -325,10 +328,12 @@ export class GeometryState {
         this.#temporaryIndices = this.#temporaryIndices.filter(i => i !== index);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+            viewportId: this.#viewport.id,
+            drawingToolId: this.#drawingToolsId,
             points: this.getPointsData(),
             temporary: false,
             recordHistory
-        });
+        } as IDrawingToolsEvent);
     }
 
     public updateData(
@@ -389,10 +394,12 @@ export class GeometryState {
         }
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+            viewportId: this.#viewport.id,
+            drawingToolId: this.#drawingToolsId,
             points: this.getPointsData(),
             temporary,
             fromHistory
-        });
+        } as IDrawingToolsEvent);
     }
 
     public updateDataFromHistory(points: PointsData): void {

@@ -269,6 +269,8 @@ export class InteractionManagerHelper {
             this.removeAllSelectedPoints();
 
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+                viewportId: this.#drawingToolsManager.viewport.id,
+                drawingToolId: this.#drawingToolsManager.uuid,
                 points: this.#geometryState.getPointsData(),
                 temporary: false,
                 fromHistory: false
@@ -286,6 +288,8 @@ export class InteractionManagerHelper {
                  * - HAS TO BE ADDED TO THE HISTORY NOW
                  */
                 this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
+                    viewportId: this.#drawingToolsManager.viewport.id,
+                    drawingToolId: this.#drawingToolsManager.uuid,
                     points: this.#geometryState.getPointsData(),
                     temporary: false
                 });
