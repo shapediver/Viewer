@@ -204,7 +204,7 @@ export class GeometryLoader implements ILoader {
 
     public removeFromGeometryCache(id: string) {
         if (this._geometryCache[id]) {
-            if (this._geometryCache[id].counter === 1) {
+            if (this._geometryCache[id].counter < 1) {
                 this._geometryCache[id].obj.traverse(o => {
                     if (o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop || o instanceof THREE.Line) {
                         o.geometry.dispose();
