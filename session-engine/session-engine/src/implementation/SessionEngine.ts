@@ -1919,6 +1919,14 @@ export class SessionEngine implements ISessionEngine {
                     this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
             }
 
+            const fakeDrawingFixParameterName = 'FAKE_DRAWING_FIX';
+            const nameStartsWithFakeDrawingFixParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeDrawingFixParameterName);
+            const displaynameStartsWithFakeDrawingFixParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeDrawingFixParameterName);
+
+            if (nameStartsWithFakeDrawingFixParameter || displaynameStartsWithFakeDrawingFixParameter) {
+                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.DRAWING;
+            }
+
             /**
              * 
              * REMOVE THIS LOGIC - END
