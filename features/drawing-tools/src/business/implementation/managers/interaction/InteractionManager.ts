@@ -84,6 +84,11 @@ export class InteractionManager implements IManager {
     }
 
     public close(): void {
+        if(this.#cameraFreezeFlag) 
+            this.#viewport.removeFlag(this.#cameraFreezeFlag);
+        
+        document.body.style.cursor = 'default';
+
         this.#interactionManagerHelper.close();
         this.#restrictionManager.close();
     }
