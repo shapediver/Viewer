@@ -19,6 +19,7 @@ import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils
 
         // if this was already a release-candidate (versionComponents.length > 1) we don't need to ask for the version, as it was already updated.
         let versionInput = '';
+        let newReleaseCandidateVersion = false;
         if(versionComponents.length === 1) {
             /**
              * How do we increment the version?
@@ -32,6 +33,7 @@ import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils
 
             if(option === 'yes' || option === 'y') {
                 versionInput = await readAnswerOptions('Which part of the version would you like to increment? (major, minor, patch)\n', ['major', 'minor', 'patch']);
+                newReleaseCandidateVersion = true;
             }
         }
 
@@ -56,7 +58,7 @@ import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils
          * release-candidate and version
          */
         let newVersion: string;
-        if(versionComponents.length === 1) {
+        if(versionComponents.length === 1 || newReleaseCandidateVersion) {
             // in both cases below we increase the version, in the release candidate (non-publicRelease) case we add a suffix
 
             const versions: string[] = packageJson.version.split('.');
