@@ -237,7 +237,32 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D = this._mainNode, filter: UpdateFilter = { transformationOnly: false }, visibleInHierarchy: boolean = true, skeleton?: THREE.Skeleton) {
+    public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D | undefined, filter: UpdateFilter = { transformationOnly: false }, visibleInHierarchy: boolean = true, skeleton?: THREE.Skeleton) {
+        if(obj === undefined) {
+            // check if there is a converted object
+            if(node.convertedObject[this._renderingEngine.id]) {
+                obj = node.convertedObject[this._renderingEngine.id] as THREE.Object3D;
+            } else {
+                // the node has not been converted yet
+                // go up the hierarchy until a converted object is found
+                let parent = node.parent;
+                while(parent) {
+                    if(parent.convertedObject[this._renderingEngine.id]) {
+                        this.updateNode(parent, parent.convertedObject[this._renderingEngine.id] as THREE.Object3D, filter, visibleInHierarchy, skeleton);
+                        return;
+                    } else {
+                        parent = parent.parent;
+                    }
+                }
+
+                // no converted object found in the hierarchy
+                // update the whole scene tree
+                this.updateSceneTree(this._tree.root);
+                return;
+            }
+        }
+
+
         const convertedObject = <SDObject>obj;
 
         // reset the general bounding box of the current node
@@ -285,13 +310,7 @@ export class SceneTreeManager implements IManager {
             const childrenToRemove = convertedObject.children.filter(oc => {
                 if (oc instanceof SDObject && !(oc instanceof SDData)) {
                     if (nodeIds.includes(oc.SDid)) {
-                        const child = node.children.find(d => d.id === oc.SDid);
-                        if (child && child.version !== oc.SDversion) {
-                            // version is different
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return false;
                     } else {
                         // id not included anymore
                         return true;
