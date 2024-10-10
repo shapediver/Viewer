@@ -49,7 +49,7 @@
     "clean": "lerna clean --yes && rm -rf node_modules",
     "hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf package-lock.json && lerna exec -- rm -rf tsconfig.tsbuildinfo && npm run clean",
     "init": "bash ./scripts/other/init.sh",
-    "test": "lerna run test --stream --no-bail",
+    "test": "lerna run test --stream --no-bail --concurrency 3",
     "build": "lerna run build-all --stream",
     "build-watch": "lerna run build-watch --stream",
     "build-tests": "lerna run build-test --stream",
