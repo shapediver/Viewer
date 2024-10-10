@@ -228,6 +228,7 @@ import {
     IDomEventListener,
     IEvent,
     isARError,
+    isValid,
     isViewerCameraError,
     isViewerDataProcessingError,
     isViewerDrawingToolsError,
@@ -266,7 +267,8 @@ import {
     ShapeDiverViewerUnknownError,
     ShapeDiverViewerValidationError,
     ShapeDiverViewerViewportError,
-    ShapeDiverViewerWebGLError
+    ShapeDiverViewerWebGLError,
+    stringify
     } from '@shapediver/viewer.shared.services';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import {
@@ -340,3 +342,4 @@ export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, 
 export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi };
+export { isValid, stringify };

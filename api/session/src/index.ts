@@ -138,6 +138,7 @@ import {
     IDomEventListener,
     IEvent,
     isARError,
+    isValid,
     isViewerCameraError,
     isViewerDataProcessingError,
     isViewerDrawingToolsError,
@@ -176,7 +177,8 @@ import {
     ShapeDiverViewerUnknownError,
     ShapeDiverViewerValidationError,
     ShapeDiverViewerViewportError,
-    ShapeDiverViewerWebGLError
+    ShapeDiverViewerWebGLError,
+    stringify
 } from '@shapediver/viewer.shared.services';
 import { IDrawingParameterApi } from './interfaces/parameter/IDrawingParameterApi';
 import { IExportApi } from './interfaces/IExportApi';
@@ -255,3 +257,4 @@ export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData,
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData };
 export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
+export { isValid, stringify };

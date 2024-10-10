@@ -1,3 +1,4 @@
+import { atobCustom, btoaCustom } from './utilities/base64';
 import { Converter } from './converter/Converter';
 import { DomEventEngine } from './dom-event-engine/DomEventEngine';
 import { EventEngine } from './event-engine/EventEngine';
@@ -42,6 +43,7 @@ import {
     isViewerWebGLError
 } from './logger/ErrorTypeGuards';
 import { ISessionGlobalAccessObjectDefinition } from './state-engine/ISessionGlobalAccessObjectDefinition';
+import { isValid, stringify } from './parameter-utils/ParameterUtils';
 import { IViewportGlobalAccessObjectDefinition } from './state-engine/IViewportGlobalAccessObjectDefinition';
 import { Logger, LOGGING_LEVEL } from './logger/Logger';
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator';
@@ -69,7 +71,6 @@ import { StatePromise } from './state-engine/StatePromise';
 import { SystemInfo } from './system-info/SystemInfo';
 import { TypeChecker } from './type-check/TypeChecker';
 import { UuidGenerator } from './uuid-generator/UuidGenerator';
-import { atobCustom, btoaCustom } from './utilities/base64';
 
 export {
     EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -163,4 +164,8 @@ export {
 
 export {
     atobCustom, btoaCustom
+};
+
+export {
+    isValid, stringify
 };
