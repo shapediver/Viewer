@@ -10,6 +10,7 @@ import { InteractionManagerHelper } from './helpers/InteractionManagerHelper';
 import { IRay } from '@shapediver/viewer.features.interaction';
 import { MidPointInteractionHandler } from './handlers/MidPointInteractionHandler';
 import { RestrictionManager } from './RestrictionManager';
+import { vec3 } from 'gl-matrix';
 
 export class InteractionManager implements IManager {
     // #region Properties (11)
@@ -165,10 +166,12 @@ export class InteractionManager implements IManager {
     public onMove(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
 
+        let currentRestrictedPoint: vec3 | undefined;
+
         // if there are no points, start with the insertion right away
         if (this.#drawingToolsManager.settings.general.autoStart && this.#insertionInteractionHandler.insertionActive === false && this.#drawingToolsManager.getPointsData().length === 0) {
             this.#lastEvent = event;
-            this.startInsertion();
+            currentRestrictedPoint = this.startInsertion() || currentRestrictedPoint;
         }
 
         const distanceSquared = this.#onDownPointer ? Math.pow(event.clientX - this.#onDownPointer.clientX, 2) + Math.pow(event.clientY - this.#onDownPointer.clientY, 2) : Infinity;
@@ -183,7 +186,7 @@ export class InteractionManager implements IManager {
              * IF WE ARE DRAGGING A POINT
              * MOVE THE SELECTED POINTS
              */
-            this.#interactionManagerHelper.moveSelectedPoints(ray);
+            currentRestrictedPoint = this.#interactionManagerHelper.moveSelectedPoints(ray) || currentRestrictedPoint;
         }
 
         const distances = this.#geometryMathManager.checkPointDistances(ray);
@@ -195,7 +198,7 @@ export class InteractionManager implements IManager {
              * ADD POINT AT RAY INTERSECTION IF THERE IS NONE WAS ADDED
              * MOVE LAST ADDED POINT IF THERE IS ONE
              */
-            this.#insertionInteractionHandler.onMove(ray);
+            currentRestrictedPoint = this.#insertionInteractionHandler.onMove(ray) || currentRestrictedPoint;
 
             /**
              * IF INSERT KEY IS NOT PRESSED AND DRAGGING IS NOT ACTIVE
@@ -213,6 +216,11 @@ export class InteractionManager implements IManager {
         } else {
             document.body.style.cursor = 'default';
         }
+
+        if(!currentRestrictedPoint) 
+            currentRestrictedPoint = this.#restrictionManager.rayTrace(ray);
+
+        this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(currentRestrictedPoint);
     }
 
     /**
@@ -238,7 +246,7 @@ export class InteractionManager implements IManager {
         this.#interactionManagerHelper.removePoint(index);
     }
 
-    public startInsertion(): void {
+    public startInsertion(): vec3 | undefined {
         this.#restrictionManager.showRestrictionVisualization = true;
 
         this.#midPointInteractionHandler.stopMidPointInsertion();
@@ -246,7 +254,7 @@ export class InteractionManager implements IManager {
         if (!this.#cameraFreezeFlag)
             this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
 
-        this.#insertionInteractionHandler.startInsertion(this.#lastEvent!);
+        return this.#insertionInteractionHandler.startInsertion(this.#lastEvent!);
     }
 
     public stopInsertion(): void {

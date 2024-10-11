@@ -5,6 +5,7 @@ import { InteractionManager } from '../InteractionManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { MATERIAL_INDEX, Settings } from '../../../../interfaces/IDrawingToolsManager';
 import { RestrictionManager } from '../RestrictionManager';
+import { vec3 } from 'gl-matrix';
 
 export class InsertionInteractionHandler {
     // #region Properties (11)
@@ -84,7 +85,7 @@ export class InsertionInteractionHandler {
         return result;
     }
 
-    public onMove(ray: IRay): void {
+    public onMove(ray: IRay): vec3 | undefined {
         if (this.#insertionActive === false) return;
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true) {
@@ -115,10 +116,12 @@ export class InsertionInteractionHandler {
                     this.#drawingToolsManager.movePointTemporary(this.#insertionActiveIndex, restrictedPoint);
                 }
             }
+
+            return restrictedPoint;
         }
     }
 
-    public startInsertion(event: PointerEvent): void {
+    public startInsertion(event: PointerEvent): vec3 | undefined {
         if (this.#insertionActive === false) {
             // get current ray
             const ray = this.#viewport.pointerEventToRay(event);
@@ -132,6 +135,8 @@ export class InsertionInteractionHandler {
 
             this.#insertionActive = true;
             this.#alreadyInserted = true;
+
+            return restrictedPoint;
         }
     }
 

@@ -15,7 +15,7 @@ import { Settings } from '../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
 export class TextVisualizationManager implements IManager {
-    // #region Properties (11)
+    // #region Properties (14)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #labelRenderer: CSS2DRenderer;
@@ -26,14 +26,14 @@ export class TextVisualizationManager implements IManager {
 
     #distanceObject3D: THREE.Object3D;
     #object3D: THREE.Object3D;
+    #pointerPositionField: HTMLDivElement;
     #positionObject3D: THREE.Object3D;
+    #prevHeight: number = 0;
+    #prevWidth: number = 0;
     #showDistanceLabels: boolean = true;
     #showPointLabels: boolean = true;
 
-    #prevWidth: number = 0;
-    #prevHeight: number = 0;
-
-    // #endregion Properties (11)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
@@ -56,8 +56,16 @@ export class TextVisualizationManager implements IManager {
         this.#labelRenderer.domElement.style.top = '0%';
         this.#viewport.canvas.parentElement!.appendChild(this.#labelRenderer.domElement);
 
+        this.#pointerPositionField = document.createElement('div');
+        this.#pointerPositionField.className = 'label';
+        this.#pointerPositionField.style.marginTop = '1em';
+        this.#pointerPositionField.style.position = 'absolute';
+        this.#pointerPositionField.style.left = '1%';
+        this.#pointerPositionField.style.bottom = '1%';
+        this.#viewport.canvas.parentElement!.appendChild(this.#pointerPositionField);
+
         this.#viewport.postRenderingCallback = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) => {
-            if(this.#prevWidth !== renderer.domElement.clientWidth || this.#prevHeight !== renderer.domElement.clientHeight) {
+            if (this.#prevWidth !== renderer.domElement.clientWidth || this.#prevHeight !== renderer.domElement.clientHeight) {
                 this.#prevWidth = renderer.domElement.clientWidth;
                 this.#prevHeight = renderer.domElement.clientHeight;
                 this.#labelRenderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
@@ -138,9 +146,11 @@ export class TextVisualizationManager implements IManager {
 
     // #endregion Public Getters And Setters (4)
 
-    // #region Public Methods (3)
+    // #region Public Methods (4)
 
     public close(): void {
+        this.#viewport.canvas.parentElement!.removeChild(this.#labelRenderer.domElement);
+        this.#viewport.canvas.parentElement!.removeChild(this.#pointerPositionField);
         this.#positionObject3D.remove(...this.#positionObject3D.children);
         this.#distanceObject3D.remove(...this.#distanceObject3D.children);
     }
@@ -174,7 +184,7 @@ export class TextVisualizationManager implements IManager {
             const text = document.createElement('div');
             text.className = 'label';
             text.style.marginTop = '1em';
-            
+
             const child = document.createElement('div');
             child.className = 'distance-label';
 
@@ -188,7 +198,7 @@ export class TextVisualizationManager implements IManager {
                 }
             });
 
-            if(!styleExists) {
+            if (!styleExists) {
                 const style = document.createElement('style');
                 style.textContent = `
                     .distance-label {
@@ -205,7 +215,7 @@ export class TextVisualizationManager implements IManager {
                 `;
                 document.head.appendChild(style);
             }
-            
+
             child.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
             text.appendChild(child);
 
@@ -224,7 +234,7 @@ export class TextVisualizationManager implements IManager {
             const text = document.createElement('div');
             text.className = 'label';
             text.style.marginTop = '1em';
-            
+
             const child = document.createElement('div');
             child.className = 'point-label';
 
@@ -238,7 +248,7 @@ export class TextVisualizationManager implements IManager {
                 }
             });
 
-            if(!styleExists) {
+            if (!styleExists) {
                 const style = document.createElement('style');
                 style.textContent = `
                     .point-label {
@@ -265,5 +275,13 @@ export class TextVisualizationManager implements IManager {
         }
     }
 
-    // #endregion Public Methods (3)
+    public updatePointerPosition(p?: vec3): void {
+        if (!p) {
+            this.#pointerPositionField.innerHTML = '';
+        } else {
+            this.#pointerPositionField.innerHTML = `[${numberCleaner(p[0])}, ${numberCleaner(p[1])}, ${numberCleaner(p[2])}]`;
+        }
+    }
+
+    // #endregion Public Methods (4)
 }

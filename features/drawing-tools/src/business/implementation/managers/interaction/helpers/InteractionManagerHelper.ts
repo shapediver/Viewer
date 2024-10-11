@@ -184,7 +184,7 @@ export class InteractionManagerHelper {
         this.#draggedPointPosition = vec3.create();
     }
 
-    public moveSelectedPoints(ray: IRay): void {
+    public moveSelectedPoints(ray: IRay): vec3 | undefined {
         if (this.#selectedPointIndices.length > 0 && this.#dragging) {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
@@ -224,6 +224,8 @@ export class InteractionManagerHelper {
 
                 this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
             }
+
+            return intersectionPoint;
         }
     }
 
