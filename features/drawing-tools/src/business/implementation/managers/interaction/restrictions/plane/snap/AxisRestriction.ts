@@ -1,4 +1,6 @@
+import * as THREE from 'three';
 import { AbstractRestriction } from '../../AbstractRestriction';
+import { Box, sceneTree } from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../../../DrawingToolsManager';
 import { GeometryMathManager } from '../../../../geometry/GeometryMathManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -21,20 +23,21 @@ export type AxisRestrictionProperties = {
 // #region Classes (1)
 
 export class AxisRestriction extends AbstractRestriction implements ISnapRestriction {
-    // #region Properties (8)
+    // #region Properties (10)
 
+    readonly #activationKeyPlane: string;
     readonly #activationKeyX: string;
     readonly #activationKeyY: string;
     readonly #activationKeyZ: string;
-    readonly #activationKeyPlane: string;
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #planeRestriction: PlaneRestriction;
 
     #active: boolean = false;
+    #axesHelper?: THREE.AxesHelper;
     #geometryMathManager: GeometryMathManager;
     #priority: number = 0;
 
-    // #endregion Properties (8)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -50,6 +53,9 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
         this.#activationKeyPlane = properties?.activationKeyPlane || 'p';
 
         this.#priority = properties?.priority || 1;
+
+        // create the axes visualization
+        this.createAxesVisualization();
     }
 
     // #endregion Constructors (1)
@@ -63,7 +69,7 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
     public set active(value: boolean) {
         this.#active = value;
 
-        // if (this.#gridHelper) this.#gridHelper.visible = value;
+        if (this.#axesHelper) this.#axesHelper.visible = value;
     }
 
     public get enabledEditable(): boolean {
@@ -89,7 +95,13 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
         const xPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyX);
         const yPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyY);
         const zPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyZ);
-        const pPressed = this.#drawingToolsManager.keyPressed('p');
+        const pPressed = this.#drawingToolsManager.keyPressed(this.#activationKeyPlane);
+        
+        // we move the axes helper to the reference point
+        if (this.#axesHelper && (xPressed || yPressed || zPressed)) {
+            this.#axesHelper.position.copy(new THREE.Vector3(metaData.referencePoint[0], metaData.referencePoint[1], metaData.referencePoint[2]));
+            this.#axesHelper.visible = false;
+        }
 
         if (xPressed) {
             return this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorU }, point);
@@ -102,15 +114,63 @@ export class AxisRestriction extends AbstractRestriction implements ISnapRestric
         }
     }
 
-    public updatePlaneDefinition(): void {}
+    public updatePlaneDefinition(): void {
+        this.createAxesVisualization();
+    }
 
     // #endregion Public Methods (2)
 
     // #region Protected Methods (1)
 
-    protected visibilityChanged(): void { }
+    protected visibilityChanged(visible: boolean): void {
+        if (visible === false) {
+            if (this.#axesHelper) {
+                this.#axesHelper.visible = false;
+            }
+        }
+    }
 
     // #endregion Protected Methods (1)
+
+    // #region Private Methods (1)
+
+    private createAxesVisualization(): void {
+        if (this.#axesHelper) {
+            this._object3D.remove(this.#axesHelper);
+            this.#axesHelper.dispose();
+        }
+
+        const bb = new Box();
+        for (let i = 0; i < sceneTree.root.children.length; i++) {
+            if ((sceneTree.root.children[i] as unknown as { sessionNode?: boolean }).sessionNode === true) {
+                bb.union(sceneTree.root.children[i].boundingBox);
+            }
+        }
+
+        const radius = bb.boundingSphere.radius;
+
+        this.#axesHelper = new THREE.AxesHelper(radius);
+        this.#axesHelper.position.copy(new THREE.Vector3(this.#planeRestriction.origin[0], this.#planeRestriction.origin[1], this.#planeRestriction.origin[2]));
+        this.#axesHelper.visible = false;
+
+        this.#axesHelper.renderOrder = 100;
+        (this.#axesHelper.material as THREE.LineBasicMaterial).depthTest = false;
+        (this.#axesHelper.material as THREE.LineBasicMaterial).transparent = true;
+
+        // three.js uses a right-handed coordinate system, so we need to rotate the axes helper
+        const rotationMatrix = new THREE.Matrix4().fromArray([
+            this.#planeRestriction.vectorU[0], this.#planeRestriction.vectorU[1], this.#planeRestriction.vectorU[2], 0,
+            this.#planeRestriction.vectorV[0], this.#planeRestriction.vectorV[1], this.#planeRestriction.vectorV[2], 0,
+            this.#planeRestriction.normal[0], this.#planeRestriction.normal[1], this.#planeRestriction.normal[2], 0,
+            0, 0, 0, 1
+        ]);
+
+        this.#axesHelper.rotation.setFromRotationMatrix(rotationMatrix);
+
+        this._object3D.add(this.#axesHelper);
+    }
+
+    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)

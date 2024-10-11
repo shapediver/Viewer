@@ -285,7 +285,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         const camera = this.#viewport.camera!;
         this.#cameraId = camera!.id;
 
-        const origin = this.#properties.origin ? vec3.clone(this.#properties.origin) : undefined;
+        const origin = this.#properties.origin ? vec3.clone(this.#properties.origin) : vec3.fromValues(0, 0, 0);
         const vectorU = this.#properties.vector_u ? vec3.clone(this.#properties.vector_u) : undefined;
         const vectorV = this.#properties.vector_v ? vec3.clone(this.#properties.vector_v) : undefined;
 
