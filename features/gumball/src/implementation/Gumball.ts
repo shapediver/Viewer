@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import * as THREE from 'three';
 import {
     Box,
@@ -9,14 +7,15 @@ import {
     IViewportApi,
     sceneTree
 } from '@shapediver/viewer';
+import { EventEngine, EVENTTYPE_GUMBALL } from '@shapediver/viewer.shared.services';
 import { IGumball, SettingsOptional } from '../interfaces/IGumball';
+import { IGumballEvent } from '../interfaces/events/IGumballEvent';
 import { mat4, vec3 } from 'gl-matrix';
 import { TransformControls } from '../three/TransformControls';
-import { EventEngine, EVENTTYPE_GUMBALL } from '@shapediver/viewer.shared.services';
-import { IGumballEvent } from '../interfaces/events/IGumballEvent';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class Gumball implements IGumball {
-    // #region Properties (29)
+    // #region Properties (38)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #keysPressed: { [key: string]: boolean } = {};
@@ -35,8 +34,17 @@ export class Gumball implements IGumball {
     #continuousShadowMapUpdateFlag?: string;
     #currentMatrix: THREE.Matrix4 = new THREE.Matrix4();
     #enableRotation: boolean = true;
+    #enableRotationX: boolean = true;
+    #enableRotationY: boolean = true;
+    #enableRotationZ: boolean = true;
     #enableScaling: boolean = true;
+    #enableScalingX: boolean = true;
+    #enableScalingY: boolean = true;
+    #enableScalingZ: boolean = true;
     #enableTranslation: boolean = true;
+    #enableTranslationX: boolean = true;
+    #enableTranslationY: boolean = true;
+    #enableTranslationZ: boolean = true
     #initialOffset: vec3 = vec3.create();
     #initialTransform: mat4[] = [];
     #matrix: mat4 = mat4.create();
@@ -49,7 +57,7 @@ export class Gumball implements IGumball {
     #show: boolean = true;
     #space: 'local' | 'world' = 'local';
 
-    // #endregion Properties (29)
+    // #endregion Properties (38)
 
     // #region Constructors (1)
 
@@ -67,8 +75,17 @@ export class Gumball implements IGumball {
         );
 
         this.enableRotation = settings?.enableRotation ?? true;
+        this.enableRotationX = settings?.enableRotationAxes?.x ?? true;
+        this.enableRotationY = settings?.enableRotationAxes?.y ?? true;
+        this.enableRotationZ = settings?.enableRotationAxes?.z ?? true;
         this.enableScaling = settings?.enableScaling ?? false;
+        this.enableScalingX = settings?.enableScalingAxes?.x ?? true;
+        this.enableScalingY = settings?.enableScalingAxes?.y ?? true;
+        this.enableScalingZ = settings?.enableScalingAxes?.z ?? true;
         this.enableTranslation = settings?.enableTranslation ?? true;
+        this.enableTranslationX = settings?.enableTranslationAxes?.x ?? true;
+        this.enableTranslationY = settings?.enableTranslationAxes?.y ?? true;
+        this.enableTranslationZ = settings?.enableTranslationAxes?.z ?? true;
         this.scale = settings?.scale ?? 0.15;
         // we don't allow to change the space for now
         this.#space = settings?.space ?? 'local';
@@ -81,7 +98,7 @@ export class Gumball implements IGumball {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (14)
+    // #region Public Getters And Setters (32)
 
     public get closed(): boolean {
         return this.#closed;
@@ -96,6 +113,33 @@ export class Gumball implements IGumball {
         this.#transformControls.enableRotation = value;
     }
 
+    public get enableRotationX(): boolean {
+        return this.#enableRotationX;
+    }
+
+    public set enableRotationX(value: boolean) {
+        this.#enableRotationX = value;
+        this.#transformControls.enableRotationX = value;
+    }
+
+    public get enableRotationY(): boolean {
+        return this.#enableRotationY;
+    }
+
+    public set enableRotationY(value: boolean) {
+        this.#enableRotationY = value;
+        this.#transformControls.enableRotationY = value;
+    }
+
+    public get enableRotationZ(): boolean {
+        return this.#enableRotationZ;
+    }
+
+    public set enableRotationZ(value: boolean) {
+        this.#enableRotationZ = value;
+        this.#transformControls.enableRotationZ = value;
+    }
+
     public get enableScaling(): boolean {
         return this.#enableScaling;
     }
@@ -105,6 +149,33 @@ export class Gumball implements IGumball {
         this.#transformControls.enableScaling = value;
     }
 
+    public get enableScalingX(): boolean {
+        return this.#enableScalingX;
+    }
+
+    public set enableScalingX(value: boolean) {
+        this.#enableScalingX = value;
+        this.#transformControls.enableScalingX = value;
+    }
+
+    public get enableScalingY(): boolean {
+        return this.#enableScalingY;
+    }
+
+    public set enableScalingY(value: boolean) {
+        this.#enableScalingY = value;
+        this.#transformControls.enableScalingY = value;
+    }
+
+    public get enableScalingZ(): boolean {
+        return this.#enableScalingZ;
+    }
+
+    public set enableScalingZ(value: boolean) {
+        this.#enableScalingZ = value;
+        this.#transformControls.enableScalingZ = value;
+    }
+
     public get enableTranslation(): boolean {
         return this.#enableTranslation;
     }
@@ -112,6 +183,33 @@ export class Gumball implements IGumball {
     public set enableTranslation(value: boolean) {
         this.#enableTranslation = value;
         this.#transformControls.enableTranslation = value;
+    }
+
+    public get enableTranslationX(): boolean {
+        return this.#enableTranslationX;
+    }
+
+    public set enableTranslationX(value: boolean) {
+        this.#enableTranslationX = value;
+        this.#transformControls.enableTranslationX = value;
+    }
+
+    public get enableTranslationY(): boolean {
+        return this.#enableTranslationY;
+    }
+
+    public set enableTranslationY(value: boolean) {
+        this.#enableTranslationY = value;
+        this.#transformControls.enableTranslationY = value;
+    }
+
+    public get enableTranslationZ(): boolean {
+        return this.#enableTranslationZ;
+    }
+
+    public set enableTranslationZ(value: boolean) {
+        this.#enableTranslationZ = value;
+        this.#transformControls.enableTranslationZ = value;
     }
 
     public get matrix(): mat4 {
@@ -144,7 +242,7 @@ export class Gumball implements IGumball {
         return this.#space;
     }
 
-    // #endregion Public Getters And Setters (14)
+    // #endregion Public Getters And Setters (32)
 
     // #region Public Methods (10)
 
@@ -198,9 +296,9 @@ export class Gumball implements IGumball {
         if (this.closed) return;
 
         this.#transformControls.onPointerDown(event);
-        
+
         this.#moving = this.#transformControls.dragging;
-        if(this.#transformControls.dragging || this.#transformControls.hovering) 
+        if (this.#transformControls.dragging || this.#transformControls.hovering)
             this.#viewport.addRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
     }
 
@@ -230,10 +328,10 @@ export class Gumball implements IGumball {
         }
 
         this.#transformControls.onPointerHover(event);
-        if(this.#moving)
+        if (this.#moving)
             this.#transformControls.onPointerMove(event);
 
-        if(this.#transformControls.dragging || this.#transformControls.hovering) {
+        if (this.#transformControls.dragging || this.#transformControls.hovering) {
             this.#viewport.addRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
         } else {
             this.#viewport.removeRestrictedCanvasListenerToken(this.#canvasEventListenerToken);
@@ -443,9 +541,9 @@ export class Gumball implements IGumball {
 
             this.deactivatePivotDragging();
         } else {
-            const eventData: IGumballEvent = { 
-                viewportId: this.#viewport.id, 
-                transformations: [], 
+            const eventData: IGumballEvent = {
+                viewportId: this.#viewport.id,
+                transformations: [],
                 localTransformations: [],
                 nodes: []
             };
