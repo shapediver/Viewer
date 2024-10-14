@@ -35,11 +35,19 @@ export class GeometryLoader implements ILoader {
     private _geometryCache: {
         [key: string]: {
             obj: SDData,
+            primitiveCacheId: string,
             clones: SDData[],
             counter: number
         }
     } = {};
     private _logger: Logger = Logger.instance;
+    private _primitiveCache: {
+        [key: string]: {
+            counter: number,
+            threeGeometry: THREE.BufferGeometry,
+            clones: THREE.BufferGeometry[]
+        }
+    } = {};
 
     // #endregion Properties (8)
 
@@ -49,12 +57,16 @@ export class GeometryLoader implements ILoader {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (7)
+    // #region Public Methods (6)
 
     public emptyGeometryCache() {
         for(const key in this._geometryCache)
             this.removeFromGeometryCache(key);
         this._geometryCache = {};
+
+        for(const key in this._primitiveCache)
+            this.removeFromPrimitiveCache(key);
+        this._primitiveCache = {};
     }
 
     public init(): void { }
@@ -66,7 +78,16 @@ export class GeometryLoader implements ILoader {
      * @returns the geometry object
      */
     public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton): IBox {
-        const threeGeometry = this.loadPrimitive(geometry.primitive);
+        const threeGeometry = (() => {
+            if (!this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version]) {
+                return this.loadPrimitive(geometry.primitive);
+            } else {
+                this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].counter++;
+                const clone = this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].threeGeometry.clone();
+                this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version].clones.push(clone);
+                return clone;
+            }
+        })();
 
         let incomingMaterialData: IMaterialAbstractData | null;
         if (geometry.effectMaterials.length > 0) {
@@ -131,7 +152,7 @@ export class GeometryLoader implements ILoader {
         } else {
             obj = new SDData(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, skeleton);
-            this._geometryCache[geometry.id + '_' + geometry.version] = { obj, counter: 1, clones: [] };
+            this._geometryCache[geometry.id + '_' + geometry.version] = { obj, counter: 1, clones: [], primitiveCacheId: geometry.primitive.id + '_' + geometry.primitive.version };
             parent.add(obj);
         }
 
@@ -187,6 +208,7 @@ export class GeometryLoader implements ILoader {
         }
         primitive.convertedObject[this._renderingEngine.id] = geometry;
 
+        this._primitiveCache[primitive.id + '_' + primitive.version] = { threeGeometry: geometry, counter: 1, clones: [] };
         return geometry;
     }
 
@@ -205,24 +227,10 @@ export class GeometryLoader implements ILoader {
     public removeFromGeometryCache(id: string) {
         if (this._geometryCache[id]) {
             if (this._geometryCache[id].counter === 1) {
-                this._geometryCache[id].obj.traverse(o => {
-                    if (o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop || o instanceof THREE.Line) {
-                        o.geometry.dispose();
-                        for (const key in o.geometry.attributes)
-                            o.geometry.deleteAttribute(key);
-                        o.geometry.setIndex(null);
-                    }
-                });
+                this.removeFromPrimitiveCache(this._geometryCache[id].primitiveCacheId);
 
                 this._geometryCache[id].clones.forEach(c => {
-                    c.traverse(o => {
-                        if (o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.LineSegments || o instanceof THREE.LineLoop || o instanceof THREE.Line) {
-                            o.geometry.dispose();
-                            for (const key in o.geometry.attributes)
-                                o.geometry.deleteAttribute(key);
-                            o.geometry.setIndex(null);
-                        }
-                    });
+                    this.removeFromPrimitiveCache(this._geometryCache[id].primitiveCacheId);
                 });
                 delete this._geometryCache[id];
             } else {
@@ -231,9 +239,9 @@ export class GeometryLoader implements ILoader {
         }
     }
 
-    // #endregion Public Methods (7)
+    // #endregion Public Methods (6)
 
-    // #region Private Methods (6)
+    // #region Private Methods (7)
 
     private checkNormals(primitive: IPrimitiveData, attributeId: string, buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute, geometry: THREE.BufferGeometry): boolean {
         let blnNormalsOk = false;
@@ -551,5 +559,27 @@ export class GeometryLoader implements ILoader {
         return buffer;
     }
 
-    // #endregion Private Methods (6)
+    private removeFromPrimitiveCache(id: string) {
+        if (this._primitiveCache[id]) {
+            if (this._primitiveCache[id].counter === 1) {
+                this._primitiveCache[id].threeGeometry.dispose();
+                for (const key in this._primitiveCache[id].threeGeometry.attributes)
+                    this._primitiveCache[id].threeGeometry.deleteAttribute(key);
+                this._primitiveCache[id].threeGeometry.setIndex(null);
+
+                this._primitiveCache[id].clones.forEach(c => {
+                    c.dispose();
+                    for (const key in c.attributes)
+                        c.deleteAttribute(key);
+                    c.setIndex(null);
+                });
+
+                delete this._primitiveCache[id];
+            } else {
+                this._primitiveCache[id].counter--;
+            }
+        }
+    }
+
+    // #endregion Private Methods (7)
 }
