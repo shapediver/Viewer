@@ -8,13 +8,37 @@ export type Settings = {
      */
     enableRotation: boolean;
     /**
+     * Enable or disable the rotation per axis.
+     */
+    enableRotationAxes: {
+        x: boolean;
+        y: boolean;
+        z: boolean;
+    };
+    /**
      * Enable or disable scaling. (default: true)
      */
     enableScaling: boolean;
     /**
+     * Enable or disable the scaling per axis.
+     */
+    enableScalingAxes: {
+        x: boolean;
+        y: boolean;
+        z: boolean;
+    };
+    /**
      * Enable or disable translation. (default: true)
      */
     enableTranslation: boolean;
+    /**
+     * Enable or disable the translation per axis.
+     */
+    enableTranslationAxes: {
+        x: boolean;
+        y: boolean;
+        z: boolean;
+    };
     /**
      * The scale of the Gumball compared to the screen size. (default: 0.15)
      */
@@ -35,7 +59,7 @@ export type SettingsOptional = Partial<Settings>;
 // #region Interfaces (1)
 
 export interface IGumball extends IDomEventListener {
-    // #region Properties (6)
+    // #region Properties (15)
 
     /**
      * Reuse the transformation that are already applied to the nodes.
@@ -51,19 +75,55 @@ export interface IGumball extends IDomEventListener {
      */
     enableRotation: boolean;
     /**
+     * Enable or disable the rotation on the x-axis.
+     */
+    enableRotationX: boolean;
+    /**
+     * Enable or disable the rotation on the y-axis.
+     */
+    enableRotationY: boolean;
+    /**
+     * Enable or disable the rotation on the z-axis.
+     */
+    enableRotationZ: boolean;
+    /**
      * Enable or disable scaling
      */
     enableScaling: boolean;
+    /**
+     * Enable or disable the scaling on the x-axis.
+     */
+    enableScalingX: boolean;
+    /**
+     * Enable or disable the scaling on the y-axis.
+     */
+    enableScalingY: boolean;
+    /**
+     * Enable or disable the scaling on the z-axis.
+     */
+    enableScalingZ: boolean;
     /**
      * Enable or disable translation
      */
     enableTranslation: boolean;
     /**
+     * Enable or disable the translation on the x-axis.
+     */
+    enableTranslationX: boolean;
+    /**
+     * Enable or disable the translation on the y-axis.
+     */
+    enableTranslationY: boolean;
+    /**
+     * Enable or disable the translation on the z-axis.
+     */
+    enableTranslationZ: boolean;
+    /**
      * Show or hide the Gumball.
      */
     show: boolean;
 
-    // #endregion Properties (6)
+    // #endregion Properties (15)
 
     // #region Public Methods (1)
 

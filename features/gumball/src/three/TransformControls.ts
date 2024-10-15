@@ -44,7 +44,7 @@ enum TransformationType {
 }
 
 class TransformControls extends Object3D {
-    // #region Properties (50)
+    // #region Properties (59)
 
     private _axis: string | null = null;
     private _camera: Camera;
@@ -53,8 +53,17 @@ class TransformControls extends Object3D {
     private _cameraScale: Vector3;
     private _dragging: boolean = false;
     private _enableRotation: boolean = true;
+    private _enableRotationX: boolean = true;
+    private _enableRotationY: boolean = true;
+    private _enableRotationZ: boolean = true;
     private _enableScaling: boolean = true;
+    private _enableScalingX: boolean = true;
+    private _enableScalingY: boolean = true;
+    private _enableScalingZ: boolean = true;
     private _enableTranslation: boolean = true;
+    private _enableTranslationX: boolean = true;
+    private _enableTranslationY: boolean = true;
+    private _enableTranslationZ: boolean = true;
     private _enabled: boolean = true;
     private _endNorm: Vector3;
     private _eye: Vector3 = new Vector3();
@@ -98,7 +107,7 @@ class TransformControls extends Object3D {
     public domElement: HTMLElement;
     public isTransformControls: boolean;
 
-    // #endregion Properties (50)
+    // #endregion Properties (59)
 
     // #region Constructors (1)
 
@@ -155,7 +164,7 @@ class TransformControls extends Object3D {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (47)
+    // #region Public Getters And Setters (66)
 
     public get axis(): string | null {
         return this._axis;
@@ -194,6 +203,30 @@ class TransformControls extends Object3D {
         this._enableRotation = value;
     }
 
+    public get enableRotationX(): boolean {
+        return this._enableRotationX;
+    }
+
+    public set enableRotationX(value: boolean) {
+        this._enableRotationX = value;
+    }
+
+    public get enableRotationY(): boolean {
+        return this._enableRotationY;
+    }
+
+    public set enableRotationY(value: boolean) {
+        this._enableRotationY = value;
+    }
+
+    public get enableRotationZ(): boolean {
+        return this._enableRotationZ;
+    }
+
+    public set enableRotationZ(value: boolean) {
+        this._enableRotationZ = value;
+    }
+
     public get enableScaling(): boolean {
         return this._enableScaling;
     }
@@ -202,12 +235,60 @@ class TransformControls extends Object3D {
         this._enableScaling = value;
     }
 
+    public get enableScalingX(): boolean {
+        return this._enableScalingX;
+    }
+
+    public set enableScalingX(value: boolean) {
+        this._enableScalingX = value;
+    }
+
+    public get enableScalingY(): boolean {
+        return this._enableScalingY;
+    }
+
+    public set enableScalingY(value: boolean) {
+        this._enableScalingY = value;
+    }
+
+    public get enableScalingZ(): boolean {
+        return this._enableScalingZ;
+    }
+
+    public set enableScalingZ(value: boolean) {
+        this._enableScalingZ = value;
+    }
+
     public get enableTranslation(): boolean {
         return this._enableTranslation;
     }
 
     public set enableTranslation(value: boolean) {
         this._enableTranslation = value;
+    }
+
+    public get enableTranslationX(): boolean {
+        return this._enableTranslationX;
+    }
+
+    public set enableTranslationX(value: boolean) {
+        this._enableTranslationX = value;
+    }
+
+    public get enableTranslationY(): boolean {
+        return this._enableTranslationY;
+    }
+
+    public set enableTranslationY(value: boolean) {
+        this._enableTranslationY = value;
+    }
+
+    public get enableTranslationZ(): boolean {
+        return this._enableTranslationZ;
+    }
+
+    public set enableTranslationZ(value: boolean) {
+        this._enableTranslationZ = value;
     }
 
     public get enabled(): boolean {
@@ -350,7 +431,7 @@ class TransformControls extends Object3D {
         return this._worldQuaternionStart;
     }
 
-    // #endregion Public Getters And Setters (47)
+    // #endregion Public Getters And Setters (66)
 
     // #region Public Methods (21)
 
@@ -727,7 +808,7 @@ class TransformControls extends Object3D {
         if (pointer !== null && pointer.button !== 0) return;
 
         if (this.dragging && (this.axis !== null)) {
-            if(this._updateMatricesCallback) 
+            if (this._updateMatricesCallback)
                 this._updateMatricesCallback();
         }
 
@@ -1293,21 +1374,73 @@ class TransformControlsGizmo extends Object3D {
             mode: TransformationType
         }[] = [];
         if (this._transformControls.enableTranslation) {
-            handles = handles.concat(this.picker.translate.children.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
-            handles = handles.concat(this.gizmo.translate.children.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
-            handles = handles.concat(this.helper.translate.children.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
+            let pickers = this.picker.translate.children;
+            let gizmos = this.gizmo.translate.children;
+            let helpers = this.helper.translate.children;
+
+            // filter out all X handles if X is disabled
+            if (this._transformControls.enableTranslationX === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'X');
+
+            // filter out all Y handles if Y is disabled
+            if (this._transformControls.enableTranslationY === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Y');
+
+            // filter out all Z handles if Z is disabled
+            if (this._transformControls.enableTranslationZ === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Z');
+
+            handles = handles.concat(pickers.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
+            handles = handles.concat(gizmos.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
+            handles = handles.concat(helpers.map((object) => ({ object, mode: TransformationType.TRANSLATION })));
         }
 
         if (this._transformControls.enableRotation) {
-            handles = handles.concat(this.picker.rotate.children.map((object) => ({ object, mode: TransformationType.ROTATION })));
-            handles = handles.concat(this.gizmo.rotate.children.map((object) => ({ object, mode: TransformationType.ROTATION })));
-            handles = handles.concat(this.helper.rotate.children.map((object) => ({ object, mode: TransformationType.ROTATION })));
+            let pickers = this.picker.rotate.children;
+            let gizmos = this.gizmo.rotate.children;
+            let helpers = this.helper.rotate.children;
+
+            // filter out all X handles if X is disabled
+            if (this._transformControls.enableRotationX === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'X');
+
+            // filter out all Y handles if Y is disabled
+            if (this._transformControls.enableRotationY === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Y');
+
+            // filter out all Z handles if Z is disabled
+            if (this._transformControls.enableRotationZ === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Z');
+
+            // filter out all E handles if one of the axis is disabled
+            if (this._transformControls.enableRotationX === false || this._transformControls.enableRotationY === false || this._transformControls.enableRotationZ === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'E');
+
+            handles = handles.concat(pickers.map((object) => ({ object, mode: TransformationType.ROTATION })));
+            handles = handles.concat(gizmos.map((object) => ({ object, mode: TransformationType.ROTATION })));
+            handles = handles.concat(helpers.map((object) => ({ object, mode: TransformationType.ROTATION })));
         }
 
         if (this._transformControls.enableScaling && this._transformControls.space === 'local') {
-            handles = handles.concat(this.picker.scale.children.map((object) => ({ object, mode: TransformationType.SCALE })));
-            handles = handles.concat(this.gizmo.scale.children.map((object) => ({ object, mode: TransformationType.SCALE })));
-            handles = handles.concat(this.helper.scale.children.map((object) => ({ object, mode: TransformationType.SCALE })));
+            let pickers = this.picker.scale.children;
+            let gizmos = this.gizmo.scale.children;
+            let helpers = this.helper.scale.children;
+
+            // filter out all X handles if X is disabled
+            if (this._transformControls.enableScalingX === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'X');
+
+            // filter out all Y handles if Y is disabled
+            if (this._transformControls.enableScalingY === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Y');
+
+            // filter out all Z handles if Z is disabled
+            if (this._transformControls.enableScalingZ === false)
+                [pickers, gizmos, helpers] = this.filterOutAxis(pickers, gizmos, helpers, 'Z');
+
+            handles = handles.concat(pickers.map((object) => ({ object, mode: TransformationType.SCALE })));
+            handles = handles.concat(gizmos.map((object) => ({ object, mode: TransformationType.SCALE })));
+            handles = handles.concat(helpers.map((object) => ({ object, mode: TransformationType.SCALE })));
         }
 
         for (let i = 0; i < handles.length; i++) {
@@ -1501,26 +1634,26 @@ class TransformControlsGizmo extends Object3D {
             handle.object.visible = handle.object.visible && (handle.object.name.indexOf('E') === - 1 || (this._transformControls.showX && this._transformControls.showY && this._transformControls.showZ));
 
             // highlight selected axis
-            if(!(handle.object.material instanceof MeshNormalMaterial)) {
+            if (!(handle.object.material instanceof MeshNormalMaterial)) {
                 (handle.object.material as any)._color = (handle.object.material as any)._color || handle.object.material.color.clone();
                 (handle.object.material as any)._opacity = (handle.object.material as any)._opacity || handle.object.material.opacity;
-    
+
                 handle.object.material.color.copy((handle.object.material as any)._color);
                 handle.object.material.opacity = (handle.object.material as any)._opacity;
-    
+
                 if (this._transformControls.enabled && this._transformControls.axis && handle.mode === this._transformControls.mode) {
                     if (handle.object.name === this._transformControls.axis) {
                         handle.object.material.color.setHex(0xffff00);
                         handle.object.material.opacity = 1.0;
-    
+
                     } else if (this._transformControls.axis.split('').some(function (a) {
                         return handle.object.name === a;
-    
+
                     })) {
                         handle.object.material.color.setHex(0xffff00);
                         handle.object.material.opacity = 1.0;
                     }
-                } else if(this._transformControls.enabled && this._transformControls.pivotDragged) {
+                } else if (this._transformControls.enabled && this._transformControls.pivotDragged) {
                     handle.object.material.color.setHex(0xffff00);
                     handle.object.material.opacity = 1.0;
                 }
@@ -1531,6 +1664,28 @@ class TransformControlsGizmo extends Object3D {
     }
 
     // #endregion Public Methods (1)
+
+    // #region Private Methods (1)
+
+    private filterOutAxis(pickers: Object3D[], gizmos: Object3D[], helpers: Object3D[], axis: string) {
+        const pickersAxis = pickers.filter((object) => object.name.includes(axis));
+        const gizmosAxis = gizmos.filter((object) => object.name.includes(axis));
+        const helpersAxis = helpers.filter((object) => object.name.includes(axis));
+
+        [pickersAxis, gizmosAxis, helpersAxis].forEach((objects) => {
+            objects.forEach((object) => {
+                object.visible = false;
+            });
+        });
+
+        pickers = pickers.filter((object) => !object.name.includes(axis));
+        gizmos = gizmos.filter((object) => !object.name.includes(axis));
+        helpers = helpers.filter((object) => !object.name.includes(axis));
+
+        return [pickers, gizmos, helpers];
+    }
+
+    // #endregion Private Methods (1)
 }
 
 //
