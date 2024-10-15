@@ -146,7 +146,7 @@ export class InteractionManager implements IManager {
              * IF THE CURRENTLY HOVERED POINT IS SELECTED
              * START DRAGGING
              */
-            const draggingStarted = this.#interactionManagerHelper.startDragging(ray);
+            const draggingStarted = this.#interactionManagerHelper.startDragging();
             if (draggingStarted && !this.#cameraFreezeFlag)
                 this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
         } else if(event.button === 2) {
