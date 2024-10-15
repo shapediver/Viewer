@@ -1,4 +1,4 @@
-import { execPromise, getDirectories, deployToS3, readAnswer } from '../utils/utils';
+import { execPromise, getDirectories, readAnswer, deployToS3Folder } from '../utils/utils';
 
 (async () => {
     try {
@@ -11,7 +11,7 @@ import { execPromise, getDirectories, deployToS3, readAnswer } from '../utils/ut
         const exampleName = await readAnswer('What example should be the name of the example?\n');
 
         console.log(await execPromise('cd examples/' + directoryName + ' && npm run build && cd ../..'));
-        deployToS3('examples/' + directoryName + '/dist', exampleName, 'v3/demos', true);
+        deployToS3Folder('examples/' + directoryName + '/dist', exampleName, 'v3/demos');
         console.log(`Deployed to: https://viewer.shapediver.com/v3/demos/${exampleName}/index.html`);
     } catch (e) {
         console.log(e);

@@ -155,14 +155,14 @@ import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils
             console.log('deploying to s3...');
             const prefix = 'v3/' + newVersion;
             // deploy the api docs
-            deployToS3('docs', 'api', prefix, publicRelease);
+            deployToS3('docs', 'api', prefix);
             // deploy the cdn
-            deployToS3('examples/cdn/dist', 'cdn', prefix, publicRelease);
-            deployToS3('examples/cdn/dist', undefined, prefix, publicRelease);
+            deployToS3('examples/cdn/dist', 'cdn', prefix);
+            deployToS3('examples/cdn/dist', undefined, prefix);
             // deploy the gltf page
-            deployToS3('examples/gltf/dist', 'gltf', prefix, publicRelease);
+            deployToS3('examples/gltf/dist', 'gltf', prefix);
             // deploy the main pages
-            deployToS3('examples/main-pages', undefined, prefix, publicRelease);
+            deployToS3('examples/main-pages', undefined, prefix);
         }
 
 
