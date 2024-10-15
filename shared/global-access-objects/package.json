@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.global-access-objects",
-  "version": "3.3.10",
+  "version": "3.4.0-rc.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,9 +38,9 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/sdk.geometry-api-sdk-v2": "1.11.0",
-    "@shapediver/viewer.data-engine.shared-types": "3.3.10",
-    "@shapediver/viewer.shared.node-tree": "3.3.10"
+    "@shapediver/sdk.geometry-api-sdk-v2": "1.12.1",
+    "@shapediver/viewer.data-engine.shared-types": "3.4.0-rc.0",
+    "@shapediver/viewer.shared.node-tree": "3.4.0-rc.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
