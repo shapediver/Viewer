@@ -349,34 +349,24 @@ export class InteractionManagerHelper {
         }
     }
 
-    public startDragging(ray: IRay): boolean {
+    public startDragging(): boolean {
         if (this.#selectedPointIndices.length > 0 && this.#hoveredPoint !== undefined && this.#selectedPointIndices.includes(this.#hoveredPoint)) {
-            const draggedPoint = this.#geometryState.getPosition(this.#hoveredPoint);
+            // store selected point positions
+            this.#selectedPointIndices.forEach(element =>
+                this.#selectedPointPositions.push(this.#geometryState.getPosition(element))
+            );
 
-            // store drag start
-            const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
-                index: this.#hoveredPoint,
-                referencePoint: draggedPoint
-            });
+            // copy values into selected moved point positions
+            this.#selectedMovedPointPositions = this.#selectedPointPositions.map(element => vec3.clone(element));
 
-            if (intersectionPoint) {
-                // store selected point positions
-                this.#selectedPointIndices.forEach(element =>
-                    this.#selectedPointPositions.push(this.#geometryState.getPosition(element))
-                );
+            this.#draggedPointPosition = this.#geometryState.getPosition(this.#hoveredPoint);
 
-                // copy values into selected moved point positions
-                this.#selectedMovedPointPositions = this.#selectedPointPositions.map(element => vec3.clone(element));
+            this.#draggedPoint = this.#hoveredPoint;
 
-                this.#draggedPointPosition = this.#geometryState.getPosition(this.#hoveredPoint);
+            this.#dragging = true;
+            this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
 
-                this.#draggedPoint = this.#hoveredPoint;
-
-                this.#dragging = true;
-                this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, { viewportId: this.#drawingToolsManager.viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
-
-                return true;
-            }
+            return true;
         }
         return false;
     }

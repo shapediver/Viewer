@@ -1,13 +1,17 @@
 import * as THREE from 'three';
 import { AbstractRestriction } from '../AbstractRestriction';
+import { Box } from '@shapediver/viewer.shared.math';
 import { DrawingToolsManager } from '../../../../DrawingToolsManager';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../../../geometry/GeometryMathManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { IRestriction, RestrictionMetaData, RestrictionProperties } from '../../../../../interfaces/IRestriction';
+import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { ISnapRestriction } from '../../../../../interfaces/ISnapRestriction';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Settings } from '../../../../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
+import { sceneTree } from '@shapediver/viewer';
 
 // #region Type aliases (1)
 
@@ -31,13 +35,25 @@ export type GeometryRestrictionProperties = {
 // #region Classes (1)
 
 export class GeometryRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (10)
+    // #region Properties (17)
 
+    readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #rayCasterParams: THREE.RaycasterParameters = {
+        Line: { threshold: 1 },
+        Line2: { threshold: 1 },
+        Points: { threshold: 1 },
+        Mesh: {},
+        LOD: {},
+        Sprite: {}
+    };
     readonly #raycaster = new THREE.Raycaster();
     readonly #viewport: IViewportApi;
 
     #geometryMathManager: GeometryMathManager;
+    #lineIntersectionPercentage: number = 0.025;
     #nodes: ITreeNode[] = [];
+    #pointIntersectionPercentage: number = 0.025;
+    #sceneBoundingSphereRadius: number = 0;
     #settings: Settings;
     #snapRestrictions: { [key: string]: ISnapRestriction; } = {};
     #snapToEdges: boolean = true;
@@ -47,7 +63,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #wireframe: boolean;
     #wireframeColor: string;
 
-    // #endregion Properties (10)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -58,6 +74,17 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#geometryMathManager = drawingToolsManager.geometryMathManager;
         this.#wireframe = properties.wireframe ?? true;
         this.#wireframeColor = properties.wireframeColor ?? this.#settings.visualization.points.color_1 as string;
+
+        this.#sceneBoundingSphereRadius = sceneTree.root.boundingBox.boundingSphere.radius;
+        this.updateIntersectionThresholds();
+        this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+            const event = e as ISceneEvent;
+            if (event.viewportId === this.#viewport.id) {
+                const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
+                this.#sceneBoundingSphereRadius = boundingBox.boundingSphere.radius;
+                this.updateIntersectionThresholds();
+            }
+        });
 
         this.updateNodes(properties.nodes);
     }
@@ -106,6 +133,9 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         if (this.enabled === false) return;
         if (this.#snapToVertices === false && this.#snapToEdges === false && this.#snapToFaces === false) return;
 
+        // assign raycaster parameters
+        this.#raycaster.params = this.#rayCasterParams;
+
         this.#raycaster.ray.direction.set(ray.direction[0], ray.direction[1], ray.direction[2]);
         this.#raycaster.ray.origin.set(ray.origin[0], ray.origin[1], ray.origin[2]);
 
@@ -127,10 +157,20 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
             const object = intersections[0].object as THREE.Mesh;
             const geometry = object.geometry;
             const positionAttribute = geometry.getAttribute('position');
+
+            if(object instanceof THREE.Points && intersections[0].index !== undefined) {
+                if(!this.#snapToVertices) return;
+                const vertex = new THREE.Vector3();
+                vertex.fromBufferAttribute(positionAttribute, intersections[0].index);
+                object.localToWorld(vertex);
+
+                return vec3.fromValues(vertex.x, vertex.y, vertex.z);
+            }
+
             const intersectionPoint = intersections[0].point;
             const intersectionPointVec3 = vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
 
-            if (!intersections[0].face) return vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
+            if (!intersections[0].face) return intersectionPointVec3;
 
             if (this.#snapToVertices === true || this.#snapToEdges === true) {
                 const vertexA = new THREE.Vector3();
@@ -232,6 +272,16 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     protected visibilityChanged(): void { }
 
     // #endregion Protected Methods (1)
+
+    // #region Private Methods (1)
+
+    private updateIntersectionThresholds(): void {
+        this.#rayCasterParams.Points.threshold = this.#sceneBoundingSphereRadius * this.#pointIntersectionPercentage;
+        this.#rayCasterParams.Line.threshold = this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
+        this.#rayCasterParams.Line2!.threshold = this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
+    }
+
+    // #endregion Private Methods (1)
 }
 
 // #endregion Classes (1)
