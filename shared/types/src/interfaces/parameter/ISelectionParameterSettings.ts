@@ -20,6 +20,8 @@ export interface ISelectionParameterProps extends IInteractionParameterProps {
     maximumSelection?: number,
     /** The minimum number of objects that can be selected. (default: 1) */
     minimumSelection?: number,
+    /** The names of the objects that can be interacted with. (see Jira document and discussion result) */
+    nameFilter?: string[],
     /** The color of the objects when selected. (default: '#0d44f0') */
     selectionColor?: string,
 

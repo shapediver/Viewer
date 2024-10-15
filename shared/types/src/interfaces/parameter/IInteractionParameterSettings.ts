@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // #region Type aliases (1)
 
-export type InteractionParameterSettingsType = 'selection' | 'gumball';
+export type InteractionParameterSettingsType = 'selection' | 'gumball' | 'dragging';
 
 // #endregion Type aliases (1)
 
@@ -17,9 +17,7 @@ export interface IInteractionParameterProps {
     /** If the objects are hoverable. (default: true) */
     hover?: boolean,
     /** The color of the objects when hovered. (default: '#00ff78') */
-    hoverColor?: string,
-    /** The names of the objects that can be interacted with. (see Jira document and discussion result) */
-    nameFilter?: string[]
+    hoverColor?: string
 
     // #endregion Properties (2)
 }
@@ -47,7 +45,6 @@ export interface IInteractionParameterSettings {
 const IGeneralInteractionParameterJsonSchema = z.object({
     hover: z.boolean().optional(),
     hoverColor: z.string().optional(),
-    nameFilter: z.array(z.string()).optional(),
 });
 
 export const ISelectionParameterJsonSchema = z.object({
@@ -55,6 +52,7 @@ export const ISelectionParameterJsonSchema = z.object({
     props: z.object({
         maximumSelection: z.number().optional(),
         minimumSelection: z.number().optional(),
+        nameFilter: z.array(z.string()).optional(),
         selectionColor: z.string().optional(),
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
@@ -64,9 +62,16 @@ export const IGumballParameterJsonSchema = z.object({
         enableRotation: z.boolean().optional(),
         enableScaling: z.boolean().optional(),
         enableTranslation: z.boolean().optional(),
+        nameFilter: z.array(z.string()).optional(),
         scale: z.number().optional(),
         space: z.literal('local').or(z.literal('world')).optional(),
         selectionColor: z.string().optional(),
+    }).merge(IGeneralInteractionParameterJsonSchema),
+});
+export const IDraggingParameterJsonSchema = z.object({
+    type: z.literal('dragging'),
+    props: z.object({
+        // TODO once the dragging parameter is defined
     }).merge(IGeneralInteractionParameterJsonSchema),
 });
 
@@ -80,6 +85,9 @@ export const validateSelectionParameterSettings = (param: unknown) => {
 };
 export const validateGumballParameterSettings = (param: unknown) => {
     return IGumballParameterJsonSchema.safeParse(param);
+};
+export const validateDraggingParameterSettings = (param: unknown) => {
+    return IDraggingParameterJsonSchema.safeParse(param);
 };
 
 // #endregion Variables (7)
