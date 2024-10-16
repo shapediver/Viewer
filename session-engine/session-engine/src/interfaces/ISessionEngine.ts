@@ -37,7 +37,7 @@ export interface ISessionEngine {
 
   // #endregion Properties (15)
 
-  // #region Public Methods (25)
+  // #region Public Methods (26)
 
   applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
@@ -46,6 +46,7 @@ export interface ISessionEngine {
   createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
   customize(force: boolean, waitForViewportUpdate?: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
   customizeParallel(parameterValues: { [key: string]: string }, loadOutputs: boolean): Promise<ITreeNode | ShapeDiverResponseDto>;
+  customizeWithModelState(modelState: string | ShapeDiverResponseDto): Promise<ITreeNode>
   getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo>
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
@@ -65,5 +66,5 @@ export interface ISessionEngine {
   uploadFileParameters(parameterValues?: { [key: string]: string | File | Blob }): Promise<{ [key: string]: string }>
   uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
-  // #endregion Public Methods (25)
+  // #endregion Public Methods (26)
 }

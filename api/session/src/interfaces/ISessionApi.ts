@@ -294,6 +294,15 @@ export interface ISessionApi {
      */
     customizeResult(parameterValues: { [key: string]: unknown; }): Promise<ShapeDiverResponseDto>;
     /**
+     * Customize the session with a given model state.
+     * This function creates uses the parameter values of the given model state to customize the session.
+     * 
+     * @param modelState The model state to use. This can be a model state id or a ShapeDiverResponseDto.
+     * 
+     * @throws {@type ShapeDiverViewerError}
+     */
+    customizeWithModelState(modelState: string | ShapeDiverResponseDto): Promise<ITreeNode>;
+    /**
      * Get an export definition by id.
      * 
      * @param id The id of the export.

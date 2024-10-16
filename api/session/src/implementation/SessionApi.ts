@@ -310,6 +310,10 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.customizeParallel(parameterValues, false) as Promise<ShapeDiverResponseDto>;
     }
 
+    public customizeWithModelState(modelState: string | ShapeDiverResponseDto): Promise<ITreeNode> {
+        return this.#sessionEngine.customizeWithModelState(modelState);
+    }
+
     public getExportById(id: string): IExportApi | null {
         const scope = 'getExportById';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, id, 'string');
