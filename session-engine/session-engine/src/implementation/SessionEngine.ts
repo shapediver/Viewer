@@ -317,7 +317,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Getters And Setters (28)
 
-    // #region Public Methods (30)
+    // #region Public Methods (31)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         sections = sections || {};
@@ -781,6 +781,30 @@ export class SessionEngine implements ISessionEngine {
         const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
         return result;
+    }
+
+    public async customizeWithModelState(modelState: string | ShapeDiverResponseDto): Promise<ITreeNode> {
+        this.checkAvailability();
+
+        try {
+            // get the model state if it is not already a response
+            let response: ShapeDiverResponseDto;
+            if (typeof modelState === 'string') {
+                response = await this._sdk.modelState.get(modelState);
+            } else {
+                response = modelState;
+            }
+
+            if(!response.modelState) return new TreeNode();
+
+            // read out the parameter values from the model state
+            for (const parameterId in response.modelState.parameters)
+                this.parameters[parameterId].value = response.modelState.parameters[parameterId];
+
+            return this.customize();
+        } catch (e) {
+            throw this._httpClient.convertError(e);
+        }
     }
 
     public async getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo> {
@@ -1489,7 +1513,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    // #endregion Public Methods (30)
+    // #endregion Public Methods (31)
 
     // #region Private Methods (18)
 
