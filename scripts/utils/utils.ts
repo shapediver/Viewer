@@ -36,7 +36,7 @@ export const deployToS3 = (directoryPath: string, name?: string, prefix?: string
 export const deployToS3Latest = (directoryPath: string, name?: string) => {
     const fileContents = <string[]>recursiveReadSync(directoryPath);
     
-    let cacheControl;
+    let cacheControl: string;
     if (name && name.startsWith('test')) {
         // case 1, it is one of the test examples
         cacheControl = 'max-age=0, s-maxage=608400, must-revalidate';
@@ -63,7 +63,7 @@ export const deployToS3Latest = (directoryPath: string, name?: string) => {
 export const deployToS3Folder = (directoryPath: string, name?: string, prefix?: string) => {
     const fileContents = <string[]>recursiveReadSync(directoryPath);
 
-    let cacheControl;
+    let cacheControl: string;
     if (name && name.startsWith('test')) {
         // case 1, it is one of the test examples
         cacheControl = 'max-age=0, s-maxage=608400, must-revalidate';
