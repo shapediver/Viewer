@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.features.gumball",
-  "version": "3.4.0-rc.0",
+  "version": "3.4.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,10 +40,10 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "3.4.0-rc.0",
-    "@shapediver/viewer.shared.node-tree": "3.4.0-rc.0",
-    "@shapediver/viewer.shared.services": "3.4.0-rc.0",
-    "@shapediver/viewer.shared.types": "3.4.0-rc.0",
+    "@shapediver/viewer": "3.4.0",
+    "@shapediver/viewer.shared.node-tree": "3.4.0",
+    "@shapediver/viewer.shared.services": "3.4.0",
+    "@shapediver/viewer.shared.types": "3.4.0",
     "@types/three": "0.162.0",
     "three": "0.162.0"
   },
