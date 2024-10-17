@@ -235,9 +235,25 @@ export class GeometryState {
 
     public init() {
         const geometryProperties = this.#settings.geometry!;
+        const points = geometryProperties.points;
+
         if (geometryProperties.points.length > 0) {
-            this.#positionArray = new Float32Array(geometryProperties.points.length * 3);
-            this.#positionArray.set(([] as number[]).concat(...geometryProperties.points));
+            if(geometryProperties.mode === 'lines') {
+                // as in Rhino a closed line is a polyline with the first and last point being the same
+                // we need to remove the last point if it is the same as the first point
+                // due to JavaScript floating point precision we need to check if the values are within a certain range
+
+                const eps = 0.0000001;
+                if (Math.abs(points[0][0] - points[points.length - 1][0]) < eps &&
+                    Math.abs(points[0][1] - points[points.length - 1][1]) < eps &&
+                    Math.abs(points[0][2] - points[points.length - 1][2]) < eps) {
+                    points.pop();
+                }
+            }
+
+
+            this.#positionArray = new Float32Array(points.length * 3);
+            this.#positionArray.set(([] as number[]).concat(...points));
         } else {
             this.#positionArray = new Float32Array();
         }
@@ -263,7 +279,7 @@ export class GeometryState {
             this.#geometryDataLines.renderOrder = 999;
             this.#parentNode.addData(this.#geometryDataLines);
 
-            if(this.#settings.geometry.close && this.checkNumberOfPoints(geometryProperties.points.length))
+            if(this.#settings.geometry.close && this.checkNumberOfPoints(points.length))
                 this.#closeLoop = true;
             this.#indicesArrayLines = this.createLineIndices(this.#closeLoop || (this.#settings.geometry.close && this.#settings.geometry.autoClose));
         }
