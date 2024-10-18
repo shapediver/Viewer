@@ -95,6 +95,8 @@ export class LightEngine implements ILightEngine {
                             intensity: (<IDirectionalLightProperties>light.properties).intensity,
                             direction: this._converter.toVec3((<IDirectionalLightProperties>light.properties).direction),
                             castShadow: (<IDirectionalLightProperties>light.properties).castShadow,
+                            shadowMapResolution: (<IDirectionalLightProperties>light.properties).shadowMapResolution,
+                            shadowMapBias: (<IDirectionalLightProperties>light.properties).shadowMapBias,
                             name: light.name ? light.name : lightId,
                             order: light.order,
                             id: lightUUID
