@@ -6,14 +6,16 @@ import {
     SettingsOptional
 } from '../../business/interfaces/IDrawingToolsManager';
 import { DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
-import { GeometryRestriction } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { GeometryRestrictionApi } from './restrictions/geometry/GeometryRestrictionApi';
+import {
+    GeometryRestriction,
+    GeometryRestrictionApi,
+    IRestrictionApi,
+    PlaneRestriction,
+    PlaneRestrictionApi,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
-import { IRestrictionApi } from '../interfaces/IRestrictionApi';
 import { IViewportApi } from '@shapediver/viewer';
-import { PlaneRestriction } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
-import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
-import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export class DrawingToolsApi implements IDrawingToolsApi {

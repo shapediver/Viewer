@@ -1,5 +1,4 @@
 import { IDomEventListener } from '@shapediver/viewer.shared.services';
-import { IManager } from '../../../interfaces/IManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 
 // #region Type aliases (1)
@@ -17,7 +16,7 @@ type Callbacks = {
 
 // #region Classes (1)
 
-export class EventManager implements IDomEventListener, IManager {
+export class EventManager implements IDomEventListener {
     // #region Properties (3)
 
     readonly #callbacks: Callbacks;

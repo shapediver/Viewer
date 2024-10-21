@@ -1,6 +1,6 @@
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
-import { GeometryMathManager } from '../../geometry/GeometryMathManager';
+import { GeometryMathManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { InteractionManager } from '../InteractionManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 
@@ -29,7 +29,7 @@ export class DeletionInteractionHandler {
 
     public deletePoint(ray: IRay): void {
         // check if there is a point close to the ray
-        const distances = this.#geometryMathManager.checkPointDistances(ray);
+        const distances = this.#geometryMathManager.checkPointDistances(ray, this.#drawingToolsManager.positionArray);
         if (distances) {
             // add the id if it is not already in the array
             // remove it if it is in the array
@@ -39,7 +39,7 @@ export class DeletionInteractionHandler {
     }
 
     public deleteSelection(indices: number[]): void {
-        if(indices.length === 0) return;
+        if (indices.length === 0) return;
         this.#drawingToolsManager.removePoints(indices);
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#drawingToolsManager.uuid });
     }

@@ -24,13 +24,17 @@ import {
     TreeNode
 } from '@shapediver/viewer';
 import { GeometryManager } from './managers/geometry/GeometryManager';
-import { GeometryMathManager } from './managers/geometry/GeometryMathManager';
+import {
+    GeometryMathManager,
+    IRestriction,
+    IRestrictionManager,
+    RESTRICTION_TYPE,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { GeometryState } from './managers/geometry/GeometryState';
 import { HistoryManager } from './managers/HistoryManager';
 import { InteractionManager } from './managers/interaction/InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
-import { IRestriction, RESTRICTION_TYPE, RestrictionProperties } from '../interfaces/IRestriction';
-import { RestrictionManager } from './managers/interaction/RestrictionManager';
 import { TextVisualizationManager } from './managers/TextVisualizationManager';
 import { vec3 } from 'gl-matrix';
 
@@ -70,7 +74,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         sceneTree.root.addChild(this.#parentNode);
         sceneTree.root.updateVersion(false, false);
 
-        this.#geometryMathManager = new GeometryMathManager(this);
+        this.#geometryMathManager = new GeometryMathManager(this.#viewport, this.#settings.visualization);
         this.#geometryManager = new GeometryManager(this);
         this.#interactionManager = new InteractionManager(this);
         this.#textVisualizationManager = new TextVisualizationManager(this);
@@ -154,7 +158,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         return this.#geometryManager.geometryState.positionArray;
     }
 
-    public get restrictionManager(): RestrictionManager {
+    public get restrictionManager(): IRestrictionManager {
         return this.#interactionManager.restrictionManager;
     }
 
@@ -196,7 +200,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     // #endregion Public Getters And Setters (22)
 
-    // #region Public Methods (28)
+    // #region Public Methods (29)
 
     /**
      * Add a point to the drawing tool.
@@ -268,6 +272,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     public getPointsData(): PointsData {
         return this.geometryState.getPointsData();
+    }
+
+    public getPressedKeys(): string[] {
+        return Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
     }
 
     public keyPressed(key: string | string[]): boolean {
@@ -485,14 +493,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`
             });
             throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`);
-        } else if(!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop)) {
+        } else if (!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop)) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UNCLOSED_LOOP, {
                 viewportId: this.viewport.id,
                 drawingToolsId: this.#uuid,
                 message: 'The geometry is not closed, but is required to be closed.'
             });
             throw new ShapeDiverViewerDrawingToolsError('The geometry is not closed, but is required to be closed.');
-        } else{
+        } else {
             const pointsData = this.geometryState.getPointsData();
             try {
                 this.#callbacks.onUpdate(pointsData);
@@ -514,7 +522,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#textVisualizationManager.createDistanceLabels();
     }
 
-    // #endregion Public Methods (28)
+    // #endregion Public Methods (29)
 
     // #region Private Methods (2)
 

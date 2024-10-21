@@ -1,8 +1,5 @@
-import { GeometryRestrictionProperties } from '../implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { IManager } from './IManager';
-import { IMapData, IMaterialBasicLineDataProperties, IMaterialMultiPointDataProperties } from '@shapediver/viewer.shared.types';
-import { IRestriction, RestrictionProperties } from './IRestriction';
-import { PlaneRestrictionProperties } from '../implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import { IMapData } from '@shapediver/viewer.shared.types';
+import { IRestriction, IVisualizationSettings, RestrictionProperties } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (5)
@@ -126,49 +123,14 @@ export type Settings = {
      * Here you can define the restrictions that are used when interacting with the drawing tool.
      * At least one restriction is required, the plane restriction is added by default if no restrictions are defined.
      */
-    restrictions: { [key: string]: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties };
+    restrictions: { [key: string]: RestrictionProperties };
 
     /**
      * The visualization settings of the drawing tool.
      * 
      * Here you can define the visualization of the drawing tool.
      */
-    visualization: {
-        /**
-         * The multiplication factor of the point size when interactions are performed.
-         * If the factor is set to 2, the point size is doubled when interacting.
-         * 
-         * @default 2
-         */
-        distanceMultiplicationFactor: number,
-
-        /**
-         * If the point labels are shown.
-         * The point labels display the position of the points.
-         * 
-         * @default false
-         */
-        pointLabels: boolean,
-
-        /**
-         * If the distance labels are shown.
-         * The distance labels display the distance between the points.
-         * 
-         * @default true
-         */
-        distanceLabels: boolean,
-
-        /**
-         * The material properties of the points.
-         */
-        points: IMaterialMultiPointDataProperties,
-
-        /**
-         * The material properties of the lines.
-         */
-        lines: IMaterialBasicLineDataProperties
-
-    };
+    visualization: IVisualizationSettings;
 
     /**
      * The control settings of the drawing tool.
@@ -266,7 +228,7 @@ export type SettingsOptional = {
 
 // #region Interfaces (1)
 
-export interface IDrawingToolsManager extends IManager {
+export interface IDrawingToolsManager {
     // #region Properties (4)
 
     readonly closed: boolean;
@@ -277,13 +239,14 @@ export interface IDrawingToolsManager extends IManager {
 
     // #endregion Properties (4)
 
-    // #region Public Methods (13)
+    // #region Public Methods (14)
 
     addPoint(index: number, position?: vec3, temporary?: boolean): void;
     addRestriction(properties: RestrictionProperties, token?: string): string | undefined;
     canRedo(): boolean;
     canUndo(): boolean;
     cancel(): void;
+    close(): void;
     getPointsData(): PointsData;
     movePoint(index: number, position: vec3, temporary?: boolean): void;
     redo(): void;
@@ -293,7 +256,7 @@ export interface IDrawingToolsManager extends IManager {
     undo(): void;
     update(): PointsData | undefined;
 
-    // #endregion Public Methods (13)
+    // #endregion Public Methods (14)
 }
 
 // #endregion Interfaces (1)

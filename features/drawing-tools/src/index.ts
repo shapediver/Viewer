@@ -1,14 +1,25 @@
-import { AngularRestrictionApi } from './api/implementation/restrictions/plane/snap/AngularRestrictionApi';
-import { AngularRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/AngularRestriction';
-import { AxisRestrictionApi } from './api/implementation/restrictions/plane/snap/AxisRestrictionApi';
-import { AxisRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/AxisRestriction';
+import {
+    AngularRestrictionApi,
+    AngularRestrictionProperties,
+    AxisRestrictionApi,
+    AxisRestrictionProperties,
+    GeometryRestrictionApi,
+    GeometryRestrictionProperties,
+    GridRestrictionApi,
+    GridRestrictionProperties,
+    IRestriction,
+    IRestrictionApi,
+    ISnapRestriction,
+    PlaneRestrictionApi,
+    PlaneRestrictionProperties,
+    RESTRICTION_TYPE,
+    RestrictionMetaData,
+    RestrictionProperties,
+    SnapRestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { Callbacks, PointsData, SettingsOptional } from './business/interfaces/IDrawingToolsManager';
 import { DrawingToolsApi } from './api/implementation/DrawingToolsApi';
 import { DrawingToolsEventResponseMapping } from './business/interfaces/events/EventResponseMapping';
-import { GeometryRestrictionApi } from './api/implementation/restrictions/geometry/GeometryRestrictionApi';
-import { GeometryRestrictionProperties } from './business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { GridRestrictionApi } from './api/implementation/restrictions/plane/snap/GridRestrictionApi';
-import { GridRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/snap/GridRestriction';
 import { IDrawingToolsApi } from './api/interfaces/IDrawingToolsApi';
 import { IDrawingToolsEvent } from './business/interfaces/events/IDrawingToolsEvent';
 import {
@@ -17,17 +28,6 @@ import {
     MaterialEngine,
     ShapeDiverViewerDrawingToolsError
 } from '@shapediver/viewer';
-import {
-    IRestriction,
-    RESTRICTION_TYPE,
-    RestrictionMetaData,
-    RestrictionProperties
-} from './business/interfaces/IRestriction';
-import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
-import { IRestrictionBase } from './business/interfaces/IRestrictionBase';
-import { ISnapRestriction, SnapRestrictionProperties } from './business/interfaces/ISnapRestriction';
-import { PlaneRestrictionApi } from './api/implementation/restrictions/plane/PlaneRestrictionApi';
-import { PlaneRestrictionProperties } from './business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
 import { SystemInfo } from '@shapediver/viewer.shared.services';
 
 export {
@@ -38,7 +38,7 @@ export {
     GeometryRestrictionProperties,
     AxisRestrictionProperties,
     IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi, GeometryRestrictionApi, AxisRestrictionApi,
-    IRestrictionBase, RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
+    RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
 };
 
 const defaultTextures: { [key: string]: Promise<IMapData> | IMapData } = {};

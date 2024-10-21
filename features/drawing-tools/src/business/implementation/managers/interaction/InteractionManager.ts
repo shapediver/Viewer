@@ -3,16 +3,14 @@ import { DeletionInteractionHandler } from './handlers/DeletionInteractionHandle
 import { DrawingToolsEventResponseMapping } from '../../../interfaces/events/EventResponseMapping';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { EVENTTYPE_DRAWING_TOOLS, IEvent } from '@shapediver/viewer.shared.services';
-import { GeometryMathManager } from '../geometry/GeometryMathManager';
-import { IManager } from '../../../interfaces/IManager';
+import { GeometryMathManager, IRestrictionManager, RestrictionManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { InsertionInteractionHandler } from './handlers/InsertionInteractionHandler';
 import { InteractionManagerHelper } from './helpers/InteractionManagerHelper';
 import { IRay } from '@shapediver/viewer.features.interaction';
 import { MidPointInteractionHandler } from './handlers/MidPointInteractionHandler';
-import { RestrictionManager } from './RestrictionManager';
 import { vec3 } from 'gl-matrix';
 
-export class InteractionManager implements IManager {
+export class InteractionManager {
     // #region Properties (11)
 
     readonly #deletionInteractionHandler: DeletionInteractionHandler;
@@ -21,7 +19,7 @@ export class InteractionManager implements IManager {
     readonly #insertionInteractionHandler: InsertionInteractionHandler;
     readonly #interactionManagerHelper: InteractionManagerHelper;
     readonly #midPointInteractionHandler: MidPointInteractionHandler;
-    readonly #restrictionManager: RestrictionManager;
+    readonly #restrictionManager: IRestrictionManager;
     readonly #viewport: IViewportApi;
 
     #cameraFreezeFlag: string = '';
@@ -37,7 +35,7 @@ export class InteractionManager implements IManager {
         this.#viewport = drawingToolsManager.viewport;
         this.#geometryMathManager = this.#drawingToolsManager.geometryMathManager;
 
-        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager);
+        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager.viewport, this.#geometryMathManager, this.#drawingToolsManager.parentNode, this.#drawingToolsManager.settings.restrictions, this.#drawingToolsManager.settings.visualization);
 
         this.#deletionInteractionHandler = new DeletionInteractionHandler(this.#drawingToolsManager, this);
         this.#insertionInteractionHandler = new InsertionInteractionHandler(this.#drawingToolsManager, this);
@@ -72,7 +70,7 @@ export class InteractionManager implements IManager {
         return this.#midPointInteractionHandler;
     }
 
-    public get restrictionManager(): RestrictionManager {
+    public get restrictionManager(): IRestrictionManager {
         return this.#restrictionManager;
     }
 
@@ -85,9 +83,9 @@ export class InteractionManager implements IManager {
     }
 
     public close(): void {
-        if(this.#cameraFreezeFlag) 
+        if (this.#cameraFreezeFlag)
             this.#viewport.removeFlag(this.#cameraFreezeFlag);
-        
+
         document.body.style.cursor = 'default';
 
         this.#interactionManagerHelper.close();
@@ -101,19 +99,19 @@ export class InteractionManager implements IManager {
     public onDown(event: PointerEvent, ray: IRay): void {
         if (this.#drawingToolsManager.closed) return;
 
-        if(event.button === 0) {
+        if (event.button === 0) {
             this.#onDownPointer = event;
             this.#interactionManagerHelper.moving = false;
-    
+
             /**
              * IF INSERT KEY IS PRESSED
              * FINALIZE INSERTION AND START A NEW ONE
              */
             if (this.#insertionInteractionHandler.insertionActive === true) {
                 const result = this.#insertionInteractionHandler.finalizeInsertion();
-                const distances = this.#geometryMathManager.checkPointDistances(ray);
+                const distances = this.#geometryMathManager.checkPointDistances(ray, this.#drawingToolsManager.positionArray);
                 this.#interactionManagerHelper.checkHover(distances, ray);
-                if(result) {
+                if (result) {
                     this.#drawingToolsManager.update();
                     return;
                 } else {
@@ -121,8 +119,8 @@ export class InteractionManager implements IManager {
                     return;
                 }
             }
-            const distances = this.#geometryMathManager.checkPointDistances(ray);
-    
+            const distances = this.#geometryMathManager.checkPointDistances(ray, this.#drawingToolsManager.positionArray);
+
             /**
              * IF MID POINT INSERTION IS ACTIVE
              * FINISH MID POINT INSERTION IF THE CURRENT INDEX IS THE MID POINT INSERTION INDEX
@@ -131,17 +129,17 @@ export class InteractionManager implements IManager {
                 this.#midPointInteractionHandler.finishMidPointInsertion(distances);
                 this.#interactionManagerHelper.midPointInserted = true;
             }
-    
+
             /**
              * CHECK HOVERED POINT
              */
             this.#interactionManagerHelper.checkHover(distances, ray);
-    
+
             /**
              * IF THERE IS A POINT CLOSE TO THE RAY
              */
             this.#interactionManagerHelper.selectPoint(distances);
-    
+
             /**
              * IF THE CURRENTLY HOVERED POINT IS SELECTED
              * START DRAGGING
@@ -149,7 +147,7 @@ export class InteractionManager implements IManager {
             const draggingStarted = this.#interactionManagerHelper.startDragging();
             if (draggingStarted && !this.#cameraFreezeFlag)
                 this.#cameraFreezeFlag = this.#viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
-        } else if(event.button === 2) {
+        } else if (event.button === 2) {
             /**
              * WHEN RIGHT MOUSE BUTTON IS PRESSED
              */
@@ -189,7 +187,7 @@ export class InteractionManager implements IManager {
             currentRestrictedPoint = this.#interactionManagerHelper.moveSelectedPoints(ray) || currentRestrictedPoint;
         }
 
-        const distances = this.#geometryMathManager.checkPointDistances(ray);
+        const distances = this.#geometryMathManager.checkPointDistances(ray, this.#drawingToolsManager.positionArray);
         this.#interactionManagerHelper.checkHover(distances, ray);
 
         if (pointerMoved) {
@@ -208,17 +206,20 @@ export class InteractionManager implements IManager {
                 this.#midPointInteractionHandler.onMove(ray, this.#interactionManagerHelper.hoveredPoint);
             }
         }
-        
+
         if (this.#interactionManagerHelper.dragging) {
             document.body.style.cursor = 'grabbing';
-        } else if(this.#interactionManagerHelper.hoveredPoint !== undefined) {
+        } else if (this.#interactionManagerHelper.hoveredPoint !== undefined) {
             document.body.style.cursor = 'pointer';
         } else {
             document.body.style.cursor = 'default';
         }
 
-        if(!currentRestrictedPoint) 
-            currentRestrictedPoint = this.#restrictionManager.rayTrace(ray);
+        if (!currentRestrictedPoint)
+            currentRestrictedPoint = this.#restrictionManager.rayTrace(ray, {
+                pressedKeys: this.#drawingToolsManager.getPressedKeys(),
+                positionArray: this.#drawingToolsManager.positionArray
+            });
 
         this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(currentRestrictedPoint);
     }

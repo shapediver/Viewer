@@ -1,8 +1,10 @@
-import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { IRestrictionApi } from './IRestrictionApi';
-import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import {
+    GeometryRestrictionProperties,
+    IRestrictionApi,
+    PlaneRestrictionProperties,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { PointsData } from '../../business/interfaces/IDrawingToolsManager';
-import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export interface IDrawingToolsApi {

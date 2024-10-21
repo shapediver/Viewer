@@ -1,5 +1,5 @@
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
-import { GeometryMathManager } from '../../geometry/GeometryMathManager';
+import { GeometryMathManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -65,7 +65,7 @@ export class MidPointInteractionHandler {
             // we are just waiting for a mouse click to finish the mid point insertion
         } else if (hoveredPoint === undefined && this.#geometryState.canAddPoint()) {
             // check if there is a line close to the ray and add a mid point to it
-            const lineDistances = this.#geometryMathManager.checkLineDistances(ray);
+            const lineDistances = this.#geometryMathManager.checkLineDistances(ray, this.#drawingToolsManager.positionArray, this.#drawingToolsManager.indicesArrayLines);
             if (lineDistances) {
                 let firstIndex = lineDistances[0].index[0];
                 let secondIndex = lineDistances[0].index[1];

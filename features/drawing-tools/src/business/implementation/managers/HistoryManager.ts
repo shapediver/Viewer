@@ -1,7 +1,6 @@
 import { addListener, EVENTTYPE_DRAWING_TOOLS, IEvent } from '@shapediver/viewer';
 import { DrawingToolsEventResponseMapping } from '../../interfaces/events/EventResponseMapping';
 import { DrawingToolsManager } from '../DrawingToolsManager';
-import { IManager } from '../../interfaces/IManager';
 import { PointsData } from '../../interfaces/IDrawingToolsManager';
 
 // #region Type aliases (1)
@@ -14,7 +13,7 @@ export type HistoryState = {
 
 // #region Classes (1)
 
-export class HistoryManager implements IManager {
+export class HistoryManager {
     // #region Properties (3)
 
     #currentStateIndex: number = -1;
