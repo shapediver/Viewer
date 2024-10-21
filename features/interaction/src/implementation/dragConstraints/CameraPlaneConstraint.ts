@@ -1,8 +1,7 @@
-import { calculateDragMatrix } from './DragConstraintsHelper';
-import { IDragAnchor, InteractionData } from '../InteractionData';
+import { IDragAnchor } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
 import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
-import { IPlane, Plane } from '@shapediver/viewer.shared.math';
+import { IPlane } from '@shapediver/viewer.shared.math';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 import { mat4, vec3 } from 'gl-matrix';
@@ -32,6 +31,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
             angle: number
         }
     ) {
+        console.warn('The CameraPlaneConstraint is deprecated and will be removed in the future.');
         this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
 
@@ -48,26 +48,10 @@ export class CameraPlaneConstraint implements IDragConstraint {
     // #region Public Methods (2)
 
     public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
-        if (distance && distance > 0) {
-            const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
-            const { matrix, dragAnchor } = calculateDragMatrix(node, point, this.#rotation, this.#dragOrigin!, point);
-            return { distance, transformation: matrix, dragAnchor };
-        }
         return;
     }
 
     public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), viewport.camera!.target, viewport.camera!.position));
-        this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
-
-        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-
-        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
-        if (!invertedPreviousDragMatrix)
-            invertedPreviousDragMatrix = mat4.create();
-
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
         return this.intersect(viewport, node, ray);
     }
 

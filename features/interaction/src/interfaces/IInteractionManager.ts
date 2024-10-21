@@ -1,4 +1,3 @@
-import { IDragConstraintUtils } from './utils/IDragConstraintUtils';
 import { IInteractionEffectUtils } from './utils/IInteractionEffectUtils';
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
@@ -15,12 +14,8 @@ export type IInteractionFilterOptions = {
 // #region Interfaces (1)
 
 export interface IInteractionManager {
-    // #region Properties (6)
+    // #region Properties (5)
 
-    /**
-     * Drag constraint utils that are automatically assigned by the {@link AbstractInteractionManager}.
-     */
-    dragConstraintUtils: IDragConstraintUtils;
     /**
      * The material that is applied to the node once the effect (selection, hovering or dragging) is active.
      * If no effect material is applied, the material will not be changed.
@@ -45,7 +40,7 @@ export interface IInteractionManager {
      */
     viewport?: IViewportApi;
 
-    // #endregion Properties (6)
+    // #endregion Properties (5)
 
     // #region Public Methods (5)
 

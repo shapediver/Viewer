@@ -3,9 +3,10 @@ import { AbstractRestriction } from '../AbstractRestriction';
 import { Box } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
+    RayTraceResult,
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties
@@ -15,7 +16,7 @@ import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
-import { vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
@@ -131,9 +132,9 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
     // #endregion Public Getters And Setters (8)
 
-    // #region Public Methods (2)
+    // #region Public Methods (3)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
         if (this.enabled === false) return;
         if (this.#snapToVertices === false && this.#snapToEdges === false && this.#snapToFaces === false) return;
 
@@ -168,13 +169,13 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                 vertex.fromBufferAttribute(positionAttribute, intersections[0].index);
                 object.localToWorld(vertex);
 
-                return vec3.fromValues(vertex.x, vertex.y, vertex.z);
+                return { point: vec3.fromValues(vertex.x, vertex.y, vertex.z), restriction: this };
             }
 
             const intersectionPoint = intersections[0].point;
             const intersectionPointVec3 = vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
 
-            if (!intersections[0].face) return intersectionPointVec3;
+            if (!intersections[0].face) return { point: intersectionPointVec3, restriction: this };
 
             if (this.#snapToVertices === true || this.#snapToEdges === true) {
                 const vertexA = new THREE.Vector3();
@@ -199,11 +200,11 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
                     // part 1 - check if the intersection point is close to a vertex
                     if (distanceA.check && distanceA.distanceSquared < distanceB.distanceSquared && distanceA.distanceSquared < distanceC.distanceSquared) {
-                        return vec3.fromValues(vertexA.x, vertexA.y, vertexA.z);
+                        return { point: vertexAVec3, restriction: this };
                     } else if (distanceB.check && distanceB.distanceSquared < distanceA.distanceSquared && distanceB.distanceSquared < distanceC.distanceSquared) {
-                        return vec3.fromValues(vertexB.x, vertexB.y, vertexB.z);
+                        return { point: vertexBVec3, restriction: this };
                     } else if (distanceC.check && distanceC.distanceSquared < distanceA.distanceSquared && distanceC.distanceSquared < distanceB.distanceSquared) {
-                        return vec3.fromValues(vertexC.x, vertexC.y, vertexC.z);
+                        return { point: vertexCVec3, restriction: this };
                     }
                 }
 
@@ -222,22 +223,26 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
                     // check if the intersection point is close to an edge
                     if (distanceAB.check && distanceAB.distanceSquared < distanceBC.distanceSquared && distanceAB.distanceSquared < distanceCA.distanceSquared) {
-                        return closestPointOnEdgeAB;
+                        return { point: closestPointOnEdgeAB, restriction: this };
                     } else if (distanceBC.check && distanceBC.distanceSquared < distanceAB.distanceSquared && distanceBC.distanceSquared < distanceCA.distanceSquared) {
-                        return closestPointOnEdgeBC;
+                        return { point: closestPointOnEdgeBC, restriction: this };
                     } else if (distanceCA.check && distanceCA.distanceSquared < distanceAB.distanceSquared && distanceCA.distanceSquared < distanceBC.distanceSquared) {
-                        return closestPointOnEdgeCA;
+                        return { point: closestPointOnEdgeCA, restriction: this };
                     }
                 }
             }
 
             if (this.#snapToFaces === true) {
                 // part 3 - face intersection
-                return vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
+                return { point: vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z), restriction: this };
             }
         }
 
         return;
+    }
+
+    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
+        return this.rayTrace(ray);
     }
 
     public updateNodes(nodes: ITreeNode[]) {
@@ -269,7 +274,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         }
     }
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (3)
 
     // #region Protected Methods (1)
 

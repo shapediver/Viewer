@@ -92,7 +92,7 @@ export class InsertionInteractionHandler {
                 index: this.#insertionActiveIndex,
                 pressedKeys: this.#drawingToolsManager.getPressedKeys(),
                 positionArray: this.#drawingToolsManager.positionArray
-            });
+            })?.point;
 
             if (restrictedPoint) {
                 const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
@@ -133,7 +133,7 @@ export class InsertionInteractionHandler {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
                 pressedKeys: this.#drawingToolsManager.getPressedKeys(),
                 positionArray: this.#drawingToolsManager.positionArray
-            });
+            })?.point;
             // add at last position
             this.#insertionActiveIndex = this.#geometryState.getPointCount();
             this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);

@@ -1,15 +1,19 @@
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IDragAnchor } from './IDragAnchor';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { ISnapRestriction } from './ISnapRestriction';
-import { vec3 } from 'gl-matrix';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { mat4, vec3 } from 'gl-matrix';
 
-// #region Type aliases (2)
+// #region Type aliases (3)
 
+export type RayTraceResult = { distance?: number, transformation?: mat4, dragAnchor?: IDragAnchor, point: vec3, restriction: IRestriction | ISnapRestriction };
 /* eslint-disable @typescript-eslint/ban-types */
 export type RestrictionMetaData = {
     index?: number;
     referencePoint?: vec3;
     positionArray?: Float32Array;
     pressedKeys?: string[];
+    dragAnchors?: IDragAnchor[];
 };
 export type RestrictionProperties = {
     /**
@@ -18,7 +22,7 @@ export type RestrictionProperties = {
     type: RESTRICTION_TYPE;
 };
 
-// #endregion Type aliases (2)
+// #endregion Type aliases (3)
 
 // #region Interfaces (1)
 
@@ -35,7 +39,7 @@ export interface IRestriction {
 
     // #endregion Properties (6)
 
-    // #region Public Methods (2)
+    // #region Public Methods (3)
 
     /**
      * Ray trace the restriction.
@@ -45,13 +49,14 @@ export interface IRestriction {
      * @param metaData The meta data of the ray.
      * @returns The intersection point of the ray with the restriction.
      */
-    rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined;
+    rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined;
     /**
      * Remove the visualization of the restriction.
      */
     removeVisualization(): void;
+    setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined
 
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (3)
 }
 
 // #endregion Interfaces (1)
@@ -61,6 +66,9 @@ export interface IRestriction {
 export enum RESTRICTION_TYPE {
     PLANE = 'plane',
     GEOMETRY = 'geometry',
+    POINT = 'point',
+    LINE = 'line',
+    CAMERA_PLANE = 'camera_plane',
 }
 
 // #endregion Enums (1)

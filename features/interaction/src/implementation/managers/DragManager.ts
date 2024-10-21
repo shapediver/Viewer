@@ -1,21 +1,38 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
+import { CameraPlaneConstraint } from '../dragConstraints/CameraPlaneConstraint';
 import {
     EventEngine,
     EVENTTYPE,
     ShapeDiverViewerInteractionError,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
-import { FLAG_TYPE, IGeometryData, IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
+} from '@shapediver/viewer.shared.services';
+import {
+    FLAG_TYPE,
+    IGeometryData,
+    IMaterialAbstractData,
+    IViewportApi
+} from '@shapediver/viewer';
+import {
+    GeometryMathManager,
+    IRestriction,
+    LineRestrictionProperties,
+    PointRestrictionProperties,
+    RayTraceResult,
+    RESTRICTION_TYPE,
+    RestrictionManager
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
 import { IDragEvent } from '../../interfaces/events/IDragEvent';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
-import { ITransformation, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { ITransformation, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
+import { LineConstraint } from '../dragConstraints/LineConstraint';
 import { mat4, vec3 } from 'gl-matrix';
+import { PointConstraint } from '../dragConstraints/PointConstraint';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class DragManager extends AbstractInteractionManager {
     // #region Properties (17)
@@ -24,7 +41,6 @@ export class DragManager extends AbstractInteractionManager {
     readonly #tree: Tree = Tree.instance;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    #dragConstraints: { [key: string]: IDragConstraint } = {};
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.DOWN) {
@@ -49,6 +65,7 @@ export class DragManager extends AbstractInteractionManager {
     #nodeWorldMatrix: mat4 = mat4.create();
     #nodeWorldMatrixInverse: mat4 = mat4.create();
     #previousDragMatrix: mat4 = mat4.create();
+    #restrictionManager?: RestrictionManager;
     #setupOptions: {
         viewport: IViewportApi,
         node: ITreeNode,
@@ -81,19 +98,46 @@ export class DragManager extends AbstractInteractionManager {
 
     public add(viewport: IViewportApi): void {
         this.viewport = viewport;
+        this.#restrictionManager = new RestrictionManager(this.viewport!);
     }
 
     /**
      * Add a new drag constraint.
-     * Returns a token that is used for removing the drag constraint via {@link removeDragConstraint}.
+     * Returns a token that is used for removing the drag constraint via {@link removeRestriction}.
      * 
      * @param constraint 
      * @returns 
      */
     public addDragConstraint(constraint: IDragConstraint): string {
+        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+
         const token = this.#uuidGenerator.create();
-        this.#dragConstraints[token] = constraint;
-        if (this.#setupOptions) constraint.setup(this.#setupOptions.viewport, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection, this.#previousDragMatrix);
+        if (constraint instanceof PointConstraint) {
+            this.#restrictionManager.addRestriction({
+                type: RESTRICTION_TYPE.POINT,
+                point: constraint.point,
+                radius: constraint.radius,
+                rotation: constraint.rotation
+            } as PointRestrictionProperties, token)!;
+        } else if (constraint instanceof LineConstraint) {
+            this.#restrictionManager.addRestriction({
+                type: RESTRICTION_TYPE.LINE,
+                point1: constraint.point1,
+                point2: constraint.point2,
+                radius: constraint.radius,
+                rotation: constraint.rotation
+            } as LineRestrictionProperties, token)!;
+        } else if (constraint instanceof CameraPlaneConstraint) {
+            this.#restrictionManager.addRestriction({
+                type: RESTRICTION_TYPE.CAMERA_PLANE
+            }, token)!;
+        }
+
+        const restriction = this.#restrictionManager.getRestriction(token);
+        if (this.#setupOptions && restriction) {
+            const interactionData = <InteractionData>this.#setupOptions.node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+            restriction.setup(this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection, this.#previousDragMatrix, interactionData.dragOrigin);
+        }
         return token;
     }
 
@@ -108,8 +152,9 @@ export class DragManager extends AbstractInteractionManager {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if (!this.#node) return;
 
-        const transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
-        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix);
+        const interactionData = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const transformationResult = this.#restrictionManager!.rayTrace(ray, { dragAnchors: interactionData.dragAnchors });
+        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationResult?.transformation || mat4.create()), this.#nodeWorldMatrix);
 
         // apply the transformation for the main node
         this.applyTransformation(this.#node, transformationMatrix);
@@ -130,8 +175,9 @@ export class DragManager extends AbstractInteractionManager {
         if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if (!this.#node) return;
 
-        const transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
-        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix);
+        const interactionData = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const transformationResult = this.#restrictionManager!.rayTrace(ray, { dragAnchors: interactionData.dragAnchors });
+        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationResult?.transformation || mat4.create()), this.#nodeWorldMatrix);
 
         // apply the transformation for the main node
         this.applyTransformation(this.#node, transformationMatrix);
@@ -152,8 +198,8 @@ export class DragManager extends AbstractInteractionManager {
                 matrix: transformationMatrix,
                 ray,
                 event,
-                dragConstraint: transformation.dragConstraint,
-                dragAnchor: transformation.dragAnchor,
+                restriction: transformationResult?.restriction,
+                dragAnchor: transformationResult?.dragAnchor,
                 manager: this,
                 groupedNodes: this.#groupedNodes
             } as IDragEvent
@@ -166,15 +212,14 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     /**
-     * Remove the drag constraint that was added via {@link removeDragConstraint}.
+     * Remove the drag constraint that was added via {@link removeRestriction}.
      * 
      * @param token 
      * @returns 
      */
     public removeDragConstraint(token: string): boolean {
-        if (!this.#dragConstraints[token]) return false;
-        delete this.#dragConstraints[token];
-        return true;
+        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        return this.#restrictionManager.removeRestriction(token);
     }
 
     /**
@@ -187,16 +232,13 @@ export class DragManager extends AbstractInteractionManager {
         if (!this.#node) return;
 
         let transformationMatrix: mat4 | undefined,
-            transformation: {
-                dragConstraint?: IDragConstraint;
-                matrix: mat4;
-                dragAnchor?: IDragAnchor;
-            } | undefined;
+            transformationResult: RayTraceResult | undefined;
 
         // if we have everything we need (the ray) than we try one last time to calculate the transformation
         if (ray) {
-            transformation = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
-            transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix);
+            const interactionData = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+            transformationResult = this.#restrictionManager!.rayTrace(ray, { dragAnchors: interactionData.dragAnchors });
+            transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationResult?.transformation || mat4.create()), this.#nodeWorldMatrix);
 
             // apply the transformation for the main node
             this.applyTransformation(this.#node, transformationMatrix);
@@ -219,8 +261,8 @@ export class DragManager extends AbstractInteractionManager {
             matrix: transformationMatrix,
             event,
             ray,
-            dragConstraint: transformation?.dragConstraint,
-            dragAnchor: transformation?.dragAnchor,
+            restriction: transformationResult?.restriction,
+            dragAnchor: transformationResult?.dragAnchor,
             manager: this,
             groupedNodes: this.#groupedNodes
         } as IDragEvent);
@@ -257,8 +299,9 @@ export class DragManager extends AbstractInteractionManager {
         this.activateNode({ node, distance, point: intersectionPoint, geometryData: geometryData });
         this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
 
-        const transformation = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!, this.#previousDragMatrix);
-        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix);
+        const interactionData = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const transformationResult = this.#restrictionManager!.setup(this.#node!, ray, this.#intersection!, this.#previousDragMatrix, interactionData.dragOrigin)!;
+        const transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationResult?.transformation || mat4.create()), this.#nodeWorldMatrix);
 
         // apply the transformation for the main node
         this.applyTransformation(this.#node!, transformationMatrix);
@@ -282,8 +325,8 @@ export class DragManager extends AbstractInteractionManager {
             intersectionPoint,
             ray,
             event,
-            dragConstraint: transformation.dragConstraint,
-            dragAnchor: transformation.dragAnchor,
+            restriction: transformationResult.restriction,
+            dragAnchor: transformationResult.dragAnchor,
             manager: this,
             groupedNodes: this.#groupedNodes
         } as IDragEvent);

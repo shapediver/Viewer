@@ -193,7 +193,7 @@ export class InteractionManagerHelper {
                 referencePoint: this.#draggedPointPosition,
                 pressedKeys: this.#drawingToolsManager.getPressedKeys(),
                 positionArray: this.#drawingToolsManager.positionArray
-            });
+            })?.point;
 
             if (intersectionPoint) {
                 const differenceToIntersected = vec3.sub(vec3.create(), intersectionPoint, this.#draggedPointPosition);

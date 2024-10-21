@@ -1,32 +1,30 @@
-import { IDragAnchor, InteractionData } from '../InteractionData';
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { IDragAnchor } from '../../interfaces/IDragAnchor';
 import { mat4, vec3 } from 'gl-matrix';
 
 export const calculateDragMatrix =
     (
-        node: ITreeNode,
         snapPoint: vec3,
         snapRotation: {
             axis: vec3,
             angle: number
         },
         dragOrigin: vec3,
+        dragAnchors: IDragAnchor[] = [],
         closestPoint: vec3
     ): {
         matrix: mat4,
         dragAnchor?: IDragAnchor
     } => {
-        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        if (data && data.dragAnchors.length > 0) {
+        if (dragAnchors.length > 0) {
             const results: {
                 matrix: mat4,
                 transformedPoint: vec3,
                 dragAnchor: IDragAnchor
             }[] = [];
-            for (let i = 0; i < data.dragAnchors.length; i++) {
-                const matrix = calculateMatrix(data.dragAnchors[i].position, data.dragAnchors[i].rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
+            for (let i = 0; i < dragAnchors.length; i++) {
+                const matrix = calculateMatrix(dragAnchors[i].position, dragAnchors[i].rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
                 const transformedPoint = vec3.transformMat4(vec3.create(), dragOrigin!, matrix);
-                results.push({ matrix, transformedPoint, dragAnchor: data.dragAnchors[i] });
+                results.push({ matrix, transformedPoint, dragAnchor: dragAnchors[i] });
             }
             results.sort((a, b) => vec3.distance(a.transformedPoint, closestPoint!) - vec3.distance(b.transformedPoint, closestPoint!));
             return {

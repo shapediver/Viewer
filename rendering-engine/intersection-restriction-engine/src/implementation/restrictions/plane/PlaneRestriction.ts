@@ -11,9 +11,10 @@ import {
 } from '@shapediver/viewer';
 import { GeometryMathManager } from '../../GeometryMathManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
+    RayTraceResult,
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties
@@ -174,10 +175,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #endregion Public Getters And Setters (14)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined {
-        if (this.enabled === false) return vec3.create();
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+        if (this.enabled === false) return;
 
         if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
 
@@ -188,10 +189,15 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         // find intersection of ray and plane
         const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
         const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
+
         return this.snap(ray, intersection, metaData);
     }
 
-    // #endregion Public Methods (1)
+    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
+        return this.rayTrace(ray);
+    }
+
+    // #endregion Public Methods (2)
 
     // #region Protected Methods (1)
 
@@ -245,7 +251,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
     }
 
-    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
+    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined {
         if (this.enabled === false) return;
 
         if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
@@ -272,7 +278,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
             indexedResults.sort((a, b) => {
                 if (!a.value) return 1;
                 if (!b.value) return -1;
-                return vec3.squaredDistance(point, a.value) - vec3.squaredDistance(point, b.value);
+                return vec3.squaredDistance(point, a.value.point) - vec3.squaredDistance(point, b.value.point);
             });
 
             for (const snapRestriction of snapRestrictions) {
@@ -286,7 +292,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
             }
         }
 
-        return point;
+        return {
+            point: point,
+            restriction: this
+        };
     }
 
     private updatePlaneDefinition(): void {

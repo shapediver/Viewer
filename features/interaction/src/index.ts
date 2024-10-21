@@ -24,8 +24,6 @@ import {
     ISpotLightApi,
     IViewportApi
 } from '@shapediver/viewer';
-import { IDragConstraint } from './interfaces/utils/IDragConstraint';
-import { IDragConstraintUtils } from './interfaces/utils/IDragConstraintUtils';
 import { IDragEvent } from './interfaces/events/IDragEvent';
 import { IHoverEvent } from './interfaces/events/IHoverEvent';
 import { IInteractionData, IInteractionTypes } from './interfaces/IInteractionData';
@@ -58,7 +56,7 @@ export {
 };
 
 export {
-    IDragConstraint, IDragConstraintUtils, IInteractionEffectUtils
+    IInteractionEffectUtils
 };
 
 export {

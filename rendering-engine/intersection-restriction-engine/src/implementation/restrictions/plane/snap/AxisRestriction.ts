@@ -10,7 +10,7 @@ import { GeometryMathManager } from '../../../GeometryMathManager';
 import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
-import { RestrictionMetaData } from '../../../../interfaces/IRestriction';
+import { RayTraceResult, RestrictionMetaData } from '../../../../interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -90,7 +90,7 @@ export class AxisRestriction extends AbstractSnapRestriction implements ISnapRes
 
     // #region Public Methods (2)
 
-    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): vec3 | undefined {
+    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined {
         if (this.enabled === false) return;
         if (!metaData || !metaData.referencePoint) return;
 
@@ -106,13 +106,13 @@ export class AxisRestriction extends AbstractSnapRestriction implements ISnapRes
         }
 
         if (xPressed) {
-            return this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorU }, point);
+            return { point: this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorU }, point), restriction: this };
         } else if (yPressed) {
-            return this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorV }, point);
+            return { point: this.#geometryMathManager.closestPoint({ origin: metaData.referencePoint, direction: this.#planeRestriction.vectorV }, point), restriction: this };
         } else if (zPressed) {
-            return this.#geometryMathManager.closestPointsRayRay({ origin: metaData.referencePoint, direction: this.#planeRestriction.normal }, ray).closestPointOnRay1;
+            return { point: this.#geometryMathManager.closestPointsRayRay({ origin: metaData.referencePoint, direction: this.#planeRestriction.normal }, ray).closestPointOnRay1, restriction: this };
         } else if (pPressed) {
-            return this.#geometryMathManager.closestPointOnPlane(this.#planeRestriction.origin, this.#planeRestriction.normal, point);
+            return { point: this.#geometryMathManager.closestPointOnPlane(this.#planeRestriction.origin, this.#planeRestriction.normal, point), restriction: this };
         }
     }
 

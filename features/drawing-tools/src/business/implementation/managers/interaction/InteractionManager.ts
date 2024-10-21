@@ -35,7 +35,7 @@ export class InteractionManager {
         this.#viewport = drawingToolsManager.viewport;
         this.#geometryMathManager = this.#drawingToolsManager.geometryMathManager;
 
-        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager.viewport, this.#geometryMathManager, this.#drawingToolsManager.parentNode, this.#drawingToolsManager.settings.restrictions, this.#drawingToolsManager.settings.visualization);
+        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager.viewport, this.#drawingToolsManager.parentNode, this.#drawingToolsManager.settings.restrictions, this.#drawingToolsManager.settings.visualization);
 
         this.#deletionInteractionHandler = new DeletionInteractionHandler(this.#drawingToolsManager, this);
         this.#insertionInteractionHandler = new InsertionInteractionHandler(this.#drawingToolsManager, this);
@@ -219,7 +219,7 @@ export class InteractionManager {
             currentRestrictedPoint = this.#restrictionManager.rayTrace(ray, {
                 pressedKeys: this.#drawingToolsManager.getPressedKeys(),
                 positionArray: this.#drawingToolsManager.positionArray
-            });
+            })?.point;
 
         this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(currentRestrictedPoint);
     }

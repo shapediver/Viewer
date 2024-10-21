@@ -3,7 +3,7 @@ import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { ISnapRestriction } from '../../interfaces/ISnapRestriction';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
-import { RestrictionMetaData } from '../../interfaces/IRestriction';
+import { RayTraceResult, RestrictionMetaData } from '../../interfaces/IRestriction';
 import { ThreejsData } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { vec3 } from 'gl-matrix';
 
@@ -101,7 +101,7 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 
     // #region Public Abstract Methods (1)
 
-    public abstract snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): vec3 | undefined;
+    public abstract snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined;
 
     // #endregion Public Abstract Methods (1)
 

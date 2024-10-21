@@ -1,11 +1,16 @@
 import * as THREE from 'three';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
-import { IRestriction, RESTRICTION_TYPE, RestrictionMetaData } from '../../interfaces/IRestriction';
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import {
+    IRestriction,
+    RayTraceResult,
+    RESTRICTION_TYPE,
+    RestrictionMetaData
+} from '../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../interfaces/ISnapRestriction';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
+import { mat4, vec3 } from 'gl-matrix';
 import { ThreejsData } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
-import { vec3 } from 'gl-matrix';
 
 export abstract class AbstractRestriction implements IRestriction {
     // #region Properties (11)
@@ -93,11 +98,12 @@ export abstract class AbstractRestriction implements IRestriction {
 
     // #endregion Public Methods (1)
 
-    // #region Public Abstract Methods (1)
+    // #region Public Abstract Methods (2)
 
-    public abstract rayTrace(ray: IRay, metaData?: RestrictionMetaData): vec3 | undefined;
+    public abstract rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined;
+    public abstract setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined;
 
-    // #endregion Public Abstract Methods (1)
+    // #endregion Public Abstract Methods (2)
 
     // #region Protected Abstract Methods (1)
 
