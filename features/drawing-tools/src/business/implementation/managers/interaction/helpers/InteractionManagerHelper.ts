@@ -189,9 +189,9 @@ export class InteractionManagerHelper {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
+                type: 'drawing',
                 index: this.#draggedPoint!,
-                referencePoint: this.#draggedPointPosition,
-                pressedKeys: this.#drawingToolsManager.getPressedKeys(),
+                startPoint: this.#draggedPointPosition,
                 positionArray: this.#drawingToolsManager.positionArray
             })?.point;
 

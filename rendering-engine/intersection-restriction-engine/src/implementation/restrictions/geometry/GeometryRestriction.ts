@@ -3,20 +3,19 @@ import { AbstractRestriction } from '../AbstractRestriction';
 import { Box } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
-    RayTraceResult,
-    RESTRICTION_TYPE,
     RestrictionMetaData,
-    RestrictionProperties
+    RestrictionPropertiesBase,
+    RestrictionResult
 } from '../../../interfaces/IRestriction';
 import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
@@ -33,7 +32,7 @@ export type GeometryRestrictionProperties = {
      * The color of the wireframe.
      */
     wireframeColor?: string;
-} & RestrictionProperties;
+} & RestrictionPropertiesBase;
 
 // #endregion Type aliases (1)
 
@@ -73,7 +72,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     // #region Constructors (1)
 
     constructor(viewport: IViewportApi, geometryMathManager: GeometryMathManager, parentNode: ITreeNode, id: string, settings: IVisualizationSettings, properties: GeometryRestrictionProperties) {
-        super(viewport, parentNode, id, RESTRICTION_TYPE.GEOMETRY);
+        super(viewport, parentNode, id, properties);
         this.#viewport = viewport;
         this.#settings = settings;
         this.#geometryMathManager = geometryMathManager;
@@ -134,7 +133,7 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
     // #region Public Methods (3)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (this.enabled === false) return;
         if (this.#snapToVertices === false && this.#snapToEdges === false && this.#snapToFaces === false) return;
 
@@ -169,13 +168,13 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                 vertex.fromBufferAttribute(positionAttribute, intersections[0].index);
                 object.localToWorld(vertex);
 
-                return { point: vec3.fromValues(vertex.x, vertex.y, vertex.z), restriction: this };
+                return { point: vec3.fromValues(vertex.x, vertex.y, vertex.z), distance: intersections[0].distance, restriction: this };
             }
 
             const intersectionPoint = intersections[0].point;
             const intersectionPointVec3 = vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
 
-            if (!intersections[0].face) return { point: intersectionPointVec3, restriction: this };
+            if (!intersections[0].face) return { point: intersectionPointVec3, distance: intersections[0].distance, restriction: this };
 
             if (this.#snapToVertices === true || this.#snapToEdges === true) {
                 const vertexA = new THREE.Vector3();
@@ -234,15 +233,11 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
             if (this.#snapToFaces === true) {
                 // part 3 - face intersection
-                return { point: vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z), restriction: this };
+                return { point: vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z), distance: intersections[0].distance, restriction: this };
             }
         }
 
         return;
-    }
-
-    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
-        return this.rayTrace(ray);
     }
 
     public updateNodes(nodes: ITreeNode[]) {

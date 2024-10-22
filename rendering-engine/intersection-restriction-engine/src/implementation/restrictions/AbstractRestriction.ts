@@ -1,19 +1,20 @@
 import * as THREE from 'three';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
-    RayTraceResult,
     RESTRICTION_TYPE,
-    RestrictionMetaData
+    RestrictionMetaData,
+    RestrictionProperties,
+    RestrictionResult
 } from '../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../interfaces/ISnapRestriction';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
-import { mat4, vec3 } from 'gl-matrix';
 import { ThreejsData } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
+import { vec3 } from 'gl-matrix';
 
 export abstract class AbstractRestriction implements IRestriction {
-    // #region Properties (11)
+    // #region Properties (12)
 
     readonly #id: string;
     readonly #parentNode: ITreeNode;
@@ -21,6 +22,7 @@ export abstract class AbstractRestriction implements IRestriction {
     readonly #viewport: IViewportApi;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
+    #rotation: { axis: vec3; angle: number; };
     #showVisualization: boolean = false;
 
     protected _enabled: boolean = true;
@@ -29,21 +31,22 @@ export abstract class AbstractRestriction implements IRestriction {
     protected _priority: number = -1;
     protected _snapRestrictions: { [key: string]: ISnapRestriction } = {};
 
-    // #endregion Properties (11)
+    // #endregion Properties (12)
 
     // #region Constructors (1)
 
-    constructor(viewport: IViewportApi, parentNode: ITreeNode, id: string, type: RESTRICTION_TYPE) {
+    constructor(viewport: IViewportApi, parentNode: ITreeNode, id: string, properties: RestrictionProperties) {
         this.#parentNode = parentNode;
         this.#viewport = viewport;
         this.#id = id;
-        this.#type = type;
+        this.#type = properties.type;
+        this.#rotation = properties.rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
         this.createGridHelperObject();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (9)
+    // #region Public Getters And Setters (11)
 
     public get enabled(): boolean {
         return this._enabled;
@@ -68,6 +71,14 @@ export abstract class AbstractRestriction implements IRestriction {
         this._priority = value;
     }
 
+    public get rotation(): { axis: vec3; angle: number; } {
+        return this.#rotation;
+    }
+
+    public set rotation(value: { axis: vec3; angle: number; }) {
+        this.#rotation = value;
+    }
+
     public get showVisualization(): boolean {
         return this.#showVisualization;
     }
@@ -86,7 +97,7 @@ export abstract class AbstractRestriction implements IRestriction {
         return this.#type;
     }
 
-    // #endregion Public Getters And Setters (9)
+    // #endregion Public Getters And Setters (11)
 
     // #region Public Methods (1)
 
@@ -98,12 +109,11 @@ export abstract class AbstractRestriction implements IRestriction {
 
     // #endregion Public Methods (1)
 
-    // #region Public Abstract Methods (2)
+    // #region Public Abstract Methods (1)
 
-    public abstract rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined;
-    public abstract setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined;
+    public abstract rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined;
 
-    // #endregion Public Abstract Methods (2)
+    // #endregion Public Abstract Methods (1)
 
     // #region Protected Abstract Methods (1)
 

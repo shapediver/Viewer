@@ -1,7 +1,5 @@
 import {
-    GeometryRestrictionProperties,
     IRestrictionApi,
-    PlaneRestrictionProperties,
     RestrictionProperties
 } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { PointsData } from '../../business/interfaces/IDrawingToolsManager';
@@ -52,7 +50,7 @@ export interface IDrawingToolsApi {
      * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
-    addRestriction(properties: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties, token?: string): IRestrictionApi | undefined;
+    addRestriction(properties: RestrictionProperties, token?: string): IRestrictionApi | undefined;
     /**
      * Check if the drawing tool can redo the last action.
      */

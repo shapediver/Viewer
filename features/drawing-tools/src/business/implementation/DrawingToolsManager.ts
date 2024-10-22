@@ -15,7 +15,14 @@ import {
     ShapeDiverViewerDrawingToolsError,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
-import { EventManager } from './managers/interaction/EventManager';
+import {
+    EventManager,
+    GeometryMathManager,
+    IRestriction,
+    IRestrictionManager,
+    RESTRICTION_TYPE,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import {
     FLAG_TYPE,
     ITreeNode,
@@ -24,13 +31,6 @@ import {
     TreeNode
 } from '@shapediver/viewer';
 import { GeometryManager } from './managers/geometry/GeometryManager';
-import {
-    GeometryMathManager,
-    IRestriction,
-    IRestrictionManager,
-    RESTRICTION_TYPE,
-    RestrictionProperties
-} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { GeometryState } from './managers/geometry/GeometryState';
 import { HistoryManager } from './managers/HistoryManager';
 import { InteractionManager } from './managers/interaction/InteractionManager';
@@ -200,7 +200,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     // #endregion Public Getters And Setters (22)
 
-    // #region Public Methods (29)
+    // #region Public Methods (28)
 
     /**
      * Add a point to the drawing tool.
@@ -272,10 +272,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
     public getPointsData(): PointsData {
         return this.geometryState.getPointsData();
-    }
-
-    public getPressedKeys(): string[] {
-        return Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
     }
 
     public keyPressed(key: string | string[]): boolean {
@@ -522,7 +518,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#textVisualizationManager.createDistanceLabels();
     }
 
-    // #endregion Public Methods (29)
+    // #endregion Public Methods (28)
 
     // #region Private Methods (2)
 

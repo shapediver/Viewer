@@ -1,20 +1,17 @@
-import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { IViewportApi } from '@shapediver/viewer';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 /**
  * The line constraint is used for dragging and allows the specification of a line along which objects can be dragged.
  * The radius defines in which distance this constraint is being considered to be chosen from the constraints defined.
  * The transformation and optional rotation of this constraint get applied to the node if it is the constraint with the closest distance to the ray that was used for the drag event.
  * As this is a difficult topic, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1) where we go through the process of setting everything up with examples.
+ *
+ * @deprecated This class is deprecated and will be removed in the future. Please use the `LineRestriction` instead.
  */
 export class LineConstraint implements IDragConstraint {
-    // #region Properties (5)
+    // #region Properties (4)
 
-    #dragOrigin?: vec3;
     #point1: vec3;
     #point2: vec3;
     #radius: number = 0;
@@ -23,7 +20,7 @@ export class LineConstraint implements IDragConstraint {
         angle: number
     };
 
-    // #endregion Properties (5)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -46,8 +43,6 @@ export class LineConstraint implements IDragConstraint {
         this.#point2 = _point2;
         this.#radius = _radius;
         this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
-
-        console.warn('The LineConstraint is deprecated and will be removed in the future.');
     }
 
     // #endregion Constructors (1)
@@ -71,16 +66,4 @@ export class LineConstraint implements IDragConstraint {
     }
 
     // #endregion Public Getters And Setters (4)
-
-    // #region Public Methods (2)
-
-    public intersect(viewport: IViewportApi, node: ITreeNode, rayA: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        return;
-    }
-
-    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        return this.intersect(viewport, node, ray);
-    }
-
-    // #endregion Public Methods (2)
 }

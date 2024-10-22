@@ -1,27 +1,32 @@
+import { calculateDragMatrix } from './restrictions/RestrictionsHelper';
 import { CameraPlaneRestriction, CameraPlaneRestrictionProperties } from './restrictions/camera_plane/CameraPlaneRestriction';
-import { GeometryMathManager } from './GeometryMathManager';
-import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
+    DraggingRestrictionMetaData,
+    DrawingRestrictionMetaData,
     IRestriction,
+    isDraggingRestriction,
     RayTraceResult,
     RESTRICTION_TYPE,
-    RestrictionMetaData,
     RestrictionProperties
 } from '../interfaces/IRestriction';
+import { EventManager } from './EventManager';
+import { GeometryMathManager } from './GeometryMathManager';
+import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { IRestrictionManager } from '../interfaces/IRestrictionManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { IViewportApi } from '@shapediver/viewer';
+import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../interfaces/IVisualizationSettings';
 import { LineRestriction, LineRestrictionProperties } from './restrictions/line/LineRestriction';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 import { PointRestriction, PointRestrictionProperties } from './restrictions/point/PointRestriction';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 export class RestrictionManager implements IRestrictionManager {
-    // #region Properties (7)
+    // #region Properties (11)
 
+    readonly #eventManager: EventManager;
     readonly #geometryMathManager: GeometryMathManager;
     readonly #parentNode: ITreeNode;
     readonly #restrictions: { [token: string]: IRestriction } = {};
@@ -40,22 +45,38 @@ export class RestrictionManager implements IRestrictionManager {
     readonly #uuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
+    #closed: boolean = false;
+    #keysPressed: { [key: string]: boolean } = {};
+    #restrictionManagerNode: ITreeNode;
     #showRestrictionVisualization: boolean = false;
 
-    // #endregion Properties (7)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
     constructor(
         viewport: IViewportApi,
-        parentNode?: ITreeNode,
+        parentNode: ITreeNode = sceneTree.root,
         restrictions?: { [token: string]: RestrictionProperties },
         settings?: IVisualizationSettings
     ) {
         this.#viewport = viewport;
-        this.#parentNode = parentNode || new TreeNode('RestrictionManagerNode');
+        this.#parentNode = parentNode;
+        this.#restrictionManagerNode = new TreeNode('RestrictionManager');
+        this.#parentNode.addChild(this.#restrictionManagerNode);
+        this.#parentNode.updateVersion(false, false);
+
         if (settings) this.#settings = settings;
         this.#geometryMathManager = new GeometryMathManager(this.#viewport, this.#settings);
+
+        this.#eventManager = new EventManager(this.#viewport, {
+            onDown: this.onDown.bind(this),
+            onUp: this.onUp.bind(this),
+            onOut: this.onOut.bind(this),
+            onMove: this.onMove.bind(this),
+            onKeyDown: this.onKeyDown.bind(this),
+            onKeyUp: this.onKeyUp.bind(this)
+        });
 
         if (restrictions) {
             for (const restrictionToken in restrictions) {
@@ -66,7 +87,11 @@ export class RestrictionManager implements IRestrictionManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (3)
+    // #region Public Getters And Setters (4)
+
+    public get closed(): boolean {
+        return this.#closed;
+    }
 
     public get restrictions(): { [token: string]: IRestriction } {
         return this.#restrictions;
@@ -86,20 +111,19 @@ export class RestrictionManager implements IRestrictionManager {
         }
     }
 
-    // #endregion Public Getters And Setters (3)
+    // #endregion Public Getters And Setters (4)
 
     // #region Public Methods (6)
 
     public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
         token = token || this.#uuidGenerator.create();
-        console.log("addRestriction", this.#viewport, properties, token);
 
         let restriction: IRestriction | undefined;
         if (properties.type === RESTRICTION_TYPE.PLANE) {
             restriction = new PlaneRestriction(
                 this.#viewport,
                 this.#geometryMathManager,
-                this.#parentNode,
+                this.#restrictionManagerNode,
                 token,
                 this.#settings,
                 properties as PlaneRestrictionProperties
@@ -108,7 +132,7 @@ export class RestrictionManager implements IRestrictionManager {
             restriction = new GeometryRestriction(
                 this.#viewport,
                 this.#geometryMathManager,
-                this.#parentNode,
+                this.#restrictionManagerNode,
                 token,
                 this.#settings,
                 properties as GeometryRestrictionProperties
@@ -117,7 +141,7 @@ export class RestrictionManager implements IRestrictionManager {
             restriction = new CameraPlaneRestriction(
                 this.#viewport,
                 this.#geometryMathManager,
-                this.#parentNode,
+                this.#restrictionManagerNode,
                 token,
                 this.#settings,
                 properties as CameraPlaneRestrictionProperties
@@ -126,7 +150,7 @@ export class RestrictionManager implements IRestrictionManager {
             restriction = new PointRestriction(
                 this.#viewport,
                 this.#geometryMathManager,
-                this.#parentNode,
+                this.#restrictionManagerNode,
                 token,
                 this.#settings,
                 properties as PointRestrictionProperties
@@ -135,7 +159,7 @@ export class RestrictionManager implements IRestrictionManager {
             restriction = new LineRestriction(
                 this.#viewport,
                 this.#geometryMathManager,
-                this.#parentNode,
+                this.#restrictionManagerNode,
                 token,
                 this.#settings,
                 properties as LineRestrictionProperties
@@ -150,15 +174,26 @@ export class RestrictionManager implements IRestrictionManager {
     }
 
     public close(): void {
+        this.#closed = true;
+        this.#parentNode.removeChild(this.#restrictionManagerNode);
+        this.#parentNode.updateVersion(false, false);
+        this.#eventManager.close();
+        this.#geometryMathManager.close();
         Object.keys(this.#restrictions).forEach(key => this.removeRestriction(key));
+    }
+
+    public getPressedKeys(): string[] {
+        return Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
     }
 
     public getRestriction(token: string): IRestriction | undefined {
         return this.#restrictions[token];
     }
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+    public rayTrace(ray: IRay, metaData: DrawingRestrictionMetaData | DraggingRestrictionMetaData): RayTraceResult | undefined {
         let rayTracingResult: RayTraceResult | undefined = undefined;
+
+        metaData.pressedKeys = this.getPressedKeys();
 
         // create an array of arrays with the restrictions sorted by priority
         const restrictionsSorted = Object.values(this.#restrictions).sort((a, b) => (b.priority || 0) - (a.priority || 0));
@@ -167,17 +202,27 @@ export class RestrictionManager implements IRestrictionManager {
             if (rayTracingResult && rayTracingResult.restriction.priority > restriction.priority) break;
 
             const hit = restriction.rayTrace(ray, metaData);
-
             if (!hit) continue;
+
             const distance = hit.distance !== undefined ? hit.distance : vec3.squaredDistance(ray.origin, hit.point);
             if (distance < (rayTracingResult ? rayTracingResult.distance! : Infinity)) {
-                rayTracingResult = {
-                    restriction: restriction,
-                    transformation: hit.transformation,
-                    dragAnchor: hit.dragAnchor,
-                    point: hit.point,
-                    distance: distance
-                };
+                if (isDraggingRestriction(metaData)) {
+                    const { matrix, dragAnchor } = calculateDragMatrix(hit.point, (hit.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, hit.closestPointOnRay || hit.point);
+
+                    rayTracingResult = {
+                        restriction: restriction,
+                        transformation: matrix,
+                        dragAnchor: dragAnchor,
+                        point: hit.point,
+                        distance: distance
+                    };
+                } else {
+                    rayTracingResult = {
+                        restriction: restriction,
+                        point: hit.point,
+                        distance: distance
+                    };
+                }
             }
         }
 
@@ -202,38 +247,36 @@ export class RestrictionManager implements IRestrictionManager {
         return false;
     }
 
-    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
-        let rayTracingResult: RayTraceResult | undefined = undefined;
+    // #endregion Public Methods (6)
 
-        // create an array of arrays with the restrictions sorted by priority
-        const restrictionsSorted = Object.values(this.#restrictions).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    // #region Private Methods (6)
 
-        for (const restriction of restrictionsSorted) {
-            const hit = restriction.setup(node, ray, intersection, previousDragMatrix, dragOrigin);
-
-            if (!hit) continue;
-            const distance = hit.distance !== undefined ? hit.distance : vec3.squaredDistance(ray.origin, hit.point);
-            if (distance < (rayTracingResult ? rayTracingResult.distance! : Infinity)) {
-                rayTracingResult = {
-                    restriction: restriction,
-                    transformation: hit.transformation,
-                    dragAnchor: hit.dragAnchor,
-                    point: hit.point,
-                    distance: distance
-                };
-            }
-        }
-
-        // deactivate the visualization of all restrictions that are not hit
-        for (const restriction of Object.values(this.#restrictions)) {
-            if (rayTracingResult && restriction !== rayTracingResult.restriction) {
-                for (const snapRestriction of Object.values(restriction.snapRestrictions)) {
-                    snapRestriction.active = false;
-                }
-            }
-        }
-        return rayTracingResult;
+    private onDown(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
     }
 
-    // #endregion Public Methods (6)
+    private onKeyDown(event: KeyboardEvent): void {
+        if (this.closed) return;
+
+        this.#keysPressed[event.key] = true;
+    }
+
+    private onKeyUp(event: KeyboardEvent): void {
+        if (this.closed) return;
+        this.#keysPressed[event.key] = false;
+    }
+
+    private onMove(event: PointerEvent, ray: IRay): void {
+        if (this.closed) return;
+    }
+
+    private onOut(): void {
+        if (this.closed) return;
+    }
+
+    private onUp(): void {
+        if (this.closed) return;
+    }
+
+    // #endregion Private Methods (6)
 }

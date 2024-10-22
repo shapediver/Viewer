@@ -3,38 +3,44 @@ import { AngularRestrictionProperties } from './implementation/restrictions/plan
 import { AxisRestrictionApi } from './api/implementation/plane/snap/AxisRestrictionApi';
 import { AxisRestrictionProperties } from './implementation/restrictions/plane/snap/AxisRestriction';
 import { CameraPlaneRestriction, CameraPlaneRestrictionProperties } from './implementation/restrictions/camera_plane/CameraPlaneRestriction';
-import { GeometryMathManager } from './implementation/GeometryMathManager';
-import { GeometryRestriction, GeometryRestrictionProperties } from './implementation/restrictions/geometry/GeometryRestriction';
-import { GeometryRestrictionApi } from './api/implementation/geometry/GeometryRestrictionApi';
-import { GridRestrictionApi } from './api/implementation/plane/snap/GridRestrictionApi';
-import { GridRestrictionProperties } from './implementation/restrictions/plane/snap/GridRestriction';
-import { IDragAnchor } from './interfaces/IDragAnchor';
+import { CameraPlaneRestrictionApi } from './api/implementation/camera_plane/CameraPlaneRestrictionApi';
 import {
+    DraggingRestrictionMetaData,
+    DrawingRestrictionMetaData,
     IRestriction,
     RayTraceResult,
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties
 } from './interfaces/IRestriction';
+import { EventManager } from './implementation/EventManager';
+import { GeometryMathManager } from './implementation/GeometryMathManager';
+import { GeometryRestriction, GeometryRestrictionProperties } from './implementation/restrictions/geometry/GeometryRestriction';
+import { GeometryRestrictionApi } from './api/implementation/geometry/GeometryRestrictionApi';
+import { GridRestrictionApi } from './api/implementation/plane/snap/GridRestrictionApi';
+import { GridRestrictionProperties } from './implementation/restrictions/plane/snap/GridRestriction';
+import { IDragAnchor } from './interfaces/IDragAnchor';
 import { IRestrictionApi } from './api/interfaces/IRestrictionApi';
 import { IRestrictionManager } from './interfaces/IRestrictionManager';
 import { ISnapRestriction, SnapRestrictionProperties } from './interfaces/ISnapRestriction';
 import { ISnapRestrictionApi } from './api/interfaces/ISnapRestrictionApi';
 import { IVisualizationSettings } from './interfaces/IVisualizationSettings';
 import { LineRestriction, LineRestrictionProperties } from './implementation/restrictions/line/LineRestriction';
+import { LineRestrictionApi } from './api/implementation/line/LineRestrictionApi';
 import { PlaneRestriction, PlaneRestrictionProperties } from './implementation/restrictions/plane/PlaneRestriction';
 import { PlaneRestrictionApi } from './api/implementation/plane/PlaneRestrictionApi';
 import { PointRestriction, PointRestrictionProperties } from './implementation/restrictions/point/PointRestriction';
+import { PointRestrictionApi } from './api/implementation/point/PointRestrictionApi';
 import { RestrictionManager } from './implementation/RestrictionManager';
 
 export {
-    IRestrictionManager, RestrictionManager,
+    IRestrictionManager, RestrictionManager, EventManager, GeometryMathManager,
     IDragAnchor, IRestriction, ISnapRestriction, IVisualizationSettings
 };
 
 export {
     RESTRICTION_TYPE, RayTraceResult,
-    RestrictionProperties, RestrictionMetaData, SnapRestrictionProperties,
+    RestrictionProperties, RestrictionMetaData, DrawingRestrictionMetaData, DraggingRestrictionMetaData, SnapRestrictionProperties,
     PlaneRestriction, PlaneRestrictionProperties,
     AngularRestrictionProperties, AxisRestrictionProperties, GridRestrictionProperties,
     GeometryRestriction, GeometryRestrictionProperties,
@@ -45,9 +51,5 @@ export {
 
 export {
     IRestrictionApi, ISnapRestrictionApi,
-    PlaneRestrictionApi, AngularRestrictionApi, AxisRestrictionApi, GridRestrictionApi, GeometryRestrictionApi
-};
-
-export {
-    GeometryMathManager
+    PlaneRestrictionApi, AngularRestrictionApi, AxisRestrictionApi, GridRestrictionApi, GeometryRestrictionApi, CameraPlaneRestrictionApi, PointRestrictionApi, LineRestrictionApi
 };

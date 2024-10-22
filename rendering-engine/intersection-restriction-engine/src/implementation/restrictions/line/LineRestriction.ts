@@ -1,57 +1,50 @@
 import { AbstractRestriction } from '../AbstractRestriction';
-import { calculateDragMatrix } from '../RestrictionsHelper';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
-    RayTraceResult,
-    RESTRICTION_TYPE,
     RestrictionMetaData,
-    RestrictionProperties
+    RestrictionPropertiesBase,
+    RestrictionResult
 } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
 export type LineRestrictionProperties = {
-    rotation?: { axis: vec3; angle: number; };
     point1: vec3;
     point2: vec3;
     radius?: number;
-} & RestrictionProperties;
+} & RestrictionPropertiesBase;
 
 // #endregion Type aliases (1)
 
 // #region Classes (1)
 
 export class LineRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (10)
+    // #region Properties (7)
 
     readonly #viewport: IViewportApi;
 
     #dragLineLength: number;
-    #dragOrigin?: vec3;
     #dragRay: IRay;
-    #node?: ITreeNode;
     #point1: vec3;
     #point2: vec3;
     #radius: number;
-    #rotation: { axis: vec3; angle: number; };
     #snapRestrictions: { [key: string]: ISnapRestriction } = {};
 
-    // #endregion Properties (10)
+    // #endregion Properties (7)
 
     // #region Constructors (1)
 
     constructor(viewport: IViewportApi, geometryMathManager: GeometryMathManager, parentNode: ITreeNode, id: string, settings: IVisualizationSettings, properties: LineRestrictionProperties) {
-        super(viewport, parentNode, id, RESTRICTION_TYPE.PLANE);
+        super(viewport, parentNode, id, properties);
 
         this.#viewport = viewport;
-        this.#rotation = properties.rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
         this.#point1 = properties.point1;
         this.#point2 = properties.point2;
         this.#radius = properties.radius || 0;
@@ -90,11 +83,9 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
 
     // #endregion Public Getters And Setters (5)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
-        if (!this.#node || !this.#dragOrigin) return;
-
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         const planeNormal = vec3.cross(vec3.create(), ray.direction, this.#dragRay.direction);
 
         const Na = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), ray.direction, planeNormal));
@@ -121,24 +112,18 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
 
         const distance = vec3.distance(pointA, pointB);
         if (distance < this.#radius) {
-            const { matrix, dragAnchor } = calculateDragMatrix(pointB, this.#rotation, this.#dragOrigin!, metaData?.dragAnchors, pointA);
-            return { distance, transformation: matrix, dragAnchor, point: pointB, restriction: this };
+            return {
+                distance,
+                point: pointB,
+                closestPointOnRay: pointA,
+                restriction: this
+            };
         }
 
         return;
     }
 
-    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
-        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
-        if (!invertedPreviousDragMatrix)
-            invertedPreviousDragMatrix = mat4.create();
-
-        this.#dragOrigin = dragOrigin ? vec3.transformMat4(vec3.create(), dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
-        this.#node = node;
-        return this.rayTrace(ray);
-    }
-
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (1)
 
     // #region Protected Methods (1)
 

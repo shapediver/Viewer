@@ -1,5 +1,6 @@
 import { IDomEventListener } from '@shapediver/viewer.shared.services';
-import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IViewportApi } from '@shapediver/viewer';
 
 // #region Type aliases (1)
 

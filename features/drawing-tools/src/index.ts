@@ -3,6 +3,10 @@ import {
     AngularRestrictionProperties,
     AxisRestrictionApi,
     AxisRestrictionProperties,
+    CameraPlaneRestrictionApi,
+    CameraPlaneRestrictionProperties,
+    DraggingRestrictionMetaData,
+    DrawingRestrictionMetaData,
     GeometryRestrictionApi,
     GeometryRestrictionProperties,
     GridRestrictionApi,
@@ -10,8 +14,13 @@ import {
     IRestriction,
     IRestrictionApi,
     ISnapRestriction,
+    ISnapRestrictionApi,
+    LineRestrictionApi,
+    LineRestrictionProperties,
     PlaneRestrictionApi,
     PlaneRestrictionProperties,
+    PointRestrictionApi,
+    PointRestrictionProperties,
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties,
@@ -33,12 +42,27 @@ import { SystemInfo } from '@shapediver/viewer.shared.services';
 export {
     SettingsOptional as Settings, Callbacks,
     DrawingToolsEventResponseMapping, IDrawingToolsEvent,
-    IDrawingToolsApi, DrawingToolsApi, PointsData,
-    PlaneRestrictionProperties, GridRestrictionProperties, AngularRestrictionProperties,
+    IDrawingToolsApi, DrawingToolsApi, PointsData
+};
+
+export {
+    IRestriction, ISnapRestriction
+};
+
+export {
+    RESTRICTION_TYPE,
+    RestrictionProperties, RestrictionMetaData, DrawingRestrictionMetaData, DraggingRestrictionMetaData, SnapRestrictionProperties,
+    PlaneRestrictionProperties,
+    AngularRestrictionProperties, AxisRestrictionProperties, GridRestrictionProperties,
     GeometryRestrictionProperties,
-    AxisRestrictionProperties,
-    IRestrictionApi, PlaneRestrictionApi, GridRestrictionApi, AngularRestrictionApi, GeometryRestrictionApi, AxisRestrictionApi,
-    RestrictionProperties, IRestriction, RestrictionMetaData, RESTRICTION_TYPE, SnapRestrictionProperties, ISnapRestriction,
+    PointRestrictionProperties,
+    LineRestrictionProperties,
+    CameraPlaneRestrictionProperties
+};
+
+export {
+    IRestrictionApi, ISnapRestrictionApi,
+    PlaneRestrictionApi, AngularRestrictionApi, AxisRestrictionApi, GridRestrictionApi, GeometryRestrictionApi, CameraPlaneRestrictionApi, PointRestrictionApi, LineRestrictionApi
 };
 
 const defaultTextures: { [key: string]: Promise<IMapData> | IMapData } = {};

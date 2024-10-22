@@ -13,27 +13,26 @@ export const calculateDragMatrix =
         closestPoint: vec3
     ): {
         matrix: mat4,
-        dragAnchor?: IDragAnchor
+        dragAnchor?: IDragAnchor,
+        point: vec3
     } => {
         if (dragAnchors.length > 0) {
             const results: {
                 matrix: mat4,
-                transformedPoint: vec3,
+                point: vec3,
                 dragAnchor: IDragAnchor
             }[] = [];
             for (let i = 0; i < dragAnchors.length; i++) {
                 const matrix = calculateMatrix(dragAnchors[i].position, dragAnchors[i].rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
-                const transformedPoint = vec3.transformMat4(vec3.create(), dragOrigin!, matrix);
-                results.push({ matrix, transformedPoint, dragAnchor: dragAnchors[i] });
+                const point = vec3.transformMat4(vec3.create(), dragOrigin!, matrix);
+                results.push({ matrix, point, dragAnchor: dragAnchors[i] });
             }
-            results.sort((a, b) => vec3.distance(a.transformedPoint, closestPoint!) - vec3.distance(b.transformedPoint, closestPoint!));
-            return {
-                matrix: results[0].matrix,
-                dragAnchor: results[0].dragAnchor
-            };
+            results.sort((a, b) => vec3.distance(a.point, closestPoint!) - vec3.distance(b.point, closestPoint!));
+            return results[0];
         } else {
             return {
-                matrix: calculateMatrix(dragOrigin, { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation)
+                matrix: calculateMatrix(dragOrigin, { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation),
+                point: dragOrigin
             };
         }
     };

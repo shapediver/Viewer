@@ -2,12 +2,12 @@ import { AbstractSnapRestriction } from '../../AbstractSnapRestriction';
 import { CSS2DObject } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { GeometryMathManager } from '../../../GeometryMathManager';
 import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { isDrawingRestriction, RestrictionMetaData, RestrictionResult } from '../../../../interfaces/IRestriction';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
 import { ITreeNode, IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../../interfaces/IVisualizationSettings';
 import { numberCleaner } from '@shapediver/viewer.shared.services';
 import { PlaneRestriction } from '../PlaneRestriction';
-import { RayTraceResult, RestrictionMetaData } from '../../../../interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -123,7 +123,9 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
     // #region Public Methods (2)
 
-    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined {
+        if (!isDrawingRestriction(metaData)) return;
+
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
         if (this.enabled === false && !(metaData?.pressedKeys?.length === 1 && metaData?.pressedKeys[0] === this.#activationKey)) return;
 
@@ -207,7 +209,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             if (crossProductLength < 0.001) {
                 vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-                return { point: resultPointNextAngle, restriction: this };
+                return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
             }
 
             const t = vec3.sub(vec3.create(), previousPointProjected, nextPointProjected);
@@ -219,7 +221,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             if (tValue < 0 || uValue < 0) {
                 vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-                return { point: resultPointNextAngle, restriction: this };
+                return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
             }
 
             const intersection = vec3.add(vec3.create(), nextPointProjected, vec3.scale(vec3.create(), rayDirectionNext, tValue));
@@ -230,7 +232,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(intersection, intersection, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: intersection, restriction: this };
+            return { point: intersection, restriction: this.#planeRestriction, snapRestriction: this };
         }
 
         // check which distance to the projection is smaller
@@ -240,14 +242,14 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: resultPointNextAngle, restriction: this };
+            return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
         } else {
             this.#labelPrevious = this.createGrid(this.#labelPrevious, previousPointFromData, closestAnglePrevious);
             this.#activePolarGrids.previous = true;
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(resultPointPreviousAngle, resultPointPreviousAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: resultPointPreviousAngle, restriction: this };
+            return { point: resultPointPreviousAngle, restriction: this.#planeRestriction, snapRestriction: this };
         }
     }
 

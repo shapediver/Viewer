@@ -9,6 +9,13 @@ import {
     OutputNodeNameFilterPatterns
 } from './implementation/utils/PatternUtils';
 import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
+import {
+    CameraPlaneRestrictionProperties,
+    GeometryRestrictionProperties,
+    LineRestrictionProperties,
+    PlaneRestrictionProperties,
+    PointRestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
 import {
@@ -77,4 +84,8 @@ export {
 
 export {
     NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData
+};
+
+export {
+    PointRestrictionProperties, CameraPlaneRestrictionProperties, GeometryRestrictionProperties, LineRestrictionProperties, PlaneRestrictionProperties
 };

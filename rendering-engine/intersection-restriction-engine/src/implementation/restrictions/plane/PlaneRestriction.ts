@@ -11,18 +11,19 @@ import {
 } from '@shapediver/viewer';
 import { GeometryMathManager } from '../../GeometryMathManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IPlane, Plane } from '@shapediver/viewer.shared.math';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
-    RayTraceResult,
-    RESTRICTION_TYPE,
+    isDraggingRestriction,
+    isDrawingRestriction,
     RestrictionMetaData,
-    RestrictionProperties
+    RestrictionPropertiesBase,
+    RestrictionResult
 } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
 import { mat4, vec3 } from 'gl-matrix';
-import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 // #region Type aliases (1)
 
@@ -60,7 +61,7 @@ export type PlaneRestrictionProperties = {
      * axis snap restriction
      */
     axisSnapRestriction?: AxisRestrictionProperties;
-} & RestrictionProperties;
+} & RestrictionPropertiesBase;
 
 // #endregion Type aliases (1)
 
@@ -70,7 +71,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     // #region Properties (14)
 
     readonly #properties: PlaneRestrictionProperties;
-    readonly #uuidGenerator = UuidGenerator.instance;
     readonly #viewport: IViewportApi;
 
     #angularRestriction: AngularRestriction;
@@ -79,6 +79,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     #gridRestriction: GridRestriction;
     #normal: vec3 = vec3.create();
     #origin: vec3 = vec3.create();
+    #plane: IPlane = new Plane();
     #snapRestrictions: { [key: string]: ISnapRestriction };
     #transformationFromXYPlaneMatrix: mat4 = mat4.create();
     #transformationToXYPlaneMatrix: mat4 = mat4.create();
@@ -90,11 +91,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     // #region Constructors (1)
 
     constructor(viewport: IViewportApi, geometryMathManager: GeometryMathManager, parentNode: ITreeNode, id: string, settings: IVisualizationSettings, properties: PlaneRestrictionProperties) {
-        super(viewport, parentNode, id, RESTRICTION_TYPE.PLANE);
+        super(viewport, parentNode, id, properties);
 
         this.#viewport = viewport;
         this.#cameraId = this.#viewport.camera!.id;
-
         this.#properties = properties;
 
         this.#gridRestriction = new GridRestriction(viewport, geometryMathManager, parentNode, this, this.#properties.gridSnapRestriction);
@@ -175,29 +175,33 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
     // #endregion Public Getters And Setters (14)
 
-    // #region Public Methods (2)
+    // #region Public Methods (1)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (this.enabled === false) return;
 
-        if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
+        if (isDrawingRestriction(metaData)) {
+            if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
 
-        let origin = this.#origin;
-        if (metaData?.referencePoint)
-            origin = vec3.sub(vec3.create(), this.#origin, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), this.#origin, metaData.referencePoint), this.#normal)));
+            let origin = this.#origin;
+            if (metaData.startPoint)
+                origin = vec3.sub(vec3.create(), this.#origin, vec3.scale(vec3.create(), this.#normal, vec3.dot(vec3.sub(vec3.create(), this.#origin, metaData.startPoint), this.#normal)));
 
-        // find intersection of ray and plane
-        const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
-        const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
+            // find intersection of ray and plane
+            const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
+            const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
 
-        return this.snap(ray, intersection, metaData);
+            return this.snap(ray, intersection, metaData);
+        } else if (isDraggingRestriction(metaData)) {
+            const distance = this.#plane.intersect(ray.origin, ray.direction);
+            if (distance && distance > 0) {
+                const intersection = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
+                return this.snap(ray, intersection, metaData);
+            }
+        }
     }
 
-    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
-        return this.rayTrace(ray);
-    }
-
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (1)
 
     // #region Protected Methods (1)
 
@@ -251,7 +255,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
     }
 
-    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined {
+    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (this.enabled === false) return;
 
         if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
@@ -294,6 +298,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
         return {
             point: point,
+            closestPointOnRay: point,
             restriction: this
         };
     }
@@ -341,6 +346,8 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         } else {
             this.createDefaultPlane(camera);
         }
+
+        this.#plane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, this.#origin);
 
         this.createTransformationMatrices();
         this.#gridRestriction.updatePlaneDefinition();

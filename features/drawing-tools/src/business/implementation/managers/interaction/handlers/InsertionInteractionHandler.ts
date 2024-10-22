@@ -89,8 +89,8 @@ export class InsertionInteractionHandler {
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true) {
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
+                type: 'drawing',
                 index: this.#insertionActiveIndex,
-                pressedKeys: this.#drawingToolsManager.getPressedKeys(),
                 positionArray: this.#drawingToolsManager.positionArray
             })?.point;
 
@@ -131,7 +131,7 @@ export class InsertionInteractionHandler {
 
             // add a point at the ray intersection
             const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
-                pressedKeys: this.#drawingToolsManager.getPressedKeys(),
+                type: 'drawing',
                 positionArray: this.#drawingToolsManager.positionArray
             })?.point;
             // add at last position

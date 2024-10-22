@@ -1,5 +1,5 @@
 import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
-import { RayTraceResult, RestrictionMetaData } from './IRestriction';
+import { RestrictionMetaData, RestrictionResult } from './IRestriction';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -78,7 +78,7 @@ export interface ISnapRestriction {
      * @param metaData The meta data of the point.
      * @returns The restricted position of the point.
      */
-    snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RayTraceResult | undefined;
+    snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined;
 
     // #endregion Public Methods (2)
 }

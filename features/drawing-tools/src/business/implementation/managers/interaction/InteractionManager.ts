@@ -1,9 +1,13 @@
 import { addListener, FLAG_TYPE, IViewportApi } from '@shapediver/viewer';
 import { DeletionInteractionHandler } from './handlers/DeletionInteractionHandler';
+import {
+    GeometryMathManager,
+    IRestrictionManager,
+    RestrictionManager
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DrawingToolsEventResponseMapping } from '../../../interfaces/events/EventResponseMapping';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
 import { EVENTTYPE_DRAWING_TOOLS, IEvent } from '@shapediver/viewer.shared.services';
-import { GeometryMathManager, IRestrictionManager, RestrictionManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { InsertionInteractionHandler } from './handlers/InsertionInteractionHandler';
 import { InteractionManagerHelper } from './helpers/InteractionManagerHelper';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -217,7 +221,7 @@ export class InteractionManager {
 
         if (!currentRestrictedPoint)
             currentRestrictedPoint = this.#restrictionManager.rayTrace(ray, {
-                pressedKeys: this.#drawingToolsManager.getPressedKeys(),
+                type: 'drawing',
                 positionArray: this.#drawingToolsManager.positionArray
             })?.point;
 

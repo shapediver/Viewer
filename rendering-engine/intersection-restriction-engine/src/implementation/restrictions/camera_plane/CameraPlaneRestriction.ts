@@ -1,54 +1,42 @@
 import { AbstractRestriction } from '../AbstractRestriction';
-import { calculateDragMatrix } from '../RestrictionsHelper';
-import {
-    ITreeNode,
-    IViewportApi
-} from '@shapediver/viewer';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { IPlane, Plane } from '@shapediver/viewer.shared.math';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import {
     IRestriction,
-    RayTraceResult,
-    RESTRICTION_TYPE,
     RestrictionMetaData,
-    RestrictionProperties
+    RestrictionPropertiesBase,
+    RestrictionResult
 } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
+import { ITreeNode, IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type CameraPlaneRestrictionProperties = {
-    rotation: { axis: vec3; angle: number; };
-} & RestrictionProperties;
+export type CameraPlaneRestrictionProperties = RestrictionPropertiesBase;
 
 // #endregion Type aliases (1)
 
 // #region Classes (1)
 
 export class CameraPlaneRestriction extends AbstractRestriction implements IRestriction {
-    // #region Properties (6)
+    // #region Properties (3)
 
     readonly #viewport: IViewportApi;
 
+    #dragPlane?: IPlane;
     #snapRestrictions: { [key: string]: ISnapRestriction } = {};
 
-    #dragOrigin?: vec3;
-    #dragPlane?: IPlane;
-    #node?: ITreeNode;
-    #rotation: { axis: vec3; angle: number; };
-
-    // #endregion Properties (6)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
     constructor(viewport: IViewportApi, geometryMathManager: GeometryMathManager, parentNode: ITreeNode, id: string, settings: IVisualizationSettings, properties: CameraPlaneRestrictionProperties) {
-        super(viewport, parentNode, id, RESTRICTION_TYPE.PLANE);
+        super(viewport, parentNode, id, properties);
 
         this.#viewport = viewport;
-        this.#rotation = properties.rotation;
     }
 
     // #endregion Constructors (1)
@@ -67,14 +55,18 @@ export class CameraPlaneRestriction extends AbstractRestriction implements IRest
 
     // #region Public Methods (1)
 
-    public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RayTraceResult | undefined {
-        if (!this.#node || !this.#dragPlane || !this.#dragOrigin) return;
+    public rayTrace(ray: IRay, metaData: RestrictionMetaData): RestrictionResult | undefined {
+        const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.#viewport.camera!.target, this.#viewport.camera!.position));
+        this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, metaData.startPoint || vec3.create());
 
         const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
-            const { matrix, dragAnchor } = calculateDragMatrix(point, this.#rotation, this.#dragOrigin!, metaData?.dragAnchors, point);
-            return { distance, transformation: matrix, dragAnchor, point, restriction: this };
+            return {
+                distance,
+                point,
+                restriction: this
+            };
         }
         return;
     }
@@ -85,18 +77,6 @@ export class CameraPlaneRestriction extends AbstractRestriction implements IRest
 
     protected visibilityChanged(): void { }
 
-    public setup(node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4, dragOrigin?: vec3): RayTraceResult | undefined {
-        const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.#viewport.camera!.target, this.#viewport.camera!.position));
-        this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
-
-        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
-        if (!invertedPreviousDragMatrix)
-            invertedPreviousDragMatrix = mat4.create();
-
-        this.#dragOrigin = dragOrigin ? vec3.transformMat4(vec3.create(), dragOrigin, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
-        this.#node = node;
-        return this.rayTrace(ray);
-    }
     // #endregion Protected Methods (1)
 }
 

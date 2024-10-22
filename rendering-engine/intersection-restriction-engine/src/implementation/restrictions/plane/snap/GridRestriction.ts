@@ -8,9 +8,12 @@ import {
 } from '@shapediver/viewer';
 import { GeometryMathManager } from '../../../GeometryMathManager';
 import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import {
+    RestrictionMetaData,
+    RestrictionResult
+} from '../../../../interfaces/IRestriction';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
 import { PlaneRestriction } from '../PlaneRestriction';
-import { RayTraceResult, RestrictionMetaData } from '../../../../interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
@@ -119,7 +122,7 @@ export class GridRestriction extends AbstractSnapRestriction implements ISnapRes
     // #region Public Methods (2)
 
     // public get
-    public snap(ray: IRay, point: vec3, metaData: RestrictionMetaData): RayTraceResult | undefined {
+    public snap(ray: IRay, point: vec3, metaData: RestrictionMetaData): RestrictionResult | undefined {
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
         if (this.enabled === false && !(metaData?.pressedKeys?.length === 1 && metaData?.pressedKeys[0] === this.#activationKey)) return;
 
@@ -163,7 +166,7 @@ export class GridRestriction extends AbstractSnapRestriction implements ISnapRes
         // Move the snapped point back to the original coordinate system
         const snappedPoint = vec3.transformMat4(vec3.create(), snappedOffset, this.#planeRestriction.transformationFromXYPlaneMatrix);
 
-        return { point: snappedPoint, restriction: this };
+        return { point: snappedPoint, restriction: this.#planeRestriction, snapRestriction: this };
     }
 
     public updatePlaneDefinition(): void {
