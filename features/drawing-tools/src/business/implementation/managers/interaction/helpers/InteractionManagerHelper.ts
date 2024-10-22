@@ -1,7 +1,7 @@
 import { addListener } from '@shapediver/viewer';
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
 import { EventEngine, EVENTTYPE_DRAWING_TOOLS } from '@shapediver/viewer.shared.services';
-import { GeometryMathManager } from '../../geometry/GeometryMathManager';
+import { GeometryMathManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay } from '@shapediver/viewer.features.interaction';
@@ -189,9 +189,11 @@ export class InteractionManagerHelper {
             this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
             const intersectionPoint = this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
+                type: 'drawing',
                 index: this.#draggedPoint!,
-                referencePoint: this.#draggedPointPosition
-            });
+                startPoint: this.#draggedPointPosition,
+                positionArray: this.#drawingToolsManager.positionArray
+            })?.point;
 
             if (intersectionPoint) {
                 const differenceToIntersected = vec3.sub(vec3.create(), intersectionPoint, this.#draggedPointPosition);

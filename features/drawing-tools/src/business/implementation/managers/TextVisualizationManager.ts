@@ -7,14 +7,13 @@ import {
     ThreejsData,
     TreeNode
 } from '@shapediver/viewer';
-import { CSS2DObject, CSS2DRenderer } from '../../../three/CSS2DRenderer';
+import { CSS2DObject, CSS2DRenderer } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { DrawingToolsManager } from '../DrawingToolsManager';
-import { IManager } from '../../interfaces/IManager';
-import { numberCleaner } from '../utils/numberCleaner';
+import { numberCleaner } from '@shapediver/viewer.shared.services';
 import { Settings } from '../../interfaces/IDrawingToolsManager';
 import { vec3 } from 'gl-matrix';
 
-export class TextVisualizationManager implements IManager {
+export class TextVisualizationManager {
     // #region Properties (14)
 
     readonly #drawingToolsManager: DrawingToolsManager;

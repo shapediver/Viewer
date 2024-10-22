@@ -20,7 +20,7 @@ import {
   ITiltShiftEffectDefinition,
   IVignetteEffectDefinition,
   POST_PROCESSING_EFFECT_TYPE
-  } from './interfaces/IPostProcessingEffectDefinitions';
+} from './interfaces/IPostProcessingEffectDefinitions';
 import {
   BlendFunction,
   BloomEffect,
@@ -49,7 +49,8 @@ import {
   TiltShiftEffect,
   VignetteEffect,
   VignetteTechnique
-  } from 'postprocessing';
+} from 'postprocessing';
+import { CSS2DObject, CSS2DRenderer } from './three/CSS2DRenderer';
 import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY } from './loaders/EnvironmentMapLoader';
 import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { IThreejsData } from './types/IThreejsData';
@@ -73,6 +74,10 @@ export {
   IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition,
   BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, FXAAEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SMAAEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect,
   BlendFunction, VignetteTechnique, KernelSize, SMAAPreset, EdgeDetectionMode, PredicationMode, Resolution
+};
+
+export {
+  CSS2DObject, CSS2DRenderer
 };
 
 const tag3dGeometryCreationInjector = new Tag3dGeometryCreationInjector();

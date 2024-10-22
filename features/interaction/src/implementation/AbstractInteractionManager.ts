@@ -1,6 +1,4 @@
-import { DragConstraintUtils } from './utils/DragConstraintUtils';
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
-import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils';
 import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils';
 import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager';
 import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
@@ -15,13 +13,12 @@ import { InteractionData } from './InteractionData';
 import { InteractionEffectUtils } from './utils/InteractionEffectUtils';
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
-    // #region Properties (9)
+    // #region Properties (8)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #id: string;
     readonly #tree: Tree = Tree.instance;
 
-    #dragConstraintUtils: IDragConstraintUtils = DragConstraintUtils.instance;
     #effectMaterial?: IMaterialAbstractData;
     #gatheredGroupedNodes: {
         [key: string]: ITreeNode[]
@@ -31,7 +28,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     public abstract filter: IInteractionFilterOptions;
 
-    // #endregion Properties (9)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -47,15 +44,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (10)
-
-    public get dragConstraintUtils(): IDragConstraintUtils {
-        return this.#dragConstraintUtils;
-    }
-
-    public set dragConstraintUtils(value: IDragConstraintUtils) {
-        this.#dragConstraintUtils = value;
-    }
+    // #region Public Getters And Setters (8)
 
     public get effectMaterial(): IMaterialAbstractData | undefined {
         return this.#effectMaterial;
@@ -91,7 +80,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#viewport = value;
     }
 
-    // #endregion Public Getters And Setters (10)
+    // #endregion Public Getters And Setters (8)
 
     // #region Public Abstract Methods (5)
 

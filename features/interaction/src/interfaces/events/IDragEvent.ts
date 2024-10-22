@@ -1,7 +1,7 @@
 import { IDragAnchor } from '../../implementation/InteractionData';
-import { IDragConstraint } from '../utils/IDragConstraint';
 import { IInteractionManager } from '../IInteractionManager';
 import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRestriction } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportEvent } from '@shapediver/viewer.shared.types';
 import { mat4, vec3 } from 'gl-matrix';
@@ -20,7 +20,7 @@ export interface IDragEvent extends IViewportEvent {
     /** 
      * The optional drag constraint that was applied. 
      */
-    dragConstraint?: IDragConstraint,
+    dragConstraint?: IRestriction,
     /** 
      * The original event that triggered the dragging. Only provided if it was not a manual dragging. 
      */

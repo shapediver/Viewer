@@ -5,15 +5,23 @@ import {
     PointsData,
     SettingsOptional
 } from '../../business/interfaces/IDrawingToolsManager';
+import {
+    CameraPlaneRestriction,
+    CameraPlaneRestrictionApi,
+    GeometryRestriction,
+    GeometryRestrictionApi,
+    IRestrictionApi,
+    LineRestriction,
+    LineRestrictionApi,
+    PlaneRestriction,
+    PlaneRestrictionApi,
+    PointRestriction,
+    PointRestrictionApi,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DrawingToolsManager } from '../../business/implementation/DrawingToolsManager';
-import { GeometryRestriction } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { GeometryRestrictionApi } from './restrictions/geometry/GeometryRestrictionApi';
 import { IDrawingToolsApi } from '../interfaces/IDrawingToolsApi';
-import { IRestrictionApi } from '../interfaces/IRestrictionApi';
 import { IViewportApi } from '@shapediver/viewer';
-import { PlaneRestriction } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
-import { PlaneRestrictionApi } from './restrictions/plane/PlaneRestrictionApi';
-import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export class DrawingToolsApi implements IDrawingToolsApi {
@@ -34,6 +42,12 @@ export class DrawingToolsApi implements IDrawingToolsApi {
                 this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
             if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
                 this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
+            if (this.#drawingToolsManager.restrictions[token] instanceof PointRestriction)
+                this.#restrictions[token] = new PointRestrictionApi(this.#drawingToolsManager.restrictions[token] as PointRestriction);
+            if (this.#drawingToolsManager.restrictions[token] instanceof LineRestriction)
+                this.#restrictions[token] = new LineRestrictionApi(this.#drawingToolsManager.restrictions[token] as LineRestriction);
+            if (this.#drawingToolsManager.restrictions[token] instanceof CameraPlaneRestriction)
+                this.#restrictions[token] = new CameraPlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as CameraPlaneRestriction);
         }
     }
 
@@ -85,6 +99,12 @@ export class DrawingToolsApi implements IDrawingToolsApi {
             this.#restrictions[token] = new PlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as PlaneRestriction);
         if (this.#drawingToolsManager.restrictions[token] instanceof GeometryRestriction)
             this.#restrictions[token] = new GeometryRestrictionApi(this.#drawingToolsManager.restrictions[token] as GeometryRestriction);
+        if (this.#drawingToolsManager.restrictions[token] instanceof PointRestriction)
+            this.#restrictions[token] = new PointRestrictionApi(this.#drawingToolsManager.restrictions[token] as PointRestriction);
+        if (this.#drawingToolsManager.restrictions[token] instanceof LineRestriction)
+            this.#restrictions[token] = new LineRestrictionApi(this.#drawingToolsManager.restrictions[token] as LineRestriction);
+        if (this.#drawingToolsManager.restrictions[token] instanceof CameraPlaneRestriction)
+            this.#restrictions[token] = new CameraPlaneRestrictionApi(this.#drawingToolsManager.restrictions[token] as CameraPlaneRestriction);
 
         return this.#restrictions[token];
     }

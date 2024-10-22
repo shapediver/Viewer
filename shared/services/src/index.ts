@@ -46,6 +46,7 @@ import { ISessionGlobalAccessObjectDefinition } from './state-engine/ISessionGlo
 import { isValid, stringify } from './parameter-utils/ParameterUtils';
 import { IViewportGlobalAccessObjectDefinition } from './state-engine/IViewportGlobalAccessObjectDefinition';
 import { Logger, LOGGING_LEVEL } from './logger/Logger';
+import { numberCleaner } from './utilities/numberCleaner';
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator';
 import { SESSION_SETTINGS_MODE, SettingsEngine } from './settings-engine/SettingsEngine';
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors';
@@ -163,7 +164,7 @@ export {
 };
 
 export {
-    atobCustom, btoaCustom
+    atobCustom, btoaCustom, numberCleaner
 };
 
 export {

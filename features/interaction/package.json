@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@shapediver/viewer": "3.4.2",
+    "@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.4.2",
     "@shapediver/viewer.rendering-engine.rendering-engine": "3.4.2",
     "@shapediver/viewer.shared.math": "3.4.2",
     "@shapediver/viewer.shared.node-tree": "3.4.2",

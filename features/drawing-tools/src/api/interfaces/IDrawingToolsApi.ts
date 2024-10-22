@@ -1,8 +1,8 @@
-import { GeometryRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/geometry/GeometryRestriction';
-import { IRestrictionApi } from './IRestrictionApi';
-import { PlaneRestrictionProperties } from '../../business/implementation/managers/interaction/restrictions/plane/PlaneRestriction';
+import {
+    IRestrictionApi,
+    RestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { PointsData } from '../../business/interfaces/IDrawingToolsManager';
-import { RestrictionProperties } from '../../business/interfaces/IRestriction';
 import { vec3 } from 'gl-matrix';
 
 export interface IDrawingToolsApi {
@@ -50,7 +50,7 @@ export interface IDrawingToolsApi {
      * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
-    addRestriction(properties: RestrictionProperties | PlaneRestrictionProperties | GeometryRestrictionProperties, token?: string): IRestrictionApi | undefined;
+    addRestriction(properties: RestrictionProperties, token?: string): IRestrictionApi | undefined;
     /**
      * Check if the drawing tool can redo the last action.
      */

@@ -1,19 +1,18 @@
 import { DrawingToolsManager } from '../../../DrawingToolsManager';
-import { GeometryMathManager } from '../../geometry/GeometryMathManager';
+import { GeometryMathManager, IRestrictionManager } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { GeometryState } from '../../geometry/GeometryState';
 import { InteractionManager } from '../InteractionManager';
 import { IRay, IViewportApi } from '@shapediver/viewer.features.interaction';
 import { MATERIAL_INDEX, Settings } from '../../../../interfaces/IDrawingToolsManager';
-import { RestrictionManager } from '../RestrictionManager';
 import { vec3 } from 'gl-matrix';
 
 export class InsertionInteractionHandler {
-    // #region Properties (11)
+    // #region Properties (9)
 
     readonly #drawingToolsManager: DrawingToolsManager;
     readonly #geometryMathManager: GeometryMathManager;
     readonly #geometryState: GeometryState;
-    readonly #restrictionManager: RestrictionManager;
+    readonly #restrictionManager: IRestrictionManager;
     readonly #settings: Settings;
     readonly #viewport: IViewportApi;
 
@@ -21,7 +20,7 @@ export class InsertionInteractionHandler {
     #insertionActive: boolean = false;
     #insertionActiveIndex: number = -1;
 
-    // #endregion Properties (11)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 
@@ -56,7 +55,7 @@ export class InsertionInteractionHandler {
 
         if (this.#insertionActive === true && this.#alreadyInserted === true) {
             this.#geometryState.makePointPersistent(this.#insertionActiveIndex);
-            
+
             const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
             const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
@@ -89,7 +88,11 @@ export class InsertionInteractionHandler {
         if (this.#insertionActive === false) return;
 
         if (this.#geometryState.getPointCount() > 0 && this.#insertionActive === true) {
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray, { index: this.#insertionActiveIndex });
+            const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
+                type: 'drawing',
+                index: this.#insertionActiveIndex,
+                positionArray: this.#drawingToolsManager.positionArray
+            })?.point;
 
             if (restrictedPoint) {
                 const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
@@ -100,7 +103,7 @@ export class InsertionInteractionHandler {
                     // if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
                     const firstPoint = this.#geometryState.getPosition(0);
                     const lastPoint = restrictedPoint;
-    
+
                     if (lastPoint && this.#geometryMathManager.screenSpaceDistanceCheck(firstPoint, lastPoint, this.#settings.visualization.points.size_0! * this.#settings.visualization.distanceMultiplicationFactor).check === true) {
                         // close the geometry
                         this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.SELECTED_HOVERED);
@@ -127,7 +130,10 @@ export class InsertionInteractionHandler {
             const ray = this.#viewport.pointerEventToRay(event);
 
             // add a point at the ray intersection
-            const restrictedPoint = this.#restrictionManager.rayTrace(ray);
+            const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
+                type: 'drawing',
+                positionArray: this.#drawingToolsManager.positionArray
+            })?.point;
             // add at last position
             this.#insertionActiveIndex = this.#geometryState.getPointCount();
             this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);

@@ -9,6 +9,13 @@ import {
     OutputNodeNameFilterPatterns
 } from './implementation/utils/PatternUtils';
 import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
+import {
+    CameraPlaneRestrictionProperties,
+    GeometryRestrictionProperties,
+    LineRestrictionProperties,
+    PlaneRestrictionProperties,
+    PointRestrictionProperties
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
 import {
@@ -24,8 +31,6 @@ import {
     ISpotLightApi,
     IViewportApi
 } from '@shapediver/viewer';
-import { IDragConstraint } from './interfaces/utils/IDragConstraint';
-import { IDragConstraintUtils } from './interfaces/utils/IDragConstraintUtils';
 import { IDragEvent } from './interfaces/events/IDragEvent';
 import { IHoverEvent } from './interfaces/events/IHoverEvent';
 import { IInteractionData, IInteractionTypes } from './interfaces/IInteractionData';
@@ -58,7 +63,7 @@ export {
 };
 
 export {
-    IDragConstraint, IDragConstraintUtils, IInteractionEffectUtils
+    IInteractionEffectUtils
 };
 
 export {
@@ -79,4 +84,8 @@ export {
 
 export {
     NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData
+};
+
+export {
+    PointRestrictionProperties, CameraPlaneRestrictionProperties, GeometryRestrictionProperties, LineRestrictionProperties, PlaneRestrictionProperties
 };

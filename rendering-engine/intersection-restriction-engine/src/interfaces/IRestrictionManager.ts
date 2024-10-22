@@ -1,0 +1,28 @@
+import {
+    DraggingRestrictionMetaData,
+    DrawingRestrictionMetaData,
+    IRestriction,
+    RayTraceResult,
+    RestrictionProperties
+} from './IRestriction';
+import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+
+export interface IRestrictionManager {
+    // #region Properties (2)
+
+    readonly restrictions: { [token: string]: IRestriction };
+
+    showRestrictionVisualization: boolean;
+
+    // #endregion Properties (2)
+
+    // #region Public Methods (5)
+
+    addRestriction(properties: RestrictionProperties, token?: string): string | undefined;
+    close(): void;
+    getRestriction(token: string): IRestriction | undefined;
+    rayTrace(ray: IRay, metaData?: DrawingRestrictionMetaData | DraggingRestrictionMetaData): RayTraceResult | undefined;
+    removeRestriction(token: string): boolean;
+
+    // #endregion Public Methods (5)
+}

@@ -1,21 +1,17 @@
-import { calculateDragMatrix } from './DragConstraintsHelper';
-import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { IViewportApi } from '@shapediver/viewer';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
  * The radius defines in which distance this constraint is being considered to be chosen from the constraints defined.
  * The transformation and optional rotation of this constraint get applied to the node if it is the constraint with the closest distance to the ray that was used for the drag event.
  * As this is a difficult topic, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1) where we go through the process of setting everything up with examples.
+ *
+ * @deprecated This class is deprecated and will be removed in the future. Please use the `PointRestriction` instead.
  */
 export class PointConstraint implements IDragConstraint {
-    // #region Properties (4)
+    // #region Properties (3)
 
-    #dragOrigin?: vec3;
     #point: vec3;
     #radius: number = 0;
     #rotation: {
@@ -23,7 +19,7 @@ export class PointConstraint implements IDragConstraint {
         angle: number
     };
 
-    // #endregion Properties (4)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -62,38 +58,4 @@ export class PointConstraint implements IDragConstraint {
     }
 
     // #endregion Public Getters And Setters (3)
-
-    // #region Public Methods (2)
-
-    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        const closestPoint = vec3.sub(vec3.create(), this.#point, ray.origin);
-        const directionDistance = vec3.dot(closestPoint, ray.direction);
-
-        if (directionDistance < 0) {
-            vec3.copy(closestPoint, ray.origin);
-        } else {
-            vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
-            vec3.add(closestPoint, closestPoint, ray.origin);
-        }
-
-        const distance = vec3.distance(closestPoint, this.#point);
-        if (distance < this.#radius) {
-            const { matrix, dragAnchor } = calculateDragMatrix(node, this.#point, this.#rotation, this.#dragOrigin!, closestPoint);
-            return { distance, transformation: matrix, dragAnchor };
-        }
-        return;
-    }
-
-    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4, dragAnchor?: IDragAnchor } | undefined {
-        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-
-        let invertedPreviousDragMatrix = mat4.invert(mat4.create(), previousDragMatrix);
-        if (!invertedPreviousDragMatrix)
-            invertedPreviousDragMatrix = mat4.create();
-
-        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix);
-        return this.intersect(viewport, node, ray);
-    }
-
-    // #endregion Public Methods (2)
 }
