@@ -73,6 +73,8 @@ export class InsertionInteractionHandler {
                     this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
                 }
             } else {
+                if (this.#geometryState.getPointCount() === this.#settings.geometry.maxPoints)
+                    result = true;
                 this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.DEFAULT);
             }
         }
