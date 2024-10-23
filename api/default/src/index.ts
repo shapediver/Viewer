@@ -268,7 +268,8 @@ import {
     ShapeDiverViewerValidationError,
     ShapeDiverViewerViewportError,
     ShapeDiverViewerWebGLError,
-    stringify
+    stringify,
+    SystemInfo
     } from '@shapediver/viewer.shared.services';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import {
@@ -332,7 +333,7 @@ export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttribu
 export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITexture };
 export { ICustomData, CustomData, ICameraOptions };
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard };
-export { DataEngine, GeometryEngine, MaterialEngine };
+export { DataEngine, GeometryEngine, MaterialEngine, SystemInfo };
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData };
 export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
