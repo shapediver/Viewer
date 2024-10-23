@@ -149,6 +149,7 @@ export class SessionEngine implements ISessionEngine {
     private _viewerSettings?: object;
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
+    private _throwOnCustomizationError: boolean;
 
     // #endregion Properties (50)
 
@@ -158,7 +159,7 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket/guid and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean, loadSdtf: boolean, modelStateId?: string, modelStateValidationMode?: boolean }) {
+    constructor(properties: { id: string, ticket?: string, guid?: string, modelViewUrl: string, buildVersion: string, buildDate: string, jwtToken?: string, excludeViewports?: string[], allowOutputLoading: boolean, loadSdtf: boolean, modelStateId?: string, modelStateValidationMode?: boolean, throwOnCustomizationError?: boolean }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._guid = properties.guid;
@@ -170,6 +171,7 @@ export class SessionEngine implements ISessionEngine {
         this._loadSdtf = properties.loadSdtf;
         this._modelStateId = properties.modelStateId;
         this._modelStateValidationMode = properties.modelStateValidationMode;
+        this._throwOnCustomizationError = properties.throwOnCustomizationError !== undefined ? properties.throwOnCustomizationError : false;
 
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
@@ -641,6 +643,12 @@ export class SessionEngine implements ISessionEngine {
             const cancelResult2 = this.cancelProcess(customizationId, eventId, TASK_TYPE.SESSION_CUSTOMIZATION, 1, { sessionId: this.id });
             if (cancelResult2) return cancelResult2;
 
+            this._warningCreator(
+                this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput }, 
+                this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport }, 
+                this._throwOnCustomizationError
+            );
+
             const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
 
             const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.9, data: { sessionId: this.id }, status: 'Updating scene' };
@@ -691,8 +699,6 @@ export class SessionEngine implements ISessionEngine {
             // set the export definitions
             for (const exportId in this.exports)
                 this.exports[exportId].updateExport();
-
-            this._warningCreator();
 
             this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
@@ -1356,6 +1362,12 @@ export class SessionEngine implements ISessionEngine {
             data: eventData
         });
 
+        this._warningCreator(
+            this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput }, 
+            this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport }, 
+            this._throwOnCustomizationError
+        );
+
         const newOutputVersions = this._outputLoader.getCurrentOutputVersions();
 
         const eventSceneUpdate: ITaskEvent = { type: eventType, id: eventId, progress: taskEventInfo ? (taskEventInfo.progressRange.max - taskEventInfo.progressRange.min) * 0.9 + taskEventInfo.progressRange.min : 0.9, data: eventData, status: 'Updating scene' };
@@ -1403,7 +1415,6 @@ export class SessionEngine implements ISessionEngine {
         for (const exportId in this.exports)
             this.exports[exportId].updateExport();
 
-        this._warningCreator();
         this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
         this.removeBusyMode(customizationId);
@@ -1545,31 +1556,61 @@ export class SessionEngine implements ISessionEngine {
         this._settingsEngine.session = sessionProperties;
     }
 
-    private _warningCreator() {
-        // set the output content to what has been updated
-        for (const outputId in this.outputs) {
-            let warning: string = '';
-            if (this.outputs[outputId].msg)
-                warning += `\n\t- ${this.outputs[outputId].msg}`;
-            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
-            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
-            if (warning)
-                this._logger.warn(`\nOutput(${outputId}):${warning}`);
+    private _warningCreator(outputs: { [id: string]: ShapeDiverResponseOutput; } | undefined, exports: { [key: string]: ShapeDiverResponseExport; }, throwError = false) {
+        const outputsWithIssues: { [key: string]: ShapeDiverResponseOutput; } = {};
+        const exportsWithIssues: { [key: string]: ShapeDiverResponseExport; } = {};
+
+        for (const outputId in outputs) {
+            const outputObj = outputs[outputId];
+            if (outputObj.msg !== undefined ||
+                (outputObj.status_collect && outputObj.status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS) ||
+                (outputObj.status_collect && outputObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+            ) {
+                outputsWithIssues[outputId] = outputObj;
+            }
         }
 
-        // set the export definitions
-        for (const exportId in this.exports) {
-            let warning: string = '';
-            if (this.exports[exportId].msg)
-                warning += `\n\t- ${this.exports[exportId].msg}`;
-            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
-            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
-            if (warning)
-                this._logger.warn(`\nExport(${exportId}):${warning}`);
+        for (const exportId in exports) {
+            const exportObj = exports[exportId];
+
+            if (exportObj.msg !== undefined ||
+                (exportObj.status_collect && exportObj.status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS) ||
+                (exportObj.status_collect && exportObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+            ) {
+                exportsWithIssues[exportId] = exportObj;
+            }
+        }
+
+        if(Object.keys(outputsWithIssues).length > 0 || Object.keys(exportsWithIssues).length > 0) {
+            if(throwError) {
+                throw new ShapeDiverViewerSessionError('There was at least one output or export with issues.', { outputs: outputsWithIssues, exports: exportsWithIssues });
+            } else {
+                // create warning messages for outputs
+                for (const outputId in outputsWithIssues) {
+                    let warning: string = '';
+                    if (outputsWithIssues[outputId].msg)
+                        warning += `\n\t- ${outputsWithIssues[outputId].msg}`;
+                    if (outputsWithIssues[outputId].status_collect && outputsWithIssues[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                        warning += `\n\t- status_collect is ${outputsWithIssues[outputId].status_collect}`;
+                    if (outputsWithIssues[outputId].status_computation && outputsWithIssues[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                        warning += `\n\t- status_computation is ${outputsWithIssues[outputId].status_computation}`;
+                    if (warning)
+                        this._logger.warn(`\nOutput(${outputId}):${warning}`);
+                }
+
+                // create warning messages for exports
+                for (const exportId in exportsWithIssues) {
+                    let warning: string = '';
+                    if (exportsWithIssues[exportId].msg)
+                        warning += `\n\t- ${exportsWithIssues[exportId].msg}`;
+                    if (exportsWithIssues[exportId].status_collect && exportsWithIssues[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                        warning += `\n\t- status_collect is ${exportsWithIssues[exportId].status_collect}`;
+                    if (exportsWithIssues[exportId].status_computation && exportsWithIssues[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                        warning += `\n\t- status_computation is ${exportsWithIssues[exportId].status_computation}`;
+                    if (warning)
+                        this._logger.warn(`\nExport(${exportId}):${warning}`);
+                }
+            }
         }
     }
 
