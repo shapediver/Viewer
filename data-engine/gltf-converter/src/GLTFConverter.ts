@@ -3,6 +3,7 @@ import {
     Converter,
     EventEngine,
     EVENTTYPE,
+    Logger,
     UuidGenerator
     } from '@shapediver/viewer.shared.services';
 import { build_data } from '@shapediver/viewer.shared.build-data';
@@ -718,10 +719,14 @@ export class GLTFConverter {
             if (node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
                 matrix = mat4.create();
 
-            nodeDef.matrix = [matrix[0], matrix[1], matrix[2], matrix[3],
-            matrix[4], matrix[5], matrix[6], matrix[7],
-            matrix[8], matrix[9], matrix[10], matrix[11],
-            matrix[12], matrix[13], matrix[14], matrix[15]];
+            const inv = mat4.invert(mat4.create(), matrix);
+            if (inv) {
+                nodeDef.matrix = [];
+                for (let i = 0; i < matrix.length; i++)
+                    nodeDef.matrix[i] = matrix[i];
+            } else {
+                Logger.instance.warn(`GLTFConverter.convertNode: The matrix of node ${node.name} is not invertible and will be ignored.`);
+            }
         }
 
         for (let i = 0; i < node.data.length; i++) {
