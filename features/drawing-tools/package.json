@@ -42,7 +42,7 @@
   "dependencies": {
     "@shapediver/viewer": "3.5.0-rc.1",
     "@shapediver/viewer.features.interaction": "3.5.0-rc.1",
-    "@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.4.3",
+    "@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.5.0-rc.1",
     "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.5.0-rc.1",
     "@shapediver/viewer.shared.math": "3.5.0-rc.1",
     "@shapediver/viewer.shared.node-tree": "3.5.0-rc.1",
