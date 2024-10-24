@@ -39,7 +39,7 @@
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
-  "devDependencies": {
+  "dependencies": {
     "@shapediver/viewer": "3.5.0-rc.0",
     "@shapediver/viewer.features.interaction": "3.5.0-rc.0",
     "@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.4.3",

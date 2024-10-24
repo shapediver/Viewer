@@ -39,7 +39,7 @@
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
-  "devDependencies": {
+  "dependencies": {
     "@shapediver/viewer": "3.5.0-rc.0",
     "@shapediver/viewer.shared.node-tree": "3.5.0-rc.0",
     "@shapediver/viewer.shared.services": "3.5.0-rc.0",
