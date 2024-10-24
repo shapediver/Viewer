@@ -5,11 +5,12 @@ import {
     removeListener,
     sceneTree,
     version
-    } from '@shapediver/viewer.api.general';
+} from '@shapediver/viewer.api.general';
 import {
     AnimationData,
     AttributeData,
     CustomData,
+    DraggingParameterValue,
     DrawingParameterValue,
     EventResponseMapping,
     GeometryData,
@@ -25,6 +26,8 @@ import {
     IAttributeData,
     ICameraEvent,
     ICustomData,
+    IDraggingParameterJsonSchema,
+    IDraggingParameterProps,
     IDrawingParameterJsonSchema,
     IDrawingParameterSettings,
     IGeometryData,
@@ -113,7 +116,7 @@ import {
     TASK_TYPE,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING
-    } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
 import {
     ANTI_ALIASING_TECHNIQUE,
     BlendFunction,
@@ -162,14 +165,14 @@ import {
     TiltShiftEffect,
     VignetteEffect,
     VignetteTechnique
-    } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
+} from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import {
     Box,
     IBox,
     IGeometry,
     ISphere,
     Sphere
-    } from '@shapediver/viewer.shared.math';
+} from '@shapediver/viewer.shared.math';
 import {
     BUSY_MODE_DISPLAY,
     FLAG_TYPE,
@@ -178,10 +181,11 @@ import {
     TEXTURE_ENCODING,
     TONE_MAPPING,
     VISIBILITY_MODE
-    } from '@shapediver/viewer.rendering-engine.rendering-engine';
+} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { CAMERA_TYPE, ICameraOptions, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
     createSession,
+    IDraggingParameterApi,
     IDrawingParameterApi,
     IExportApi,
     IFileParameterApi,
@@ -195,7 +199,7 @@ import {
     OutputApiData,
     SessionApiData,
     sessions
-    } from '@shapediver/viewer.session';
+} from '@shapediver/viewer.session';
 import {
     createViewport,
     IAmbientLightApi,
@@ -210,7 +214,7 @@ import {
     ISpotLightApi,
     IViewportApi,
     viewports
-    } from '@shapediver/viewer.viewport';
+} from '@shapediver/viewer.viewport';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine';
 import {
     EVENTTYPE,
@@ -270,7 +274,7 @@ import {
     ShapeDiverViewerWebGLError,
     stringify,
     SystemInfo
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import {
     IMaterialContentDataV1,
@@ -280,7 +284,7 @@ import {
     ITag3D,
     ITexture,
     TAG3D_JUSTIFICATION
-    } from '@shapediver/viewer.data-engine.shared-types';
+} from '@shapediver/viewer.data-engine.shared-types';
 import {
     ISessionData,
     ISessionOutputData,
@@ -288,7 +292,7 @@ import {
     SessionOutputData,
     ShapeDiverResponseOutputChunk,
     ShapeDiverResponseOutputContent
-    } from '@shapediver/viewer.session-engine.session-engine';
+} from '@shapediver/viewer.session-engine.session-engine';
 import {
     ITransformation,
     ITree,
@@ -296,7 +300,7 @@ import {
     ITreeNodeData,
     Tree,
     TreeNode
-    } from '@shapediver/viewer.shared.node-tree';
+} from '@shapediver/viewer.shared.node-tree';
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
@@ -307,13 +311,13 @@ import {
     ShapeDiverResponseExportResult,
     ShapeDiverResponseModelComputationStatus,
     ShapeDiverResponseParameter
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
     ShapeDiverResponseExportDefinitionType as EXPORT_TYPE,
     ShapeDiverResponseOutput,
     ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 
 export { createViewport, viewports };
@@ -339,8 +343,8 @@ export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataP
 export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi };
-export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDraggingParameterApi, IDrawingParameterApi };
+export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi };
 export { isValid, stringify };

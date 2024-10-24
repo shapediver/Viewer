@@ -1,11 +1,13 @@
 import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import {
+    DraggingParameter,
     DrawingParameter,
     FileParameter,
     GumballParameter,
     SelectionParameter,
     SessionEngine
 } from '@shapediver/viewer.session-engine.session-engine';
+import { DraggingParameterApi } from './parameter/DraggingParameterApi';
 import { DrawingParameterApi } from './parameter/DrawingParameterApi';
 import { ExportApi } from './ExportApi';
 import { FileParameterApi } from './parameter/FileParameterApi';
@@ -74,6 +76,8 @@ export class SessionApi implements ISessionApi {
                 this.#parameters[p] = new GumballParameterApi(<GumballParameter>this.#sessionEngine.parameters[p]);
             } else if (this.#sessionEngine.parameters[p] instanceof DrawingParameter) {
                 this.#parameters[p] = new DrawingParameterApi(<DrawingParameter>this.#sessionEngine.parameters[p]);
+            } else if (this.#sessionEngine.parameters[p] instanceof DraggingParameter) {
+                this.#parameters[p] = new DraggingParameterApi(<DraggingParameter>this.#sessionEngine.parameters[p]);
             } else {
                 this.#parameters[p] = new ParameterApi(this.#sessionEngine.parameters[p]);
             }
@@ -243,7 +247,7 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Public Getters And Setters (30)
 
-    // #region Public Methods (31)
+    // #region Public Methods (32)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
@@ -434,5 +438,5 @@ export class SessionApi implements ISessionApi {
         return fileParameterIds;
     }
 
-    // #endregion Public Methods (31)
+    // #endregion Public Methods (32)
 }

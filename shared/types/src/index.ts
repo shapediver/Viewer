@@ -9,14 +9,15 @@ import {
   IViewportSettingsSections,
   PARAMETER_TYPE,
   PARAMETER_VISUALIZATION
-  } from './types';
+} from './types';
 import { CustomData } from './implementation/data/CustomData';
+import { DraggingParameterValue, IDraggableObject, IDraggingParameterProps } from './interfaces/parameter/IDraggingParameterSettings';
 import {
   DrawingParameterValue,
   IDrawingParameterJsonSchema,
   IDrawingParameterSettings,
   validateDrawingParameterSettings
-  } from './interfaces/parameter/IDrawingParametersSettings';
+} from './interfaces/parameter/IDrawingParametersSettings';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
 import { GumballParameterValue, IGumballParameterProps } from './interfaces/parameter/IGumballParameterSettings';
 import {
@@ -24,7 +25,7 @@ import {
   HTMLElementAnchorData,
   HTMLElementAnchorImageData,
   HTMLElementAnchorTextData
-  } from './implementation/data/HTMLElementAnchorData';
+} from './implementation/data/HTMLElementAnchorData';
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData';
 import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData';
 import {
@@ -32,28 +33,30 @@ import {
   IGeometryData,
   IPrimitiveData,
   PRIMITIVE_MODE
-  } from './interfaces/data/IGeometryData';
+} from './interfaces/data/IGeometryData';
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
 import {
+  IDraggingParameterJsonSchema,
   IGumballParameterJsonSchema,
   IInteractionParameterJsonSchema,
   IInteractionParameterProps,
   IInteractionParameterSettings,
   InteractionParameterSettingsType,
   ISelectionParameterJsonSchema,
+  validateDraggingParameterSettings,
   validateGumballParameterSettings,
   validateInteractionParameterSettings,
   validateSelectionParameterSettings
-  } from './interfaces/parameter/IInteractionParameterSettings';
+} from './interfaces/parameter/IInteractionParameterSettings';
 import {
   IMapData,
   IMapDataProperties,
   IMapDataPropertiesDefinition,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING
-  } from './interfaces/data/material/IMapData';
+} from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
   IMaterialAbstractDataProperties,
@@ -62,7 +65,7 @@ import {
   MATERIAL_SHADING,
   MATERIAL_SIDE,
   MATERIAL_TYPE
-  } from './interfaces/data/material/IMaterialAbstractData';
+} from './interfaces/data/material/IMaterialAbstractData';
 import { IMaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition } from './interfaces/data/material/IMaterialBasicLineData';
 import { IMaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition } from './interfaces/data/material/IMaterialGemDataProperties';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialMultiPointData';
@@ -101,6 +104,7 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
 import {
   MaterialStandardData,
 } from './implementation/material/MaterialStandardData';
+import { RestrictionDefinition, Rotation } from './interfaces/parameter/IRestrictionSettings';
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition,
@@ -144,5 +148,7 @@ export {
   InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
   ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
   IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, validateGumballParameterSettings,
-  IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema, validateDrawingParameterSettings
+  IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, validateDraggingParameterSettings,
+  IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema, validateDrawingParameterSettings,
+  IDraggableObject, RestrictionDefinition, Rotation
 };

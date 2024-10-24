@@ -76,6 +76,7 @@ import { SelectionParameter } from './dto/interaction/SelectionParameter';
 import { SessionData } from './SessionData';
 import { SessionTreeNode } from './SessionTreeNode';
 import { vec3 } from 'gl-matrix';
+import { DraggingParameter } from './dto/interaction/DraggingParameter';
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export class SessionEngine implements ISessionEngine {
@@ -1673,6 +1674,8 @@ export class SessionEngine implements ISessionEngine {
                     return new SelectionParameter(parameter, this);
                 case 'gumball':
                     return new GumballParameter(parameter, this);
+                case 'dragging':
+                    return new DraggingParameter(parameter, this);
             }
         } else {
             this._logger.warn(`SessionEngine.createInteractionParameter: The value ${parameter.settings} is not a valid InteractionParameter: ${result.error.message}`);
@@ -1898,64 +1901,6 @@ export class SessionEngine implements ISessionEngine {
         for (const parameterId in this._responseDto.parameters) {
             if (this.parameters[parameterId]) continue;
             this._responseDto.parameters[parameterId].id = parameterId;
-
-            /**
-             * 
-             * REMOVE THIS LOGIC - START
-             * 
-             */
-            const fakeSelectionParameterName = 'FAKE_SELECTION_PARAMETER';
-            const nameStartsWithFakeSelectionParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeSelectionParameterName);
-            const displaynameStartsWithFakeSelectionParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeSelectionParameterName);
-
-            if (nameStartsWithFakeSelectionParameter || displaynameStartsWithFakeSelectionParameter) {
-                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.INTERACTION;
-                const name = nameStartsWithFakeSelectionParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
-                const urlParams = new URLSearchParams(name.replace(fakeSelectionParameterName + '?', ''));
-                const jsonString = urlParams.get('settings');
-                if (jsonString)
-                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
-            }
-
-            const fakeGumballParameterName = 'FAKE_GUMBALL_PARAMETER';
-            const nameStartsWithFakeGumballParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeGumballParameterName);
-            const displaynameStartsWithFakeGumballParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeGumballParameterName);
-
-            if (nameStartsWithFakeGumballParameter || displaynameStartsWithFakeGumballParameter) {
-                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.INTERACTION;
-                const name = nameStartsWithFakeGumballParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
-                const urlParams = new URLSearchParams(name.replace(fakeGumballParameterName + '?', ''));
-                const jsonString = urlParams.get('settings');
-                if (jsonString)
-                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
-            }
-
-            const fakeDrawingParameterName = 'FAKE_DRAWING_PARAMETER';
-            const nameStartsWithFakeDrawingParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeDrawingParameterName);
-            const displaynameStartsWithFakeDrawingParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeDrawingParameterName);
-
-            if (nameStartsWithFakeDrawingParameter || displaynameStartsWithFakeDrawingParameter) {
-                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.DRAWING;
-                const name = nameStartsWithFakeDrawingParameter ? this._responseDto.parameters[parameterId].name : this._responseDto.parameters[parameterId].displayname!;
-                const urlParams = new URLSearchParams(name.replace(fakeDrawingParameterName + '?', ''));
-                const jsonString = urlParams.get('settings');
-                if (jsonString)
-                    this._responseDto.parameters[parameterId].settings = JSON.parse(jsonString + '');
-            }
-
-            const fakeDrawingFixParameterName = 'FAKE_DRAWING_FIX';
-            const nameStartsWithFakeDrawingFixParameter = this._responseDto.parameters[parameterId].name.startsWith(fakeDrawingFixParameterName);
-            const displaynameStartsWithFakeDrawingFixParameter = this._responseDto.parameters[parameterId].displayname?.startsWith(fakeDrawingFixParameterName);
-
-            if (nameStartsWithFakeDrawingFixParameter || displaynameStartsWithFakeDrawingFixParameter) {
-                this._responseDto.parameters[parameterId].type = PARAMETER_TYPE.DRAWING;
-            }
-
-            /**
-             * 
-             * REMOVE THIS LOGIC - END
-             * 
-             */
 
             switch (true) {
                 case this._responseDto.parameters[parameterId].type === PARAMETER_TYPE.BOOL:

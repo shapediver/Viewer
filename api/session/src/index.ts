@@ -10,6 +10,7 @@ import {
     AnimationData,
     AttributeData,
     CustomData,
+    DraggingParameterValue,
     DrawingParameterValue,
     EventResponseMapping,
     GeometryData,
@@ -25,6 +26,8 @@ import {
     IAttributeData,
     ICameraEvent,
     ICustomData,
+    IDraggingParameterJsonSchema,
+    IDraggingParameterProps,
     IDrawingParameterJsonSchema,
     IDrawingParameterSettings,
     IGeometryData,
@@ -180,6 +183,7 @@ import {
     ShapeDiverViewerWebGLError,
     stringify
 } from '@shapediver/viewer.shared.services';
+import { IDraggingParameterApi } from './interfaces/parameter/IDraggingParameterApi';
 import { IDrawingParameterApi } from './interfaces/parameter/IDrawingParameterApi';
 import { IExportApi } from './interfaces/IExportApi';
 import { IFileParameterApi } from './interfaces/parameter/IFileParameterApi';
@@ -233,8 +237,8 @@ import {
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi };
-export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, DrawingParameterValue, IDrawingParameterSettings, IDrawingParameterJsonSchema };
+export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi, IDraggingParameterApi };
+export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, DrawingParameterValue, IDrawingParameterSettings, IDrawingParameterJsonSchema };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };
