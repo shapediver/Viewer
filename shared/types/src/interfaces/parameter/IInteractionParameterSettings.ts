@@ -70,12 +70,10 @@ export const IGumballParameterJsonSchema = z.object({
 });
 export const IDraggingParameterJsonSchema = z.object({
     type: z.literal('dragging'),
-    props: z.object({
-        // TODO once the dragging parameter is defined
-    }).merge(IGeneralInteractionParameterJsonSchema),
+    props: z.any(),
 });
 
-export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema);
+export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema).or(IDraggingParameterJsonSchema);
 
 export const validateInteractionParameterSettings = (param: unknown) => {
     return IInteractionParameterJsonSchema.safeParse(param);
