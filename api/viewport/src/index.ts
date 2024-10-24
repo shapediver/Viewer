@@ -187,6 +187,7 @@ import {
     isARError,
     isValid,
     isViewerCameraError,
+    isViewerCustomizationError,
     isViewerDataProcessingError,
     isViewerDrawingToolsError,
     isViewerEnvironmentMapError,
@@ -212,6 +213,7 @@ import {
     ShapeDiverGeometryBackendResponseErrorType,
     ShapeDiverViewerArError,
     ShapeDiverViewerCameraError,
+    ShapeDiverViewerCustomizationError,
     ShapeDiverViewerDataProcessingError,
     ShapeDiverViewerDrawingToolsError,
     ShapeDiverViewerEnvironmentMapError,
@@ -294,8 +296,8 @@ export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, ITexture, IHTMLEleme
 export { ICustomData, CustomData, ICameraOptions };
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard };
 export { DataEngine, GeometryEngine, MaterialEngine };
-export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
-export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
+export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerCustomizationError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
+export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerCustomizationError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 export { isValid, stringify };
 

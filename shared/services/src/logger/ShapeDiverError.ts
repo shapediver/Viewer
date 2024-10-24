@@ -5,6 +5,7 @@ export enum ShapeDiverViewerErrorType {
     GEOMETRY_BACKEND_RESPONSE_ERROR = 'SdGeometryBackendResponseError',
     CAMERA_ERROR = 'SdCameraError',
     CONNECTION_ERROR = 'SdConnectionError',
+    CUSTOMIZATION_ERROR = 'SdCustomizationError',
     DATA_PROCESSING_ERROR = 'SdDataProcessingError',
     DRAWING_TOOLS_ERROR = 'SdDrawingToolsError',
     ENVIRONMENT_MAP_ERROR = 'SdEnvironmentMapError',
@@ -15,7 +16,7 @@ export enum ShapeDiverViewerErrorType {
     VALIDATION_ERROR = 'SdValidationError',
     VIEWPORT_ERROR = 'SdViewerError',
     WEBGL_ERROR = 'SdWebGLError',
-    UNKNOWN = "",
+    UNKNOWN = '',
 }
 
 export interface IShapeDiverViewerError {

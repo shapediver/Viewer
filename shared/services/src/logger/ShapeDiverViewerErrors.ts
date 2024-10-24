@@ -57,6 +57,15 @@ export class ShapeDiverViewerSessionError extends ShapeDiverViewerError {
     }
 }
 
+export class ShapeDiverViewerCustomizationError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string,
+        public readonly errorObject?: Error | unknown
+    ) {
+        super(ShapeDiverViewerErrorType.CUSTOMIZATION_ERROR, 'An error occurred while customizing the session.', message);
+    }
+}
+
 export class ShapeDiverViewerViewportError extends ShapeDiverViewerError {
     constructor(
         public readonly message: string,

@@ -5,7 +5,7 @@ import {
     removeListener,
     sceneTree,
     version
-    } from '@shapediver/viewer.api.general';
+} from '@shapediver/viewer.api.general';
 import {
     AnimationData,
     AttributeData,
@@ -113,7 +113,7 @@ import {
     TASK_TYPE,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING
-    } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
 import {
     ANTI_ALIASING_TECHNIQUE,
     BlendFunction,
@@ -162,14 +162,14 @@ import {
     TiltShiftEffect,
     VignetteEffect,
     VignetteTechnique
-    } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
+} from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import {
     Box,
     IBox,
     IGeometry,
     ISphere,
     Sphere
-    } from '@shapediver/viewer.shared.math';
+} from '@shapediver/viewer.shared.math';
 import {
     BUSY_MODE_DISPLAY,
     FLAG_TYPE,
@@ -178,7 +178,7 @@ import {
     TEXTURE_ENCODING,
     TONE_MAPPING,
     VISIBILITY_MODE
-    } from '@shapediver/viewer.rendering-engine.rendering-engine';
+} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { CAMERA_TYPE, ICameraOptions, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
     createSession,
@@ -195,7 +195,7 @@ import {
     OutputApiData,
     SessionApiData,
     sessions
-    } from '@shapediver/viewer.session';
+} from '@shapediver/viewer.session';
 import {
     createViewport,
     IAmbientLightApi,
@@ -210,7 +210,7 @@ import {
     ISpotLightApi,
     IViewportApi,
     viewports
-    } from '@shapediver/viewer.viewport';
+} from '@shapediver/viewer.viewport';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine';
 import {
     EVENTTYPE,
@@ -230,6 +230,7 @@ import {
     isARError,
     isValid,
     isViewerCameraError,
+    isViewerCustomizationError,
     isViewerDataProcessingError,
     isViewerDrawingToolsError,
     isViewerEnvironmentMapError,
@@ -255,6 +256,7 @@ import {
     ShapeDiverGeometryBackendResponseErrorType,
     ShapeDiverViewerArError,
     ShapeDiverViewerCameraError,
+    ShapeDiverViewerCustomizationError,
     ShapeDiverViewerDataProcessingError,
     ShapeDiverViewerDrawingToolsError,
     ShapeDiverViewerEnvironmentMapError,
@@ -269,7 +271,7 @@ import {
     ShapeDiverViewerViewportError,
     ShapeDiverViewerWebGLError,
     stringify
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import {
     IMaterialContentDataV1,
@@ -279,7 +281,7 @@ import {
     ITag3D,
     ITexture,
     TAG3D_JUSTIFICATION
-    } from '@shapediver/viewer.data-engine.shared-types';
+} from '@shapediver/viewer.data-engine.shared-types';
 import {
     ISessionData,
     ISessionOutputData,
@@ -287,7 +289,7 @@ import {
     SessionOutputData,
     ShapeDiverResponseOutputChunk,
     ShapeDiverResponseOutputContent
-    } from '@shapediver/viewer.session-engine.session-engine';
+} from '@shapediver/viewer.session-engine.session-engine';
 import {
     ITransformation,
     ITree,
@@ -295,7 +297,7 @@ import {
     ITreeNodeData,
     Tree,
     TreeNode
-    } from '@shapediver/viewer.shared.node-tree';
+} from '@shapediver/viewer.shared.node-tree';
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
@@ -306,13 +308,13 @@ import {
     ShapeDiverResponseExportResult,
     ShapeDiverResponseModelComputationStatus,
     ShapeDiverResponseParameter
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
     ShapeDiverResponseExportDefinitionType as EXPORT_TYPE,
     ShapeDiverResponseOutput,
     ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
-    } from '@shapediver/sdk.geometry-api-sdk-v2';
+} from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 
 export { createViewport, viewports };
@@ -334,8 +336,8 @@ export { ICustomData, CustomData, ICameraOptions };
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard };
 export { DataEngine, GeometryEngine, MaterialEngine };
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData };
-export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
-export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
+export { ShapeDiverViewerErrorType, ShapeDiverViewerError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerWebGLError, ShapeDiverViewerSettingsError, ShapeDiverViewerSessionError, ShapeDiverViewerCustomizationError, ShapeDiverViewerViewportError, ShapeDiverViewerUnknownError, ShapeDiverViewerArError, ShapeDiverViewerLightError, ShapeDiverViewerCameraError, ShapeDiverViewerValidationError, ShapeDiverViewerInteractionError, ShapeDiverViewerDrawingToolsError, ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError, ShapeDiverGeometryBackendResponseErrorType };
+export { isViewerError, isViewerUnknownError, isViewerDataProcessingError, isViewerEnvironmentMapError, isViewerWebGLError, isViewerSettingsError, isViewerSessionError, isViewerCustomizationError, isViewerViewportError, isViewerLightError, isViewerCameraError, isARError, isViewerValidationError, isViewerInteractionError, isViewerDrawingToolsError, isViewerGeometryBackendError, isViewerGeometryBackendGenericError, isViewerGeometryBackendRequestError, isViewerGeometryBackendResponseError };
 export { ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition, BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect, Effect, EffectComposer, BlendFunction, VignetteTechnique, KernelSize, Resolution };
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi };

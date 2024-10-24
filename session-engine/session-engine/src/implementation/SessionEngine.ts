@@ -14,6 +14,7 @@ import {
     Logger,
     PerformanceEvaluator,
     SettingsEngine,
+    ShapeDiverViewerCustomizationError,
     ShapeDiverViewerError,
     ShapeDiverViewerSessionError,
     ShapeDiverViewerSettingsError,
@@ -1583,7 +1584,7 @@ export class SessionEngine implements ISessionEngine {
 
         if(Object.keys(outputsWithIssues).length > 0 || Object.keys(exportsWithIssues).length > 0) {
             if(throwError) {
-                throw new ShapeDiverViewerSessionError('There was at least one output or export with issues.', { outputs: outputsWithIssues, exports: exportsWithIssues });
+                throw new ShapeDiverViewerCustomizationError('There was at least one output or export with issues.', { outputs: outputsWithIssues, exports: exportsWithIssues });
             } else {
                 // create warning messages for outputs
                 for (const outputId in outputsWithIssues) {
