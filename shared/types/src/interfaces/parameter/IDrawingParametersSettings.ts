@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RestrictionDefinition } from './IRestrictionSettings';
 
 // #region Interfaces (2)
 
@@ -59,16 +60,7 @@ export interface IDrawingParameterSettings {
          */
         autoClose: boolean;
     },
-    // TODO: Add more properties here
-    restrictions?: ({
-        type: 'plane',
-        origin: number[],
-        vector_u: number[],
-        vector_v: number[]
-    } | {
-        type: 'geometry',
-        nameFilter: string[]
-    })[]
+    restrictions?: RestrictionDefinition[]
 
     // #endregion Properties (2)
 }
