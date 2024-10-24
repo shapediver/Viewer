@@ -1,11 +1,9 @@
 import { IInteractionParameterProps } from './IInteractionParameterSettings';
-import { vec3 } from 'gl-matrix';
+import { RestrictionDefinition, Rotation } from './IRestrictionSettings';
 
 // #region Type aliases (1)
 
 export type DraggingParameterValue = {
-    // TODO
-
     draggedObjects: {
         /** The name of the object as defined in the name filter. */
         name: string,
@@ -13,86 +11,35 @@ export type DraggingParameterValue = {
         transformation: number[][],
         /** The id of the drag anchor that was used, if one was used. */
         dragAnchorId?: string,
-        /** The id of the constraint that was used. */
-        constraintId: string
+        /** The id of the restriction that was used. */
+        restrictionId: string
     }[]
 };
-
-/**
- * Rotation defined by an angle and an axis.
- */
-export type Rotation = {
-    /** The angle of the rotation. */
-    angle: number,
-    /** The axis of the rotation. */
-    axis: vec3
-};
-
 
 // #endregion Type aliases (1)
 
 // #region Interfaces (1)
 
-interface IConstraintDefinition {
-    /** The unique id of the constraint. */
-    id: string;
-    /** The type of the constraint. */
-    type: 'point' | 'line' | 'plane' | 'camera_plane';
-    /** Optional rotation of the constraint. */
-    rotation?: Rotation
-}
-
-interface IPointConstraintDefinition extends IConstraintDefinition {
-    type: 'point';
-    /** The point of the constraint. */
-    point: vec3;
-    /** The radius of the constraint. */
-    radius: number;
-}
-
-interface ILineConstraintDefinition extends IConstraintDefinition {
-    type: 'line';
-    /** The first point of the constraint. */
-    point1: vec3;
-    /** The second point of the constraint. */
-    point2: vec3;
-    /** The radius of the constraint. */
-    radius: number;
-}
-
-interface IPlaneConstraintDefinition extends IConstraintDefinition {
-    type: 'plane';
-    /** The coplanar point of the constraint. */
-    coplanarPoint: vec3;
-    /** The normal of the constraint. */
-    normal: vec3;
-}
-
-interface ICameraPlaneConstraintDefinition extends IConstraintDefinition {
-    type: 'camera_plane';
-}
-
-
 /**
  * Properties of a dragging parameter.
  */
 export interface IDraggingParameterProps extends IInteractionParameterProps {
-    // #region Properties (2)
+    // #region Properties (3)
 
     /** The color of the objects when dragged. (default: '#0d44f0') */
     draggingColor?: string,
     /**
      * The objects that can be dragged.
      * 
-     * For each object, the name filter, the constraints, the drag anchors, and the drag origin can be defined.
+     * For each object, the name filter, the restrictions, the drag anchors, and the drag origin can be defined.
      * The name filter is used to filter the objects that can be dragged with the defined settings.
      * This means that multiple objects can be dragged with different settings, but also multiple objects can be dragged with the same settings.
      */
     objects?: {
         /** The name filter for the objects that can be dragged with the defined settings. */
         nameFilter: string[],
-        /** The ids of the constraints in the constraints array to apply for these objects. */
-        constraints: string[],
+        /** The ids of the restrictions in the restrictions array to apply for these objects. */
+        restrictions: string[],
         /** 
          * The drag anchors for the object 
          * 
@@ -103,7 +50,7 @@ export interface IDraggingParameterProps extends IInteractionParameterProps {
             /** The id of the anchor */
             id: string,
             /** The position of the anchor */
-            position: vec3,
+            position: number[],
             /** The rotation of the anchor */
             rotation?: Rotation
         }[],
@@ -113,11 +60,11 @@ export interface IDraggingParameterProps extends IInteractionParameterProps {
          * The drag origin can be defined instead of using the default, the intersection with the node, as a dragging origin.
          * If at least one {@link dragAnchors} is used, this property will be ignored.
          */
-        dragOrigin?: vec3
+        dragOrigin?: number[]
     }[],
-    constraints: (IPointConstraintDefinition | ILineConstraintDefinition | IPlaneConstraintDefinition | ICameraPlaneConstraintDefinition)[]
+    restrictions: RestrictionDefinition[]
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 }
 
 // #endregion Interfaces (1)
