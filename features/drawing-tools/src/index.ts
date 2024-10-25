@@ -38,6 +38,7 @@ import {
     ShapeDiverViewerDrawingToolsError
 } from '@shapediver/viewer';
 import { SystemInfo } from '@shapediver/viewer.shared.services';
+import { RestrictionDefinition } from '@shapediver/viewer.shared.types';
 
 export {
     SettingsOptional as Settings, Callbacks,
@@ -51,7 +52,7 @@ export {
 
 export {
     RESTRICTION_TYPE,
-    RestrictionProperties, RestrictionMetaData, DrawingRestrictionMetaData, DraggingRestrictionMetaData, SnapRestrictionProperties,
+    RestrictionDefinition, RestrictionProperties, RestrictionMetaData, DrawingRestrictionMetaData, DraggingRestrictionMetaData, SnapRestrictionProperties,
     PlaneRestrictionProperties,
     AngularRestrictionProperties, AxisRestrictionProperties, GridRestrictionProperties,
     GeometryRestrictionProperties,

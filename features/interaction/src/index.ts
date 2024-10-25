@@ -14,7 +14,8 @@ import {
     GeometryRestrictionProperties,
     LineRestrictionProperties,
     PlaneRestrictionProperties,
-    PointRestrictionProperties
+    PointRestrictionProperties,
+    RestrictionProperties
 } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
@@ -49,6 +50,7 @@ import { PlaneConstraint } from './implementation/dragConstraints/PlaneConstrain
 import { PointConstraint } from './implementation/dragConstraints/PointConstraint';
 import { SelectManager } from './implementation/managers/SelectManager';
 import { SelectOnUpManager } from './implementation/managers/SelectOnUpManager';
+import { RestrictionDefinition } from '@shapediver/viewer.shared.types';
 
 export {
     IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager
@@ -87,5 +89,5 @@ export {
 };
 
 export {
-    PointRestrictionProperties, CameraPlaneRestrictionProperties, GeometryRestrictionProperties, LineRestrictionProperties, PlaneRestrictionProperties
+    RestrictionDefinition, RestrictionProperties, PointRestrictionProperties, CameraPlaneRestrictionProperties, GeometryRestrictionProperties, LineRestrictionProperties, PlaneRestrictionProperties
 };
