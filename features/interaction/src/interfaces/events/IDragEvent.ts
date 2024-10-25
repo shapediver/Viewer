@@ -19,8 +19,14 @@ export interface IDragEvent extends IViewportEvent {
     dragAnchor?: IDragAnchor,
     /** 
      * The optional drag constraint that was applied. 
+     * 
+     * @deprecated Use {@link restriction} instead.
      */
     dragConstraint?: IRestriction,
+    /**
+     * The optional drag restriction that was used.
+     */
+    restriction?: IRestriction,
     /** 
      * The original event that triggered the dragging. Only provided if it was not a manual dragging. 
      */

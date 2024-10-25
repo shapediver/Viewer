@@ -7,6 +7,8 @@ import { vec3 } from 'gl-matrix';
 export interface IDragAnchor {
     // #region Properties (2)
 
+    /** The id of the anchor */
+    id?: string,
     position: vec3,
     rotation?: {
         axis: vec3,
