@@ -25,6 +25,7 @@
   "scripts": {
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/building/build.sh",
+    "build-all": "npm run build",
     "build-watch": "bash ../../scripts/building/build-watch.sh",
     "build-dep": "bash ../../scripts/building/build-dep.sh"
   },
