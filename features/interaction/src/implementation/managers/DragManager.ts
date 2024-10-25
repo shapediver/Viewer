@@ -354,6 +354,16 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     /**
+     * Removes all restrictions.
+     */
+    public removeRestrictions() {
+        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        for(const token of Object.keys(this.#restrictionManager.restrictions)) {
+            this.#restrictionManager.removeRestriction(token);
+        }
+    }
+
+    /**
      * Set the current dragged node.
      * This will serve as the start of the drag event.
      * This function is also called internally at onDown events.
