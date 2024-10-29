@@ -2,11 +2,7 @@ import { IOutputApi, IParameterApi } from '@shapediver/viewer';
 import { mat4, vec3 } from 'gl-matrix';
 
 export type ShelfDefinition = {
-    matrices: {
-        transformation: mat4;
-        rotation: mat4;
-        translation: mat4;
-    }[];
+    matrices: mat4[];
     output?: IOutputApi;
     parameter?: IParameterApi<string>;
     counter: number;
@@ -24,11 +20,7 @@ export type ShelfDefinition = {
 };
 
 export const bottomShelf: ShelfDefinition = {
-    matrices: [{
-        transformation: mat4.create(),
-        rotation: mat4.create(),
-        translation: mat4.create()
-    }],
+    matrices: [mat4.create()],
     counter: 1,
     snapPoints: [
         {
@@ -129,11 +121,7 @@ export const bottomShelf: ShelfDefinition = {
     ]
 };
 export const topShelf: ShelfDefinition = {
-    matrices: [{
-        transformation: mat4.create(),
-        rotation: mat4.create(),
-        translation: mat4.create()
-    }],
+    matrices: [mat4.create()],
     counter: 1,
     snapPoints: [
         {

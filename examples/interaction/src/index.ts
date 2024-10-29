@@ -1,9 +1,11 @@
 import * as SDV from '@shapediver/viewer';
 import {
     addListener,
+    Box,
     createSession,
     createViewport,
     EVENTTYPE,
+    GeometryData,
     IParameterApi,
     ISessionApi,
     IViewportApi,
@@ -60,18 +62,32 @@ const activateInteractionsToken: {
     end: ''
 };
 
-const updateParameter = async (def: ShelfDefinition) => {
-    // convert the matrices into the desired format
-    const stringMatrixArray: string[] = [];
+const updateParameter = async () => {
+    const shelves = [topShelf, bottomShelf];
+    for (let i = 0; i < shelves.length; i++) {
+        const def = shelves[i];
+        // convert the matrices into the desired format
+        const stringMatrixArray: string[] = [];
 
-    def.matrices.forEach((m) =>
-        stringMatrixArray.push('[' + m.transformation.toString() + ']')
-    );
-    def.parameter!.value =
-        stringMatrixArray.length === 0
-            ? '{}'
-            : `{matrices:[${stringMatrixArray.join()}]}`;
+        def.matrices.forEach((m) =>
+            stringMatrixArray.push('[' + m.toString() + ']')
+        );
+        console.log(stringMatrixArray);
+        def.parameter!.value =
+            stringMatrixArray.length === 0
+                ? '{matrices:[]}'
+                : `{matrices:[${stringMatrixArray.join()}]}`;
+
+    }
     await session.customize();
+
+
+    for (let i = 0; i < shelves.length; i++) {
+        const node = shelves[i].output!.node!.getNodesByName(shelves[i].output!.name + '_' + (shelves[i].counter - 1))[0]!;
+        node.visible = false;
+        node.updateVersion();
+    }
+    viewport.update();
 };
 
 const updateInteractions = (interactionTypes: { [key: string]: boolean }) => {
@@ -84,25 +100,39 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean }) => {
             // we enable dragging for this node
             const data = new InteractionData(interactionTypes);
 
-            // we set an anchor at the bottom back middle of the BB
+            const trueBB = new Box();
+            node.traverseData(d => {
+                if (d instanceof GeometryData) {
+                    trueBB.union(d.boundingBox);
+                }
+            });
 
-            let inverse = mat4.invert(mat4.create(), shelves[i].matrices[j].rotation);
-            if (!inverse) inverse = mat4.create();
 
-            const bb = node.boundingBox
-                .clone()
-                .applyMatrix(inverse);
+            // PART 1 - get the transformation matrix of the node that is applied in GH
+            let transformationMatrix: mat4 = mat4.create();
+            node.traverse(c => {
+                if (c.name.startsWith('mesh_') && c.parent)
+                    transformationMatrix = mat4.clone(c.parent.nodeMatrix);
+            });
+
+            // PART 2 - get the bounding box of the node and apply the inverse transformation matrix
+            // we now have the original bounding box in the object space
+            const bb = trueBB;
+
+            // PART 3 - get the position by using the middle of the bottom back of the bounding box
+            // and then apply the transformation matrix to get the position in the world space
             const position = vec3.fromValues(
                 (bb.max[0] + bb.min[0]) / 2,
                 bb.max[1],
                 bb.min[2]
             );
+            console.log(position);
+            vec3.transformMat4(position, position, transformationMatrix);
 
-            vec3.transformMat4(position, position, shelves[i].matrices[j].rotation);
-
+            // PART 4 - get the rotation by using the rotation of the transformation matrix
             const angle = quat.getAngle(
                 quat.setAxisAngle(quat.create(), vec3.fromValues(0, 0, 1), 0),
-                mat4.getRotation(quat.create(), shelves[i].matrices[j].rotation)
+                mat4.getRotation(quat.create(), transformationMatrix)
             );
 
             data.dragAnchors.push({
@@ -203,38 +233,30 @@ const activateInteractions = () => {
                             dragEvent.node.getPath().lastIndexOf('_') + 1,
                             dragEvent.node.getPath().length
                         );
+                    // mat4.multiply(
+                    //     def.matrices[+number].translation,
+                    //     def.matrices[+number].translation,
+                    //     mat4.fromTranslation(
+                    //         mat4.create(),
+                    //         mat4.getTranslation(vec3.create(), dragEvent.matrix)
+                    //     )
+                    // );
+                    // mat4.multiply(
+                    //     def.matrices[+number].rotation,
+                    //     def.matrices[+number].rotation,
+                    //     mat4.fromQuat(
+                    //         mat4.create(),
+                    //         mat4.getRotation(quat.create(), dragEvent.matrix)
+                    //     )
+                    // );
                     mat4.multiply(
-                        def.matrices[+number].translation,
-                        def.matrices[+number].translation,
-                        mat4.fromTranslation(
-                            mat4.create(),
-                            mat4.getTranslation(vec3.create(), dragEvent.matrix)
-                        )
-                    );
-                    mat4.multiply(
-                        def.matrices[+number].rotation,
-                        def.matrices[+number].rotation,
-                        mat4.fromQuat(
-                            mat4.create(),
-                            mat4.getRotation(quat.create(), dragEvent.matrix)
-                        )
-                    );
-                    mat4.multiply(
-                        def.matrices[+number].transformation,
-                        def.matrices[+number].transformation,
+                        def.matrices[+number],
+                        def.matrices[+number],
                         mat4.transpose(mat4.create(), (<any>e).matrix)
                     );
-                    customizationInProgress = true;
-                    await updateParameter(def);
-
-                    const node = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
-                    node.visible = false;
-                    node.updateVersion();
-                    viewport.update();
-
                     removeListener(activateInteractionsToken.end);
+                    updateInteractions({ drag: true, hover: true });
                     activateInteractions();
-                    customizationInProgress = false;
                 }
             );
 
@@ -311,39 +333,27 @@ const addShelf = async (def: ShelfDefinition) => {
     const tokenEnd = addListener(EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
         const dragEvent = <IDragEvent>e;
         dragConstraintsIDs.forEach((d) => dragManager.removeDragConstraint(d));
-        def.matrices[def.matrices.length - 1].translation = mat4.fromTranslation(
-            mat4.create(),
-            mat4.getTranslation(vec3.create(), dragEvent.matrix)
-        );
-        def.matrices[def.matrices.length - 1].rotation = mat4.fromQuat(
-            mat4.create(),
-            mat4.getRotation(quat.create(), dragEvent.matrix)
-        );
+        // def.matrices[def.matrices.length - 1].translation = mat4.fromTranslation(
+        //     mat4.create(),
+        //     mat4.getTranslation(vec3.create(), dragEvent.matrix)
+        // );
+        // def.matrices[def.matrices.length - 1].rotation = mat4.fromQuat(
+        //     mat4.create(),
+        //     mat4.getRotation(quat.create(), dragEvent.matrix)
+        // );
         mat4.multiply(
-            def.matrices[def.matrices.length - 1].transformation,
-            def.matrices[def.matrices.length - 1].transformation,
+            def.matrices[def.matrices.length - 1],
+            def.matrices[def.matrices.length - 1],
             mat4.transpose(mat4.create(), dragEvent.matrix)
         );
 
         // add a new matrix and update the parameter
-        def.matrices.push({
-            transformation: mat4.create(),
-            rotation: mat4.create(),
-            translation: mat4.create()
-        });
+        def.matrices.push(mat4.create());
         def.counter++;
 
-        customizationInProgress = true;
-        await updateParameter(def);
-
-        const node = def.output!.node!.getNodesByName(def.output!.name + '_' + (def.counter - 1))[0]!;
-        node.visible = false;
-        node.updateVersion();
-        viewport.update();
-
         removeListener(tokenEnd);
+        updateInteractions({ drag: true, hover: true });
         activateInteractions();
-        customizationInProgress = false;
     });
 };
 
@@ -355,6 +365,14 @@ const addShelf = async (def: ShelfDefinition) => {
     addShelf(bottomShelf);
 };
 
+document.addEventListener('keydown', async (e) => {
+    if(e.key === 'Enter') {
+        customizationInProgress = true;
+        await updateParameter();
+        customizationInProgress = false;
+    }
+});
+
 (async () => {
     customizationInProgress = true;
     viewport = await createViewport({
@@ -364,8 +382,8 @@ const addShelf = async (def: ShelfDefinition) => {
     });
     session = await createSession({
         ticket:
-            '0d547cd66556b390b5184d53386064d05eadb0b553dfd455a37f1ed8de2a688bf3c4bba1c1d977f5bece5ad6ce669782e4cc01b376e28f29db0488f022a0e7d64c72509db437511b30080f3534d7a7a7b045d53bd49d5fcdc4d5c9af3ad5bd1ab16d6317af5999-0dbbcdc5c2ebf524aa59dbdce0b99712',
-        modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
+            '500b3308fd039ca7e9d171ee5e84b62e680f86ee57560d46e3e394f4932814b7f57e29a43e22210e8efd08f4e09e6ff77efe78d274bea6c003bfd24fd3eb7460385114bb8dc88e1d0cfee8016e04ad445d533db69863d1f4af4a8cd9cd4c605f9dd159604515cb-70504b7d529584165df2df27becd58df',
+        modelViewUrl: 'https://sdr8euc1.eu-central-1.shapediver.com',
         id: 'mySession'
     });
 
@@ -380,8 +398,7 @@ const addShelf = async (def: ShelfDefinition) => {
     topShelf.parameter = session.getParameterByName('topShelfMatrices')[0] as IParameterApi<string>;
     bottomShelf.parameter = session.getParameterByName('bottomShelfMatrices')[0] as IParameterApi<string>;
 
-    await updateParameter(topShelf);
-    await updateParameter(bottomShelf);
+    await updateParameter();
     const shelves = [topShelf, bottomShelf];
 
     for (let i = 0; i < shelves.length; i++) {
