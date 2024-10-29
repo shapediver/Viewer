@@ -8,7 +8,7 @@ export type DraggingParameterValue = {
         /** The name of the object as defined in the name filter. */
         name: string,
         /** The transformation matrix of the object after the dragging operation. */
-        transformation: number[][],
+        transformation: number[],
         /** The id of the drag anchor that was used, if one was used. */
         dragAnchorId?: string,
         /** The id of the restriction that was used. */
@@ -48,7 +48,7 @@ export interface IDraggableObject {
      */
     dragOrigin?: number[]
     /** The name filter for the objects that can be dragged with the defined settings. */
-    nameFilter: string[],
+    nameFilter: string,
     /** The ids of the restrictions in the restrictions array to apply for these objects. */
     restrictions: string[],
 
