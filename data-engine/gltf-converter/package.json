@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.gltf-converter",
-  "version": "3.5.0-rc.5",
+  "version": "3.5.0-rc.6",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,12 +38,12 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.shared-types": "3.5.0-rc.5",
-    "@shapediver/viewer.shared.build-data": "3.5.0-rc.5",
-    "@shapediver/viewer.shared.global-access-objects": "3.5.0-rc.5",
-    "@shapediver/viewer.shared.node-tree": "3.5.0-rc.5",
-    "@shapediver/viewer.shared.services": "3.5.0-rc.5",
-    "@shapediver/viewer.shared.types": "3.5.0-rc.5",
+    "@shapediver/viewer.data-engine.shared-types": "3.5.0-rc.6",
+    "@shapediver/viewer.shared.build-data": "3.5.0-rc.6",
+    "@shapediver/viewer.shared.global-access-objects": "3.5.0-rc.6",
+    "@shapediver/viewer.shared.node-tree": "3.5.0-rc.6",
+    "@shapediver/viewer.shared.services": "3.5.0-rc.6",
+    "@shapediver/viewer.shared.types": "3.5.0-rc.6",
     "axios": "^1.2.6",
     "gl-matrix": "3.3.0"
   },
