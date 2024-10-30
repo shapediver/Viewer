@@ -47,7 +47,6 @@ export interface IDrawingToolsApi {
      * Add a ray tracing intersection restriction to the drawing tool.
      * 
      * @param properties The properties of the restriction.
-     * @param token The token of the restriction.
      * @returns The api of the restriction.
      */
     addRestriction(properties: RestrictionProperties, token?: string): IRestrictionApi | undefined;

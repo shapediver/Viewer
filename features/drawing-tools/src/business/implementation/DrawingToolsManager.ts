@@ -233,7 +233,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
      * @returns 
      */
     public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
-        return this.#interactionManager.restrictionManager.addRestriction(properties, token);
+        if(!properties.id) properties.id = token || this.#uuidGenerator.create();
+        return this.#interactionManager.restrictionManager.addRestriction(properties);
     }
 
     public canRedo(): boolean {

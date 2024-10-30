@@ -18,7 +18,7 @@ export interface IRestrictionManager {
 
     // #region Public Methods (5)
 
-    addRestriction(properties: RestrictionProperties, token?: string): string | undefined;
+    addRestriction(properties: RestrictionProperties): string | undefined;
     close(): void;
     getRestriction(token: string): IRestriction | undefined;
     rayTrace(ray: IRay, metaData?: DrawingRestrictionMetaData | DraggingRestrictionMetaData): RayTraceResult | undefined;

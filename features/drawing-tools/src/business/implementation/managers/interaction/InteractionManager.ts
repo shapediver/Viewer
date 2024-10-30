@@ -3,7 +3,8 @@ import { DeletionInteractionHandler } from './handlers/DeletionInteractionHandle
 import {
     GeometryMathManager,
     IRestrictionManager,
-    RestrictionManager
+    RestrictionManager,
+    RestrictionProperties
 } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DrawingToolsEventResponseMapping } from '../../../interfaces/events/EventResponseMapping';
 import { DrawingToolsManager } from '../../DrawingToolsManager';
@@ -39,7 +40,13 @@ export class InteractionManager {
         this.#viewport = drawingToolsManager.viewport;
         this.#geometryMathManager = this.#drawingToolsManager.geometryMathManager;
 
-        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager.viewport, this.#drawingToolsManager.parentNode, this.#drawingToolsManager.settings.restrictions, this.#drawingToolsManager.settings.visualization);
+        const restrictionsArray: RestrictionProperties[] = [];
+        for (const restrictionId in this.#drawingToolsManager.settings.restrictions) {
+            const restriction = this.#drawingToolsManager.settings.restrictions[restrictionId];
+            if(!restriction.id) restriction.id = restrictionId;
+            restrictionsArray.push(restriction);
+        }
+        this.#restrictionManager = new RestrictionManager(this.#drawingToolsManager.viewport, this.#drawingToolsManager.parentNode, restrictionsArray, this.#drawingToolsManager.settings.visualization);
 
         this.#deletionInteractionHandler = new DeletionInteractionHandler(this.#drawingToolsManager, this);
         this.#insertionInteractionHandler = new InsertionInteractionHandler(this.#drawingToolsManager, this);

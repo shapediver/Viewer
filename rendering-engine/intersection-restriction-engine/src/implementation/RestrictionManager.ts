@@ -57,7 +57,7 @@ export class RestrictionManager implements IRestrictionManager {
     constructor(
         viewport: IViewportApi,
         parentNode: ITreeNode = sceneTree.root,
-        restrictions?: { [token: string]: RestrictionProperties },
+        restrictions?: RestrictionProperties[],
         settings?: IVisualizationSettings
     ) {
         this.#viewport = viewport;
@@ -79,8 +79,8 @@ export class RestrictionManager implements IRestrictionManager {
         });
 
         if (restrictions) {
-            for (const restrictionToken in restrictions) {
-                this.addRestriction(restrictions[restrictionToken], restrictionToken);
+            for (const r of restrictions) {
+                this.addRestriction(r);
             }
         }
     }
@@ -115,8 +115,8 @@ export class RestrictionManager implements IRestrictionManager {
 
     // #region Public Methods (6)
 
-    public addRestriction(properties: RestrictionProperties, token?: string): string | undefined {
-        token = token || this.#uuidGenerator.create();
+    public addRestriction(properties: RestrictionProperties): string | undefined {
+        const token = properties.id || this.#uuidGenerator.create();
 
         let restriction: IRestriction | undefined;
         if (properties.type === RESTRICTION_TYPE.PLANE) {

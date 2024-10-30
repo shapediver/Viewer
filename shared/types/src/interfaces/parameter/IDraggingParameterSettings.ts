@@ -4,7 +4,7 @@ import { RestrictionDefinition, Rotation } from './IRestrictionSettings';
 // #region Type aliases (1)
 
 export type DraggingParameterValue = {
-    draggedObjects: {
+    objects: {
         /** The name of the object as defined in the name filter. */
         name: string,
         /** The transformation matrix of the object after the dragging operation. */

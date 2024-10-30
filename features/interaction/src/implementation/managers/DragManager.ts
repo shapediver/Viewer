@@ -123,22 +123,25 @@ export class DragManager extends AbstractInteractionManager {
         if (constraint instanceof PointConstraint) {
             this.#restrictionManager.addRestriction({
                 type: RESTRICTION_TYPE.POINT,
+                id: token,
                 point: constraint.point,
                 radius: constraint.radius,
                 rotation: constraint.rotation
-            } as PointRestrictionProperties, token)!;
+            } as PointRestrictionProperties)!;
         } else if (constraint instanceof LineConstraint) {
             this.#restrictionManager.addRestriction({
                 type: RESTRICTION_TYPE.LINE,
+                id: token,
                 point1: constraint.point1,
                 point2: constraint.point2,
                 radius: constraint.radius,
                 rotation: constraint.rotation
-            } as LineRestrictionProperties, token)!;
+            } as LineRestrictionProperties)!;
         } else if (constraint instanceof CameraPlaneConstraint) {
             this.#restrictionManager.addRestriction({
-                type: RESTRICTION_TYPE.CAMERA_PLANE
-            }, token)!;
+                type: RESTRICTION_TYPE.CAMERA_PLANE,
+                id: token
+            })!;
         } else if (constraint instanceof PlaneConstraint) {
             const origin = constraint.coplanarPoint ? vec3.clone(constraint.coplanarPoint) : vec3.fromValues(0, 0, 0);
             const normal = vec3.normalize(vec3.create(), constraint.normal);
@@ -158,11 +161,12 @@ export class DragManager extends AbstractInteractionManager {
 
             this.#restrictionManager.addRestriction({
                 type: RESTRICTION_TYPE.PLANE,
+                id: token,
                 vector_u,
                 vector_v,
                 rotation: constraint.rotation,
                 origin
-            } as PlaneRestrictionProperties, token)!;
+            } as PlaneRestrictionProperties)!;
         }
 
         return token;

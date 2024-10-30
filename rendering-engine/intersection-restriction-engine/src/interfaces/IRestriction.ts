@@ -14,6 +14,7 @@ import { PlaneRestrictionProperties } from '../implementation/restrictions/plane
 export type RayTraceResult = { distance?: number, transformation?: mat4, dragAnchor?: IDragAnchor, point: vec3, restriction: IRestriction | ISnapRestriction };
 export type RestrictionProperties = PointRestrictionProperties | PlaneRestrictionProperties | LineRestrictionProperties | GeometryRestrictionProperties | CameraPlaneRestrictionProperties;
 export type RestrictionPropertiesBase = {
+    id?: string;
     /**
      * Type of the restriction
      */
