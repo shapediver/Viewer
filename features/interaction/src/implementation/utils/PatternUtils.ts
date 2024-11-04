@@ -1,5 +1,6 @@
 import { ITreeNode, OutputApiData } from '@shapediver/viewer';
 import { InteractionData } from '../InteractionData';
+import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (2)
 
@@ -212,7 +213,7 @@ export const matchNodesWithPatterns = (patterns: OutputNodeNameFilterPatterns, n
  * @param node 
  * @param interactionDataSettings 
  */
-export const addInteractionData = (node: ITreeNode, interactionDataSettings: { select?: boolean, hover?: boolean, drag?: boolean }, componentId: string) => {
+export const addInteractionData = (node: ITreeNode, interactionDataSettings: { select?: boolean, hover?: boolean, drag?: boolean, dragOrigin?: vec3, dragAnchors?: { id: string, position: vec3, rotation?: { angle: number, axis: vec3 } }[] }, componentId: string) => {
 	for (const data of node.data) {
 		// remove existing interaction data if it is restricted to the current component
 		if (data instanceof InteractionData && data.restrictedManagers.includes(componentId)) {
@@ -225,6 +226,9 @@ export const addInteractionData = (node: ITreeNode, interactionDataSettings: { s
 	const interactionData = new InteractionData(interactionDataSettings, undefined, [componentId]);
 	node.addData(interactionData);
 	node.updateVersion();
+
+    if(interactionDataSettings.dragOrigin) interactionData.dragOrigin = interactionDataSettings.dragOrigin;
+    if(interactionDataSettings.dragAnchors) interactionData.dragAnchors = interactionDataSettings.dragAnchors;
 };
 
 // #endregion Variables (7)
