@@ -1,9 +1,11 @@
 import { AbstractInteractionManager } from './implementation/AbstractInteractionManager';
 import {
     addInteractionData,
+    calculateCombinedDraggedNodes,
     convertUserDefinedNameFilters,
     gatherNodesForPattern,
     getNodeData,
+    getNodesByName,
     matchNodesWithPatterns,
     NodeNameFilterPattern,
     OutputNodeNameFilterPatterns
@@ -85,7 +87,7 @@ export {
 };
 
 export {
-    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData
+    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData, getNodesByName, calculateCombinedDraggedNodes
 };
 
 export {

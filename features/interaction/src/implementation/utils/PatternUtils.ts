@@ -1,6 +1,11 @@
-import { ITreeNode, OutputApiData } from '@shapediver/viewer';
+import {
+    DraggingParameterValue,
+    ISessionApi,
+    ITreeNode,
+    OutputApiData
+} from '@shapediver/viewer';
 import { InteractionData } from '../InteractionData';
-import { vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 
 // #region Type aliases (2)
 
@@ -30,7 +35,7 @@ export type OutputNodeNameFilterPatterns = { [outputId: string]: NodeNameFilterP
 
 // #endregion Type aliases (2)
 
-// #region Variables (7)
+// #region Variables (9)
 
 /**
  * The black list of node names that should be ignored.
@@ -214,21 +219,93 @@ export const matchNodesWithPatterns = (patterns: OutputNodeNameFilterPatterns, n
  * @param interactionDataSettings 
  */
 export const addInteractionData = (node: ITreeNode, interactionDataSettings: { select?: boolean, hover?: boolean, drag?: boolean, dragOrigin?: vec3, dragAnchors?: { id: string, position: vec3, rotation?: { angle: number, axis: vec3 } }[] }, componentId: string) => {
-	for (const data of node.data) {
-		// remove existing interaction data if it is restricted to the current component
-		if (data instanceof InteractionData && data.restrictedManagers.includes(componentId)) {
-			console.warn(`Node ${node.id} already has interaction data with id ${data.id}, removing it.`);
-			node.removeData(data);
-		}
-	}
+    for (const data of node.data) {
+        // remove existing interaction data if it is restricted to the current component
+        if (data instanceof InteractionData && data.restrictedManagers.includes(componentId)) {
+            console.warn(`Node ${node.id} already has interaction data with id ${data.id}, removing it.`);
+            node.removeData(data);
+        }
+    }
 
-	// add the interaction data to the node
-	const interactionData = new InteractionData(interactionDataSettings, undefined, [componentId]);
-	node.addData(interactionData);
-	node.updateVersion();
+    // add the interaction data to the node
+    const interactionData = new InteractionData(interactionDataSettings, undefined, [componentId]);
+    node.addData(interactionData);
+    node.updateVersion();
 
-    if(interactionDataSettings.dragOrigin) interactionData.dragOrigin = interactionDataSettings.dragOrigin;
-    if(interactionDataSettings.dragAnchors) interactionData.dragAnchors = interactionDataSettings.dragAnchors;
+    if (interactionDataSettings.dragOrigin) interactionData.dragOrigin = interactionDataSettings.dragOrigin;
+    if (interactionDataSettings.dragAnchors) interactionData.dragAnchors = interactionDataSettings.dragAnchors;
+};
+/**
+ * Get the nodes within the session API by their names.
+ * 
+ * @param sessionApi The session API.
+ * @param names The names of the nodes.
+ * @returns 
+ */
+export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { name: string, node: ITreeNode }[] => {
+    const nodes: { name: string, node: ITreeNode }[] = [];
+
+    for (const sessionApi of sessionApis) {
+        names.forEach(name => {
+            const parts = name.split('.');
+            const outputName = parts[0];
+
+            const outputApi = sessionApi.getOutputByName(outputName)[0];
+            if (!outputApi) return;
+
+            outputApi.node?.traverse(n => {
+                if (n.getPath().endsWith(parts.slice(1).join('.'))) {
+                    nodes.push({
+                        name: name,
+                        node: n
+                    });
+                }
+            });
+        });
+    }
+
+    return nodes;
+};
+// react to changes of the uiValue and update the selection state if necessary
+export const calculateCombinedDraggedNodes = (currentState: DraggingParameterValue['objects'], draggedNodes: DraggingParameterValue['objects']): DraggingParameterValue['objects'] => {
+    const allDraggedNodesCopy = [...currentState];
+
+    for (const draggedNode of draggedNodes) {
+        const index = allDraggedNodesCopy.findIndex(n => n.name === draggedNode.name);
+
+        if (index === -1) {
+            // transpose the matrix to store it in the correct format
+            const transposed = mat4.transpose(mat4.create(), mat4.fromValues(...(draggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])));
+            allDraggedNodesCopy.push({
+                name: draggedNode.name,
+                transformation: Array.from(transposed),
+                dragAnchorId: draggedNode.dragAnchorId,
+                restrictionId: draggedNode.restrictionId
+            });
+        } else {
+            const oldDraggedNode = allDraggedNodesCopy[index];
+            // as we store the matrix transposed, we need to transpose it back to multiply it
+            const oldDraggedNodeTransposed = mat4.transpose(mat4.create(), mat4.fromValues(...(oldDraggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])));
+
+            // multiply the matrices
+            const newMatrix = mat4.multiply(
+                mat4.create(),
+                mat4.fromValues(...(draggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])),
+                oldDraggedNodeTransposed
+            );
+            // transpose the matrix back
+            const newMatrixTransposed = mat4.transpose(mat4.create(), newMatrix);
+
+            allDraggedNodesCopy[index] = {
+                name: draggedNode.name,
+                transformation: Array.from(newMatrixTransposed),
+                dragAnchorId: draggedNode.dragAnchorId,
+                restrictionId: draggedNode.restrictionId
+            };
+        }
+    }
+
+    return allDraggedNodesCopy;
 };
 
-// #endregion Variables (7)
+// #endregion Variables (9)
