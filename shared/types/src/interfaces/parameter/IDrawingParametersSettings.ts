@@ -60,7 +60,18 @@ export interface IDrawingParameterSettings {
          */
         autoClose: boolean;
     },
-    restrictions?: RestrictionDefinition[]
+    restrictions?: RestrictionDefinition[],
+    general?: {
+        /** A prompt that can be defined which is displayed instead of the default prompt. */
+        prompt?: {
+            /** The title when the parameter is inactive. */
+            inactiveTitle?: string,
+            /** The title when the parameter is active. */
+            activeTitle?: string,
+            /** The text when the parameter is inactive. */
+            activeText?: string
+        }
+    }
 
     // #endregion Properties (2)
 }
@@ -77,7 +88,14 @@ export const IDrawingParameterJsonSchema = z.object({
         strictMinMaxPoints: z.boolean().optional(),
         close: z.boolean(),
     }).optional(),
-    restrictions: z.array(z.any()).optional()
+    restrictions: z.array(z.any()).optional(),
+    general: z.object({
+        prompt: z.object({
+            inactiveTitle: z.string().optional(),
+            activeTitle: z.string().optional(),
+            activeText: z.string().optional(),
+        }).optional(),
+    }).optional(),
 });
 
 export const validateDrawingParameterSettings = (param: unknown) => {

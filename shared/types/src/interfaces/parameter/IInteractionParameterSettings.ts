@@ -17,7 +17,16 @@ export interface IInteractionParameterProps {
     /** If the objects are hoverable. (default: true) */
     hover?: boolean,
     /** The color of the objects when hovered. (default: '#00ff78') */
-    hoverColor?: string
+    hoverColor?: string,
+    /** A prompt that can be defined which is displayed instead of the default prompt. */
+    prompt?: {
+        /** The title when the parameter is inactive. */
+        inactiveTitle?: string,
+        /** The title when the parameter is active. */
+        activeTitle?: string,
+        /** The text when the parameter is inactive. */
+        activeText?: string
+    }
 
     // #endregion Properties (2)
 }
@@ -45,6 +54,11 @@ export interface IInteractionParameterSettings {
 const IGeneralInteractionParameterJsonSchema = z.object({
     hover: z.boolean().optional(),
     hoverColor: z.string().optional(),
+    prompt: z.object({
+        inactiveTitle: z.string().optional(),
+        activeTitle: z.string().optional(),
+        activeText: z.string().optional(),
+    }).optional(),
 });
 
 export const ISelectionParameterJsonSchema = z.object({
