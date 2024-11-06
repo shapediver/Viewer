@@ -256,10 +256,12 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
             this.#nodes.forEach(node => {
                 const threeJsObject = node.convertedObject[this.#viewport.id] as THREE.Object3D;
                 if (threeJsObject) {
+                    threeJsObject.updateMatrixWorld(true);
                     threeJsObject.traverse((object) => {
                         if (object instanceof THREE.Mesh) {
                             const wireframe = new THREE.WireframeGeometry(object.geometry);
                             const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: new THREE.Color(this.#wireframeColor) }));
+                            line.applyMatrix4(object.matrixWorld);
                             this.#visualizationObject.add(line);
                         }
                     });
