@@ -249,18 +249,25 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { n
         names.forEach(name => {
             const parts = name.split('.');
             const outputName = parts[0];
+            
+			const outputApi = sessionApi.getOutputByName(outputName)[0];
+			if (!outputApi || !outputApi.node) return;
 
-            const outputApi = sessionApi.getOutputByName(outputName)[0];
-            if (!outputApi) return;
-
-            outputApi.node?.traverse(n => {
-                if (n.getPath().endsWith(parts.slice(1).join('.'))) {
-                    nodes.push({
-                        name: name,
-                        node: n
-                    });
-                }
-            });
+			if(parts.length === 1) {
+				nodes.push({
+					name: name,
+					node: outputApi.node
+				});
+			} else {
+				outputApi.node.traverse(n => {
+					if (n.getPath().endsWith(parts.slice(1).join("."))) {
+						nodes.push({
+							name: name,
+							node: n
+						});
+					}
+				});
+			}
         });
     }
 
