@@ -18,6 +18,7 @@ export class InsertionInteractionHandler {
 
     #alreadyInserted: boolean = false;
     #insertionActive: boolean = false;
+    #insertionPaused: boolean = false;
     #insertionActiveIndex: number = -1;
 
     // #endregion Properties (9)
@@ -44,6 +45,10 @@ export class InsertionInteractionHandler {
 
     public get insertionActive(): boolean {
         return this.#insertionActive;
+    }
+
+    public get insertionPaused(): boolean {
+        return this.#insertionPaused;
     }
 
     // #endregion Public Getters And Setters (2)
@@ -144,8 +149,16 @@ export class InsertionInteractionHandler {
 
             this.#insertionActive = true;
             this.#alreadyInserted = true;
+            this.#insertionPaused = false;
 
             return restrictedPoint;
+        }
+    }
+
+    public pauseInsertion(): void {
+        if (this.#insertionActive === true) {
+            this.stopInsertion();
+            this.#insertionPaused = true;
         }
     }
 
@@ -155,6 +168,7 @@ export class InsertionInteractionHandler {
             this.#drawingToolsManager.removePointTemporary(this.#insertionActiveIndex);
             this.#insertionActive = false;
             this.#alreadyInserted = false;
+            this.#insertionPaused = false;
             this.#insertionActiveIndex = -1;
         }
     }

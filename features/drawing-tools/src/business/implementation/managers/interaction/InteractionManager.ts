@@ -183,6 +183,12 @@ export class InteractionManager {
             currentRestrictedPoint = this.startInsertion() || currentRestrictedPoint;
         }
 
+        // if the insertion was paused because the pointer moved out of the viewport, start it again
+        if (this.#insertionInteractionHandler.insertionPaused) {
+            this.#lastEvent = event;
+            currentRestrictedPoint = this.startInsertion() || currentRestrictedPoint;
+        }
+
         const distanceSquared = this.#onDownPointer ? Math.pow(event.clientX - this.#onDownPointer.clientX, 2) + Math.pow(event.clientY - this.#onDownPointer.clientY, 2) : Infinity;
         const clickThresholdSquared = 25;
         const pointerMoved = distanceSquared > clickThresholdSquared;
@@ -240,7 +246,7 @@ export class InteractionManager {
      */
     public onOut(): void {
         this.#restrictionManager.showRestrictionVisualization = false;
-        this.#insertionInteractionHandler.stopInsertion();
+        this.#insertionInteractionHandler.pauseInsertion();
         this.#interactionManagerHelper.onOut();
         this.reset();
     }
