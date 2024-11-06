@@ -29,8 +29,10 @@ export class GeometryManagerHelper {
 
     // #region Public Methods (6)
 
-    public addPoint(insertionIndex: number, position?: vec3 | undefined, temporary = false): void {
+    public addPoint(insertionIndex: number, position?: vec3 | undefined, temporary = false): boolean {
         const positionArrayLength = this.#geometryState.positionArray.length / 3;
+        if(positionArrayLength === 0 && !position) return false;
+
         const scaledIndex = insertionIndex * 3;
         if (insertionIndex < 0 || insertionIndex > positionArrayLength) {
             throw new ShapeDiverViewerDrawingToolsError('The insertion index is out of range. Please provide a valid index.');
@@ -60,6 +62,8 @@ export class GeometryManagerHelper {
         this.#geometryState.updateData(newPositionArray, temporary);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.ADDED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: insertionIndex });
+
+        return true;
     }
 
     public movePoint(index: number, point: vec3, temporary = false): void {
@@ -83,7 +87,7 @@ export class GeometryManagerHelper {
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index });
     }
 
-    public removePoint(removalIndex: number, temporary = false): void {
+    public removePoint(removalIndex: number, temporary = false): boolean {
         const positionArrayLength = this.#geometryState.positionArray.length / 3;
         if (removalIndex < 0 || removalIndex >= positionArrayLength) {
             throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
@@ -112,6 +116,8 @@ export class GeometryManagerHelper {
         this.#geometryState.updateData(newPositionArray, temporary);
 
         this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: removalIndex });
+
+        return true;
     }
 
     public removePoints(indices: number[]): void {

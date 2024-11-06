@@ -48,8 +48,8 @@ export class GeometryManager {
 
     // #region Public Methods (10)
 
-    public addPoint(index: number, position?: vec3, temporary = false): void {
-        this.#geometryManagerHelper.addPoint(index, position, temporary);
+    public addPoint(index: number, position?: vec3, temporary = false): boolean {
+        return this.#geometryManagerHelper.addPoint(index, position, temporary);
     }
 
     public canAddPoint(): boolean {
@@ -74,8 +74,8 @@ export class GeometryManager {
         this.#geometryManagerHelper.movePoint(index, position, temporary);
     }
 
-    public removePoint(removalIndex: number, temporary = false): void {
-        this.#geometryManagerHelper.removePoint(removalIndex, temporary);
+    public removePoint(removalIndex: number, temporary = false): boolean {
+        return this.#geometryManagerHelper.removePoint(removalIndex, temporary);
     }
 
     public removePoints(removalIndices: number[]): void {

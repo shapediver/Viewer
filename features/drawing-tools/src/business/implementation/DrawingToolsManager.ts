@@ -209,8 +209,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
      * @param position 
      * @returns 
      */
-    public addPoint(index: number, position?: vec3 | undefined, temporary = false): void {
-        if (this.#closed) return;
+    public addPoint(index: number, position?: vec3 | undefined, temporary = false): boolean {
+        if (this.#closed) return false;
         if (!this.#geometryManager.canAddPoint()) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS, {
                 viewportId: this.viewport.id,
@@ -219,11 +219,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
             });
             throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded.`);
         }
-        this.#geometryManager.addPoint(index, position, temporary);
+        return this.#geometryManager.addPoint(index, position, temporary);
     }
 
-    public addPointTemporary(index: number, position?: vec3 | undefined): void {
-        this.addPoint(index, position, true);
+    public addPointTemporary(index: number, position?: vec3 | undefined): boolean {
+        return this.addPoint(index, position, true);
     }
 
     /**
@@ -409,8 +409,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
      * @param index 
      * @returns 
      */
-    public removePoint(index: number, temporary = false): void {
-        if (this.#closed) return;
+    public removePoint(index: number, temporary = false): boolean {
+        if (this.#closed) return false;
         if (!this.geometryState.canRemovePoint()) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MINIMUM_POINTS, {
                 viewportId: this.viewport.id,
@@ -420,11 +420,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
             throw new ShapeDiverViewerDrawingToolsError(`The minimum amount of points (${this.#settings.geometry.minPoints}) has not been met.`);
         }
 
-        this.#geometryManager.removePoint(index, temporary);
+        return this.#geometryManager.removePoint(index, temporary);
     }
 
-    public removePointTemporary(index: number): void {
-        this.removePoint(index, true);
+    public removePointTemporary(index: number): boolean {
+        return this.removePoint(index, true);
     }
 
     public removePoints(indices: number[]): void {

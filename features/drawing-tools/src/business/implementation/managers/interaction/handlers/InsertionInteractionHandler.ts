@@ -138,7 +138,8 @@ export class InsertionInteractionHandler {
             })?.point;
             // add at last position
             this.#insertionActiveIndex = this.#geometryState.getPointCount();
-            this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);
+            const result = this.#drawingToolsManager.addPointTemporary(this.#insertionActiveIndex, restrictedPoint);
+            if(!result) return;
             this.#drawingToolsManager.updateMaterialIndex(this.#insertionActiveIndex, MATERIAL_INDEX.INSERTION_HOVERED);
 
             this.#insertionActive = true;
