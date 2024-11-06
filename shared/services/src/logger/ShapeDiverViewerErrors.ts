@@ -1,4 +1,5 @@
-import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from "./ShapeDiverError";
+import { ShapeDiverResponseExport, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverViewerError, ShapeDiverViewerErrorType } from './ShapeDiverError';
 
 
 export class ShapeDiverViewerUnknownError extends ShapeDiverViewerError {
@@ -54,6 +55,18 @@ export class ShapeDiverViewerSessionError extends ShapeDiverViewerError {
         public readonly errorObject?: Error | unknown
     ) {
         super(ShapeDiverViewerErrorType.SESSION_ERROR, 'An error occurred while working with the session.', message);
+    }
+}
+
+export class ShapeDiverViewerCustomizationError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string,
+        public readonly errorObject: {
+            outputs: { [id: string]: ShapeDiverResponseOutput; }, 
+            exports: { [key: string]: ShapeDiverResponseExport; }
+        }
+    ) {
+        super(ShapeDiverViewerErrorType.CUSTOMIZATION_ERROR, 'An error occurred while customizing the session.', message);
     }
 }
 

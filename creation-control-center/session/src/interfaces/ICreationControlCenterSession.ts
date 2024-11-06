@@ -30,7 +30,9 @@ export type SessionCreationDefinition = {
     /** The optional model state id to use for the session. If not provided, no model state will be loaded. */
     modelStateId?: string,
     /** The optional model state validation mode to use for the session. If not provided, the default validation mode of the Geometry SDK will be used. */
-    modelStateValidationMode?: string
+    modelStateValidationMode?: string,
+    /** Option to throw an error if parts of a customization failed. (default: false) */
+    throwOnCustomizationError?: boolean
 };
 
 // #endregion Type aliases (1)

@@ -25,6 +25,7 @@ import { InputValidator } from './input-validator/InputValidator';
 import {
     isARError,
     isViewerCameraError,
+    isViewerCustomizationError,
     isViewerDataProcessingError,
     isViewerDrawingToolsError,
     isViewerEnvironmentMapError,
@@ -54,6 +55,7 @@ import { ShapeDiverResponseErrorType as ShapeDiverGeometryBackendResponseErrorTy
 import {
     ShapeDiverViewerArError,
     ShapeDiverViewerCameraError,
+    ShapeDiverViewerCustomizationError,
     ShapeDiverViewerDataProcessingError,
     ShapeDiverViewerDrawingToolsError,
     ShapeDiverViewerEnvironmentMapError,
@@ -124,6 +126,7 @@ export {
     ShapeDiverViewerWebGLError,
     ShapeDiverViewerSettingsError,
     ShapeDiverViewerSessionError,
+    ShapeDiverViewerCustomizationError,
     ShapeDiverViewerViewportError,
     ShapeDiverViewerUnknownError,
     ShapeDiverViewerArError,
@@ -146,6 +149,7 @@ export {
     isViewerWebGLError,
     isViewerSettingsError,
     isViewerSessionError,
+    isViewerCustomizationError,
     isViewerViewportError,
     isViewerLightError,
     isViewerCameraError,
