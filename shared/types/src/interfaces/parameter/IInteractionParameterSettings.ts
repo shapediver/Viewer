@@ -84,7 +84,30 @@ export const IGumballParameterJsonSchema = z.object({
 });
 export const IDraggingParameterJsonSchema = z.object({
     type: z.literal('dragging'),
-    props: z.any(),
+    props: z.object({
+        draggingColor: z.string().optional(),
+        objects: z.array(z.object({
+            nameFilter: z.string(),
+            restrictions: z.string(),
+            dragAnchors: z.array(z.object({
+                id: z.string(),
+                position: z.array(z.number()),
+                rotation: z.object({
+                    axis: z.array(z.number()),
+                    angle: z.number(),
+                }).optional(),
+            })).optional(),
+            dragOrigin: z.array(z.number()).optional(),
+        })).optional(),
+        restrictions: z.array(z.object({
+            id: z.string(),
+            type: z.string(),
+            rotation: z.object({
+                axis: z.array(z.number()),
+                angle: z.number(),
+            }).optional(),
+        }).passthrough()).optional(),
+    }).merge(IGeneralInteractionParameterJsonSchema),
 });
 
 export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(IGumballParameterJsonSchema).or(IDraggingParameterJsonSchema);
