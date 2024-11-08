@@ -260,7 +260,7 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { n
 				});
 			} else {
 				outputApi.node.traverse(n => {
-					if (n.getPath().endsWith(parts.slice(1).join("."))) {
+					if (checkNodeNameMatch(n, parts.slice(1).join('.'))) {
 						nodes.push({
 							name: name,
 							node: n
@@ -313,6 +313,25 @@ export const calculateCombinedDraggedNodes = (currentState: DraggingParameterVal
     }
 
     return allDraggedNodesCopy;
+};
+
+/**
+ * This function checks if the name of the node matches the given name.
+ * The name is provided without the display component in the beginning.
+ * It is assumed that the node is in the correct display component.
+ * 
+ * @param node 
+ * @param nameWithoutDisplayComponent 
+ */
+export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent: string): boolean => {
+    let originalNamePath = node.getOriginalNamePath();
+    NODE_NAME_BLACKLIST.forEach(name => {
+        originalNamePath = originalNamePath.replace(name, '');
+    });
+    const availableNamesToCheck: string[] | null = originalNamePath.match(/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+/g);
+    if (!availableNamesToCheck) return false;
+
+    return availableNamesToCheck.some(name => name === nameWithoutDisplayComponent);
 };
 
 // #endregion Variables (9)

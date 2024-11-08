@@ -168,6 +168,11 @@ export interface ITreeNode {
      */
     getPath(): string;
     /**
+     * Return the path to this node with the original names.
+     * If no original name is set, the entry is left empty.
+     */
+    getOriginalNamePath(): string;
+    /**
      * Returns the transformation with the specified id
     */
     getTransformation(id: string): ITransformation | undefined;

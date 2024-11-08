@@ -336,6 +336,16 @@ export class TreeNode implements ITreeNode {
     return path;
   }
 
+  public getOriginalNamePath(): string {
+    let path = this.originalName || '';
+    let node: ITreeNode | undefined = this.parent;
+    while (node) {
+      path = (node.originalName || '') + '.' + path;
+      node = node.parent;
+    }
+    return path;
+  }
+
   public getTransformation(id: string): ITransformation | undefined {
     for (let i = 0; i < this.#transformations.length; i++)
       if (this.#transformations[i].id === id)

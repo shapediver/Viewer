@@ -2,6 +2,7 @@ import { AbstractInteractionManager } from './implementation/AbstractInteraction
 import {
     addInteractionData,
     calculateCombinedDraggedNodes,
+    checkNodeNameMatch,
     convertUserDefinedNameFilters,
     gatherNodesForPattern,
     getNodeData,
@@ -87,7 +88,7 @@ export {
 };
 
 export {
-    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData, getNodesByName, calculateCombinedDraggedNodes
+    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData, getNodesByName, calculateCombinedDraggedNodes, checkNodeNameMatch
 };
 
 export {
