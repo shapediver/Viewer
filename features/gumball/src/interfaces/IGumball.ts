@@ -11,9 +11,9 @@ export type Settings = {
      * Enable or disable the rotation per axis.
      */
     enableRotationAxes: {
-        x: boolean;
-        y: boolean;
-        z: boolean;
+        x?: boolean;
+        y?: boolean;
+        z?: boolean;
     };
     /**
      * Enable or disable scaling. (default: true)
@@ -23,9 +23,9 @@ export type Settings = {
      * Enable or disable the scaling per axis.
      */
     enableScalingAxes: {
-        x: boolean;
-        y: boolean;
-        z: boolean;
+        x?: boolean;
+        y?: boolean;
+        z?: boolean;
     };
     /**
      * Enable or disable translation. (default: true)
@@ -35,9 +35,9 @@ export type Settings = {
      * Enable or disable the translation per axis.
      */
     enableTranslationAxes: {
-        x: boolean;
-        y: boolean;
-        z: boolean;
+        x?: boolean;
+        y?: boolean;
+        z?: boolean;
     };
     /**
      * The scale of the Gumball compared to the screen size. (default: 0.15)

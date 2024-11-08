@@ -329,7 +329,8 @@ export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent:
 		originalNamePath = originalNamePath.replace(name, '');
 	});
 	const match = originalNamePath.match(/([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)\.*$/);
-	return match ? match[1] === nameWithoutDisplayComponent : false;
+	if(!match) return false;
+	return match[0] === nameWithoutDisplayComponent;
 };
 
 // #endregion Variables (9)
