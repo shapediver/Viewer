@@ -324,14 +324,12 @@ export const calculateCombinedDraggedNodes = (currentState: DraggingParameterVal
  * @param nameWithoutDisplayComponent 
  */
 export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent: string): boolean => {
-    let originalNamePath = node.getOriginalNamePath();
-    NODE_NAME_BLACKLIST.forEach(name => {
-        originalNamePath = originalNamePath.replace(name, '');
-    });
-	const availableNamesToCheck: string[] | null = originalNamePath.match(/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*/g);
-    if (!availableNamesToCheck) return false;
-
-    return availableNamesToCheck.some(name => name === nameWithoutDisplayComponent);
+	let originalNamePath = node.getOriginalNamePath();
+	NODE_NAME_BLACKLIST.forEach(name => {
+		originalNamePath = originalNamePath.replace(name, '');
+	});
+	const match = originalNamePath.match(/([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)\.*$/);
+	return match ? match[1] === nameWithoutDisplayComponent : false;
 };
 
 // #endregion Variables (9)
