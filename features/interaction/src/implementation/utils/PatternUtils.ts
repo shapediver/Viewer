@@ -328,7 +328,7 @@ export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent:
     NODE_NAME_BLACKLIST.forEach(name => {
         originalNamePath = originalNamePath.replace(name, '');
     });
-    const availableNamesToCheck: string[] | null = originalNamePath.match(/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+/g);
+	const availableNamesToCheck: string[] | null = originalNamePath.match(/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*/g);
     if (!availableNamesToCheck) return false;
 
     return availableNamesToCheck.some(name => name === nameWithoutDisplayComponent);
