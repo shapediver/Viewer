@@ -74,8 +74,23 @@ export const IGumballParameterJsonSchema = z.object({
     type: z.literal('gumball'),
     props: z.object({
         enableRotation: z.boolean().optional(),
+        enableRotationAxes: z.object({
+            x: z.boolean().optional(),
+            y: z.boolean().optional(),
+            z: z.boolean().optional(),
+        }).optional(),
         enableScaling: z.boolean().optional(),
+        enableScalingAxes: z.object({
+            x: z.boolean().optional(),
+            y: z.boolean().optional(),
+            z: z.boolean().optional(),
+        }).optional(),
         enableTranslation: z.boolean().optional(),
+        enableTranslationAxes: z.object({
+            x: z.boolean().optional(),
+            y: z.boolean().optional(),
+            z: z.boolean().optional(),
+        }).optional(),
         nameFilter: z.array(z.string()).optional(),
         scale: z.number().optional(),
         space: z.literal('local').or(z.literal('world')).optional(),

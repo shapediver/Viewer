@@ -31,12 +31,24 @@ export class GumballParameter extends Parameter<string> implements IGumballParam
         return this.getGumballProperties()?.enableRotation;
     }
 
+    public get enableRotationAxes(): { x?: boolean; y?: boolean; z?: boolean; } | undefined {
+        return this.getGumballProperties()?.enableRotationAxes;
+    }
+
     public get enableScaling(): boolean | undefined {
         return this.getGumballProperties()?.enableScaling;
     }
 
+    public get enableScalingAxes(): { x?: boolean; y?: boolean; z?: boolean; } | undefined {
+        return this.getGumballProperties()?.enableScalingAxes
+    }
+
     public get enableTranslation(): boolean | undefined {
         return this.getGumballProperties()?.enableTranslation;
+    }
+
+    public get enableTranslationAxes(): { x?: boolean; y?: boolean; z?: boolean; } | undefined {
+        return this.getGumballProperties()?.enableTranslationAxes;
     }
 
     public get hover(): boolean | undefined {

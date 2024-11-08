@@ -19,10 +19,34 @@ export interface IGumballParameterProps extends IInteractionParameterProps {
 
     /** If the rotation is enabled. (default: true) */
     enableRotation?: boolean,
+    /**
+     * If the rotation per axis is enabled.
+     */
+    enableRotationAxes?: {
+        x?: boolean,
+        y?: boolean,
+        z?: boolean
+    },
     /** If the scaling is enabled. (default: false) */
     enableScaling?: boolean,
+    /**
+     * If the scaling per axis is enabled.
+     */
+    enableScalingAxes?: {
+        x?: boolean,
+        y?: boolean,
+        z?: boolean
+    },
     /** If the translation is enabled. (default: true) */
     enableTranslation?: boolean,
+    /**
+     * If the translation per axis is enabled.
+     */
+    enableTranslationAxes?: {
+        x?: boolean,
+        y?: boolean,
+        z?: boolean
+    },
     /** The names of the objects that can be interacted with. (see Jira document and discussion result) */
     nameFilter?: string[],
     /** The scale of the controls. The scale divides the scene bounding sphere to get the actual size. (default: 0.005) */
