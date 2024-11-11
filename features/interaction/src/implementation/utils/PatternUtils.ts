@@ -328,7 +328,7 @@ export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent:
 	NODE_NAME_BLACKLIST.forEach(name => {
 		originalNamePath = originalNamePath.replace(name, '');
 	});
-	const match = originalNamePath.match(/([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)\.*$/);
+	const match = originalNamePath.match(/([^.]+(\.[^.]+)*)\.*$/);
 	if(!match) return false;
 	return match[0] === nameWithoutDisplayComponent;
 };
