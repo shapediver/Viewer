@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.canvas-engine",
-  "version": "3.5.0-rc.17",
+  "version": "3.5.0-rc.18",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,8 +38,8 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.rendering-engine": "3.5.0-rc.17",
-    "@shapediver/viewer.shared.services": "3.5.0-rc.17",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "3.5.0-rc.18",
+    "@shapediver/viewer.shared.services": "3.5.0-rc.18",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"

@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.types",
-  "version": "3.5.0-rc.17",
+  "version": "3.5.0-rc.18",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,9 +40,9 @@
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.12.1",
     "@shapediver/sdk.sdtf-v1": "1.5.3",
-    "@shapediver/viewer.shared.math": "3.5.0-rc.17",
-    "@shapediver/viewer.shared.node-tree": "3.5.0-rc.17",
-    "@shapediver/viewer.shared.services": "3.5.0-rc.17",
+    "@shapediver/viewer.shared.math": "3.5.0-rc.18",
+    "@shapediver/viewer.shared.node-tree": "3.5.0-rc.18",
+    "@shapediver/viewer.shared.services": "3.5.0-rc.18",
     "gl-matrix": "3.3.0",
     "zod": "^3.23.8"
   },
