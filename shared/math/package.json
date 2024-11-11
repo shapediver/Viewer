@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.math",
-  "version": "3.5.0-rc.16",
+  "version": "3.5.0-rc.17",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,7 +38,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "3.5.0-rc.16",
+    "@shapediver/viewer.shared.services": "3.5.0-rc.17",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
