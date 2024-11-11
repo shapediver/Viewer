@@ -103,7 +103,7 @@ export const IDraggingParameterJsonSchema = z.object({
         draggingColor: z.string().optional(),
         objects: z.array(z.object({
             nameFilter: z.string(),
-            restrictions: z.string(),
+            restrictions: z.array(z.string()),
             dragAnchors: z.array(z.object({
                 id: z.string(),
                 position: z.array(z.number()),
