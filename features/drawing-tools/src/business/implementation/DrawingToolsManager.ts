@@ -490,7 +490,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`
             });
             throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`);
-        } else if (!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop)) {
+        } else if (!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop) && pointsCount > 2) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UNCLOSED_LOOP, {
                 viewportId: this.viewport.id,
                 drawingToolsId: this.#uuid,
