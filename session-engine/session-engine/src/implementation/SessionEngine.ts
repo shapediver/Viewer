@@ -498,7 +498,8 @@ export class SessionEngine implements ISessionEngine {
         omitSessionParameterValues: boolean = false,
         image?: (() => string) | string | Blob | File,
         data?: Record<string, any>,
-        arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File
+        arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File,
+        retry = false
     ): Promise<string> {
         this.checkAvailability();
 
@@ -562,7 +563,8 @@ export class SessionEngine implements ISessionEngine {
 
             return response.modelState!.id!;
         } catch (e) {
-            throw this._httpClient.convertError(e);
+            await this.handleError(e, retry);
+            return await this.createModelState(parameterValues, omitSessionParameterValues, image, data, arScene, true);
         }
     }
 
@@ -791,7 +793,7 @@ export class SessionEngine implements ISessionEngine {
         return result;
     }
 
-    public async customizeWithModelState(modelState: string | ShapeDiverResponseDto): Promise<ITreeNode> {
+    public async customizeWithModelState(modelState: string | ShapeDiverResponseDto, retry = false): Promise<ITreeNode> {
         this.checkAvailability();
 
         try {
@@ -811,16 +813,18 @@ export class SessionEngine implements ISessionEngine {
 
             return this.customize();
         } catch (e) {
-            throw this._httpClient.convertError(e);
+            await this.handleError(e, retry);
+            return await this.customizeWithModelState(modelState, true);
         }
     }
 
-    public async getFileInfo(parameterId: string, fileId: string): Promise<ShapeDiverResponseFileInfo> {
+    public async getFileInfo(parameterId: string, fileId: string, retry = false): Promise<ShapeDiverResponseFileInfo> {
         this.checkAvailability();
         try {
             return await this._sdk.file.info(this._sessionId!, parameterId, fileId);
         } catch (e) {
-            throw this._httpClient.convertError(e);
+            await this.handleError(e, retry);
+            return await this.getFileInfo(parameterId, fileId, true);
         }
     }
 
@@ -1318,7 +1322,7 @@ export class SessionEngine implements ISessionEngine {
         return response && responseP && responseO && responseE;
     }
 
-    public async setJwtToken(value: string) {
+    public async setJwtToken(value: string, retry = false) {
         this.checkAvailability();
 
         this._jwtToken = value;
@@ -1327,7 +1331,8 @@ export class SessionEngine implements ISessionEngine {
             const responseDto = await this._sdk.session.default(this._sessionId!);
             if (this._responseDto) this._responseDto.actions = responseDto.actions;
         } catch (e) {
-            throw this._httpClient.convertError(e);
+            await this.handleError(e, retry);
+            await this.setJwtToken(value, true);
         }
     }
 
