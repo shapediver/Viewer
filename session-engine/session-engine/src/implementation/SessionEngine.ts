@@ -1569,9 +1569,9 @@ export class SessionEngine implements ISessionEngine {
 
         for (const outputId in outputs) {
             const outputObj = outputs[outputId];
-            if (outputObj.msg !== undefined ||
+            if ((throwError === false && outputObj.msg !== undefined) ||
                 (outputObj.status_collect && outputObj.status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS) ||
-                (outputObj.status_collect && outputObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                (outputObj.status_computation && outputObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
             ) {
                 outputsWithIssues[outputId] = outputObj;
             }
@@ -1580,9 +1580,9 @@ export class SessionEngine implements ISessionEngine {
         for (const exportId in exports) {
             const exportObj = exports[exportId];
 
-            if (exportObj.msg !== undefined ||
+            if ((throwError === false && exportObj.msg !== undefined) ||
                 (exportObj.status_collect && exportObj.status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS) ||
-                (exportObj.status_collect && exportObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                (exportObj.status_computation && exportObj.status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
             ) {
                 exportsWithIssues[exportId] = exportObj;
             }
