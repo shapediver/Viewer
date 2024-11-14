@@ -34,6 +34,7 @@ import {
     IGumballParameterJsonSchema,
     IGumballParameterProps,
     IHTMLElementAnchorData,
+    IInstanceMatricesData,
     IInteractionParameterJsonSchema,
     IInteractionParameterProps,
     IInteractionParameterSettings,
@@ -68,6 +69,7 @@ import {
     IMaterialUnlitDataProperties,
     IMaterialUnlitDataPropertiesDefinition,
     IMaterialVariantsData,
+    InstanceMatricesData,
     InteractionParameterSettingsType,
     IOutputEvent,
     IParameterEvent,
@@ -256,7 +258,7 @@ export { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverRe
 
 export { EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, ISceneEvent, ITaskEvent, IRenderingEvent, IParameterEvent, ISettingsSections, IViewportSettingsSections, ISessionSettingsSections };
 export { IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition, IMaterialAbstractData, IMaterialAbstractDataProperties, IMaterialAbstractDataPropertiesDefinition, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition, IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties, IMaterialShadowDataPropertiesDefinition, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialSpecularGlossinessDataPropertiesDefinition, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition, IMaterialPointData, MaterialPointData, IMaterialPointDataProperties, IMaterialPointDataPropertiesDefinition, IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition, IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition, IMapData, IMapDataProperties, IMapDataPropertiesDefinition, MapData };
-export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData };
+export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, IInstanceMatricesData, InstanceMatricesData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData };
 export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITexture };
 export { ICustomData, CustomData };
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard };
