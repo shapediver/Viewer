@@ -8,6 +8,7 @@ import {
     GeometryData,
     HTMLElementAnchorData,
     IMaterialAbstractData,
+    InstanceMatricesData,
     ISDTFOverview,
     MaterialStandardData,
     SDTFItemData,
@@ -135,8 +136,11 @@ export class SceneTreeManager implements IManager {
                 {
                     dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
 
+                    // We search for the instance matrices data in the parent of our current node
+                    // We are currently at the primitive level and the instance matrices are stored at the mesh level
+                    const instanceTransformationData: InstanceMatricesData | undefined = node.parent?.data.find(d => d instanceof InstanceMatricesData) as InstanceMatricesData | undefined;
                     if (filter.transformationOnly === false)
-                        this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton).clone();
+                        this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, newChild, skeleton, instanceTransformationData?.instanceMatrices);
 
                     let bb: IBox = new Box();
                     if (skeleton) {

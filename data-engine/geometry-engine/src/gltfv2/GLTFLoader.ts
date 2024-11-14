@@ -50,7 +50,8 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_VOLUME = 'KHR_materials_volume',
     KHR_MESH_QUANTIZATION = 'KHR_mesh_quantization',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
-    SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
+    SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset',
+    EXT_MESH_GPU_INSTANCING = 'EXT_mesh_gpu_instancing',
 }
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -415,8 +416,43 @@ export class GLTFLoader {
             });
         }
 
+        const instanceTransformations: mat4[] = [];
+        if (node.extensions && node.extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING]) {
+            const ext = node.extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING].attributes;
+            if (ext['TRANSLATION'] && ext['ROTATION'] && ext['SCALE']) {
+                const translationAttribute = this._accessorLoader.getAccessor(ext['TRANSLATION']);
+                const rotationAttribute = this._accessorLoader.getAccessor(ext['ROTATION']);
+                const scaleAttribute = this._accessorLoader.getAccessor(ext['SCALE']);
+
+                if (translationAttribute && rotationAttribute && scaleAttribute) {
+
+                    const translationMatrices: mat4[] = [];
+                    for (let i = 0; i < translationAttribute.array.length; i += 3)
+                        translationMatrices.push(mat4.fromTranslation(mat4.create(), vec3.fromValues(translationAttribute.array[i], translationAttribute.array[i + 1], translationAttribute.array[i + 2])));
+
+                    const rotationMatrices: mat4[] = [];
+                    for (let i = 0; i < rotationAttribute.array.length; i += 4)
+                        rotationMatrices.push(mat4.fromQuat(mat4.create(), vec4.fromValues(rotationAttribute.array[i], rotationAttribute.array[i + 1], rotationAttribute.array[i + 2], rotationAttribute.array[i + 3])));
+
+                    const scaleMatrices: mat4[] = [];
+                    for (let i = 0; i < scaleAttribute.array.length; i += 3)
+                        scaleMatrices.push(mat4.fromScaling(mat4.create(), vec3.fromValues(scaleAttribute.array[i], scaleAttribute.array[i + 1], scaleAttribute.array[i + 2])));
+
+                    if (translationMatrices.length === rotationMatrices.length && translationMatrices.length === scaleMatrices.length) {
+                        for (let i = 0; i < translationMatrices.length; i++) {
+                            const transformationMatrix = mat4.create();
+                            mat4.multiply(transformationMatrix, translationMatrices[i], rotationMatrices[i]);
+                            mat4.multiply(transformationMatrix, transformationMatrix, scaleMatrices[i]);
+
+                            instanceTransformations.push(transformationMatrix);
+                        }
+                    }
+                }
+            }
+        }
+
         if (node.mesh !== undefined)
-            nodeDef.addChild(this._geometryLoader.loadMesh(node.mesh, node.weights));
+            nodeDef.addChild(this._geometryLoader.loadMesh(node.mesh, node.weights, instanceTransformations));
 
         if (node.camera !== undefined)
             nodeDef.addChild(this.loadCamera(node.camera));

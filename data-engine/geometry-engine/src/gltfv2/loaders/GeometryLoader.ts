@@ -1,11 +1,18 @@
-import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types'
-import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { AttributeData, GeometryData, MaterialVariantsData, PrimitiveData } from '@shapediver/viewer.shared.types'
+import { AccessorLoader } from './AccessorLoader';
+import {
+    AttributeData,
+    GeometryData,
+    InstanceMatricesData,
+    MaterialVariantsData,
+    PrimitiveData
+    } from '@shapediver/viewer.shared.types';
+import { BufferViewLoader } from './BufferViewLoader';
+import { GLTF_EXTENSIONS } from '../GLTFLoader';
+import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { mat4 } from 'gl-matrix';
+import { MaterialLoader } from './MaterialLoader';
 
-import { GLTF_EXTENSIONS } from '../GLTFLoader'
-import { AccessorLoader } from './AccessorLoader'
-import { BufferViewLoader } from './BufferViewLoader'
-import { MaterialLoader } from './MaterialLoader'
 
 export class GeometryLoader {
     // #region Properties (1)
@@ -39,13 +46,15 @@ export class GeometryLoader {
 
     // #region Public Methods (1)
 
-    public loadMesh(meshId: number, weights?: number[]): ITreeNode {
-        if (!this._content.meshes) throw new Error('GeometryLoader.loadMesh: Meshes not available.')
-        if (!this._content.meshes[meshId]) throw new Error('GeometryLoader.loadMesh: Mesh not available.')
+    public loadMesh(meshId: number, weights?: number[], instanceTransformations: mat4[] = []): ITreeNode {
+        if (!this._content.meshes) throw new Error('GeometryLoader.loadMesh: Meshes not available.');
+        if (!this._content.meshes[meshId]) throw new Error('GeometryLoader.loadMesh: Mesh not available.');
         
         const mesh = this._content.meshes[meshId];
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
         meshNode.originalName = mesh.name;
+        if(instanceTransformations.length > 0)
+            meshNode.addData(new InstanceMatricesData(instanceTransformations));
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
@@ -72,7 +81,7 @@ export class GeometryLoader {
         } = {};
 
         let indices = null;
-        const convertedNames: { [key: string]: string } = {}
+        const convertedNames: { [key: string]: string } = {};
 
         if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION]) {
             const dracoDef = primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION];
@@ -92,14 +101,14 @@ export class GeometryLoader {
             }
 
             if (dracoDef.attributes['POSITION'] === undefined) {
-                const errorMsg = "No position attribute found in the mesh.";
+                const errorMsg = 'No position attribute found in the mesh.';
                 this._dracoModule.destroy(decoder);
                 this._dracoModule.destroy(dracoGeometry);
                 throw new Error(errorMsg);
             }
 
-            for (let a in dracoDef.attributes) {
-                const attribute = decoder.GetAttributeByUniqueId(dracoGeometry, dracoDef.attributes[a])
+            for (const a in dracoDef.attributes) {
+                const attribute = decoder.GetAttributeByUniqueId(dracoGeometry, dracoDef.attributes[a]);
                 const attributeData = new this._dracoModule.DracoFloat32Array();
                 decoder.GetAttributeFloatForAllPoints(dracoGeometry, attribute, attributeData);
 
@@ -116,7 +125,7 @@ export class GeometryLoader {
                 const array = new Float32Array(this._dracoModule.HEAPF32.buffer, ptr, numValues).slice();
                 this._dracoModule._free(ptr);
 
-                if(a.includes("COLOR")) array.forEach((n, i) => array[i] = Math.max(0, Math.min(1, n)));
+                if(a.includes('COLOR')) array.forEach((n, i) => array[i] = Math.max(0, Math.min(1, n)));
 
                 attributes[a] = new AttributeData(
                     array,
@@ -155,7 +164,7 @@ export class GeometryLoader {
             this._dracoModule.destroy(dracoGeometry);
         }
 
-        for (let attribute in primitive.attributes) {
+        for (const attribute in primitive.attributes) {
             if (attributes[attribute]) {
                 convertedNames[attribute] = attribute;
                 continue;
@@ -165,7 +174,7 @@ export class GeometryLoader {
             let attributeName = attribute;
             // attribute name conversion to be consistent with gltf
             if (/\d/.test(attributeName) && !attributeName.includes('_')) {
-                const index = attributeName.search(/\d/)
+                const index = attributeName.search(/\d/);
                 attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
             } else if (attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
                 attributeName += '_0';
@@ -183,7 +192,7 @@ export class GeometryLoader {
         // reading and assigning morph targets
         if (primitive.targets) {
             for (let i = 0; i < primitive.targets.length; i++) {
-                for (let target in primitive.targets[i]) {
+                for (const target in primitive.targets[i]) {
                     if (!attributes[target]) continue;
                     attributes[convertedNames[target]].morphAttributeData.push((this._accessorLoader.getAccessor(primitive.targets[i][target]))!);
                 }
