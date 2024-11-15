@@ -144,25 +144,23 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() };
 
     const samePosition = startingPosition[0] === startingTarget[0] && startingPosition[1] === startingTarget[1] && startingPosition[2] === startingTarget[2];
-    let target = startingTarget;
-    if (samePosition) {
-      target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
+    const target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
-      // if the camera position and the target are the same, we set a corner position
+    // if the camera position and the target are the same, we set a corner position
+    if (startingPosition[0] === startingTarget[0] && startingPosition[1] === startingTarget[1] && startingPosition[2] === startingTarget[2])
       startingPosition = vec3.fromValues(target[0], target[1] - 7.5, target[2] + 5);
-    }
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target);
     vec3.multiply(boxDir, boxDir, samePosition ? vec3.fromValues(2, 2, 2) : vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir));
 
-    const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, startingPosition));
+    const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), startingTarget, startingPosition));
 
     const cross = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vec3.fromValues(0, 0, 1), direction));
     const up = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cross, direction));
 
-    let position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-0.00000001, -0.00000001, -0.00000001)));
+    let position = vec3.add(vec3.create(), startingTarget, vec3.multiply(vec3.create(), direction, vec3.fromValues(-0.00000001, -0.00000001, -0.00000001)));
 
     const points = [];
     points.push(vec3.fromValues(box.min[0], box.min[1], box.min[2]));
@@ -183,10 +181,10 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     const fovLeft = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2)));
 
     const planeCross = new Plane(vec3.clone(cross), 0);
-    planeCross.setFromNormalAndCoplanarPoint(vec3.clone(cross), vec3.clone(target));
+    planeCross.setFromNormalAndCoplanarPoint(vec3.clone(cross), vec3.clone(startingTarget));
 
     const planeUp = new Plane(vec3.fromValues(0, 0, 1), 0);
-    planeUp.setFromNormalAndCoplanarPoint(vec3.clone(up), vec3.clone(target));
+    planeUp.setFromNormalAndCoplanarPoint(vec3.clone(up), vec3.clone(startingTarget));
 
     let distanceCamera = 0.0;
     for (let i = 0; i < points.length; i++) {
@@ -198,7 +196,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
         const distance = planeUp.intersect(projected, currentDir);
         if (distance) {
           const cameraPoint = vec3.add(vec3.create(), vec3.multiply(vec3.create(), currentDir, vec3.fromValues(distance, distance, distance)), projected);
-          distanceCamera = Math.max(distanceCamera, vec3.distance(target, cameraPoint));
+          distanceCamera = Math.max(distanceCamera, vec3.distance(startingTarget, cameraPoint));
         }
       }
 
@@ -210,15 +208,15 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
         const distance = planeCross.intersect(projected, currentDir);
         if (distance) {
           const cameraPoint = vec3.add(vec3.create(), vec3.multiply(vec3.create(), currentDir, vec3.fromValues(distance, distance, distance)), projected);
-          distanceCamera = Math.max(distanceCamera, vec3.distance(target, cameraPoint));
+          distanceCamera = Math.max(distanceCamera, vec3.distance(startingTarget, cameraPoint));
         }
       }
     }
 
-    position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
+    position = vec3.add(vec3.create(), startingTarget, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
 
     return {
-      position, target
+      position, target: startingTarget
     };
   }
 
