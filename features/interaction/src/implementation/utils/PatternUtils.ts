@@ -281,31 +281,25 @@ export const calculateCombinedDraggedNodes = (currentState: DraggingParameterVal
         const index = allDraggedNodesCopy.findIndex(n => n.name === draggedNode.name);
 
         if (index === -1) {
-            // transpose the matrix to store it in the correct format
-            const transposed = mat4.transpose(mat4.create(), mat4.fromValues(...(draggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])));
             allDraggedNodesCopy.push({
                 name: draggedNode.name,
-                transformation: Array.from(transposed),
+                transformation: draggedNode.transformation,
                 dragAnchorId: draggedNode.dragAnchorId,
                 restrictionId: draggedNode.restrictionId
             });
         } else {
             const oldDraggedNode = allDraggedNodesCopy[index];
-            // as we store the matrix transposed, we need to transpose it back to multiply it
-            const oldDraggedNodeTransposed = mat4.transpose(mat4.create(), mat4.fromValues(...(oldDraggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])));
 
             // multiply the matrices
             const newMatrix = mat4.multiply(
                 mat4.create(),
                 mat4.fromValues(...(draggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])),
-                oldDraggedNodeTransposed
+                mat4.fromValues(...(oldDraggedNode.transformation as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number]))
             );
-            // transpose the matrix back
-            const newMatrixTransposed = mat4.transpose(mat4.create(), newMatrix);
 
             allDraggedNodesCopy[index] = {
                 name: draggedNode.name,
-                transformation: Array.from(newMatrixTransposed),
+                transformation: Array.from(newMatrix),
                 dragAnchorId: draggedNode.dragAnchorId,
                 restrictionId: draggedNode.restrictionId
             };
