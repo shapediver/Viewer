@@ -57,7 +57,6 @@ import { IThreejsData } from './types/IThreejsData';
 import { MultiPointsMaterial } from './materials/MultiPointsMaterial';
 import { PostProcessingManager } from './managers/PostProcessingManager';
 import { RenderingEngine } from './RenderingEngine';
-import { Tag3dGeometryCreationInjector } from './injectors/Tag3dGeometryCreationInjector';
 import { TextureUnifierInjector } from './injectors/TextureUnifierInjector';
 import { ThreejsData } from './types/ThreejsData';
 
@@ -80,7 +79,5 @@ export {
   CSS2DObject, CSS2DRenderer
 };
 
-const tag3dGeometryCreationInjector = new Tag3dGeometryCreationInjector();
-GlobalAccessObjects.instance.loadTag3D = tag3dGeometryCreationInjector.convertTag3dToGeometry.bind(tag3dGeometryCreationInjector);
 const textureUnifierInjector = new TextureUnifierInjector();
 GlobalAccessObjects.instance.combineTextures = textureUnifierInjector.combineTextures.bind(textureUnifierInjector);
