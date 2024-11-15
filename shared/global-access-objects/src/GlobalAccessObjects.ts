@@ -1,17 +1,15 @@
-import { ShapeDiverResponseOutputContent } from "@shapediver/sdk.geometry-api-sdk-v2";
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ITag3D } from "@shapediver/viewer.data-engine.shared-types";
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
 
 export class GlobalAccessObjects {
-    // #region Properties (4)
+    // #region Properties (3)
 
     private static _instance: GlobalAccessObjects;
 
     #combineTextures?: (red?: HTMLImageElement | ArrayBuffer, green?: HTMLImageElement | ArrayBuffer, blue?: HTMLImageElement | ArrayBuffer) => Promise<{ image: HTMLImageElement | ArrayBuffer, blob: Blob }>;
     #loadContent?: (content: ShapeDiverResponseOutputContent, jwtToken?: string, taskEventId?: string) => Promise<ITreeNode>;
-    #loadTag3D?: (tag3dInfo: ITag3D) => ITreeNode | undefined;
 
-    // #endregion Properties (4)
+    // #endregion Properties (3)
 
     // #region Public Static Getters And Setters (1)
 
@@ -21,7 +19,7 @@ export class GlobalAccessObjects {
 
     // #endregion Public Static Getters And Setters (1)
 
-    // #region Public Getters And Setters (6)
+    // #region Public Getters And Setters (4)
 
     public get combineTextures() {
         return this.#combineTextures;
@@ -39,13 +37,5 @@ export class GlobalAccessObjects {
         this.#loadContent = value;
     }
 
-    public get loadTag3D() {
-        return this.#loadTag3D;
-    }
-
-    public set loadTag3D(value: ((tag3dInfo: ITag3D) => ITreeNode | undefined) | undefined) {
-        this.#loadTag3D = value;
-    }
-
-    // #endregion Public Getters And Setters (6)
+    // #endregion Public Getters And Setters (4)
 }
