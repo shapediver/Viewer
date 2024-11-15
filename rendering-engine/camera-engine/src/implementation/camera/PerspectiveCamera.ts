@@ -143,7 +143,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() };
 
-    const samePosition = startingPosition[0] === startingTarget[0] && startingPosition[1] === startingTarget[1] && startingPosition[2] === startingTarget[2];
+    const invalidInput = startingPosition[0] === startingTarget[0] && startingPosition[1] === startingTarget[1] && startingPosition[2] === startingTarget[2];
     const target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // if the camera position and the target are the same, we set a corner position
@@ -152,10 +152,15 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target);
-    vec3.multiply(boxDir, boxDir, samePosition ? vec3.fromValues(2, 2, 2) : vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
+    vec3.multiply(boxDir, boxDir, invalidInput ? vec3.fromValues(2, 2, 2) : vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir));
 
-    const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, startingPosition));
+    let direction = vec3.create();
+    if(invalidInput) {
+      direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, startingPosition));
+    } else {
+      direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), startingTarget, startingPosition));
+    }
 
     const cross = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vec3.fromValues(0, 0, 1), direction));
     const up = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cross, direction));
@@ -175,7 +180,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     const fovDown = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180))));
     const fovUp = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180))));
 
-    const aspect = samePosition ? 1.5 : this.aspect || 1.5;
+    const aspect = invalidInput ? 1.5 : this.aspect || 1.5;
     const hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * aspect);
     const fovRight = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2)));
     const fovLeft = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2)));
