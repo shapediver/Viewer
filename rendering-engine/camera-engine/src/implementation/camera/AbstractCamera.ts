@@ -1,11 +1,10 @@
-import * as detectIt from 'detect-it';
 import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { Box, IBox, Sphere } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
 import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera';
 import { ICameraControls } from '../../interfaces/controls/ICameraControls';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { vec2, vec3 } from 'gl-matrix';
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
 import {
     EventEngine,
     EVENTTYPE,
@@ -53,7 +52,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (43)
+    // #region Public Getters And Setters (44)
 
     public get active(): boolean {
         return this.#active;
@@ -233,9 +232,15 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this.#zoomExtentsFactor = value;
     }
 
-    // #endregion Public Getters And Setters (43)
+    // #endregion Public Getters And Setters (44)
 
-    // #region Public Methods (5)
+    // #region Protected Abstract Getters And Setters (1)
+
+    protected abstract get projectionMatrix(): mat4;
+
+    // #endregion Protected Abstract Getters And Setters (1)
+
+    // #region Public Methods (6)
 
     public async animate(path: { position: vec3; target: vec3; }[], options?: ICameraOptions): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
@@ -249,6 +254,21 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
             this._target = this._controls.target;
         }
         return res;
+    }
+
+    public boundingSphereVisible(sphere: Sphere): boolean {
+        const planes = this.getFrustumPlanes(this.projectionMatrix);
+
+        for (let i = 0; i < 6; i++) {
+            const plane = planes[i];
+            const distance = vec3.dot([plane[0], plane[1], plane[2]], sphere.center) + plane[3];
+
+            if (distance < -sphere.radius) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public reset(options?: ICameraOptions): Promise<boolean> {
@@ -294,7 +314,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return this.set(position, target, options);
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (6)
 
     // #region Public Abstract Methods (5)
 
@@ -306,7 +326,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Public Abstract Methods (5)
 
-    // #region Protected Methods (1)
+    // #region Protected Methods (2)
 
     protected assignViewerInternal(viewportId: string) {
         this._viewportId = viewportId;
@@ -320,5 +340,30 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         });
     }
 
-    // #endregion Protected Methods (1)
+    protected getFrustumPlanes(projectionMatrix: mat4): vec4[] {
+        const planes = [];
+
+        for (let i = 0; i < 6; i++) {
+            const plane = vec4.create();
+            switch (i) {
+                case 0: vec4.set(plane, projectionMatrix[3] - projectionMatrix[0], projectionMatrix[7] - projectionMatrix[4], projectionMatrix[11] - projectionMatrix[8], projectionMatrix[15] - projectionMatrix[12]); break; // Left
+                case 1: vec4.set(plane, projectionMatrix[3] + projectionMatrix[0], projectionMatrix[7] + projectionMatrix[4], projectionMatrix[11] + projectionMatrix[8], projectionMatrix[15] + projectionMatrix[12]); break; // Right
+                case 2: vec4.set(plane, projectionMatrix[3] + projectionMatrix[1], projectionMatrix[7] + projectionMatrix[5], projectionMatrix[11] + projectionMatrix[9], projectionMatrix[15] + projectionMatrix[13]); break; // Top
+                case 3: vec4.set(plane, projectionMatrix[3] - projectionMatrix[1], projectionMatrix[7] - projectionMatrix[5], projectionMatrix[11] - projectionMatrix[9], projectionMatrix[15] - projectionMatrix[13]); break; // Bottom
+                case 4: vec4.set(plane, projectionMatrix[3] - projectionMatrix[2], projectionMatrix[7] - projectionMatrix[6], projectionMatrix[11] - projectionMatrix[10], projectionMatrix[15] - projectionMatrix[14]); break; // Near
+                case 5: vec4.set(plane, projectionMatrix[3] + projectionMatrix[2], projectionMatrix[7] + projectionMatrix[6], projectionMatrix[11] + projectionMatrix[10], projectionMatrix[15] + projectionMatrix[14]); break; // Far
+            }
+
+            const length = Math.sqrt(plane[0] ** 2 + plane[1] ** 2 + plane[2] ** 2);
+            if (length !== 0) {
+                vec4.scale(plane, plane, 1 / length);
+            }
+
+            planes.push(plane);
+        }
+
+        return planes;
+    }
+
+    // #endregion Protected Methods (2)
 }
