@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as fs from 'fs';
-import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils/utils';
+import { execPromise, deployToS3, readAnswerOptions, readAnswer, deployToS3Latest } from '../utils/utils';
 
 (async () => {
     try {
@@ -154,6 +154,7 @@ import { execPromise, deployToS3, readAnswerOptions, readAnswer } from '../utils
         if (publicRelease) {
             console.log('deploying to s3...');
             const prefix = 'v3/' + newVersion;
+            deployToS3Latest('examples/doc-version/dist', 'doc-version');
             // deploy the api docs
             deployToS3('docs', 'api', prefix);
             // deploy the cdn
