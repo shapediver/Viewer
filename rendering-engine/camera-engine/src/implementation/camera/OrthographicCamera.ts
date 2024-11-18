@@ -131,6 +131,14 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   // #endregion Public Getters And Setters (14)
 
+  // #region Protected Getters And Setters (1)
+
+  protected get projectionMatrix(): mat4 {
+    return mat4.ortho(mat4.create(), this.#left, this.#right, this.#bottom, this.#top, this.near, this.far);
+  }
+
+  // #endregion Protected Getters And Setters (1)
+
   // #region Public Methods (6)
 
   public applySettings(settingsEngine: SettingsEngine) {

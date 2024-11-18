@@ -1,5 +1,5 @@
 import { CAMERA_TYPE } from '../ICameraEngine';
-import { IBox } from '@shapediver/viewer.shared.math';
+import { IBox, ISphere } from '@shapediver/viewer.shared.math';
 import { ICameraControls } from '../controls/ICameraControls';
 import { ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
@@ -40,6 +40,7 @@ export interface ICamera extends ITreeNodeData {
 
     animate(path: { position: vec3, target: vec3 }[], options?: ICameraOptions): Promise<boolean>;
     applySettings(settingsEngine: SettingsEngine): void;
+    boundingSphereVisible(sphere: ISphere): boolean;
     calculateZoomTo(zoomTarget?: IBox, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     project(p: vec3): vec2;
     reset(options?: ICameraOptions): Promise<boolean>;

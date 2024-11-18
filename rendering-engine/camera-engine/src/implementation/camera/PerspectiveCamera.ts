@@ -72,6 +72,15 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   // #endregion Public Getters And Setters (6)
 
+  // #region Protected Getters And Setters (1)
+
+  protected get projectionMatrix(): mat4 {
+    const aspect = this.aspect || 1.5;
+    return mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
+  }
+
+  // #endregion Protected Getters And Setters (1)
+
   // #region Public Methods (6)
 
   public applySettings(settingsEngine: SettingsEngine) {

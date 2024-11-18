@@ -1,4 +1,5 @@
 import * as SDV from '@shapediver/viewer';
+import { createUi } from '@shapediver/viewer.shared.demo-helper';
 (<any>window).SDV = SDV;
 import * as THREE from 'three';
 
@@ -14,10 +15,13 @@ import * as THREE from 'three';
     });
 
 
+    // create the parameter ui on the right side
+    const parameterUiDiv = document.createElement("div");
+    parameterUiDiv.style.position = "absolute";
+    parameterUiDiv.style.width = "20rem";
+    parameterUiDiv.style.overflow = "scroll";
+    parameterUiDiv.style.height = "100%";
+    document.body.appendChild(parameterUiDiv);
+    createUi(session, parameterUiDiv);
     viewport.showStatistics = true;
-
-    const point = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), 1, 0xff0000);
-
-    session.node.addData(new SDV.ThreejsData(point));
-    session.node.updateVersion();
 })();
