@@ -732,32 +732,53 @@ export class GLTFConverter {
 
         for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData) {
-                if (this._convertForAR) {
-                    if ((<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.POINTS &&
-                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINES &&
-                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINE_LOOP &&
-                        (<GeometryData>node.data[i]).mode !== PRIMITIVE_MODE.LINE_STRIP)
-                        nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i]);
-                } else {
-                    nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i]);
-                }
+                const geometryData = <GeometryData>node.data[i];
 
+                let instanceMatrices: mat4[] | undefined;
                 // as this is a node that contains a mesh
                 // we check the parent node for instance matrices
                 if(node.parent) {
                     const instanceMatricesData = node.parent.data.find(d => d instanceof InstanceMatricesData) as InstanceMatricesData;
-                    if(instanceMatricesData) {
-                        const instanceMatrices = instanceMatricesData.instanceMatrices;
-                        if(instanceMatrices && instanceMatrices.length > 0) {
-                            if(!nodeDef.extensions) nodeDef.extensions = {};
-                            nodeDef.extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING] = this.convertInstances(instanceMatrices);
-                            if(!this._extensionsUsed.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING)) 
-                                this._extensionsUsed.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
-                            if(!this._extensionsRequired.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING))
-                                this._extensionsRequired.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
-                        }
+                    if(instanceMatricesData && instanceMatricesData.instanceMatrices && instanceMatricesData.instanceMatrices.length > 0) {
+                        instanceMatrices = instanceMatricesData.instanceMatrices;
                     }
                 }
+
+                if (this._convertForAR) {
+                    if (geometryData.mode !== PRIMITIVE_MODE.POINTS &&
+                        geometryData.mode !== PRIMITIVE_MODE.LINES &&
+                        geometryData.mode !== PRIMITIVE_MODE.LINE_LOOP &&
+                        geometryData.mode !== PRIMITIVE_MODE.LINE_STRIP) {
+                        
+                        if(instanceMatrices) { 
+                            if(!nodeDef.children) nodeDef.children = [];
+                            const meshDef = this.convertMesh(geometryData);
+
+                            // create intermediate nodes for each instance
+                            for(let j = 0; j < instanceMatrices.length; j++) {
+                                this._content.nodes.push({
+                                    name: node.name + '_instance_' + j,
+                                    matrix: Array.from(instanceMatrices[j]),
+                                    mesh: meshDef,
+                                });
+                                nodeDef.children?.push(this._content.nodes.length - 1);
+                            }
+                        } else {
+                            nodeDef.mesh = this.convertMesh(geometryData);
+                        }
+                    }
+                } else {
+                    nodeDef.mesh = this.convertMesh(geometryData);
+
+                    if(instanceMatrices) {
+                        if(!nodeDef.extensions) nodeDef.extensions = {};
+                        nodeDef.extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING] = this.convertInstances(instanceMatrices);
+                        if(!this._extensionsUsed.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING)) 
+                            this._extensionsUsed.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
+                        if(!this._extensionsRequired.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING))
+                            this._extensionsRequired.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
+                    }
+                }                
             }
 
             if (node.data[i] instanceof AnimationData)
