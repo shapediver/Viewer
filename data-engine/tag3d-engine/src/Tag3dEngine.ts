@@ -264,7 +264,8 @@ export class Tag3dEngine {
                         characterDictionary[char].transformations.push(transformationMatrix);
                     }
                 } else {
-                    this._logger.warn(`Tag3dEngine.loadContent: Character ${char} not found in font.`);
+                    if(char !== ' ')
+                        this._logger.warn(`Tag3dEngine.loadContent: Character ${char} not found in font.`);
                 }
 
                 lineWidth += characterWidth * tag3dInfo.size;
