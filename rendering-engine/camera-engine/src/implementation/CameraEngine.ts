@@ -62,6 +62,14 @@ export class CameraEngine implements ICameraEngine {
                 const cameras = this.cameras;
                 for (const c in cameras)
                     cameras[c].boundingBox = this._boundingBox.clone();
+
+                if(!this._boundingBox.isEmpty() && this.camera) {
+                    // check if the at least a part of the bounding box is visible
+                    // if not zoom to the bounding box
+                    if(!this.camera.boundingSphereVisible(this._boundingBox.boundingSphere)) {
+                        this.camera.zoomTo(this._boundingBox, { duration: 0 });
+                    }
+                }
             }
         });
 
@@ -137,6 +145,22 @@ export class CameraEngine implements ICameraEngine {
         }
 
         this._settingsApplied = true;
+
+        // If the camera is set to auto adjust, we call zoomTo once when the bounding box is available
+        // this is needed as the default position and target might not make sense if the model is loaded with a different modelState
+        // or different initial parameters
+        if(this.camera?.autoAdjust) {
+            const token = this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
+                const viewerEvent = <ISceneEvent>e;
+                if (viewerEvent.viewportId === this._renderingEngine.id) {
+                    this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
+                    if(this._boundingBox.isEmpty() || !this.camera) return;
+                    this.camera?.zoomTo(this._boundingBox, { duration: 0 });
+                    this._eventEngine.removeListener(token);
+                }
+            });
+        }
+
         if (this._update) this._update();
     }
 
