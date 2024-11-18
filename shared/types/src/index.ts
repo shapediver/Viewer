@@ -50,7 +50,7 @@ import {
   validateInteractionParameterSettings,
   validateSelectionParameterSettings
   } from './interfaces/parameter/IInteractionParameterSettings';
-import { IInstanceMatricesData } from './interfaces/data/IInstanceMatricesData';
+import { IInstanceData } from './interfaces/data/IInstanceData';
 import {
   IMapData,
   IMapDataProperties,
@@ -76,7 +76,7 @@ import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataPropert
 import { IMaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition } from './interfaces/data/material/IMaterialStandardData';
 import { IMaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition } from './interfaces/data/material/IMaterialUnlitData';
 import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVariantsData';
-import { InstanceMatricesData } from './implementation/data/InstanceMatricesData';
+import { InstanceData } from './implementation/data/InstanceData';
 import { IOutputEvent } from './interfaces/events/IOutputEvent';
 import { IParameterEvent } from './interfaces/events/IParameterEvent';
 import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
@@ -130,7 +130,7 @@ export {
 };
 
 export {
-  ICustomData, CustomData, IBoneData, BoneData, IInstanceMatricesData, InstanceMatricesData
+  ICustomData, CustomData, IBoneData, BoneData, IInstanceData, InstanceData
 };
 
 export {

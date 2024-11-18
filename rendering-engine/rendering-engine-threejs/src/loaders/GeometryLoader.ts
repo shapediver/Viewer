@@ -4,6 +4,7 @@ import {
     GeometryData,
     IAttributeData,
     IMaterialAbstractData,
+    InstanceData,
     IPrimitiveData,
     MATERIAL_SIDE,
     MaterialGemData,
@@ -77,7 +78,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton, instanceTransformations: mat4[] = []): IBox {
+    public load(geometry: GeometryData, parent: SDData, newChild: boolean, skeleton?: THREE.Skeleton, instanceData?: InstanceData): IBox {
         const threeGeometry = (() => {
             if (!this._primitiveCache[geometry.primitive.id + '_' + geometry.primitive.version]) {
                 return this.loadPrimitive(geometry.primitive);
@@ -151,7 +152,7 @@ export class GeometryLoader implements ILoader {
             });
         } else {
             obj = new SDData(geometry.id, geometry.version);
-            this.createMesh(obj, geometry, threeGeometry, material, skeleton, instanceTransformations);
+            this.createMesh(obj, geometry, threeGeometry, material, skeleton, instanceData);
             this._geometryCache[geometry.id + '_' + geometry.version] = { obj, counter: 1, clones: [], primitiveCacheId: geometry.primitive.id + '_' + geometry.primitive.version };
             parent.add(obj);
         }
@@ -434,7 +435,7 @@ export class GeometryLoader implements ILoader {
         return this._gemSphericalMapsCache[geometryData.primitive.id + '_' + geometryData.primitive.version].texture;
     }
 
-    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton, instanceTransformations: mat4[] = []) {
+    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, skeleton?: THREE.Skeleton, instanceData?: InstanceData) {
         if (geometry.mode === PRIMITIVE_MODE.POINTS) {
             const points = new THREE.Points(threeGeometry, material);
             geometry.convertedObject[this._renderingEngine.id] = points;
@@ -466,10 +467,13 @@ export class GeometryLoader implements ILoader {
 
                 obj.add(skinnedMesh);
             } else {
-                if(instanceTransformations.length > 0) {
-                    const instancedMesh = new THREE.InstancedMesh(bufferGeometry, material, instanceTransformations.length);
-                    for(let i = 0; i < instanceTransformations.length; i++)
-                        instancedMesh.setMatrixAt(i, new THREE.Matrix4().fromArray(instanceTransformations[i]));
+                if(instanceData && instanceData.instanceMatrices.length > 0) {
+                    const instancedMesh = new THREE.InstancedMesh(bufferGeometry, material, instanceData.instanceMatrices.length);
+                    for(let i = 0; i < instanceData.instanceMatrices.length; i++) {
+                        instancedMesh.setMatrixAt(i, new THREE.Matrix4().fromArray(instanceData.instanceMatrices[i]));
+                        instancedMesh.setColorAt(i, this._renderingEngine.createThreeJsColor(instanceData.instanceColors[i]));
+                    }
+
                     instancedMesh.instanceMatrix.needsUpdate = true;
                     geometry.convertedObject[this._renderingEngine.id] = instancedMesh;
                     obj.add(instancedMesh);

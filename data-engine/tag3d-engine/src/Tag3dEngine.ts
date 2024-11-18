@@ -1,4 +1,4 @@
-import { GeometryData, InstanceMatricesData, MaterialStandardData } from '@shapediver/viewer.shared.types';
+import { Color, GeometryData, InstanceData, MaterialStandardData } from '@shapediver/viewer.shared.types';
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2';
@@ -111,14 +111,16 @@ export class Tag3dEngine {
             const textTagDictionary: {
                 [key: string]: {
                     characterNode: ITreeNode,
-                    transformations: mat4[]
+                    transformations: mat4[],
+                    colors: Color[]
                 }
             } = {};
 
             const dictionaryPromises: Promise<{
                 [key: string]: {
                     characterNode: ITreeNode,
-                    transformations: mat4[]
+                    transformations: mat4[],
+                    colors: Color[]
                 }
             } | undefined>[] = [];
             for (let i = 0; i < content.data.length; i++) {
@@ -134,6 +136,7 @@ export class Tag3dEngine {
                             textTagDictionary[key] = dictionary[key];
                         } else {
                             textTagDictionary[key].transformations.push(...dictionary[key].transformations);
+                            textTagDictionary[key].colors.push(...dictionary[key].colors);
                         }
                     }
                 }
@@ -141,7 +144,7 @@ export class Tag3dEngine {
 
             const tag3dNode = new TreeNode('tag3dDictionary');
             for (const key in textTagDictionary) {
-                const { characterNode, transformations } = textTagDictionary[key];
+                const { characterNode, transformations, colors } = textTagDictionary[key];
                 const meshNode = new TreeNode('mesh_' + key);
                 meshNode.addChild(characterNode);
 
@@ -155,7 +158,7 @@ export class Tag3dEngine {
                 } else {
                     // there are multiple instances of the character
                     // we therefore create an instance matrices data object
-                    const instanceData = new InstanceMatricesData(transformations);
+                    const instanceData = new InstanceData(transformations, colors);
                     meshNode.addData(instanceData);
                 }
                 tag3dNode.addChild(meshNode);
@@ -184,7 +187,8 @@ export class Tag3dEngine {
     private async loadTag(tag3dInfo: ITag3D): Promise<{
         [key: string]: {
             characterNode: ITreeNode,
-            transformations: mat4[]
+            transformations: mat4[],
+            colors: Color[]
         }
     } | undefined> {
         const characterGlb = Tag3dEngine._fontInfo.glb === 'string' ? Tag3dEngine._mainGlb! : Tag3dEngine._asciiGlb!;
@@ -209,7 +213,8 @@ export class Tag3dEngine {
         const characterDictionary: {
             [key: string]: {
                 characterNode: ITreeNode,
-                transformations: mat4[]
+                transformations: mat4[],
+                colors: Color[]
             }
         } = {};
 
@@ -257,11 +262,13 @@ export class Tag3dEngine {
 
                         characterDictionary[char] = {
                             characterNode,
-                            transformations: [transformationMatrix]
+                            transformations: [transformationMatrix],
+                            colors: [tag3dInfo.color]
                         };
                     } else {
                         // if the character already exists, add the transformation matrix to the list
                         characterDictionary[char].transformations.push(transformationMatrix);
+                        characterDictionary[char].colors.push(tag3dInfo.color);
                     }
                 } else {
                     if(char !== ' ')

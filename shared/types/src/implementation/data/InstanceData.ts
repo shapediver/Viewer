@@ -1,13 +1,15 @@
 import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { IInstanceMatricesData } from '../../interfaces/data/IInstanceMatricesData';
+import { IInstanceData } from '../../interfaces/data/IInstanceData';
 import { mat4 } from 'gl-matrix';
+import { Color } from '../../types';
 
-export class InstanceMatricesData extends AbstractTreeNodeData implements IInstanceMatricesData {
-    // #region Properties (1)
+export class InstanceData extends AbstractTreeNodeData implements IInstanceData {
+    // #region Properties (2)
 
+    #instanceColors: Color[] = [];
     #instanceMatrices: mat4[] = [];
 
-    // #endregion Properties (1)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
@@ -19,16 +21,26 @@ export class InstanceMatricesData extends AbstractTreeNodeData implements IInsta
      */
     constructor(
         instanceMatrices: mat4[] = [],
+        instanceColors: Color[] = [],
         id?: string,
         version?: string
     ) {
         super(id, version);
         this.#instanceMatrices = instanceMatrices;
+        this.#instanceColors = instanceColors;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (2)
+    // #region Public Getters And Setters (4)
+
+    public get instanceColors(): Color[] {
+        return this.#instanceColors;
+    }
+
+    public set instanceColors(value: Color[]) {
+        this.#instanceColors = value;
+    }
 
     public get instanceMatrices(): mat4[] {
         return this.#instanceMatrices;
@@ -38,15 +50,15 @@ export class InstanceMatricesData extends AbstractTreeNodeData implements IInsta
         this.#instanceMatrices = value;
     }
 
-    // #endregion Public Getters And Setters (2)
+    // #endregion Public Getters And Setters (4)
 
     // #region Public Methods (1)
 
     /**
      * Clones the scene graph data.
      */
-    public clone(): IInstanceMatricesData {
-        return new InstanceMatricesData(this.instanceMatrices, this.id, this.version);
+    public clone(): IInstanceData {
+        return new InstanceData(this.instanceMatrices, this.instanceColors, this.id, this.version);
     }
 
     // #endregion Public Methods (1)

@@ -44,7 +44,7 @@ import {
     IGeometryData,
     ITaskEvent,
     TASK_TYPE,
-    InstanceMatricesData,
+    InstanceData,
 } from '@shapediver/viewer.shared.types';
 
 // #region Classes (1)
@@ -738,7 +738,7 @@ export class GLTFConverter {
                 // as this is a node that contains a mesh
                 // we check the parent node for instance matrices
                 if(node.parent) {
-                    const instanceMatricesData = node.parent.data.find(d => d instanceof InstanceMatricesData) as InstanceMatricesData;
+                    const instanceMatricesData = node.parent.data.find(d => d instanceof InstanceData) as InstanceData;
                     if(instanceMatricesData && instanceMatricesData.instanceMatrices && instanceMatricesData.instanceMatrices.length > 0) {
                         instanceMatrices = instanceMatricesData.instanceMatrices;
                     }
