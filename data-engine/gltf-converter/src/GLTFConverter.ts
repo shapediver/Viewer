@@ -9,7 +9,7 @@ import {
 import { build_data } from '@shapediver/viewer.shared.build-data';
 import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, quat, vec3 } from 'gl-matrix';
 import {
     IGLTF_v2,
     IGLTF_v2_Scene,
@@ -44,6 +44,7 @@ import {
     IGeometryData,
     ITaskEvent,
     TASK_TYPE,
+    InstanceMatricesData,
 } from '@shapediver/viewer.shared.types';
 
 // #region Classes (1)
@@ -740,6 +741,23 @@ export class GLTFConverter {
                 } else {
                     nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i]);
                 }
+
+                // as this is a node that contains a mesh
+                // we check the parent node for instance matrices
+                if(node.parent) {
+                    const instanceMatricesData = node.parent.data.find(d => d instanceof InstanceMatricesData) as InstanceMatricesData;
+                    if(instanceMatricesData) {
+                        const instanceMatrices = instanceMatricesData.instanceMatrices;
+                        if(instanceMatrices && instanceMatrices.length > 0) {
+                            if(!nodeDef.extensions) nodeDef.extensions = {};
+                            nodeDef.extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING] = this.convertInstances(instanceMatrices);
+                            if(!this._extensionsUsed.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING)) 
+                                this._extensionsUsed.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
+                            if(!this._extensionsRequired.includes(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING))
+                                this._extensionsRequired.push(GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING);
+                        }
+                    }
+                }
             }
 
             if (node.data[i] instanceof AnimationData)
@@ -779,6 +797,47 @@ export class GLTFConverter {
         });
 
         return this._content.nodes.length - 1;
+    }
+
+    private convertInstances(matrices: mat4[]): any {
+        const translations = matrices.map(m => mat4.getTranslation(vec3.create(), m));
+        const translationMap = translations.flatMap(t => Array.from(t));
+        const { minimum: minTranslation, maximum: maxTranslation } = translations.reduce((acc, t) => {
+            for (let i = 0; i < 3; i++) {
+                acc.minimum[i] = Math.min(acc.minimum[i], t[i]);
+                acc.maximum[i] = Math.max(acc.maximum[i], t[i]);
+            }
+            return acc;
+        }, { minimum: [Infinity, Infinity, Infinity], maximum: [-Infinity, -Infinity, -Infinity] });
+
+
+        const rotations = matrices.map(m => mat4.getRotation(quat.create(), m));
+        const rotationsMap = rotations.flatMap(r => Array.from(r));
+        const { minimum: minRotation, maximum: maxRotation } = rotations.reduce((acc, r) => {
+            for (let i = 0; i < 4; i++) {
+                acc.minimum[i] = Math.min(acc.minimum[i], r[i]);
+                acc.maximum[i] = Math.max(acc.maximum[i], r[i]);
+            }
+            return acc;
+        }, { minimum: [Infinity, Infinity, Infinity, Infinity], maximum: [-Infinity, -Infinity, -Infinity, -Infinity] });
+
+        const scales = matrices.map(m => mat4.getScaling(vec3.create(), m));
+        const scalesMap = scales.flatMap(s => Array.from(s));
+        const { minimum: minScale, maximum: maxScale } = scales.reduce((acc, s) => {
+            for (let i = 0; i < 3; i++) {
+                acc.minimum[i] = Math.min(acc.minimum[i], s[i]);
+                acc.maximum[i] = Math.max(acc.maximum[i], s[i]);
+            }
+            return acc;
+        }, { minimum: [Infinity, Infinity, Infinity], maximum: [-Infinity, -Infinity, -Infinity] });
+
+        return {
+            attributes: {
+                TRANSLATION: this.convertAccessor(new AttributeData(new Float32Array(translationMap), 3, 3 * 4, 0, 4, false, translations.length, minTranslation, maxTranslation)),
+                ROTATION: this.convertAccessor(new AttributeData(new Float32Array(rotationsMap), 4, 4 * 4, 0, 4, false, rotations.length, minRotation, maxRotation)),
+                SCALE: this.convertAccessor(new AttributeData(new Float32Array(scalesMap), 3, 3 * 4, 0, 4, false, scales.length, minScale, maxScale))
+            }
+        };
     }
 
     private convertPrimitive(geometryData: IGeometryData, data: IPrimitiveData): IGLTF_v2_Primitive {
@@ -969,6 +1028,7 @@ export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+    EXT_MESH_GPU_INSTANCING = 'EXT_mesh_gpu_instancing'
 }
 
 // #endregion Enums (1)
