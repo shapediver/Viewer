@@ -2,7 +2,7 @@ import { AccessorLoader } from './AccessorLoader';
 import {
     AttributeData,
     GeometryData,
-    InstanceMatricesData,
+    InstanceData,
     MaterialVariantsData,
     PrimitiveData
     } from '@shapediver/viewer.shared.types';
@@ -54,7 +54,7 @@ export class GeometryLoader {
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
         meshNode.originalName = mesh.name;
         if(instanceTransformations.length > 0)
-            meshNode.addData(new InstanceMatricesData(instanceTransformations));
+            meshNode.addData(new InstanceData(instanceTransformations));
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
