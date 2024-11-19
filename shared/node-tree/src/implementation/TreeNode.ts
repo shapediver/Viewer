@@ -47,7 +47,7 @@ export class TreeNode implements ITreeNode {
     data: ITreeNodeData[] = [],
     transformations: ITransformation[] = []
   ) {
-    this.#name = name.replace(/\./g, '_');
+    this.#name = name;
     this.#parent = parent;
     this.#data = data;
     this.#transformations = transformations;

@@ -474,6 +474,7 @@ export class GeometryLoader implements ILoader {
                         instancedMesh.setColorAt(i, this._renderingEngine.createThreeJsColor(instanceData.instanceColors[i]));
                     }
 
+                    if(instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
                     instancedMesh.instanceMatrix.needsUpdate = true;
                     geometry.convertedObject[this._renderingEngine.id] = instancedMesh;
                     obj.add(instancedMesh);

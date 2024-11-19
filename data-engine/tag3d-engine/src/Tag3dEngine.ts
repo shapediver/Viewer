@@ -39,8 +39,8 @@ export class Tag3dEngine {
     private static _asciiGlb: ITreeNode | undefined;
     private static _fontInfo: FontInfo = {
         glb: {
-            ascii: 'https://viewer.shapediver.com/v3/gltf/tag3dASCII.glb',
-            other: 'https://viewer.shapediver.com/v3/gltf/tag3dNonASCII.glb'
+            ascii: 'https://viewer.shapediver.com/v3/gltf/tagsAscii.glb',
+            other: 'https://viewer.shapediver.com/v3/gltf/tagsNonAscii.glb'
         },
         height: 1467,
         width: 833
@@ -155,6 +155,15 @@ export class Tag3dEngine {
                         id: 'tag3d_transformation',
                         matrix: transformations[0]
                     });
+
+                    const material = new MaterialStandardData({ color: colors[0], metalness: 0, roughness: 1 });
+                    // apply the color to the material
+                    // if we do that before, the color will be applied to all instances and will be multiplied
+                    // with the color of the instance
+                    characterNode.traverseData((data) => {
+                        if (data instanceof GeometryData)
+                            data.material = material;
+                    });
                 } else {
                     // there are multiple instances of the character
                     // we therefore create an instance matrices data object
@@ -192,7 +201,7 @@ export class Tag3dEngine {
         }
     } | undefined> {
         const characterGlb = Tag3dEngine._fontInfo.glb === 'string' ? Tag3dEngine._mainGlb! : Tag3dEngine._asciiGlb!;
-        const material = new MaterialStandardData({ color: tag3dInfo.color, metalness: 0, roughness: 1 });
+        const material = new MaterialStandardData({ color: '#ffffff', metalness: 0, roughness: 1 });
 
         tag3dInfo.size = tag3dInfo.size ? +tag3dInfo.size : 1;
         if (tag3dInfo.text === undefined || tag3dInfo.text === '' || /^[ \t\n\r]*$/.test(tag3dInfo.text))
