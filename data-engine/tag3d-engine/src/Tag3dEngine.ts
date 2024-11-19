@@ -39,8 +39,8 @@ export class Tag3dEngine {
     private static _asciiGlb: ITreeNode | undefined;
     private static _fontInfo: FontInfo = {
         glb: {
-            ascii: 'https://viewer.shapediver.com/v3/gltf/tag3dASCII.glb',
-            other: 'https://viewer.shapediver.com/v3/gltf/tag3dNonASCII.glb'
+            ascii: 'https://viewer.shapediver.com/v3/gltf/tagsAscii.glb',
+            other: 'https://viewer.shapediver.com/v3/gltf/tagsNonAscii.glb'
         },
         height: 1467,
         width: 833
