@@ -48,16 +48,16 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
         // get the type of the file
         let fileType: string | string[];
         if (value instanceof File) {
+            // try to get type from file name
+            const types = MimeTypeUtils.guessMimeTypeFromFilename(value.name);
             if (value.type === '') {
-                // try to get type from file name
-                const types = MimeTypeUtils.guessMimeTypeFromFilename(value.name);
                 if (types.length === 0) {
                     throw new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, provided File has no type and could not be guessed from filename. Has to be ${this.format}.`);
                 } else {
                     fileType = types;
                 }
             } else {
-                fileType = value.type;
+                fileType = types.concat(value.type);
             }
         } else if (value instanceof Blob) {
             if (value.type === '') {
