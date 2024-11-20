@@ -1,6 +1,5 @@
-import { BUSY_MODE_DISPLAY, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ISettings } from '@shapediver/viewer.settings';
-import { IViewportSettingsSections } from '@shapediver/viewer.shared.types';
+import { BUSY_MODE_DISPLAY, IViewportSettingsSections, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services';
 

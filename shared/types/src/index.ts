@@ -3,6 +3,15 @@ import { AnimationData } from './implementation/data/AnimationData';
 import { AttributeData, GeometryData, PrimitiveData } from './implementation/data/GeometryData';
 import { BoneData } from './implementation/data/BoneData';
 import {
+  BUSY_MODE_DISPLAY,
+  FLAG_TYPE,
+  RENDERER_TYPE,
+  SPINNER_POSITIONING,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITY_MODE
+  } from './interfaces/renderingEngine/enums';
+import {
   Color,
   ISessionSettingsSections,
   ISettingsSections,
@@ -153,4 +162,14 @@ export {
   IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, validateDraggingParameterSettings,
   IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema, validateDrawingParameterSettings,
   IDraggableObject, RestrictionDefinition, Rotation
+};
+
+export {
+  BUSY_MODE_DISPLAY,
+  FLAG_TYPE,
+  RENDERER_TYPE,
+  SPINNER_POSITIONING,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITY_MODE
 };

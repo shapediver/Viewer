@@ -9,10 +9,12 @@ import {
 import {
     AnimationData,
     AttributeData,
+    BUSY_MODE_DISPLAY,
     CustomData,
     DraggingParameterValue,
     DrawingParameterValue,
     EventResponseMapping,
+    FLAG_TYPE,
     GeometryData,
     GumballParameterValue,
     HTMLElementAnchorCustomData,
@@ -108,6 +110,7 @@ import {
     PARAMETER_VISUALIZATION,
     PRIMITIVE_MODE,
     PrimitiveData,
+    RENDERER_TYPE,
     SDTF_TYPEHINT,
     SDTFAttributeData,
     SDTFAttributesData,
@@ -115,9 +118,13 @@ import {
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
     SelectionParameterValue,
+    SPINNER_POSITIONING,
     TASK_TYPE,
+    TEXTURE_ENCODING,
     TEXTURE_FILTERING,
-    TEXTURE_WRAPPING
+    TEXTURE_WRAPPING,
+    TONE_MAPPING,
+    VISIBILITY_MODE
     } from '@shapediver/viewer.shared.types';
 import {
     ANTI_ALIASING_TECHNIQUE,
@@ -175,15 +182,6 @@ import {
     ISphere,
     Sphere
     } from '@shapediver/viewer.shared.math';
-import {
-    BUSY_MODE_DISPLAY,
-    FLAG_TYPE,
-    RENDERER_TYPE,
-    SPINNER_POSITIONING,
-    TEXTURE_ENCODING,
-    TONE_MAPPING,
-    VISIBILITY_MODE
-    } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { CAMERA_TYPE, ICameraOptions, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
     createSession,

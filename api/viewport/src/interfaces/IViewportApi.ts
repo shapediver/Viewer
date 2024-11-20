@@ -1,10 +1,4 @@
 import * as THREE from 'three';
-import {
-  FLAG_TYPE,
-  RENDERER_TYPE,
-  TEXTURE_ENCODING,
-  TONE_MAPPING
-} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ICameraApi } from './camera/ICameraApi';
 import { IDomEventListener, SESSION_SETTINGS_MODE } from '@shapediver/viewer.shared.services';
 import { ILightSceneApi } from './lights/ILightSceneApi';
@@ -24,6 +18,10 @@ import {
   MaterialStandardData,
   MaterialBasicLineData,
   MaterialPointData,
+  FLAG_TYPE,
+  RENDERER_TYPE,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
 } from '@shapediver/viewer.shared.types';
 
 /**

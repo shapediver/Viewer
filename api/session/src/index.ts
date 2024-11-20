@@ -9,10 +9,12 @@ import {
 import {
     AnimationData,
     AttributeData,
+    BUSY_MODE_DISPLAY,
     CustomData,
     DraggingParameterValue,
     DrawingParameterValue,
     EventResponseMapping,
+    FLAG_TYPE,
     GeometryData,
     GumballParameterValue,
     HTMLElementAnchorCustomData,
@@ -108,6 +110,7 @@ import {
     PARAMETER_VISUALIZATION,
     PRIMITIVE_MODE,
     PrimitiveData,
+    RENDERER_TYPE,
     SDTF_TYPEHINT,
     SDTFAttributeData,
     SDTFAttributesData,
@@ -115,9 +118,13 @@ import {
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
     SelectionParameterValue,
+    SPINNER_POSITIONING,
     TASK_TYPE,
+    TEXTURE_ENCODING,
     TEXTURE_FILTERING,
-    TEXTURE_WRAPPING
+    TEXTURE_WRAPPING,
+    TONE_MAPPING,
+    VISIBILITY_MODE
 } from '@shapediver/viewer.shared.types';
 import {
     Box,
@@ -252,7 +259,7 @@ export { addListener, removeListener, sceneTree, generalOptions, version, IGener
 
 export { SessionCreationDefinition };
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };
-export { PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, SESSION_SETTINGS_MODE };
+export { BUSY_MODE_DISPLAY, FLAG_TYPE, RENDERER_TYPE, SPINNER_POSITIONING, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITY_MODE, PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, SESSION_SETTINGS_MODE };
 export { SystemInfo, TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_PARAMETER, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_GUMBALL, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK };
 export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutput, ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunkBackend, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, IDomEventListener, IEvent };
 export { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseExportDefinitionGroup, ShapeDiverResponseParameter };

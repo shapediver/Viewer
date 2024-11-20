@@ -8,16 +8,16 @@ import {
     IPrimitiveData,
     MATERIAL_SIDE,
     MaterialGemData,
-    PRIMITIVE_MODE
+    PRIMITIVE_MODE,
+    RENDERER_TYPE
 } from '@shapediver/viewer.shared.types';
 import { GemMaterial } from '../materials/GemMaterial';
 import { IBox } from '@shapediver/viewer.shared.math';
 import { ILoader } from '../interfaces/ILoader';
 import { Logger, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services';
-import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { RenderingEngine } from '../RenderingEngine';
 import { SDData } from '../objects/SDData';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 export class GeometryLoader implements ILoader {
     // #region Properties (8)

@@ -14,13 +14,13 @@ import {
     ISceneEvent,
     ITaskEvent,
     IViewportSettingsSections,
-    TASK_TYPE
+    TASK_TYPE,
+    VISIBILITY_MODE
 } from '@shapediver/viewer.shared.types';
 import { ISettings } from '@shapediver/viewer.settings';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { ViewportGlobalAccessObject } from './ViewportGlobalAccessObject';
-import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 export class CreationControlCenterViewport implements ICreationControlCenterViewport {
     // #region Properties (8)

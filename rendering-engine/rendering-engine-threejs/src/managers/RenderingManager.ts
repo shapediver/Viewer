@@ -3,12 +3,9 @@ import * as THREE from 'three';
 import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
 import { AnimationFrameEngine } from '@shapediver/viewer.rendering-engine.animation-frame-engine';
 import {
-    BUSY_MODE_DISPLAY,
-    IManager,
-    RENDERER_TYPE,
-    SPINNER_POSITIONING
+    IManager
 } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types';
+import { BUSY_MODE_DISPLAY, ICameraEvent, IViewportEvent, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.shared.types';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine } from '../RenderingEngine';
 import { SceneTreeManager } from './SceneTreeManager';

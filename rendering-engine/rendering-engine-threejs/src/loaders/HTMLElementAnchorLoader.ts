@@ -1,5 +1,4 @@
-import { BUSY_MODE_DISPLAY } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types';
+import { BUSY_MODE_DISPLAY, HTMLElementAnchorData } from '@shapediver/viewer.shared.types';
 import { ILoader } from '../interfaces/ILoader';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { RenderingEngine } from '../RenderingEngine';

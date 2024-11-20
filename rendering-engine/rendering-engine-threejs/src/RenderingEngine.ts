@@ -22,15 +22,6 @@ import {
   CameraEngine,
 } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
-  BUSY_MODE_DISPLAY,
-  FLAG_TYPE,
-  SPINNER_POSITIONING,
-  RENDERER_TYPE,
-  TEXTURE_ENCODING,
-  TONE_MAPPING,
-  VISIBILITY_MODE,
-} from '@shapediver/viewer.rendering-engine.rendering-engine';
-import {
   Converter,
   DomEventEngine,
   EventEngine,
@@ -60,6 +51,13 @@ import {
   MaterialPointData,
   MaterialBasicLineData,
   IViewportSettingsSections,
+  BUSY_MODE_DISPLAY,
+  FLAG_TYPE,
+  RENDERER_TYPE,
+  SPINNER_POSITIONING,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITY_MODE,
 } from '@shapediver/viewer.shared.types';
 import { css } from './styling/viewport-css';
 

@@ -5,6 +5,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data';
 import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
     Color,
+    FLAG_TYPE,
     IAnimationData,
     IGeometryData,
     ISDTFAttributeVisualizationData,
@@ -12,10 +13,12 @@ import {
     ISDTFOverview,
     MaterialBasicLineData,
     MaterialPointData,
-    MaterialStandardData
+    MaterialStandardData,
+    RENDERER_TYPE,
+    TEXTURE_ENCODING,
+    TONE_MAPPING
 } from '@shapediver/viewer.shared.types';
 import {
-    Converter,
     IDomEventListener,
     InputValidator,
     Logger,
@@ -26,12 +29,6 @@ import {
     SystemInfo
 } from '@shapediver/viewer.shared.services';
 import { CreationControlCenterViewport, ICreationControlCenterViewport } from '@shapediver/viewer.creation-control-center.viewport';
-import {
-    FLAG_TYPE,
-    RENDERER_TYPE,
-    TEXTURE_ENCODING,
-    TONE_MAPPING
-} from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
 import { ICameraApi } from '../interfaces/camera/ICameraApi';
 import { ILightSceneApi } from '../interfaces/lights/ILightSceneApi';

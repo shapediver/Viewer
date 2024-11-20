@@ -11,11 +11,12 @@ import {
     InstanceData,
     ISDTFOverview,
     MaterialStandardData,
+    RENDERER_TYPE,
     SDTFItemData,
     SDTFOverviewData
 } from '@shapediver/viewer.shared.types';
 import { Box, IBox } from '@shapediver/viewer.shared.math';
-import { IManager, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import {
     ITree,
     ITreeNode,
