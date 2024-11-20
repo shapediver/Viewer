@@ -118,12 +118,14 @@ import {
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
     SelectionParameterValue,
+    SessionCreationDefinition,
     SPINNER_POSITIONING,
     TASK_TYPE,
     TEXTURE_ENCODING,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
     TONE_MAPPING,
+    ViewportCreationDefinition,
     VISIBILITY_MODE
 } from '@shapediver/viewer.shared.types';
 import {
@@ -233,7 +235,6 @@ import {
 } from '@shapediver/viewer.shared.node-tree';
 import { OutputApiData } from './implementation/data/OutputApiData';
 import { SessionApiData } from './implementation/data/SessionApiData';
-import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
 import {
     ShapeDiverResponseExport,
     ShapeDiverResponseExportContent,
@@ -257,7 +258,7 @@ export { createSession, sessions };
 
 export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions };
 
-export { SessionCreationDefinition };
+export { SessionCreationDefinition, ViewportCreationDefinition};
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };
 export { BUSY_MODE_DISPLAY, FLAG_TYPE, RENDERER_TYPE, SPINNER_POSITIONING, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITY_MODE, PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, SESSION_SETTINGS_MODE };
 export { SystemInfo, TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_PARAMETER, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_GUMBALL, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK };

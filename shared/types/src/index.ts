@@ -10,15 +10,17 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE
-  } from './interfaces/renderingEngine/enums';
+} from './interfaces/renderingEngine/enums';
 import {
   Color,
   ISessionSettingsSections,
   ISettingsSections,
   IViewportSettingsSections,
   PARAMETER_TYPE,
-  PARAMETER_VISUALIZATION
-  } from './types';
+  PARAMETER_VISUALIZATION,
+  SessionCreationDefinition,
+  ViewportCreationDefinition
+} from './types';
 import { CustomData } from './implementation/data/CustomData';
 import { DraggingParameterValue, IDraggableObject, IDraggingParameterProps } from './interfaces/parameter/IDraggingParameterSettings';
 import {
@@ -26,7 +28,7 @@ import {
   IDrawingParameterJsonSchema,
   IDrawingParameterSettings,
   validateDrawingParameterSettings
-  } from './interfaces/parameter/IDrawingParametersSettings';
+} from './interfaces/parameter/IDrawingParametersSettings';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
 import { GumballParameterValue, IGumballParameterProps } from './interfaces/parameter/IGumballParameterSettings';
 import {
@@ -34,7 +36,7 @@ import {
   HTMLElementAnchorData,
   HTMLElementAnchorImageData,
   HTMLElementAnchorTextData
-  } from './implementation/data/HTMLElementAnchorData';
+} from './implementation/data/HTMLElementAnchorData';
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData';
 import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData';
 import {
@@ -42,7 +44,7 @@ import {
   IGeometryData,
   IPrimitiveData,
   PRIMITIVE_MODE
-  } from './interfaces/data/IGeometryData';
+} from './interfaces/data/IGeometryData';
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
@@ -58,7 +60,7 @@ import {
   validateGumballParameterSettings,
   validateInteractionParameterSettings,
   validateSelectionParameterSettings
-  } from './interfaces/parameter/IInteractionParameterSettings';
+} from './interfaces/parameter/IInteractionParameterSettings';
 import { IInstanceData } from './interfaces/data/IInstanceData';
 import {
   IMapData,
@@ -66,7 +68,7 @@ import {
   IMapDataPropertiesDefinition,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING
-  } from './interfaces/data/material/IMapData';
+} from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
   IMaterialAbstractDataProperties,
@@ -75,7 +77,7 @@ import {
   MATERIAL_SHADING,
   MATERIAL_SIDE,
   MATERIAL_TYPE
-  } from './interfaces/data/material/IMaterialAbstractData';
+} from './interfaces/data/material/IMaterialAbstractData';
 import { IMaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition } from './interfaces/data/material/IMaterialBasicLineData';
 import { IMaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition } from './interfaces/data/material/IMaterialGemDataProperties';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialMultiPointData';
@@ -172,4 +174,8 @@ export {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE
+};
+
+export {
+  SessionCreationDefinition, ViewportCreationDefinition
 };

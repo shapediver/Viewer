@@ -118,12 +118,14 @@ import {
     SDTFOverviewData,
     SdtfPrimitiveTypeGuard,
     SelectionParameterValue,
+    SessionCreationDefinition,
     SPINNER_POSITIONING,
     TASK_TYPE,
     TEXTURE_ENCODING,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
     TONE_MAPPING,
+    ViewportCreationDefinition,
     VISIBILITY_MODE
     } from '@shapediver/viewer.shared.types';
 import {
@@ -305,7 +307,6 @@ import {
     } from '@shapediver/viewer.shared.node-tree';
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
-import { SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
 import {
     ShapeDiverResponseExport,
     ShapeDiverResponseExportContent,
@@ -320,7 +321,6 @@ import {
     ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
     } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
 
 export { createViewport, viewports };
 export { createSession, sessions };

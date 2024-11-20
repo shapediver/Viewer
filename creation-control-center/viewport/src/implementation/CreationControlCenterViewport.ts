@@ -9,12 +9,13 @@ import {
     StateEngine,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
-import { ICreationControlCenterViewport, ViewportCreationDefinition } from '../interfaces/ICreationControlCenterViewport';
+import { ICreationControlCenterViewport } from '../interfaces/ICreationControlCenterViewport';
 import {
     ISceneEvent,
     ITaskEvent,
     IViewportSettingsSections,
     TASK_TYPE,
+    ViewportCreationDefinition,
     VISIBILITY_MODE
 } from '@shapediver/viewer.shared.types';
 import { ISettings } from '@shapediver/viewer.settings';

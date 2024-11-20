@@ -10,9 +10,9 @@ import {
     StatePromise,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
-import { ICreationControlCenterSession, SessionCreationDefinition } from '../interfaces/ICreationControlCenterSession';
+import { ICreationControlCenterSession } from '../interfaces/ICreationControlCenterSession';
 import { ISettings, latestVersion } from '@shapediver/viewer.settings';
-import { ISettingsSections, ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types';
+import { ISettingsSections, ITaskEvent, SessionCreationDefinition, TASK_TYPE } from '@shapediver/viewer.shared.types';
 import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { SessionGlobalAccessObject } from './SessionGlobalAccessObject';
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';

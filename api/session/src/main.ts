@@ -1,9 +1,10 @@
-import { CreationControlCenterSession, ICreationControlCenterSession, SessionCreationDefinition } from '@shapediver/viewer.creation-control-center.session';
+import { CreationControlCenterSession, ICreationControlCenterSession } from '@shapediver/viewer.creation-control-center.session';
 import { InputValidator, Logger, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services';
 import { ISessionApi } from './interfaces/ISessionApi';
 import { SessionApi } from './implementation/SessionApi';
 import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { showConsoleMessage } from '@shapediver/viewer.api.general';
+import { SessionCreationDefinition } from '@shapediver/viewer.shared.types';
 
 const creationControlCenterSession: ICreationControlCenterSession = CreationControlCenterSession.instance;
 const inputValidator: InputValidator = InputValidator.instance;

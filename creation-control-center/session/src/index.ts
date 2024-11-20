@@ -1,7 +1,6 @@
 import { CreationControlCenterSession } from './implementation/CreationControlCenterSession';
-import { ICreationControlCenterSession, SessionCreationDefinition } from './interfaces/ICreationControlCenterSession';
+import { ICreationControlCenterSession } from './interfaces/ICreationControlCenterSession';
 
 export {
-    ICreationControlCenterSession, CreationControlCenterSession,
-    SessionCreationDefinition
+    ICreationControlCenterSession, CreationControlCenterSession
 };

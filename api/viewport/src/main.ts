@@ -1,10 +1,10 @@
-import { CreationControlCenterViewport, ICreationControlCenterViewport, ViewportCreationDefinition } from '@shapediver/viewer.creation-control-center.viewport';
+import { CreationControlCenterViewport, ICreationControlCenterViewport } from '@shapediver/viewer.creation-control-center.viewport';
 import { InputValidator, Logger, SESSION_SETTINGS_MODE, ShapeDiverViewerValidationError } from '@shapediver/viewer.shared.services';
 import { IViewportApi } from './interfaces/IViewportApi';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { showConsoleMessage } from '@shapediver/viewer.api.general';
 import { ViewportApi } from './implementation/ViewportApi';
-import { BUSY_MODE_DISPLAY, SPINNER_POSITIONING, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
+import { BUSY_MODE_DISPLAY, SPINNER_POSITIONING, ViewportCreationDefinition, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
 
 const creationControlCenterViewport: ICreationControlCenterViewport = CreationControlCenterViewport.instance;
 const inputValidator: InputValidator = InputValidator.instance;
