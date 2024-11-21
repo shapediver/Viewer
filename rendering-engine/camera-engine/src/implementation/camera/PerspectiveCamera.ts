@@ -1,5 +1,5 @@
 import { AbstractCamera } from './AbstractCamera';
-import { Box, IBox, Plane } from '@shapediver/viewer.shared.math';
+import { Box, IBox, Plane, Sphere } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
 import { ICameraControls } from '../../interfaces/controls/ICameraControls';
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera';
@@ -71,15 +71,6 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   }
 
   // #endregion Public Getters And Setters (6)
-
-  // #region Protected Getters And Setters (1)
-
-  protected get projectionMatrix(): mat4 {
-    const aspect = this.aspect || 1.5;
-    return mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
-  }
-
-  // #endregion Protected Getters And Setters (1)
 
   // #region Public Methods (6)
 
@@ -261,4 +252,16 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   }
 
   // #endregion Public Methods (6)
+
+  // #region Protected Methods (1)
+
+  protected getProjectionMatrix(sphere: Sphere): mat4 | undefined {
+    if(!this.aspect || sphere.radius === 0) return;
+    
+    const far = (this.fov < 10 ? this.fov * 100.0 * 100 * sphere.radius : 100 * sphere.radius);
+    const near = (this.fov < 10 ? this.fov * 100.0 * 0.01 * sphere.radius : 0.01 * sphere.radius);
+    return mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), this.aspect, near, far);
+  }
+
+  // #endregion Protected Methods (1)
 }

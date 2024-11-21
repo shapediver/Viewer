@@ -236,7 +236,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Protected Abstract Getters And Setters (1)
 
-    protected abstract get projectionMatrix(): mat4;
+    protected abstract getProjectionMatrix(sphere: Sphere): mat4 | undefined;
 
     // #endregion Protected Abstract Getters And Setters (1)
 
@@ -257,8 +257,11 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public boundingSphereVisible(sphere: Sphere): boolean {
-        const planes = this.getFrustumPlanes(this.projectionMatrix);
+        const projectionMatrix = this.getProjectionMatrix(sphere);
+        // if we cannot calculate the projection matrix, we assume the sphere is visible
+        if(!projectionMatrix) return true;
 
+        const planes = this.getFrustumPlanes(projectionMatrix);
         for (let i = 0; i < 6; i++) {
             const plane = planes[i];
             const distance = vec3.dot([plane[0], plane[1], plane[2]], sphere.center) + plane[3];

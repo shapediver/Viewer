@@ -1,5 +1,5 @@
 import { AbstractCamera } from './AbstractCamera';
-import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { Box, IBox, Sphere } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine';
 import { ICameraControls } from '../../interfaces/controls/ICameraControls';
 import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera';
@@ -130,14 +130,6 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   }
 
   // #endregion Public Getters And Setters (14)
-
-  // #region Protected Getters And Setters (1)
-
-  protected get projectionMatrix(): mat4 {
-    return mat4.ortho(mat4.create(), this.#left, this.#right, this.#bottom, this.#top, this.near, this.far);
-  }
-
-  // #endregion Protected Getters And Setters (1)
 
   // #region Public Methods (6)
 
@@ -287,4 +279,15 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   }
 
   // #endregion Public Methods (6)
+
+  // #region Protected Methods (1)
+
+  protected getProjectionMatrix(): mat4 | undefined {
+    const distance = vec3.distance(this.position, this.target) / 2;
+    if(distance === 0) return;
+    
+    return mat4.ortho(mat4.create(), this.#left, this.#right, this.#bottom, this.#top, this.near, this.far);
+  }
+
+  // #endregion Protected Methods (1)
 }
