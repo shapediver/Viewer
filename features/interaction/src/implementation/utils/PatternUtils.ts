@@ -250,24 +250,27 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { n
             const parts = name.split('.');
             const outputName = parts[0];
             
-			const outputApi = sessionApi.getOutputByName(outputName)[0];
-			if (!outputApi || !outputApi.node) return;
+            const outputApis = sessionApi.getOutputByName(outputName);
+            outputApis.forEach(outputApi => {
+                if (!outputApi || !outputApi.node) return;
+                if (outputApi.format.length === 1 && outputApi.format[0] === 'material') return;
 
-			if(parts.length === 1) {
-				nodes.push({
-					name: name,
-					node: outputApi.node
-				});
-			} else {
-				outputApi.node.traverse(n => {
-					if (checkNodeNameMatch(n, parts.slice(1).join('.'))) {
-						nodes.push({
-							name: name,
-							node: n
-						});
-					}
-				});
-			}
+                if (parts.length === 1) {
+                    nodes.push({
+                        name: name,
+                        node: outputApi.node
+                    });
+                } else {
+                    outputApi.node.traverse(n => {
+                        if (checkNodeNameMatch(n, parts.slice(1).join('.'))) {
+                            nodes.push({
+                                name: name,
+                                node: n
+                            });
+                        }
+                    });
+                }
+            });
         });
     }
 
