@@ -292,7 +292,7 @@ export class EnvironmentMapLoader implements ILoader {
             map: new Promise<THREE.CubeTexture | THREE.Texture | null>(async (resolve, reject) => {
                 try {
                     if (!Array.isArray(url)) {
-                        const response: HttpResponse<ArrayBuffer> = await this._httpClient.get(url, undefined, true) as HttpResponse<ArrayBuffer>;
+                        const response: HttpResponse<ArrayBuffer> = await this._httpClient.get(url, undefined, true).catch(reject) as HttpResponse<ArrayBuffer>;
                         const arrayBufferView = new Uint8Array(response.data);
                         const blob = new Blob([arrayBufferView], { type: response.headers['content-type'] });
                         const blobUrl = URL.createObjectURL(blob);
