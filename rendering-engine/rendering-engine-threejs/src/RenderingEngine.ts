@@ -157,6 +157,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _softShadows: boolean = true;
   private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
+  private _useLegacyLights: boolean = false;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
   // #endregion Properties (75)
@@ -662,11 +663,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get physicallyCorrectLights(): boolean {
-    return !this._renderer.useLegacyLights;
+    return !this._useLegacyLights;
   }
 
   public set physicallyCorrectLights(value: boolean) {
-    this._renderer.useLegacyLights = !value;
+    this._useLegacyLights = !value;
   }
 
   public get pointSize(): number {

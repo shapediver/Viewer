@@ -90,7 +90,7 @@ export class LightLoader implements ILoader {
             const threeAmbientLight = <THREE.AmbientLight>threeLight;
 
             threeAmbientLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeAmbientLight.intensity = light.intensity;
+            threeAmbientLight.intensity = this._renderingEngine.physicallyCorrectLights ? light.intensity : light.intensity * Math.PI;
         }
 
         if (light instanceof DirectionalLight) {
@@ -103,7 +103,7 @@ export class LightLoader implements ILoader {
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
             threeDirectionalLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeDirectionalLight.intensity = light.intensity;
+            threeDirectionalLight.intensity = this._renderingEngine.physicallyCorrectLights ? light.intensity : light.intensity * Math.PI;
 
             if (light.useNodeData) {
                 threeDirectionalLight.position.set(0, 0, 0);
@@ -120,7 +120,7 @@ export class LightLoader implements ILoader {
             const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
 
             threeHemisphereLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeHemisphereLight.intensity = light.intensity;
+            threeHemisphereLight.intensity = this._renderingEngine.physicallyCorrectLights ? light.intensity : light.intensity * Math.PI;
             threeHemisphereLight.groundColor = this._renderingEngine.createThreeJsColor(light.groundColor);
         }
 
@@ -133,9 +133,9 @@ export class LightLoader implements ILoader {
             const threePointLight = <THREE.PointLight>threeLight;
 
             threePointLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threePointLight.intensity = light.intensity;
+            threePointLight.intensity = this._renderingEngine.physicallyCorrectLights ? light.intensity : light.intensity * Math.PI;
             threePointLight.distance = light.distance;
-            threePointLight.decay = light.decay;
+            threePointLight.decay = this._renderingEngine.physicallyCorrectLights ? light.decay : 0;
             threePointLight.position.set(light.position[0], light.position[1], light.position[2]);
         }
 
@@ -156,11 +156,11 @@ export class LightLoader implements ILoader {
             const threeSpotLight = <THREE.SpotLight>threeLight;
 
             threeSpotLight.color = this._renderingEngine.createThreeJsColor(light.color);
-            threeSpotLight.intensity = light.intensity;
+            threeSpotLight.intensity = this._renderingEngine.physicallyCorrectLights ? light.intensity : light.intensity * Math.PI;
             threeSpotLight.distance = light.distance;
             threeSpotLight.angle = light.angle;
             threeSpotLight.penumbra = light.penumbra;
-            threeSpotLight.decay = light.decay;
+            threeSpotLight.decay = this._renderingEngine.physicallyCorrectLights ? light.decay : 0;
 
             threeSpotLight.position.set(light.position[0], light.position[1], light.position[2]);
             threeSpotLight.target.position.set(light.target[0], light.target[1], light.target[2]);
