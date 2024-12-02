@@ -1,5 +1,28 @@
 import * as THREE from 'three';
 import {
+    ANTI_ALIASING_TECHNIQUE,
+    IBloomEffectDefinition,
+    IChromaticAberrationEffectDefinition,
+    IDepthOfFieldEffectDefinition,
+    IDotScreenEffectDefinition,
+    IGodRaysEffectDefinition,
+    IGridEffectDefinition,
+    IHBAOEffectDefinition,
+    IHueSaturationEffectDefinition,
+    INoiseEffectDefinition,
+    IOutlineEffectDefinition,
+    IPixelationEffectDefinition,
+    IPostProcessingEffectDefinition,
+    IPostProcessingEffectsArray,
+    IScanlineEffectDefinition,
+    ISelectiveBloomEffectDefinition,
+    ISepiaEffectDefinition,
+    ISSAOEffectDefinition,
+    ITiltShiftEffectDefinition,
+    IVignetteEffectDefinition,
+    POST_PROCESSING_EFFECT_TYPE
+} from '../interfaces/IPostProcessingEffectDefinitions';
+import {
     BlendFunction,
     BloomEffect,
     ChromaticAberrationEffect,
@@ -37,41 +60,19 @@ import {
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
 import { GodRaysManager } from './postprocessing/GodRaysManager';
-import {
-    ANTI_ALIASING_TECHNIQUE,
-    IBloomEffectDefinition,
-    IChromaticAberrationEffectDefinition,
-    IDepthOfFieldEffectDefinition,
-    IDotScreenEffectDefinition,
-    IGodRaysEffectDefinition,
-    IGridEffectDefinition,
-    IHBAOEffectDefinition,
-    IHueSaturationEffectDefinition,
-    INoiseEffectDefinition,
-    IOutlineEffectDefinition,
-    IPixelationEffectDefinition,
-    IPostProcessingEffectDefinition,
-    IPostProcessingEffectsArray,
-    IScanlineEffectDefinition,
-    ISelectiveBloomEffectDefinition,
-    ISepiaEffectDefinition,
-    ISSAOEffectDefinition,
-    ITiltShiftEffectDefinition,
-    IVignetteEffectDefinition,
-    POST_PROCESSING_EFFECT_TYPE
-} from '../interfaces/IPostProcessingEffectDefinitions';
+import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { OutlineManager } from './postprocessing/OutlineManager';
+import { PoissionDenoisePass } from './postprocessing/ao/poissionDenoise/PoissionDenoisePass';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
 import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
-import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
-import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { vec3 } from 'gl-matrix';
 
 export class PostProcessingManager implements IManager {
-    // #region Properties (22)
+    // #region Properties (23)
 
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
@@ -96,6 +97,7 @@ export class PostProcessingManager implements IManager {
     private _godRaysManagers: {
         [key: string]: GodRaysManager
     } = {};
+    private _initialized: boolean = false;
     private _manualPostProcessing: boolean = false;
     private _outlineManagers: {
         [key: string]: OutlineManager
@@ -109,7 +111,7 @@ export class PostProcessingManager implements IManager {
     private _ssaaRenderPass?: SSAARenderPass;
     private _suspendEffectPassUpdate = false;
 
-    // #endregion Properties (22)
+    // #endregion Properties (23)
 
     // #region Constructors (1)
 
@@ -134,7 +136,7 @@ export class PostProcessingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (15)
+    // #region Public Getters And Setters (16)
 
     public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
         return this._antiAliasingTechnique;
@@ -153,7 +155,7 @@ export class PostProcessingManager implements IManager {
         this._antiAliasingTechniqueMobile = value;
 
         // we don't allow SSAA on mobile devices anymore as it is too slow
-        if(this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA) 
+        if (this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA)
             this._antiAliasingTechniqueMobile = ANTI_ALIASING_TECHNIQUE.SMAA;
 
         this.changeEffectPass();
@@ -179,6 +181,10 @@ export class PostProcessingManager implements IManager {
         [key: string]: GodRaysManager
     } {
         return this._godRaysManagers;
+    }
+
+    public get initialized(): boolean {
+        return this._initialized;
     }
 
     public get manualPostProcessing(): boolean {
@@ -208,11 +214,11 @@ export class PostProcessingManager implements IManager {
     }
 
     public set ssaaSampleLevel(value: number) {
-        if(this._ssaaRenderPass)
+        if (this._ssaaRenderPass)
             this._ssaaRenderPass.sampleLevel = value;
     }
 
-    // #endregion Public Getters And Setters (15)
+    // #endregion Public Getters And Setters (16)
 
     // #region Public Methods (13)
 
@@ -222,17 +228,17 @@ export class PostProcessingManager implements IManager {
 
         switch (definition.type) {
             case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
-                if(!this._godRaysManagers[token]) 
+                if (!this._godRaysManagers[token])
                     this._godRaysManagers[token] = new GodRaysManager(this._renderingEngine);
                 break;
 
             case POST_PROCESSING_EFFECT_TYPE.OUTLINE:
-                if(!this._outlineManagers[token]) 
+                if (!this._outlineManagers[token])
                     this._outlineManagers[token] = new OutlineManager(this._renderingEngine);
                 break;
 
             case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
-                if(!this._selectiveBloomManagers[token]) 
+                if (!this._selectiveBloomManagers[token])
                     this._selectiveBloomManagers[token] = new SelectiveBloomManager(this._renderingEngine);
                 break;
 
@@ -250,7 +256,7 @@ export class PostProcessingManager implements IManager {
         this.antiAliasingTechniqueMobile = settingsEngine.settings.postprocessing.antiAliasingTechniqueMobile as ANTI_ALIASING_TECHNIQUE;
 
         // we don't allow SSAA on mobile devices anymore as it is too slow
-        if(this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA) 
+        if (this._antiAliasingTechniqueMobile === ANTI_ALIASING_TECHNIQUE.SSAA)
             this._antiAliasingTechniqueMobile = ANTI_ALIASING_TECHNIQUE.SMAA;
 
         this.enablePostProcessingOnMobile = settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
@@ -258,9 +264,9 @@ export class PostProcessingManager implements IManager {
 
         this._effectDefinitions = [];
         const effects = settingsEngine.settings.postprocessing.effects;
-        for(let i = 0; i < effects.length; i++) {
+        for (let i = 0; i < effects.length; i++) {
             const token = this._uuidGenerator.create();
-            
+
             this._effectDefinitions.push({
                 token,
                 definition: {
@@ -279,7 +285,7 @@ export class PostProcessingManager implements IManager {
         if (this._systemInfo.isMobile === true && this._enablePostProcessingOnMobile === false) return;
         if (this._manualPostProcessing) return;
 
-        for(let i = 0; i < this._composer.passes.length; i++)
+        for (let i = 0; i < this._composer.passes.length; i++)
             this._composer.passes[i].dispose();
         this._composer.removeAllPasses();
 
@@ -318,7 +324,7 @@ export class PostProcessingManager implements IManager {
                     {
                         const definition: IChromaticAberrationEffectDefinition = this._effectDefinitions[i].definition as IChromaticAberrationEffectDefinition;
                         const properties = definition.properties || {};
-                        const offsetArray = properties.offset !== undefined ? Array.isArray(properties.offset) ? properties.offset : [(<{x: number}>properties.offset).x, (<{y: number}>properties.offset).y] : undefined;
+                        const offsetArray = properties.offset !== undefined ? Array.isArray(properties.offset) ? properties.offset : [(<{ x: number }>properties.offset).x, (<{ y: number }>properties.offset).y] : undefined;
 
                         this._effects.push({
                             token: this._effectDefinitions[i].token,
@@ -410,8 +416,8 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.HBAO:
                     {
                         // we currently do not support devices with WebGL 1: https://shapediver.atlassian.net/browse/SS-7069
-                        if(this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
-                        
+                        if (this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
+
                         const definition: IHBAOEffectDefinition = this._effectDefinitions[i].definition as IHBAOEffectDefinition;
                         const properties = definition.properties || {};
 
@@ -509,8 +515,8 @@ export class PostProcessingManager implements IManager {
                 case POST_PROCESSING_EFFECT_TYPE.SSAO:
                     {
                         // we currently do not support devices with WebGL 1: https://shapediver.atlassian.net/browse/SS-7069
-                        if(this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
-                        
+                        if (this._renderingEngine.renderer.capabilities.isWebGL2 === false) break;
+
                         const definition: ISSAOEffectDefinition = this._effectDefinitions[i].definition as ISSAOEffectDefinition;
                         const properties = definition.properties || {};
 
@@ -804,8 +810,8 @@ export class PostProcessingManager implements IManager {
         return this._effects.find(e => e.token === token)!.effect;
     }
 
-    public getEffectTokens(): { [key: string]: POST_PROCESSING_EFFECT_TYPE} {
-        return Object.assign({}, ...this._effectDefinitions.map((e) => ({[e.token]: e.definition.type})));
+    public getEffectTokens(): { [key: string]: POST_PROCESSING_EFFECT_TYPE } {
+        return Object.assign({}, ...this._effectDefinitions.map((e) => ({ [e.token]: e.definition.type })));
     }
 
     public getPostProcessingEffectsArray(): IPostProcessingEffectsArray {
@@ -1075,19 +1081,25 @@ export class PostProcessingManager implements IManager {
             this._composer = new EffectComposer(this._renderingEngine.renderer);
             // EffectComposer disables autoClear, we enable/disable this in the postprocessing render loop
             this._renderingEngine.renderer.autoClear = true;
-    
+
             // create anti-aliasing effects and passes
             this._fxaaEffect = new FXAAEffect();
             this._smaaEffect = new SMAAEffect({ preset: SMAAPreset.ULTRA });
             this._renderPass = new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
             this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
+
+            // wait for the blue noise texture to be loaded before initializing the composer
+            PoissionDenoisePass.loadBlueNoiseTexture().then(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                this._initialized = true;
+            });
         };
 
-        if(this._sceneExtents === 0) {
+        if (this._sceneExtents === 0) {
             const token = this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, async (e: IEvent) => {
                 const viewerEvent = <ISceneEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id) {
-                    if(vec3.distance(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max) > 0) {
+                    if (vec3.distance(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max) > 0) {
                         initComposer();
                         this.changeEffectPass();
                         this._eventEngine.removeListener(token);
@@ -1108,10 +1120,10 @@ export class PostProcessingManager implements IManager {
     }
 
     public render(deltaTime: number, camera: THREE.Camera) {
-        if(!this._composer) return;
+        if (!this._composer) return;
 
         const cameraId = `${camera.id}_${camera.type}${(camera.type === 'PerspectiveCamera' ? '' : '_' + camera.up.toArray().toString())}`;
-        if(cameraId !== this._currentCameraId) {
+        if (cameraId !== this._currentCameraId) {
             this._currentCameraId = cameraId;
             this.changeEffectPass();
         }
@@ -1124,16 +1136,16 @@ export class PostProcessingManager implements IManager {
 
         this._composer.setMainCamera(camera);
         this._composer.render();
-        
+
         this._renderingEngine.renderer.autoClear = true;
         this._renderingEngine.renderer.setClearColor(currentClearColor);
     }
 
     public resize(width: number, height: number) {
-        if(!this._composer) return;
+        if (!this._composer) return;
 
         this.effects.forEach(e => {
-            if(e.effect.setSize)
+            if (e.effect.setSize)
                 e.effect.setSize(width, height);
         });
 
@@ -1165,7 +1177,7 @@ export class PostProcessingManager implements IManager {
 
     // #region Private Methods (1)
 
-    private addPassToEffectComposer(pass: EffectPass | RenderPass | SSAARenderPass ) {
+    private addPassToEffectComposer(pass: EffectPass | RenderPass | SSAARenderPass) {
         if (this._composer) {
             try {
                 this._composer.addPass(pass);

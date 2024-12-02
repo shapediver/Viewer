@@ -298,7 +298,7 @@ export class RenderingManager implements IManager {
 
     private animate(time: number, deltaTime: number, runningAnimation: boolean): void {
         // animation loop - part 1: initial discarding
-        if (this._renderingEngine.closed || this._noWebGL) return;
+        if (this._renderingEngine.closed || this._noWebGL || this._renderingEngine.postProcessingManager.initialized === false) return;
 
         this._renderingEngine.evaluateFlagState();
 
