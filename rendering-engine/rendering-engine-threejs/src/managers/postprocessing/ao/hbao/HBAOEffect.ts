@@ -4,9 +4,9 @@ import { AOEffect } from '../ao/AOEffect';
 
 import { AOPass } from '../ao/AOPass';
 import { hbao as fragmentShader } from './shader/hbao';
-import { hbao_utils } from './shader/hbao_utils';
+import { ao_utils } from '../ao/shader/ao_utils';
 
-const finalFragmentShader = fragmentShader.replace('#include <hbao_utils>', hbao_utils);
+const finalFragmentShader = fragmentShader.replace('#include <ao_utils>', ao_utils);
 
 class HBAOPass extends AOPass {
 	// #region Constructors (1)

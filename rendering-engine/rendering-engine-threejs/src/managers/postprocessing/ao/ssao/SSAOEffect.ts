@@ -3,12 +3,15 @@ import { Camera, Scene, Vector3 } from 'three';
 import { AOEffect } from '../ao/AOEffect';
 import { AOPass } from '../ao/AOPass';
 import { ssao as fragmentShader } from './shader/ssao';
+import { ao_utils } from '../ao/shader/ao_utils';
+
+const finalFragmentShader = fragmentShader.replace('#include <ao_utils>', ao_utils);
 
 class SSAOPass extends AOPass {
 	// #region Constructors (1)
 
 	constructor(camera: Camera, scene: Scene) {
-		super(camera, scene, fragmentShader);
+		super(camera, scene, finalFragmentShader);
 	}
 
 	// #endregion Constructors (1)

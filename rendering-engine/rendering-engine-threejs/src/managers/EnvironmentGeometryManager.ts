@@ -147,7 +147,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._gridObject.add(this._grid);
 
         this._groundPlane.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
-        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
+        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(4 * gridExtents, 4 * gridExtents, 2, 2);
 
         let eps = 0.005;
         let bs = bb.boundingSphere;
@@ -191,7 +191,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneShadow.receiveShadow = true;
         this._groundPlaneShadow.visible = this._renderingEngine.groundPlaneShadowVisibility;
         this._groundPlaneShadowObject.add(this._groundPlaneShadow);
-        this._groundPlaneShadowObject.userData.ambientOcclusion = false;
+        this._groundPlaneShadowObject.userData.ambientOcclusion = true;
         this._environmentGeometryObject.add(this._groundPlaneShadowObject);
 
         let eps = 0.005;

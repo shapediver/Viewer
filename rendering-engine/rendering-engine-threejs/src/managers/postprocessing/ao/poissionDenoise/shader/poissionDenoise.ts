@@ -3,8 +3,9 @@ varying vec2 vUv;
 
 uniform sampler2D inputTexture;
 uniform highp sampler2D depthTexture;
-uniform sampler2D normalTexture;
+uniform highp sampler2D normalTexture;
 uniform mat4 projectionMatrixInverse;
+uniform mat4 viewMatrixInverse;
 uniform mat4 cameraMatrixWorld;
 uniform float lumaPhi;
 uniform float depthPhi;
@@ -18,14 +19,27 @@ uniform vec2 resolution;
 #include <common>
 #include <sampleBlueNoise>
 
-vec3 getWorldPos(float depth, vec2 coord) {
+vec3 computeWorldPosition(float depth, vec2 coord, bool useCameraMatrixWorld) {
+    // Convert depth to normalized device coordinates (NDC)
     float z = depth * 2.0 - 1.0;
     vec4 clipSpacePosition = vec4(coord * 2.0 - 1.0, z, 1.0);
+
+    // Transform to view space
     vec4 viewSpacePosition = projectionMatrixInverse * clipSpacePosition;
 
     // Perspective division
-    vec4 worldSpacePosition = cameraMatrixWorld * viewSpacePosition;
-    worldSpacePosition.xyz /= worldSpacePosition.w;
+    viewSpacePosition /= viewSpacePosition.w;
+
+    // Transform to world space using the selected method
+    vec4 worldSpacePosition;
+    if (useCameraMatrixWorld) {
+        // Use cameraMatrixWorld directly
+        worldSpacePosition = cameraMatrixWorld * viewSpacePosition;
+    } else {
+        // Use viewMatrixInverse
+        worldSpacePosition = viewMatrixInverse * viewSpacePosition;
+    }
+
     return worldSpacePosition.xyz;
 }
 
@@ -49,26 +63,29 @@ float distToPlane(const vec3 worldPos, const vec3 neighborWorldPos, const vec3 w
 
 void main() {
     vec4 depthTexel = textureLod(depthTexture, vUv, 0.);
+    vec4 texel = textureLod(inputTexture, vUv, 0.0);
+    vec3 normal = getNormal(vUv, texel);
 
     if (depthTexel.r == 1.0 || dot(depthTexel.rgb, depthTexel.rgb) == 0.) {
-        discard;
+        #ifdef NORMAL_IN_RGB
+            gl_FragColor = vec4(normal, 1.0);
+        #else
+            gl_FragColor = vec4(1.0);
+        #endif
+
         return;
     }
 
-    vec4 texel = textureLod(inputTexture, vUv, 0.0);
-
-    vec3 normal = getNormal(vUv, texel);
-
-#ifdef NORMAL_IN_RGB
-    float denoised = texel.a;
-    float center = texel.a;
-#else
-    vec3 denoised = texel.rgb;
-    vec3 center = texel.rgb;
-#endif
+    #ifdef NORMAL_IN_RGB
+        float inputTexel = texel.a;
+        float center = texel.a;
+    #else
+        vec3 inputTexel = texel.rgb;
+        vec3 center = texel.rgb;
+    #endif
 
     float depth = depthTexel.x;
-    vec3 worldPos = getWorldPos(depth, vUv);
+    vec3 worldPos = computeWorldPosition(depth, vUv, true);
 
     float totalWeight = 1.0;
 
@@ -79,6 +96,13 @@ void main() {
 
     mat2 rotationMatrix = mat2(c, -s, s, c);
 
+    
+    #ifdef NORMAL_IN_RGB
+        float denoised = inputTexel;
+    #else
+        vec3 denoised = inputTexel;
+    #endif
+
     for (int i = 0; i < samples; i++) {
         vec2 offset = rotationMatrix * poissonDisk[i];
         vec2 neighborUv = vUv + offset;
@@ -86,42 +110,44 @@ void main() {
         vec4 neighborTexel = textureLod(inputTexture, neighborUv, 0.0);
 
         vec3 neighborNormal = getNormal(neighborUv, neighborTexel);
-#ifdef NORMAL_IN_RGB
-        float neighborColor = neighborTexel.a;
-#else
-        vec3 neighborColor = neighborTexel.rgb;
-#endif
+        #ifdef NORMAL_IN_RGB
+            float neighborColor = neighborTexel.a;
+        #else
+            vec3 neighborColor = neighborTexel.rgb;
+        #endif
 
         float sampleDepth = textureLod(depthTexture, neighborUv, 0.0).x;
 
-        vec3 worldPosSample = getWorldPos(sampleDepth, neighborUv);
+        vec3 worldPosSample = computeWorldPosition(sampleDepth, neighborUv, true);
         float tangentPlaneDist = abs(dot(worldPos - worldPosSample, normal));
 
-        float normalDiff = dot(normal, neighborNormal);
-        float normalSimilarity = pow(max(normalDiff, 0.), normalPhi);
+        if (sampleDepth < 1.0) {
+            float normalDiff = dot(normal, neighborNormal);
+            float normalSimilarity = pow(max(normalDiff, 0.), normalPhi);
 
-#ifdef NORMAL_IN_RGB
-        float lumaDiff = abs(neighborColor - center);
-#else
-        float lumaDiff = abs(luminance(neighborColor) - luminance(center));
-#endif
-        float lumaSimilarity = max(1.0 - lumaDiff / lumaPhi, 0.0);
+            #ifdef NORMAL_IN_RGB
+                float lumaDiff = abs(neighborColor - center);
+            #else
+                float lumaDiff = abs(luminance(neighborColor) - luminance(center));
+            #endif
+            float lumaSimilarity = max(1.0 - lumaDiff / lumaPhi, 0.0);
 
-        float depthDiff = 1. - (distToPlane(worldPos, worldPosSample, normal) / distance);
-        float depthSimilarity = max(depthDiff / depthPhi, 0.);
+            float depthDiff = 1. - (distToPlane(worldPos, worldPosSample, normal) / distance);
+            float depthSimilarity = max(depthDiff / depthPhi, 0.);
 
-        float w = lumaSimilarity * depthSimilarity * normalSimilarity;
+            float w = lumaSimilarity * depthSimilarity * normalSimilarity;
 
-        denoised += w * neighborColor;
-        totalWeight += w;
+            denoised += w * neighborColor;
+            totalWeight += w;
+        }
     }
 
     if (totalWeight > 0.) denoised /= totalWeight;
 
-#ifdef NORMAL_IN_RGB
-    gl_FragColor = vec4(normal, denoised);
-#else
-    gl_FragColor = vec4(denoised, 1.);
-#endif
+    #ifdef NORMAL_IN_RGB
+        gl_FragColor = vec4(normal, denoised);
+    #else
+        gl_FragColor = vec4(denoised, 1.);
+    #endif
 }
-`
+`;
