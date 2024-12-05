@@ -1,7 +1,6 @@
 varying vec2 vUv;
 
 uniform highp sampler2D depthTexture;
-uniform sampler2D normalTexture;
 uniform mat4 projectionViewMatrix;
 uniform mat4 cameraMatrixWorld;
 
@@ -37,8 +36,8 @@ void main() {
         return;
     }
 
-    vec3 worldPos = computeWorldPosition(depth, vUv, true);
-    vec3 screenSpaceNormal = normalize(textureLod(normalTexture, vUv, 0.0).xyz);
+    vec3 worldPos = computeWorldPosition(depth, vUv);
+    vec3 screenSpaceNormal = getUnpackedNormal(vUv);
 
     #ifdef animatedNoise
         int seed = frame;
@@ -81,7 +80,7 @@ void main() {
             continue;
         }
 
-        vec3 sampleNormal = textureLod(normalTexture, offset.xy, 0.0).xyz;
+        vec3 sampleNormal = getUnpackedNormal(offset.xy);
 
         float distSample = linearize_depth(sampleDepth, cameraNear, cameraFar);
         float distWorld = linearize_depth(offset.z, cameraNear, cameraFar);
@@ -100,9 +99,7 @@ void main() {
             occluded += rangeCheck * weight * (distSample < distWorld ? 1.0 : 0.0);
             totalWeight += weight;
         } else {
-            vec3 worldPosSample = computeWorldPosition(sampleDepth, vUv, true);
-
-            if(areDepthsOnSamePlane(depth, sampleDepth, vUv, offset.xy, normal, 0.001)) {
+            if(areDepthsOnSamePlane(depth, sampleDepth, vUv, offset.xy, normal, 0.1)) {
                 occluded += 0.0;
                 totalWeight += 1.0;
             } else {

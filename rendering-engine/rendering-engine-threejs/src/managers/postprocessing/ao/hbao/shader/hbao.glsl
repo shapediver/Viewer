@@ -19,7 +19,6 @@ uniform float thickness;
 #include <packing>
 #include <sampleBlueNoise>
 
-uniform sampler2D normalTexture;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform mat4 cameraMatrixWorld;
@@ -73,8 +72,8 @@ void main() {
 
     vec4 cameraPosition = cameraMatrixWorld * vec4(0.0, 0.0, 0.0, 1.0);
 
-    vec3 worldPos = computeWorldPosition(depth, vUv, true);
-    vec3 screenSpaceNormal = normalize(textureLod(normalTexture, vUv, 0.0).xyz);
+    vec3 worldPos = computeWorldPosition(depth, vUv);
+    vec3 screenSpaceNormal = getUnpackedNormal(vUv);
 
     float ao = 0.0, totalWeight = 0.0;
 
@@ -98,51 +97,48 @@ void main() {
         // Get the depth of the sample position
         float sampleDepth = textureLod(depthTexture, sampleUv.xy, 0.0).r;
 
-        if(sampleDepth == 1.0) {
-            continue;
-        }
-        vec3 sampleNormal = textureLod(normalTexture, sampleUv.xy, 0.0).xyz;
+        if(sampleDepth < 1.0) {
+            vec3 sampleNormal = getUnpackedNormal(sampleUv.xy);
 
-        // Compute the horizon line
-        float deltaDepth = depth - sampleDepth;
+            // Compute the horizon line
+            float deltaDepth = depth - sampleDepth;
 
-        // distance based bias
-        float d = distance(sampleWorldPos, cameraPosition.xyz) / aoDistance;
-        deltaDepth *= 0.001 * d * d;
+            // distance based bias
+            float d = distance(sampleWorldPos, cameraPosition.xyz) / aoDistance;
+            deltaDepth *= 0.001 * d * d;
 
-        float th = thickness * 0.01;
+            float th = thickness * 0.01;
 
-        float theta = dot(normal, sampleWorldDir);
-        totalWeight += theta;
+            float theta = dot(normal, sampleWorldDir);
+            totalWeight += theta;
 
-        if (deltaDepth < th) {
+            if (deltaDepth < th) {
 
 
-            float horizon = sampleDepth + deltaDepth * bias * 1000.;
+                float horizon = sampleDepth + deltaDepth * bias * 1000.;
 
-            float occlusion = max(0.0, horizon - depth) * theta;
+                float occlusion = max(0.0, horizon - depth) * theta;
 
-            float m = max(0., 1. - deltaDepth / th);
-            occlusion = 10. * occlusion * m / d;
+                float m = max(0., 1. - deltaDepth / th);
+                occlusion = 10. * occlusion * m / d;
 
-            occlusion = max(0.0, occlusion);
-            
-            // check if the normals are in the same direction
-            float dotProduct = dot(screenSpaceNormal, normalize(sampleNormal));
-            if (dotProduct < 0.9999) {
+                occlusion = max(0.0, occlusion);
                 
-                occlusion = sqrt(occlusion);
-                ao += occlusion;
-            } else {
-                vec3 worldPosSample = computeWorldPosition(sampleDepth, vUv, true);
-
-                if(areDepthsOnSamePlane(depth, sampleDepth, vUv, sampleUv.xy, normal, 0.001)) {
-                    // occluded += 0.0;
-                    // totalWeight += 1.0;
-                } else {
-                
+                // check if the normals are in the same direction
+                float dotProduct = dot(screenSpaceNormal, sampleNormal);
+                if (dotProduct < 0.9999) {
+                    
                     occlusion = sqrt(occlusion);
                     ao += occlusion;
+                } else {
+                    if(areDepthsOnSamePlane(depth, sampleDepth, vUv, sampleUv.xy, screenSpaceNormal, 0.1)) {
+                        // occluded += 0.0;
+                        // totalWeight += 1.0;
+                    } else {
+                    
+                        occlusion = sqrt(occlusion);
+                        ao += occlusion;
+                    }
                 }
             }
         }
