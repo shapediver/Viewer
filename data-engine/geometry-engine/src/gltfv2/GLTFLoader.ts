@@ -18,7 +18,8 @@ import {
     BoneData,
     Color,
     ITaskEvent,
-    TASK_TYPE
+    TASK_TYPE,
+    CustomData
 } from '@shapediver/viewer.shared.types';
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
 import {
@@ -465,6 +466,11 @@ export class GLTFLoader {
                 // got through all children
                 nodeDef.addChild(await this.loadNode(node.children[i]));
             }
+        }
+
+        if(node.extras) {
+            const customData = new CustomData(node.extras);
+            nodeDef.data.push(customData);
         }
 
         this._numberOfConvertedNodes++;
