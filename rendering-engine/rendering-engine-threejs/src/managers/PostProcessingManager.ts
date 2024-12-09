@@ -806,6 +806,16 @@ export class PostProcessingManager implements IManager {
         }
     }
 
+    public async initialize(): Promise<void> {
+        if (this._initialized) return;
+
+        // wait for the blue noise texture to be loaded before initializing the composer
+        await PoissionDenoisePass.loadBlueNoiseTexture();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        this._initialized = true;
+        return;
+    }
+
     public getEffect(token: string): Effect {
         return this._effects.find(e => e.token === token)!.effect;
     }
@@ -1087,12 +1097,6 @@ export class PostProcessingManager implements IManager {
             this._smaaEffect = new SMAAEffect({ preset: SMAAPreset.ULTRA });
             this._renderPass = new RenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
             this._ssaaRenderPass = new SSAARenderPass(this._renderingEngine.scene, this._renderingEngine.camera);
-
-            // wait for the blue noise texture to be loaded before initializing the composer
-            PoissionDenoisePass.loadBlueNoiseTexture().then(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 0));
-                this._initialized = true;
-            });
         };
 
         if (this._sceneExtents === 0) {

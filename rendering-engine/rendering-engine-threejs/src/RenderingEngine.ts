@@ -907,8 +907,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (!settingsEngine) return;
 
     if (sections.environment) {
+      const promises = [];
+
+      promises.push(this._postProcessingManager.initialize());
+
       // as the environment map is the only thing that needs time to load, load it first
-      await new Promise<void>((resolve, reject) => {
+      promises.push(new Promise<void>((resolve, reject) => {
         this._stateEngine.viewportEngines[this.id]?.environmentMapLoaded.then(() => {
           try {
             if (!settingsEngine) return;
@@ -929,7 +933,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
         // set it like this to not trigger the loading
         this.environmentMap = settingsEngine!.environment.map;
-      });
+      }));
+
+      await Promise.all(promises);
+
     } else {
       this.applySyncSettings(sections, settingsEngine, updateViewport);
       this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_SETTINGS_LOADED, <IViewportEvent>{ viewportId: this.id });
