@@ -65,7 +65,7 @@ export const gatherNodesForPattern = (
     strictNaming: boolean = true
 ): void => {
     const nodeName = strictNaming ? node.originalName : node.originalName || node.name;
-	const escapedTest = pattern[count].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	const escapedTest = pattern[count]?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 	// if the node has no original name (was not given a name in Grasshopper) or 
 	// its name matches the black list, do not consider it for pattern matching
