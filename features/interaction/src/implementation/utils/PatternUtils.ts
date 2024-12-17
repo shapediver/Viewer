@@ -156,10 +156,10 @@ export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
 			names.push(nodeName);
 		// look for the output API data in the node
 		
-		let outputApi = tempNode.data.find((data) => data instanceof OutputApiData)?.api;
+		let outputApi = (tempNode.data.find((data) => data instanceof OutputApiData) as OutputApiData | undefined)?.api;
 		if (!outputApi) {
 			// try to find it in the session api
-			const sessionApi = tempNode.parent?.data.find((data) => data instanceof SessionApiData)?.api;
+			const sessionApi = (tempNode.parent?.data.find((data) => data instanceof SessionApiData) as SessionApiData | undefined)?.api;
 			outputApi = sessionApi?.outputs[tempNode.name];
 		}
 
