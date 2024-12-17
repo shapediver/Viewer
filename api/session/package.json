@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.session",
-  "version": "3.7.1-rc.0",
+  "version": "3.7.1-rc.1",
   "description": "",
   "keywords": [
     "webgl",
@@ -49,15 +49,15 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.12.2",
-    "@shapediver/viewer.api.general": "3.7.1-rc.0",
-    "@shapediver/viewer.creation-control-center.session": "3.7.1-rc.0",
-    "@shapediver/viewer.data-engine.gltf-converter": "3.7.1-rc.0",
-    "@shapediver/viewer.data-engine.shared-types": "3.7.1-rc.0",
-    "@shapediver/viewer.session-engine.session-engine": "3.7.1-rc.0",
-    "@shapediver/viewer.shared.math": "3.7.1-rc.0",
-    "@shapediver/viewer.shared.node-tree": "3.7.1-rc.0",
-    "@shapediver/viewer.shared.services": "3.7.1-rc.0",
-    "@shapediver/viewer.shared.types": "3.7.1-rc.0"
+    "@shapediver/viewer.api.general": "3.7.1-rc.1",
+    "@shapediver/viewer.creation-control-center.session": "3.7.1-rc.1",
+    "@shapediver/viewer.data-engine.gltf-converter": "3.7.1-rc.1",
+    "@shapediver/viewer.data-engine.shared-types": "3.7.1-rc.1",
+    "@shapediver/viewer.session-engine.session-engine": "3.7.1-rc.1",
+    "@shapediver/viewer.shared.math": "3.7.1-rc.1",
+    "@shapediver/viewer.shared.node-tree": "3.7.1-rc.1",
+    "@shapediver/viewer.shared.services": "3.7.1-rc.1",
+    "@shapediver/viewer.shared.types": "3.7.1-rc.1"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
