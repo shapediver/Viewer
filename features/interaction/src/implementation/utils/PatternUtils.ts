@@ -254,7 +254,7 @@ export const addInteractionData = (node: ITreeNode, interactionDataSettings: { s
  * @param names The names of the nodes.
  * @returns 
  */
-export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { name: string, node: ITreeNode }[] => {
+export const getNodesByName = (sessionApis: ISessionApi[], names: string[], strictNaming = true): { name: string, node: ITreeNode }[] => {
     const nodes: { name: string, node: ITreeNode }[] = [];
 
     for (const sessionApi of sessionApis) {
@@ -274,7 +274,7 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[]): { n
                     });
                 } else {
                     outputApi.node.traverse(n => {
-                        if (checkNodeNameMatch(n, parts.slice(1).join('.'))) {
+                        if (checkNodeNameMatch(n, parts.slice(1).join('.')), strictNaming) {
                             nodes.push({
                                 name: name,
                                 node: n
