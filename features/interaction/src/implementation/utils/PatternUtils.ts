@@ -193,8 +193,9 @@ const matchNodeWithPatterns = (patterns: OutputNodeNameFilterPatterns, node: ITr
             // special case, just the output name was provided
             return outputName;
         } else {
-            // create a regex pattern from the pattern array, match the original name
-            const match = nodeName.match(`^${pattern.join('\\.')}$`);
+			const cleanedPattern = pattern.join(".").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			// create a regex pattern from the pattern array, match the original name
+			const match = nodeName.match(`^${cleanedPattern}$`);
             if (match)
                 return outputName + '.' + match[0];
         }
