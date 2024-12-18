@@ -151,11 +151,7 @@ export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
 	const names: string[] = [];
 	let tempNode = node;
 	while (tempNode && tempNode.parent) {
-		const nodeName = strictNaming ? tempNode.originalName : tempNode.originalName || tempNode.name;
-		if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName))
-			names.push(nodeName);
 		// look for the output API data in the node
-		
 		let outputApi = (tempNode.data.find((data) => data instanceof OutputApiData) as OutputApiData | undefined)?.api;
 		if (!outputApi) {
 			// try to find it in the session api
@@ -163,13 +159,17 @@ export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
 			outputApi = sessionApi?.outputs[tempNode.name];
 		}
 
+		const nodeName = strictNaming ? tempNode.originalName : tempNode.originalName || tempNode.name;
 		if (outputApi) {
 			return {
 				outputId: outputApi.id,
 				outputName: outputApi.name,
 				nodeName: names.reverse().join('.')
 			};
-		}
+		} else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
+			names.push(nodeName);
+        }
+
 		tempNode = tempNode.parent;
 	}
 };
