@@ -1,1 +1,1 @@
-export const build_data = {"build_version":"3.3.7.1-rc.4","build_date":"2024-12-18T12:12:53.950Z","build_branch":"development","build_commit":"6de512f8e8d0346352d643f07a63658eca2afd90"};
+export const build_data = {"build_version":"3.3.7.1-rc.5","build_date":"2024-12-19T09:40:00.768Z","build_branch":"development","build_commit":"d111e3d6febb0cc397aa8b56f1d3171fca05c931"};
