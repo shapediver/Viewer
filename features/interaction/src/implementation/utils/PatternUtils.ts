@@ -193,7 +193,7 @@ const matchNodeWithPatterns = (patterns: OutputNodeNameFilterPatterns, node: ITr
             // special case, just the output name was provided
             return outputName;
         } else {
-			const cleanedPattern = pattern.join(".").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			const cleanedPattern = pattern.join('.').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 			// create a regex pattern from the pattern array, match the original name
 			const match = nodeName.match(`^${cleanedPattern}$`);
             if (match)
@@ -274,7 +274,7 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[], stri
                     });
                 } else {
                     outputApi.node.traverse(n => {
-                        if (checkNodeNameMatch(n, parts.slice(1).join('.')), strictNaming) {
+                        if (checkNodeNameMatch(n, parts.slice(1).join('.'), strictNaming)) {
                             nodes.push({
                                 name: name,
                                 node: n
@@ -342,7 +342,12 @@ export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent:
         if(!match) return false;
         return match[0] === nameWithoutDisplayComponent;
     } else {
-        return node.getOriginalNamePath().endsWith(nameWithoutDisplayComponent) || node.getPath().endsWith(nameWithoutDisplayComponent);
+		let namePath = node.getPath();
+		NODE_NAME_BLACKLIST.forEach(name => {
+			namePath = namePath.replace(name, '');
+		});
+
+		return namePath.endsWith(nameWithoutDisplayComponent);
     }
 };
 
