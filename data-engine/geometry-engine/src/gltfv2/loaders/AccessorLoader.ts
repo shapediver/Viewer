@@ -1,12 +1,12 @@
-import { AttributeData } from '@shapediver/viewer.shared.types'
+import { AttributeData } from '@shapediver/viewer.shared.types';
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
     ACCESSORTYPE_V2 as ACCESSORTYPE,
     IGLTF_v2
-} from '@shapediver/viewer.data-engine.shared-types'
-import { Logger } from '@shapediver/viewer.shared.services'
+} from '@shapediver/viewer.data-engine.shared-types';
+import { Logger } from '@shapediver/viewer.shared.services';
 
-import { BufferViewLoader } from './BufferViewLoader'
+import { BufferViewLoader } from './BufferViewLoader';
 
 export class AccessorLoader {
     // #region Properties (2)
@@ -28,9 +28,9 @@ export class AccessorLoader {
     // #region Public Methods (2)
 
     public getAccessor(accessorId: number): AttributeData | null {
-        if (!this._content.accessors) throw new Error('AccessorLoader.getAccessor: Accessors not available.')
-        if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not available.')
-        if (!this._loaded[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not loaded.')
+        if (!this._content.accessors) throw new Error('AccessorLoader.getAccessor: Accessors not available.');
+        if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not available.');
+        if (this._loaded[accessorId] === undefined) throw new Error('AccessorLoader.getAccessor: Accessor not loaded.');
         return this._loaded[accessorId];
     }
 
@@ -38,7 +38,7 @@ export class AccessorLoader {
         if (!this._content.accessors) return;
         for (let i = 0; i < this._content.accessors.length; i++) {
             const accessorId = i;
-            if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.load: BufferView not available.')
+            if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.load: BufferView not available.');
             const accessor = this._content.accessors[accessorId];
 
             if (accessor.bufferView === undefined) {
@@ -76,6 +76,13 @@ export class AccessorLoader {
                 }
             }
 
+            if (array.length === 0) {
+                // Ignore empty accessors, they are not allowed in glTF
+                this._logger.warn('GLTFLoader.loadAccessor: Accessor with zero length found.');
+                this._loaded[accessorId] = null;
+                continue;
+            }
+
             if (accessor.sparse !== undefined) {
                 const itemSizeIndices = ACCESSORTYPE.SCALAR;
                 const IndicesArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.sparse.indices.componentType];
@@ -83,7 +90,7 @@ export class AccessorLoader {
                 const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
                 const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
 
-                if (!accessor.sparse.indices.bufferView || !accessor.sparse.values.bufferView) throw new Error('Sparse Mesh not properly defined.')
+                if (!accessor.sparse.indices.bufferView || !accessor.sparse.values.bufferView) throw new Error('Sparse Mesh not properly defined.');
 
                 const sparseIndices = new IndicesArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.indices.bufferView!), byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
                 const sparseValues = new ArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);

@@ -57,7 +57,11 @@ interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
     vector_u: number[];
     /** The second vector of the plane. */
     vector_v: number[];
-
+    /** Optional grid snap restriction properties. */
+    gridSnapRestriction?: {
+        /** Size of the grid unit. */
+        gridUnit?: number
+    }
     // #endregion Properties (4)
 }
 
