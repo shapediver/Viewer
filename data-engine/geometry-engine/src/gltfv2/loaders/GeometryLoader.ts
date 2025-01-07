@@ -2,7 +2,10 @@ import { AccessorLoader } from './AccessorLoader';
 import {
     AttributeData,
     GeometryData,
+    IMapData,
+    IMaterialAbstractData,
     InstanceData,
+    MapData,
     MaterialVariantsData,
     PrimitiveData
     } from '@shapediver/viewer.shared.types';
@@ -12,10 +15,13 @@ import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.sha
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { mat4 } from 'gl-matrix';
 import { MaterialLoader } from './MaterialLoader';
+import { Logger } from '@shapediver/viewer.shared.services';
 
 
 export class GeometryLoader {
     // #region Properties (1)
+
+    private readonly _logger: Logger = Logger.instance;
 
     private _materialVariantsData = new MaterialVariantsData();
     private _loaded: {
@@ -66,6 +72,49 @@ export class GeometryLoader {
     // #endregion Public Methods (1)
 
     // #region Private Methods (1)
+
+    /**
+     * Check if the material has maps defined and if so, if there are texture coordinates available. If not, remove all maps from the material.
+     * Otherwise, return the material as is.
+     * 
+     * @param attributes 
+     * @param material 
+     * @returns 
+     */
+    private cleanMaterial(attributes: { [key: string]: AttributeData }, material: IMaterialAbstractData | null): IMaterialAbstractData | null {
+        // check if the material has maps defined
+        let hasMaps = false;
+        if (material) {
+            for (const key in material) {
+                if (material[key as keyof IMaterialAbstractData] instanceof MapData) {
+                    hasMaps = true;
+                    break;
+                }
+            }
+        }
+
+        // check if there are texture coordinates available
+        let hasTexCoords = false;
+        for (const key in attributes) {
+            if (key.includes('TEXCOORD')) {
+                hasTexCoords = true;
+                break;
+            }
+        }
+
+        // if there are maps but no texture coordinates, remove all maps from the material
+        let assignedMaterial = material;
+        if (material && hasMaps === true && hasTexCoords === false) {
+            this._logger.warn('GeometryLoader.loadPrimitive: Material has maps but no texture coordinates are defined. Removing all maps from material.');
+            assignedMaterial = material.clone();
+            for (const key in assignedMaterial) {
+                if (assignedMaterial[key as keyof IMaterialAbstractData] instanceof MapData)
+                    (assignedMaterial[key as keyof IMaterialAbstractData] as IMapData | undefined) = undefined;
+            }
+        }
+
+        return assignedMaterial;
+    }
 
     private loadPrimitive(meshId: number, primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): ITreeNode {
         const primitive = primitives[index];
@@ -183,28 +232,41 @@ export class GeometryLoader {
             }
 
             convertedNames[attribute] = attributeName;
-            attributes[attributeName] = (this._accessorLoader.getAccessor(primitive.attributes[attribute]))!;
+            const accessor = this._accessorLoader.getAccessor(primitive.attributes[attribute]);
+            if (accessor) attributes[attributeName] = accessor;
         }
 
-        if ((primitive.indices || primitive.indices === 0) && !indices) 
-            indices = this._accessorLoader.getAccessor(primitive.indices);
+        if ((primitive.indices || primitive.indices === 0) && !indices) {
+            const accessor = this._accessorLoader.getAccessor(primitive.indices);
+            if (accessor) indices = accessor;
+        }
 
         // reading and assigning morph targets
         if (primitive.targets) {
             for (let i = 0; i < primitive.targets.length; i++) {
                 for (const target in primitive.targets[i]) {
                     if (!attributes[target]) continue;
-                    attributes[convertedNames[target]].morphAttributeData.push((this._accessorLoader.getAccessor(primitive.targets[i][target]))!);
+                    const accessor = this._accessorLoader.getAccessor(primitive.targets[i][target]);
+                    if (accessor) attributes[convertedNames[target]].morphAttributeData.push(accessor);
                 }
             }
         }
 
         let material = null;
-        if (primitive.material || primitive.material === 0) 
+        if (primitive.material || primitive.material === 0)
             material = this._materialLoader.getMaterial(primitive.material);
 
+        // if there are no attributes, return a primitive node without geometry data
+        if (Object.values(attributes).length === 0) {
+            this._logger.warn('GeometryLoader.loadPrimitive: No attributes found. Primitive will be ignored.');
+            return primitiveNode;
+        }
+
+        // check if the material has maps defined and if so, if there are texture coordinates available
+        const assignedMaterial = this.cleanMaterial(attributes, material);
+
         const primitiveData = new PrimitiveData(attributes, indices);
-        const geometryData = new GeometryData(primitiveData, primitive.mode, material);
+        const geometryData = new GeometryData(primitiveData, primitive.mode, assignedMaterial);
 
         if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
             this._materialVariantsData.geometryData.push(geometryData);

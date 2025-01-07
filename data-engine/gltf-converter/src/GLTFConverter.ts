@@ -892,7 +892,7 @@ export class GLTFConverter {
             }
         }
 
-        if (data.indices)
+        if (data.indices && data.indices.array.length > 0) 
             primitiveDef.indices = this.convertAccessor(data.indices);
 
         if (geometryData.material) {
