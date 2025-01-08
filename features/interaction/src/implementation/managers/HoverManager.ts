@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
-import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from '@shapediver/viewer.shared.services';
+import { EventEngine, EVENTTYPE, Logger } from '@shapediver/viewer.shared.services';
 import { IHoverEvent } from '../../interfaces/events/IHoverEvent';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
@@ -14,6 +14,7 @@ export class HoverManager extends AbstractInteractionManager {
     // #region Properties (8)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #tree: Tree = Tree.instance;
 
     #effectMaterialToken?: string;
@@ -71,15 +72,24 @@ export class HoverManager extends AbstractInteractionManager {
     }
 
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
     }
 
     public onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
     }
 
     public onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node));
         intersections = intersection.filter(i => {
             const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
@@ -132,7 +142,10 @@ export class HoverManager extends AbstractInteractionManager {
      * @param ray 
      */
     private activateNode(intersection: IIntersection, event?: PointerEvent, ray?: IRay) {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
 
@@ -182,7 +195,10 @@ export class HoverManager extends AbstractInteractionManager {
      * @param event 
      */
     private deactivateNode(event?: PointerEvent) {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
 
         // find the interaction data
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);

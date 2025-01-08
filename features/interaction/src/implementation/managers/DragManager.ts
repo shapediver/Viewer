@@ -4,7 +4,6 @@ import {
     EventEngine,
     EVENTTYPE,
     Logger,
-    ShapeDiverViewerInteractionError,
     UuidGenerator
 } from '@shapediver/viewer.shared.services';
 import {
@@ -40,6 +39,7 @@ export class DragManager extends AbstractInteractionManager {
     // #region Properties (14)
 
     readonly #eventEngine: EventEngine = EventEngine.instance;
+    readonly #logger: Logger = Logger.instance;
     readonly #tree: Tree = Tree.instance;
     readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
@@ -115,8 +115,11 @@ export class DragManager extends AbstractInteractionManager {
      * @param constraint 
      * @returns 
      */
-    public addDragConstraint(constraint: IDragConstraint): string {
-        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    public addDragConstraint(constraint: IDragConstraint): string | undefined {
+        if (!this.#restrictionManager) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         Logger.instance.warn('The method addDragConstraint is deprecated. Please use addRestriction instead.');
 
         const token = this.#uuidGenerator.create();
@@ -180,19 +183,28 @@ export class DragManager extends AbstractInteractionManager {
      * @returns 
      */
     public addRestriction(properties: RestrictionProperties): string | undefined {
-        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.#restrictionManager) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         return this.#restrictionManager.addRestriction(properties);
     }
 
     public onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.DOWN)(i.node));
         if (intersections.length > 0)
             this.setNode(intersections[0].node, intersection[0].geometryData, intersections[0].distance, intersections[0].point, event, ray);
     }
 
     public onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         if (!this.#draggedNode) return;
 
         const transformationResult = this.#restrictionManager!.rayTrace(ray, {
@@ -220,7 +232,10 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     public onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         if (!this.#draggedNode) return;
 
         const interactionData = <InteractionData>this.#draggedNode.node.data.find((d: ITreeNodeData) => d instanceof InteractionData);
@@ -273,7 +288,10 @@ export class DragManager extends AbstractInteractionManager {
      * @returns 
      */
     public removeDragConstraint(token: string): boolean {
-        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.#restrictionManager) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return false;
+        }
         return this.#restrictionManager.removeRestriction(token);
     }
 
@@ -283,7 +301,10 @@ export class DragManager extends AbstractInteractionManager {
      * @returns 
      */
     public removeNode(event?: PointerEvent, ray?: IRay) {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         if (!this.#draggedNode) return;
 
         this.#restrictionManager!.showRestrictionVisualization = false;
@@ -353,7 +374,10 @@ export class DragManager extends AbstractInteractionManager {
      * @returns 
      */
     public removeRestriction(token: string): boolean {
-        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.#restrictionManager) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return false;
+        }
         return this.#restrictionManager.removeRestriction(token);
     }
 
@@ -361,7 +385,10 @@ export class DragManager extends AbstractInteractionManager {
      * Removes all restrictions.
      */
     public removeRestrictions() {
-        if (!this.#restrictionManager) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.#restrictionManager) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         for(const token of Object.keys(this.#restrictionManager.restrictions)) {
             this.#restrictionManager.removeRestriction(token);
         }
@@ -378,12 +405,16 @@ export class DragManager extends AbstractInteractionManager {
      * @param ray 
      */
     public setNode(node: ITreeNode, geometryData?: IGeometryData, distance: number = 0, intersectionPoint: vec3 = vec3.create(), event?: PointerEvent, ray: IRay = { origin: vec3.create(), direction: vec3.create() }) {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         if (this.#draggedNode) this.removeNode();
 
         this.#restrictionManager!.showRestrictionVisualization = true;
 
         this.#draggedNode = this.activateNode({ node, distance, point: intersectionPoint, geometryData: geometryData });
+        if (!this.#draggedNode) return;
         this.#setupOptions = { viewport: this.viewport, node: this.#draggedNode.node, ray, intersection: this.#intersection! };
 
         const transformationResult = this.#restrictionManager!.rayTrace(ray, {
@@ -435,7 +466,10 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private activateNode(intersection: IIntersection) {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         this.#intersection = intersection;
         const node = this.#intersection.node;
         this.#groupedNodes = undefined;
@@ -508,7 +542,10 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode() {
-        if (!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        if (!this.viewport) {
+            this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+            return;
+        }
         if (!this.#draggedNode) return;
 
         // find the interaction data
