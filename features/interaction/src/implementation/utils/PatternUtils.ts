@@ -65,7 +65,8 @@ export const gatherNodesForPattern = (
     strictNaming: boolean = true
 ): void => {
     const nodeName = strictNaming ? node.originalName : node.originalName || node.name;
-	const escapedTest = pattern[count]?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // escape special characters in the pattern
+	const escapedTest = pattern[count]?.replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
 
 	// if the node has no original name (was not given a name in Grasshopper) or 
 	// its name matches the black list, do not consider it for pattern matching
@@ -116,13 +117,14 @@ export const convertUserDefinedNameFilters = (
         const outputName = parts[0];
 
         // replace the "*" with ".*" to create a regex pattern
-        const outputNameRegex = new RegExp(`^${outputName.replace(/\*/g, '.*')}$`);
+        // if it's not already a ".*" pattern
+        const outputNameRegex = new RegExp(`^${outputName.replace(/(?<!\.)\*(?!\*)/g, '.*')}$`);
         // find the IDs of outputs whose names match
         const outputIds = Object.entries(outputIdsToNamesMapping).filter(([, name]) => outputNameRegex.test(name)).map(([id]) => id);
 
         // create a regex pattern from the other parts of the array
         // replace all "*" with ".*"
-        const patternArray = parts.slice(1).map(part => part.replace(/\*/g, '.*'));
+        const patternArray = parts.slice(1).map(part => part.replace(/(?<!\.)\*(?!\*)/g, '.*'));
 
         // we iterate over the output mappings
         for (const outputId of outputIds) {
@@ -193,7 +195,8 @@ const matchNodeWithPatterns = (patterns: OutputNodeNameFilterPatterns, node: ITr
             // special case, just the output name was provided
             return outputName;
         } else {
-			const cleanedPattern = pattern.join('.').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // escape special characters in the pattern
+			const cleanedPattern = pattern.join('.').replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
 			// create a regex pattern from the pattern array, match the original name
 			const match = nodeName.match(`^${cleanedPattern}$`);
             if (match)
@@ -338,6 +341,7 @@ export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent:
         NODE_NAME_BLACKLIST.forEach(name => {
             originalNamePath = originalNamePath.replace(name, '');
         });
+        // match the dot-separated name at the end of the original name path
         const match = originalNamePath.match(/([^.]+(\.[^.]+)*)\.*$/);
         if(!match) return false;
         return match[0] === nameWithoutDisplayComponent;
