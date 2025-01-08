@@ -265,6 +265,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 return numberVisualizationData;
                             case SdtfPrimitiveTypeGuard.isStringType(a.type):
                                 const stringAttribute = <IStringAttribute>a;
+                                console.log(stringAttribute, itemDataAttribute.value, stringAttribute.values, itemDataAttributeOverview.values, stringAttribute.visualization, this.#visualizedMaterialType, this.#defaultMaterial);
                                 const stringVisualizationData = AttributeVisualizationUtils.stringVisualization(
                                     itemDataAttribute.value,
                                     stringAttribute.values || itemDataAttributeOverview.values,
