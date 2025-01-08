@@ -98,6 +98,10 @@ export class InteractionEngine implements IInteractionEngine {
 
     // #region Public Getters And Setters (7)
 
+    public get closed(): boolean {
+        return this.#closed;
+    }
+
     public get intersectionOpacity(): number {
         return this.#intersectionOpacity;
     }

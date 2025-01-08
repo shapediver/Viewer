@@ -23,6 +23,11 @@ export interface IInteractionEngine extends IDomEventListener {
     readonly managers: { [key: string]: IInteractionManager };
 
     /**
+     * The current state of the interaction engine.
+     */
+    closed: boolean;
+
+    /**
      * The opacity threshold that used to for intersection. (Default: 0)
      * If the object is equal or below the threshold, it is not intersected anymore.
      * 
