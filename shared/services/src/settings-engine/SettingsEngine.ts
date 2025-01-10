@@ -1,12 +1,12 @@
 import {
     convert,
-    Defaults,
     ISettings,
     latestVersion,
     previousVersion,
     validate
 } from '@shapediver/viewer.settings';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
+import { Defaults } from './defaults/Defaults';
 
 // #region Type aliases (8)
 
