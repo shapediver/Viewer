@@ -490,7 +490,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
                 message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`
             });
             throw new ShapeDiverViewerDrawingToolsError(`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded. Current number of points: ${pointsCount}.`);
-        } else if (!(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop) && pointsCount > 2) {
+        } else if (this.#settings.geometry.mode === 'lines' && !(this.#settings.geometry.autoClose || this.#settings.geometry.close === this.#geometryManager.geometryState.closeLoop) && pointsCount > 2) {
             this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UNCLOSED_LOOP, {
                 viewportId: this.viewport.id,
                 drawingToolsId: this.#uuid,
@@ -535,42 +535,79 @@ export class DrawingToolsManager implements IDrawingToolsManager {
             },
             restrictions: {},
             visualization: {
-                distanceMultiplicationFactor: settingsOptional.visualization?.distanceMultiplicationFactor === undefined ? 2 : settingsOptional.visualization.distanceMultiplicationFactor,
-                pointLabels: settingsOptional.visualization?.pointLabels === undefined ? false : settingsOptional.visualization.pointLabels,
-                distanceLabels: settingsOptional.visualization?.distanceLabels === undefined ? true : settingsOptional.visualization.distanceLabels,
-                points: settingsOptional.visualization?.points === undefined ? {
+                distanceMultiplicationFactor: 2,
+                pointLabels: false,
+                distanceLabels: true,
+                points: {
                     size_0: 15, size_1: 20, size_2: 15, size_3: 20, size_4: 15, size_5: 20,
                     color_0: '#0d44f0', color_1: '#197aeb', color_2: '#9e27d8', color_3: '#bc47fd', color_4: '#00ff78', color_5: '#00ff78'
-                } : settingsOptional.visualization.points,
-                lines: settingsOptional.visualization?.lines === undefined ? {
+                },
+                lines: {
                     color: '#0d44f0'
-                } : settingsOptional.visualization.lines
+                }
             },
             controls: {
-                insert: settingsOptional.controls?.insert === undefined ? ['Insert', '+'] : settingsOptional.controls.insert,
-                delete: settingsOptional.controls?.delete === undefined ? ['Delete', '-'] : settingsOptional.controls.delete,
-                confirm: settingsOptional.controls?.confirm === undefined ? 'Enter' : settingsOptional.controls.confirm,
-                cancel: settingsOptional.controls?.cancel === undefined ? 'Escape' : settingsOptional.controls.cancel,
-                undo: settingsOptional.controls?.undo === undefined ? 'Control+z' : settingsOptional.controls.undo,
-                redo: settingsOptional.controls?.redo === undefined ? 'Control+y' : settingsOptional.controls.redo
+                insert: ['Insert', '+'],
+                delete: ['Delete', '-'],
+                confirm: 'Enter',
+                cancel: 'Escape',
+                undo: 'Control+z',
+                redo: 'Control+y'
             },
             general: {
-                autoStart: settingsOptional.general?.autoStart === undefined ? true : settingsOptional.general.autoStart,
-                autoUpdate: settingsOptional.general?.autoUpdate === undefined ? false : settingsOptional.general.autoUpdate,
-                closeOnUpdate: settingsOptional.general?.closeOnUpdate === undefined ? false : settingsOptional.general.closeOnUpdate,
-                displayUnit: settingsOptional.general?.displayUnit === undefined ? '' : settingsOptional.general.displayUnit
+                autoStart: true,
+                autoUpdate: false,
+                closeOnUpdate: false,
+                displayUnit: ''
             }
         };
 
-        if (settingsOptional.geometry !== undefined) {
+        const isUndefinedOrNull = (value: unknown): value is undefined | null => value === undefined || value === null;
+
+        if (!isUndefinedOrNull(settingsOptional.geometry)) {
             settings.geometry = {
-                points: settingsOptional.geometry.points === undefined ? [] : settingsOptional.geometry.points,
+                points: isUndefinedOrNull(settingsOptional.geometry.points) ? [] : settingsOptional.geometry.points,
                 mode: settingsOptional.geometry.mode === 'points' ? 'points' : 'lines',
                 minPoints: settingsOptional.geometry.minPoints,
                 maxPoints: settingsOptional.geometry.maxPoints,
-                strictMinMaxPoints: settingsOptional.geometry.strictMinMaxPoints === undefined ? true : settingsOptional.geometry.strictMinMaxPoints,
-                close: settingsOptional.geometry.close === undefined ? true : settingsOptional.geometry.close,
-                autoClose: settingsOptional.geometry.autoClose === undefined ? true : settingsOptional.geometry.autoClose
+                strictMinMaxPoints: isUndefinedOrNull(settingsOptional.geometry.strictMinMaxPoints) ? true : settingsOptional.geometry.strictMinMaxPoints,
+                close: isUndefinedOrNull(settingsOptional.geometry.close) ? true : settingsOptional.geometry.close,
+                autoClose: isUndefinedOrNull(settingsOptional.geometry.autoClose) ? true : settingsOptional.geometry.autoClose
+            };
+        }
+
+        if (!isUndefinedOrNull(settingsOptional.visualization)) {
+            settings.visualization = {
+                distanceMultiplicationFactor: isUndefinedOrNull(settingsOptional.visualization.distanceMultiplicationFactor) ? 2 : settingsOptional.visualization.distanceMultiplicationFactor,
+                pointLabels: isUndefinedOrNull(settingsOptional.visualization.pointLabels) ? false : settingsOptional.visualization.pointLabels,
+                distanceLabels: isUndefinedOrNull(settingsOptional.visualization.distanceLabels) ? true : settingsOptional.visualization.distanceLabels,
+                points: isUndefinedOrNull(settingsOptional.visualization.points) ? {
+                    size_0: 15, size_1: 20, size_2: 15, size_3: 20, size_4: 15, size_5: 20,
+                    color_0: '#0d44f0', color_1: '#197aeb', color_2: '#9e27d8', color_3: '#bc47fd', color_4: '#00ff78', color_5: '#00ff78'
+                } : settingsOptional.visualization.points,
+                lines: isUndefinedOrNull(settingsOptional.visualization.lines) ? {
+                    color: '#0d44f0'
+                } : settingsOptional.visualization.lines
+            };
+        }
+
+        if (!isUndefinedOrNull(settingsOptional.controls)) {
+            settings.controls = {
+                insert: isUndefinedOrNull(settingsOptional.controls.insert) ? ['Insert', '+'] : settingsOptional.controls.insert,
+                delete: isUndefinedOrNull(settingsOptional.controls.delete) ? ['Delete', '-'] : settingsOptional.controls.delete,
+                confirm: isUndefinedOrNull(settingsOptional.controls.confirm) ? 'Enter' : settingsOptional.controls.confirm,
+                cancel: isUndefinedOrNull(settingsOptional.controls.cancel) ? 'Escape' : settingsOptional.controls.cancel,
+                undo: isUndefinedOrNull(settingsOptional.controls.undo) ? 'Control+z' : settingsOptional.controls.undo,
+                redo: isUndefinedOrNull(settingsOptional.controls.redo) ? 'Control+y' : settingsOptional.controls.redo
+            };
+        }
+
+        if (!isUndefinedOrNull(settingsOptional.general)) {
+            settings.general = {
+                autoStart: isUndefinedOrNull(settingsOptional.general.autoStart) ? true : settingsOptional.general.autoStart,
+                autoUpdate: isUndefinedOrNull(settingsOptional.general.autoUpdate) ? false : settingsOptional.general.autoUpdate,
+                closeOnUpdate: isUndefinedOrNull(settingsOptional.general.closeOnUpdate) ? false : settingsOptional.general.closeOnUpdate,
+                displayUnit: isUndefinedOrNull(settingsOptional.general.displayUnit) ? '' : settingsOptional.general.displayUnit
             };
         }
 
@@ -588,7 +625,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
             max[2] = Math.max(max[2], point[2]);
         }
 
-        if (settingsOptional.restrictions === undefined || Object.keys(settingsOptional.restrictions).length === 0) {
+        if (isUndefinedOrNull(settingsOptional.restrictions) || Object.keys(settingsOptional.restrictions).length === 0) {
             settings.restrictions['plane'] = { type: RESTRICTION_TYPE.PLANE };
         } else {
             settings.restrictions = settingsOptional.restrictions as { [key: string]: RestrictionProperties };

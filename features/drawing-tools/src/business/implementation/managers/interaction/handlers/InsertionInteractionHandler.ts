@@ -61,7 +61,7 @@ export class InsertionInteractionHandler {
         if (this.#insertionActive === true && this.#alreadyInserted === true) {
             this.#geometryState.makePointPersistent(this.#insertionActiveIndex);
 
-            const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+            const canBeClosed = this.#settings.geometry.mode === 'lines' && this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
             const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
             // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
@@ -102,7 +102,7 @@ export class InsertionInteractionHandler {
             })?.point;
 
             if (restrictedPoint) {
-                const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+                const canBeClosed = this.#settings.geometry.mode === 'lines' && this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
                 const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
                 // if there are more than 2 points and the geometry can be closed, check if the last point is close to the first point
