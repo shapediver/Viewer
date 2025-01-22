@@ -200,7 +200,7 @@ export class InteractionManagerHelper {
 
                 for (let i = 0; i < this.#selectedPointIndices.length; i++) {
                     const isLastPoint = this.#selectedPointIndices.length === 1 && this.#selectedPointIndices[0] === this.#geometryState.getPointCount() - 1;
-                    const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+                    const canBeClosed = this.#settings.geometry.mode === 'lines' && this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
                     const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
                     if (isLastPoint && canBeClosed && shouldBeClosed) {
@@ -256,7 +256,7 @@ export class InteractionManagerHelper {
              * Check if the geometry should be closed
              */
             const isLastPoint = selectedPointIndices.length === 1 && selectedPointIndices[0] === this.#geometryState.getPointCount() - 1;
-            const canBeClosed = this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
+            const canBeClosed = this.#settings.geometry.mode === 'lines' && this.#geometryState.getPointCount() > 3 && this.#geometryState.checkNumberOfPoints(this.#geometryState.getPointCount() - 1);
             const shouldBeClosed = this.#settings.geometry.close === true && this.#geometryState.closeLoop === false && this.#settings.geometry.autoClose === false;
 
             if (isLastPoint && canBeClosed && shouldBeClosed) {
