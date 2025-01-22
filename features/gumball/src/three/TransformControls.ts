@@ -919,6 +919,11 @@ class TransformControlsGizmo extends Object3D {
         scale: Object3D;
     };
     public isTransformControlsGizmo: true;
+    private _availablePicker: {
+        translate: Object3D;
+        rotate: Object3D;
+        scale: Object3D;
+    };
     public picker: {
         translate: Object3D;
         rotate: Object3D;
@@ -1314,7 +1319,7 @@ class TransformControlsGizmo extends Object3D {
             'rotate': setupGizmo(gizmoRotate),
             'scale': setupGizmo(gizmoScale),
         };
-        this.picker = {
+        this._availablePicker = this.picker = {
             'translate': setupGizmo(pickerTranslate),
             'rotate': setupGizmo(pickerRotate),
             'scale': setupGizmo(pickerScale),
@@ -1326,22 +1331,22 @@ class TransformControlsGizmo extends Object3D {
         };
 
         this.add(this.gizmo['scale']);
-        this.add(this.picker['scale']);
+        this.add(this._availablePicker['scale']);
         this.add(this.helper['scale']);
 
         this.add(this.gizmo['translate']);
-        this.add(this.picker['translate']);
+        this.add(this._availablePicker['translate']);
         this.add(this.helper['translate']);
 
         this.add(this.gizmo['rotate']);
-        this.add(this.picker['rotate']);
+        this.add(this._availablePicker['rotate']);
         this.add(this.helper['rotate']);
 
         // Pickers should be hidden always
 
-        this.picker['translate'].visible = false;
-        this.picker['rotate'].visible = false;
-        this.picker['scale'].visible = false;
+        this._availablePicker['translate'].visible = false;
+        this._availablePicker['rotate'].visible = false;
+        this._availablePicker['scale'].visible = false;
     }
 
     // #endregion Constructors (1)
@@ -1369,12 +1374,14 @@ class TransformControlsGizmo extends Object3D {
         this.helper['rotate'].visible = this._transformControls.enableRotation;
         this.helper['scale'].visible = this._transformControls.enableScaling && this._transformControls.space === 'local';
 
+        this.picker = this._availablePicker;
+
         let handles: {
             object: Object3D,
             mode: TransformationType
         }[] = [];
         if (this._transformControls.enableTranslation) {
-            let pickers = this.picker.translate.children;
+            let pickers = this._availablePicker.translate.children;
             let gizmos = this.gizmo.translate.children;
             let helpers = this.helper.translate.children;
 
@@ -1396,7 +1403,7 @@ class TransformControlsGizmo extends Object3D {
         }
 
         if (this._transformControls.enableRotation) {
-            let pickers = this.picker.rotate.children;
+            let pickers = this._availablePicker.rotate.children;
             let gizmos = this.gizmo.rotate.children;
             let helpers = this.helper.rotate.children;
 
@@ -1422,7 +1429,7 @@ class TransformControlsGizmo extends Object3D {
         }
 
         if (this._transformControls.enableScaling && this._transformControls.space === 'local') {
-            let pickers = this.picker.scale.children;
+            let pickers = this._availablePicker.scale.children;
             let gizmos = this.gizmo.scale.children;
             let helpers = this.helper.scale.children;
 
@@ -1676,6 +1683,12 @@ class TransformControlsGizmo extends Object3D {
             objects.forEach((object) => {
                 object.visible = false;
             });
+        });
+
+        pickersAxis.forEach((object) => {
+            this.picker.translate.remove(object);
+            this.picker.rotate.remove(object);
+            this.picker.scale.remove(object);
         });
 
         pickers = pickers.filter((object) => !object.name.includes(axis));
