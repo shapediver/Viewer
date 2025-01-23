@@ -16,6 +16,7 @@ type IEnvironmentGeometrySettings = ISettings['environmentGeometry'];
 type IEnvironmentSettings = ISettings['environment'];
 type IGeneralSettings = ISettings['general'];
 type ILightSettings = ISettings['light'];
+type IMaterialSettings = ISettings['material'];
 type IRenderingSettings = ISettings['rendering'];
 type ISessionSettings = ISettings['session'];
 
@@ -55,6 +56,10 @@ export class SettingsEngine {
 
     public get light(): ILightSettings {
         return this._settings.light;
+    }
+
+    public get material(): IMaterialSettings {
+        return this._settings.material;
     }
 
     public get rendering(): IRenderingSettings {

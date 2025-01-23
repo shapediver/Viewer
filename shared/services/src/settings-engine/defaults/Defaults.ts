@@ -41,8 +41,7 @@ export const Defaults: () => ISettings = () => {
             commitSettings: false,
             commitParameters: false,
             pointSize: 1.0,
-            showMessages: true,
-            defaultMaterialColor: '#199b9bff'
+            showMessages: true
         },
         light: {
             lightSceneId: '',
@@ -89,5 +88,8 @@ export const Defaults: () => ISettings = () => {
             toneMappingExposure: 1,
         },
         session: {},
+        material: {
+            defaultMaterialColor: '#199b9bff'
+        }
     };
 };

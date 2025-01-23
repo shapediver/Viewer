@@ -1171,7 +1171,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
     settingsEngine.general.transformation.translation = { x: this.arTranslation[0], y: this.arTranslation[1], z: this.arTranslation[2] };
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
-    settingsEngine.general.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
+
+    settingsEngine.material.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
 
     settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
@@ -1323,7 +1324,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
 
     if (sections.general) {
-      this.defaultMaterialColor = settingsEngine.general.defaultMaterialColor;
+      this.defaultMaterialColor = settingsEngine.material.defaultMaterialColor;
       this.pointSize = settingsEngine.general.pointSize;
     }
 
