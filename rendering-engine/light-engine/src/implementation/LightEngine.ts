@@ -38,7 +38,7 @@ export class LightEngine implements ILightEngine {
     private readonly _tree: ITree = Tree.instance;
     private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    private _lightScene!: LightScene;
+    private _lightScene: LightScene | null = null;
     private _lightScenes: { [key: string]: LightScene; } = {};
     private _update?: () => void;
 
@@ -174,17 +174,24 @@ export class LightEngine implements ILightEngine {
                 ls.addLight(new DirectionalLight({ color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1' }));
                 this._lightScenes[ls.id] = ls;
             }
-        }
-        // this can only be the case if the settings were completely empty, therefore we assign the new light scene
-        else if (JSON.stringify(settingsEngine.settingsJson) == JSON.stringify({})) {
-            const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
-            this._lightScenes[ls.id] = ls;
+        } else {
+            this.assignLightScene();
         }
 
         if (this._update) this._update();
     }
 
-    public assignLightScene(id: string): boolean {
+    public assignLightScene(id?: string): boolean {
+        if(!id) {
+            this._lightScene = null;
+                
+            while (this._lightNode.children.length > 0)
+                this._lightNode.removeChild(this._lightNode.children[0]);
+            this._lightNode.updateVersion();
+
+            return true;
+        }
+
         if (!this._lightScenes[id]) {
             for (const lightSceneId in this._lightScenes) {
                 const lightScene = this._lightScenes[lightSceneId];

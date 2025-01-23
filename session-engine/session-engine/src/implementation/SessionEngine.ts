@@ -235,6 +235,10 @@ export class SessionEngine implements ISessionEngine {
         return this._guid;
     }
 
+    public get hasStoredSettings(): boolean {
+        return this._settingsEngine.hasStoredSettings;
+    }
+
     public get id(): string {
         return this._id;
     }

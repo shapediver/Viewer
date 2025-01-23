@@ -7,6 +7,7 @@ import {
 } from '@shapediver/viewer.settings';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 import { Defaults } from './defaults/Defaults';
+import { HighPerformanceDefaults } from './defaults/HighPerformanceDefaults';
 
 // #region Type aliases (8)
 
@@ -27,6 +28,7 @@ type ISessionSettings = ISettings['session'];
 export class SettingsEngine {
     // #region Properties (4)
 
+    private _hasStoredSettings: boolean = false;
     private _settings: ISettings = Defaults();
     private _settingsJson: unknown;
 
@@ -52,6 +54,10 @@ export class SettingsEngine {
 
     public get general(): IGeneralSettings {
         return this._settings.general;
+    }
+
+    public get hasStoredSettings(): boolean {
+        return this._hasStoredSettings;
     }
 
     public get light(): ILightSettings {
@@ -89,6 +95,7 @@ export class SettingsEngine {
     public loadSettings(json: unknown) {
         this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
+            this._hasStoredSettings = true;
             for (let i = 0; i < previousVersion.length; i++) {
                 const v = previousVersion[i];
 
@@ -184,4 +191,9 @@ export enum SESSION_SETTINGS_MODE {
     MANUAL = 'manual',
 }
 
+
+export const defaultSettings = {
+    default: Defaults,
+    highPerformance: HighPerformanceDefaults
+};
 // #endregion Enums (1)

@@ -1,6 +1,6 @@
 import { ISettings } from '@shapediver/viewer.settings';
 
-export const Defaults: () => ISettings = () => {
+export const HighPerformanceDefaults: () => ISettings = () => {
     return {
         build_date: '',
         build_version: '',
@@ -16,7 +16,7 @@ export const Defaults: () => ISettings = () => {
         environment: {
             clearAlpha: 1.0,
             clearColor: '#ffffff',
-            map: 'photo_studio',
+            map: 'null',
             mapAsBackground: false,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },
@@ -27,7 +27,7 @@ export const Defaults: () => ISettings = () => {
             gridColor: '#44444426',
             gridVisibility: false,
             groundPlaneColor: '#636363ff',
-            groundPlaneVisibility: true,
+            groundPlaneVisibility: false,
             groundPlaneShadowColor: '#d3d3d3ff',
             groundPlaneShadowVisibility: false,
         },
@@ -49,28 +49,12 @@ export const Defaults: () => ISettings = () => {
                 standard: {
                     name: 'standard',
                     lights: {
-                        directional_0: {
-                            name: 'directional_0',
-                            type: 'directional',
-                            properties: {
-                                color: '#ffffffff',
-                                intensity: 2.5,
-                                direction: {
-                                    x: 0.5774000287055969,
-                                    y: -0.5774000287055969,
-                                    z: 0.5774000287055969
-                                },
-                                castShadow: true,
-                                shadowMapResolution: 1024,
-                                shadowMapBias: -0.003
-                            }
-                        },
                         ambient_0: {
                             name: 'ambient_0',
                             type: 'ambient',
                             properties: {
                                 color: '#ffffffff',
-                                intensity: 0.3
+                                intensity: 1
                             }
                         }
                     }
@@ -78,31 +62,11 @@ export const Defaults: () => ISettings = () => {
             },
         },
         postprocessing: {
-            antiAliasingTechnique: 'smaa',
+            antiAliasingTechnique: 'fxaa',
             antiAliasingTechniqueMobile: 'fxaa',
-            enablePostProcessingOnMobile: true,
+            enablePostProcessingOnMobile: false,
             ssaaSampleLevel: 2,
-            effects: [
-                {
-                    properties: {
-                        resolutionScale: 1,
-                        spp: 8,
-                        distance: 1,
-                        distanceIntensity: 1,
-                        intensity: 2.5,
-                        color: '#000000',
-
-                        iterations: 1,
-                        radius: 15,
-                        rings: 4,
-                        lumaPhi: 10,
-                        depthPhi: 2,
-                        normalPhi: 3.25,
-                        samples: 16,
-                    },
-                    type: 'ssao'
-                }
-            ]
+            effects: []
         },
         rendering: {
             automaticColorAdjustment: true,
@@ -111,8 +75,8 @@ export const Defaults: () => ISettings = () => {
             lights: true,
             outputEncoding: 'srgb',
             physicallyCorrectLights: true,
-            shadows: true,
-            softShadows: true,
+            shadows: false,
+            softShadows: false,
             textureEncoding: 'srgb',
             toneMapping: 'none',
             toneMappingExposure: 1,
