@@ -11,6 +11,7 @@ import {
     ISDTFAttributeVisualizationData,
     ISDTFItemData,
     ISDTFOverview,
+    MATERIAL_TYPE,
     MaterialBasicLineData,
     MaterialPointData,
     MaterialStandardData,
@@ -120,7 +121,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (94)
+    // #region Public Getters And Setters (96)
 
     public get animations(): {
         [key: string]: IAnimationData
@@ -466,6 +467,18 @@ export class ViewportApi implements IViewportApi {
         this.update('lights');
     }
 
+    public get materialOverrideType(): MATERIAL_TYPE | undefined {
+        return this.#renderingEngine.materialOverrideType;
+    }
+
+    public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+        const scope = 'materialOverrideType';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', false, Object.values(MATERIAL_TYPE));
+        this.#renderingEngine.materialOverrideType = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('materialOverrideType');
+    }
+
     public get maximumRenderingSize(): {
         width: number,
         height: number
@@ -678,7 +691,7 @@ export class ViewportApi implements IViewportApi {
         this.render();
     }
 
-    // #endregion Public Getters And Setters (94)
+    // #endregion Public Getters And Setters (96)
 
     // #region Public Methods (41)
 

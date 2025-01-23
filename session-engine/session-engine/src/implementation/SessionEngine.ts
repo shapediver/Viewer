@@ -435,6 +435,7 @@ export class SessionEngine implements ISessionEngine {
             currentSettings.general.commitParameters = settings.general.commitParameters;
             currentSettings.general.pointSize = settings.general.pointSize;
             currentSettings.material.defaultMaterialColor = settings.material.defaultMaterialColor;
+            currentSettings.material.materialOverrideType = settings.material.materialOverrideType;
         }
 
         // apply postprocessing settings

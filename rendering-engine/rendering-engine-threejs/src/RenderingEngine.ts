@@ -3,6 +3,7 @@ import { adaptShaders, MaterialLoader } from './loaders/MaterialLoader';
 import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
 import { CameraManager } from './managers/CameraManager';
 import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
+import { css } from './styling/viewport-css';
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager';
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
 import { GeometryLoader } from './loaders/GeometryLoader';
@@ -58,8 +59,8 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE,
+  MATERIAL_TYPE,
 } from '@shapediver/viewer.shared.types';
-import { css } from './styling/viewport-css';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (75)
@@ -252,7 +253,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #endregion Constructors (1)
 
-  // #region Public Getters And Setters (133)
+  // #region Public Getters And Setters (135)
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -614,6 +615,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._materialLoader;
   }
 
+  public get materialOverrideType(): MATERIAL_TYPE | undefined {
+    return this.materialLoader.materialOverrideType;
+  }
+
+  public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+    this.materialLoader.materialOverrideType = value;
+  }
+
   public get maximumRenderingSize(): {
     width: number,
     height: number
@@ -875,7 +884,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Getters And Setters (133)
+  // #endregion Public Getters And Setters (135)
 
   // #region Public Methods (25)
 
@@ -1173,6 +1182,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
 
     settingsEngine.material.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
+    settingsEngine.material.materialOverrideType = this.materialOverrideType;
 
     settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
@@ -1325,6 +1335,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     if (sections.general) {
       this.defaultMaterialColor = settingsEngine.material.defaultMaterialColor;
+      this.materialOverrideType = settingsEngine.material.materialOverrideType as MATERIAL_TYPE;
       this.pointSize = settingsEngine.general.pointSize;
     }
 
