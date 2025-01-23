@@ -1,0 +1,53 @@
+import { ISettings } from "./ISettings";
+
+export const Defaults: () => ISettings = () => {
+    return {
+        build_date: '',
+        build_version: '',
+        settings_version: '1.0',
+
+        ambientOcclusion: true,
+        autoRotateSpeed: 0.0,
+        backgroundColor: '#ffffff',
+        bumpAmplitude: 1.0,
+        camera: {
+            position: { x: 0, y: 0, z: 0 },
+            target: { x: 0, y: 0, z: 0 },
+        },
+        cameraAutoAdjust: false,
+        cameraMovementDuration: 0,
+        cameraOrtho: {
+            position: { x: 0, y: 0, z: 0 },
+            target: { x: 0, y: 0, z: 0 },
+        },
+        cameraRevertAtMouseUp: false,
+        clearAlpha: 1.0,
+        clearColor: '#ffffff',
+        commitParameters: false,
+        controlDamping: 0.1,
+        controlNames: {},
+        controlOrder: [],
+        defaultMaterialColor: '#d3d3d3',
+        disablePan: false,
+        disableZoom: false,
+        enableAutoRotation: false,
+        enableRotation: true,
+        environmentMap: 'none',
+        environmentMapResolution: '1024',
+        fov: 45,
+        lightScene: 'default',
+        lightScenes: null,
+        panSpeed: 0.5,
+        parametersHidden: [],
+        pointSize: 1.0,
+        revertAtMouseUpDuration: 800,
+        rotateSpeed: 0.25,
+        showEnvironmentMap: false,
+        showGrid: false,
+        showGroundPlane: false,
+        showShadows: true,
+        topView: false,
+        zoomExtentFactor: 1.0,
+        zoomSpeed: 1.0,
+    }
+};
