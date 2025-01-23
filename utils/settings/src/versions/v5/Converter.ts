@@ -29,7 +29,7 @@ export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSet
      * SETTINGS OBJECTS THAT DID CHANGE
      */
     settings.camera.cameraId = oldSettings.camera.cameraId;
-    for (let key in oldSettings.camera.cameras) {
+    for (const key in oldSettings.camera.cameras) {
         if (oldSettings.camera.cameras[key].type === "perspective") {
             const perspectiveCamera = oldSettings.camera.cameras[key] as IPerspectiveCameraSettings;
 
@@ -122,7 +122,7 @@ export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSet
         }
     }
 
-    return <ISettingsV4_1>settings;
+    return <ISettingsV5>settings;
 }
 
 export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSettings => {
@@ -149,7 +149,7 @@ export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSetti
      */
     settings.camera.cameraId = newSettings.camera.cameraId;
 
-    for (let key in newSettings.camera.cameras) {
+    for (const key in newSettings.camera.cameras) {
         if (newSettings.camera.cameras[key].type === "perspective") {
             const perspectiveCamera = newSettings.camera.cameras[key] as IPerspectiveCameraSettings;
 

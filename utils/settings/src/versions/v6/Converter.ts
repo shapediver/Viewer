@@ -1,41 +1,60 @@
-import { ISettings as ISettingsV5 } from "../v5/ISettings"
-import { ISettings as ISettingsV6 } from "./ISettings"
-import { IGlobalSettings } from "../../interfaces/IGlobalSettings";
-import { versions } from "../..";
+import { ISettings as ISettingsV5 } from '../v5/ISettings';
+import { ISettings as ISettingsV6 } from './ISettings';
+import { IGlobalSettings } from '../../interfaces/IGlobalSettings';
+import { versions } from '../..';
 
 export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSettings => {
     const oldSettings = <ISettingsV5>s;
     const settings: ISettingsV6 = {
-        settings_version: "6.0",
+        settings_version: '6.0',
         ar: oldSettings.ar,
         build_date: oldSettings.build_date,
         build_version: oldSettings.build_version,
         camera: oldSettings.camera,
-        general: oldSettings.general,
+        general: {
+            transformation: oldSettings.general.transformation,
+            blurWhenBusy: oldSettings.general.blurWhenBusy,
+            commitSettings: oldSettings.general.commitSettings,
+            commitParameters: oldSettings.general.commitParameters,
+            pointSize: oldSettings.general.pointSize,
+            showMessages: oldSettings.general.showMessages
+        },
         light: oldSettings.light,
         session: oldSettings.session,
         environment: oldSettings.environment,
         environmentGeometry: oldSettings.environmentGeometry,
         rendering: oldSettings.rendering,
-        postprocessing: oldSettings.postprocessing
+        postprocessing: oldSettings.postprocessing,
+        material: {
+            defaultMaterialColor: oldSettings.general.defaultMaterialColor,
+            materialOverrideType: undefined
+        }
     };
 
     /**
      * SETTINGS OBJECTS THAT DID CHANGE
      */
 
-    return <ISettingsV5>settings;
-}
+    return <ISettingsV6>settings;
+};
 
 export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSettings => {
     const newSettings = <ISettingsV6>s;
     const settings = {
-        settings_version: "5.0",
+        settings_version: '5.0',
         ar: newSettings.ar,
         build_date: newSettings.build_date,
         build_version: newSettings.build_version,
         camera: newSettings.camera,
-        general: newSettings.general,
+        general: {
+            transformation: newSettings.general.transformation,
+            blurWhenBusy: newSettings.general.blurWhenBusy,
+            commitSettings: newSettings.general.commitSettings,
+            commitParameters: newSettings.general.commitParameters,
+            pointSize: newSettings.general.pointSize,
+            showMessages: newSettings.general.showMessages,
+            defaultMaterialColor: newSettings.material.defaultMaterialColor
+        },
         light: newSettings.light,
         session: newSettings.session,
         environment: newSettings.environment,
@@ -49,4 +68,4 @@ export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSetti
      */
 
     return <ISettingsV5>settings;
-}
+};

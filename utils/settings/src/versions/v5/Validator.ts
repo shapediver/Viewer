@@ -53,7 +53,7 @@ const perspectiveCameraSchema = generalCameraSchema.extend({
     fov: z.number().positive()
 });
 
-const cameraSchema = z.record(z.union([perspectiveCameraSchema, generalCameraSchema]))
+export const cameraSchema = z.record(z.union([perspectiveCameraSchema, generalCameraSchema]))
 
 
 const ambientLightSchema = z.object({
@@ -95,7 +95,7 @@ const spotLightSchema = z.object({
     penumbra: z.number(),
 })
 
-const lightSchema = z.record(
+export const lightSchema = z.record(
     z.object({
         name: z.string().optional(),
         lights: z.record(
@@ -253,82 +253,100 @@ const vignetteEffectSchema = z.object({
     type: z.string()
 })
 
-const postProcessingSchema = z.array(z.union([bloomEffectSchema, chromaticAberrationEffectSchema, depthOfFieldEffectSchema, dotScreenEffectSchema, gridEffectSchema, hbaoEffectSchema, hueSaturationEffectSchema, noiseEffectSchema, pixelationEffectSchema, scanlineEffectSchema, ssaoEffectSchema, tiltShiftEffectSchema, vignetteEffectSchema]))
+export const postProcessingSchema = z.array(z.union([bloomEffectSchema, chromaticAberrationEffectSchema, depthOfFieldEffectSchema, dotScreenEffectSchema, gridEffectSchema, hbaoEffectSchema, hueSaturationEffectSchema, noiseEffectSchema, pixelationEffectSchema, scanlineEffectSchema, ssaoEffectSchema, tiltShiftEffectSchema, vignetteEffectSchema]))
+
+export const arSettingsSchema = z.object({
+    enable: z.boolean(),
+    autoScaling: z.boolean(),
+}).optional();
+
+export const cameraSettingsSchema = z.object({
+    cameraId: z.string(),
+    cameras: cameraSchema
+});
+
+export const environmentSettingsSchema = z.object({
+    clearAlpha: z.number(),
+    clearColor: z.string(),
+    map: z.union([z.string(), z.string().array()]),
+    mapAsBackground: z.boolean(),
+    mapResolution: z.string(),
+    rotation: z.object({ x: z.number(), y: z.number(), z: z.number(), w: z.number() }),
+    blurriness: z.number(),
+    intensity: z.number(),
+});
+
+export const environmentGeometrySettingsSchema = z.object({
+    gridColor: z.string(),
+    gridVisibility: z.boolean(),
+    groundPlaneColor: z.string(),
+    groundPlaneVisibility: z.boolean(),
+    groundPlaneShadowColor: z.string(),
+    groundPlaneShadowVisibility: z.boolean(),
+});
+
+export const generalSettingsSchema = z.object({
+    transformation: z.object({
+        scale: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+        translation: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+        rotation: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+    }),
+    blurWhenBusy: z.boolean(),
+    commitSettings: z.boolean(),
+    commitParameters: z.boolean(),
+    pointSize: z.number(),
+    showMessages: z.boolean(),
+    defaultMaterialColor: z.string(),
+});
+
+export const lightSettingsSchema = z.object({
+    lightSceneId: z.string().optional(),
+    lightScenes: lightSchema,
+});
+
+export const postProcessingSettingsSchema = z.object({
+    antiAliasingTechnique: z.string(),
+    antiAliasingTechniqueMobile: z.string(),
+    enablePostProcessingOnMobile: z.boolean(),
+    ssaaSampleLevel: z.number(),
+    effects: postProcessingSchema
+});
+
+export const renderingSettingsSchema = z.object({
+    automaticColorAdjustment: z.boolean(),
+    beautyRenderDelay: z.number(),
+    beautyRenderBlendingDuration: z.number(),
+    lights: z.boolean(),
+    outputEncoding: z.string(),
+    physicallyCorrectLights: z.boolean(),
+    shadows: z.boolean(),
+    softShadows: z.boolean(),
+    textureEncoding: z.string(),
+    toneMapping: z.string(),
+    toneMappingExposure: z.number(),
+});
+
+export const sessionSettingsSchema = z.record(
+    z.object({
+        order: z.number().optional(),
+        displayname: z.string().optional(),
+        hidden: z.boolean().optional()
+    })
+);
 
 const schema = z.object({
     build_date: z.string().optional(),
     build_version: z.string().optional(),
     settings_version: z.string(),
-    ar: z.object({
-        enable: z.boolean(),
-        autoScaling: z.boolean(),
-    }).optional(),
-    camera: z.object({
-        cameraId: z.string(),
-        cameras: cameraSchema
-    }),
-    environment: z.object({
-        clearAlpha: z.number(),
-        clearColor: z.string(),
-        map: z.union([z.string(), z.string().array()]),
-        mapAsBackground: z.boolean(),
-        mapResolution: z.string(),
-        rotation: z.object({ x: z.number(), y: z.number(), z: z.number(), w: z.number() }),
-        blurriness: z.number(),
-        intensity: z.number(),
-    }),
-    environmentGeometry: z.object({
-        gridColor: z.string(),
-        gridVisibility: z.boolean(),
-        groundPlaneColor: z.string(),
-        groundPlaneVisibility: z.boolean(),
-        groundPlaneShadowColor: z.string(),
-        groundPlaneShadowVisibility: z.boolean(),
-    }),
-    general: z.object({
-        transformation: z.object({
-            scale: z.object({ x: z.number(), y: z.number(), z: z.number() }),
-            translation: z.object({ x: z.number(), y: z.number(), z: z.number() }),
-            rotation: z.object({ x: z.number(), y: z.number(), z: z.number() })
-        }),
-        blurWhenBusy: z.boolean(),
-        commitSettings: z.boolean(),
-        commitParameters: z.boolean(),
-        pointSize: z.number(),
-        showMessages: z.boolean(),
-        defaultMaterialColor: z.string(),
-    }),
-    light: z.object({
-        lightSceneId: z.string().optional(),
-        lightScenes: lightSchema,
-    }),
-    postprocessing: z.object({
-        antiAliasingTechnique: z.string(),
-        antiAliasingTechniqueMobile: z.string(),
-        enablePostProcessingOnMobile: z.boolean(),
-        ssaaSampleLevel: z.number(),
-        effects: postProcessingSchema
-    }),
-    rendering: z.object({
-        automaticColorAdjustment: z.boolean(),
-        beautyRenderDelay: z.number(),
-        beautyRenderBlendingDuration: z.number(),
-        lights: z.boolean(),
-        outputEncoding: z.string(),
-        physicallyCorrectLights: z.boolean(),
-        shadows: z.boolean(),
-        softShadows: z.boolean(),
-        textureEncoding: z.string(),
-        toneMapping: z.string(),
-        toneMappingExposure: z.number(),
-    }),
-    session: z.record(
-        z.object({
-            order: z.number().optional(),
-            displayname: z.string().optional(),
-            hidden: z.boolean().optional()
-        })
-    ),
+    ar: arSettingsSchema,
+    camera: cameraSettingsSchema,
+    environment: environmentSettingsSchema,
+    environmentGeometry: environmentGeometrySettingsSchema,
+    general: generalSettingsSchema,
+    light: lightSettingsSchema,
+    postprocessing: postProcessingSettingsSchema,
+    rendering: renderingSettingsSchema,
+    session: sessionSettingsSchema,
 }).strict();
 
 export const validate = (s: any): void => {
