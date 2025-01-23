@@ -127,6 +127,8 @@ export class MaterialLoader implements ILoader {
     }
 
     public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+        if(this._materialOverrideType === value) return;
+
         this._materialOverrideType = value;
         this.assignDefaultMaterial();
         for(const key in this._materialCache) {
