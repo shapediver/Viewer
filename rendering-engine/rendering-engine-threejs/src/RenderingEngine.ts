@@ -157,6 +157,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _showStatistics: boolean = false;
   private _softShadows: boolean = true;
   private _spinnerDivElement: HTMLDivElement;
+  private _toneMapping: TONE_MAPPING = TONE_MAPPING.NONE;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _useLegacyLights: boolean = false;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
@@ -816,22 +817,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get toneMapping(): TONE_MAPPING {
-    switch (this._renderer.toneMapping) {
-      case (THREE.LinearToneMapping):
-        return TONE_MAPPING.LINEAR;
-      case (THREE.ReinhardToneMapping):
-        return TONE_MAPPING.REINHARD;
-      case (THREE.CineonToneMapping):
-        return TONE_MAPPING.CINEON;
-      case (THREE.ACESFilmicToneMapping):
-        return TONE_MAPPING.ACES_FILMIC;
-      case (THREE.NoToneMapping):
-      default:
-        return TONE_MAPPING.NONE;
-    }
+    return this._toneMapping;
   }
 
   public set toneMapping(value: TONE_MAPPING) {
+    this._toneMapping = value;
     switch (value) {
       case (TONE_MAPPING.LINEAR):
         this._renderer.toneMapping = THREE.LinearToneMapping;
@@ -850,6 +840,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this._renderer.toneMapping = THREE.NoToneMapping;
     }
     this.materialLoader.updateMaterials();
+    this.postProcessingManager.changeEffectPass();
   }
 
   public get toneMappingExposure(): number {

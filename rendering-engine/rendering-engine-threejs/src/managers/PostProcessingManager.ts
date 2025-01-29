@@ -47,6 +47,8 @@ import {
     SMAAEffect,
     SMAAPreset,
     TiltShiftEffect,
+    ToneMappingEffect,
+    ToneMappingMode,
     VignetteEffect,
     VignetteTechnique
 } from 'postprocessing';
@@ -62,7 +64,7 @@ import {
 import { GodRaysManager } from './postprocessing/GodRaysManager';
 import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { ISceneEvent } from '@shapediver/viewer.shared.types';
+import { ISceneEvent, TONE_MAPPING } from '@shapediver/viewer.shared.types';
 import { OutlineManager } from './postprocessing/OutlineManager';
 import { PoissionDenoisePass } from './postprocessing/ao/poissionDenoise/PoissionDenoisePass';
 import { RenderingEngine } from '../RenderingEngine';
@@ -110,6 +112,7 @@ export class PostProcessingManager implements IManager {
     private _smaaEffect?: SMAAEffect;
     private _ssaaRenderPass?: SSAARenderPass;
     private _suspendEffectPassUpdate = false;
+    private _toneMappingEffect?: ToneMappingEffect;
 
     // #endregion Properties (23)
 
@@ -650,6 +653,25 @@ export class PostProcessingManager implements IManager {
         if (this._effectDefinitions.find(e => e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO || e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO)) {
             // respect the AA choice if one of the effects was selected, use SMAA otherwise
             this.addPassToEffectComposer(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect! : this._smaaEffect!));
+        }
+
+        if (this._renderingEngine.toneMapping !== TONE_MAPPING.NONE) {                
+            const mode = (() => {
+                switch (this._renderingEngine.toneMapping) {
+                    case TONE_MAPPING.ACES_FILMIC:
+                        return ToneMappingMode.ACES_FILMIC;
+                    case TONE_MAPPING.CINEON:
+                        return ToneMappingMode.OPTIMIZED_CINEON;
+                    case TONE_MAPPING.REINHARD:
+                        return ToneMappingMode.REINHARD;
+                    default:
+                        return ToneMappingMode.LINEAR;
+                }
+            })();
+            this._toneMappingEffect = new ToneMappingEffect({ mode });
+            this._renderingEngine.renderer.toneMapping = THREE.NoToneMapping;
+            const effectPass = new EffectPass(this._renderingEngine.camera, this._toneMappingEffect);
+            this.addPassToEffectComposer(effectPass);
         }
     }
 
