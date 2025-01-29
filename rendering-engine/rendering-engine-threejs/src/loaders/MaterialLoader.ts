@@ -1423,14 +1423,14 @@ export const adaptShaders = () => {
     // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes('vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );'))
     THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
         'vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );',
-        'vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );'
+        'vec3 color0 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, -sampleDir.x), mipInt );'
     );
 
     // here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
     // console.log(THREE.ShaderChunk.cube_uv_reflection_fragment)
     THREE.ShaderChunk.cube_uv_reflection_fragment = THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
         'vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );',
-        'vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );'
+        'vec3 color1 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, -sampleDir.x), mipInt + 1.0 );'
     );
 
     // here we create a new case in the lights_fragment_maps for the case of ENVMAP_TYPE_NONE
