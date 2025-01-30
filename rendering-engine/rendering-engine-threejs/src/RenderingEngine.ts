@@ -582,7 +582,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set gridVisibility(value: boolean) {
-    if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
+    this._environmentGeometryManager.grid.visible = value;
     this._gridVisibility = value;
   }
 
@@ -607,7 +607,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set groundPlaneShadowVisibility(value: boolean) {
-    if (this._environmentGeometryManager.groundPlaneShadow) this._environmentGeometryManager.groundPlaneShadow.visible = value;
+    this._environmentGeometryManager.groundPlaneShadow.visible = value;
     this._groundPlaneShadowVisibility = value;
   }
 
@@ -616,7 +616,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set groundPlaneVisibility(value: boolean) {
-    if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
+    this._environmentGeometryManager.groundPlane.visible = value;
     this._groundPlaneVisibility = value;
   }
 
@@ -1210,6 +1210,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environmentGeometry.gridColor = this._converter.toHexColor(this.gridColor);
     settingsEngine.environmentGeometry.groundPlaneColor = this._converter.toHexColor(this.groundPlaneColor);
     settingsEngine.environmentGeometry.groundPlaneShadowColor = this._converter.toHexColor(this.groundPlaneShadowColor);
+    settingsEngine.environmentGeometry.contactShadowBlur = this.contactShadowBlur;
+    settingsEngine.environmentGeometry.contactShadowDarkness = this.contactShadowDarkness;
+    settingsEngine.environmentGeometry.contactShadowHeight = this.contactShadowHeight;
+    settingsEngine.environmentGeometry.contactShadowOpacity = this.contactShadowOpacity;
+    settingsEngine.environmentGeometry.contactShadowVisibility = this.contactShadowVisibility;
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
@@ -1355,6 +1360,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.groundPlaneVisibility = settingsEngine.environmentGeometry.groundPlaneVisibility;
       this.groundPlaneShadowColor = settingsEngine.environmentGeometry.groundPlaneShadowColor;
       this.groundPlaneShadowVisibility = settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
+      this.contactShadowBlur = settingsEngine.environmentGeometry.contactShadowBlur;
+      this.contactShadowDarkness = settingsEngine.environmentGeometry.contactShadowDarkness;
+      this.contactShadowHeight = settingsEngine.environmentGeometry.contactShadowHeight;
+      this.contactShadowOpacity = settingsEngine.environmentGeometry.contactShadowOpacity;
+      this.contactShadowVisibility = settingsEngine.environmentGeometry.contactShadowVisibility;
 
       this.shadows = settingsEngine.rendering.shadows;
       this.softShadows = settingsEngine.rendering.softShadows;

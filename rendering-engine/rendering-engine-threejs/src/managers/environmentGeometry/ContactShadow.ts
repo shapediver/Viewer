@@ -57,6 +57,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     public set darkness(value: number) {
         this._darkness = value;
+        this._depthMaterial.userData.darkness = { value };
     }
 
     public get height(): number {
@@ -65,6 +66,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     public set height(value: number) {
         this._height = value;
+        this._shadowCamera.far = value;
     }
 
     public get opacity(): number {
@@ -73,6 +75,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     public set opacity(value: number) {
         this._opacity = value;
+        (this._plane.material as THREE.MeshBasicMaterial).opacity = value;
     }
 
     public get visible(): boolean {

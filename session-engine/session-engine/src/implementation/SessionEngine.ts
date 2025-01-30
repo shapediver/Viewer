@@ -423,6 +423,11 @@ export class SessionEngine implements ISessionEngine {
             currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
             currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
             currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
+            currentSettings.environmentGeometry.contactShadowVisibility = settings.environmentGeometry.contactShadowVisibility;
+            currentSettings.environmentGeometry.contactShadowHeight = settings.environmentGeometry.contactShadowHeight;
+            currentSettings.environmentGeometry.contactShadowBlur = settings.environmentGeometry.contactShadowBlur;
+            currentSettings.environmentGeometry.contactShadowOpacity = settings.environmentGeometry.contactShadowOpacity;
+            currentSettings.environmentGeometry.contactShadowDarkness = settings.environmentGeometry.contactShadowDarkness;
 
             currentSettings.rendering.shadows = settings.rendering.shadows;
             currentSettings.rendering.softShadows = settings.rendering.softShadows;
