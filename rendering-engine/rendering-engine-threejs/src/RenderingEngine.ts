@@ -63,7 +63,7 @@ import {
 } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (75)
+  // #region Properties (76)
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
   readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
@@ -162,7 +162,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _useLegacyLights: boolean = false;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  // #endregion Properties (75)
+  // #endregion Properties (76)
 
   // #region Constructors (1)
 
@@ -254,7 +254,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #endregion Constructors (1)
 
-  // #region Public Getters And Setters (135)
+  // #region Public Getters And Setters (146)
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -385,6 +385,46 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._colorCache;
   }
 
+  public get contactShadowBlur(): number {
+    return this._environmentGeometryManager.contactShadow.blur;
+  }
+
+  public set contactShadowBlur(value: number) {
+    this._environmentGeometryManager.contactShadow.blur = value;
+  }
+
+  public get contactShadowDarkness(): number {
+    return this._environmentGeometryManager.contactShadow.darkness;
+  }
+
+  public set contactShadowDarkness(value: number) {
+    this._environmentGeometryManager.contactShadow.darkness = value;
+  }
+
+  public get contactShadowHeight(): number {
+    return this._environmentGeometryManager.contactShadow.height;
+  }
+
+  public set contactShadowHeight(value: number) {
+    this._environmentGeometryManager.contactShadow.height = value;
+  }
+
+  public get contactShadowOpacity(): number {
+    return this._environmentGeometryManager.contactShadow.opacity;
+  }
+
+  public set contactShadowOpacity(value: number) {
+    this._environmentGeometryManager.contactShadow.opacity = value;
+  }
+
+  public get contactShadowVisibility(): boolean {
+    return this._environmentGeometryManager.contactShadow.visible;
+  }
+
+  public set contactShadowVisibility(value: boolean) {
+    this._environmentGeometryManager.contactShadow.visible = value;
+  }
+
   public get continuousRendering(): boolean {
     return this._renderingManager.continuousRendering;
   }
@@ -448,6 +488,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set enableAR(value: boolean) {
     this._enableAR = value;
+  }
+
+  public get environmentGeometryManager(): EnvironmentGeometryManager {
+    return this._environmentGeometryManager;
   }
 
   public get environmentMap(): string | string[] {
@@ -526,11 +570,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get gridColor(): Color {
-    return this._environmentGeometryManager.gridColor;
+    return this._environmentGeometryManager.grid.color;
   }
 
   public set gridColor(value: Color) {
-    this._environmentGeometryManager.gridColor = value;
+    this._environmentGeometryManager.grid.color = value;
   }
 
   public get gridVisibility(): boolean {
@@ -543,19 +587,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get groundPlaneColor(): Color {
-    return this._environmentGeometryManager.groundPlaneColor;
+    return this._environmentGeometryManager.groundPlane?.color;
   }
 
   public set groundPlaneColor(value: Color) {
-    this._environmentGeometryManager.groundPlaneColor = value;
+    this._environmentGeometryManager.groundPlane.color = value;
   }
 
   public get groundPlaneShadowColor(): Color {
-    return this._environmentGeometryManager.groundPlaneShadowColor;
+    return this._environmentGeometryManager.groundPlaneShadow.color;
   }
 
   public set groundPlaneShadowColor(value: Color) {
-    this._environmentGeometryManager.groundPlaneShadowColor = value;
+    this._environmentGeometryManager.groundPlaneShadow.color = value;
   }
 
   public get groundPlaneShadowVisibility(): boolean {
@@ -875,7 +919,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Getters And Setters (135)
+  // #endregion Public Getters And Setters (146)
 
   // #region Public Methods (25)
 

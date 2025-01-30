@@ -39,7 +39,7 @@ import {
  * {@link ISessionApi}.
  */
 export interface IViewportApi {
-  // #region Properties (55)
+  // #region Properties (60)
 
   /**
    * A dictionary of all animations that are currently present in the parts of
@@ -159,6 +159,27 @@ export interface IViewportApi {
    * Use this to influence the background appearance of the viewport.
    */
   clearColor: Color;
+  /**
+   * The maximum percentage of height that is still considered for the creation of the contact shadow. (default: 0.05)
+   * The maximum height is equal to the width and height of the ground plane.
+   */
+  contactShadowHeight: number;
+  /**
+   * Option to enable / disable the contact shadow. (default: false)
+   */
+  contactShadowVisibility: boolean;
+  /**
+   * The blur amount of the contact shadow. (default: 1.5)
+   */
+  contactShadowBlur: number;
+  /**
+   * The darkness of the contact shadow. (default: 2.5)
+   */
+  contactShadowDarkness: number;
+  /**
+   * The opacity of the contact shadow. (default: 1)
+   */
+  contactShadowOpacity: number;
   /**
    * The color that is used when no material is specified. (default: #199b9b)
    */
@@ -321,7 +342,7 @@ export interface IViewportApi {
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  // #endregion Properties (55)
+  // #endregion Properties (60)
 
   // #region Public Methods (41)
 

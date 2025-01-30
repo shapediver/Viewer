@@ -68,6 +68,7 @@ export class RenderingManager implements IManager {
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
+    private _updateShadowMapInNextRender: boolean = false;
 
     // #endregion Properties (30)
 
@@ -283,7 +284,7 @@ export class RenderingManager implements IManager {
     }
 
     public updateShadowMap() {
-        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._updateShadowMapInNextRender = true;
     }
 
     // #endregion Public Methods (10)
@@ -425,7 +426,10 @@ export class RenderingManager implements IManager {
         }
 
         // update shadowMap if need
-        if (states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        if (states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) {
+            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+            this._renderingEngine.environmentGeometryManager.contactShadow?.render();
+        }
 
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
@@ -533,8 +537,10 @@ export class RenderingManager implements IManager {
             rendering = true;
 
         let updateShadowMap = false;
-        if (this._runningAnimation === true || this._continuousShadowMapUpdate === true)
+        if (this._runningAnimation === true || this._continuousShadowMapUpdate === true || this._updateShadowMapInNextRender === true) {
+            this._updateShadowMapInNextRender = false;
             updateShadowMap = true;
+        }
 
         // special case, autorotation
         if (this._renderingEngine.cameraEngine.camera) {

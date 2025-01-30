@@ -1,108 +1,124 @@
-import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent, MaterialShadowData, Color } from '@shapediver/viewer.shared.types'
-import { vec3 } from 'gl-matrix'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
-import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { vec3 } from 'gl-matrix';
+import { Box, IBox } from '@shapediver/viewer.shared.math';
+import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 
-import { RenderingEngine } from '..'
-import { SDData } from '../objects/SDData'
-import { SDObject } from '../objects/SDObject'
-import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RenderingEngine } from '..';
+import { SDObject } from '../objects/SDObject';
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { Grid } from './environmentGeometry/Grid';
+import { GroundPlaneShadow } from './environmentGeometry/GroundPlaneShadow';
+import { GroundPlane } from './environmentGeometry/GroundPlane';
+import { GroundProjection } from './environmentGeometry/GroundProjection';
+import { ContactShadow } from './environmentGeometry/ContactShadow';
 
 export class EnvironmentGeometryManager implements IManager {
-    // #region Properties (5)
+    // #region Properties (9)
+
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
 
+    private _contactShadow?: ContactShadow;
     private _environmentGeometryObject!: SDObject;
-    private _grid!: THREE.GridHelper;
-    private _gridObject!: SDData;
-    private _groundPlane!: THREE.Mesh;
-    private _groundPlaneShadow!: THREE.Mesh;
-    private _groundPlaneObject!: SDData;
-    private _groundPlaneShadowObject!: SDData;
-    private _groundPlaneColor: Color = '#d3d3d3ff';
-    private _groundPlaneShadowColor: Color = '#d3d3d3ff';
-    private _gridColor: Color = '#44444426';
-
+    private _grid?: Grid;
+    private _groundPlane?: GroundPlane;
+    private _groundPlaneShadow?: GroundPlaneShadow;
+    private _groundProjection?: GroundProjection;
     private _initialized: boolean = false;
 
-    // #endregion Properties (5)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, () => {
             this.updateEnvironmentGeometryPosition();
-        })
+        });
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Getters And Setters (5)
 
-    public get gridColor(): Color {
-        return this._gridColor;
-    } 
-    
-    public set gridColor(value: Color) {
-        this._gridColor = value;
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
-        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
-        (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
-        (<THREE.LineBasicMaterial>this._grid.material).needsUpdate = true;
+    public get contactShadow(): ContactShadow {
+        return this._contactShadow!;
     }
 
-    public get groundPlaneColor(): Color {
-        return this._groundPlaneColor;
-    } 
-    
-    public set groundPlaneColor(value: Color) {
-        this._groundPlaneColor = value;
-        this.assignGroundPlaneColor(value);
+    public get grid(): Grid {
+        return this._grid!;
     }
 
-    public get groundPlaneShadowColor(): Color {
-        return this._groundPlaneShadowColor;
-    } 
-    
-    public set groundPlaneShadowColor(value: Color) {
-        this._groundPlaneShadowColor = value;
-        this.assignGroundPlaneShadowColor(value);
+    public get groundPlane(): GroundPlane {
+        return this._groundPlane!;
     }
 
-    public get grid(): THREE.GridHelper {
-        return this._grid;
+    public get groundPlaneShadow(): GroundPlaneShadow {
+        return this._groundPlaneShadow!;
     }
 
-    public get groundPlane(): THREE.Mesh {
-        return this._groundPlane;
+    public get groundProjection(): GroundProjection {
+        return this._groundProjection!;
     }
 
-    public get groundPlaneShadow(): THREE.Mesh {
-        return this._groundPlaneShadow;
+    // #endregion Public Getters And Setters (5)
+
+    // #region Public Methods (3)
+
+    public changeSceneExtents(bb: IBox) {
+        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
+
+        this._initialized = true;
+        const sceneExtents = vec3.distance(bb.min, bb.max);
+        const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
+        const bs = bb.boundingSphere;
+        const position = vec3.fromValues(bs.center[0], bs.center[1], bb.min[2]);
+        const eps = bb.boundingSphere.radius * 0.001;
+
+        this._grid?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps)), divisions, gridExtents);
+        this._groundPlaneShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 3)), divisions, gridExtents);
+        this._contactShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 2)), divisions, gridExtents);
+        this._groundPlane?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 4)), divisions, gridExtents);
+        this._groundProjection?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 5)), divisions, gridExtents);
     }
 
-    // #endregion Public Accessors (2)
+    public init(): void {
+        this._environmentGeometryObject = new SDObject('environmentGeometry', '');
+        this._renderingEngine.sceneTreeManager.scene.add(this._environmentGeometryObject);
 
-    // #region Public Methods (2)
+        this._contactShadow = new ContactShadow(this._renderingEngine, this._environmentGeometryObject);
+        this._grid = new Grid(this._renderingEngine, this._environmentGeometryObject);
+        this._groundPlaneShadow = new GroundPlaneShadow(this._renderingEngine, this._environmentGeometryObject);
+        this._groundPlane = new GroundPlane(this._renderingEngine, this._environmentGeometryObject);
+        this._groundProjection = new GroundProjection(this._renderingEngine, this._environmentGeometryObject);
+    }
 
-    public assignGroundPlaneColor(color: Color) {
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity = this._converter.toAlpha(color);
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent = (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity !== 1;
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).depthWrite = !(<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent;
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).color = this._renderingEngine.createThreeJsColor(color);
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
-    }    
+    public updateEnvironmentGeometryPosition(): void {
+        const bb = new Box(this._renderingEngine.sceneTreeManager.boundingBox.min, this._renderingEngine.sceneTreeManager.boundingBox.max);
+        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
 
-    public assignGroundPlaneShadowColor(color: Color) {
-        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).opacity = this._converter.toAlpha(color);
-        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).color = this._renderingEngine.createThreeJsColor(color);
-        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).needsUpdate = true;
-    } 
+        if (!this._initialized) {
+            this.changeSceneExtents(bb);
+        } else {
+            const bs = bb.boundingSphere;
+            const eps = bb.boundingSphere.radius * 0.001;
+
+            const sceneExtents = vec3.distance(bb.min, bb.max);
+            const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
+            // only shadow plane needs to be updated
+            const position = vec3.fromValues(bs.center[0], bs.center[1], bb.min[2]);
+            this._grid?.updatePosition(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps)));
+            this._contactShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 3)), divisions, gridExtents);
+            this._groundPlaneShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 2)), divisions, gridExtents);
+            this._groundPlane?.updatePosition(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 4)));
+            this._groundProjection?.updatePosition(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 5)));
+        }
+    }
+
+    // #endregion Public Methods (3)
+
+    // #region Private Methods (1)
 
     /**
-     * Creates the grid extents and divisios with the specified scene extents.
+     * Creates the grid extents and divisions with the specified scene extents.
      * 
      * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic.
      */
@@ -110,16 +126,16 @@ export class EnvironmentGeometryManager implements IManager {
         let divisions = 0.1;
         let gridExtents = 1.0;
         if (sceneExtents > 1) {
-            let tmp = Math.floor(sceneExtents).toString();
+            const tmp = Math.floor(sceneExtents).toString();
             let temp = Math.pow(10, tmp.length - 1);
             gridExtents = Math.max(Math.ceil(sceneExtents / temp) * temp, 1);
             temp = temp / 10;
             divisions = gridExtents / temp;
         }
         else if (sceneExtents !== 0) {
-            let zeros = 1 - Math.floor(Math.log(sceneExtents) / Math.log(10)) - 2;
-            let r = sceneExtents.toFixed(zeros + 1);
-            let firstDigit = parseInt(r.substr(r.length - 1)) + 1;
+            const zeros = 1 - Math.floor(Math.log(sceneExtents) / Math.log(10)) - 2;
+            const r = sceneExtents.toFixed(zeros + 1);
+            const firstDigit = parseInt(r.substr(r.length - 1)) + 1;
             let gridExtentsS = '0.';
             for (let i = 0; i < zeros; ++i)
                 gridExtentsS = gridExtentsS + '0';
@@ -127,98 +143,8 @@ export class EnvironmentGeometryManager implements IManager {
             divisions = firstDigit * 10;
         }
 
-        return { divisions, gridExtents }
+        return { divisions, gridExtents };
     }
 
-    public changeSceneExtents(bb: IBox) {
-        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
-
-        this._initialized = true;
-        let sceneExtents = vec3.distance(bb.min, bb.max);
-        const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
-
-        this._gridObject.remove(this._grid);
-        this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
-        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
-        (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
-        this._grid.rotateX(Math.PI / 2);
-        this._grid.visible = this._renderingEngine.gridVisibility;
-        this._gridObject.add(this._grid);
-
-        this._groundPlane.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
-        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(4 * gridExtents, 4 * gridExtents, 2, 2);
-
-        let eps = 0.005;
-        let bs = bb.boundingSphere;
-        this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
-        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
-    }
-
-    public init(): void {
-        this._environmentGeometryObject = new SDObject('environmentGeometry', '');
-        this._renderingEngine.sceneTreeManager.scene.add(this._environmentGeometryObject);
-        
-        this._gridObject = new SDData('grid', '');
-        this._grid = new THREE.GridHelper();
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
-        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
-        (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
-        this._grid.rotateX(Math.PI / 2);
-        this._grid.visible = this._renderingEngine.gridVisibility;
-        this._gridObject.add(this._grid);
-        this._environmentGeometryObject.add(this._gridObject);
-
-        this._groundPlaneObject = new SDData('groundPlane', '');
-        let mat = new MaterialStandardData();
-        mat.color = this._groundPlaneColor;
-        mat.side = MATERIAL_SIDE.FRONT;
-        mat.opacity = this._converter.toAlpha(this._groundPlaneColor);        
-        mat.roughness = 1;
-        mat.metalness = 0;
-        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(), this._renderingEngine.materialLoader.load(mat));
-        this._groundPlane.receiveShadow = true;
-        this._groundPlane.visible = this._renderingEngine.groundPlaneVisibility;
-        this._groundPlaneObject.add(this._groundPlane);
-        this._environmentGeometryObject.add(this._groundPlaneObject);
-
-        this._groundPlaneShadowObject = new SDData('groundPlaneShadow', '');
-        let matShadow = new MaterialShadowData();
-        matShadow.color = this._groundPlaneShadowColor;
-        matShadow.opacity = this._converter.toAlpha(this._groundPlaneShadowColor);
-        this._groundPlaneShadow = new THREE.Mesh(new THREE.PlaneGeometry(), this._renderingEngine.materialLoader.load(matShadow));
-        this._groundPlaneShadow.receiveShadow = true;
-        this._groundPlaneShadow.visible = this._renderingEngine.groundPlaneShadowVisibility;
-        this._groundPlaneShadowObject.add(this._groundPlaneShadow);
-        this._groundPlaneShadowObject.userData.ambientOcclusion = true;
-        this._environmentGeometryObject.add(this._groundPlaneShadowObject);
-
-        let eps = 0.005;
-        this._grid.position.set(0, 0, -eps);
-        this._groundPlane.position.set(0, 0, -eps);
-        this._groundPlaneShadow.position.set(0, 0, -eps);
-    }
-
-    public updateEnvironmentGeometryPosition(): void {
-        const bb = new Box(this._renderingEngine.sceneTreeManager.boundingBox.min, this._renderingEngine.sceneTreeManager.boundingBox.max);
-        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
-
-        if(!this._initialized) {
-            this.changeSceneExtents(bb)
-        } else {
-            let eps = 0.005;
-            let bs = bb.boundingSphere;
-
-            let sceneExtents = vec3.distance(bb.min, bb.max);
-            const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
-            this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
-
-            if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
-            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - 2*eps);
-        }
-    }
-
-    // #endregion Public Methods (2)
+    // #endregion Private Methods (1)
 }
