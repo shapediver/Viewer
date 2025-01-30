@@ -130,7 +130,6 @@ export class MaterialLoader implements ILoader {
         if(this._materialOverrideType === value) return;
 
         this._materialOverrideType = value;
-        this.assignDefaultMaterial();
         for(const key in this._materialCache) {
             this._materialCache[key].material.dispose();
             delete this._materialCache[key];
@@ -228,13 +227,13 @@ export class MaterialLoader implements ILoader {
 
     public assignDefaultMaterial() {
         for (const cacheKey in this._materialCache) {
-            if (this._materialCache[cacheKey].material instanceof THREE.MeshPhysicalMaterial && this._materialCache[cacheKey].materialData === null) {
-                const material: THREE.MeshPhysicalMaterial = <THREE.MeshPhysicalMaterial>this._materialCache[cacheKey].material;
+            if (this._materialCache[cacheKey].materialData === null) {
+                const material = this._materialCache[cacheKey].material;
                 const { properties, mapCount } = this.getMaterialProperties(this._defaultMaterialData, GEOMETRY_MATERIAL_TYPE.MESH, this._materialCache[cacheKey].materialSettings);
                 this.maxMapCount = Math.max(this.maxMapCount, mapCount);
-                if(this._materialOverrideType === MATERIAL_TYPE.UNLIT) {
+                if(material instanceof THREE.MeshBasicMaterial) {
                     material.copy(new THREE.MeshBasicMaterial(properties));
-                } else if(this._materialOverrideType === MATERIAL_TYPE.SPECULAR_GLOSSINESS) {
+                } else if(material instanceof SpecularGlossinessMaterial) {
                     material.copy(new SpecularGlossinessMaterial(properties));
                 } else {
                     material.copy(new THREE.MeshPhysicalMaterial(properties));
