@@ -6,7 +6,19 @@ export interface ISettings extends IGlobalSettings {
     ar: ISettingsV5['ar'],
     camera: ISettingsV5['camera'],
     environment: ISettingsV5['environment'],
-    environmentGeometry: ISettingsV5['environmentGeometry'],
+    environmentGeometry: {
+        gridColor: string,
+        gridVisibility: boolean,
+        groundPlaneColor: string,
+        groundPlaneVisibility: boolean,
+        groundPlaneShadowColor: string,
+        groundPlaneShadowVisibility: boolean,
+        contactShadowVisibility: boolean,
+        contactShadowOpacity: number,
+        contactShadowBlur: number,
+        contactShadowHeight: number,
+        contactShadowDarkness: number
+    },
     general: {
         transformation: {
             scale: { x: number, y: number, z: number },

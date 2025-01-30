@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@shapediver/viewer.rendering-engine.rendering-engine": "3.7.3",
-    "@shapediver/viewer.settings": "1.1.1",
+    "@shapediver/viewer.settings": "1.1.2",
     "@shapediver/viewer.shared.math": "3.7.3",
     "@shapediver/viewer.shared.node-tree": "3.7.3",
     "@shapediver/viewer.shared.services": "3.7.3",

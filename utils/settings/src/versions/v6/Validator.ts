@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { arSettingsSchema, cameraSettingsSchema, environmentSettingsSchema, environmentGeometrySettingsSchema, lightSettingsSchema, postProcessingSettingsSchema, renderingSettingsSchema, sessionSettingsSchema } from '../v5/Validator';
+import { arSettingsSchema, cameraSettingsSchema, environmentSettingsSchema, lightSettingsSchema, postProcessingSettingsSchema, renderingSettingsSchema, sessionSettingsSchema } from '../v5/Validator';
 
 export const generalSettingsSchema = z.object({
     transformation: z.object({
@@ -17,6 +17,20 @@ export const generalSettingsSchema = z.object({
 export const materialSettingsSchema = z.object({
     defaultMaterialColor: z.string(),
     materialOverrideType: z.string().optional(),
+});
+
+export const environmentGeometrySettingsSchema = z.object({
+    gridColor: z.string(),
+    gridVisibility: z.boolean(),
+    groundPlaneColor: z.string(),
+    groundPlaneVisibility: z.boolean(),
+    groundPlaneShadowColor: z.string(),
+    groundPlaneShadowVisibility: z.boolean(),
+    contactShadowVisibility: z.boolean(),
+    contactShadowOpacity: z.number(),
+    contactShadowBlur: z.number(),
+    contactShadowHeight: z.number(),
+    contactShadowDarkness: z.number()
 });
 
 const schema = z.object({

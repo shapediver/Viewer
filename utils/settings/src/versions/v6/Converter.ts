@@ -22,7 +22,19 @@ export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSet
         light: oldSettings.light,
         session: oldSettings.session,
         environment: oldSettings.environment,
-        environmentGeometry: oldSettings.environmentGeometry,
+        environmentGeometry: {
+            gridColor: oldSettings.environmentGeometry.gridColor,
+            gridVisibility: oldSettings.environmentGeometry.gridVisibility,
+            groundPlaneColor: oldSettings.environmentGeometry.groundPlaneColor,
+            groundPlaneVisibility: oldSettings.environmentGeometry.groundPlaneVisibility,
+            groundPlaneShadowColor: oldSettings.environmentGeometry.groundPlaneShadowColor,
+            groundPlaneShadowVisibility: oldSettings.environmentGeometry.groundPlaneShadowVisibility,
+            contactShadowVisibility: false,
+            contactShadowOpacity: 1,
+            contactShadowBlur: 1.5,
+            contactShadowHeight: 0.05,
+            contactShadowDarkness: 2.5
+        },
         rendering: oldSettings.rendering,
         postprocessing: oldSettings.postprocessing,
         material: {
@@ -58,7 +70,14 @@ export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSetti
         light: newSettings.light,
         session: newSettings.session,
         environment: newSettings.environment,
-        environmentGeometry: newSettings.environmentGeometry,
+        environmentGeometry: {
+            gridColor: newSettings.environmentGeometry.gridColor,
+            gridVisibility: newSettings.environmentGeometry.gridVisibility,
+            groundPlaneColor: newSettings.environmentGeometry.groundPlaneColor,
+            groundPlaneVisibility: newSettings.environmentGeometry.groundPlaneVisibility,
+            groundPlaneShadowColor: newSettings.environmentGeometry.groundPlaneShadowColor,
+            groundPlaneShadowVisibility: newSettings.environmentGeometry.groundPlaneShadowVisibility
+        },
         rendering: newSettings.rendering,
         postprocessing: newSettings.postprocessing
     };
