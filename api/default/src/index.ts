@@ -219,6 +219,7 @@ import {
     } from '@shapediver/viewer.viewport';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine';
 import {
+    defaultSettings,
     EVENTTYPE,
     EVENTTYPE_CAMERA,
     EVENTTYPE_DRAWING_TOOLS,
@@ -324,7 +325,7 @@ import {
 
 export { createViewport, viewports };
 export { createSession, sessions };
-export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions };
+export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions, defaultSettings };
 
 export { SessionCreationDefinition, ViewportCreationDefinition };
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };

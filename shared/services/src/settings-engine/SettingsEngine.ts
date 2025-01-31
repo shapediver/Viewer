@@ -1,12 +1,17 @@
 import {
     convert,
-    Defaults,
     ISettings,
     latestVersion,
     previousVersion,
     validate
 } from '@shapediver/viewer.settings';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
+import { Defaults } from './defaults/Defaults';
+import { HighPerformanceDefaults } from './defaults/HighPerformanceDefaults';
+import { MedicalDefaults } from './defaults/MedicalDefaults';
+import { FurnitureDefaults } from './defaults/FurnitureDefaults';
+import { TwoDimensionalDefaults } from './defaults/TwoDimensionalDefaults';
+import { JewelryDefaults } from './defaults/JewelryDefaults';
 
 // #region Type aliases (8)
 
@@ -16,6 +21,7 @@ type IEnvironmentGeometrySettings = ISettings['environmentGeometry'];
 type IEnvironmentSettings = ISettings['environment'];
 type IGeneralSettings = ISettings['general'];
 type ILightSettings = ISettings['light'];
+type IMaterialSettings = ISettings['material'];
 type IRenderingSettings = ISettings['rendering'];
 type ISessionSettings = ISettings['session'];
 
@@ -26,6 +32,7 @@ type ISessionSettings = ISettings['session'];
 export class SettingsEngine {
     // #region Properties (4)
 
+    private _hasStoredSettings: boolean = false;
     private _settings: ISettings = Defaults();
     private _settingsJson: unknown;
 
@@ -53,8 +60,16 @@ export class SettingsEngine {
         return this._settings.general;
     }
 
+    public get hasStoredSettings(): boolean {
+        return this._hasStoredSettings;
+    }
+
     public get light(): ILightSettings {
         return this._settings.light;
+    }
+
+    public get material(): IMaterialSettings {
+        return this._settings.material;
     }
 
     public get rendering(): IRenderingSettings {
@@ -84,6 +99,7 @@ export class SettingsEngine {
     public loadSettings(json: unknown) {
         this._settingsJson = json;
         if (JSON.stringify(json) !== JSON.stringify({})) {
+            this._hasStoredSettings = true;
             for (let i = 0; i < previousVersion.length; i++) {
                 const v = previousVersion[i];
 
@@ -179,4 +195,13 @@ export enum SESSION_SETTINGS_MODE {
     MANUAL = 'manual',
 }
 
+
+export const defaultSettings = {
+    default: Defaults,
+    furniture: FurnitureDefaults,
+    highPerformance: HighPerformanceDefaults,
+    jewelry: JewelryDefaults,
+    medical: MedicalDefaults,
+    twoDimensional: TwoDimensionalDefaults
+};
 // #endregion Enums (1)

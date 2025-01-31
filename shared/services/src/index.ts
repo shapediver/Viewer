@@ -49,7 +49,7 @@ import { IViewportGlobalAccessObjectDefinition } from './state-engine/IViewportG
 import { Logger, LOGGING_LEVEL } from './logger/Logger';
 import { numberCleaner } from './utilities/numberCleaner';
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator';
-import { SESSION_SETTINGS_MODE, SettingsEngine } from './settings-engine/SettingsEngine';
+import { defaultSettings, SESSION_SETTINGS_MODE, SettingsEngine } from './settings-engine/SettingsEngine';
 import { ShapeDiverGeometryBackendError, ShapeDiverGeometryBackendRequestError, ShapeDiverGeometryBackendResponseError } from './logger/ShapeDiverBackendErrors';
 import { ShapeDiverResponseErrorType as ShapeDiverGeometryBackendResponseErrorType } from '@shapediver/sdk.geometry-api-sdk-v2';
 import {
@@ -81,7 +81,7 @@ export {
 };
 
 export {
-    SettingsEngine, SESSION_SETTINGS_MODE
+    SettingsEngine, SESSION_SETTINGS_MODE, defaultSettings
 };
 
 export {

@@ -199,7 +199,7 @@ const activateInteractions = () => {
                                     element.radius,
                                     element.rotation
                                 )
-                            )
+                            )!
                         )
                     );
                     def.snapLines.forEach((element) =>
@@ -211,7 +211,7 @@ const activateInteractions = () => {
                                     element.radius,
                                     element.rotation
                                 )
-                            )
+                            )!
                         )
                     );
                     break;
@@ -280,7 +280,7 @@ const addShelf = async (def: ShelfDefinition) => {
         dragConstraintsIDs.push(
             dragManager.addDragConstraint(
                 new PointConstraint(element.point, element.radius, element.rotation)
-            )
+            )!
         )
     );
     def.snapLines.forEach((element) =>
@@ -292,7 +292,7 @@ const addShelf = async (def: ShelfDefinition) => {
                     element.radius,
                     element.rotation
                 )
-            )
+            )!
         )
     );
 

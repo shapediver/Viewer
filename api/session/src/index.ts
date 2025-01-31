@@ -137,6 +137,7 @@ import {
 } from '@shapediver/viewer.shared.math';
 import { createSession, sessions } from './main';
 import {
+    defaultSettings,
     EVENTTYPE,
     EVENTTYPE_CAMERA,
     EVENTTYPE_DRAWING_TOOLS,
@@ -256,7 +257,7 @@ export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
 export { createSession, sessions };
 
-export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions };
+export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions, defaultSettings };
 
 export { SessionCreationDefinition, ViewportCreationDefinition};
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };

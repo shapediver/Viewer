@@ -172,6 +172,7 @@ import { CAMERA_TYPE, ICameraOptions, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@sha
 import { createViewport, viewports } from './main';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine';
 import {
+    defaultSettings,
     EVENTTYPE,
     EVENTTYPE_CAMERA,
     EVENTTYPE_DRAWING_TOOLS,
@@ -282,7 +283,7 @@ export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLigh
 
 export { createViewport, viewports };
 
-export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions };
+export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions, defaultSettings };
 
 export { SessionCreationDefinition, ViewportCreationDefinition };
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };

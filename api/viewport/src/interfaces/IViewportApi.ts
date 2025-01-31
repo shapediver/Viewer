@@ -22,6 +22,7 @@ import {
   RENDERER_TYPE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
+  MATERIAL_TYPE,
 } from '@shapediver/viewer.shared.types';
 
 /**
@@ -38,7 +39,7 @@ import {
  * {@link ISessionApi}.
  */
 export interface IViewportApi {
-  // #region Properties (54)
+  // #region Properties (60)
 
   /**
    * A dictionary of all animations that are currently present in the parts of
@@ -159,6 +160,27 @@ export interface IViewportApi {
    */
   clearColor: Color;
   /**
+   * The maximum percentage of height that is still considered for the creation of the contact shadow. (default: 0.25)
+   * The maximum height is equal to the width and height of the ground plane.
+   */
+  contactShadowHeight: number;
+  /**
+   * Option to enable / disable the contact shadow. (default: false)
+   */
+  contactShadowVisibility: boolean;
+  /**
+   * The blur amount of the contact shadow. (default: 1.5)
+   */
+  contactShadowBlur: number;
+  /**
+   * The darkness of the contact shadow. (default: 2.5)
+   */
+  contactShadowDarkness: number;
+  /**
+   * The opacity of the contact shadow. (default: 1)
+   */
+  contactShadowOpacity: number;
+  /**
    * The color that is used when no material is specified. (default: #199b9b)
    */
   defaultMaterialColor: Color;
@@ -227,6 +249,15 @@ export interface IViewportApi {
    * Option to enable / disable lights. (default: true)
    */
   lights: boolean;
+  /**
+   * The type of material that is used as an override for all materials in the scene.
+   * This can be used to enforce a specific material type for all materials in the scene.
+   * 
+   * As point and line materials are not supported by all three.js materials, the override will be ignored for these materials.
+   * 
+   * If no override is set, the materials will be used as they are.
+   */
+  materialOverrideType: MATERIAL_TYPE | undefined;
   /**
    * The maximum size of the renderings. The renderings will be upscaled to the actual resolution if these values are lower than the resolution of the canvas.
    * This setting exists, as for higher resolutions the performance can drop due to the rendering effort. (default: { width: 1920, height: 1080 })
@@ -311,7 +342,7 @@ export interface IViewportApi {
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  // #endregion Properties (54)
+  // #endregion Properties (60)
 
   // #region Public Methods (41)
 

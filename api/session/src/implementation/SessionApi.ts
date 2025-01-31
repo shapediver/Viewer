@@ -151,6 +151,10 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.guid;
     }
 
+    public get hasStoredSettings(): boolean {
+        return this.#sessionEngine.hasStoredSettings;
+    }
+
     public get id(): string {
         return this.#sessionEngine.id;
     }

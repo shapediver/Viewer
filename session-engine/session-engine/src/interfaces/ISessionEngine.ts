@@ -19,6 +19,7 @@ export interface ISessionEngine {
   // #region Properties (15)
 
   readonly jwtToken?: string;
+  readonly hasStoredSettings: boolean;
 
   canUploadGLTF: boolean;
   exports: { [key: string]: IExport };

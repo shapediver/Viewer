@@ -235,6 +235,10 @@ export class SessionEngine implements ISessionEngine {
         return this._guid;
     }
 
+    public get hasStoredSettings(): boolean {
+        return this._settingsEngine.hasStoredSettings;
+    }
+
     public get id(): string {
         return this._id;
     }
@@ -419,6 +423,11 @@ export class SessionEngine implements ISessionEngine {
             currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
             currentSettings.environmentGeometry.groundPlaneShadowColor = settings.environmentGeometry.groundPlaneShadowColor;
             currentSettings.environmentGeometry.groundPlaneShadowVisibility = settings.environmentGeometry.groundPlaneShadowVisibility;
+            currentSettings.environmentGeometry.contactShadowVisibility = settings.environmentGeometry.contactShadowVisibility;
+            currentSettings.environmentGeometry.contactShadowHeight = settings.environmentGeometry.contactShadowHeight;
+            currentSettings.environmentGeometry.contactShadowBlur = settings.environmentGeometry.contactShadowBlur;
+            currentSettings.environmentGeometry.contactShadowOpacity = settings.environmentGeometry.contactShadowOpacity;
+            currentSettings.environmentGeometry.contactShadowDarkness = settings.environmentGeometry.contactShadowDarkness;
 
             currentSettings.rendering.shadows = settings.rendering.shadows;
             currentSettings.rendering.softShadows = settings.rendering.softShadows;
@@ -432,9 +441,10 @@ export class SessionEngine implements ISessionEngine {
         }
 
         if (sections.viewport.general) {
-            currentSettings.general.defaultMaterialColor = settings.general.defaultMaterialColor;
             currentSettings.general.commitParameters = settings.general.commitParameters;
             currentSettings.general.pointSize = settings.general.pointSize;
+            currentSettings.material.defaultMaterialColor = settings.material.defaultMaterialColor;
+            currentSettings.material.materialOverrideType = settings.material.materialOverrideType;
         }
 
         // apply postprocessing settings

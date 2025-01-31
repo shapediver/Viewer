@@ -11,6 +11,7 @@ import {
     ISDTFAttributeVisualizationData,
     ISDTFItemData,
     ISDTFOverview,
+    MATERIAL_TYPE,
     MaterialBasicLineData,
     MaterialPointData,
     MaterialStandardData,
@@ -120,7 +121,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Getters And Setters (94)
+    // #region Public Getters And Setters (106)
 
     public get animations(): {
         [key: string]: IAnimationData
@@ -247,6 +248,66 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.clearColor = value;
         this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
         this.update('clearColor');
+    }
+
+    public get contactShadowBlur(): number {
+        return this.#renderingEngine.contactShadowBlur;
+    }
+
+    public set contactShadowBlur(value: number) {
+        const scope = 'contactShadowBlur';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.contactShadowBlur = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('contactShadowBlur');
+    }
+
+    public get contactShadowDarkness(): number {
+        return this.#renderingEngine.contactShadowDarkness;
+    }
+
+    public set contactShadowDarkness(value: number) {
+        const scope = 'contactShadowDarkness';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.contactShadowDarkness = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('contactShadowDarkness');
+    }
+
+    public get contactShadowHeight(): number {
+        return this.#renderingEngine.contactShadowHeight;
+    }
+
+    public set contactShadowHeight(value: number) {
+        const scope = 'contactShadowHeight';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.contactShadowHeight = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('contactShadowHeight');
+    }
+
+    public get contactShadowOpacity(): number {
+        return this.#renderingEngine.contactShadowOpacity;
+    }
+
+    public set contactShadowOpacity(value: number) {
+        const scope = 'contactShadowOpacity';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'number');
+        this.#renderingEngine.contactShadowOpacity = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('contactShadowOpacity');
+    }
+
+    public get contactShadowVisibility(): boolean {
+        return this.#renderingEngine.contactShadowVisibility;
+    }
+
+    public set contactShadowVisibility(value: boolean) {
+        const scope = 'contactShadowVisibility';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'boolean');
+        this.#renderingEngine.contactShadowVisibility = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('contactShadowVisibility');
     }
 
     public get defaultLineMaterial(): MaterialBasicLineData {
@@ -466,6 +527,18 @@ export class ViewportApi implements IViewportApi {
         this.update('lights');
     }
 
+    public get materialOverrideType(): MATERIAL_TYPE | undefined {
+        return this.#renderingEngine.materialOverrideType;
+    }
+
+    public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+        const scope = 'materialOverrideType';
+        this.#inputValidator.validateAndError(`ViewportApi.${scope}`, value, 'enum', false, Object.values(MATERIAL_TYPE));
+        this.#renderingEngine.materialOverrideType = value;
+        this.#logger.debug(`ViewportApi.${scope}: ${scope} was set to: ${value}`);
+        this.update('materialOverrideType');
+    }
+
     public get maximumRenderingSize(): {
         width: number,
         height: number
@@ -678,7 +751,7 @@ export class ViewportApi implements IViewportApi {
         this.render();
     }
 
-    // #endregion Public Getters And Setters (94)
+    // #endregion Public Getters And Setters (106)
 
     // #region Public Methods (41)
 

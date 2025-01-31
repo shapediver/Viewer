@@ -50,7 +50,7 @@ export class CustomEffect extends Effect {
     viewport.postProcessing.manualPostProcessing = true;
 
     // get all the necessary objects from the API
-    const composer = viewport.postProcessing.effectComposer;
+    const composer = viewport.postProcessing.effectComposer!;
     const scene = viewport.threeJsCoreObjects.scene;
     const camera = viewport.threeJsCoreObjects.camera;
 

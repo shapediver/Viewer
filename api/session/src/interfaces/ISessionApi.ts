@@ -38,6 +38,11 @@ export interface ISessionApi {
      */
     readonly guid?: string;
     /**
+     * Flag to indicate if the session has stored settings.
+     * This is true if at some points settings were stored for the session.
+     */
+    readonly hasStoredSettings: boolean;
+    /**
      * The unique identifier of the session that was specified
      * or automatically chosen on creation of the session.
      */

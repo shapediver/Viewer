@@ -3,6 +3,7 @@ import { adaptShaders, MaterialLoader } from './loaders/MaterialLoader';
 import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
 import { CameraManager } from './managers/CameraManager';
 import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
+import { css } from './styling/viewport-css';
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager';
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
 import { GeometryLoader } from './loaders/GeometryLoader';
@@ -58,11 +59,11 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE,
+  MATERIAL_TYPE,
 } from '@shapediver/viewer.shared.types';
-import { css } from './styling/viewport-css';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (75)
+  // #region Properties (76)
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
   readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
@@ -156,11 +157,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _showStatistics: boolean = false;
   private _softShadows: boolean = true;
   private _spinnerDivElement: HTMLDivElement;
+  private _toneMapping: TONE_MAPPING = TONE_MAPPING.NONE;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _useLegacyLights: boolean = false;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  // #endregion Properties (75)
+  // #endregion Properties (76)
 
   // #region Constructors (1)
 
@@ -252,7 +254,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #endregion Constructors (1)
 
-  // #region Public Getters And Setters (133)
+  // #region Public Getters And Setters (146)
 
   public get arRotation(): vec3 {
     return this._arRotation;
@@ -383,6 +385,46 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._colorCache;
   }
 
+  public get contactShadowBlur(): number {
+    return this._environmentGeometryManager.contactShadow.blur;
+  }
+
+  public set contactShadowBlur(value: number) {
+    this._environmentGeometryManager.contactShadow.blur = value;
+  }
+
+  public get contactShadowDarkness(): number {
+    return this._environmentGeometryManager.contactShadow.darkness;
+  }
+
+  public set contactShadowDarkness(value: number) {
+    this._environmentGeometryManager.contactShadow.darkness = value;
+  }
+
+  public get contactShadowHeight(): number {
+    return this._environmentGeometryManager.contactShadow.height;
+  }
+
+  public set contactShadowHeight(value: number) {
+    this._environmentGeometryManager.contactShadow.height = value;
+  }
+
+  public get contactShadowOpacity(): number {
+    return this._environmentGeometryManager.contactShadow.opacity;
+  }
+
+  public set contactShadowOpacity(value: number) {
+    this._environmentGeometryManager.contactShadow.opacity = value;
+  }
+
+  public get contactShadowVisibility(): boolean {
+    return this._environmentGeometryManager.contactShadow.visible;
+  }
+
+  public set contactShadowVisibility(value: boolean) {
+    this._environmentGeometryManager.contactShadow.visible = value;
+  }
+
   public get continuousRendering(): boolean {
     return this._renderingManager.continuousRendering;
   }
@@ -446,6 +488,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set enableAR(value: boolean) {
     this._enableAR = value;
+  }
+
+  public get environmentGeometryManager(): EnvironmentGeometryManager {
+    return this._environmentGeometryManager;
   }
 
   public get environmentMap(): string | string[] {
@@ -524,11 +570,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get gridColor(): Color {
-    return this._environmentGeometryManager.gridColor;
+    return this._environmentGeometryManager.grid.color;
   }
 
   public set gridColor(value: Color) {
-    this._environmentGeometryManager.gridColor = value;
+    this._environmentGeometryManager.grid.color = value;
   }
 
   public get gridVisibility(): boolean {
@@ -536,24 +582,24 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set gridVisibility(value: boolean) {
-    if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
+    this._environmentGeometryManager.grid.visible = value;
     this._gridVisibility = value;
   }
 
   public get groundPlaneColor(): Color {
-    return this._environmentGeometryManager.groundPlaneColor;
+    return this._environmentGeometryManager.groundPlane?.color;
   }
 
   public set groundPlaneColor(value: Color) {
-    this._environmentGeometryManager.groundPlaneColor = value;
+    this._environmentGeometryManager.groundPlane.color = value;
   }
 
   public get groundPlaneShadowColor(): Color {
-    return this._environmentGeometryManager.groundPlaneShadowColor;
+    return this._environmentGeometryManager.groundPlaneShadow.color;
   }
 
   public set groundPlaneShadowColor(value: Color) {
-    this._environmentGeometryManager.groundPlaneShadowColor = value;
+    this._environmentGeometryManager.groundPlaneShadow.color = value;
   }
 
   public get groundPlaneShadowVisibility(): boolean {
@@ -561,7 +607,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set groundPlaneShadowVisibility(value: boolean) {
-    if (this._environmentGeometryManager.groundPlaneShadow) this._environmentGeometryManager.groundPlaneShadow.visible = value;
+    this._environmentGeometryManager.groundPlaneShadow.visible = value;
     this._groundPlaneShadowVisibility = value;
   }
 
@@ -570,7 +616,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set groundPlaneVisibility(value: boolean) {
-    if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
+    this._environmentGeometryManager.groundPlane.visible = value;
     this._groundPlaneVisibility = value;
   }
 
@@ -612,6 +658,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get materialLoader(): MaterialLoader {
     return this._materialLoader;
+  }
+
+  public get materialOverrideType(): MATERIAL_TYPE | undefined {
+    return this.materialLoader.materialOverrideType;
+  }
+
+  public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+    this.materialLoader.materialOverrideType = value;
   }
 
   public get maximumRenderingSize(): {
@@ -807,22 +861,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get toneMapping(): TONE_MAPPING {
-    switch (this._renderer.toneMapping) {
-      case (THREE.LinearToneMapping):
-        return TONE_MAPPING.LINEAR;
-      case (THREE.ReinhardToneMapping):
-        return TONE_MAPPING.REINHARD;
-      case (THREE.CineonToneMapping):
-        return TONE_MAPPING.CINEON;
-      case (THREE.ACESFilmicToneMapping):
-        return TONE_MAPPING.ACES_FILMIC;
-      case (THREE.NoToneMapping):
-      default:
-        return TONE_MAPPING.NONE;
-    }
+    return this._toneMapping;
   }
 
   public set toneMapping(value: TONE_MAPPING) {
+    this._toneMapping = value;
     switch (value) {
       case (TONE_MAPPING.LINEAR):
         this._renderer.toneMapping = THREE.LinearToneMapping;
@@ -841,6 +884,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this._renderer.toneMapping = THREE.NoToneMapping;
     }
     this.materialLoader.updateMaterials();
+    this.postProcessingManager.changeEffectPass();
   }
 
   public get toneMappingExposure(): number {
@@ -875,7 +919,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Getters And Setters (133)
+  // #endregion Public Getters And Setters (146)
 
   // #region Public Methods (25)
 
@@ -1166,12 +1210,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environmentGeometry.gridColor = this._converter.toHexColor(this.gridColor);
     settingsEngine.environmentGeometry.groundPlaneColor = this._converter.toHexColor(this.groundPlaneColor);
     settingsEngine.environmentGeometry.groundPlaneShadowColor = this._converter.toHexColor(this.groundPlaneShadowColor);
+    settingsEngine.environmentGeometry.contactShadowBlur = this.contactShadowBlur;
+    settingsEngine.environmentGeometry.contactShadowDarkness = this.contactShadowDarkness;
+    settingsEngine.environmentGeometry.contactShadowHeight = this.contactShadowHeight;
+    settingsEngine.environmentGeometry.contactShadowOpacity = this.contactShadowOpacity;
+    settingsEngine.environmentGeometry.contactShadowVisibility = this.contactShadowVisibility;
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
     settingsEngine.general.transformation.translation = { x: this.arTranslation[0], y: this.arTranslation[1], z: this.arTranslation[2] };
     settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
-    settingsEngine.general.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
+
+    settingsEngine.material.defaultMaterialColor = this._converter.toHexColor(this.defaultMaterialColor);
+    settingsEngine.material.materialOverrideType = this.materialOverrideType;
 
     settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
@@ -1309,6 +1360,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.groundPlaneVisibility = settingsEngine.environmentGeometry.groundPlaneVisibility;
       this.groundPlaneShadowColor = settingsEngine.environmentGeometry.groundPlaneShadowColor;
       this.groundPlaneShadowVisibility = settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
+      this.contactShadowBlur = settingsEngine.environmentGeometry.contactShadowBlur;
+      this.contactShadowDarkness = settingsEngine.environmentGeometry.contactShadowDarkness;
+      this.contactShadowHeight = settingsEngine.environmentGeometry.contactShadowHeight;
+      this.contactShadowOpacity = settingsEngine.environmentGeometry.contactShadowOpacity;
+      this.contactShadowVisibility = settingsEngine.environmentGeometry.contactShadowVisibility;
 
       this.shadows = settingsEngine.rendering.shadows;
       this.softShadows = settingsEngine.rendering.softShadows;
@@ -1323,7 +1379,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
 
     if (sections.general) {
-      this.defaultMaterialColor = settingsEngine.general.defaultMaterialColor;
+      this.defaultMaterialColor = settingsEngine.material.defaultMaterialColor;
+      this.materialOverrideType = settingsEngine.material.materialOverrideType as MATERIAL_TYPE;
       this.pointSize = settingsEngine.general.pointSize;
     }
 
