@@ -8,7 +8,6 @@ import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { Grid } from './environmentGeometry/Grid';
 import { GroundPlaneShadow } from './environmentGeometry/GroundPlaneShadow';
 import { GroundPlane } from './environmentGeometry/GroundPlane';
-import { GroundProjection } from './environmentGeometry/GroundProjection';
 import { ContactShadow } from './environmentGeometry/ContactShadow';
 
 export class EnvironmentGeometryManager implements IManager {
@@ -22,7 +21,6 @@ export class EnvironmentGeometryManager implements IManager {
     private _grid?: Grid;
     private _groundPlane?: GroundPlane;
     private _groundPlaneShadow?: GroundPlaneShadow;
-    private _groundProjection?: GroundProjection;
     private _initialized: boolean = false;
 
     // #endregion Properties (9)
@@ -55,10 +53,6 @@ export class EnvironmentGeometryManager implements IManager {
         return this._groundPlaneShadow!;
     }
 
-    public get groundProjection(): GroundProjection {
-        return this._groundProjection!;
-    }
-
     // #endregion Public Getters And Setters (5)
 
     // #region Public Methods (3)
@@ -77,7 +71,6 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 3)), divisions, gridExtents);
         this._contactShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 2)), divisions, gridExtents);
         this._groundPlane?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 4)), divisions, gridExtents);
-        this._groundProjection?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 5)), divisions, gridExtents);
     }
 
     public init(): void {
@@ -88,7 +81,6 @@ export class EnvironmentGeometryManager implements IManager {
         this._grid = new Grid(this._renderingEngine, this._environmentGeometryObject);
         this._groundPlaneShadow = new GroundPlaneShadow(this._renderingEngine, this._environmentGeometryObject);
         this._groundPlane = new GroundPlane(this._renderingEngine, this._environmentGeometryObject);
-        this._groundProjection = new GroundProjection(this._renderingEngine, this._environmentGeometryObject);
     }
 
     public updateEnvironmentGeometryPosition(): void {
@@ -109,7 +101,6 @@ export class EnvironmentGeometryManager implements IManager {
             this._contactShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 3)), divisions, gridExtents);
             this._groundPlaneShadow?.changeSceneExtents(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 2)), divisions, gridExtents);
             this._groundPlane?.updatePosition(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 4)));
-            this._groundProjection?.updatePosition(vec3.sub(vec3.create(), position, vec3.fromValues(0, 0, eps * 5)));
         }
     }
 
