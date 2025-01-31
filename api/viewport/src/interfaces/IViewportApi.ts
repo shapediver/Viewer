@@ -160,7 +160,7 @@ export interface IViewportApi {
    */
   clearColor: Color;
   /**
-   * The maximum percentage of height that is still considered for the creation of the contact shadow. (default: 0.05)
+   * The maximum percentage of height that is still considered for the creation of the contact shadow. (default: 0.25)
    * The maximum height is equal to the width and height of the ground plane.
    */
   contactShadowHeight: number;

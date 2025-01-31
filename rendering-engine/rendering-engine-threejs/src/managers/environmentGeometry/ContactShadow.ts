@@ -12,13 +12,12 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     private _blur = 1.5;
     private _blurPlane!: THREE.Mesh<THREE.PlaneGeometry, THREE.Material | THREE.Material[], THREE.Object3DEventMap>;
-    // private _cameraHelper!: THREE.CameraHelper;
     private _color: string = '#ffffff';
     private _contactShadowObject: SDData;
     private _darkness: number = 2.5;
     private _depthMaterial!: THREE.MeshDepthMaterial;
     private _fillPlane!: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>;
-    private _height: number = 0.05;
+    private _height: number = 0.25;
     private _horizontalBlurMaterial!: THREE.ShaderMaterial;
     private _opacity: number = 1;
     private _plane!: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>;
@@ -27,6 +26,7 @@ export class ContactShadow implements IEnvironmentGeometry {
     private _shadowCamera!: THREE.OrthographicCamera;
     private _shadowGroup!: THREE.Group<THREE.Object3DEventMap>;
     private _verticalBlurMaterial!: THREE.ShaderMaterial;
+    private _currentGridExtents: number = 1;
 
     // #endregion Properties (17)
 
@@ -57,7 +57,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     public set darkness(value: number) {
         this._darkness = value;
-        this._depthMaterial.userData.darkness = { value };
+        this._depthMaterial.userData.darkness.value = value;
     }
 
     public get height(): number {
@@ -66,7 +66,11 @@ export class ContactShadow implements IEnvironmentGeometry {
 
     public set height(value: number) {
         this._height = value;
-        this._shadowCamera.far = value;
+        this._shadowCamera.far = this._currentGridExtents * value;
+        this._shadowCamera.updateProjectionMatrix();
+        // const cameraHelper = new THREE.CameraHelper(this._shadowCamera);
+        // this._parent.add(cameraHelper);
+        this._renderingEngine.renderingManager.updateShadowMap();
     }
 
     public get opacity(): number {
@@ -91,6 +95,8 @@ export class ContactShadow implements IEnvironmentGeometry {
     // #region Public Methods (3)
 
     public changeSceneExtents(position: vec3, divisions: number, gridExtents: number): void {
+        this._currentGridExtents = gridExtents;
+
         const widthAndHeight = 2 * gridExtents;
         const planeGeometry = new THREE.PlaneGeometry(widthAndHeight, widthAndHeight);
         this._plane.geometry.dispose();
@@ -99,15 +105,15 @@ export class ContactShadow implements IEnvironmentGeometry {
         this._fillPlane.geometry = planeGeometry;
         this._blurPlane.geometry.dispose();
         this._blurPlane.geometry = planeGeometry;
-        this._shadowCamera = new THREE.OrthographicCamera(- widthAndHeight / 2, widthAndHeight / 2, widthAndHeight / 2, - widthAndHeight / 2, 0, gridExtents / this._height);
+        this._shadowCamera = new THREE.OrthographicCamera(- widthAndHeight / 2, widthAndHeight / 2, widthAndHeight / 2, - widthAndHeight / 2, 0, gridExtents * this._height);
         this._shadowCamera.up.set(0, 1, 0);
         this._shadowCamera.position.set(0, 0, -gridExtents / 50);
         this._shadowCamera.lookAt(0, 0, 1);
         this._shadowCamera.updateProjectionMatrix();
         this._shadowGroup.add(this._shadowCamera);
 
-        // this._cameraHelper = new THREE.CameraHelper(this._shadowCamera);
-        // // this._parent.add(this._cameraHelper);
+        // const cameraHelper = new THREE.CameraHelper(this._shadowCamera);
+        // this._parent.add(cameraHelper);
 
         this._contactShadowObject.position.set(position[0], position[1], position[2]);
 
@@ -122,12 +128,15 @@ export class ContactShadow implements IEnvironmentGeometry {
         const initialGroundPlaneShadowVisibility = this._renderingEngine.groundPlaneShadowVisibility;
         this._renderingEngine.groundPlaneShadowVisibility = false;
 
+        this._blurPlane.visible = false;
+        this._fillPlane.visible = false;
+        this._plane.visible = false;
+
         // remove the background
         const initialBackground = this._renderingEngine.scene.background;
         this._renderingEngine.scene.background = null;
 
         // force the depthMaterial to everything
-        // this._cameraHelper.visible = false;
         this._renderingEngine.scene.overrideMaterial = this._depthMaterial;
 
         // set renderer clear alpha
@@ -140,7 +149,6 @@ export class ContactShadow implements IEnvironmentGeometry {
 
         // and reset the override material
         this._renderingEngine.scene.overrideMaterial = null;
-        // this._cameraHelper.visible = true;
 
         this.blurShadow(this._blur);
 
@@ -152,6 +160,8 @@ export class ContactShadow implements IEnvironmentGeometry {
         this._renderingEngine.renderer.setRenderTarget(null);
         this._renderingEngine.renderer.setClearAlpha(initialClearAlpha);
         this._renderingEngine.scene.background = initialBackground;
+
+        this._plane.visible = true;
 
         this._renderingEngine.gridVisibility = initialGridVisibility;
         this._renderingEngine.groundPlaneVisibility = initialGroundPlaneVisibility;
@@ -243,6 +253,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
         // like MeshDepthMaterial, but goes from black to transparent
         this._depthMaterial = new THREE.MeshDepthMaterial();
+        this._depthMaterial.side = THREE.DoubleSide;
         this._depthMaterial.userData.darkness = { value: this._darkness };
         this._depthMaterial.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
             shader.uniforms.darkness = this._depthMaterial.userData.darkness;
