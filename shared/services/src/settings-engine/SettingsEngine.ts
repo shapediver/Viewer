@@ -8,6 +8,10 @@ import {
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 import { Defaults } from './defaults/Defaults';
 import { HighPerformanceDefaults } from './defaults/HighPerformanceDefaults';
+import { MedicalDefaults } from './defaults/MedicalDefaults';
+import { FurnitureDefaults } from './defaults/FurnitureDefaults';
+import { TwoDimensionalDefaults } from './defaults/TwoDimensionalDefaults';
+import { JewelryDefaults } from './defaults/JewelryDefaults';
 
 // #region Type aliases (8)
 
@@ -194,6 +198,10 @@ export enum SESSION_SETTINGS_MODE {
 
 export const defaultSettings = {
     default: Defaults,
-    highPerformance: HighPerformanceDefaults
+    furniture: FurnitureDefaults,
+    highPerformance: HighPerformanceDefaults,
+    jewelry: JewelryDefaults,
+    medical: MedicalDefaults,
+    twoDimensional: TwoDimensionalDefaults
 };
 // #endregion Enums (1)

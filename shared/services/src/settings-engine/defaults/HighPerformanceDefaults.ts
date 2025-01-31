@@ -30,6 +30,11 @@ export const HighPerformanceDefaults: () => ISettings = () => {
             groundPlaneVisibility: false,
             groundPlaneShadowColor: '#d3d3d3ff',
             groundPlaneShadowVisibility: false,
+            contactShadowBlur: 1.5,
+            contactShadowHeight: 0.25,
+            contactShadowDarkness: 2.5,
+            contactShadowVisibility: false,
+            contactShadowOpacity: 1
         },
         general: {
             transformation: {
@@ -44,22 +49,8 @@ export const HighPerformanceDefaults: () => ISettings = () => {
             showMessages: true
         },
         light: {
-            lightSceneId: 'standard',
-            lightScenes: {
-                standard: {
-                    name: 'standard',
-                    lights: {
-                        ambient_0: {
-                            name: 'ambient_0',
-                            type: 'ambient',
-                            properties: {
-                                color: '#ffffffff',
-                                intensity: 1
-                            }
-                        }
-                    }
-                }
-            },
+            lightSceneId: '',
+            lightScenes: {},
         },
         postprocessing: {
             antiAliasingTechnique: 'fxaa',
@@ -83,7 +74,8 @@ export const HighPerformanceDefaults: () => ISettings = () => {
         },
         session: {},
         material: {
-            defaultMaterialColor: '#199b9bff'
+            defaultMaterialColor: '#199b9bff',
+            materialOverrideType: 'unlit'
         }
     };
 };

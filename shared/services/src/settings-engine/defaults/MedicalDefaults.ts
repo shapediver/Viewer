@@ -1,6 +1,6 @@
 import { ISettings } from '@shapediver/viewer.settings';
 
-export const Defaults: () => ISettings = () => {
+export const MedicalDefaults: () => ISettings = () => {
     return {
         build_date: '',
         build_version: '',
@@ -16,7 +16,7 @@ export const Defaults: () => ISettings = () => {
         environment: {
             clearAlpha: 1.0,
             clearColor: '#ffffff',
-            map: 'https://viewer.shapediver.com/v3/envmaps/test/default_studio.hdr',
+            map: 'https://viewer.shapediver.com/v3/envmaps/test/hospital.hdr',
             mapAsBackground: false,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },
@@ -32,8 +32,8 @@ export const Defaults: () => ISettings = () => {
             groundPlaneShadowVisibility: false,
             contactShadowBlur: 1.5,
             contactShadowHeight: 0.25,
-            contactShadowDarkness: 1.5,
-            contactShadowVisibility: true,
+            contactShadowDarkness: 2.5,
+            contactShadowVisibility: false,
             contactShadowOpacity: 1
         },
         general: {
@@ -62,9 +62,9 @@ export const Defaults: () => ISettings = () => {
                     properties: {
                         resolutionScale: 1,
                         spp: 8,
-                        distance: 1,
+                        distance: 0.5,
                         distanceIntensity: 1,
-                        intensity: 3.5,
+                        intensity: 2.5,
                         color: '#000000',
 
                         iterations: 1,
@@ -89,7 +89,7 @@ export const Defaults: () => ISettings = () => {
             shadows: true,
             softShadows: true,
             textureEncoding: 'srgb',
-            toneMapping: 'aces_filmic',
+            toneMapping: 'none',
             toneMappingExposure: 1,
         },
         session: {},

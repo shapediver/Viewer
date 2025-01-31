@@ -1,6 +1,6 @@
 import { ISettings } from '@shapediver/viewer.settings';
 
-export const Defaults: () => ISettings = () => {
+export const JewelryDefaults: () => ISettings = () => {
     return {
         build_date: '',
         build_version: '',
@@ -15,8 +15,8 @@ export const Defaults: () => ISettings = () => {
         },
         environment: {
             clearAlpha: 1.0,
-            clearColor: '#ffffff',
-            map: 'https://viewer.shapediver.com/v3/envmaps/test/default_studio.hdr',
+            clearColor: 'rgb(66, 66, 66)',
+            map: 'https://viewer.shapediver.com/v3/envmaps/test/jewelry_studio_3_blur.hdr',
             mapAsBackground: false,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },
@@ -32,7 +32,7 @@ export const Defaults: () => ISettings = () => {
             groundPlaneShadowVisibility: false,
             contactShadowBlur: 1.5,
             contactShadowHeight: 0.25,
-            contactShadowDarkness: 1.5,
+            contactShadowDarkness: 0.5,
             contactShadowVisibility: true,
             contactShadowOpacity: 1
         },
@@ -60,22 +60,10 @@ export const Defaults: () => ISettings = () => {
             effects: [
                 {
                     properties: {
-                        resolutionScale: 1,
-                        spp: 8,
-                        distance: 1,
-                        distanceIntensity: 1,
-                        intensity: 3.5,
-                        color: '#000000',
-
-                        iterations: 1,
-                        radius: 15,
-                        rings: 4,
-                        lumaPhi: 10,
-                        depthPhi: 2,
-                        normalPhi: 3.25,
-                        samples: 16,
+                        intensity: 1,
+                        luminanceThreshold: 0.95,
                     },
-                    type: 'ssao'
+                    type: 'bloom'
                 }
             ]
         },

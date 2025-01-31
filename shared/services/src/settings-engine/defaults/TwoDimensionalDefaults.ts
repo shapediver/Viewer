@@ -1,6 +1,6 @@
 import { ISettings } from '@shapediver/viewer.settings';
 
-export const Defaults: () => ISettings = () => {
+export const TwoDimensionalDefaults: () => ISettings = () => {
     return {
         build_date: '',
         build_version: '',
@@ -32,8 +32,8 @@ export const Defaults: () => ISettings = () => {
             groundPlaneShadowVisibility: false,
             contactShadowBlur: 1.5,
             contactShadowHeight: 0.25,
-            contactShadowDarkness: 1.5,
-            contactShadowVisibility: true,
+            contactShadowDarkness: 2.5,
+            contactShadowVisibility: false,
             contactShadowOpacity: 1
         },
         general: {
@@ -57,27 +57,7 @@ export const Defaults: () => ISettings = () => {
             antiAliasingTechniqueMobile: 'fxaa',
             enablePostProcessingOnMobile: true,
             ssaaSampleLevel: 2,
-            effects: [
-                {
-                    properties: {
-                        resolutionScale: 1,
-                        spp: 8,
-                        distance: 1,
-                        distanceIntensity: 1,
-                        intensity: 3.5,
-                        color: '#000000',
-
-                        iterations: 1,
-                        radius: 15,
-                        rings: 4,
-                        lumaPhi: 10,
-                        depthPhi: 2,
-                        normalPhi: 3.25,
-                        samples: 16,
-                    },
-                    type: 'ssao'
-                }
-            ]
+            effects: []
         },
         rendering: {
             automaticColorAdjustment: true,
@@ -89,7 +69,7 @@ export const Defaults: () => ISettings = () => {
             shadows: true,
             softShadows: true,
             textureEncoding: 'srgb',
-            toneMapping: 'aces_filmic',
+            toneMapping: 'none',
             toneMappingExposure: 1,
         },
         session: {},
