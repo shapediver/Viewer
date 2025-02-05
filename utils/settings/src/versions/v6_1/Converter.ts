@@ -1,60 +1,54 @@
-import { ISettings as ISettingsV5 } from '../v5/ISettings';
-import { ISettings as ISettingsV6 } from './ISettings';
+import { ISettings as ISettingsV6 } from '../v6/ISettings';
+import { ISettings as ISettingsV6_1 } from './ISettings';
 import { IGlobalSettings } from '../../interfaces/IGlobalSettings';
 import { versions } from '../..';
 
 export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSettings => {
-    const oldSettings = <ISettingsV5>s;
-    const settings: ISettingsV6 = {
-        settings_version: '6.0',
+    const oldSettings = <ISettingsV6>s;
+    const settings: ISettingsV6_1 = {
+        settings_version: '6.1',
         ar: oldSettings.ar,
         build_date: oldSettings.build_date,
         build_version: oldSettings.build_version,
         camera: oldSettings.camera,
-        general: {
-            transformation: oldSettings.general.transformation,
-            blurWhenBusy: oldSettings.general.blurWhenBusy,
-            commitSettings: oldSettings.general.commitSettings,
-            commitParameters: oldSettings.general.commitParameters,
-            pointSize: oldSettings.general.pointSize,
-            showMessages: oldSettings.general.showMessages
-        },
+        general: oldSettings.general,
         light: oldSettings.light,
         session: oldSettings.session,
         environment: oldSettings.environment,
-        environmentGeometry: oldSettings.environmentGeometry,
+        environmentGeometry: {
+            gridColor: oldSettings.environmentGeometry.gridColor,
+            gridVisibility: oldSettings.environmentGeometry.gridVisibility,
+            groundPlaneColor: oldSettings.environmentGeometry.groundPlaneColor,
+            groundPlaneVisibility: oldSettings.environmentGeometry.groundPlaneVisibility,
+            groundPlaneShadowColor: oldSettings.environmentGeometry.groundPlaneShadowColor,
+            groundPlaneShadowVisibility: oldSettings.environmentGeometry.groundPlaneShadowVisibility,
+            contactShadowVisibility: false,
+            contactShadowOpacity: 1,
+            contactShadowBlur: 1.5,
+            contactShadowHeight: 0.05,
+            contactShadowDarkness: 2.5
+        },
         rendering: oldSettings.rendering,
         postprocessing: oldSettings.postprocessing,
-        material: {
-            defaultMaterialColor: oldSettings.general.defaultMaterialColor,
-            materialOverrideType: undefined
-        }
+        material: oldSettings.material
     };
 
     /**
      * SETTINGS OBJECTS THAT DID CHANGE
      */
 
-    return <ISettingsV6>settings;
+    return <ISettingsV6_1>settings;
 };
 
 export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSettings => {
-    const newSettings = <ISettingsV6>s;
+    const newSettings = <ISettingsV6_1>s;
     const settings = {
-        settings_version: '5.0',
+        settings_version: '6.0',
         ar: newSettings.ar,
         build_date: newSettings.build_date,
         build_version: newSettings.build_version,
         camera: newSettings.camera,
-        general: {
-            transformation: newSettings.general.transformation,
-            blurWhenBusy: newSettings.general.blurWhenBusy,
-            commitSettings: newSettings.general.commitSettings,
-            commitParameters: newSettings.general.commitParameters,
-            pointSize: newSettings.general.pointSize,
-            showMessages: newSettings.general.showMessages,
-            defaultMaterialColor: newSettings.material.defaultMaterialColor
-        },
+        general: newSettings.general,
         light: newSettings.light,
         session: newSettings.session,
         environment: newSettings.environment,
@@ -67,12 +61,13 @@ export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSetti
             groundPlaneShadowVisibility: newSettings.environmentGeometry.groundPlaneShadowVisibility
         },
         rendering: newSettings.rendering,
-        postprocessing: newSettings.postprocessing
+        postprocessing: newSettings.postprocessing,
+        material: newSettings.material
     };
 
     /**
      * SETTINGS OBJECTS THAT DID CHANGE
      */
 
-    return <ISettingsV5>settings;
+    return <ISettingsV6>settings;
 };

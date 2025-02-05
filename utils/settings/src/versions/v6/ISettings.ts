@@ -13,11 +13,11 @@ export interface ISettings extends IGlobalSettings {
         groundPlaneVisibility: boolean,
         groundPlaneShadowColor: string,
         groundPlaneShadowVisibility: boolean,
-        contactShadowVisibility: boolean,
-        contactShadowOpacity: number,
-        contactShadowBlur: number,
-        contactShadowHeight: number,
-        contactShadowDarkness: number
+        contactShadowVisibility?: boolean,
+        contactShadowOpacity?: number,
+        contactShadowBlur?: number,
+        contactShadowHeight?: number,
+        contactShadowDarkness?: number
     },
     general: {
         transformation: {

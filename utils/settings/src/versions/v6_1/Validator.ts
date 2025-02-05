@@ -26,11 +26,11 @@ export const environmentGeometrySettingsSchema = z.object({
     groundPlaneVisibility: z.boolean(),
     groundPlaneShadowColor: z.string(),
     groundPlaneShadowVisibility: z.boolean(),
-    contactShadowVisibility: z.boolean().optional(),
-    contactShadowOpacity: z.number().optional(),
-    contactShadowBlur: z.number().optional(),
-    contactShadowHeight: z.number().optional(),
-    contactShadowDarkness: z.number().optional()
+    contactShadowVisibility: z.boolean(),
+    contactShadowOpacity: z.number(),
+    contactShadowBlur: z.number(),
+    contactShadowHeight: z.number(),
+    contactShadowDarkness: z.number()
 });
 
 const schema = z.object({

@@ -75,6 +75,13 @@ import { ICameraSettings as ICameraSettingsV6, ICameraControlsSettings as ICamer
 import { IAmbientLightProperties as IAmbientLightPropertiesV6, IDirectionalLightProperties as IDirectionalLightPropertiesV6, IHemisphereLightProperties as IHemisphereLightPropertiesV6, ILightSceneSettings as ILightSceneSettingsV6, IPointLightProperties as IPointLightPropertiesV6, ISpotLightProperties as ISpotLightPropertiesV6 } from './versions/v3/ILightSceneSettings';
 import { IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6 } from './versions/v4/IPostProcessingEffectSettings';
 
+import { ISettings as ISettingsV6_1 } from './versions/v6_1/ISettings';
+import { validate as validateV6_1 } from './versions/v6_1/Validator';
+import { convertFromPrevious as convertFromPreviousV6_1, convertToPrevious as convertToPreviousV6_1 } from './versions/v6_1/Converter';
+import { ICameraSettings as ICameraSettingsV6_1, ICameraControlsSettings as ICameraControlsSettingsV6_1, IOrthographicCameraSettings as IOrthographicCameraSettingsV6_1, IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_1 } from './versions/v5/ICameraSettings';
+import { IAmbientLightProperties as IAmbientLightPropertiesV6_1, IDirectionalLightProperties as IDirectionalLightPropertiesV6_1, IHemisphereLightProperties as IHemisphereLightPropertiesV6_1, ILightSceneSettings as ILightSceneSettingsV6_1, IPointLightProperties as IPointLightPropertiesV6_1, ISpotLightProperties as ISpotLightPropertiesV6_1 } from './versions/v3/ILightSceneSettings';
+import { IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6_1 } from './versions/v4/IPostProcessingEffectSettings';
+
 export {
     ISettingsV1, DefaultsV1
 };
@@ -142,16 +149,23 @@ export {
     IPostProcessingEffectsArrayV6
 };
 
-// this changes every version
 export {
-    ISettingsV6 as ISettings,
-    ICameraSettingsV6 as ICameraSettings, IOrthographicCameraSettingsV6 as IOrthographicCameraSettings, IPerspectiveCameraSettingsV6 as IPerspectiveCameraSettings, ICameraControlsSettingsV6 as ICameraControlsSettings,
-    ILightSceneSettingsV6 as ILightSceneSettings, IAmbientLightPropertiesV6 as IAmbientLightProperties, IDirectionalLightPropertiesV6 as IDirectionalLightProperties, IHemisphereLightPropertiesV6 as IHemisphereLightProperties, IPointLightPropertiesV6 as IPointLightProperties, ISpotLightPropertiesV6 as ISpotLightProperties, 
-    IPostProcessingEffectsArrayV6 as IPostProcessingEffectsArray
+    ISettingsV6_1, 
+    ICameraSettingsV6_1, IOrthographicCameraSettingsV6_1, IPerspectiveCameraSettingsV6_1, ICameraControlsSettingsV6_1,
+    ILightSceneSettingsV6_1, IAmbientLightPropertiesV6_1, IDirectionalLightPropertiesV6_1, IHemisphereLightPropertiesV6_1, IPointLightPropertiesV6_1, ISpotLightPropertiesV6_1, 
+    IPostProcessingEffectsArrayV6_1
 };
 
-export type versions = '1.0' | '2.0' | '3.0' | '3.1' | '3.2' | '3.3' | '3.4' | '4.0' | '4.1' | '5.0' | '6.0';
-export const previousVersion: versions[] = ['1.0' , '2.0' , '3.0' , '3.1' , '3.2' , '3.3' , '3.4' , '4.0' , '4.1', '5.0'];
+// this changes every version
+export {
+    ISettingsV6_1 as ISettings,
+    ICameraSettingsV6_1 as ICameraSettings, IOrthographicCameraSettingsV6_1 as IOrthographicCameraSettings, IPerspectiveCameraSettingsV6_1 as IPerspectiveCameraSettings, ICameraControlsSettingsV6_1 as ICameraControlsSettings,
+    ILightSceneSettingsV6_1 as ILightSceneSettings, IAmbientLightPropertiesV6_1 as IAmbientLightProperties, IDirectionalLightPropertiesV6_1 as IDirectionalLightProperties, IHemisphereLightPropertiesV6_1 as IHemisphereLightProperties, IPointLightPropertiesV6_1 as IPointLightProperties, ISpotLightPropertiesV6_1 as ISpotLightProperties, 
+    IPostProcessingEffectsArrayV6_1 as IPostProcessingEffectsArray
+};
+
+export type versions = '1.0' | '2.0' | '3.0' | '3.1' | '3.2' | '3.3' | '3.4' | '4.0' | '4.1' | '5.0' | '6.0' | '6.1';
+export const previousVersion: versions[] = ['1.0' , '2.0' , '3.0' , '3.1' , '3.2' , '3.3' , '3.4' , '4.0' , '4.1', '5.0', '6.0'];
 
 const settingsUtilities: {
     version: versions,
@@ -235,6 +249,12 @@ settingsUtilities.push({
     convertToPrevious: convertToPreviousV6,
     convertFromPrevious: convertFromPreviousV6,
     validate: validateV6
+});
+settingsUtilities.push({
+    version: '6.1',
+    convertToPrevious: convertToPreviousV6_1,
+    convertFromPrevious: convertFromPreviousV6_1,
+    validate: validateV6_1
 });
 
 /**
@@ -320,7 +340,8 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
             .map(match => parseInt(match!));
 
         if(upgradeVersions[1] >= 3 && upgradeVersions[2] >= 8) { // starting from 3.3.8.0
-            return '6.0';
+            // version 6.0 was never really in use due to a bug in the versioning
+            return '6.1';
         } else if(upgradeVersions[1] >= 3) { // starting from 3.3.0.0
             return '5.0';
         } else if((upgradeVersions[1] === 2 && upgradeVersions[2] >= 11)) { // starting from 3.2.11.0
@@ -344,4 +365,4 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
     return '1.0';
 };
 
-export const latestVersion = '6.0';
+export const latestVersion = '6.1';
