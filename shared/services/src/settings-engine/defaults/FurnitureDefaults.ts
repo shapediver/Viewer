@@ -4,7 +4,7 @@ export const FurnitureDefaults: () => ISettings = () => {
     return {
         build_date: '',
         build_version: '',
-        settings_version: '6.0',
+        settings_version: '6.1',
         ar: {
             enable: true,
             autoScaling: true
