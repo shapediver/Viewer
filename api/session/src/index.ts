@@ -250,8 +250,19 @@ import {
     ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
     ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend
 } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { isExportApi } from './implementation/ExportApi';
+import { isOutputApi } from './implementation/OutputApi';
+import { isSessionApi } from './implementation/SessionApi';
+import { isDraggingParameterApi } from './implementation/parameter/DraggingParameterApi';
+import { isDrawingParameterApi } from './implementation/parameter/DrawingParameterApi';
+import { isGumballParameterApi } from './implementation/parameter/GumballParameterApi';
+import { isParameterApi } from './implementation/parameter/ParameterApi';
+import { isSelectionParameterApi } from './implementation/parameter/SelectionParameterApi';
+import { isFileParameterApi } from './implementation/parameter/FileParameterApi';
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ISelectionParameterApi, IGumballParameterApi, IDrawingParameterApi, IDraggingParameterApi };
+export { isSessionApi, isExportApi, isFileParameterApi, isOutputApi, isParameterApi, isSelectionParameterApi, isGumballParameterApi, isDrawingParameterApi, isDraggingParameterApi };
+
 export { InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, DrawingParameterValue, IDrawingParameterSettings, IDrawingParameterJsonSchema };
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData };
 
@@ -259,7 +270,7 @@ export { createSession, sessions };
 
 export { addListener, removeListener, sceneTree, generalOptions, version, IGeneralOptions, defaultSettings };
 
-export { SessionCreationDefinition, ViewportCreationDefinition};
+export { SessionCreationDefinition, ViewportCreationDefinition };
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData };
 export { BUSY_MODE_DISPLAY, FLAG_TYPE, RENDERER_TYPE, SPINNER_POSITIONING, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITY_MODE, PARAMETER_TYPE, EXPORT_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, LOGGING_LEVEL, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, SESSION_SETTINGS_MODE };
 export { SystemInfo, TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_OUTPUT, EVENTTYPE_PARAMETER, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_GUMBALL, EVENTTYPE_DRAWING_TOOLS, EVENTTYPE_TASK };

@@ -284,7 +284,7 @@ export class SessionApi implements ISessionApi {
         return new Blob([result], { type: 'application/octet-stream' });
     }
 
-    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {
+    public async createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | (() => Promise<string>) | string | Promise<string> | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string> {
         const scope = 'createModelState';
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, parameterValues, 'object', false);
         this.#inputValidator.validateAndError(`SessionApi.${scope}`, omitSessionParameterValues, 'boolean', false);
@@ -444,3 +444,5 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Public Methods (32)
 }
+
+export const isSessionApi = (obj: unknown): obj is ISessionApi => obj instanceof SessionApi;

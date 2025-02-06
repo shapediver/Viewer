@@ -47,3 +47,5 @@ export class DraggingParameterApi extends ParameterApi<string> implements IDragg
 
     // #endregion Public Getters And Setters (6)
 }
+
+export const isDraggingParameterApi = (obj: unknown): obj is IDraggingParameterApi => obj instanceof DraggingParameterApi;

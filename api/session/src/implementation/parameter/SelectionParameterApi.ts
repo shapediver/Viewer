@@ -47,3 +47,5 @@ export class SelectionParameterApi extends ParameterApi<string> implements ISele
 
     // #endregion Public Getters And Setters (5)
 }
+
+export const isSelectionParameterApi = (obj: unknown): obj is ISelectionParameterApi => obj instanceof SelectionParameterApi;
