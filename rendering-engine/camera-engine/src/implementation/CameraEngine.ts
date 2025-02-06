@@ -118,6 +118,49 @@ export class CameraEngine implements ICameraEngine {
         for (const c in cameras)
             this.removeCamera(c);
 
+        /**
+         * Due to some inconsistency in the behavior of saving settings
+         * we save the orthographic default cameras, even if they were never changed.
+         * Now we check if the six cameras exist and were not change and if so, we never add them
+         */
+        const defaultCameras = ['top', 'bottom', 'left', 'right', 'front', 'back'];
+        let defaultCamerasInSettings = true;
+
+        for (const cameraId of defaultCameras) {
+            if(settingsEngine.settings.camera.cameraId === cameraId)  {
+                // the camera was set as the default, don't remove it
+                defaultCamerasInSettings = false;
+                break;
+            }
+
+            if (settingsEngine.settings.camera.cameras[cameraId]) {
+                // check if the direction is correct
+                let wasChanged = false;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.x !== 0;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.y !== 0;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.z !== 0;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.x !== 0;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.y !== 0;
+                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.z !== 0;
+
+                if (wasChanged) {
+                    defaultCamerasInSettings = false;
+                    break;
+                }
+            } else {
+                defaultCamerasInSettings = false;
+            }
+        }
+
+        if (defaultCamerasInSettings) {
+            // remove them from the settings
+            for (const cameraId of defaultCameras) {
+                delete settingsEngine.settings.camera.cameras[cameraId];
+            }
+            // and create them again as defaults
+            this.createDefaultCameras(true);
+        }
+
         for (const id in settingsEngine.settings.camera.cameras) {
             const cameraSetting = settingsEngine.settings.camera.cameras[id];
             if (cameraSetting.type === 'perspective') {
@@ -198,7 +241,7 @@ export class CameraEngine implements ICameraEngine {
         return camera;
     }
 
-    public createDefaultCameras(): void {
+    public createDefaultCameras(createOnlyOrthographic: boolean = false): void {
         const topCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'top', true);
         topCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
         const bottomCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'bottom', true);
@@ -211,9 +254,11 @@ export class CameraEngine implements ICameraEngine {
         frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
         const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back', true);
         backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
-        this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'orthographic');
-        const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');
-        this.assignCamera(camera.id);
+        if(createOnlyOrthographic === false) {
+            this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'orthographic');
+            const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');
+            this.assignCamera(camera.id);
+        }
     }
 
     public deactivateCameraEvents(): void {
@@ -242,6 +287,9 @@ export class CameraEngine implements ICameraEngine {
 
         for (const c in this.cameras) {
             const camera = this.cameras[c];
+
+            // don't save the default cameras
+            if (camera.isDefault) continue;
 
             if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
