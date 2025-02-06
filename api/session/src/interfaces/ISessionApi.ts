@@ -220,13 +220,13 @@ export interface ISessionApi {
      * 
      * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
      * @param omitSessionParameterValues If omitSessionParameterValues is set to true, the current parameter values of the session will not be stored with the model state, if no parameter value is provided. (Default: false)
-     * @param image The image to use for the model state. Can be a function that returns a data URL (`() => string`), a data URL (`string`), a Blob (`Blob`) or a File (`File`).
+     * @param image The image to use for the model state. Can be a function that returns a data URL (`() => string`), a function of a promise of a data URL (`() => Promise<string>`), a data URL (`string`), a promise of a data URL (`Promise<string>`), a Blob (`Blob`) or a File (`File`).
      * @param data The additional data for the model state.
      * @param arScene The AR scene for the model state. Can be a function that returns an ArrayBuffer ('ArrayBuffer'), a function that returns an ArrayBuffer (`() => ArrayBuffer`), a Blob (`Blob`), a function that returns an Blob (`() => Blob`), or a File (`File`).
      * 
      * @returns The id of the created model state.
      */
-    createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | string | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
+    createModelState(parameterValues?: { [key: string]: unknown; }, omitSessionParameterValues?: boolean, image?: (() => string) | (() => Promise<string>) | string | Promise<string> | Blob | File, data?: Record<string, any>, arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File): Promise<string>;
     /**
      * Customize the session.
      * 
