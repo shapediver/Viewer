@@ -30,3 +30,5 @@ export class DrawingParameterApi extends ParameterApi<string> implements IDrawin
 
     // #endregion Public Getters And Setters (2)
 }
+
+export const isDrawingParameterApi = (obj: unknown): obj is IDrawingParameterApi => obj instanceof DrawingParameterApi;

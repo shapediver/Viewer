@@ -156,3 +156,5 @@ export class ExportApi implements IExportApi {
 
     // #endregion Public Methods (2)
 }
+
+export const isExportApi = (obj: unknown): obj is IExportApi => obj instanceof ExportApi;

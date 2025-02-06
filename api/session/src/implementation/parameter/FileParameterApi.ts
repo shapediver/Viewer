@@ -32,3 +32,5 @@ export class FileParameterApi extends ParameterApi<File | Blob | string> impleme
 
     // #endregion Public Methods (2)
 }
+
+export const isFileParameterApi = (obj: unknown): obj is IFileParameterApi => obj instanceof FileParameterApi;

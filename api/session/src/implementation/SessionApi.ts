@@ -440,3 +440,5 @@ export class SessionApi implements ISessionApi {
 
     // #endregion Public Methods (32)
 }
+
+export const isSessionApi = (obj: unknown): obj is ISessionApi => obj instanceof SessionApi;

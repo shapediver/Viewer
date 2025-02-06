@@ -59,3 +59,5 @@ export class GumballParameterApi extends ParameterApi<string> implements IGumbal
 
     // #endregion Public Getters And Setters (9)
 }
+
+export const isGumballParameterApi = (obj: unknown): obj is IGumballParameterApi => obj instanceof GumballParameterApi;
