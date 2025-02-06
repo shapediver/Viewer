@@ -496,7 +496,7 @@ export class SessionEngine implements ISessionEngine {
     public async createModelState(
         parameterValues: { [key: string]: unknown; } = {},
         omitSessionParameterValues: boolean = false,
-        image?: (() => string) | string | Blob | File,
+        image?: (() => string) | (() => Promise<string>) | string | Promise<string> | Blob | File,
         data?: Record<string, any>,
         arScene?: (() => Promise<ArrayBuffer>) | ArrayBuffer | (() => Promise<Blob>) | Blob | File,
         retry = false
@@ -1842,7 +1842,7 @@ export class SessionEngine implements ISessionEngine {
      * @param image 
      * @returns 
      */
-    private async processImageInput(image: (() => string) | string | Blob | File): Promise<{
+    private async processImageInput(image: (() => string) | (() => Promise<string>) | string | Promise<string> | Blob | File): Promise<{
         imageData: ShapeDiverRequestFileUploadPart,
         arrayBuffer: ArrayBuffer
     }> {
@@ -1850,8 +1850,16 @@ export class SessionEngine implements ISessionEngine {
             return this._converter.constructImageData(image);
 
         let imageString: string;
-        if (typeof image === 'function') {
-            imageString = image();
+
+        if (image instanceof Promise) {
+            imageString = await image;
+        } else if (typeof image === 'function') {
+            const result = image();
+            if (result instanceof Promise) {
+                imageString = await result;
+            } else {
+                imageString = result;
+            }
         } else {
             imageString = image;
         }
