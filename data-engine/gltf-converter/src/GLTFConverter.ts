@@ -128,8 +128,7 @@ export class GLTFConverter {
         sceneNode.addChild(node);
 
         const sceneDef: IGLTF_v2_Scene = {
-            name: sceneNode.name,
-            nodes: []
+            name: sceneNode.name
         };
 
         const globalTransformationInverseId = this._uuidGenerator.create();
@@ -149,11 +148,17 @@ export class GLTFConverter {
         if (this._viewport) {
             if (this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
                 const nodeId = await this.convertNode(node);
-                if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
+                if (nodeId !== -1) {
+                    sceneDef.nodes = [];
+                    sceneDef.nodes?.push(nodeId);
+                }
             }
         } else {
             const nodeId = await this.convertNode(node);
-            if (nodeId !== -1) sceneDef.nodes?.push(nodeId);
+            if (nodeId !== -1) {
+                sceneDef.nodes = [];
+                sceneDef.nodes?.push(nodeId);
+            }
         }
 
         for (let i = 0; i < node.transformations.length; i++)
