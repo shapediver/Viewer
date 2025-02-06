@@ -176,3 +176,5 @@ export class OutputApi implements IOutputApi {
 
     // #endregion Public Methods (1)
 }
+
+export const isOutputApi = (obj: unknown): obj is IOutputApi => obj instanceof OutputApi;

@@ -169,3 +169,5 @@ export class ParameterApi<T> implements IParameterApi<T> {
 
     // #endregion Public Methods (4)
 }
+
+export const isParameterApi = (obj: unknown): obj is IParameterApi<unknown> => obj instanceof ParameterApi;
