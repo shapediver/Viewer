@@ -24,6 +24,7 @@ import {
     RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionProperties,
+    RestrictionPropertiesBase,
     SnapRestrictionProperties
 } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { Callbacks, PointsData, SettingsOptional } from './business/interfaces/IDrawingToolsManager';
@@ -58,7 +59,8 @@ export {
     GeometryRestrictionProperties,
     PointRestrictionProperties,
     LineRestrictionProperties,
-    CameraPlaneRestrictionProperties
+    CameraPlaneRestrictionProperties,
+    RestrictionPropertiesBase
 };
 
 export {

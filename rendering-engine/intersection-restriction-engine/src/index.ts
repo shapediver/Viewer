@@ -11,7 +11,8 @@ import {
     RayTraceResult,
     RESTRICTION_TYPE,
     RestrictionMetaData,
-    RestrictionProperties
+    RestrictionProperties,
+    RestrictionPropertiesBase
 } from './interfaces/IRestriction';
 import { EventManager } from './implementation/EventManager';
 import { GeometryMathManager } from './implementation/GeometryMathManager';
@@ -46,7 +47,8 @@ export {
     GeometryRestriction, GeometryRestrictionProperties,
     PointRestriction, PointRestrictionProperties,
     LineRestriction, LineRestrictionProperties,
-    CameraPlaneRestriction, CameraPlaneRestrictionProperties
+    CameraPlaneRestriction, CameraPlaneRestrictionProperties,
+    RestrictionPropertiesBase
 };
 
 export {
