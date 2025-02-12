@@ -53,7 +53,7 @@ export const convertToPrevious = (s: IGlobalSettings, v: versions): IGlobalSetti
             commitParameters: newSettings.general.commitParameters,
             pointSize: newSettings.general.pointSize,
             showMessages: newSettings.general.showMessages,
-            defaultMaterialColor: newSettings.material.defaultMaterialColor
+            defaultMaterialColor: newSettings.material ? newSettings.material.defaultMaterialColor : newSettings.general.defaultMaterialColor
         },
         light: newSettings.light,
         session: newSettings.session,

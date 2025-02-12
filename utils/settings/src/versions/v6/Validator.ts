@@ -11,13 +11,14 @@ export const generalSettingsSchema = z.object({
     commitSettings: z.boolean(),
     commitParameters: z.boolean(),
     pointSize: z.number(),
-    showMessages: z.boolean()
+    showMessages: z.boolean(),
+    defaultMaterialColor: z.string().optional(),
 });
 
 export const materialSettingsSchema = z.object({
     defaultMaterialColor: z.string(),
     materialOverrideType: z.string().optional(),
-});
+}).optional();
 
 export const environmentGeometrySettingsSchema = z.object({
     gridColor: z.string(),

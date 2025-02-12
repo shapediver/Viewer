@@ -5,8 +5,7 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 (async () => {
     const viewport = await SDV.createViewport({
         id: 'myViewport',
-        canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-        visibility: SDV.VISIBILITY_MODE.MANUAL
+        canvas: <HTMLCanvasElement>document.getElementById('canvas')
     });
 
     // read out query parameters for "ticket" and "modelViewUrl"
@@ -20,70 +19,5 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
         modelViewUrl: modelViewUrl ?? 'https://sddev3.eu-central-1.shapediver.com'
     });
 
-    const settings = SDV.defaultSettings['default'];
-    await session.applySettings({ version: '', viewer: { config: settings() } }, { viewport: { ar: true, camera: true, environment: true, general: true, light: true, postprocessing: true, scene: true } });
-
-    viewport.show = true;
-
-    // create the parameter ui on the right side
-    const uiDiv = document.createElement('div');
-    uiDiv.style.position = 'absolute';
-    uiDiv.style.width = '20rem';
-    document.body.appendChild(uiDiv);
-    createCustomUi([
-        <IBooleanElement>{
-            type: 'boolean',
-            value: viewport.contactShadowVisibility,
-            name: 'visibility',
-            onChangeCallback: async (value: boolean) => {
-                viewport.contactShadowVisibility = value;
-            }
-        },
-        <ISliderElement>{
-            type: 'slider',
-            value: viewport.contactShadowHeight,
-            min: 0,
-            max: 1,
-            step: 0.01,
-            name: 'contactShadowHeight',
-            onChangeCallback: async (value: number) => {
-                viewport.contactShadowHeight = +value;
-                viewport.update();
-            }
-        },
-        <ISliderElement>{
-            type: 'slider',
-            value: viewport.contactShadowDarkness,
-            min: 0,
-            max: 10,
-            step: 0.01,
-            name: 'contactShadowDarkness',
-            onChangeCallback: async (value: number) => {
-                viewport.contactShadowDarkness = +value;
-            }
-        },
-        <ISliderElement>{
-            type: 'slider',
-            value: viewport.contactShadowBlur,
-            min: 0,
-            max: 10,
-            step: 0.01,
-            name: 'contactShadowBlur',
-            onChangeCallback: async (value: number) => {
-                viewport.contactShadowBlur = +value;
-            }
-        },
-        <ISliderElement>{
-            type: 'slider',
-            value: viewport.contactShadowOpacity,
-            min: 0,
-            max: 1,
-            step: 0.01,
-            name: 'contactShadowOpacity',
-            onChangeCallback: async (value: number) => {
-                viewport.contactShadowOpacity = +value;
-            }
-        }
-    ], uiDiv);
 
 })();

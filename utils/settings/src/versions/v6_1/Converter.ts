@@ -30,7 +30,10 @@ export const convertFromPrevious = (s: IGlobalSettings, v: versions): IGlobalSet
         },
         rendering: oldSettings.rendering,
         postprocessing: oldSettings.postprocessing,
-        material: oldSettings.material
+        material: oldSettings.material ? oldSettings.material : {
+            defaultMaterialColor: oldSettings.general.defaultMaterialColor!,
+            materialOverrideType: undefined
+        }
     };
 
     /**

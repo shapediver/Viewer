@@ -29,13 +29,14 @@ export interface ISettings extends IGlobalSettings {
         commitSettings: boolean,
         commitParameters: boolean,
         pointSize: number,
-        showMessages: boolean
+        showMessages: boolean,
+        defaultMaterialColor?: string
     },
     light: ISettingsV5['light'],
     postprocessing: ISettingsV5['postprocessing'],
     rendering: ISettingsV5['rendering'],
     session: ISettingsV5['session'],
-    material: {
+    material?: {
         defaultMaterialColor: string,
         materialOverrideType?: string,
     }
