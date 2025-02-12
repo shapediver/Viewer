@@ -19,7 +19,7 @@ import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type GeometryRestrictionProperties = {
+export interface GeometryRestrictionProperties extends RestrictionPropertiesBase {
     /**
      * The nodes to restrict the interaction to.
      */
@@ -32,7 +32,19 @@ export type GeometryRestrictionProperties = {
      * The color of the wireframe.
      */
     wireframeColor?: string;
-} & RestrictionPropertiesBase;
+    /**
+     * If the restriction should snap to vertices. (default: true)
+     */
+    snapToVertices?: boolean;
+    /**
+     * If the restriction should snap to edges. (default: true)
+     */
+    snapToEdges?: boolean;
+    /**
+     * If the restriction should snap to faces. (default: true)
+     */
+    snapToFaces?: boolean;
+}
 
 // #endregion Type aliases (1)
 
@@ -96,10 +108,6 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     // #endregion Constructors (1)
 
     // #region Public Getters And Setters (8)
-
-    public get priority(): number {
-        return 0;
-    }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
         return this.#snapRestrictions;

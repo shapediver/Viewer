@@ -15,7 +15,8 @@ import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type CameraPlaneRestrictionProperties = RestrictionPropertiesBase;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface CameraPlaneRestrictionProperties extends RestrictionPropertiesBase {}
 
 // #endregion Type aliases (1)
 
@@ -42,10 +43,6 @@ export class CameraPlaneRestriction extends AbstractRestriction implements IRest
     // #endregion Constructors (1)
 
     // #region Public Getters And Setters (2)
-
-    public get priority(): number {
-        return -1;
-    }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
         return this.#snapRestrictions;

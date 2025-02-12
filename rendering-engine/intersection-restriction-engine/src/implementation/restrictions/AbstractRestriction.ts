@@ -22,13 +22,13 @@ export abstract class AbstractRestriction implements IRestriction {
     readonly #viewport: IViewportApi;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
+    #priority: number;
     #rotation: { axis: vec3; angle: number; };
     #showVisualization: boolean = false;
 
     protected _enabled: boolean = true;
     protected _enabledEditable: boolean = true;
     protected _object3D!: THREE.Object3D;
-    protected _priority: number = -1;
     protected _snapRestrictions: { [key: string]: ISnapRestriction } = {};
 
     // #endregion Properties (12)
@@ -41,6 +41,7 @@ export abstract class AbstractRestriction implements IRestriction {
         this.#id = id;
         this.#type = properties.type;
         this.#rotation = properties.rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
+        this.#priority = properties.priority || -1;
         this.createGridHelperObject();
     }
 
@@ -64,11 +65,11 @@ export abstract class AbstractRestriction implements IRestriction {
     }
 
     public get priority(): number {
-        return this._priority;
+        return this.#priority;
     }
 
     public set priority(value: number) {
-        this._priority = value;
+        this.#priority = value;
     }
 
     public get rotation(): { axis: vec3; angle: number; } {

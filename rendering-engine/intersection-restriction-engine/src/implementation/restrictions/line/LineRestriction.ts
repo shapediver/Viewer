@@ -15,11 +15,20 @@ import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type LineRestrictionProperties = {
+export interface LineRestrictionProperties extends RestrictionPropertiesBase {
+    /**
+     * The first point of the line.
+     */
     point1: vec3;
+    /**
+     * The second point of the line.
+     */
     point2: vec3;
+    /**
+     * The radius in which the restriction is active.
+     */
     radius?: number;
-} & RestrictionPropertiesBase;
+}
 
 // #endregion Type aliases (1)
 
@@ -67,10 +76,6 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
 
     public get point2(): vec3 {
         return this.#point2;
-    }
-
-    public get priority(): number {
-        return -1;
     }
 
     public get radius(): number {

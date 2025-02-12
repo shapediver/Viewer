@@ -13,12 +13,33 @@ import {
 } from './implementation/utils/PatternUtils';
 import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
 import {
+    AngularRestrictionApi,
+    AngularRestrictionProperties,
+    AxisRestrictionApi,
+    AxisRestrictionProperties,
+    CameraPlaneRestrictionApi,
     CameraPlaneRestrictionProperties,
+    DraggingRestrictionMetaData,
+    DrawingRestrictionMetaData,
+    GeometryRestrictionApi,
     GeometryRestrictionProperties,
+    GridRestrictionApi,
+    GridRestrictionProperties,
+    IRestriction,
+    IRestrictionApi,
+    ISnapRestriction,
+    ISnapRestrictionApi,
+    LineRestrictionApi,
     LineRestrictionProperties,
+    PlaneRestrictionApi,
     PlaneRestrictionProperties,
+    PointRestrictionApi,
     PointRestrictionProperties,
-    RestrictionProperties
+    RESTRICTION_TYPE,
+    RestrictionMetaData,
+    RestrictionProperties,
+    RestrictionPropertiesBase,
+    SnapRestrictionProperties
 } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
@@ -92,5 +113,22 @@ export {
 };
 
 export {
-    RestrictionDefinition, RestrictionProperties, PointRestrictionProperties, CameraPlaneRestrictionProperties, GeometryRestrictionProperties, LineRestrictionProperties, PlaneRestrictionProperties
+    IRestriction, ISnapRestriction
+};
+
+export {
+    RESTRICTION_TYPE,
+    RestrictionDefinition, RestrictionProperties, RestrictionMetaData, DrawingRestrictionMetaData, DraggingRestrictionMetaData, SnapRestrictionProperties,
+    PlaneRestrictionProperties,
+    AngularRestrictionProperties, AxisRestrictionProperties, GridRestrictionProperties,
+    GeometryRestrictionProperties,
+    PointRestrictionProperties,
+    LineRestrictionProperties,
+    CameraPlaneRestrictionProperties,
+    RestrictionPropertiesBase
+};
+
+export {
+    IRestrictionApi, ISnapRestrictionApi,
+    PlaneRestrictionApi, AngularRestrictionApi, AxisRestrictionApi, GridRestrictionApi, GeometryRestrictionApi, CameraPlaneRestrictionApi, PointRestrictionApi, LineRestrictionApi
 };

@@ -14,10 +14,16 @@ import { vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type PointRestrictionProperties = {
+export interface PointRestrictionProperties extends RestrictionPropertiesBase {
+    /**
+     * The location of the restriction.
+     */
     point: vec3;
+    /**
+     * The radius in which the restriction is active.
+     */
     radius?: number;
-} & RestrictionPropertiesBase;
+}
 
 // #endregion Type aliases (1)
 
@@ -50,10 +56,6 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
 
     public get point(): vec3 {
         return this.#point;
-    }
-
-    public get priority(): number {
-        return -1;
     }
 
     public get radius(): number {

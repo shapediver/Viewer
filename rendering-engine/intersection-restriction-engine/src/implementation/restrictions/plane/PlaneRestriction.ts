@@ -27,7 +27,7 @@ import { mat4, vec3 } from 'gl-matrix';
 
 // #region Type aliases (1)
 
-export type PlaneRestrictionProperties = {
+export interface PlaneRestrictionProperties extends RestrictionPropertiesBase {
     /**
      * The origin of the plane.
      * 
@@ -61,7 +61,7 @@ export type PlaneRestrictionProperties = {
      * axis snap restriction
      */
     axisSnapRestriction?: AxisRestrictionProperties;
-} & RestrictionPropertiesBase;
+}
 
 // #endregion Type aliases (1)
 
@@ -137,10 +137,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
     public set origin(value: vec3) {
         this.#origin = value;
         this.updatePlaneDefinition();
-    }
-
-    public get priority(): number {
-        return -1;
     }
 
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
