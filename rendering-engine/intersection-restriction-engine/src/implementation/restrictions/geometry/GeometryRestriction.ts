@@ -90,6 +90,9 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#geometryMathManager = geometryMathManager;
         this.#wireframe = properties.wireframe ?? true;
         this.#wireframeColor = properties.wireframeColor ?? this.#settings.points.color_1 as string;
+        this.#snapToVertices = properties.snapToVertices ?? true;
+        this.#snapToEdges = properties.snapToEdges ?? true;
+        this.#snapToFaces = properties.snapToFaces ?? true;
 
         this.#sceneBoundingSphereRadius = sceneTree.root.boundingBox.boundingSphere.radius;
         this.updateIntersectionThresholds();
