@@ -21,12 +21,9 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
     // create a session
     const session = await SDV.createSession({
         ticket:
-            '1636173cca09293804fb0084bb4726040b742d1a17fb18dd1801ef70a2cd3c76a45c2a442c6dc602495c43c39f2a5dd1e168a8f8f5edfebca7ad13b6b3fecdb60b0e1d914a8a25a1b16ba61ac9ff2a5a84e27cbfed31c5a4d1e5b416e78abd86a8f76a99b1eb5c-39e4dbd01454d7afbd92052722e1743f',
-        modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
-        id: 'mySession',
-        initialParameterValues: {
-            'points': '{"points":[]}'
-        }
+            '4f55cd2f7a647e0f1ea41563597fddaa77ee3ba2be450d2940b322015f2711744da21c252e0b133b56921a738e14636dc861cd7c3c0e5b23f58fac75c024c3f051c1ef1ea70add71dada25b1ec36efb1c563fa7270b5cab7f0a190ce50d81839fbbe5e86c47908-dba7ecfee7a1c6a4c53aa3203b6e4b23',
+        modelViewUrl: 'https://sdr8euc1.eu-central-1.shapediver.com',
+        id: 'mySession'
     });
     
     const lightScene = viewport.lightScene!;
@@ -48,6 +45,8 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
       lightsWithShadows[i].shadowMapBias = -0.0005;
     }
 
+    const geometryRestrictionOutput = session.getOutputByName('GeometryRestriction')[0].node!;
+
     const customizationProperties: Settings = {
         general: {
             // If the drawing tool is updated automatically when the drawing is changed.
@@ -63,15 +62,18 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
             // The maximum number of points
             maxPoints: 25,
         },
-        // restrictions: {
-        //     // Add a geometry restriction
-        //     'geometry': {
-        //         type: RESTRICTION_TYPE.GEOMETRY,
-        //         // The node to restrict is set below
-        //         nodes: [],
-        //         wireframeColor: '#ffffff',
-        //     }
-        // }
+        restrictions: {
+            // Add a geometry restriction
+            'geometry': {
+                type: RESTRICTION_TYPE.GEOMETRY,
+                // The node to restrict is set below
+                nodes: [geometryRestrictionOutput],
+                wireframeColor: '#ffffff',
+                snapToEdges: false,
+                snapToVertices: false,
+
+            }
+        }
     };
 
     /**
