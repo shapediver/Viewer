@@ -15,9 +15,12 @@ import { createCustomUi, IBooleanElement, ISliderElement } from '@shapediver/vie
 
     const session = await SDV.createSession({
         id: 'mySession',
-        ticket: ticket ?? 'a63ca5e1316bd6ca60e4c2ac679e1cd857ce81f3f4fb2a41f65d671a614dd80144a9a0184326021130e254097e3034b0e97ca501d288bbf03a88ea488f941b8b3d43e2c20c074d3e13669a1b3df3cd7ff1e30fc6857a97957b9c800fa91d95b0d137e6cefe0991-c09098a232337160689974cc2734d454',
-        modelViewUrl: modelViewUrl ?? 'https://sddev3.eu-central-1.shapediver.com'
+        ticket: ticket ?? 'aa8f99304bdad13693a123c9187a6a764c13345c448814ad7c70d79dae1b555b72795fbb2fd6faa368ff8cdee1368821771bec38f4b39c5e9fb7955be8c2b5f8f8da605fd4cdc1708402118ad706e8578a108c1fb6b6429f1e7279e19b12d0944a317848fa3ba8-78c86ce3f2f177c0b6ac5dafbb94e84e',
+        modelViewUrl: modelViewUrl ?? 'https://sdr8euc1.eu-central-1.shapediver.com'
     });
 
+
+    viewport.environmentMapAsBackground = true;
+    viewport.environmentMap = SDV.ENVIRONMENT_MAP_CUBE.GEORGENTOR;
 
 })();
