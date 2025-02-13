@@ -24,5 +24,8 @@ export interface ISettings extends IGlobalSettings {
     postprocessing: ISettingsV6['postprocessing'],
     rendering: ISettingsV6['rendering'],
     session: ISettingsV6['session'],
-    material:  ISettingsV6['material']
+    material: {
+        defaultMaterialColor: string,
+        materialOverrideType?: string,
+    }
 }
