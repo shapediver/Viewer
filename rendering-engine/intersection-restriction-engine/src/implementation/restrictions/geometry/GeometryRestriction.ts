@@ -37,9 +37,17 @@ export interface GeometryRestrictionProperties extends RestrictionPropertiesBase
      */
     snapToVertices?: boolean;
     /**
+     * The radius in which the restriction should snap to vertices. (default: 2.5% of the scene bounding sphere radius in screen space)
+     */
+    snapToVerticesRadius?: number;
+    /**
      * If the restriction should snap to edges. (default: true)
      */
     snapToEdges?: boolean;
+    /**
+     * The radius in which the restriction should snap to edges. (default: 2.5% of the scene bounding sphere radius in screen space)
+     */
+    snapToEdgesRadius?: number;
     /**
      * If the restriction should snap to faces. (default: true)
      */
@@ -73,8 +81,10 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
     #settings: IVisualizationSettings;
     #snapRestrictions: { [key: string]: ISnapRestriction; } = {};
     #snapToEdges: boolean = true;
+    #snapToEdgesRadius?: number;
     #snapToFaces: boolean = true;
     #snapToVertices: boolean = true;
+    #snapToVerticesRadius?: number;
     #visualizationObject: THREE.Object3D = new THREE.Object3D();
     #wireframe: boolean;
     #wireframeColor: string;
@@ -93,6 +103,8 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#snapToVertices = properties.snapToVertices ?? true;
         this.#snapToEdges = properties.snapToEdges ?? true;
         this.#snapToFaces = properties.snapToFaces ?? true;
+        this.#snapToVerticesRadius = properties.snapToVerticesRadius;
+        this.#snapToEdgesRadius = properties.snapToEdgesRadius;
 
         this.#sceneBoundingSphereRadius = sceneTree.root.boundingBox.boundingSphere.radius;
         this.updateIntersectionThresholds();
@@ -204,9 +216,9 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                 const vertexCVec3 = vec3.fromValues(vertexC.x, vertexC.y, vertexC.z);
 
                 if (this.#snapToVertices === true) {
-                    const distanceA = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, vertexAVec3, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
-                    const distanceB = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, vertexBVec3, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
-                    const distanceC = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, vertexCVec3, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
+                    const distanceA = this.checkDistance(intersectionPointVec3, vertexAVec3, this.#snapToVerticesRadius);
+                    const distanceB = this.checkDistance(intersectionPointVec3, vertexBVec3, this.#snapToVerticesRadius);
+                    const distanceC = this.checkDistance(intersectionPointVec3, vertexCVec3, this.#snapToVerticesRadius);
 
                     // part 1 - check if the intersection point is close to a vertex
                     if (distanceA.check && distanceA.distanceSquared < distanceB.distanceSquared && distanceA.distanceSquared < distanceC.distanceSquared) {
@@ -227,10 +239,10 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                     const closestPointOnEdgeCA = this.#geometryMathManager.closestPointOnLine(vertexCVec3, vertexAVec3, intersectionPointVec3);
 
                     // create the distances
-                    const distanceAB = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, closestPointOnEdgeAB, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
-                    const distanceBC = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, closestPointOnEdgeBC, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
-                    const distanceCA = this.#geometryMathManager.screenSpaceDistanceCheck(intersectionPointVec3, closestPointOnEdgeCA, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
-
+                    const distanceAB = this.checkDistance(intersectionPointVec3, closestPointOnEdgeAB, this.#snapToEdgesRadius);
+                    const distanceBC = this.checkDistance(intersectionPointVec3, closestPointOnEdgeBC, this.#snapToEdgesRadius);
+                    const distanceCA = this.checkDistance(intersectionPointVec3, closestPointOnEdgeCA, this.#snapToEdgesRadius);
+                    
                     // check if the intersection point is close to an edge
                     if (distanceAB.check && distanceAB.distanceSquared < distanceBC.distanceSquared && distanceAB.distanceSquared < distanceCA.distanceSquared) {
                         return { point: closestPointOnEdgeAB, restriction: this };
@@ -296,6 +308,28 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#rayCasterParams.Points.threshold = this.#sceneBoundingSphereRadius * this.#pointIntersectionPercentage;
         this.#rayCasterParams.Line.threshold = this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
         this.#rayCasterParams.Line2!.threshold = this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
+    }
+
+    /**
+     * We check the distance between two points.
+     * If a radius is given, we check if the distance is smaller than the radius.
+     * If no radius is given, we move to the screen space distance check.
+     * 
+     * @param point1 
+     * @param point2 
+     * @param radius 
+     * @returns 
+     */
+    private checkDistance(point1: vec3, point2: vec3, radius?: number): {
+        distanceSquared: number;
+        check: boolean;
+    } {
+        if(radius !== undefined) {
+            const distance = vec3.sqrDist(point1, point2);
+            return { distanceSquared: distance * distance, check: distance < radius };
+        } else {
+            return this.#geometryMathManager.screenSpaceDistanceCheck(point1, point2, this.#settings.points.size_0! * this.#settings.distanceMultiplicationFactor);
+        }
     }
 
     // #endregion Private Methods (1)
