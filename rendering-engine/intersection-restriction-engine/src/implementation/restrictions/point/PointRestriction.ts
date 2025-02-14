@@ -8,7 +8,7 @@ import {
     RestrictionResult
 } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
-import { ITreeNode, IViewportApi, Sphere } from '@shapediver/viewer';
+import { ITreeNode, IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
 import { vec3 } from 'gl-matrix';
 
@@ -33,7 +33,6 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
     // #region Properties (4)
 
     readonly #viewport: IViewportApi;
-    readonly #sphere: Sphere;
 
     #point: vec3;
     #radius: number;
@@ -49,7 +48,6 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
         this.#viewport = viewport;
         this.#point = properties.point;
         this.#radius = properties.radius || 0;
-        this.#sphere = new Sphere(this.#point, this.#radius);
     }
 
     // #endregion Constructors (1)
@@ -73,14 +71,24 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
     // #region Public Methods (1)
 
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
-        const distance = this.#sphere.intersect(ray.origin, ray.direction);
+        const closestPointVector = vec3.sub(vec3.create(), this.#point, ray.origin);
+        const t = Math.max(0, vec3.dot(closestPointVector, ray.direction));
 
-        if (distance) {
-            const closestPoint = vec3.add(vec3.create(), ray.origin, vec3.scale(vec3.create(), ray.direction, distance));
+        const closestPoint = vec3.create();
+        vec3.scaleAndAdd(closestPoint, ray.origin, ray.direction, t);
+
+
+        const distance = vec3.squaredDistance(closestPoint, this.#point);
+        if (distance < this.#radius * this.#radius) {
+            // now we calculate the closest point on the cylinder to the ray
+            const offset = Math.sqrt(this.#radius * this.#radius - distance);
+            // Compute the entry distance
+            const entry = t - offset;
+            const closestPointOnRay = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
 
             return {
                 point: this.#point,
-                closestPointOnRay: closestPoint,
+                closestPointOnRay,
                 restriction: this,
             };
         }
