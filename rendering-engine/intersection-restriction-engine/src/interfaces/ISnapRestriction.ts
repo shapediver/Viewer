@@ -75,10 +75,11 @@ export interface ISnapRestriction {
      * 
      * @param ray The ray that is used for the restriction.
      * @param point The position of the point.
+     * @param distance The distance of the point to the ray.
      * @param metaData The meta data of the point.
      * @returns The restricted position of the point.
      */
-    snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined;
+    snap(ray: IRay, point: vec3, distance: number, metaData?: RestrictionMetaData): RestrictionResult | undefined;
 
     // #endregion Public Methods (2)
 }

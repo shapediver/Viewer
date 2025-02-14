@@ -123,7 +123,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
     // #region Public Methods (2)
 
-    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined {
+    public snap(ray: IRay, point: vec3, distance: number, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (!isDrawingRestriction(metaData)) return;
 
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
@@ -209,7 +209,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             if (crossProductLength < 0.001) {
                 vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-                return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
+                return { targetPoint: resultPointNextAngle, distanceClosestPointToTargetPointSquared: vec3.sqrDist(resultPointNextAngle, point), closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, restriction: this.#planeRestriction, snapRestriction: this };
             }
 
             const t = vec3.sub(vec3.create(), previousPointProjected, nextPointProjected);
@@ -221,7 +221,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             if (tValue < 0 || uValue < 0) {
                 vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-                return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
+                return { targetPoint: resultPointNextAngle, distanceClosestPointToTargetPointSquared: vec3.sqrDist(resultPointNextAngle, point), closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, restriction: this.#planeRestriction, snapRestriction: this };
             }
 
             const intersection = vec3.add(vec3.create(), nextPointProjected, vec3.scale(vec3.create(), rayDirectionNext, tValue));
@@ -232,7 +232,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(intersection, intersection, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: intersection, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: intersection, distanceClosestPointToTargetPointSquared: vec3.sqrDist(intersection, point), closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, restriction: this.#planeRestriction, snapRestriction: this };
         }
 
         // check which distance to the projection is smaller
@@ -242,14 +242,14 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(resultPointNextAngle, resultPointNextAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: resultPointNextAngle, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: resultPointNextAngle, distanceClosestPointToTargetPointSquared: vec3.sqrDist(resultPointNextAngle, point), closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, restriction: this.#planeRestriction, snapRestriction: this };
         } else {
             this.#labelPrevious = this.createGrid(this.#labelPrevious, previousPointFromData, closestAnglePrevious);
             this.#activePolarGrids.previous = true;
 
             // reverse the projection to the original coordinate system
             vec3.transformMat4(resultPointPreviousAngle, resultPointPreviousAngle, this.#planeRestriction.transformationFromXYPlaneMatrix);
-            return { point: resultPointPreviousAngle, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: resultPointPreviousAngle, distanceClosestPointToTargetPointSquared: vec3.sqrDist(resultPointPreviousAngle, point), closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, restriction: this.#planeRestriction, snapRestriction: this };
         }
     }
 

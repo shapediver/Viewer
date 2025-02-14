@@ -90,7 +90,7 @@ export class AxisRestriction extends AbstractSnapRestriction implements ISnapRes
 
     // #region Public Methods (2)
 
-    public snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined {
+    public snap(ray: IRay, point: vec3, distance: number, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (this.enabled === false) return;
         if (!metaData || !metaData.startPoint) return;
 
@@ -108,19 +108,19 @@ export class AxisRestriction extends AbstractSnapRestriction implements ISnapRes
         if (xPressed) {
             const snappedPoint = this.#geometryMathManager.closestPoint({ origin: metaData.startPoint, direction: this.#planeRestriction.vectorU }, point);
             const closestPointOnRay = this.#geometryMathManager.closestPoint(ray, snappedPoint);
-            return { point: snappedPoint, closestPointOnRay, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: snappedPoint, closestIntersectionPoint: closestPointOnRay, distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, closestPointOnRay), distanceClosestPointToTargetPointSquared: vec3.sqrDist(snappedPoint, closestPointOnRay), restriction: this.#planeRestriction, snapRestriction: this };
         } else if (yPressed) {
             const snappedPoint = this.#geometryMathManager.closestPoint({ origin: metaData.startPoint, direction: this.#planeRestriction.vectorV }, point);
             const closestPointOnRay = this.#geometryMathManager.closestPoint(ray, snappedPoint);
-            return { point: snappedPoint, closestPointOnRay, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: snappedPoint, closestIntersectionPoint: closestPointOnRay, distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, closestPointOnRay), distanceClosestPointToTargetPointSquared: vec3.sqrDist(snappedPoint, closestPointOnRay), restriction: this.#planeRestriction, snapRestriction: this };
         } else if (zPressed) {
             const snappedPoint = this.#geometryMathManager.closestPointsRayRay({ origin: metaData.startPoint, direction: this.#planeRestriction.normal }, ray).closestPointOnRay1;
             const closestPointOnRay = this.#geometryMathManager.closestPoint(ray, snappedPoint);
-            return { point: snappedPoint, closestPointOnRay, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: snappedPoint, closestIntersectionPoint: closestPointOnRay, distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, closestPointOnRay), distanceClosestPointToTargetPointSquared: vec3.sqrDist(snappedPoint, closestPointOnRay), restriction: this.#planeRestriction, snapRestriction: this };
         } else if (pPressed) {
             const snappedPoint = this.#geometryMathManager.closestPointOnPlane(this.#planeRestriction.origin, this.#planeRestriction.normal, point);
             const closestPointOnRay = this.#geometryMathManager.closestPoint(ray, snappedPoint);
-            return { point: snappedPoint, closestPointOnRay, restriction: this.#planeRestriction, snapRestriction: this };
+            return { targetPoint: snappedPoint, closestIntersectionPoint: closestPointOnRay, distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, closestPointOnRay), distanceClosestPointToTargetPointSquared: vec3.sqrDist(snappedPoint, closestPointOnRay), restriction: this.#planeRestriction, snapRestriction: this };
         }
     }
 

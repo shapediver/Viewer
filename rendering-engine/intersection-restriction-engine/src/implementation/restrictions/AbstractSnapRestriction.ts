@@ -101,7 +101,7 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 
     // #region Public Abstract Methods (1)
 
-    public abstract snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined;
+    public abstract snap(ray: IRay, point: vec3, distance: number, metaData?: RestrictionMetaData): RestrictionResult | undefined;
 
     // #endregion Public Abstract Methods (1)
 

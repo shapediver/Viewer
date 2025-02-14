@@ -187,12 +187,12 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
             const t = (vec3.dot(origin, this.#normal) - vec3.dot(ray.origin, this.#normal)) / vec3.dot(ray.direction, this.#normal);
             const intersection = vec3.add(vec3.create(), ray.origin, vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(t, t, t)));
 
-            return this.snap(ray, intersection, metaData);
+            return this.snap(ray, intersection, t, metaData);
         } else if (isDraggingRestriction(metaData)) {
             const distance = this.#plane.intersect(ray.origin, ray.direction);
             if (distance && distance > 0) {
                 const intersection = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
-                return this.snap(ray, intersection, metaData);
+                return this.snap(ray, intersection, distance, metaData);
             }
         }
     }
@@ -251,7 +251,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         mat4.multiply(this.#transformationFromXYPlaneMatrix, this.#transformationFromXYPlaneMatrix, pivotMatrixInverse);
     }
 
-    private snap(ray: IRay, point: vec3, metaData?: RestrictionMetaData): RestrictionResult | undefined {
+    private snap(ray: IRay, point: vec3, distance: number, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         if (this.enabled === false) return;
 
         if (this.#cameraId !== this.#viewport.camera!.id) this.updatePlaneDefinition();
@@ -269,7 +269,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         for (const snapRestrictions of Object.values(groupedSnapRestrictions)) {
             const results = [];
             for (const snapRestriction of snapRestrictions) {
-                results.push(snapRestriction.snap(ray, point, metaData));
+                results.push(snapRestriction.snap(ray, point, distance, metaData));
             }
 
             const indexedResults = results.map((value, index) => ({ index, value }));

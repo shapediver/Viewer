@@ -122,7 +122,7 @@ export class GridRestriction extends AbstractSnapRestriction implements ISnapRes
     // #region Public Methods (2)
 
     // public get
-    public snap(ray: IRay, point: vec3, metaData: RestrictionMetaData): RestrictionResult | undefined {
+    public snap(ray: IRay, point: vec3, distance: number, metaData: RestrictionMetaData): RestrictionResult | undefined {
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
         if (this.enabled === false && !(metaData?.pressedKeys?.length === 1 && metaData?.pressedKeys[0] === this.#activationKey)) return;
 
@@ -166,7 +166,7 @@ export class GridRestriction extends AbstractSnapRestriction implements ISnapRes
         // Move the snapped point back to the original coordinate system
         const snappedPoint = vec3.transformMat4(vec3.create(), snappedOffset, this.#planeRestriction.transformationFromXYPlaneMatrix);
 
-        return { point: snappedPoint, restriction: this.#planeRestriction, snapRestriction: this };
+        return { targetPoint: snappedPoint, closestIntersectionPoint: point, distanceOriginToClosestIntersectionPointSquared: distance, distanceClosestPointToTargetPointSquared: vec3.sqrDist(snappedPoint, point), restriction: this.#planeRestriction, snapRestriction: this };
     }
 
     public updatePlaneDefinition(): void {
