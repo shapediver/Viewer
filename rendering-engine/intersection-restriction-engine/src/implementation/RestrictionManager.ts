@@ -232,7 +232,7 @@ export class RestrictionManager implements IRestrictionManager {
                 }
             } else if (result.restriction.priority === restrictionResult.restriction.priority) {
                 // if the priority is the same, we check the distance
-                if (result.distanceOriginToClosestIntersectionPointSquared < restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+                if (result.distanceClosestPointToTargetPointSquared < restrictionResult.distanceClosestPointToTargetPointSquared) {
                     restrictionResult = result;
                 }
             }
