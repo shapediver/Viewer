@@ -118,7 +118,6 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
         const distance = vec3.distance(pointA, pointB);
         if (distance < this.#radius) {
             return {
-                distance,
                 point: pointB,
                 closestPointOnRay: pointA,
                 restriction: this

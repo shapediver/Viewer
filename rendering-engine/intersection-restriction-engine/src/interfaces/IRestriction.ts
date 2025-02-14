@@ -94,9 +94,10 @@ export interface RestrictionPropertiesBase {
 
 export type RayTraceResult = {
  distance?: number,
+ distanceSquared?: number,
  dragAnchor?: IDragAnchor,
  point: vec3,
- restriction: IRestriction | ISnapRestriction
+ restriction: IRestriction,
  transformation?: mat4,
 };
 

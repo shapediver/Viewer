@@ -294,7 +294,6 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
 
         return {
             point: point,
-            closestPointOnRay: point,
             restriction: this
         };
     }

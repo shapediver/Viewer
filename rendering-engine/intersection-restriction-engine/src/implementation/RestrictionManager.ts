@@ -191,37 +191,60 @@ export class RestrictionManager implements IRestrictionManager {
     }
 
     public rayTrace(ray: IRay, metaData: DrawingRestrictionMetaData | DraggingRestrictionMetaData): RayTraceResult | undefined {
-        let rayTracingResult: RayTraceResult | undefined = undefined;
+        const rayTracingResults: RayTraceResult[] = [];
 
         metaData.pressedKeys = this.getPressedKeys();
 
-        // create an array of arrays with the restrictions sorted by priority
-        const restrictionsSorted = Object.values(this.#restrictions).sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-        for (const restriction of restrictionsSorted) {
-            if (rayTracingResult && rayTracingResult.restriction.priority > restriction.priority) break;
+        for (const restrictionId in this.#restrictions) {
+            const restriction = this.#restrictions[restrictionId];
 
             const hit = restriction.rayTrace(ray, metaData);
             if (!hit) continue;
+            
+            const distanceSquared = hit.distance !== undefined ? hit.distance * hit.distance : vec3.squaredDistance(ray.origin, hit.closestPointOnRay || hit.point);
+            if (distanceSquared >= Infinity) continue;
 
-            const distance = hit.distance !== undefined ? hit.distance : vec3.squaredDistance(ray.origin, hit.point);
-            if (distance < (rayTracingResult ? rayTracingResult.distance! : Infinity)) {
-                if (isDraggingRestriction(metaData)) {
-                    const { matrix, dragAnchor } = calculateDragMatrix(hit.point, (hit.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, hit.closestPointOnRay || hit.point);
+            if (isDraggingRestriction(metaData)) {
+                const { matrix, dragAnchor } = calculateDragMatrix(hit.point, (hit.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, hit.closestPointOnRay || hit.point);
 
-                    rayTracingResult = {
-                        restriction: restriction,
-                        transformation: matrix,
-                        dragAnchor: dragAnchor,
-                        point: hit.point,
-                        distance: distance
-                    };
-                } else {
-                    rayTracingResult = {
-                        restriction: restriction,
-                        point: hit.point,
-                        distance: distance
-                    };
+                rayTracingResults.push({
+                    restriction: restriction,
+                    transformation: matrix,
+                    dragAnchor: dragAnchor,
+                    point: hit.point,
+                    distanceSquared: distanceSquared
+                });
+            } else {
+                rayTracingResults.push({
+                    restriction: restriction,
+                    point: hit.point,
+                    distanceSquared: distanceSquared
+                });
+            }
+        }
+
+        if (rayTracingResults.length === 0) return;
+
+        // first, sort the results by distance
+        rayTracingResults.sort((a, b) => a.distanceSquared! - b.distanceSquared!);
+
+        /**
+         * We iterate over the results and check if the restriction with the higher priority has a radius 
+         * and if the distance of the hit of the restriction with the lower priority is within the radius of the restriction with the higher priority.
+         * 
+         * If this is the case, we set the restriction with the higher priority as the hit restriction.
+         */
+        let rayTracingResult: RayTraceResult = rayTracingResults[0];
+        for (const result of rayTracingResults) {
+            // if the priority of the restriction is higher than the priority of the restriction that is currently hit
+            if (result.restriction.priority > rayTracingResult.restriction.priority) {
+                // if the restriction with the higher priority has a radius
+                if (result.restriction instanceof PointRestriction || result.restriction instanceof LineRestriction) {
+                    // if the distance of the hit of the restriction with the lower priority is within the radius of the restriction with the higher priority
+                    // we set the restriction with the higher priority as the hit restriction
+                    if (vec3.squaredDistance(result.point, rayTracingResult.point) < result.restriction.radius * result.restriction.radius) {
+                        rayTracingResult = result;
+                    }
                 }
             }
         }
@@ -234,6 +257,11 @@ export class RestrictionManager implements IRestrictionManager {
                 }
             }
         }
+
+        // calculate the distance of the hit point for the final result
+        if(rayTracingResult.distance === undefined && rayTracingResult.distanceSquared !== undefined)
+            rayTracingResult.distance = Math.sqrt(rayTracingResult.distanceSquared);
+
         return rayTracingResult;
     }
 
