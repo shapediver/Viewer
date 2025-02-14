@@ -255,7 +255,6 @@ export class CameraEngine implements ICameraEngine {
         const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back', true);
         backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
         if(createOnlyOrthographic === false) {
-            this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'orthographic');
             const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');
             this.assignCamera(camera.id);
         }
