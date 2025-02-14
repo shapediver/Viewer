@@ -117,11 +117,23 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
 
         const distance = vec3.squaredDistance(pointA, pointB);
         if (distance < this.#radius * this.#radius) {
+            // check if origin is inside the cylinder
+            const distanceOrigin = vec3.squaredDistance(ray.origin, pointB);
+            if (distanceOrigin < this.#radius * this.#radius) {
+                return {
+                    point: pointB,
+                    closestPointOnRay: pointA,
+                    restriction: this
+                };
+            }
+
             // now we calculate the closest point on the cylinder to the ray
             const offset = Math.sqrt(this.#radius * this.#radius - distance);
             // Compute the entry distance
             const entry = da - offset;
             const closestPointOnRay = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
+
+
 
             return {
                 point: pointB,

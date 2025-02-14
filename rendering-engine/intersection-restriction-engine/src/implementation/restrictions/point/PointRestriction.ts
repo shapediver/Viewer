@@ -80,6 +80,16 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
 
         const distance = vec3.squaredDistance(closestPoint, this.#point);
         if (distance < this.#radius * this.#radius) {
+            // check if origin is inside the sphere
+            const distanceOrigin = vec3.squaredDistance(ray.origin, this.#point);
+            if (distanceOrigin < this.#radius * this.#radius) {
+                return {
+                    point: this.#point,
+                    closestPointOnRay: closestPoint,
+                    restriction: this
+                };
+            }
+
             // now we calculate the closest point on the cylinder to the ray
             const offset = Math.sqrt(this.#radius * this.#radius - distance);
             // Compute the entry distance
