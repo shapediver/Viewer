@@ -97,6 +97,7 @@ export type RayTraceResult = {
  distanceSquared?: number,
  dragAnchor?: IDragAnchor,
  point: vec3,
+ closestPointOnRay?: vec3,
  restriction: IRestriction,
  transformation?: mat4,
 };

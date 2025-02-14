@@ -90,6 +90,42 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
 
     // #region Public Methods (1)
 
+    public isWithinRadius(point: vec3): boolean {
+        // Check distance from point to the start of the cylinder
+        const distance = vec3.squaredDistance(point, this.#point1);
+        if (distance < this.#radius * this.#radius) {
+            return true;
+        }
+
+        // Check distance from point to the end of the cylinder
+        const distance2 = vec3.squaredDistance(point, this.#point2);
+        if (distance2 < this.#radius * this.#radius) {
+            return true;
+        }
+
+        // Calculate the closest point on the line segment (between point1 and point2)
+        const lineDir = vec3.sub(vec3.create(), this.#point2, this.#point1); // Direction of the line segment
+        const lineLengthSquared = vec3.squaredLength(lineDir);
+
+        // Project the point onto the line (scaled projection)
+        const projection = vec3.dot(vec3.sub(vec3.create(), point, this.#point1), lineDir) / lineLengthSquared;
+
+        // Clamp the projection value to ensure it's within the line segment
+        const clampedProjection = Math.max(0, Math.min(1, projection));
+
+        // Calculate the closest point on the segment
+        const closestPointOnLine = vec3.scaleAndAdd(vec3.create(), this.#point1, lineDir, clampedProjection);
+
+        // Check if the point is within the radius of the line
+        const distance3 = vec3.squaredDistance(point, closestPointOnLine);
+        if (distance3 < this.#radius * this.#radius) {
+            return true;
+        }
+
+        // If all checks fail, return false
+        return false;
+    }
+
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         const planeNormal = vec3.cross(vec3.create(), ray.direction, this.#dragRay.direction);
 

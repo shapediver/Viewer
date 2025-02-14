@@ -70,6 +70,10 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
 
     // #region Public Methods (1)
 
+    public isWithinRadius(point: vec3): boolean {
+        return (vec3.squaredDistance(point, this.#point) <= (this.#radius * this.#radius));
+    }
+
     public rayTrace(ray: IRay, metaData?: RestrictionMetaData): RestrictionResult | undefined {
         const closestPointVector = vec3.sub(vec3.create(), this.#point, ray.origin);
         const t = Math.max(0, vec3.dot(closestPointVector, ray.direction));
