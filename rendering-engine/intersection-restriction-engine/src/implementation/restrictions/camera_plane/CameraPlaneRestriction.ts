@@ -60,8 +60,10 @@ export class CameraPlaneRestriction extends AbstractRestriction implements IRest
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
             return {
-                distance,
-                point,
+                closestIntersectionPoint: point,
+                distanceOriginToClosestIntersectionPointSquared: distance * distance,
+                targetPoint: point,
+                distanceClosestPointToTargetPointSquared: 0,
                 restriction: this
             };
         }

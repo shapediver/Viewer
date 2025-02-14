@@ -81,15 +81,16 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
         const closestPoint = vec3.create();
         vec3.scaleAndAdd(closestPoint, ray.origin, ray.direction, t);
 
-
         const distance = vec3.squaredDistance(closestPoint, this.#point);
         if (distance < this.#radius * this.#radius) {
             // check if origin is inside the sphere
             const distanceOrigin = vec3.squaredDistance(ray.origin, this.#point);
             if (distanceOrigin < this.#radius * this.#radius) {
                 return {
-                    point: this.#point,
-                    closestPointOnRay: closestPoint,
+                    closestIntersectionPoint: closestPoint,
+                    distanceOriginToClosestIntersectionPointSquared: distanceOrigin,
+                    targetPoint: this.#point,
+                    distanceClosestPointToTargetPointSquared: distance,
                     restriction: this
                 };
             }
@@ -98,11 +99,13 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
             const offset = Math.sqrt(this.#radius * this.#radius - distance);
             // Compute the entry distance
             const entry = t - offset;
-            const closestPointOnRay = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
+            const closestIntersectionPoint = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
 
             return {
-                point: this.#point,
-                closestPointOnRay,
+                closestIntersectionPoint: closestIntersectionPoint,
+                distanceOriginToClosestIntersectionPointSquared: entry * entry,
+                targetPoint: this.#point,
+                distanceClosestPointToTargetPointSquared: distance,
                 restriction: this,
             };
         }

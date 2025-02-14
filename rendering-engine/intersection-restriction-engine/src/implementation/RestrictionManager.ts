@@ -7,7 +7,8 @@ import {
     isDraggingRestriction,
     RayTraceResult,
     RESTRICTION_TYPE,
-    RestrictionProperties
+    RestrictionProperties,
+    RestrictionResult
 } from '../interfaces/IRestriction';
 import { EventManager } from './EventManager';
 import { GeometryMathManager } from './GeometryMathManager';
@@ -191,7 +192,7 @@ export class RestrictionManager implements IRestrictionManager {
     }
 
     public rayTrace(ray: IRay, metaData: DrawingRestrictionMetaData | DraggingRestrictionMetaData): RayTraceResult | undefined {
-        const rayTracingResults: RayTraceResult[] = [];
+        const restrictionResults: RestrictionResult[] = [];
 
         metaData.pressedKeys = this.getPressedKeys();
 
@@ -201,34 +202,16 @@ export class RestrictionManager implements IRestrictionManager {
             const hit = restriction.rayTrace(ray, metaData);
             if (!hit) continue;
             
-            const distanceSquared = hit.distance !== undefined ? hit.distance * hit.distance : vec3.squaredDistance(ray.origin, hit.closestPointOnRay || hit.point);
+            const distanceSquared = hit.distanceOriginToClosestIntersectionPointSquared;
             if (distanceSquared >= Infinity) continue;
 
-            if (isDraggingRestriction(metaData)) {
-                const { matrix, dragAnchor } = calculateDragMatrix(hit.point, (hit.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, hit.closestPointOnRay || hit.point);
-
-                rayTracingResults.push({
-                    restriction: restriction,
-                    transformation: matrix,
-                    dragAnchor: dragAnchor,
-                    point: hit.point,
-                    closestPointOnRay: hit.closestPointOnRay,
-                    distanceSquared: distanceSquared
-                });
-            } else {
-                rayTracingResults.push({
-                    restriction: restriction,
-                    point: hit.point,
-                    closestPointOnRay: hit.closestPointOnRay,
-                    distanceSquared: distanceSquared
-                });
-            }
+            restrictionResults.push(hit);
         }
 
-        if (rayTracingResults.length === 0) return;
+        if (restrictionResults.length === 0) return;
 
         // first, sort the results by distance
-        rayTracingResults.sort((a, b) => a.distanceSquared! - b.distanceSquared!);
+        restrictionResults.sort((a, b) => a.distanceOriginToClosestIntersectionPointSquared! - b.distanceOriginToClosestIntersectionPointSquared!);
 
         /**
          * We iterate over the results and check if the restriction with the higher priority has a radius 
@@ -236,34 +219,54 @@ export class RestrictionManager implements IRestrictionManager {
          * 
          * If this is the case, we set the restriction with the higher priority as the hit restriction.
          */
-        let rayTracingResult: RayTraceResult = rayTracingResults[0];
-        for (const result of rayTracingResults) {
+        let restrictionResult: RestrictionResult = restrictionResults[0];
+        for (const result of restrictionResults) {
             // if the priority of the restriction is higher than the priority of the restriction that is currently hit
-            if (result.restriction.priority > rayTracingResult.restriction.priority) {
+            if (result.restriction.priority > restrictionResult.restriction.priority) {
                 // check if the closest point of the restriction with the higher priority is within the radius of the restriction with the lower priority
-                const hitHigherPriority = result.closestPointOnRay || result.point;
-                if (rayTracingResult.restriction instanceof PointRestriction || rayTracingResult.restriction instanceof LineRestriction) {
-                    if(rayTracingResult.restriction.isWithinRadius(hitHigherPriority)) {
-                        rayTracingResult = result;
+                const hitHigherPriority = result.closestIntersectionPoint;
+                if (restrictionResult.restriction instanceof PointRestriction || restrictionResult.restriction instanceof LineRestriction) {
+                    if(restrictionResult.restriction.isWithinRadius(hitHigherPriority)) {
+                        restrictionResult = result;
                     }
+                }
+            } else if (result.restriction.priority === restrictionResult.restriction.priority) {
+                // if the priority is the same, we check the distance
+                if (result.distanceOriginToClosestIntersectionPointSquared < restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+                    restrictionResult = result;
                 }
             }
         }
 
         // deactivate the visualization of all restrictions that are not hit
         for (const restriction of Object.values(this.#restrictions)) {
-            if (rayTracingResult && restriction !== rayTracingResult.restriction) {
+            if (restrictionResult && restriction !== restrictionResult.restriction) {
                 for (const snapRestriction of Object.values(restriction.snapRestrictions)) {
                     snapRestriction.active = false;
                 }
             }
         }
+        
 
-        // calculate the distance of the hit point for the final result
-        if(rayTracingResult.distance === undefined && rayTracingResult.distanceSquared !== undefined)
-            rayTracingResult.distance = Math.sqrt(rayTracingResult.distanceSquared);
+        if (isDraggingRestriction(metaData)) {
+            const { matrix, dragAnchor } = calculateDragMatrix(restrictionResult.targetPoint, (restrictionResult.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, restrictionResult.closestIntersectionPoint);
 
-        return rayTracingResult;
+            return {
+                restriction: restrictionResult.restriction,
+                point: restrictionResult.targetPoint,
+                closestPointOnRay: restrictionResult.closestIntersectionPoint,
+                distanceSquared: restrictionResult.distanceOriginToClosestIntersectionPointSquared,
+                dragAnchor: dragAnchor,
+                transformation: matrix
+            };
+        } else {
+            return {
+                restriction: restrictionResult.restriction,
+                point: restrictionResult.targetPoint,
+                closestPointOnRay: restrictionResult.closestIntersectionPoint,
+                distanceSquared: restrictionResult.distanceOriginToClosestIntersectionPointSquared,
+            };
+        }
     }
 
     public removeRestriction(token: string): boolean {

@@ -105,11 +105,12 @@ export type RayTraceResult = {
 export type RestrictionProperties = PointRestrictionProperties | PlaneRestrictionProperties | LineRestrictionProperties | GeometryRestrictionProperties | CameraPlaneRestrictionProperties;
 
 export type RestrictionResult = {
- closestPointOnRay?: vec3,
- distance?: number,
- point: vec3,
- restriction: IRestriction,
- snapRestriction?: ISnapRestriction
+    closestIntersectionPoint: vec3,
+    distanceOriginToClosestIntersectionPointSquared: number,
+    targetPoint: vec3,
+    distanceClosestPointToTargetPointSquared: number,
+    restriction: IRestriction,
+    snapRestriction?: ISnapRestriction
 };
 
 export const isDraggingRestriction = (metaData?: RestrictionMetaData): metaData is DraggingRestrictionMetaData => {

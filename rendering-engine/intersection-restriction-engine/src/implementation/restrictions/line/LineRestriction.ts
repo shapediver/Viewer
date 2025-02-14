@@ -157,8 +157,10 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
             const distanceOrigin = vec3.squaredDistance(ray.origin, pointB);
             if (distanceOrigin < this.#radius * this.#radius) {
                 return {
-                    point: pointB,
-                    closestPointOnRay: pointA,
+                    closestIntersectionPoint: pointA,
+                    distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, pointA),
+                    targetPoint: pointB,
+                    distanceClosestPointToTargetPointSquared: distance,
                     restriction: this
                 };
             }
@@ -167,13 +169,15 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
             const offset = Math.sqrt(this.#radius * this.#radius - distance);
             // Compute the entry distance
             const entry = da - offset;
-            const closestPointOnRay = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
+            const closestIntersectionPoint = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
 
 
 
             return {
-                point: pointB,
-                closestPointOnRay: closestPointOnRay,
+                closestIntersectionPoint,
+                distanceOriginToClosestIntersectionPointSquared: entry * entry,
+                targetPoint: pointB,
+                distanceClosestPointToTargetPointSquared: distance,
                 restriction: this
             };
         }

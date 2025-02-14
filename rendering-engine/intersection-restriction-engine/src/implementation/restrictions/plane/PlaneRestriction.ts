@@ -278,7 +278,7 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
             indexedResults.sort((a, b) => {
                 if (!a.value) return 1;
                 if (!b.value) return -1;
-                return vec3.squaredDistance(point, a.value.point) - vec3.squaredDistance(point, b.value.point);
+                return vec3.squaredDistance(point, a.value.targetPoint) - vec3.squaredDistance(point, b.value.targetPoint);
             });
 
             for (const snapRestriction of snapRestrictions) {
@@ -293,7 +293,10 @@ export class PlaneRestriction extends AbstractRestriction implements IRestrictio
         }
 
         return {
-            point: point,
+            closestIntersectionPoint: point,
+            distanceOriginToClosestIntersectionPointSquared: vec3.sqrDist(ray.origin, point),
+            targetPoint: point,
+            distanceClosestPointToTargetPointSquared: 0,
             restriction: this
         };
     }
