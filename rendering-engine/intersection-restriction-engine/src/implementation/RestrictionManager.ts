@@ -231,9 +231,11 @@ export class RestrictionManager implements IRestrictionManager {
                     }
                 }
             } else if (result.restriction.priority === restrictionResult.restriction.priority) {
-                // if the priority is the same, we check the distance
-                if (result.distanceClosestPointToTargetPointSquared < restrictionResult.distanceClosestPointToTargetPointSquared) {
-                    restrictionResult = result;
+                // if the priority is the same, we check the distance id the type is a point or line restriction
+                if (result.restriction instanceof PointRestriction || result.restriction instanceof LineRestriction) {
+                    if (result.distanceClosestPointToTargetPointSquared < restrictionResult.distanceClosestPointToTargetPointSquared) {
+                        restrictionResult = result;
+                    }
                 }
             }
         }
