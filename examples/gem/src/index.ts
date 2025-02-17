@@ -28,7 +28,7 @@ import * as SDV from '@shapediver/viewer';
         }
     });
 
-    viewport.environmentMap = 'https://viewer.shapediver.com/v3/envmaps/test/jewelry_studio_3_blur.hdr';
+    viewport.environmentMap = SDV.ENVIRONMENT_MAP.JEWELRY_STUDIO;
 
     await viewport.camera?.zoomTo(undefined, { duration: 0 });
 
@@ -40,7 +40,7 @@ import * as SDV from '@shapediver/viewer';
             if (d instanceof SDV.GeometryData) {
                 if (d.material && d.material.name === 'diamond_material') {
                     (<SDV.GeometryData>d).material = new SDV.MaterialGemData({
-                        envMap: 'https://viewer.shapediver.com/v3/envmaps/test/gems.hdr',
+                        envMap: SDV.ENVIRONMENT_MAP.GEM_STUDIO,
                         refractionIndex: 2.4,
                         impurityMap: undefined,
                         impurityScale: 0,

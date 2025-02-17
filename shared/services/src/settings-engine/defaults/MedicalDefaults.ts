@@ -16,7 +16,7 @@ export const MedicalDefaults: () => ISettings = () => {
         environment: {
             clearAlpha: 1.0,
             clearColor: '#ffffff',
-            map: 'https://viewer.shapediver.com/v3/envmaps/test/hospital.hdr',
+            map: 'hospital',
             mapAsBackground: false,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },

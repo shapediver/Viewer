@@ -16,7 +16,7 @@ export const FurnitureDefaults: () => ISettings = () => {
         environment: {
             clearAlpha: 1.0,
             clearColor: '#ffffff',
-            map: 'https://viewer.shapediver.com/v3/envmaps/test/brown_studio.hdr',
+            map: 'furniture_studio',
             mapAsBackground: true,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },

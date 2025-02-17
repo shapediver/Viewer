@@ -33,6 +33,11 @@ export enum ENVIRONMENT_MAP_CUBE {
 }
 
 export enum ENVIRONMENT_MAP {
+    DEFAULT_STUDIO = 'default_studio',
+    FURNITURE_STUDIO = 'furniture_studio',
+    GEM_STUDIO = 'gem_studio',
+    HOSPITAL = 'hospital',
+    JEWELRY_STUDIO = 'jewelry_studio',
     ANNIVERSARY_LOUNGE = 'anniversary_lounge',
     BALLROOM = 'ballroom',
     CANNON_EXTERIOR = 'cannon_exterior',
@@ -77,6 +82,7 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny'];
     private readonly _environmentMapHDR: string[] = [];
     private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[];
+    private readonly _environmentMapNamesHDRCustom = ['default_studio', 'furniture_studio', 'gem_studio', 'hospital', 'jewelry_studio'];
     private readonly _environmentMapNamesHDRKhronos = ['cannon_exterior', 'colorful_studio', 'neutral', 'wide_street'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
@@ -134,7 +140,9 @@ export class EnvironmentMapLoader implements ILoader {
 
         if (this._environmentMapNamesHDR.indexOf(name) >= 0) {
             let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name + '_1k.hdr';
-            if (this._environmentMapNamesHDRKhronos.indexOf(name) >= 0)
+            if (this._environmentMapNamesHDRCustom.indexOf(name) >= 0)
+                url_hdr = 'https://viewer.shapediver.com/v3/envmaps/custom/' + name + '.hdr';
+            else if (this._environmentMapNamesHDRKhronos.indexOf(name) >= 0)
                 url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name + '.hdr';
 
             return url_hdr;
@@ -215,7 +223,9 @@ export class EnvironmentMapLoader implements ILoader {
                 let i;
                 if (this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
                     let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name_internal + '_1k.hdr';
-                    if (this._environmentMapNamesHDRKhronos.indexOf(name_internal) >= 0)
+                    if (this._environmentMapNamesHDRCustom.indexOf(name) >= 0)
+                        url_hdr = 'https://viewer.shapediver.com/v3/envmaps/custom/' + name + '.hdr';
+                    else if (this._environmentMapNamesHDRKhronos.indexOf(name_internal) >= 0)
                         url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name_internal + '.hdr';
 
                     this._environmentMapHDR.push(url_hdr);

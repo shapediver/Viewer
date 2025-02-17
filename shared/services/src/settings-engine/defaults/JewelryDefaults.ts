@@ -16,7 +16,7 @@ export const JewelryDefaults: () => ISettings = () => {
         environment: {
             clearAlpha: 1.0,
             clearColor: 'rgb(66, 66, 66)',
-            map: 'https://viewer.shapediver.com/v3/envmaps/test/jewelry_studio_3_blur.hdr',
+            map: 'jewelry_studio',
             mapAsBackground: false,
             mapResolution: '1024',
             rotation: { x: 0, y: 0, z: 0, w: 1 },
