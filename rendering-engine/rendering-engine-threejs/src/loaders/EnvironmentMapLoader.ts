@@ -299,7 +299,6 @@ export class EnvironmentMapLoader implements ILoader {
                         new RGBELoader().load(blobUrl, (texture) => {
                             const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                             this._pmremGenerator.dispose();
-                            map;
                             URL.revokeObjectURL(blobUrl);
                             this._environmentMaps[name].resolved = true;
                             resolve(map);

@@ -1386,7 +1386,8 @@ export const adaptShaders = () => {
                 vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal).xzy;
                 vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
             #else
-                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+                vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal);
+                vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
             #endif
             `
     );
@@ -1400,7 +1401,8 @@ export const adaptShaders = () => {
                 vec3 rotatedReflectVec = vec3(envMapRotation * reflectVec).xzy;
                 vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), roughness );
             #else
-                vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+                vec3 rotatedReflectVec = vec3(envMapRotation * reflectVec);
+                vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), roughness );
             #endif
             `
     );
@@ -1413,7 +1415,7 @@ export const adaptShaders = () => {
         #ifdef ENVMAP_TYPE_LDR
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
         #else
-            vec4 envColor = textureCube( envMap, envMapRotation * vec3( -flipEnvMap * reflectVec.x, reflectVec.zy ) );
+            vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.zy ) );
         #endif
         `
     );
@@ -1426,7 +1428,7 @@ export const adaptShaders = () => {
         #ifdef ENVMAP_TYPE_LDR
             vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );
         #else
-            vec3 color0 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, -sampleDir.x), mipInt );
+            vec3 color0 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, sampleDir.x), mipInt );
         #endif
         `
     );
@@ -1439,7 +1441,7 @@ export const adaptShaders = () => {
         #ifdef ENVMAP_TYPE_LDR
             vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );
         #else
-            vec3 color1 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, -sampleDir.x), mipInt + 1.0 );
+            vec3 color1 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, sampleDir.x), mipInt + 1.0 );
         #endif
         `
     );
