@@ -13,7 +13,7 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "chargebee-typescript": "^2.8.0",
-    "chromedriver": "^131.0.1",
+    "chromedriver": "^133.0.1",
     "chromium": "^3.0.3",
     "eslint": "^8.37.0",
     "http-server": "^14.1.0",
