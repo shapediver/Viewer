@@ -157,8 +157,6 @@ export class CameraEngine implements ICameraEngine {
             for (const cameraId of defaultCameras) {
                 delete settingsEngine.settings.camera.cameras[cameraId];
             }
-            // and create them again as defaults
-            this.createDefaultCameras(true);
         }
 
         for (const id in settingsEngine.settings.camera.cameras) {
@@ -182,6 +180,9 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 this.assignCamera(settingsEngine.settings.camera.cameraId);
             }
+            
+            // create the default orthographic cameras
+            this.createDefaultCameras(true);
         } else {
             this.createDefaultCameras();
             this.camera!.applySettings(settingsEngine);
