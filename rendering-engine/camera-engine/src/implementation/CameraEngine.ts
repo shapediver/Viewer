@@ -1,21 +1,6 @@
 import { AbstractCamera } from './camera/AbstractCamera';
 import { Box } from '@shapediver/viewer.shared.math';
 import { CAMERA_TYPE, ICameraEngine } from '../interfaces/ICameraEngine';
-import { ICamera } from '../interfaces/camera/ICamera';
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { ISceneEvent } from '@shapediver/viewer.shared.types';
-import {
-    ITree,
-    ITreeNode,
-    Tree,
-    TreeNode
-} from '@shapediver/viewer.shared.node-tree';
-import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera';
-import { OrthographicCamera } from './camera/OrthographicCamera';
-import { OrthographicCameraControls } from './controls/OrthographicCameraControls';
-import { PerspectiveCamera } from './camera/PerspectiveCamera';
-import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls';
-import { vec3 } from 'gl-matrix';
 import {
     EventEngine,
     EVENTTYPE,
@@ -24,12 +9,26 @@ import {
     SettingsEngine,
     ShapeDiverViewerCameraError,
     StateEngine,
-    UuidGenerator,
-} from '@shapediver/viewer.shared.services';
+    UuidGenerator
+    } from '@shapediver/viewer.shared.services';
+import { ICamera } from '../interfaces/camera/ICamera';
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { ISceneEvent } from '@shapediver/viewer.shared.types';
+import {
+    ITree,
+    ITreeNode,
+    Tree,
+    TreeNode
+    } from '@shapediver/viewer.shared.node-tree';
+import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera';
+import { OrthographicCamera } from './camera/OrthographicCamera';
+import { OrthographicCameraControls } from './controls/OrthographicCameraControls';
+import { PerspectiveCamera } from './camera/PerspectiveCamera';
+import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls';
+import { vec3 } from 'gl-matrix';
+
 
 export class CameraEngine implements ICameraEngine {
-    // #region Properties (11)
-
     private readonly _cameraNode: ITreeNode = new TreeNode('cameras');
     private readonly _cameras: {
         [key: string]: ICamera
@@ -46,10 +45,6 @@ export class CameraEngine implements ICameraEngine {
 
     protected _boundingBox: Box = new Box();
 
-    // #endregion Properties (11)
-
-    // #region Constructors (1)
-
     constructor(private readonly _renderingEngine: IRenderingEngine) {
         this._tree.root.addChild(this._cameraNode);
         this._cameraNode.restrictViewports = [this._renderingEngine.id];
@@ -63,10 +58,10 @@ export class CameraEngine implements ICameraEngine {
                 for (const c in cameras)
                     cameras[c].boundingBox = this._boundingBox.clone();
 
-                if(!this._boundingBox.isEmpty() && this.camera) {
+                if (!this._boundingBox.isEmpty() && this.camera) {
                     // check if the at least a part of the bounding box is visible
                     // if not zoom to the bounding box
-                    if(!this.camera.boundingSphereVisible(this._boundingBox.boundingSphere)) {
+                    if (!this.camera.boundingSphereVisible(this._boundingBox.boundingSphere)) {
                         this.camera.zoomTo(this._boundingBox, { duration: 0 });
                     }
                 }
@@ -80,10 +75,6 @@ export class CameraEngine implements ICameraEngine {
             }
         });
     }
-
-    // #endregion Constructors (1)
-
-    // #region Public Getters And Setters (4)
 
     public get camera(): ICamera | null {
         return this._camera;
@@ -102,10 +93,6 @@ export class CameraEngine implements ICameraEngine {
     public set update(value: (() => void) | undefined) {
         this._update = value;
     }
-
-    // #endregion Public Getters And Setters (4)
-
-    // #region Public Methods (8)
 
     public activateCameraEvents(): void {
         const cameras = this.cameras;
@@ -127,7 +114,7 @@ export class CameraEngine implements ICameraEngine {
         let defaultCamerasInSettings = true;
 
         for (const cameraId of defaultCameras) {
-            if(settingsEngine.settings.camera.cameraId === cameraId)  {
+            if (settingsEngine.settings.camera.cameraId === cameraId) {
                 // the camera was set as the default, don't remove it
                 defaultCamerasInSettings = false;
                 break;
@@ -180,7 +167,7 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 this.assignCamera(settingsEngine.settings.camera.cameraId);
             }
-            
+
             // create the default orthographic cameras
             this.createDefaultCameras(true);
         } else {
@@ -193,12 +180,12 @@ export class CameraEngine implements ICameraEngine {
         // If the camera is set to auto adjust, we call zoomTo once when the bounding box is available
         // this is needed as the default position and target might not make sense if the model is loaded with a different modelState
         // or different initial parameters
-        if(this.camera?.autoAdjust) {
+        if (this.camera?.autoAdjust) {
             const token = this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
                 const viewerEvent = <ISceneEvent>e;
                 if (viewerEvent.viewportId === this._renderingEngine.id) {
                     this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
-                    if(this._boundingBox.isEmpty() || !this.camera) return;
+                    if (this._boundingBox.isEmpty() || !this.camera) return;
                     this.camera?.zoomTo(this._boundingBox, { duration: 0 });
                     this._eventEngine.removeListener(token);
                 }
@@ -218,6 +205,10 @@ export class CameraEngine implements ICameraEngine {
         this._camera = camera;
         this._camera.active = true;
         return true;
+    }
+
+    public close(): void {
+        this._tree.root.removeChild(this._cameraNode);
     }
 
     public createCamera(type: CAMERA_TYPE, id?: string, isDefault: boolean = false): ICamera {
@@ -255,7 +246,7 @@ export class CameraEngine implements ICameraEngine {
         frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
         const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back', true);
         backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
-        if(createOnlyOrthographic === false) {
+        if (createOnlyOrthographic === false) {
             const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');
             this.assignCamera(camera.id);
         }
@@ -434,10 +425,6 @@ export class CameraEngine implements ICameraEngine {
         }
     }
 
-    // #endregion Public Methods (8)
-
-    // #region Private Methods (1)
-
     private searchForNewCameras() {
         const getCameraData = (node: ITreeNode) => {
             for (let i = 0; i < node.data.length; i++)
@@ -453,6 +440,4 @@ export class CameraEngine implements ICameraEngine {
         getCameraData(this._tree.root);
         if (this._update) this._update();
     }
-
-    // #endregion Private Methods (1)
 }
