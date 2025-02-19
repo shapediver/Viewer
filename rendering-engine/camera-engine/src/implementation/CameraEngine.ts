@@ -120,30 +120,8 @@ export class CameraEngine implements ICameraEngine {
                 break;
             }
 
-            if (settingsEngine.settings.camera.cameras[cameraId]) {
-                // check if the direction is correct
-                let wasChanged = false;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.x !== 0;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.y !== 0;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].position.z !== 0;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.x !== 0;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.y !== 0;
-                wasChanged = wasChanged || settingsEngine.settings.camera.cameras[cameraId].target.z !== 0;
-
-                if (wasChanged) {
-                    defaultCamerasInSettings = false;
-                    break;
-                }
-            } else {
+            if (!settingsEngine.settings.camera.cameras[cameraId])
                 defaultCamerasInSettings = false;
-            }
-        }
-
-        if (defaultCamerasInSettings) {
-            // remove them from the settings
-            for (const cameraId of defaultCameras) {
-                delete settingsEngine.settings.camera.cameras[cameraId];
-            }
         }
 
         for (const id in settingsEngine.settings.camera.cameras) {
@@ -151,7 +129,8 @@ export class CameraEngine implements ICameraEngine {
             if (cameraSetting.type === 'perspective') {
                 this.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
             } else {
-                const camera = this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
+                const isDefault = defaultCamerasInSettings && defaultCameras.includes(id);
+                const camera = this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id, isDefault);
                 (<OrthographicCamera>camera).direction = <ORTHOGRAPHIC_CAMERA_DIRECTION>cameraSetting.type;
             }
         }
@@ -168,8 +147,9 @@ export class CameraEngine implements ICameraEngine {
                 this.assignCamera(settingsEngine.settings.camera.cameraId);
             }
 
-            // create the default orthographic cameras
-            this.createDefaultCameras(true);
+            // create the default orthographic cameras if there are no cameras with the default names
+            if (!defaultCamerasInSettings && cameraKeys.every((key) => !defaultCameras.includes(key)))
+                this.createDefaultCameras(true);
         } else {
             this.createDefaultCameras();
             this.camera!.applySettings(settingsEngine);
