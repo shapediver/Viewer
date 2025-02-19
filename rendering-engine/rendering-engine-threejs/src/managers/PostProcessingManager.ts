@@ -47,7 +47,6 @@ import {
     SMAAEffect,
     SMAAPreset,
     TiltShiftEffect,
-    ToneMappingEffect,
     ToneMappingMode,
     VignetteEffect,
     VignetteTechnique
@@ -72,6 +71,7 @@ import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
 import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
 import { vec3 } from 'gl-matrix';
+import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 
 export class PostProcessingManager implements IManager {
     // #region Properties (23)
