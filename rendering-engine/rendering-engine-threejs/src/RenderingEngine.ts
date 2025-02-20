@@ -976,7 +976,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         }).catch(e => reject(e));
 
         // set it like this to not trigger the loading
-        this.environmentMap = settingsEngine!.environment.map;
+        this.environmentMap = this.environmentMapLoader.reconstructSavedEnvironmentMapContent(settingsEngine!.environment.map);
       }));
 
       await Promise.all(promises);
@@ -1197,7 +1197,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.ar.enable = this.enableAR;
 
     settingsEngine.environment.mapResolution = this.environmentMapResolution;
-    settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
+    settingsEngine.environment.map = this._environmentMapLoader.createSaveableEnvironmentMapContent(this.environmentMap);
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
     settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);

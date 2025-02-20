@@ -135,6 +135,21 @@ export class EnvironmentMapLoader implements ILoader {
 
     // #region Public Methods (4)
 
+    /**
+     * Create a JSON.stringified version of an array of urls or a single url to be saved in the environment map content.
+     * 
+     * @param input 
+     * @returns 
+     */
+    public createSaveableEnvironmentMapContent(input: string | string[]): string {
+        if(Array.isArray(input)) return JSON.stringify(input);
+
+        if(this._environmentMapNamesHDRCustom.indexOf(input) >= 0) 
+            return 'https://viewer.shapediver.com/v3/envmaps/custom/' + input + '.hdr';
+
+        return input;
+    }
+
     public getEnvironmentMapImageUrl(name: string | string[]): string {
         if (Array.isArray(name)) return '';
 
@@ -260,6 +275,23 @@ export class EnvironmentMapLoader implements ILoader {
             this.notify(eventId, true);
             throw e;
         }
+    }
+
+    /**
+     * In case one of our new custom HDR environment maps is loaded, the content is an url to the HDR file. 
+     * We extract the name of the environment map from the url and return it.
+     * 
+     * @param input 
+     * @returns 
+     */
+    public reconstructSavedEnvironmentMapContent(input: string | string[]): string | string[] {
+        if(!Array.isArray(input) && input.startsWith('https://viewer.shapediver.com/v3/envmaps/custom/') && input.endsWith('.hdr')) {
+            const parts = input.split('/');
+            const name = parts[parts.length - 1].split('.')[0];
+            if (this._environmentMapNamesHDRCustom.indexOf(name) >= 0)
+                return name;
+        }
+        return input;
     }
 
     // #endregion Public Methods (4)
