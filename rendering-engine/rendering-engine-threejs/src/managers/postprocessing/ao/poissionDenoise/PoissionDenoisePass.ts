@@ -54,11 +54,8 @@ export class PoissionDenoisePass extends Pass {
 	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
 		super('PoissionBlurPass');
 
-		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
-			PoissionDenoisePass.loadBlueNoiseTexture().then(() => {
-				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
-			});
-		}
+		if (PoissionDenoisePass.blueNoiseTexture === undefined)
+			this.loadBlueNoiseTexture();
 
 		options = { ...defaultPoissonBlurOptions, ...options };
 
@@ -120,7 +117,7 @@ export class PoissionDenoisePass extends Pass {
 		}
 	}
 
-	public static async loadBlueNoiseTexture() {
+	private async  loadBlueNoiseTexture() {
 		const result = await HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
 
 		if (result) {
@@ -134,6 +131,8 @@ export class PoissionDenoisePass extends Pass {
 				PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
 				PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
 				PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
+
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 			});
 		} else {
 			Logger.instance.warn('The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...');
