@@ -7,7 +7,6 @@ import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.ren
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { InteractionData } from '../InteractionData';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 
 export class HoverManager extends AbstractInteractionManager {
@@ -21,14 +20,7 @@ export class HoverManager extends AbstractInteractionManager {
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.MOVE) {
             return (node: ITreeNode) => {
-                for (let i = 0; i < node.data.length; i++) {
-                    if (node.data[i] instanceof InteractionData) {
-                        if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
-                            (<InteractionData>node.data[i]).interactionTypes.hover)
-                            return true;
-                    }
-                }
-                return false;
+                return !!this.getInteractionData(node);
             };
         }
 
@@ -92,7 +84,7 @@ export class HoverManager extends AbstractInteractionManager {
         }
         let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node));
         intersections = intersection.filter(i => {
-            const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
+            const data = this.getInteractionData(i.node);
             return !(data && data.interactionStates.drag === true);
         });
 
@@ -153,11 +145,11 @@ export class HoverManager extends AbstractInteractionManager {
         this.#groupEffectMaterialToken = undefined;
 
         // find the interaction data
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(this.#node!);
         if (data) data.interactionStates.hover = true;
 
         // find and store all nodes that are within the group
-        if (data.groupId) {
+        if (data && data.groupId) {
             this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
         }
@@ -201,7 +193,7 @@ export class HoverManager extends AbstractInteractionManager {
         }
 
         // find the interaction data
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(this.#node!);
         if (data) data.interactionStates.hover = false;
 
         if (this.#effectMaterialToken) {
@@ -232,6 +224,16 @@ export class HoverManager extends AbstractInteractionManager {
 
         this.#groupedNodes = undefined;
         this.#groupEffectMaterialToken = undefined;
+    }
+    
+    private getInteractionData(node: ITreeNode): InteractionData | undefined {
+        for (let i = 0; i < node.data.length; i++) {
+            if (node.data[i] instanceof InteractionData) {
+                if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
+                    (<InteractionData>node.data[i]).interactionTypes.hover)
+                    return node.data[i] as InteractionData;
+            }
+        }
     }
 
     // #endregion Private Methods (2)

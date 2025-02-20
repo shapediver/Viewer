@@ -22,14 +22,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.UP) {
             return (node: ITreeNode) => {
-                for (let i = 0; i < node.data.length; i++) {
-                    if (node.data[i] instanceof InteractionData) {
-                        if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
-                            (<InteractionData>node.data[i]).interactionTypes.select)
-                            return true;
-                    }
-                }
-                return false;
+                return !!this.getInteractionData(node);
             };
         }
 
@@ -170,11 +163,11 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         this.#groupEffectMaterialToken = undefined;
 
         // find the interaction data
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(this.#node!);
         if (data) data.interactionStates.select = true;
 
         // find and store all nodes that are within the group
-        if (data.groupId) {
+        if (data && data.groupId) {
             this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
         }
@@ -218,7 +211,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         }
 
         // find the interaction data
-        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(this.#node!);
         if (data) data.interactionStates.select = false;
 
         if (this.#effectMaterialToken) {
@@ -249,6 +242,16 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
         this.#groupedNodes = undefined;
         this.#groupEffectMaterialToken = undefined;
+    }
+
+    private getInteractionData(node: ITreeNode): InteractionData | undefined {
+        for (let i = 0; i < node.data.length; i++) {
+            if (node.data[i] instanceof InteractionData) {
+                if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
+                    (<InteractionData>node.data[i]).interactionTypes.select)
+                    return node.data[i] as InteractionData;
+            }
+        }
     }
 
     // #endregion Private Methods (2)

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import { CameraPlaneConstraint } from '../dragConstraints/CameraPlaneConstraint';
 import {
@@ -18,8 +20,7 @@ import { IDragEvent } from '../../interfaces/events/IDragEvent';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
-import { ITransformation, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
+import { ITransformation, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 import { LineConstraint } from '../dragConstraints/LineConstraint';
 import {
     LineRestrictionProperties,
@@ -33,11 +34,8 @@ import {
 import { mat4, vec3 } from 'gl-matrix';
 import { PlaneConstraint } from '../dragConstraints/PlaneConstraint';
 import { PointConstraint } from '../dragConstraints/PointConstraint';
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class DragManager extends AbstractInteractionManager {
-    // #region Properties (14)
-
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #logger: Logger = Logger.instance;
     readonly #tree: Tree = Tree.instance;
@@ -55,14 +53,7 @@ export class DragManager extends AbstractInteractionManager {
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.DOWN) {
             return (node: ITreeNode) => {
-                for (let i = 0; i < node.data.length; i++) {
-                    if (node.data[i] instanceof InteractionData) {
-                        if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
-                            (<InteractionData>node.data[i]).interactionTypes.drag)
-                            return true;
-                    }
-                }
-                return false;
+                return !!this.getInteractionData(node);
             };
         }
 
@@ -82,25 +73,13 @@ export class DragManager extends AbstractInteractionManager {
     #tokenContinuousRendering!: string;
     #tokenContinuousShadowMapUpdate!: string;
 
-    // #endregion Properties (14)
-
-    // #region Constructors (1)
-
     constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
         super(id, effectMaterial);
     }
 
-    // #endregion Constructors (1)
-
-    // #region Public Getters And Setters (1)
-
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
     }
-
-    // #endregion Public Getters And Setters (1)
-
-    // #region Public Methods (11)
 
     public add(viewport: IViewportApi): void {
         this.viewport = viewport;
@@ -238,7 +217,7 @@ export class DragManager extends AbstractInteractionManager {
         }
         if (!this.#draggedNode) return;
 
-        const interactionData = <InteractionData>this.#draggedNode.node.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const interactionData = this.getInteractionData(this.#draggedNode.node);
         const transformationResult = this.#restrictionManager!.rayTrace(ray, {
             type: 'dragging',
             dragAnchors: this.#draggedNode.dragAnchors,
@@ -314,7 +293,7 @@ export class DragManager extends AbstractInteractionManager {
 
         // if we have everything we need (the ray) than we try one last time to calculate the transformation
         if (ray) {
-            const interactionData = <InteractionData>this.#draggedNode.node.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+            const interactionData = this.getInteractionData(this.#draggedNode.node);
             transformationResult = this.#restrictionManager!.rayTrace(ray, {
                 type: 'dragging',
                 dragAnchors: this.#draggedNode.dragAnchors,
@@ -389,7 +368,7 @@ export class DragManager extends AbstractInteractionManager {
             this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
             return;
         }
-        for(const token of Object.keys(this.#restrictionManager.restrictions)) {
+        for (const token of Object.keys(this.#restrictionManager.restrictions)) {
             this.#restrictionManager.removeRestriction(token);
         }
     }
@@ -455,10 +434,6 @@ export class DragManager extends AbstractInteractionManager {
         } as IDragEvent);
     }
 
-    // #endregion Public Methods (11)
-
-    // #region Private Methods (4)
-
     /**
      * Utility function to make the node the current active node.
      * Set the according values, apply the effect and emit the event.
@@ -476,11 +451,11 @@ export class DragManager extends AbstractInteractionManager {
         this.#groupEffectMaterialToken = undefined;
 
         // find the interaction data
-        const data = <InteractionData>node.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(node);
         if (data) data.interactionStates.drag = true;
 
         // find and store all nodes that are within the group
-        if (data.groupId) {
+        if (data && data.groupId) {
             this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
             this.#groupEffectMaterialToken = [];
         }
@@ -515,8 +490,8 @@ export class DragManager extends AbstractInteractionManager {
             worldMatrix,
             worldMatrixInverse,
             previousDragMatrix,
-            dragAnchors: data.dragAnchors,
-            dragOrigin: data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix)
+            dragAnchors: data?.dragAnchors || [],
+            dragOrigin: data?.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : vec3.transformMat4(vec3.create(), intersection.point, invertedPreviousDragMatrix)
         };
     }
 
@@ -549,7 +524,7 @@ export class DragManager extends AbstractInteractionManager {
         if (!this.#draggedNode) return;
 
         // find the interaction data
-        const data = <InteractionData>this.#draggedNode.node.data.find((d: ITreeNodeData) => d instanceof InteractionData);
+        const data = this.getInteractionData(this.#draggedNode.node);
         if (data) data.interactionStates.drag = false;
 
         if (this.#effectMaterialToken) {
@@ -572,6 +547,16 @@ export class DragManager extends AbstractInteractionManager {
         this.#groupEffectMaterialToken = undefined;
     }
 
+    private getInteractionData(node: ITreeNode): InteractionData | undefined {
+        for (let i = 0; i < node.data.length; i++) {
+            if (node.data[i] instanceof InteractionData) {
+                if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
+                    (<InteractionData>node.data[i]).interactionTypes.drag)
+                    return node.data[i] as InteractionData;
+            }
+        }
+    }
+
     private removeTransformation(node: ITreeNode): mat4 {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if (index !== -1) {
@@ -581,6 +566,4 @@ export class DragManager extends AbstractInteractionManager {
         }
         return mat4.create();
     }
-
-    // #endregion Private Methods (4)
 }

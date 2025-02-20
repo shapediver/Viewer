@@ -27,14 +27,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.DOWN) {
             return (node: ITreeNode) => {
-                for (let i = 0; i < node.data.length; i++) {
-                    if (node.data[i] instanceof InteractionData) {
-                        if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
-                            (<InteractionData>node.data[i]).interactionTypes.select)
-                            return true;
-                    }
-                }
-                return false;
+                return !!this.getInteractionData(node);
             };
         }
 
@@ -270,13 +263,13 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.#nodes.push(intersection.node);
 
         // find the interaction data
-        const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
+        const data = this.getInteractionData(intersection.node);
         if (data) data.interactionStates.select = true;
 
         // find and store all nodes that are within the group
         this.#groupedNodes[this.#nodes.length - 1] = [];
         this.#groupEffectMaterialToken[this.#nodes.length - 1] = [];
-        if (data.groupId)
+        if (data && data.groupId)
             this.#groupedNodes[this.#nodes.length - 1] = this.gatheredGroupedNodes[data.groupId] || [];
 
         if (this.effectMaterial) {
@@ -329,7 +322,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
         }
 
         // find the interaction data
-        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+        const data = this.getInteractionData(node);
         if (data) data.interactionStates.select = false;
 
         const index = this.#nodes.indexOf(node);
@@ -370,6 +363,16 @@ export class MultiSelectManager extends AbstractInteractionManager {
                 manager: this,
                 groupedNodes: this.#groupedNodes[index]
             } as IMultiSelectEvent);
+        }
+    }
+
+    private getInteractionData(node: ITreeNode): InteractionData | undefined {
+        for (let i = 0; i < node.data.length; i++) {
+            if (node.data[i] instanceof InteractionData) {
+                if (((<InteractionData>node.data[i]).restrictedManagers.length === 0 || (<InteractionData>node.data[i]).restrictedManagers.includes(this.id)) &&
+                    (<InteractionData>node.data[i]).interactionTypes.select)
+                    return node.data[i] as InteractionData;
+            }
         }
     }
 
