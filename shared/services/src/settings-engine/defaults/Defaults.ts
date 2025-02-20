@@ -15,7 +15,7 @@ export const Defaults: () => ISettings = () => {
         },
         environment: {
             clearAlpha: 1.0,
-            clearColor: '#ffffff',
+            clearColor: '#e2e2e2',
             map: 'default_studio',
             mapAsBackground: false,
             mapResolution: '1024',

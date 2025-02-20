@@ -47,7 +47,6 @@ import {
     SMAAEffect,
     SMAAPreset,
     TiltShiftEffect,
-    ToneMappingEffect,
     ToneMappingMode,
     VignetteEffect,
     VignetteTechnique
@@ -72,6 +71,7 @@ import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
 import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
 import { vec3 } from 'gl-matrix';
+import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 
 export class PostProcessingManager implements IManager {
     // #region Properties (23)
@@ -669,7 +669,6 @@ export class PostProcessingManager implements IManager {
                 }
             })();
             this._toneMappingEffect = new ToneMappingEffect({ mode });
-            this._renderingEngine.renderer.toneMapping = THREE.NoToneMapping;
             const effectPass = new EffectPass(this._renderingEngine.camera, this._toneMappingEffect);
             this.addPassToEffectComposer(effectPass);
         }
@@ -1153,9 +1152,11 @@ export class PostProcessingManager implements IManager {
             this._currentCameraId = cameraId;
             this.changeEffectPass();
         }
-
+        const currentToneMapping = this._renderingEngine.renderer.toneMapping;
         const currentClearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
         const convertedClearColor = currentClearColor.clone().convertSRGBToLinear();
+
+        this._renderingEngine.renderer.toneMapping = THREE.NoToneMapping;
         this._renderingEngine.renderer.setClearColor(convertedClearColor);
         this._renderingEngine.renderer.setClearAlpha(this._renderingEngine.clearAlpha);
         this._renderingEngine.renderer.autoClear = false;
@@ -1163,6 +1164,7 @@ export class PostProcessingManager implements IManager {
         this._composer.setMainCamera(camera);
         this._composer.render();
 
+        this._renderingEngine.renderer.toneMapping = currentToneMapping;
         this._renderingEngine.renderer.autoClear = true;
         this._renderingEngine.renderer.setClearColor(currentClearColor);
     }

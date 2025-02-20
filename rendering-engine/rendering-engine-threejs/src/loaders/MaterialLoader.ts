@@ -474,7 +474,7 @@ export class MaterialLoader implements ILoader {
                 material = new THREE.MeshBasicMaterial(properties);
             } else {
                 if (materialData instanceof MaterialShadowData) {
-                    material = new THREE.ShadowMaterial({ opacity: properties.opacity, color: properties.color });
+                    material = new THREE.ShadowMaterial({ opacity: properties.opacity, color: properties.color, transparent: true, depthWrite: false });
                 } else {
                     if (this._materialOverrideType !== undefined) {
                         if (this._materialOverrideType === MATERIAL_TYPE.UNLIT) {
