@@ -175,8 +175,10 @@ export class DragManager extends AbstractInteractionManager {
             return;
         }
         const intersections = intersection.filter(i => this.filter(INTERACTION_STATE.DOWN)(i.node));
-        if (intersections.length > 0)
+        if (intersections.length > 0) {
             this.setNode(intersections[0].node, intersection[0].geometryData, intersections[0].distance, intersections[0].point, event, ray);
+            this.#restrictionManager!.showRestrictionVisualization = true;
+        }
     }
 
     public onEnd(event: PointerEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
@@ -184,6 +186,8 @@ export class DragManager extends AbstractInteractionManager {
             this.#logger.warn('The interaction manager does not belong to an interaction engine. Please add it to one first.');
             return;
         }
+
+        this.#restrictionManager!.showRestrictionVisualization = false;
         if (!this.#draggedNode) return;
 
         const transformationResult = this.#restrictionManager!.rayTrace(ray, {
@@ -216,6 +220,7 @@ export class DragManager extends AbstractInteractionManager {
             return;
         }
         if (!this.#draggedNode) return;
+        this.#restrictionManager!.showRestrictionVisualization = true;
 
         const interactionData = this.getInteractionData(this.#draggedNode.node);
         const transformationResult = this.#restrictionManager!.rayTrace(ray, {
