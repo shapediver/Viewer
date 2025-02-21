@@ -426,8 +426,9 @@ export class RenderingManager implements IManager {
         }
 
         // update shadowMap if need
-        if (states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) {
-            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        if (states.updateShadowMap) {
+            if (this._renderingEngine.renderer.shadowMap.enabled)
+                this._renderingEngine.renderer.shadowMap.needsUpdate = true;
             this._renderingEngine.environmentGeometryManager.contactShadow?.render();
         }
 
