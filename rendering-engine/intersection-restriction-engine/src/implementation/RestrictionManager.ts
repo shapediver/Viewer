@@ -240,6 +240,11 @@ export class RestrictionManager implements IRestrictionManager {
             }
         }
 
+        // check if the closest restriction is actually hidden
+        const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction);
+        if (sceneRayTrace.length > 0 && sceneRayTrace[0].distance * sceneRayTrace[0].distance < restrictionResult.distanceOriginToClosestIntersectionPointSquared)
+            return;
+
         // deactivate the visualization of all restrictions that are not hit
         for (const restriction of Object.values(this.#restrictions)) {
             if (restrictionResult && restriction !== restrictionResult.restriction) {
