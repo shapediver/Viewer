@@ -179,21 +179,6 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         // sort
         intersections.sort((a, b) => a.distance - b.distance);
 
-        // intersect the whole scene and check if one of the intersections is closer than the closest intersection
-        let closestIntersectionDistance = Number.MAX_VALUE;
-        this.#viewport.threeJsCoreObjects.scene?.traverseVisible((obj: THREE.Object3D) => {
-            if (obj instanceof THREE.Mesh) {
-                const curIntersections = this.#raycaster.intersectObject(obj);
-                if (curIntersections.length)
-                    if (curIntersections[0].distance < closestIntersectionDistance)
-                        closestIntersectionDistance = curIntersections[0].distance;
-            }
-        });
-
-        // check if the closest intersection is closer than the closest intersection in the nodes
-        if(intersections.length > 0 && closestIntersectionDistance < intersections[0].distance) 
-            return;
-
         // return first intersection
         if (intersections.length > 0) {
             const object = intersections[0].object as THREE.Mesh;
