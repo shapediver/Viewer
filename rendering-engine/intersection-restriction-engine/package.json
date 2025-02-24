@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.intersection-restriction-engine",
-  "version": "3.8.6-rc.0",
+  "version": "3.8.6-rc.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,13 +39,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer": "3.8.6-rc.0",
-    "@shapediver/viewer.rendering-engine.intersection-engine": "3.8.6-rc.0",
-    "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.8.6-rc.0",
-    "@shapediver/viewer.shared.math": "3.8.6-rc.0",
-    "@shapediver/viewer.shared.node-tree": "3.8.6-rc.0",
-    "@shapediver/viewer.shared.services": "3.8.6-rc.0",
-    "@shapediver/viewer.shared.types": "3.8.6-rc.0",
+    "@shapediver/viewer": "3.8.6-rc.1",
+    "@shapediver/viewer.rendering-engine.intersection-engine": "3.8.6-rc.1",
+    "@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.8.6-rc.1",
+    "@shapediver/viewer.shared.math": "3.8.6-rc.1",
+    "@shapediver/viewer.shared.node-tree": "3.8.6-rc.1",
+    "@shapediver/viewer.shared.services": "3.8.6-rc.1",
+    "@shapediver/viewer.shared.types": "3.8.6-rc.1",
     "@types/three": "0.162.0",
     "gl-matrix": "3.3.0",
     "three": "0.162.0"
