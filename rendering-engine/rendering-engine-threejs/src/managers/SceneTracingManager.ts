@@ -100,6 +100,7 @@ export class SceneTracingManager implements IManager {
         const _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         let origin = vec3.clone(camera.position);
+        let direction;
         if (camera instanceof OrthographicCamera) {
             if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.TOP) {
                 origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.right, _mouse_y * camera.top, 0));
@@ -114,11 +115,20 @@ export class SceneTracingManager implements IManager {
             } else if (camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
                 origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x * camera.left, 0, _mouse_y * camera.top));
             } else {
-                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x * camera.left, _mouse_y * camera.top));
+                // for the custom camera, the origin is on the camera plane and needs to be rotated according to the direction
+                direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.target, camera.position));
+                const up = vec3.normalize(vec3.create(), camera.up);
+                const right = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), direction, up));
+
+                const x = _mouse_x * camera.right;
+                const y = _mouse_y * camera.top;
+
+                origin = vec3.add(vec3.create(), camera.position, vec3.add(vec3.create(), vec3.scale(vec3.create(), right, x), vec3.scale(vec3.create(), up, y)));
             }
         }
 
-        const direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+        if(!direction)
+            direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
 
         return { origin, direction };
     }
