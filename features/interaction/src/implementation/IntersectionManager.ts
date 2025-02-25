@@ -63,8 +63,32 @@ export class IntersectionManager implements IIntersectionEngine {
                 intersections = intersections.concat(currentIntersection);
         });
 
-        // sort
-        intersections.sort((a, b) => a.distance - b.distance);
+        intersections.sort((a, b) => {
+            const distanceDiff = a.distance - b.distance;
+            if (distanceDiff !== 0) return distanceDiff;
+
+            // if the distance is the same, sort by the closest InteractionData within the sceneTree
+            let depthA = 0;
+            let depthB = 0;
+
+            const computeDepth = (targetNode: ITreeNode, node: ITreeNode, depth: number = 0): number => {
+                if (targetNode === node) return depth;
+                if(node.parent) return computeDepth(targetNode, node.parent, depth + 1);
+                return -1;
+            };
+
+            a.node.traverse(node => {
+                if(node.data.includes(a.geometryData))
+                    depthA = computeDepth(a.node, node);
+            });
+            b.node.traverse(node => {
+                if(node.data.includes(b.geometryData))
+                    depthB = computeDepth(b.node, node);
+            });
+
+            return depthA - depthB;
+        });
+
         return intersections;
     }
 
