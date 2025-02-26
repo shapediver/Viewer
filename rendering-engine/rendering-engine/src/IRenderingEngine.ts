@@ -34,7 +34,7 @@ export interface IRenderingEngine {
   isMobileDeviceWithoutBrowserARSupport(): boolean;
   pauseRendering(): void;
   pointerEventToRay(event: PointerEvent): { origin: vec3, direction: vec3 };
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
+  raytraceScene(origin: vec3, direction: vec3, filterCriteria?: IIntersectionFilter[]): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;
