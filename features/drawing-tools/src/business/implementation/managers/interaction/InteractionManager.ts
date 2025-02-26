@@ -183,7 +183,8 @@ export class InteractionManager {
             currentRestrictedPoint = this.startInsertion() || currentRestrictedPoint;
         }
 
-        // if the insertion was paused because the pointer moved out of the viewport, start it again
+        // if the insertion was paused, try to start it again
+        // it might not start if the ray is not intersecting with the restriction
         if (this.#insertionInteractionHandler.insertionPaused) {
             this.#lastEvent = event;
             currentRestrictedPoint = this.startInsertion() || currentRestrictedPoint;
@@ -237,6 +238,10 @@ export class InteractionManager {
                 type: 'drawing',
                 positionArray: this.#drawingToolsManager.positionArray
             })?.point;
+
+        // if the insertion is active, but the current point is not restricted, pause the insertion
+        if (!currentRestrictedPoint && this.#insertionInteractionHandler.insertionActive)
+            this.#insertionInteractionHandler.pauseInsertion();
 
         this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(currentRestrictedPoint);
     }
