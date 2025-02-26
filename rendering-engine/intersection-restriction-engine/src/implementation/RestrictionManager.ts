@@ -239,18 +239,10 @@ export class RestrictionManager implements IRestrictionManager {
             }
         }
 
-        // create a filter to check if the node is hidden or transparent
+        // create a filter to check if the node is hidden or is not fully opaque
         const filter: IIntersectionFilter = (node: ITreeNode, geometryData?: IGeometryData) => {
             if (node.visible === false) return false;
-            let hasVisibleData = false;
-            node.traverseData(d => {
-                if(d instanceof GeometryData) {
-                    const g = d as GeometryData;
-                    if (g.material && g.material.transparent === false) hasVisibleData = true;
-                }
-            });
-            if (!hasVisibleData) return false;
-            if (geometryData && geometryData.material && geometryData.material.transparent) return false;
+            if (geometryData && geometryData.material && geometryData.material.opacity < 1.0) return false;
             return true;
         };
 
