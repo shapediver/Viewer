@@ -7,7 +7,7 @@ import { PlaneRestrictionProperties } from '../implementation/restrictions/plane
 import { PointRestrictionProperties } from '../implementation/restrictions/point/PointRestriction';
 import { IDragAnchor } from './IDragAnchor';
 import { ISnapRestriction } from './ISnapRestriction';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export enum RESTRICTION_TYPE {

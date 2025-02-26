@@ -1,5 +1,5 @@
 import { DomEventEngine, SESSION_SETTINGS_MODE, SettingsEngine } from '@shapediver/viewer.shared.services';
-import { FLAG_TYPE, IGeometryData, RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
+import { FLAG_TYPE, IGeometryData, IIntersectionFilter, RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { vec2, vec3 } from 'gl-matrix';
 

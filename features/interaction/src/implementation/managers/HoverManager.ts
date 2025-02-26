@@ -1,13 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
+import {
+    addListener,
+    IMaterialAbstractData,
+    IViewportApi,
+    removeListener
+    } from '@shapediver/viewer';
 import { EventEngine, EVENTTYPE, Logger } from '@shapediver/viewer.shared.services';
 import { IHoverEvent } from '../../interfaces/events/IHoverEvent';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { InteractionData } from '../InteractionData';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
-import { addListener, IMaterialAbstractData, IViewportApi, removeListener } from '@shapediver/viewer';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class HoverManager extends AbstractInteractionManager {
     // #region Properties (8)

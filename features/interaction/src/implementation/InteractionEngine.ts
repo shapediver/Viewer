@@ -4,13 +4,14 @@ import {
     EVENTTYPE,
     ShapeDiverViewerInteractionError,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import { IInteractionEngine, INTERACTION_STATE } from '../interfaces/IInteractionEngine';
 import { IInteractionManager } from '../interfaces/IInteractionManager';
-import { IIntersectionFilter, IRay, RaycasterParameters } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { IntersectionManager } from './IntersectionManager';
 import { ISceneEvent } from '@shapediver/viewer.shared.types';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';
+import { RaycasterParameters } from '@shapediver/viewer.rendering-engine.intersection-engine';
 
 // #region Interfaces (1)
 

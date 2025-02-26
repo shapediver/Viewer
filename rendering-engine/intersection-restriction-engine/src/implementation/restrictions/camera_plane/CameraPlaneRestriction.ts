@@ -1,13 +1,13 @@
 import { AbstractRestriction } from '../AbstractRestriction';
 import { GeometryMathManager } from '../../GeometryMathManager';
 import { IPlane, Plane } from '@shapediver/viewer.shared.math';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import {
     IRestriction,
     RestrictionMetaData,
     RestrictionPropertiesBase,
     RestrictionResult
-} from '../../../interfaces/IRestriction';
+    } from '../../../interfaces/IRestriction';
 import { ISnapRestriction } from '../../../interfaces/ISnapRestriction';
 import { ITreeNode, IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';

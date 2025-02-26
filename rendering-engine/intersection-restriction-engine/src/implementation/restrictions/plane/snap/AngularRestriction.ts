@@ -1,7 +1,7 @@
 import { AbstractSnapRestriction } from '../../AbstractSnapRestriction';
 import { CSS2DObject } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
 import { GeometryMathManager } from '../../../GeometryMathManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { isDrawingRestriction, RestrictionMetaData, RestrictionResult } from '../../../../interfaces/IRestriction';
 import { ISnapRestriction, SnapRestrictionProperties } from '../../../../interfaces/ISnapRestriction';
 import { ITreeNode, IViewportApi, sceneTree } from '@shapediver/viewer';

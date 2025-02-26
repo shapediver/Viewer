@@ -1,4 +1,4 @@
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { RestrictionMetaData, RestrictionResult } from './IRestriction';
 import { vec3 } from 'gl-matrix';
 

@@ -1,5 +1,5 @@
 import { IInteractionManager } from '../IInteractionManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportEvent } from '@shapediver/viewer.shared.types';
 import { vec3 } from 'gl-matrix';

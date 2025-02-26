@@ -5,7 +5,7 @@ import {
     RayTraceResult,
     RestrictionProperties
 } from './IRestriction';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 
 export interface IRestrictionManager {
     // #region Properties (2)

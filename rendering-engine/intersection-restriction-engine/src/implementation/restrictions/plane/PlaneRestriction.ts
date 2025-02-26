@@ -12,7 +12,7 @@ import {
 import { GeometryMathManager } from '../../GeometryMathManager';
 import { GridRestriction, GridRestrictionProperties } from './snap/GridRestriction';
 import { IPlane, Plane } from '@shapediver/viewer.shared.math';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import {
     IRestriction,
     isDraggingRestriction,

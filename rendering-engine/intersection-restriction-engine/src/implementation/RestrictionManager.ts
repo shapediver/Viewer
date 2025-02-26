@@ -13,7 +13,7 @@ import {
 import { EventManager } from './EventManager';
 import { GeometryMathManager } from './GeometryMathManager';
 import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { IRestrictionManager } from '../interfaces/IRestrictionManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';

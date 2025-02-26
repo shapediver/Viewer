@@ -10,8 +10,7 @@ import {
     matchNodesWithPatterns,
     NodeNameFilterPattern,
     OutputNodeNameFilterPatterns
-} from './implementation/utils/PatternUtils';
-import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
+    } from './implementation/utils/PatternUtils';
 import {
     AngularRestrictionApi,
     AngularRestrictionProperties,
@@ -40,7 +39,8 @@ import {
     RestrictionProperties,
     RestrictionPropertiesBase,
     SnapRestrictionProperties
-} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
+    } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
+import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
 import {
@@ -55,14 +55,19 @@ import {
     IPointLightApi,
     ISpotLightApi,
     IViewportApi
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
 import { IDragEvent } from './interfaces/events/IDragEvent';
 import { IHoverEvent } from './interfaces/events/IHoverEvent';
 import { IInteractionData, IInteractionTypes } from './interfaces/IInteractionData';
 import { IInteractionEffectUtils } from './interfaces/utils/IInteractionEffectUtils';
 import { IInteractionEngine, INTERACTION_STATE } from './interfaces/IInteractionEngine';
 import { IInteractionFilterOptions, IInteractionManager } from './interfaces/IInteractionManager';
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import {
+    IIntersection,
+    IIntersectionFilter,
+    IRay,
+    RestrictionDefinition
+    } from '@shapediver/viewer.shared.types';
 import { IMultiSelectEvent } from './interfaces/events/IMultiSelectEvent';
 import { InteractionData } from './implementation/InteractionData';
 import { InteractionEngine } from './implementation/InteractionEngine';
@@ -74,7 +79,6 @@ import { PlaneConstraint } from './implementation/dragConstraints/PlaneConstrain
 import { PointConstraint } from './implementation/dragConstraints/PointConstraint';
 import { SelectManager } from './implementation/managers/SelectManager';
 import { SelectOnUpManager } from './implementation/managers/SelectOnUpManager';
-import { RestrictionDefinition } from '@shapediver/viewer.shared.types';
 
 export {
     IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager

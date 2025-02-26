@@ -1,10 +1,8 @@
 import * as THREE from 'three';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryData } from '@shapediver/viewer.shared.types';
-import { IIntersection } from '../interfaces/IIntersection';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { IIntersectionEngine } from '../interfaces/IIntersectionEngine';
-import { IIntersectionFilter } from '../interfaces/IIntersectionFilter';
-import { IRay } from '../interfaces/IRay';
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 
 export class IntersectionEngine implements IIntersectionEngine {
