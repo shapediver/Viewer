@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { ISnapRestriction } from '../../interfaces/ISnapRestriction';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';

@@ -1,6 +1,32 @@
 import * as THREE from 'three';
 import { adaptShaders, MaterialLoader } from './loaders/MaterialLoader';
 import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine';
+import {
+  BUSY_MODE_DISPLAY,
+  Color,
+  FLAG_TYPE,
+  IAnimationData,
+  IGeometryData,
+  IIntersectionFilter,
+  ISDTFAttributeVisualizationData,
+  ISDTFItemData,
+  ISDTFOverview,
+  ISDTFOverviewData,
+  ITaskEvent,
+  IViewportEvent,
+  IViewportSettingsSections,
+  MATERIAL_TYPE,
+  MaterialBasicLineData,
+  MaterialPointData,
+  MaterialStandardData,
+  RENDERER_TYPE,
+  SDTFOverviewData,
+  SPINNER_POSITIONING,
+  TASK_TYPE,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITY_MODE
+  } from '@shapediver/viewer.shared.types';
 import { CameraManager } from './managers/CameraManager';
 import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { css } from './styling/viewport-css';
@@ -36,31 +62,6 @@ import {
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services';
-import {
-  ISDTFOverviewData,
-  ISDTFAttributeVisualizationData,
-  ISDTFOverview,
-  ISDTFItemData,
-  SDTFOverviewData,
-  ITaskEvent,
-  TASK_TYPE,
-  IAnimationData,
-  IGeometryData,
-  Color,
-  IViewportEvent,
-  MaterialStandardData,
-  MaterialPointData,
-  MaterialBasicLineData,
-  IViewportSettingsSections,
-  BUSY_MODE_DISPLAY,
-  FLAG_TYPE,
-  RENDERER_TYPE,
-  SPINNER_POSITIONING,
-  TEXTURE_ENCODING,
-  TONE_MAPPING,
-  VISIBILITY_MODE,
-  MATERIAL_TYPE,
-} from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (76)
@@ -1136,8 +1137,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTracingManager.pointerEventToRay(event);
   }
 
-  public raytraceScene(origin: vec3, direction: vec3): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
-    const intersect = this._intersectionManager.intersect({ origin, direction }, this.id);
+  public raytraceScene(origin: vec3, direction: vec3, filterCriteria?: IIntersectionFilter[]): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
+    const intersect = this._intersectionManager.intersect({ origin, direction }, this.id, filterCriteria);
     return intersect.map(i => {
       return {
         distance: i.distance,

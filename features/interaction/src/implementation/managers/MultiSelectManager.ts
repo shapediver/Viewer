@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import {
     EventEngine,
     EVENTTYPE,
-    EVENTTYPE_INTERACTION,
     Logger,
     ShapeDiverViewerInteractionError
     } from '@shapediver/viewer.shared.services';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
+import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 import { IMultiSelectEvent } from '../../interfaces/events/IMultiSelectEvent';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { InteractionData } from '../InteractionData';
 import { ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
-import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class MultiSelectManager extends AbstractInteractionManager {
     // #region Properties (13)

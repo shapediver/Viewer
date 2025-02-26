@@ -23,6 +23,7 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   MATERIAL_TYPE,
+  IIntersectionFilter,
 } from '@shapediver/viewer.shared.types';
 
 /**
@@ -527,10 +528,11 @@ export interface IViewportApi {
    * If you want to raytrace the scene from an interaction with the the canvas, 
    * please use {@link pointerEventToRay} to create a ray first.
    * 
-   * @param origin 
-   * @param direction 
+   * @param origin The origin of the ray.
+   * @param direction The direction of the ray.
+   * @param filterCriteria Optional filter criteria to filter the intersections.
    */
-  raytraceScene(origin: vec3, direction: vec3): { distance: number, node: ITreeNode, data?: IGeometryData }[];
+  raytraceScene(origin: vec3, direction: vec3, filterCriteria?: IIntersectionFilter[]): { distance: number, node: ITreeNode, data?: IGeometryData }[];
   /**
    * Remove the camera with the specified id and destroys it.
    * If you remove the current active camera, the rendering will be stopped until a new camera is assigned.

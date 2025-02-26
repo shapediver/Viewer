@@ -1,4 +1,4 @@
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../interfaces/IVisualizationSettings';
 import { vec3 } from 'gl-matrix';

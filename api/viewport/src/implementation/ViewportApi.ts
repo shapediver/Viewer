@@ -8,6 +8,7 @@ import {
     FLAG_TYPE,
     IAnimationData,
     IGeometryData,
+    IIntersectionFilter,
     ISDTFAttributeVisualizationData,
     ISDTFItemData,
     ISDTFOverview,
@@ -972,11 +973,11 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.pointerEventToRay(event);
     }
 
-    public raytraceScene(origin: vec3, direction: vec3): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
+    public raytraceScene(origin: vec3, direction: vec3, filterCriteria?: IIntersectionFilter[]): { distance: number, node: ITreeNode, data?: IGeometryData; }[] {
         const scope = 'raytraceScene';
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, origin, 'vec3');
         this.#inputValidator.validateAndError(`ViewportApi.${scope}`, direction, 'vec3');
-        return this.#renderingEngine.raytraceScene(origin, direction);
+        return this.#renderingEngine.raytraceScene(origin, direction, filterCriteria);
     }
 
     public removeCamera(id: string): boolean {

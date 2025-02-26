@@ -1,13 +1,11 @@
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import { GeometryData } from '@shapediver/viewer.shared.types';
 import {
+    GeometryData,
     IIntersection,
-    IIntersectionEngine,
     IIntersectionFilter,
-    IntersectionEngine,
-    IRay,
-    RaycasterParameters
-} from '@shapediver/viewer.rendering-engine.intersection-engine';
+    IRay
+    } from '@shapediver/viewer.shared.types';
+import { IIntersectionEngine, IntersectionEngine, RaycasterParameters } from '@shapediver/viewer.rendering-engine.intersection-engine';
 import { InteractionData } from './InteractionData';
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 

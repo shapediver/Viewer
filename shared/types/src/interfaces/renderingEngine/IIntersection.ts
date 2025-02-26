@@ -1,6 +1,6 @@
-import { vec3 } from "gl-matrix";
-import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
-import { IGeometryData } from "@shapediver/viewer.shared.types";
+import { IGeometryData } from '../data/IGeometryData';
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import { vec3 } from 'gl-matrix';
 
 export interface IIntersection {
     /** The distance to the intersection. */

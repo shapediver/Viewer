@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { IIntersection } from './IIntersection';
-import { IIntersectionFilter } from './IIntersectionFilter';
-import { IRay } from './IRay';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 
 export interface IIntersectionEngine {
     // #region Public Methods (1)

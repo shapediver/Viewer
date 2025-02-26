@@ -1,5 +1,5 @@
 import { DomEventEngine, SESSION_SETTINGS_MODE, SettingsEngine } from '@shapediver/viewer.shared.services';
-import { FLAG_TYPE, IGeometryData, RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
+import { FLAG_TYPE, IGeometryData, IIntersectionFilter, RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.shared.types';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { vec2, vec3 } from 'gl-matrix';
 
@@ -34,7 +34,7 @@ export interface IRenderingEngine {
   isMobileDeviceWithoutBrowserARSupport(): boolean;
   pauseRendering(): void;
   pointerEventToRay(event: PointerEvent): { origin: vec3, direction: vec3 };
-  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
+  raytraceScene(origin: vec3, direction: vec3, filterCriteria?: IIntersectionFilter[]): { distance: number, node: ITreeNode, data?: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;

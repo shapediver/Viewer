@@ -1,13 +1,13 @@
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils';
 import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager';
-import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IRay } from '@shapediver/viewer.shared.types';
 import {
     IMaterialAbstractData,
     ITreeNode,
     IViewportApi,
     Tree
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
 import { INTERACTION_STATE } from '../interfaces/IInteractionEngine';
 import { InteractionData } from './InteractionData';
 import { InteractionEffectUtils } from './utils/InteractionEffectUtils';

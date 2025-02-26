@@ -10,7 +10,7 @@ import {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE
-} from './interfaces/renderingEngine/enums';
+  } from './interfaces/renderingEngine/enums';
 import {
   Color,
   ISessionSettingsSections,
@@ -20,7 +20,7 @@ import {
   PARAMETER_VISUALIZATION,
   SessionCreationDefinition,
   ViewportCreationDefinition
-} from './types';
+  } from './types';
 import { CustomData } from './implementation/data/CustomData';
 import { DraggingParameterValue, IDraggableObject, IDraggingParameterProps } from './interfaces/parameter/IDraggingParameterSettings';
 import {
@@ -28,7 +28,7 @@ import {
   IDrawingParameterJsonSchema,
   IDrawingParameterSettings,
   validateDrawingParameterSettings
-} from './interfaces/parameter/IDrawingParametersSettings';
+  } from './interfaces/parameter/IDrawingParametersSettings';
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
 import { GumballParameterValue, IGumballParameterProps } from './interfaces/parameter/IGumballParameterSettings';
 import {
@@ -36,7 +36,7 @@ import {
   HTMLElementAnchorData,
   HTMLElementAnchorImageData,
   HTMLElementAnchorTextData
-} from './implementation/data/HTMLElementAnchorData';
+  } from './implementation/data/HTMLElementAnchorData';
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData';
 import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData';
 import {
@@ -44,7 +44,7 @@ import {
   IGeometryData,
   IPrimitiveData,
   PRIMITIVE_MODE
-} from './interfaces/data/IGeometryData';
+  } from './interfaces/data/IGeometryData';
 import { IBoneData } from './interfaces/data/IBoneData';
 import { ICameraEvent } from './interfaces/events/ICameraEvent';
 import { ICustomData } from './interfaces/data/ICustomData';
@@ -60,15 +60,17 @@ import {
   validateGumballParameterSettings,
   validateInteractionParameterSettings,
   validateSelectionParameterSettings
-} from './interfaces/parameter/IInteractionParameterSettings';
+  } from './interfaces/parameter/IInteractionParameterSettings';
 import { IInstanceData } from './interfaces/data/IInstanceData';
+import { IIntersection } from './interfaces/renderingEngine/IIntersection';
+import { IIntersectionFilter } from './interfaces/renderingEngine/IIntersectionFilter';
 import {
   IMapData,
   IMapDataProperties,
   IMapDataPropertiesDefinition,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING
-} from './interfaces/data/material/IMapData';
+  } from './interfaces/data/material/IMapData';
 import {
   IMaterialAbstractData,
   IMaterialAbstractDataProperties,
@@ -77,7 +79,7 @@ import {
   MATERIAL_SHADING,
   MATERIAL_SIDE,
   MATERIAL_TYPE
-} from './interfaces/data/material/IMaterialAbstractData';
+  } from './interfaces/data/material/IMaterialAbstractData';
 import { IMaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition } from './interfaces/data/material/IMaterialBasicLineData';
 import { IMaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition } from './interfaces/data/material/IMaterialGemDataProperties';
 import { IMaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialMultiPointData';
@@ -90,6 +92,7 @@ import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVaria
 import { InstanceData } from './implementation/data/InstanceData';
 import { IOutputEvent } from './interfaces/events/IOutputEvent';
 import { IParameterEvent } from './interfaces/events/IParameterEvent';
+import { IRay } from './interfaces/renderingEngine/IRay';
 import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
 import { ISceneEvent } from './interfaces/events/ISceneEvent';
 import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTFAttributesData';
@@ -174,6 +177,10 @@ export {
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE
+};
+
+export {
+  IRay, IIntersection, IIntersectionFilter
 };
 
 export {

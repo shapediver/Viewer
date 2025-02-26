@@ -7,7 +7,7 @@ import {
     sceneTree
 } from '@shapediver/viewer';
 import { GeometryMathManager } from '../../../GeometryMathManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import {
     RestrictionMetaData,
     RestrictionResult

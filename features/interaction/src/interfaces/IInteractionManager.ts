@@ -1,5 +1,5 @@
 import { IInteractionEffectUtils } from './utils/IInteractionEffectUtils';
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { IMaterialAbstractData, IViewportApi } from '@shapediver/viewer';
 import { INTERACTION_STATE } from './IInteractionEngine';
 

@@ -3,7 +3,7 @@ import { AbstractRestriction } from '../AbstractRestriction';
 import { Box } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import {
     IRestriction,
     RestrictionMetaData,

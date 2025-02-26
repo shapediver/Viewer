@@ -1,6 +1,6 @@
 import { IDragAnchor } from '../../implementation/InteractionData';
 import { IInteractionManager } from '../IInteractionManager';
-import { IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IRay } from '@shapediver/viewer.shared.types';
 import { IRestriction } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportEvent } from '@shapediver/viewer.shared.types';

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { AbstractInteractionManager } from '../AbstractInteractionManager';
 import { CameraPlaneConstraint } from '../dragConstraints/CameraPlaneConstraint';
 import {
@@ -7,18 +5,18 @@ import {
     EVENTTYPE,
     Logger,
     UuidGenerator
-} from '@shapediver/viewer.shared.services';
+    } from '@shapediver/viewer.shared.services';
 import {
     FLAG_TYPE,
     IGeometryData,
     IMaterialAbstractData,
     IViewportApi
-} from '@shapediver/viewer';
+    } from '@shapediver/viewer';
 import { IDragAnchor, InteractionData } from '../InteractionData';
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
 import { IDragEvent } from '../../interfaces/events/IDragEvent';
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager';
-import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine';
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine';
 import { ITransformation, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree';
 import { LineConstraint } from '../dragConstraints/LineConstraint';
@@ -30,10 +28,12 @@ import {
     RESTRICTION_TYPE,
     RestrictionManager,
     RestrictionProperties
-} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
+    } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { mat4, vec3 } from 'gl-matrix';
 import { PlaneConstraint } from '../dragConstraints/PlaneConstraint';
 import { PointConstraint } from '../dragConstraints/PointConstraint';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 
 export class DragManager extends AbstractInteractionManager {
     readonly #eventEngine: EventEngine = EventEngine.instance;
