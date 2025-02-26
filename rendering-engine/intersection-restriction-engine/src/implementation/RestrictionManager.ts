@@ -13,13 +13,12 @@ import {
 import { EventManager } from './EventManager';
 import { GeometryMathManager } from './GeometryMathManager';
 import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
-import { IRay } from '@shapediver/viewer.shared.types';
+import { GeometryData, IGeometryData, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { IRestrictionManager } from '../interfaces/IRestrictionManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../interfaces/IVisualizationSettings';
 import { LineRestriction, LineRestrictionProperties } from './restrictions/line/LineRestriction';
-import { vec3 } from 'gl-matrix';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 import { PointRestriction, PointRestrictionProperties } from './restrictions/point/PointRestriction';
 import { UuidGenerator } from '@shapediver/viewer.shared.services';
@@ -240,8 +239,23 @@ export class RestrictionManager implements IRestrictionManager {
             }
         }
 
+        // create a filter to check if the node is hidden or transparent
+        const filter: IIntersectionFilter = (node: ITreeNode, geometryData?: IGeometryData) => {
+            if (node.visible === false) return false;
+            let hasVisibleData = false;
+            node.traverseData(d => {
+                if(d instanceof GeometryData) {
+                    const g = d as GeometryData;
+                    if (g.material && g.material.transparent === false) hasVisibleData = true;
+                }
+            });
+            if (!hasVisibleData) return false;
+            if (geometryData && geometryData.material && geometryData.material.transparent) return false;
+            return true;
+        };
+
         // check if the closest restriction is actually hidden
-        const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction);
+        const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction, [filter]);
         if (sceneRayTrace.length > 0 && sceneRayTrace[0].distance * sceneRayTrace[0].distance < restrictionResult.distanceOriginToClosestIntersectionPointSquared)
             return;
 

@@ -102,8 +102,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 
         if (filterCriteria) {
             for (let i = 0; i < filterCriteria.length; i++) {
+                // if the filter criteria returns false, skip the intersection test
+                // the filter criteria per geometryData is then evaluated in the intersectionTest method
                 if (filterCriteria[i](node))
-                    return this.intersectionTest(ray, node, geometryData, viewportId, rayCasterParams);
+                    return this.intersectionTest(ray, node, geometryData, viewportId, rayCasterParams, filterCriteria);
             }
         } else {
             return this.intersectionTest(ray, node, geometryData, viewportId, rayCasterParams);
@@ -160,32 +162,40 @@ export class IntersectionEngine implements IIntersectionEngine {
         node: ITreeNode,
         geometryData: { [key: string]: GeometryData },
         viewportId: string,
-        rayCasterParams?: THREE.RaycasterParameters
+        rayCasterParams?: THREE.RaycasterParameters,
+        filterCriteria?: IIntersectionFilter[]
     ): IIntersection[] | undefined {
         if (rayCasterParams) this._raycaster.params = rayCasterParams;
 
         this._raycaster.ray.direction.set(ray.direction[0], ray.direction[1], ray.direction[2]);
         this._raycaster.ray.origin.set(ray.origin[0], ray.origin[1], ray.origin[2]);
 
-        let intersections: IIntersection[] = [];
 
         const threeJsObject = node.convertedObject[viewportId!] as THREE.Object3D;
         if (threeJsObject) {
             const intersectionThree = this._raycaster.intersectObject(threeJsObject);
-            const intersection = intersectionThree.map(i => {
-                const intersection: IIntersection = {
+            if(intersectionThree.length === 0) return;
+
+            let intersections = intersectionThree.map(i => {
+                const intersectionDefinition: IIntersection = {
                     distance: i.distance,
                     point: [i.point.x, i.point.y, i.point.z],
                     node: node,
                     geometryData: geometryData[`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`]
                 };
-                return intersection;
+                return intersectionDefinition;
             });
-            intersections = intersections.concat(intersection);
-        }
 
-        intersections.sort((a, b) => a.distance - b.distance);
-        return intersections;
+            if (filterCriteria) {
+                intersections = intersections.filter(i => {
+                    for (let j = 0; j < filterCriteria.length; j++)
+                        if (filterCriteria[j](i.node, i.geometryData)) return true;
+                    return false;
+                });
+            }
+            intersections.sort((a, b) => a.distance - b.distance);
+            return intersections;
+        }
     }
 
     // #endregion Private Methods (2)
