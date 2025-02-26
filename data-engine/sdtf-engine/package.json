@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.sdtf-engine",
-  "version": "3.8.7-rc.0",
+  "version": "3.8.7",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,11 +40,11 @@
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "1.12.2",
     "@shapediver/sdk.sdtf-v1": "1.5.3",
-    "@shapediver/viewer.data-engine.shared-types": "3.8.7-rc.0",
-    "@shapediver/viewer.shared.build-data": "3.8.7-rc.0",
-    "@shapediver/viewer.shared.node-tree": "3.8.7-rc.0",
-    "@shapediver/viewer.shared.services": "3.8.7-rc.0",
-    "@shapediver/viewer.shared.types": "3.8.7-rc.0",
+    "@shapediver/viewer.data-engine.shared-types": "3.8.7",
+    "@shapediver/viewer.shared.build-data": "3.8.7",
+    "@shapediver/viewer.shared.node-tree": "3.8.7",
+    "@shapediver/viewer.shared.services": "3.8.7",
+    "@shapediver/viewer.shared.types": "3.8.7",
     "axios": "^1.2.6",
     "gl-matrix": "3.3.0"
   },
