@@ -62,8 +62,8 @@ export class IntersectionEngine implements IIntersectionEngine {
             if (distanceDiff !== 0) return distanceDiff;
 
             // if the distance is the same, sort by the closest InteractionData within the sceneTree
-            let depthA = 0;
-            let depthB = 0;
+            let depthA = -1;
+            let depthB = -1;
 
             const computeDepth = (targetNode: ITreeNode, node: ITreeNode, depth: number = 0): number => {
                 if (targetNode === node) return depth;
@@ -71,14 +71,19 @@ export class IntersectionEngine implements IIntersectionEngine {
                 return -1;
             };
 
-            a.node.traverse(node => {
-                if(node.data.includes(a.geometryData))
-                    depthA = computeDepth(a.node, node);
-            });
-            b.node.traverse(node => {
-                if(node.data.includes(b.geometryData))
-                    depthB = computeDepth(b.node, node);
-            });
+            if(a.geometryData) {
+                a.node.traverse(node => {
+                    if(a.geometryData && node.data.includes(a.geometryData))
+                        depthA = computeDepth(a.node, node);
+                });
+            }
+            
+            if(b.geometryData) {
+                b.node.traverse(node => {
+                    if(b.geometryData && node.data.includes(b.geometryData))
+                        depthB = computeDepth(b.node, node);
+                });
+            }
 
             return depthA - depthB;
         });
