@@ -62,6 +62,7 @@ export class InteractionEngine implements IInteractionEngine {
     #lineIntersectionPercentage: number = 0.025;
     #pointIntersectionPercentage: number = 0.025;
     #sceneBoundingSphereRadius: number = 0;
+    #sceneBoundingBoxChangeToken: string = '';
 
     // #endregion Properties (12)
 
@@ -85,7 +86,7 @@ export class InteractionEngine implements IInteractionEngine {
          */
         this.#sceneBoundingSphereRadius = sceneTree.root.boundingBox.boundingSphere.radius;
         this.updateIntersectionThresholds();
-        this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+        this.#sceneBoundingBoxChangeToken = this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
             const event = e as ISceneEvent;
             if (event.viewportId === this.#viewport.id) {
                 const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
@@ -147,6 +148,7 @@ export class InteractionEngine implements IInteractionEngine {
 
     public close(): void {
         if (this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.');
+        this.#eventEngine.removeListener(this.#sceneBoundingBoxChangeToken);
         for (const m in this.#managers)
             this.removeInteractionManager(m);
         this.#viewport.removeCanvasEventListener(this.#canvasEventListenerToken);
