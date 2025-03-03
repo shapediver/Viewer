@@ -12,21 +12,20 @@ import {
 } from '../interfaces/IRestriction';
 import { EventManager } from './EventManager';
 import { GeometryMathManager } from './GeometryMathManager';
-import { GeometryRestriction, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
-import { GeometryData, IGeometryData, IIntersectionFilter, IRay, ISceneEvent } from '@shapediver/viewer.shared.types';
+import { GeometryRestriction, GeometryRestrictionIntersectionData, GeometryRestrictionProperties } from './restrictions/geometry/GeometryRestriction';
+import { IGeometryData, IIntersectionFilter, IRay } from '@shapediver/viewer.shared.types';
 import { IRestrictionManager } from '../interfaces/IRestrictionManager';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Box, IViewportApi, sceneTree } from '@shapediver/viewer';
+import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../interfaces/IVisualizationSettings';
 import { LineRestriction, LineRestrictionProperties } from './restrictions/line/LineRestriction';
 import { PlaneRestriction, PlaneRestrictionProperties } from './restrictions/plane/PlaneRestriction';
 import { PointRestriction, PointRestrictionProperties } from './restrictions/point/PointRestriction';
-import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services';
+import { UuidGenerator } from '@shapediver/viewer.shared.services';
 
 export class RestrictionManager implements IRestrictionManager {
     // #region Properties (11)
 
-    readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #eventManager: EventManager;
     readonly #geometryMathManager: GeometryMathManager;
     readonly #parentNode: ITreeNode;
@@ -50,8 +49,6 @@ export class RestrictionManager implements IRestrictionManager {
     #keysPressed: { [key: string]: boolean } = {};
     #restrictionManagerNode: ITreeNode;
     #showRestrictionVisualization: boolean = false;
-    #sceneBoundingSphereRadius: number;
-    #sceneBoundingBoxChangeToken: string = '';
 
     // #endregion Properties (11)
 
@@ -71,19 +68,6 @@ export class RestrictionManager implements IRestrictionManager {
 
         if (settings) this.#settings = settings;
         this.#geometryMathManager = new GeometryMathManager(this.#viewport, this.#settings);
-
-        /**
-         * When the scene bounding box changes, we store the new bounding sphere radius of the scene.
-         * This is necessary as with that radius, we calculate the relative threshold for the distance comparison.
-         */
-        this.#sceneBoundingSphereRadius = sceneTree.root.boundingBox.boundingSphere.radius;
-        this.#sceneBoundingBoxChangeToken = this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
-            const event = e as ISceneEvent;
-            if (event.viewportId === this.#viewport.id) {
-                const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
-                this.#sceneBoundingSphereRadius = boundingBox.boundingSphere.radius;
-            }
-        });
 
         this.#eventManager = new EventManager(this.#viewport, {
             onDown: this.onDown.bind(this),
@@ -191,7 +175,6 @@ export class RestrictionManager implements IRestrictionManager {
 
     public close(): void {
         this.#closed = true;
-        this.#eventEngine.removeListener(this.#sceneBoundingBoxChangeToken);
         this.#parentNode.removeChild(this.#restrictionManagerNode);
         this.#parentNode.updateVersion(false, false);
         this.#eventManager.close();
@@ -267,11 +250,19 @@ export class RestrictionManager implements IRestrictionManager {
         const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction, [filter]);
 
         if (sceneRayTrace.length > 0) {
-            // epsilon of 0.01% of the bounding sphere radius
-            const eps = this.#sceneBoundingSphereRadius * 0.0001;
-            const squaredDistanceSceneRayTrace = (sceneRayTrace[0].distance * sceneRayTrace[0].distance) + eps;
-            if (squaredDistanceSceneRayTrace < restrictionResult.distanceOriginToClosestIntersectionPointSquared)
-                return;
+            const squaredDistanceSceneRayTrace = sceneRayTrace[0].distance * sceneRayTrace[0].distance;
+            if (squaredDistanceSceneRayTrace <= restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+                // the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
+                if(restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY || (restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY && (!restrictionResult.restrictionIntersectionData || !sceneRayTrace[0].data)))
+                    return;
+
+                const geometryRestrictionIntersectionData = restrictionResult.restrictionIntersectionData as GeometryRestrictionIntersectionData;
+
+                // it is NOT the same geometry
+                if(!(geometryRestrictionIntersectionData.geometryData.id === sceneRayTrace[0].data!.id && 
+                    geometryRestrictionIntersectionData.geometryData.version === sceneRayTrace[0].data!.version))
+                    return;
+            }
         }
 
         // deactivate the visualization of all restrictions that are not hit

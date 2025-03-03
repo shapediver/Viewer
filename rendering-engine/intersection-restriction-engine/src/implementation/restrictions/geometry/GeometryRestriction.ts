@@ -3,7 +3,7 @@ import { AbstractRestriction } from '../AbstractRestriction';
 import { Box } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { GeometryMathManager } from '../../GeometryMathManager';
-import { IRay } from '@shapediver/viewer.shared.types';
+import { GeometryData, IGeometryData, IRay } from '@shapediver/viewer.shared.types';
 import {
     IRestriction,
     RestrictionMetaData,
@@ -16,6 +16,7 @@ import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi, sceneTree } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
 import { vec3 } from 'gl-matrix';
+import { SDObject } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs/dist/objects/SDObject';
 
 // #region Type aliases (1)
 
@@ -53,6 +54,16 @@ export interface GeometryRestrictionProperties extends RestrictionPropertiesBase
      */
     snapToFaces?: boolean;
 }
+
+
+/**
+ * The data of the intersection of the geometry restriction.
+ * This data is forwarded for internal use.
+ */
+export interface GeometryRestrictionIntersectionData {
+    node: ITreeNode;
+    geometryData: IGeometryData;
+} 
 
 // #endregion Type aliases (1)
 
@@ -124,6 +135,10 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
     // #region Public Getters And Setters (8)
 
+    public get nodes(): ITreeNode[] {
+        return this.#nodes;
+    }
+
     public get snapRestrictions(): { [key: string]: ISnapRestriction; } {
         return this.#snapRestrictions;
     }
@@ -182,6 +197,29 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         // return first intersection
         if (intersections.length > 0) {
             const object = intersections[0].object as THREE.Mesh;
+
+            let geometryRestrictionIntersectionData: GeometryRestrictionIntersectionData | undefined;
+
+            // search the three.js object hierarchy for the converted object
+            let tempObject = object as unknown as SDObject;
+            while (tempObject.parent) {
+                const intersectedNode = this.#nodes.find(node => node.id === tempObject.SDid && node.version === tempObject.SDversion);
+                if (intersectedNode) {
+                    // from this node, we can get the geometry data
+                    intersectedNode.traverseData(d => {
+                        if(d instanceof GeometryData && d.id === (object.parent as SDObject).SDid && d.version === (object.parent as SDObject).SDversion) {
+                            geometryRestrictionIntersectionData = {
+                                node: intersectedNode,
+                                geometryData: d
+                            };
+                        }
+                    });
+                    break;
+                }
+
+                tempObject = tempObject.parent as unknown as SDObject;
+            }
+
             const geometry = object.geometry;
             const positionAttribute = geometry.getAttribute('position');
 
@@ -191,13 +229,13 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                 vertex.fromBufferAttribute(positionAttribute, intersections[0].index);
                 object.localToWorld(vertex);
 
-                return this.constructRestrictionResult(vec3.fromValues(vertex.x, vertex.y, vertex.z), intersections[0].distance, intersections[0].pointOnLine);
+                return this.constructRestrictionResult(vec3.fromValues(vertex.x, vertex.y, vertex.z), intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
             }
 
             const intersectionPoint = intersections[0].point;
             const intersectionPointVec3 = vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z);
 
-            if (!intersections[0].face) return this.constructRestrictionResult(intersectionPointVec3, intersections[0].distance, intersections[0].pointOnLine);
+            if (!intersections[0].face) return this.constructRestrictionResult(intersectionPointVec3, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
 
             if (this.#snapToVertices === true || this.#snapToEdges === true) {
                 const vertexA = new THREE.Vector3();
@@ -222,11 +260,11 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
 
                     // part 1 - check if the intersection point is close to a vertex
                     if (distanceA.check && distanceA.distanceSquared < distanceB.distanceSquared && distanceA.distanceSquared < distanceC.distanceSquared) {
-                        return this.constructRestrictionResult(vertexAVec3, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(vertexAVec3, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     } else if (distanceB.check && distanceB.distanceSquared < distanceA.distanceSquared && distanceB.distanceSquared < distanceC.distanceSquared) {
-                        return this.constructRestrictionResult(vertexBVec3, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(vertexBVec3, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     } else if (distanceC.check && distanceC.distanceSquared < distanceA.distanceSquared && distanceC.distanceSquared < distanceB.distanceSquared) {
-                        return this.constructRestrictionResult(vertexCVec3, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(vertexCVec3, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     }
                 }
 
@@ -245,18 +283,18 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
                     
                     // check if the intersection point is close to an edge
                     if (distanceAB.check && distanceAB.distanceSquared < distanceBC.distanceSquared && distanceAB.distanceSquared < distanceCA.distanceSquared) {
-                        return this.constructRestrictionResult(closestPointOnEdgeAB, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(closestPointOnEdgeAB, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     } else if (distanceBC.check && distanceBC.distanceSquared < distanceAB.distanceSquared && distanceBC.distanceSquared < distanceCA.distanceSquared) {
-                        return this.constructRestrictionResult(closestPointOnEdgeBC, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(closestPointOnEdgeBC, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     } else if (distanceCA.check && distanceCA.distanceSquared < distanceAB.distanceSquared && distanceCA.distanceSquared < distanceBC.distanceSquared) {
-                        return this.constructRestrictionResult(closestPointOnEdgeCA, intersections[0].distance, intersections[0].pointOnLine);
+                        return this.constructRestrictionResult(closestPointOnEdgeCA, intersections[0].distance, intersections[0].pointOnLine, geometryRestrictionIntersectionData);
                     }
                 }
             }
 
             if (this.#snapToFaces === true) {
                 // part 3 - face intersection
-                return this.constructRestrictionResult(vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z), intersections[0].distance);
+                return this.constructRestrictionResult(vec3.fromValues(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z), intersections[0].distance, undefined, geometryRestrictionIntersectionData);
             }
         }
 
@@ -310,14 +348,15 @@ export class GeometryRestriction extends AbstractRestriction implements IRestric
         this.#rayCasterParams.Line2!.threshold = this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
     }
 
-    private constructRestrictionResult(targetPoint: vec3, distanceOriginToClosestIntersectionPoint: number, closestPointOnRay?: THREE.Vector3): RestrictionResult {
+    private constructRestrictionResult(targetPoint: vec3, distanceOriginToClosestIntersectionPoint: number, closestPointOnRay?: THREE.Vector3, geometryRestrictionIntersectionData?: GeometryRestrictionIntersectionData): RestrictionResult {
         const closestPointOnRayVec3 = closestPointOnRay ? vec3.fromValues(closestPointOnRay.x, closestPointOnRay.y, closestPointOnRay.z) : targetPoint;
         return {
             closestIntersectionPoint: closestPointOnRay ? vec3.fromValues(closestPointOnRay.x, closestPointOnRay.y, closestPointOnRay.z) : targetPoint,
             distanceOriginToClosestIntersectionPointSquared: distanceOriginToClosestIntersectionPoint * distanceOriginToClosestIntersectionPoint,
             targetPoint,
             distanceClosestPointToTargetPointSquared: closestPointOnRayVec3 !== targetPoint ? vec3.sqrDist(closestPointOnRayVec3, targetPoint) : 0,
-            restriction: this
+            restriction: this,
+            restrictionIntersectionData: geometryRestrictionIntersectionData
         };
     }
 

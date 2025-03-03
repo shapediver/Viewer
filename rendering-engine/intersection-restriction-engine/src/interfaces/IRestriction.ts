@@ -110,7 +110,8 @@ export type RestrictionResult = {
     targetPoint: vec3,
     distanceClosestPointToTargetPointSquared: number,
     restriction: IRestriction,
-    snapRestriction?: ISnapRestriction
+    snapRestriction?: ISnapRestriction,
+    restrictionIntersectionData?: unknown
 };
 
 export const isDraggingRestriction = (metaData?: RestrictionMetaData): metaData is DraggingRestrictionMetaData => {
