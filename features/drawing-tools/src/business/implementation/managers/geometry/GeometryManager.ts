@@ -23,6 +23,7 @@ export class GeometryManager {
 
         // create a new node with the geometry data
         const parentNode = new TreeNode('DrawingToolsGeometry');
+        parentNode.intersectionTest = false;
         this.#originalParentNode.addChild(parentNode);
 
         this.#parentNode = parentNode;
