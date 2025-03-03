@@ -182,6 +182,9 @@ export class IntersectionEngine implements IIntersectionEngine {
             if(intersectionThree.length === 0) return;
 
             let intersections = intersectionThree.map(i => {
+
+
+                console.log("i", i, node, geometryData[`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`], `${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`);
                 const intersectionDefinition: IIntersection = {
                     distance: i.distance,
                     point: [i.point.x, i.point.y, i.point.z],
