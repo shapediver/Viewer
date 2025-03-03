@@ -18,6 +18,7 @@ export class TreeNode implements ITreeNode {
   #bones: ITreeNode[] = [];
   #convertedObject: { [key: string]: unknown } = {};
   #excludeViewports: string[] = [];
+  #intersectionTest: boolean = true;
   #name: string = '';
   #originalId: string;
   #originalName?: string;
@@ -108,6 +109,14 @@ export class TreeNode implements ITreeNode {
 
   public set excludeViewports(value: string[]) {
     this.#excludeViewports = value;
+  }
+
+  public get intersectionTest(): boolean {
+    return this.#intersectionTest;
+  }
+
+  public set intersectionTest(value: boolean) {
+    this.#intersectionTest = value;
   }
 
   public get id(): string {
@@ -259,6 +268,7 @@ export class TreeNode implements ITreeNode {
     // @ts-ignore
     clone.originalId = this.originalId;
     clone.visible = this.visible;
+    clone.intersectionTest = this.intersectionTest;
     for (const child of this.#children)
       clone.addChild(child.clone());
     for (const data of this.#data)
@@ -281,6 +291,7 @@ export class TreeNode implements ITreeNode {
     // @ts-ignore
     clone.originalId = this.originalId;
     clone.visible = this.visible;
+    clone.intersectionTest = this.intersectionTest;
     for (const child of this.#children)
       clone.addChild(child.cloneInstance());
     for (const data of this.#data)

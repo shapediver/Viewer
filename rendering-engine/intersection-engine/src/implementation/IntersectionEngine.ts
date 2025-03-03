@@ -128,6 +128,7 @@ export class IntersectionEngine implements IIntersectionEngine {
         this._intersectNodes = [];
         this._tree.root.traverse(node => {
             if (node.visible === false) return;
+            if (node.intersectionTest === false) return;
 
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {

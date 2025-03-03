@@ -71,6 +71,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
         this.#defaultTextures = defaultTextures!;
 
         this.#parentNode = new TreeNode(`DrawingToolsManager_${this.#uuid}`);
+        this.#parentNode.intersectionTest = false;
         sceneTree.root.addChild(this.#parentNode);
         sceneTree.root.updateVersion(false, false);
 

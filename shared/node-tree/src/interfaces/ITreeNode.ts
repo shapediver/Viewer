@@ -92,6 +92,10 @@ export interface ITreeNode {
      */
     excludeViewports: string[];
     /**
+     * If for this node, global intersection tests should be performed. (default: true)
+     */
+    intersectionTest: boolean;
+    /**
      * The viewports to restrict this tree node to.
      */
     restrictViewports: string[];

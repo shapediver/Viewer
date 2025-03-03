@@ -42,6 +42,8 @@ export class TextVisualizationManager {
         this.#settings = drawingToolsManager.settings;
         this.#parentNode = drawingToolsManager.parentNode;
 
+        this.#visualizationNode.intersectionTest = false;
+
         this.#labelRenderer = new CSS2DRenderer();
         this.#labelRenderer.setSize(this.#viewport.canvas.clientWidth, this.#viewport.canvas.clientHeight);
         this.#labelRenderer.domElement.style.userSelect = 'none';
@@ -89,6 +91,7 @@ export class TextVisualizationManager {
         this.#showDistanceLabels = this.#settings.visualization.distanceLabels;
 
         const node = new TreeNode('ThreeJsDataNode');
+        node.intersectionTest = false;
 
         const data = new ThreejsData(this.#object3D);
         node.addData(data);
