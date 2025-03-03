@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.api.general",
-  "version": "3.8.10",
+  "version": "3.8.11-rc.4",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,10 +38,10 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.geometry-engine": "3.8.10",
-    "@shapediver/viewer.shared.build-data": "3.8.10",
-    "@shapediver/viewer.shared.node-tree": "3.8.10",
-    "@shapediver/viewer.shared.services": "3.8.10",
+    "@shapediver/viewer.data-engine.geometry-engine": "3.8.11-rc.4",
+    "@shapediver/viewer.shared.build-data": "3.8.11-rc.4",
+    "@shapediver/viewer.shared.node-tree": "3.8.11-rc.4",
+    "@shapediver/viewer.shared.services": "3.8.11-rc.4",
     "gl-matrix": "3.3.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
