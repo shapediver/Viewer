@@ -251,7 +251,10 @@ export class RestrictionManager implements IRestrictionManager {
 
         if (sceneRayTrace.length > 0) {
             const squaredDistanceSceneRayTrace = sceneRayTrace[0].distance * sceneRayTrace[0].distance;
-            if (squaredDistanceSceneRayTrace <= restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+            if (squaredDistanceSceneRayTrace < restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+                console.log(restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY || (restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY && (!restrictionResult.restrictionIntersectionData || !sceneRayTrace[0].data)));
+                console.log(restrictionResult, sceneRayTrace[0]);
+
                 // the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
                 if(restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY || (restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY && (!restrictionResult.restrictionIntersectionData || !sceneRayTrace[0].data)))
                     return;
