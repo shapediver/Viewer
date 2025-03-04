@@ -242,6 +242,7 @@ export class CameraEngine implements ICameraEngine {
         const cameras = this.cameras;
         const camera = cameras[id];
         if (!camera) return false;
+        camera.destroy();
         if (camera.domEventListenerToken) this._renderingEngine.domEventEngine.removeDomEventListener(camera.domEventListenerToken);
         if (this._camera && this._camera.id === id)
             this._camera = null;

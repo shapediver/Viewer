@@ -60,12 +60,14 @@ export enum TONE_MAPPING {
 }
 
 export enum VISIBILITY_MODE {
-    /** The viewer shows the scene instantly */
+    /** The viewport shows the scene instantly */
     INSTANT = 'instant',
-    /** The viewer shows the scene after the first session loading */
+    /** The viewport shows the scene after the first session loading */
     SESSION = 'session',
-    /** The viewer is shown once the 'show' property is set to true */
-    MANUAL = 'manual'
+    /** The viewport is shown once the 'show' property is set to true */
+    MANUAL = 'manual',
+    /** The viewport is shown after all the sessions in the property 'visibilitySessionIds' are loaded */
+    SESSIONS = 'sessions'
 }
 
 // #endregion Enums (7)

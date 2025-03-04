@@ -141,4 +141,9 @@ export type ViewportCreationDefinition = {
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
     /** The initial visibility of the viewport. (default: VISIBILITY_MODE.SESSION) */
     visibility?: VISIBILITY_MODE,
+    /** 
+     * The ids of the sessions that should be displayed in the viewport. This only is considered if the {@link visibility} is set to {@link VISIBILITY_MODE.SESSIONS}.
+     * It's recommended that with this workflow, the {@link sessionSettingsMode} is set to {@link SESSION_SETTINGS_MODE.SESSION} and a {@link sessionSettingsId} is provided.
+     */
+    visibilitySessionIds?: string[],
 }

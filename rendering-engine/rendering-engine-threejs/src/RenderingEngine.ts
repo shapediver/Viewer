@@ -25,6 +25,7 @@ import {
   TASK_TYPE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
+  ViewportCreationDefinition,
   VISIBILITY_MODE
   } from '@shapediver/viewer.shared.types';
 import { CameraManager } from './managers/CameraManager';
@@ -95,6 +96,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   private readonly _id: string;
+  private readonly _visibilitySessionIds?: string[];
   private readonly _intersectionManager: IntersectionEngine = IntersectionEngine.instance;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -167,20 +169,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Constructors (1)
 
-  constructor(properties?: {
-    canvas?: HTMLCanvasElement,
-    id?: string,
-    branding?: {
-      logo?: string | null,
-      backgroundColor?: string,
-      busyModeSpinner?: string,
-      busyModeDisplay?: BUSY_MODE_DISPLAY,
-      spinnerPositioning?: SPINNER_POSITIONING
-    },
-    sessionSettingsId?: string,
-    sessionSettingsMode?: SESSION_SETTINGS_MODE,
-    visibility?: VISIBILITY_MODE,
-  }) {
+  constructor(properties: Partial<ViewportCreationDefinition>) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
     THREE.ColorManagement.enabled = false;
@@ -198,6 +187,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // setting some of the provided properties
     this._id = prop.id || (UuidGenerator.instance).create();
+    this._visibilitySessionIds = prop.visibilitySessionIds;
     this._visibility = prop.visibility || VISIBILITY_MODE.SESSION;
     this._sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
     this._sessionSettingsId = prop.sessionSettingsId;
@@ -627,6 +617,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get id(): string {
     return this._id;
+  }
+
+  public get visibilitySessionIds(): string[] | undefined {
+    return this._visibilitySessionIds;
   }
 
   public get lightEngine(): LightEngine {
