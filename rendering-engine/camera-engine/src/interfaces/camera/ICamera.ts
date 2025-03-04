@@ -42,6 +42,7 @@ export interface ICamera extends ITreeNodeData {
     applySettings(settingsEngine: SettingsEngine): void;
     boundingSphereVisible(sphere: ISphere): boolean;
     calculateZoomTo(zoomTarget?: IBox, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
+    destroy(): void;
     project(p: vec3): vec2;
     reset(options?: ICameraOptions): Promise<boolean>;
     set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean>;

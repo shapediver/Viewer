@@ -8,9 +8,11 @@ import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
 import {
     EventEngine,
     EVENTTYPE,
+    IEvent,
     SettingsEngine,
     StateEngine,
 } from '@shapediver/viewer.shared.services';
+import { IViewportEvent } from '@shapediver/viewer.shared.types';
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (24)
@@ -21,6 +23,8 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     #defaultPosition: vec3 = vec3.create();
     #defaultTarget: vec3 = vec3.create();
     #domEventListenerToken: string | undefined;
+    #eventListenerSceneCreatedToken: string | undefined;
+    #eventListenerViewportUpdatedToken: string | undefined;
     #enableCameraControls: boolean = true;
     #far: number = 1000;
     #name?: string;
@@ -274,6 +278,13 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return true;
     }
 
+    public destroy() {
+        if(this.#eventListenerSceneCreatedToken) this._eventEngine.removeListener(this.#eventListenerSceneCreatedToken);
+        this.#eventListenerSceneCreatedToken = undefined;
+        if(this.#eventListenerViewportUpdatedToken) this._eventEngine.removeListener(this.#eventListenerViewportUpdatedToken);
+        this.#eventListenerViewportUpdatedToken = undefined;
+    }
+
     public reset(options?: ICameraOptions): Promise<boolean> {
         if ((this.defaultPosition[0] === 0 && this.defaultPosition[1] === 0 && this.defaultPosition[2] === 0) && (this.defaultTarget[0] === 0 && this.defaultTarget[1] === 0 && this.defaultTarget[2] === 0)) {
             return this.zoomTo(undefined, options);
@@ -333,9 +344,26 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     protected assignViewerInternal(viewportId: string) {
         this._viewportId = viewportId;
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async () => {
+
+        this.#eventListenerSceneCreatedToken = this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CREATED, async () => {
             if (this.#autoAdjust === true) {
-                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async () => {
+                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async (e: IEvent) => {
+                    const viewportEvent = e as IViewportEvent;
+                    if(viewportEvent.viewportId !== this._viewportId) return;
+
+                    this.zoomTo();
+                    this._eventEngine.removeListener(innerListenerToken);
+
+                });
+            }
+        });
+
+        this.#eventListenerViewportUpdatedToken = this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async () => {
+            if (this.#autoAdjust === true) {
+                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async (e: IEvent) => {
+                    const viewportEvent = e as IViewportEvent;
+                    if(viewportEvent.viewportId !== this._viewportId) return;
+
                     this.zoomTo();
                     this._eventEngine.removeListener(innerListenerToken);
                 });
