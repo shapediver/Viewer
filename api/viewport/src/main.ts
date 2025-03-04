@@ -44,6 +44,7 @@ creationControlCenterViewport.updateViewports = (
  * @param properties.canvas The canvas that the viewport should use. A canvas element will be created if none is provided. 
  * @param properties.id The unique identifier to use for the viewport.
  * @param properties.branding Optional branding options.
+ * @param properties.visibilitySessionIds Optional list of session ids to be displayed in the viewport when the {@link VISIBILITY_MODE} is set to {@link VISIBILITY_MODE.SESSIONS}.
  * @param properties.sessionSettingsId Optional identifier of the session to be used for loading / persisting settings of the viewport when the {@link SESSION_SETTINGS_MODE} is set to MANUAL. 
  * @param properties.sessionSettingsMode Allows to control which session to use for loading / persisting settings of the viewport. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
  * @returns 
@@ -63,6 +64,7 @@ export const createViewport = async (properties?: ViewportCreationDefinition): P
     inputValidator.validateAndError('createViewport', prop.id, 'string', false);
     inputValidator.validateAndError('createViewport', prop.sessionSettingsId, 'string', false);
     inputValidator.validateAndError('createViewport', prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
+    inputValidator.validateAndError('createViewport', prop.visibilitySessionIds, 'array', false);
     inputValidator.validateAndError('createViewport', prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
 
     inputValidator.validateAndError('createViewport', prop.branding, 'object', false);

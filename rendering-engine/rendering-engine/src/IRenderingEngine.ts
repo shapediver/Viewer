@@ -13,6 +13,7 @@ export interface IRenderingEngine {
   closed: boolean;
   domEventEngine: DomEventEngine;
   id: string;
+  visibilitySessionIds?: string[];
   pointSize: number;
   sessionSettingsId?: string;
   sessionSettingsMode: SESSION_SETTINGS_MODE;

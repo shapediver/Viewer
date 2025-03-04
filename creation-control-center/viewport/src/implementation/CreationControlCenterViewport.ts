@@ -12,6 +12,7 @@ import {
 import { ICreationControlCenterViewport } from '../interfaces/ICreationControlCenterViewport';
 import {
     ISceneEvent,
+    ISessionEvent,
     ITaskEvent,
     IViewportSettingsSections,
     TASK_TYPE,
@@ -24,8 +25,6 @@ import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.re
 import { ViewportGlobalAccessObject } from './ViewportGlobalAccessObject';
 
 export class CreationControlCenterViewport implements ICreationControlCenterViewport {
-    // #region Properties (8)
-
     readonly #eventEngine: EventEngine = EventEngine.instance;
     readonly #logger: Logger = Logger.instance;
     readonly #sceneTree: ITree = Tree.instance;
@@ -40,17 +39,9 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         viewportEngines: { [key: string]: RenderingEngineThreeJs; },
     ) => void;
 
-    // #endregion Properties (8)
-
-    // #region Public Static Getters And Setters (1)
-
     public static get instance() {
         return this._instance || (this._instance = new this());
     }
-
-    // #endregion Public Static Getters And Setters (1)
-
-    // #region Public Methods (4)
 
     public applyViewportSettings(viewportId: string, settings: ISettings, sections: IViewportSettingsSections = { ar: false, scene: false, camera: false, light: false, environment: false, general: false }): Promise<void> {
         sections = sections || {};
@@ -143,31 +134,59 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
             } else if (viewportEngine.visibility === VISIBILITY_MODE.SESSION) {
                 // wait for settings to load before showing the scene
                 if (this.#sceneTree.root.boundingBox.isEmpty()) {
-                    this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+                    const bbListener = this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
                         const event = e as ISceneEvent;
                         if (event.viewportId === viewportEngine.id) {
                             const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
                             if (boundingBox.isEmpty()) {
                                 viewportEngine.show = false;
                             } else {
-                                if (this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.resolved) {
-                                    viewportEngine.show = true;
+                                this.showAfterSettingsAssignment(viewportEngine, viewportEngineId);
+                            }
+                            this.#eventEngine.removeListener(bbListener);
+                        }
+                    }
+                    );
+                } else {
+                    this.showAfterSettingsAssignment(viewportEngine, viewportEngineId);
+                }
+            } else if (viewportEngine.visibility === VISIBILITY_MODE.SESSIONS) {
+                if (properties.visibilitySessionIds) {
+                    const promises: Promise<void>[] = [];
+                    // gather all session promises
+                    // either they are resolved already or we wait for them to resolve
+                    properties.visibilitySessionIds.forEach((sessionId) => {
+                        if (this.#stateEngine.sessionEngines[sessionId] && this.#stateEngine.sessionEngines[sessionId]!.settingsRegistered.resolved === true) {
+                            promises.push(Promise.resolve());
+                        } else {
+                            promises.push(new Promise<void>((resolve) => {
+                                if (this.#stateEngine.sessionEngines[sessionId]) {
+                                    // case where session has been created, but not yet initialized
+                                    if (this.#stateEngine.sessionEngines[sessionId]!.settingsRegistered.resolved === false) {
+                                        this.#stateEngine.sessionEngines[sessionId]!.settingsRegistered.then(() => { resolve(); });
+                                    } else {
+                                        resolve();
+                                    }
                                 } else {
-                                    this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.then(() => {
-                                        viewportEngine.show = true;
+                                    const sessionCreationListener = this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CREATED, (e) => {
+                                        const event = e as ISessionEvent;
+                                        if (event.sessionId === sessionId) {
+                                            this.#eventEngine.removeListener(sessionCreationListener);
+                                            resolve();
+                                        }
                                     });
                                 }
-                            }
+                            })
+                            );
                         }
                     });
+
+                    // wait for sessions to load before showing the scene
+                    Promise.all(promises).then(() => {
+                        this.showAfterSettingsAssignment(viewportEngine, viewportEngineId);
+                    });
                 } else {
-                    if (this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.resolved) {
-                        viewportEngine.show = true;
-                    } else {
-                        this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.then(() => {
-                            viewportEngine.show = true;
-                        });
-                    }
+                    viewportEngine.show = false;
                 }
             }
 
@@ -205,10 +224,6 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         return settingsEngine.settings;
     }
 
-    // #endregion Public Methods (4)
-
-    // #region Private Methods (1)
-
     private async assignSettings(viewportEngineId: string, sessionEngineId: string, updateViewports: boolean = false) {
         const viewportEngine = this.#stateEngine.viewportEngines[viewportEngineId];
         if (!viewportEngine) return;
@@ -230,5 +245,17 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
         }
     }
 
-    // #endregion Private Methods (1)
+    private showAfterSettingsAssignment(viewportEngine: RenderingEngineThreeJs, viewportEngineId: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.resolved) {
+                viewportEngine.show = true;
+                resolve();
+            } else {
+                this.#stateEngine.viewportEngines[viewportEngineId]?.settingsAssigned.then(() => {
+                    viewportEngine.show = true;
+                    resolve();
+                });
+            }
+        });
+    }
 }

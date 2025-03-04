@@ -233,6 +233,8 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 
             await Promise.all(promises);
 
+            this.#stateEngine.sessionEngines[sessionEngineId]?.settingsRegistered.resolve(true);
+
             for (const r in this.#stateEngine.viewportEngines)
                 this.#stateEngine.viewportEngines[r]?.update('CreationControlCenter.createSessionEngine');
 
