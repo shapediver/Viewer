@@ -134,7 +134,7 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
             } else if (viewportEngine.visibility === VISIBILITY_MODE.SESSION) {
                 // wait for settings to load before showing the scene
                 if (this.#sceneTree.root.boundingBox.isEmpty()) {
-                    const bbListener = this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+                    this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
                         const event = e as ISceneEvent;
                         if (event.viewportId === viewportEngine.id) {
                             const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
@@ -143,7 +143,6 @@ export class CreationControlCenterViewport implements ICreationControlCenterView
                             } else {
                                 this.showAfterSettingsAssignment(viewportEngine, viewportEngineId);
                             }
-                            this.#eventEngine.removeListener(bbListener);
                         }
                     }
                     );
