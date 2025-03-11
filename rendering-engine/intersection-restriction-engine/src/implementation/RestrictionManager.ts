@@ -239,29 +239,32 @@ export class RestrictionManager implements IRestrictionManager {
             }
         }
 
-        // create a filter to check if the node is hidden or is not fully opaque
-        const filter: IIntersectionFilter = (node: ITreeNode, geometryData?: IGeometryData) => {
-            if (node.visible === false) return false;
-            if (geometryData && geometryData.material && geometryData.material.opacity < 1.0) return false;
-            return true;
-        };
+        // if the restriction is hideable, we check if the closest restriction is actually hidden
+        if(restrictionResult.restriction.hideable) {
+            // create a filter to check if the node is hidden or is not fully opaque
+            const filter: IIntersectionFilter = (node: ITreeNode, geometryData?: IGeometryData) => {
+                if (node.visible === false) return false;
+                if (geometryData && geometryData.material && geometryData.material.opacity < 1.0) return false;
+                return true;
+            };
 
-        // check if the closest restriction is actually hidden
-        const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction, [filter]);
+            // check if the closest restriction is actually hidden
+            const sceneRayTrace = this.#viewport.raytraceScene(ray.origin, ray.direction, [filter]);
 
-        if (sceneRayTrace.length > 0) {
-            const squaredDistanceSceneRayTrace = sceneRayTrace[0].distance * sceneRayTrace[0].distance;
-            if (squaredDistanceSceneRayTrace < restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
-                // the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
-                if(restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY || (restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY && (!restrictionResult.restrictionIntersectionData || !sceneRayTrace[0].data)))
-                    return;
-
-                const geometryRestrictionIntersectionData = restrictionResult.restrictionIntersectionData as GeometryRestrictionIntersectionData;
-
-                // it is NOT the same geometry
-                if(!(geometryRestrictionIntersectionData.geometryData.id === sceneRayTrace[0].data!.id && 
-                    geometryRestrictionIntersectionData.geometryData.version === sceneRayTrace[0].data!.version))
+            if (sceneRayTrace.length > 0) {
+                const squaredDistanceSceneRayTrace = sceneRayTrace[0].distance * sceneRayTrace[0].distance;
+                if (squaredDistanceSceneRayTrace < restrictionResult.distanceOriginToClosestIntersectionPointSquared) {
+                    // the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
+                    if (restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY || (restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY && (!restrictionResult.restrictionIntersectionData || !sceneRayTrace[0].data)))
                         return;
+
+                    const geometryRestrictionIntersectionData = restrictionResult.restrictionIntersectionData as GeometryRestrictionIntersectionData;
+
+                    // it is NOT the same geometry
+                    if (!(geometryRestrictionIntersectionData.geometryData.id === sceneRayTrace[0].data!.id &&
+                        geometryRestrictionIntersectionData.geometryData.version === sceneRayTrace[0].data!.version))
+                        return;
+                }
             }
         }
 

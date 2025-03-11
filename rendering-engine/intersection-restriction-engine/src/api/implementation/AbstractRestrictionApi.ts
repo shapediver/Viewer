@@ -26,6 +26,18 @@ export abstract class AbstractRestrictionApi implements IRestrictionApi {
         this.#restriction.enabled = value;
     }
 
+    public get hideable(): boolean {
+        return this.#restriction.hideable;
+    }
+
+    public set hideable(value: boolean) {
+        this.#restriction.hideable = value;
+    }
+
+    public get priority(): number {
+        return this.#restriction.priority;
+    }
+
     public get id(): string {
         return this.#restriction.id;
     }

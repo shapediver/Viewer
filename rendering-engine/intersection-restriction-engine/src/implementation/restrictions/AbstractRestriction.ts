@@ -22,6 +22,7 @@ export abstract class AbstractRestriction implements IRestriction {
     readonly #viewport: IViewportApi;
     readonly #visualizationNode: TreeNode = new TreeNode('RestrictionVisualizationNode');
 
+    #hideable: boolean = false;
     #priority: number;
     #rotation: { axis: vec3; angle: number; };
     #showVisualization: boolean = false;
@@ -42,6 +43,7 @@ export abstract class AbstractRestriction implements IRestriction {
         this.#type = properties.type;
         this.#rotation = properties.rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
         this.#priority = properties.priority || -1;
+        this.#hideable = properties.hideable || false;
         this.createGridHelperObject();
     }
 
@@ -58,6 +60,14 @@ export abstract class AbstractRestriction implements IRestriction {
 
         this._enabled = value;
         this.visibilityChanged(this._object3D.visible);
+    }
+
+    public get hideable(): boolean {
+        return this.#hideable;
+    }
+
+    public set hideable(value: boolean) {
+        this.#hideable = value;
     }
 
     public get id(): string {

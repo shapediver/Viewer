@@ -38,6 +38,7 @@ export interface IRestriction {
     readonly type: RESTRICTION_TYPE;
 
     enabled: boolean;
+    hideable: boolean;
     rotation: {
         axis: vec3,
         angle: number
@@ -68,6 +69,11 @@ export interface RestrictionMetaData {
 }
 
 export interface RestrictionPropertiesBase {
+    /**
+     * If the restriction should be hidden by geometry in front of it. (default: false)
+     */
+    hideable?: boolean;
+
     /**
      * The id of the restriction.
      */
