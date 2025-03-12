@@ -325,6 +325,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public zoomTo(zoomTarget?: Box, options?: ICameraOptions): Promise<boolean> {
         const { position, target } = this.calculateZoomTo(zoomTarget);
+        console.log('zoomTo', zoomTarget, options, position, target);
         return this.set(position, target, options);
     }
 
