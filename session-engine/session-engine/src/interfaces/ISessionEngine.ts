@@ -34,7 +34,7 @@ export interface ISessionEngine {
   refreshJwtToken: (() => Promise<string>) | undefined;
   settingsEngine: SettingsEngine;
   ticket?: string;
-  updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
+  updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null;
 
   // #endregion Properties (15)
 

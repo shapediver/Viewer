@@ -146,7 +146,7 @@ export interface ISessionApi {
      * Provides the new scene tree node and the old one, so that data can be carried over.
      * If the callback is a promise it will be awaited in the execution chain.
      */
-    updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null;
+    updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null;
 
     // #endregion Properties (20)
 

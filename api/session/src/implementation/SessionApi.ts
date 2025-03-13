@@ -234,15 +234,15 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.ticket;
     }
 
-    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null {
+    public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null {
         return this.#sessionEngine.updateCallback;
     }
 
-    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void | Promise<void>) | null) {
+    public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void | Promise<void>) | null) {
         const scope = 'updateCallback';
         if (value) this.#inputValidator.validateAndError(`SessionApi.${scope}`, value, 'function', false);
-        this.#sessionEngine.updateCallback = async (newNode: ITreeNode, oldNode: ITreeNode) => {
-            if (newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
+        this.#sessionEngine.updateCallback = async (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+            if (newNode && newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
                 newNode.addData(new SessionApiData(this));
             if (value) await Promise.resolve(value(newNode, oldNode));
         };

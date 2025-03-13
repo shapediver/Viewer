@@ -147,7 +147,7 @@ export class SessionEngine implements ISessionEngine {
     private _retryCounter = 0;
     private _sdk!: ShapeDiverSdk;
     private _sessionId?: string;
-    private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
+    private _updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null = null;
     private _viewerSettings?: object;
     private _viewerSettingsVersion: string = latestVersion;
     private _viewerSettingsVersionBackend: string = latestVersion;
@@ -311,11 +311,11 @@ export class SessionEngine implements ISessionEngine {
         return this._ticket;
     }
 
-    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+    public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null {
         return this._updateCallback;
     }
 
-    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+    public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null) {
         this._updateCallback = value;
     }
 
