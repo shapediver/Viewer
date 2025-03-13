@@ -4,6 +4,7 @@ dist-dev
 dist-prod
 lerna-debug.log
 .npmrc
+.vscode/
 docs
 api/api/package.json
 documentation/releaseNotes.html
