@@ -658,8 +658,8 @@ export class SessionEngine implements ISessionEngine {
             if (cancelResult2) return cancelResult2;
 
             this._warningCreator(
-                this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput }, 
-                this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport }, 
+                this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput },
+                this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport },
                 this._throwOnCustomizationError
             );
 
@@ -815,7 +815,7 @@ export class SessionEngine implements ISessionEngine {
                 response = modelState;
             }
 
-            if(!response.modelState) return new TreeNode();
+            if (!response.modelState) return new TreeNode();
 
             // read out the parameter values from the model state
             for (const parameterId in response.modelState.parameters)
@@ -1112,8 +1112,17 @@ export class SessionEngine implements ISessionEngine {
 
     public async requestExports(body: ShapeDiverRequestExport, loadOutputs: boolean = false, maxWaitMsec?: number, retry = false): Promise<ShapeDiverResponseDto> {
         let processId;
+        const eventId = this._uuidGenerator.create();
+        // if the outputs are loaded, we treat this as a customization by sending the same events
+        const treatInternallyAsCustomization = loadOutputs === true && this._allowOutputLoading === true;
+
         this.checkAvailability('export');
         try {
+            if (treatInternallyAsCustomization) {
+                const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+            }
+
             // activate the busy mode if outputs are loaded
             if (loadOutputs === true && this._allowOutputLoading === true &&
                 body.outputs && Object.keys(body.outputs).length > 0) {
@@ -1121,16 +1130,46 @@ export class SessionEngine implements ISessionEngine {
                 this.addBusyMode(processId);
             }
 
+            if (treatInternallyAsCustomization) {
+                const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
+            }
+
             await this.uploadFileParameters(body.parameters as { [key: string]: string | File | Blob });
             const requestParameterSet = this.cleanExportParameters(body.parameters);
 
+            if (treatInternallyAsCustomization) {
+                const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Sending customization request' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
+            }
+
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: body.exports, parameters: requestParameterSet, outputs: body.outputs, max_wait_time: body.max_wait_time }, maxWaitMsec);
             this.updateResponseDto(responseDto);
-            if (loadOutputs === true && this._allowOutputLoading === true) this.updateOutputs();
+
+            if (treatInternallyAsCustomization) {
+                await this.updateOutputs({
+                    eventId,
+                    type: TASK_TYPE.SESSION_CUSTOMIZATION,
+                    progressRange: {
+                        min: 0.1,
+                        max: 0.9
+                    },
+                    data: { sessionId: this.id }
+                });
+                this._eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
+
+                const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+            }
 
             if (processId) this.removeBusyMode(processId);
             return responseDto;
         } catch (e) {
+            if (treatInternallyAsCustomization) {
+                const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
+                this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+            }
+
             if (processId) this.removeBusyMode(processId);
             await this.handleError(e, retry);
             return await this.requestExports(body, loadOutputs, maxWaitMsec, true);
@@ -1380,8 +1419,8 @@ export class SessionEngine implements ISessionEngine {
         });
 
         this._warningCreator(
-            this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput }, 
-            this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport }, 
+            this._responseDto!.outputs as { [key: string]: ShapeDiverResponseOutput },
+            this._responseDto!.exports as { [key: string]: ShapeDiverResponseExport },
             this._throwOnCustomizationError
         );
 
@@ -1598,8 +1637,8 @@ export class SessionEngine implements ISessionEngine {
             }
         }
 
-        if(Object.keys(outputsWithIssues).length > 0 || Object.keys(exportsWithIssues).length > 0) {
-            if(throwError) {
+        if (Object.keys(outputsWithIssues).length > 0 || Object.keys(exportsWithIssues).length > 0) {
+            if (throwError) {
                 throw new ShapeDiverViewerCustomizationError('There was at least one output or export with issues.', { outputs: outputsWithIssues, exports: exportsWithIssues });
             } else {
                 // create warning messages for outputs
