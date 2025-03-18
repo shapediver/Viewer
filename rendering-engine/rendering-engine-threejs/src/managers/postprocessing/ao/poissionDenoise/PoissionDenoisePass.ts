@@ -22,8 +22,8 @@ const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>',
 
 const defaultPoissonBlurOptions = {
 	iterations: 1,
-	radius: 8,
-	rings: 5.625,
+	radius: 12,
+	rings: 11,
 	lumaPhi: 10,
 	depthPhi: 2,
 	normalPhi: 3.25,
@@ -41,10 +41,10 @@ export class PoissionDenoisePass extends Pass {
 	public index = 0;
 	public inputTexture: Texture;
 	public iterations = defaultPoissonBlurOptions.iterations;
-	public radius = 8;
+	public radius = 12;
 	public renderTargetA: WebGLRenderTarget;
 	public renderTargetB: WebGLRenderTarget;
-	public rings = 5.625;
+	public rings = 11;
 	public samples = 16;
 
 	// #endregion Properties (11)
@@ -54,8 +54,11 @@ export class PoissionDenoisePass extends Pass {
 	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
 		super('PoissionBlurPass');
 
-		if (PoissionDenoisePass.blueNoiseTexture === undefined)
-			this.loadBlueNoiseTexture();
+		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
+			PoissionDenoisePass.loadBlueNoiseTexture().then(() => {
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+			});
+		}
 
 		options = { ...defaultPoissonBlurOptions, ...options };
 
@@ -117,7 +120,7 @@ export class PoissionDenoisePass extends Pass {
 		}
 	}
 
-	private async  loadBlueNoiseTexture() {
+	public static async loadBlueNoiseTexture() {
 		const result = await HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
 
 		if (result) {
@@ -131,8 +134,6 @@ export class PoissionDenoisePass extends Pass {
 				PoissionDenoisePass.blueNoiseTexture.wrapT = RepeatWrapping;
 				PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
 				PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
-
-				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
 			});
 		} else {
 			Logger.instance.warn('The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...');

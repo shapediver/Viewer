@@ -50,8 +50,8 @@ import * as THREE from "three";
 
   SDV.viewports["myViewport1"].postProcessing.addEffect({
     properties: {
-      resolutionScale: 1, spp: 8, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000",
-      iterations: 1, radius: 15, rings: 4, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
+      resolutionScale: 1, spp: 16, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000",
+      iterations: 1, radius: 12, rings: 11, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
     },
     type: POST_PROCESSING_EFFECT_TYPE.SSAO
   });
@@ -59,8 +59,8 @@ import * as THREE from "three";
 
   SDV.viewports["myViewport2"].postProcessing.addEffect({
     properties: {
-      resolutionScale: 1, spp: 8, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000",
-      iterations: 1, radius: 15, rings: 4, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
+      resolutionScale: 1, spp: 16, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000",
+      iterations: 1, radius: 12, rings: 11, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
     },
     type: POST_PROCESSING_EFFECT_TYPE.SSAO
   });
@@ -68,8 +68,8 @@ import * as THREE from "three";
 
   SDV.viewports["myViewport3"].postProcessing.addEffect({
     properties: {
-      resolutionScale: 1, spp: 8, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000", bias: 10, thickness: 0.5,
-      iterations: 1, radius: 15, rings: 4, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
+      resolutionScale: 1, spp: 16, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000", bias: 10, thickness: 0.5,
+      iterations: 1, radius: 12, rings: 11, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
     },
     type: POST_PROCESSING_EFFECT_TYPE.HBAO
   })
@@ -77,8 +77,8 @@ import * as THREE from "three";
 
   SDV.viewports["myViewport4"].postProcessing.addEffect({
     properties: {
-      resolutionScale: 1, spp: 8, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000", bias: 10, thickness: 0.5,
-      iterations: 1, radius: 15, rings: 4, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
+      resolutionScale: 1, spp: 16, distance: 1, distanceIntensity: 1, intensity: 2.5, color: "#000000", bias: 10, thickness: 0.5,
+      iterations: 1, radius: 12, rings: 11, lumaPhi: 10, depthPhi: 2, normalPhi: 3.25, samples: 16
     },
     type: POST_PROCESSING_EFFECT_TYPE.HBAO
   })

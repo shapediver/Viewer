@@ -72,7 +72,7 @@ export interface IChromaticAberrationEffectDefinition extends IPostProcessingEff
         /** The modulation offset. Only applies if `radialModulation` is enabled. (default: 0.15) */
         modulationOffset?: number,
         /** The color offset. (default: [0.001, 0.0005]) */
-        offset?: vec2 | { x: number, y: number},
+        offset?: vec2 | { x: number, y: number },
         /** Whether the effect should be modulated with a radial gradient. (default: false) */
         radialModulation?: boolean,
     }
@@ -162,7 +162,7 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
     properties?: {
         /** The resolution scale of the ambient occlusion. (default: 1) */
         resolutionScale?: number,
-        /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+        /** The samples that are taken per pixel to compute the ambient occlusion. (default: 16) */
         spp?: number,
         /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
         distance?: number,
@@ -179,9 +179,9 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
 
         /** The number of iterations of the denoising pass. (default: 1) */
         iterations?: number,
-        /** The radius of the poisson disk. (default: 15) */
+        /** The radius of the poisson disk. (default: 12) */
         radius?: number,
-        /** The rings of the poisson disk. (default: 4) */
+        /** The rings of the poisson disk. (default: 11) */
         rings?: number,
         /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
         lumaPhi?: number,
@@ -277,7 +277,7 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
     properties?: {
         /** The resolution scale of the ambient occlusion. (default: 1) */
         resolutionScale?: number,
-        /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
+        /** The samples that are taken per pixel to compute the ambient occlusion. (default: 16) */
         spp?: number,
         /** Controls the radius/size of the ambient occlusion in world units. (default: 1) */
         distance?: number,
@@ -290,9 +290,9 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 
         /** The number of iterations of the denoising pass. (default: 1) */
         iterations?: number,
-        /** The radius of the poisson disk. (default: 15) */
+        /** The radius of the poisson disk. (default: 12) */
         radius?: number,
-        /** The rings of the poisson disk. (default: 4) */
+        /** The rings of the poisson disk. (default: 11) */
         rings?: number,
         /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
         lumaPhi?: number,

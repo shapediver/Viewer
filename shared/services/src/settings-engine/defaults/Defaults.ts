@@ -61,15 +61,15 @@ export const Defaults: () => ISettings = () => {
                 {
                     properties: {
                         resolutionScale: 1,
-                        spp: 8,
+                        spp: 16,
                         distance: 1,
                         distanceIntensity: 1,
                         intensity: 3.5,
                         color: '#000000',
 
                         iterations: 1,
-                        radius: 15,
-                        rings: 4,
+                        radius: 12,
+                        rings: 11,
                         lumaPhi: 10,
                         depthPhi: 2,
                         normalPhi: 3.25,

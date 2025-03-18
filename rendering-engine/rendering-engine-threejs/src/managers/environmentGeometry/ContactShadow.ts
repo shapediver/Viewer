@@ -35,6 +35,7 @@ export class ContactShadow implements IEnvironmentGeometry {
     constructor(private readonly _renderingEngine: RenderingEngine, private readonly _parent: SDObject) {
         this._contactShadowObject = new SDData('contactShadow', '');
         this._contactShadowObject.visible = false;
+        this._contactShadowObject.userData.ambientOcclusion = false;
         this._parent.add(this._contactShadowObject);
         this.createContactShadow();
     }

@@ -21,7 +21,7 @@ import {
     ITiltShiftEffectDefinition,
     IVignetteEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
-    } from '../interfaces/IPostProcessingEffectDefinitions';
+} from '../interfaces/IPostProcessingEffectDefinitions';
 import {
     BlendFunction,
     BloomEffect,
@@ -50,7 +50,7 @@ import {
     ToneMappingMode,
     VignetteEffect,
     VignetteTechnique
-    } from 'postprocessing';
+} from 'postprocessing';
 import {
     Converter,
     EventEngine,
@@ -59,21 +59,23 @@ import {
     SettingsEngine,
     SystemInfo,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { GodRaysManager } from './postprocessing/GodRaysManager';
 import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ISceneEvent, TONE_MAPPING } from '@shapediver/viewer.shared.types';
 import { OutlineManager } from './postprocessing/OutlineManager';
+import { PoissionDenoisePass } from './postprocessing/ao/poissionDenoise/PoissionDenoisePass';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
 import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
-import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 import { vec3 } from 'gl-matrix';
-
+import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 
 export class PostProcessingManager implements IManager {
+    // #region Properties (23)
+
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
@@ -97,6 +99,7 @@ export class PostProcessingManager implements IManager {
     private _godRaysManagers: {
         [key: string]: GodRaysManager
     } = {};
+    private _initialized: boolean = false;
     private _manualPostProcessing: boolean = false;
     private _outlineManagers: {
         [key: string]: OutlineManager
@@ -110,6 +113,10 @@ export class PostProcessingManager implements IManager {
     private _ssaaRenderPass?: SSAARenderPass;
     private _suspendEffectPassUpdate = false;
     private _toneMappingEffect?: ToneMappingEffect;
+
+    // #endregion Properties (23)
+
+    // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
@@ -129,6 +136,10 @@ export class PostProcessingManager implements IManager {
         //     }
         // });
     }
+
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (16)
 
     public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
         return this._antiAliasingTechnique;
@@ -175,6 +186,10 @@ export class PostProcessingManager implements IManager {
         return this._godRaysManagers;
     }
 
+    public get initialized(): boolean {
+        return this._initialized;
+    }
+
     public get manualPostProcessing(): boolean {
         return this._manualPostProcessing;
     }
@@ -205,6 +220,10 @@ export class PostProcessingManager implements IManager {
         if (this._ssaaRenderPass)
             this._ssaaRenderPass.sampleLevel = value;
     }
+
+    // #endregion Public Getters And Setters (16)
+
+    // #region Public Methods (13)
 
     public addEffect(definition: IPostProcessingEffectDefinition, t?: string): string {
         const token = t || this._uuidGenerator.create();
@@ -411,7 +430,7 @@ export class PostProcessingManager implements IManager {
 
                         const hbaoEffect = new HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
-                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            spp: properties.spp !== undefined ? properties.spp : 16,
                             distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
                             power: properties.intensity !== undefined ? properties.intensity : 2.5,
@@ -419,8 +438,8 @@ export class PostProcessingManager implements IManager {
                             thickness: properties.thickness !== undefined ? properties.thickness : 0.5,
                             color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color('black'),
                             iterations: properties.iterations !== undefined ? properties.iterations : 1,
-                            radius: properties.radius !== undefined ? properties.radius : 15,
-                            rings: properties.rings !== undefined ? properties.rings : 4,
+                            radius: properties.radius !== undefined ? properties.radius : 12,
+                            rings: properties.rings !== undefined ? properties.rings : 11,
                             lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
                             depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
                             normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
@@ -509,14 +528,14 @@ export class PostProcessingManager implements IManager {
                         const sceneSizeFactor = this._sceneExtents / 50.0;
                         const ssaoEffect = new SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
-                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            spp: properties.spp !== undefined ? properties.spp : 16,
                             distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
                             power: properties.intensity !== undefined ? properties.intensity : 2.5,
                             color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color('black'),
                             iterations: properties.iterations !== undefined ? properties.iterations : 1,
-                            radius: properties.radius !== undefined ? properties.radius : 15,
-                            rings: properties.rings !== undefined ? properties.rings : 4,
+                            radius: properties.radius !== undefined ? properties.radius : 12,
+                            rings: properties.rings !== undefined ? properties.rings : 11,
                             lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
                             depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
                             normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
@@ -706,7 +725,7 @@ export class PostProcessingManager implements IManager {
             case POST_PROCESSING_EFFECT_TYPE.HBAO:
                 return {
                     resolutionScale: 1,
-                    spp: 8,
+                    spp: 16,
                     distance: 1,
                     distanceIntensity: 1,
                     intensity: 2.5,
@@ -715,8 +734,8 @@ export class PostProcessingManager implements IManager {
                     thickness: 0.5,
 
                     iterations: 1,
-                    radius: 15,
-                    rings: 4,
+                    radius: 12,
+                    rings: 11,
                     lumaPhi: 10,
                     depthPhi: 2,
                     normalPhi: 3.25,
@@ -754,15 +773,15 @@ export class PostProcessingManager implements IManager {
             case POST_PROCESSING_EFFECT_TYPE.SSAO:
                 return {
                     resolutionScale: 1,
-                    spp: 8,
+                    spp: 16,
                     distance: 1,
                     distanceIntensity: 1,
                     intensity: 2.5,
                     color: '#000000',
 
                     iterations: 1,
-                    radius: 15,
-                    rings: 4,
+                    radius: 12,
+                    rings: 11,
                     lumaPhi: 10,
                     depthPhi: 2,
                     normalPhi: 3.25,
@@ -806,6 +825,16 @@ export class PostProcessingManager implements IManager {
             default:
                 return {};
         }
+    }
+
+    public async initialize(): Promise<void> {
+        if (this._initialized) return;
+
+        // wait for the blue noise texture to be loaded before initializing the composer
+        await PoissionDenoisePass.loadBlueNoiseTexture();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        this._initialized = true;
+        return;
     }
 
     public getEffect(token: string): Effect {
@@ -1172,6 +1201,10 @@ export class PostProcessingManager implements IManager {
         this.addEffect(definition, token);
     }
 
+    // #endregion Public Methods (13)
+
+    // #region Private Methods (1)
+
     private addPassToEffectComposer(pass: EffectPass | RenderPass | SSAARenderPass) {
         if (this._composer) {
             try {
@@ -1183,4 +1216,6 @@ export class PostProcessingManager implements IManager {
             }
         }
     }
+
+    // #endregion Private Methods (1)
 }

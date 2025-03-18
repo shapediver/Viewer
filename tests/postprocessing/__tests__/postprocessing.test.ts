@@ -251,8 +251,8 @@ describe('device testing', () => {
                 properties: {
                     /** The resolution scale of the ambient occlusion. (default: 1) */
                     resolutionScale: 1,
-                    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
-                    spp: 8,
+                    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 16) */
+                    spp: 16,
                     /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
                     distance: 1,
                     /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
@@ -268,10 +268,10 @@ describe('device testing', () => {
 
                     /** The number of iterations of the denoising pass. (default: 1) */
                     iterations: 1,
-                    /** The radius of the poisson disk. (default: 8) */
-                    radius: 8,
-                    /** The rings of the poisson disk. (default: 5.625) */
-                    rings: 5.625,
+                    /** The radius of the poisson disk. (default: 12) */
+                    radius: 12,
+                    /** The rings of the poisson disk. (default: 11) */
+                    rings: 11,
                     /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
                     lumaPhi: 10,
                     /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
@@ -412,8 +412,8 @@ describe('device testing', () => {
                 properties: {
                     /** The resolution scale of the ambient occlusion. (default: 1) */
                     resolutionScale: 1,
-                    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 8) */
-                    spp: 8,
+                    /** The samples that are taken per pixel to compute the ambient occlusion. (default: 16) */
+                    spp: 16,
                     /** Controls the radius/size of the ambient occlusion in world units. (default: 2) */
                     distance: 1,
                     /** Controls how fast the ambient occlusion fades away with distance in world units. (default: 1) */
@@ -425,10 +425,10 @@ describe('device testing', () => {
 
                     /** The number of iterations of the denoising pass. (default: 1) */
                     iterations: 1,
-                    /** The radius of the poisson disk. (default: 8) */
-                    radius: 8,
-                    /** The rings of the poisson disk. (default: 5.625) */
-                    rings: 5.625,
+                    /** The radius of the poisson disk. (default: 12) */
+                    radius: 12,
+                    /** The rings of the poisson disk. (default: 11) */
+                    rings: 11,
                     /** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
                     lumaPhi: 10,
                     /** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
