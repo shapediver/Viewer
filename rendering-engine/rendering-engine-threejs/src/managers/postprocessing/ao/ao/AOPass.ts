@@ -73,8 +73,14 @@ class AOPass extends Pass {
 			depthTest: false,
 			toneMapped: false
 		});
-			
-		(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+
+		if (PoissionDenoisePass.blueNoiseTexture) {
+			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+		} else {
+			PoissionDenoisePass.loadBlueNoiseTexture().then(() => {
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+			});
+		}
 	}
 
 	// #endregion Constructors (1)
@@ -110,6 +116,20 @@ class AOPass extends Pass {
 				this.renderTarget.width / width,
 				this.renderTarget.height / height
 			);
+		} else {
+			if (PoissionDenoisePass.blueNoiseTexture) {
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+				const { width, height } = PoissionDenoisePass.blueNoiseTexture.source.data;
+
+				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseRepeat.value.set(
+					this.renderTarget.width / width,
+					this.renderTarget.height / height
+				);
+			} else {
+				PoissionDenoisePass.loadBlueNoiseTexture().then(() => {
+					(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+				});
+			}
 		}
 
 		renderer.setRenderTarget(this.renderTarget);
