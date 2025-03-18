@@ -29,7 +29,7 @@ export class GroundPlaneShadow implements IEnvironmentGeometry {
         this._groundPlaneShadow.receiveShadow = true;
         this._groundPlaneShadow.visible = false;
         this._groundPlaneShadowObject.add(this._groundPlaneShadow);
-        this._groundPlaneShadowObject.userData.ambientOcclusion = true;
+        this._groundPlaneShadowObject.userData.ambientOcclusion = false;
         this._parent.add(this._groundPlaneShadowObject);
     }
 
@@ -59,7 +59,7 @@ export class GroundPlaneShadow implements IEnvironmentGeometry {
     // #region Public Methods (2)
 
     public changeSceneExtents(position: vec3, divisions: number, gridExtents: number): void {
-        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(4 * gridExtents, 4 * gridExtents, 2, 2);
+        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
         this._groundPlaneShadow.position.set(position[0], position[1], position[2]);
     }
 
