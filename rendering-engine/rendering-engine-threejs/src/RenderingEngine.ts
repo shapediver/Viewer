@@ -948,6 +948,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (sections.environment) {
       const promises = [];
 
+      promises.push(this._postProcessingManager.initialize());
+
       // as the environment map is the only thing that needs time to load, load it first
       promises.push(new Promise<void>((resolve, reject) => {
         this._stateEngine.viewportEngines[this.id]?.environmentMapLoaded.then(() => {

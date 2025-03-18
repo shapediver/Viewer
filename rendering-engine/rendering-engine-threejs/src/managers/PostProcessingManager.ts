@@ -21,7 +21,7 @@ import {
     ITiltShiftEffectDefinition,
     IVignetteEffectDefinition,
     POST_PROCESSING_EFFECT_TYPE
-    } from '../interfaces/IPostProcessingEffectDefinitions';
+} from '../interfaces/IPostProcessingEffectDefinitions';
 import {
     BlendFunction,
     BloomEffect,
@@ -50,7 +50,7 @@ import {
     ToneMappingMode,
     VignetteEffect,
     VignetteTechnique
-    } from 'postprocessing';
+} from 'postprocessing';
 import {
     Converter,
     EventEngine,
@@ -59,21 +59,23 @@ import {
     SettingsEngine,
     SystemInfo,
     UuidGenerator
-    } from '@shapediver/viewer.shared.services';
+} from '@shapediver/viewer.shared.services';
 import { GodRaysManager } from './postprocessing/GodRaysManager';
 import { HBAOEffect } from './postprocessing/ao/hbao/HBAOEffect';
 import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ISceneEvent, TONE_MAPPING } from '@shapediver/viewer.shared.types';
 import { OutlineManager } from './postprocessing/OutlineManager';
+import { PoissionDenoisePass } from './postprocessing/ao/poissionDenoise/PoissionDenoisePass';
 import { RenderingEngine } from '../RenderingEngine';
 import { SelectiveBloomManager } from './postprocessing/SelectiveBloomManager';
 import { SSAARenderPass } from './postprocessing/SSAARenderPass';
 import { SSAOEffect } from './postprocessing/ao/ssao/SSAOEffect';
-import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 import { vec3 } from 'gl-matrix';
-
+import { ToneMappingEffect } from './postprocessing/effects/tone-mapping/ToneMappingEffect';
 
 export class PostProcessingManager implements IManager {
+    // #region Properties (23)
+
     private readonly _converter: Converter = Converter.instance;
     private readonly _eventEngine: EventEngine = EventEngine.instance;
     private readonly _systemInfo: SystemInfo = SystemInfo.instance;
@@ -97,6 +99,7 @@ export class PostProcessingManager implements IManager {
     private _godRaysManagers: {
         [key: string]: GodRaysManager
     } = {};
+    private _initialized: boolean = false;
     private _manualPostProcessing: boolean = false;
     private _outlineManagers: {
         [key: string]: OutlineManager
@@ -110,6 +113,10 @@ export class PostProcessingManager implements IManager {
     private _ssaaRenderPass?: SSAARenderPass;
     private _suspendEffectPassUpdate = false;
     private _toneMappingEffect?: ToneMappingEffect;
+
+    // #endregion Properties (23)
+
+    // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
@@ -129,6 +136,10 @@ export class PostProcessingManager implements IManager {
         //     }
         // });
     }
+
+    // #endregion Constructors (1)
+
+    // #region Public Getters And Setters (16)
 
     public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
         return this._antiAliasingTechnique;
@@ -175,6 +186,10 @@ export class PostProcessingManager implements IManager {
         return this._godRaysManagers;
     }
 
+    public get initialized(): boolean {
+        return this._initialized;
+    }
+
     public get manualPostProcessing(): boolean {
         return this._manualPostProcessing;
     }
@@ -205,6 +220,10 @@ export class PostProcessingManager implements IManager {
         if (this._ssaaRenderPass)
             this._ssaaRenderPass.sampleLevel = value;
     }
+
+    // #endregion Public Getters And Setters (16)
+
+    // #region Public Methods (13)
 
     public addEffect(definition: IPostProcessingEffectDefinition, t?: string): string {
         const token = t || this._uuidGenerator.create();
@@ -636,7 +655,7 @@ export class PostProcessingManager implements IManager {
             this.addPassToEffectComposer(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect! : this._smaaEffect!));
         }
 
-        if (this._renderingEngine.toneMapping !== TONE_MAPPING.NONE) {
+        if (this._renderingEngine.toneMapping !== TONE_MAPPING.NONE) {                
             const mode = (() => {
                 switch (this._renderingEngine.toneMapping) {
                     case TONE_MAPPING.ACES_FILMIC:
@@ -806,6 +825,16 @@ export class PostProcessingManager implements IManager {
             default:
                 return {};
         }
+    }
+
+    public async initialize(): Promise<void> {
+        if (this._initialized) return;
+
+        // wait for the blue noise texture to be loaded before initializing the composer
+        await PoissionDenoisePass.loadBlueNoiseTexture();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        this._initialized = true;
+        return;
     }
 
     public getEffect(token: string): Effect {
@@ -1172,6 +1201,10 @@ export class PostProcessingManager implements IManager {
         this.addEffect(definition, token);
     }
 
+    // #endregion Public Methods (13)
+
+    // #region Private Methods (1)
+
     private addPassToEffectComposer(pass: EffectPass | RenderPass | SSAARenderPass) {
         if (this._composer) {
             try {
@@ -1183,4 +1216,6 @@ export class PostProcessingManager implements IManager {
             }
         }
     }
+
+    // #endregion Private Methods (1)
 }
