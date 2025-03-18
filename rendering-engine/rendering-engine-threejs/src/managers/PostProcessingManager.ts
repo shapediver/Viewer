@@ -430,7 +430,7 @@ export class PostProcessingManager implements IManager {
 
                         const hbaoEffect = new HBAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
-                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            spp: properties.spp !== undefined ? properties.spp : 16,
                             distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
                             power: properties.intensity !== undefined ? properties.intensity : 2.5,
@@ -438,8 +438,8 @@ export class PostProcessingManager implements IManager {
                             thickness: properties.thickness !== undefined ? properties.thickness : 0.5,
                             color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color('black'),
                             iterations: properties.iterations !== undefined ? properties.iterations : 1,
-                            radius: properties.radius !== undefined ? properties.radius : 15,
-                            rings: properties.rings !== undefined ? properties.rings : 4,
+                            radius: properties.radius !== undefined ? properties.radius : 12,
+                            rings: properties.rings !== undefined ? properties.rings : 11,
                             lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
                             depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
                             normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
@@ -528,14 +528,14 @@ export class PostProcessingManager implements IManager {
                         const sceneSizeFactor = this._sceneExtents / 50.0;
                         const ssaoEffect = new SSAOEffect(this._composer, this._renderingEngine.camera, this._renderingEngine.scene, {
                             resolutionScale: properties.resolutionScale !== undefined ? properties.resolutionScale : 1,
-                            spp: properties.spp !== undefined ? properties.spp : 8,
+                            spp: properties.spp !== undefined ? properties.spp : 16,
                             distance: properties.distance !== undefined ? properties.distance * sceneSizeFactor : sceneSizeFactor,
                             distancePower: properties.distanceIntensity !== undefined ? properties.distanceIntensity : 1,
                             power: properties.intensity !== undefined ? properties.intensity : 2.5,
                             color: properties.color !== undefined ? new THREE.Color(this._converter.toHexColor(properties.color).substring(0, 7)) : new THREE.Color('black'),
                             iterations: properties.iterations !== undefined ? properties.iterations : 1,
-                            radius: properties.radius !== undefined ? properties.radius : 15,
-                            rings: properties.rings !== undefined ? properties.rings : 4,
+                            radius: properties.radius !== undefined ? properties.radius : 12,
+                            rings: properties.rings !== undefined ? properties.rings : 11,
                             lumaPhi: properties.lumaPhi !== undefined ? properties.lumaPhi : 10,
                             depthPhi: properties.depthPhi !== undefined ? properties.depthPhi : 2,
                             normalPhi: properties.normalPhi !== undefined ? properties.normalPhi : 3.25,
@@ -655,7 +655,7 @@ export class PostProcessingManager implements IManager {
             this.addPassToEffectComposer(new EffectPass(this._renderingEngine.camera, antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ? this._fxaaEffect! : this._smaaEffect!));
         }
 
-        if (this._renderingEngine.toneMapping !== TONE_MAPPING.NONE) {                
+        if (this._renderingEngine.toneMapping !== TONE_MAPPING.NONE) {
             const mode = (() => {
                 switch (this._renderingEngine.toneMapping) {
                     case TONE_MAPPING.ACES_FILMIC:
@@ -725,7 +725,7 @@ export class PostProcessingManager implements IManager {
             case POST_PROCESSING_EFFECT_TYPE.HBAO:
                 return {
                     resolutionScale: 1,
-                    spp: 8,
+                    spp: 16,
                     distance: 1,
                     distanceIntensity: 1,
                     intensity: 2.5,
@@ -734,8 +734,8 @@ export class PostProcessingManager implements IManager {
                     thickness: 0.5,
 
                     iterations: 1,
-                    radius: 15,
-                    rings: 4,
+                    radius: 12,
+                    rings: 11,
                     lumaPhi: 10,
                     depthPhi: 2,
                     normalPhi: 3.25,
@@ -773,15 +773,15 @@ export class PostProcessingManager implements IManager {
             case POST_PROCESSING_EFFECT_TYPE.SSAO:
                 return {
                     resolutionScale: 1,
-                    spp: 8,
+                    spp: 16,
                     distance: 1,
                     distanceIntensity: 1,
                     intensity: 2.5,
                     color: '#000000',
 
                     iterations: 1,
-                    radius: 15,
-                    rings: 4,
+                    radius: 12,
+                    rings: 11,
                     lumaPhi: 10,
                     depthPhi: 2,
                     normalPhi: 3.25,

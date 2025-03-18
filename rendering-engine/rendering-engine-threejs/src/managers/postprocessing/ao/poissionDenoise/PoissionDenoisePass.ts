@@ -22,8 +22,8 @@ const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>',
 
 const defaultPoissonBlurOptions = {
 	iterations: 1,
-	radius: 8,
-	rings: 5.625,
+	radius: 12,
+	rings: 11,
 	lumaPhi: 10,
 	depthPhi: 2,
 	normalPhi: 3.25,
@@ -41,10 +41,10 @@ export class PoissionDenoisePass extends Pass {
 	public index = 0;
 	public inputTexture: Texture;
 	public iterations = defaultPoissonBlurOptions.iterations;
-	public radius = 8;
+	public radius = 12;
 	public renderTargetA: WebGLRenderTarget;
 	public renderTargetB: WebGLRenderTarget;
-	public rings = 5.625;
+	public rings = 11;
 	public samples = 16;
 
 	// #endregion Properties (11)
