@@ -133,6 +133,16 @@ export class ContactShadow implements IEnvironmentGeometry {
         this._fillPlane.visible = false;
         this._plane.visible = false;
 
+        const excludedObjects: THREE.Object3D[] = [];
+        this._renderingEngine.scene.traverse(function (object) {
+            if (object.visible === true) {
+                if (object instanceof THREE.Line || object instanceof THREE.LineLoop || object instanceof THREE.LineSegments || object instanceof THREE.Points) {
+                    excludedObjects.push(object);
+                    object.visible = false;
+                }
+            }
+        });
+
         // remove the background
         const initialBackground = this._renderingEngine.scene.background;
         this._renderingEngine.scene.background = null;
@@ -161,6 +171,9 @@ export class ContactShadow implements IEnvironmentGeometry {
         this._renderingEngine.renderer.setRenderTarget(null);
         this._renderingEngine.renderer.setClearAlpha(initialClearAlpha);
         this._renderingEngine.scene.background = initialBackground;
+
+        for (const object of excludedObjects)
+            object.visible = true;
 
         this._plane.visible = true;
 
