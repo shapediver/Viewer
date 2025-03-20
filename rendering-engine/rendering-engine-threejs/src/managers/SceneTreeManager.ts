@@ -66,6 +66,7 @@ export class SceneTreeManager implements IManager {
     private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
     private _lastRootVersion: string = '';
     private _mainNode!: SDObject;
+    private _suspendSceneUpdates: boolean = false;
 
     // #endregion Properties (12)
 
@@ -93,6 +94,14 @@ export class SceneTreeManager implements IManager {
 
     public get scene() {
         return this._scene;
+    }
+
+    public get suspendSceneUpdates(): boolean {
+        return this._suspendSceneUpdates;
+    }
+
+    public set suspendSceneUpdates(value: boolean) {
+        this._suspendSceneUpdates = value;
     }
 
     // #endregion Public Getters And Setters (4)
@@ -243,16 +252,16 @@ export class SceneTreeManager implements IManager {
      * @param obj the current type object
      */
     public updateNode(node: ITreeNode = this._tree.root, obj: THREE.Object3D | undefined, filter: UpdateFilter = { transformationOnly: false }, visibleInHierarchy: boolean = true, skeleton?: THREE.Skeleton) {
-        if(obj === undefined) {
+        if (obj === undefined) {
             // check if there is a converted object
-            if(node.convertedObject[this._renderingEngine.id]) {
+            if (node.convertedObject[this._renderingEngine.id]) {
                 obj = node.convertedObject[this._renderingEngine.id] as THREE.Object3D;
             } else {
                 // the node has not been converted yet
                 // go up the hierarchy until a converted object is found
                 let parent = node.parent;
-                while(parent) {
-                    if(parent.convertedObject[this._renderingEngine.id]) {
+                while (parent) {
+                    if (parent.convertedObject[this._renderingEngine.id]) {
                         this.updateNode(parent, parent.convertedObject[this._renderingEngine.id] as THREE.Object3D, filter, visibleInHierarchy, skeleton);
                         return;
                     } else {
@@ -395,7 +404,12 @@ export class SceneTreeManager implements IManager {
     }
 
     public updateSceneTree(root: ITreeNode): void {
+        // check if we currently have the same root version
         if (this._tree.root.version === this._lastRootVersion) return;
+
+        // check if scene tree updates are currently suspended
+        if (this._suspendSceneUpdates) return;
+
         this._lastRootVersion = this._tree.root.version;
         this._lastRendererType = this._renderingEngine.type;
 

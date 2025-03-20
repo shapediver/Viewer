@@ -24,6 +24,8 @@ export enum FLAG_TYPE {
     CONTINUOUS_RENDERING = 'continuous_rendering',
     /** The flag to continuously update the shadow map. */
     CONTINUOUS_SHADOW_MAP_UPDATE = 'continuous_shadow_map_update',
+    /** The flag to suspend updates of the scene until the flag is removed. */
+    SUSPEND_SCENE_UPDATES = 'suspend_scene_updates',
 }
 
 export enum RENDERER_TYPE {

@@ -27,7 +27,7 @@ import {
   TONE_MAPPING,
   ViewportCreationDefinition,
   VISIBILITY_MODE
-  } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
 import { CameraManager } from './managers/CameraManager';
 import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { css } from './styling/viewport-css';
@@ -119,6 +119,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     [FLAG_TYPE.CAMERA_FREEZE]: [],
     [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
     [FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE]: [],
+    [FLAG_TYPE.SUSPEND_SCENE_UPDATES]: []
   };
   // settings
   private _arRotation: vec3 = vec3.create();
@@ -430,6 +431,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set continuousShadowMapUpdate(value: boolean) {
     this._renderingManager.continuousShadowMapUpdate = value;
+  }
+
+  public get suspendSceneUpdates(): boolean {
+    return this._sceneTreeManager.suspendSceneUpdates;
+  }
+
+  public set suspendSceneUpdates(value: boolean) {
+    this._sceneTreeManager.suspendSceneUpdates = value;
   }
 
   public get defaultLineMaterial(): MaterialBasicLineData {
@@ -1098,6 +1107,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.continuousShadowMapUpdate = false;
         }
       }
+    }
+
+    // suspend scene updates
+    {
+      const currentSuspendSceneUpdatesState = this.suspendSceneUpdates;
+      if (currentSuspendSceneUpdatesState) {
+        if (this.#flags[FLAG_TYPE.SUSPEND_SCENE_UPDATES].length === 0) {
+          this.suspendSceneUpdates = false;
+          this._renderingManager.render();
+        }
+      } else {
+        if (this.#flags[FLAG_TYPE.SUSPEND_SCENE_UPDATES].length > 0) {
+          this.suspendSceneUpdates = true;
+        }
+      }
+
     }
   }
 
