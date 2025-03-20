@@ -670,7 +670,6 @@ export class SessionEngine implements ISessionEngine {
 
             // call the update callbacks
             if (waitForViewportUpdate === false) {
-                console.log('updating outputs via events');
                 for (const outputId in this.outputs) {
                     if (oldOutputVersions[outputId] !== newOutputVersions[outputId]) {
                         this._eventEngine.emitEvent(EVENTTYPE.OUTPUT.OUTPUT_UPDATED, <IOutputEvent>{
@@ -681,8 +680,6 @@ export class SessionEngine implements ISessionEngine {
                         });
                     }
                 }
-                console.log('finished updating outputs via events');
-
 
                 await this.waitForUpdateCallbacks(newOutputVersions, oldOutputVersions, newNode, oldNode);
 
@@ -2086,12 +2083,8 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async waitForUpdateCallbacks(newOutputVersions: { [key: string]: string }, oldOutputVersions: { [key: string]: string }, newNode: ITreeNode, oldNode: ITreeNode) {
-        console.log('updating session via update callback');
-
         // call the update callback function on the session
         if (this._updateCallback) await Promise.resolve(this._updateCallback(newNode, oldNode));
-        console.log('finished updating session via update callback');
-        console.log('updating outputs via update callback');
 
         const promises = [];
         // call the update callback functions on the outputs
@@ -2106,8 +2099,6 @@ export class SessionEngine implements ISessionEngine {
             }
         }
         await Promise.all(promises);
-        console.log('finished updating outputs via update callback');
-
     }
 
     // #endregion Private Methods (18)
