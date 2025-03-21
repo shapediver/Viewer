@@ -304,7 +304,7 @@ export class RenderingManager implements IManager {
         this._renderingEngine.evaluateFlagState();
 
         // update if needed
-        if (this._renderingEngine.show === true && this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion) {
+        if (this._renderingEngine.show === true && this._tree.root.version !== this._renderingEngine.sceneTreeManager.lastRootVersion && this._renderingEngine.sceneTreeManager.suspendSceneUpdates === true) {
             this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root);
             this.updateShadowMap();
             this._animationEngine.updateAnimationData();

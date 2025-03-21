@@ -1273,6 +1273,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public update(id: string): void {
     if (this.closed) return;
+    if (this.sceneTreeManager.suspendSceneUpdates === true) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root);
     this._renderingManager.updateShadowMap();
     this._animationEngine.updateAnimationData();
