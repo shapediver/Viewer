@@ -168,10 +168,12 @@ export const convertUserDefinedNameFiltersForInstances = (
     for (let i = 0; i < nameFilter.length; i++) {
         const parts = nameFilter[i].split('.');
 
+        // escape special characters in the instance ID
+        const escaped = parts[0].replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
         // replace the "*" with ".*" to create a regex pattern
         // if it's not already a ".*" pattern
         const instanceIdRegex = new RegExp(
-            `^${parts[0].replace(/(?<!\.)\*(?!\*)/g, '.*')}$`,
+            `^${escaped.replace(/(?<!\.)\*(?!\*)/g, '.*')}$`,
         );
         // find the instance IDs that match the pattern
         const matchingInstanceIds = instanceIds.filter((id) =>
