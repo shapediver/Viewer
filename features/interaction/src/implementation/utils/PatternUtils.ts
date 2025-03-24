@@ -66,29 +66,35 @@ export const gatherNodesForPattern = (
 ): void => {
     const nodeName = strictNaming ? node.originalName : node.originalName || node.name;
     // escape special characters in the pattern
-	const escapedTest = pattern[count]?.replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
+    const escapedTest = pattern[count]?.replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
 
-	// if the node has no original name (was not given a name in Grasshopper) or 
-	// its name matches the black list, do not consider it for pattern matching
-	if (!nodeName || NODE_NAME_BLACKLIST.includes(nodeName)) {
-		for (const child of node.children) {
-			gatherNodesForPattern(child, pattern, outputApiName, result, count, strictNaming);
-		}
-	}
-	// if the original name matches the pattern, check the children
-	else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
-		if (count === pattern.length - 1) {
-			// we reached the end of the pattern, add the node to the result
-			result[node.id] = {
-				node,
-				name: outputApiName + '.' + getNodeData(node, strictNaming)?.nodeName || ''
-			};
-		} else {
-			for (const child of node.children) {
-				gatherNodesForPattern(child, pattern, outputApiName, result, count + 1, strictNaming);
-			}
-		}
-	}
+    // if the node has no original name (was not given a name in Grasshopper) or 
+    // its name matches the black list, do not consider it for pattern matching
+    if (!nodeName || NODE_NAME_BLACKLIST.includes(nodeName)) {
+        for (const child of node.children) {
+            gatherNodesForPattern(child, pattern, outputApiName, result, count, strictNaming);
+        }
+    }
+    // if the original name matches the pattern, check the children
+    else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
+        if (count === pattern.length - 1) {
+            let nodeData = getNodeData(node, strictNaming);
+
+            if (!nodeData) {
+                nodeData = getInstanceNodeData(node, strictNaming);
+            }
+
+            // we reached the end of the pattern, add the node to the result
+            result[node.id] = {
+                node,
+                name: outputApiName + '.' + nodeData?.nodeName || ''
+            };
+        } else {
+            for (const child of node.children) {
+                gatherNodesForPattern(child, pattern, outputApiName, result, count + 1, strictNaming);
+            }
+        }
+    }
 };
 /**
  * Convert the user-defined name-filters to filter patterns as used by useNodeInteractionData. 
@@ -136,6 +142,59 @@ export const convertUserDefinedNameFilters = (
 
     return patterns;
 };
+
+/**
+ * Convert the user-defined name-filters to filter patterns as used by useNodeInteractionData.
+ * 
+ * The name filter is an array of dot-separated strings.
+ * Each string represents a pattern to hierarchically match node names.
+ * The first part of the pattern is the instance ID.
+ * The rest of the pattern correspond to hierarchical node names, which may contain the "*"
+ * character as a wildcard to match any node name or any part of the node name.
+ * 
+ * @param nameFilter The user-defined name filters to convert.
+ * @param instanceIds The IDs of the instances to be used.
+ * 
+ * @returns The filter pattern object to be used with useNodeInteractionData, useSelection, and other interaction hooks.
+ */
+export const convertUserDefinedNameFiltersForInstances = (
+    nameFilter: string[],
+    instanceIds: string[],
+): OutputNodeNameFilterPatterns => {
+    const patterns: OutputNodeNameFilterPatterns = {};
+
+    // we iterate over the name filter array
+    // we store the result with the output ID as the key and an array of patterns as the value
+    for (let i = 0; i < nameFilter.length; i++) {
+        const parts = nameFilter[i].split('.');
+
+        // replace the "*" with ".*" to create a regex pattern
+        // if it's not already a ".*" pattern
+        const instanceIdRegex = new RegExp(
+            `^${parts[0].replace(/(?<!\.)\*(?!\*)/g, '.*')}$`,
+        );
+        // find the instance IDs that match the pattern
+        const matchingInstanceIds = instanceIds.filter((id) =>
+            instanceIdRegex.test(id),
+        );
+
+        // create a regex pattern from the other parts of the array
+        // replace all "*" with ".*"
+        const patternArray = parts
+            .slice(1)
+            .map((part) => part.replace(/(?<!\.)\*(?!\*)/g, '.*'));
+
+        // we iterate over the output mappings
+        for (const instanceId of matchingInstanceIds) {
+            // store the pattern in the pattern object
+            if (!patterns[instanceId]) patterns[instanceId] = [];
+            patterns[instanceId].push(patternArray);
+        }
+    }
+
+    return patterns;
+};
+
 /**
  * Traverse the node hierarchy upwards to find the node that corresponds to an output 
  * of the ShapeDiver model. 
@@ -147,34 +206,78 @@ export const convertUserDefinedNameFilters = (
  */
 export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
     outputId: string,
-    outputName: string,
+    outputName?: string,
     nodeName: string
 } | undefined => {
-	const names: string[] = [];
-	let tempNode = node;
-	while (tempNode && tempNode.parent) {
-		// look for the output API data in the node
-		let outputApi = (tempNode.data.find((data) => data instanceof OutputApiData) as OutputApiData | undefined)?.api;
-		if (!outputApi) {
-			// try to find it in the session api
-			const sessionApi = (tempNode.parent?.data.find((data) => data instanceof SessionApiData) as SessionApiData | undefined)?.api;
-			outputApi = sessionApi?.outputs[tempNode.name];
-		}
-
-		const nodeName = strictNaming ? tempNode.originalName : tempNode.originalName || tempNode.name;
-		if (outputApi) {
-			return {
-				outputId: outputApi.id,
-				outputName: outputApi.name,
-				nodeName: names.reverse().join('.')
-			};
-		} else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
-			names.push(nodeName);
+    const names: string[] = [];
+    let tempNode = node;
+    while (tempNode && tempNode.parent) {
+        // look for the output API data in the node
+        let outputApi = (tempNode.data.find((data) => data instanceof OutputApiData) as OutputApiData | undefined)?.api;
+        if (!outputApi) {
+            // try to find it in the session api
+            const sessionApi = (tempNode.parent?.data.find((data) => data instanceof SessionApiData) as SessionApiData | undefined)?.api;
+            outputApi = sessionApi?.outputs[tempNode.name];
         }
 
-		tempNode = tempNode.parent;
-	}
+        const nodeName = strictNaming ? tempNode.originalName : tempNode.originalName || tempNode.name;
+        if (outputApi) {
+            return {
+                outputId: outputApi.id,
+                outputName: outputApi.name,
+                nodeName: names.reverse().join('.')
+            };
+        } else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
+            names.push(nodeName);
+        }
+
+        tempNode = tempNode.parent;
+    }
 };
+
+
+/**
+ * Traverse the node hierarchy upwards to find the node that corresponds to an instance node.
+ * Return the instance id, and the original names concatenated using dots.
+ * 
+ * We know that it is an instance node if it has a session API data in its parent.
+ * We return the instanceId as the outputId to be used in the other functions.
+ * 
+ * @param node 
+ * @param strictNaming 
+ * @returns 
+ */
+const getInstanceNodeData = (
+    node: ITreeNode,
+    strictNaming: boolean = true,
+): { outputId: string; nodeName: string } | undefined => {
+    const names: string[] = [];
+    let tempNode = node;
+    while (tempNode && tempNode.parent) {
+        // try to find it in the session api
+        // if there is one, we know that this node is an instance node
+        const sessionApi = (
+            tempNode.parent?.data.find(
+                (data) => data instanceof SessionApiData,
+            ) as SessionApiData | undefined
+        )?.api;
+
+        const nodeName = strictNaming
+            ? tempNode.originalName
+            : tempNode.originalName || tempNode.name;
+        if (sessionApi) {
+            return {
+                outputId: nodeName!,
+                nodeName: names.reverse().join('.'),
+            };
+        } else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
+            names.push(nodeName);
+        }
+
+        tempNode = tempNode.parent;
+    }
+};
+
 /**
  * Try to match the given node with the patterns. 
  * In case of a match, return the concatenated name of the node as required 
@@ -185,7 +288,10 @@ export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
  * @returns 
  */
 const matchNodeWithPatterns = (patterns: OutputNodeNameFilterPatterns, node: ITreeNode, strictNaming: boolean): string | undefined => {
-    const nodeData = getNodeData(node, strictNaming);
+    let nodeData = getNodeData(node, strictNaming);
+    if (!nodeData) {
+        nodeData = getInstanceNodeData(node, strictNaming);
+    }
     if (!nodeData) return;
     const { outputId, outputName, nodeName } = nodeData;
 
@@ -193,14 +299,14 @@ const matchNodeWithPatterns = (patterns: OutputNodeNameFilterPatterns, node: ITr
     for (const pattern of patterns[outputId] ?? []) {
         if (pattern.length === 0) {
             // special case, just the output name was provided
-            return outputName;
+            return outputName || outputId;
         } else {
             // escape special characters in the pattern
-			const cleanedPattern = pattern.join('.').replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
-			// create a regex pattern from the pattern array, match the original name
-			const match = nodeName.match(`^${cleanedPattern}$`);
+            const cleanedPattern = pattern.join('.').replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, '\\$&');
+            // create a regex pattern from the pattern array, match the original name
+            const match = nodeName.match(`^${cleanedPattern}$`);
             if (match)
-                return outputName + '.' + match[0];
+                return (outputName || outputId) + '.' + match[0];
         }
     }
 };
@@ -264,7 +370,7 @@ export const getNodesByName = (sessionApis: ISessionApi[], names: string[], stri
         names.forEach(name => {
             const parts = name.split('.');
             const outputName = parts[0];
-            
+
             const outputApis = sessionApi.getOutputByName(outputName);
             outputApis.forEach(outputApi => {
                 if (!outputApi || !outputApi.node) return;
@@ -336,22 +442,22 @@ export const calculateCombinedDraggedNodes = (currentState: DraggingParameterVal
  * @param nameWithoutDisplayComponent 
  */
 export const checkNodeNameMatch = (node: ITreeNode, nameWithoutDisplayComponent: string, strictNaming: boolean = true): boolean => {
-    if(strictNaming) {
+    if (strictNaming) {
         let originalNamePath = node.getOriginalNamePath();
         NODE_NAME_BLACKLIST.forEach(name => {
             originalNamePath = originalNamePath.replace(name, '');
         });
         // match the dot-separated name at the end of the original name path
         const match = originalNamePath.match(/([^.]+(\.[^.]+)*)\.*$/);
-        if(!match) return false;
+        if (!match) return false;
         return match[0] === nameWithoutDisplayComponent;
     } else {
-		let namePath = node.getPath();
-		NODE_NAME_BLACKLIST.forEach(name => {
-			namePath = namePath.replace(name, '');
-		});
+        let namePath = node.getPath();
+        NODE_NAME_BLACKLIST.forEach(name => {
+            namePath = namePath.replace(name, '');
+        });
 
-		return namePath.endsWith(nameWithoutDisplayComponent);
+        return namePath.endsWith(nameWithoutDisplayComponent);
     }
 };
 
