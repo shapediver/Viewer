@@ -247,7 +247,7 @@ export const getNodeData = (node: ITreeNode, strictNaming: boolean = true): {
  * @param strictNaming 
  * @returns 
  */
-const getInstanceNodeData = (
+export const getInstanceNodeData = (
     node: ITreeNode,
     strictNaming: boolean = true,
 ): { outputId: string; nodeName: string } | undefined => {

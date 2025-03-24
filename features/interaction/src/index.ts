@@ -4,13 +4,15 @@ import {
     calculateCombinedDraggedNodes,
     checkNodeNameMatch,
     convertUserDefinedNameFilters,
+    convertUserDefinedNameFiltersForInstances,
     gatherNodesForPattern,
+    getInstanceNodeData,
     getNodeData,
     getNodesByName,
     matchNodesWithPatterns,
     NodeNameFilterPattern,
     OutputNodeNameFilterPatterns
-    } from './implementation/utils/PatternUtils';
+} from './implementation/utils/PatternUtils';
 import {
     AngularRestrictionApi,
     AngularRestrictionProperties,
@@ -39,7 +41,7 @@ import {
     RestrictionProperties,
     RestrictionPropertiesBase,
     SnapRestrictionProperties
-    } from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
+} from '@shapediver/viewer.rendering-engine.intersection-restriction-engine';
 import { CameraPlaneConstraint } from './implementation/dragConstraints/CameraPlaneConstraint';
 import { DragManager } from './implementation/managers/DragManager';
 import { HoverManager } from './implementation/managers/HoverManager';
@@ -55,7 +57,7 @@ import {
     IPointLightApi,
     ISpotLightApi,
     IViewportApi
-    } from '@shapediver/viewer';
+} from '@shapediver/viewer';
 import { IDragEvent } from './interfaces/events/IDragEvent';
 import { IHoverEvent } from './interfaces/events/IHoverEvent';
 import { IInteractionData, IInteractionTypes } from './interfaces/IInteractionData';
@@ -67,7 +69,7 @@ import {
     IIntersectionFilter,
     IRay,
     RestrictionDefinition
-    } from '@shapediver/viewer.shared.types';
+} from '@shapediver/viewer.shared.types';
 import { IMultiSelectEvent } from './interfaces/events/IMultiSelectEvent';
 import { InteractionData } from './implementation/InteractionData';
 import { InteractionEngine } from './implementation/InteractionEngine';
@@ -113,7 +115,7 @@ export {
 };
 
 export {
-    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, getNodeData, matchNodesWithPatterns, addInteractionData, getNodesByName, calculateCombinedDraggedNodes, checkNodeNameMatch
+    NodeNameFilterPattern, OutputNodeNameFilterPatterns, gatherNodesForPattern, convertUserDefinedNameFilters, convertUserDefinedNameFiltersForInstances, getNodeData, getInstanceNodeData, matchNodesWithPatterns, addInteractionData, getNodesByName, calculateCombinedDraggedNodes, checkNodeNameMatch
 };
 
 export {
