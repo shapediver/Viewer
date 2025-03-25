@@ -95,7 +95,7 @@ export class PointRestriction extends AbstractRestriction implements IRestrictio
                 };
             }
 
-            // now we calculate the closest point on the cylinder to the ray
+            // now we calculate the closest point on the sphere to the ray
             const offset = Math.sqrt(this.#radius * this.#radius - distance);
             // Compute the entry distance
             const entry = t - offset;

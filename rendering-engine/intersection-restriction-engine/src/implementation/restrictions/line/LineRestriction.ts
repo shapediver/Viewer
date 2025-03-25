@@ -3,6 +3,7 @@ import { GeometryMathManager } from '../../GeometryMathManager';
 import { IRay } from '@shapediver/viewer.shared.types';
 import {
     IRestriction,
+    RESTRICTION_TYPE,
     RestrictionMetaData,
     RestrictionPropertiesBase,
     RestrictionResult
@@ -12,6 +13,7 @@ import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { IViewportApi } from '@shapediver/viewer';
 import { IVisualizationSettings } from '../../../interfaces/IVisualizationSettings';
 import { vec3 } from 'gl-matrix';
+import { PointRestriction } from '../point/PointRestriction';
 
 // #region Type aliases (1)
 
@@ -28,6 +30,14 @@ export interface LineRestrictionProperties extends RestrictionPropertiesBase {
      * The radius in which the restriction is active.
      */
     radius?: number;
+    /**
+     * The radius of the first point.
+     */
+    point1Radius?: number;
+    /**
+     * The radius of the second point.
+     */
+    point2Radius?: number;
 }
 
 // #endregion Type aliases (1)
@@ -42,7 +52,9 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
     #dragLineLength: number;
     #dragRay: IRay;
     #point1: vec3;
+    #point1Restriction: PointRestriction | undefined;
     #point2: vec3;
+    #point2Restriction: PointRestriction | undefined;
     #radius: number;
     #snapRestrictions: { [key: string]: ISnapRestriction } = {};
 
@@ -57,6 +69,30 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
         this.#point1 = properties.point1;
         this.#point2 = properties.point2;
         this.#radius = properties.radius || 0;
+        if (properties.point1Radius !== undefined) {
+            this.#point1Restriction = new PointRestriction(viewport,
+                geometryMathManager,
+                parentNode,
+                id,
+                settings,
+                {
+                    type: RESTRICTION_TYPE.POINT,
+                    point: properties.point1,
+                    radius: properties.point1Radius
+                });
+        }
+        if (properties.point2Radius !== undefined) {
+            this.#point2Restriction = new PointRestriction(viewport,
+                geometryMathManager,
+                parentNode,
+                id,
+                settings,
+                {
+                    type: RESTRICTION_TYPE.POINT,
+                    point: properties.point2,
+                    radius: properties.point2Radius
+                });
+        }
 
         const direction = vec3.sub(vec3.create(), this.#point2, this.#point1);
         this.#dragLineLength = vec3.length(direction);
@@ -74,8 +110,16 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
         return this.#point1;
     }
 
+    public get point1Restriction(): PointRestriction | undefined {
+        return this.#point1Restriction;
+    }
+
     public get point2(): vec3 {
         return this.#point2;
+    }
+
+    public get point2Restriction(): PointRestriction | undefined {
+        return this.#point2Restriction;
     }
 
     public get radius(): number {
@@ -93,13 +137,19 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
     public isWithinRadius(point: vec3): boolean {
         // Check distance from point to the start of the cylinder
         const distance = vec3.squaredDistance(point, this.#point1);
-        if (distance < this.#radius * this.#radius) {
+        const squaredRadius1 = this.#point1Restriction?.radius ?
+            this.#radius > this.#point1Restriction.radius ? this.#radius * this.#radius : this.#point1Restriction.radius * this.#point1Restriction.radius
+            : this.#radius * this.#radius;
+        if (distance < squaredRadius1) {
             return true;
         }
 
         // Check distance from point to the end of the cylinder
         const distance2 = vec3.squaredDistance(point, this.#point2);
-        if (distance2 < this.#radius * this.#radius) {
+        const squaredRadius2 = this.#point2Restriction?.radius ?
+            this.#radius > this.#point2Restriction.radius ? this.#radius * this.#radius : this.#point2Restriction.radius * this.#point2Restriction.radius
+            : this.#radius * this.#radius;
+        if (distance2 < squaredRadius2) {
             return true;
         }
 
@@ -151,6 +201,22 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
             vec3.copy(pointB, this.#point2);
         }
 
+        // first, check the simple cases
+        // if there the restrictions for the points are set, we need to check them
+        const result1 = this.#point1Restriction ? this.#point1Restriction.rayTrace(ray) : undefined;
+        const result2 = this.#point2Restriction ? this.#point2Restriction.rayTrace(ray) : undefined;
+
+        // return the closest result
+        if (result1 || result2) {
+            if (result1 && result2) {
+                if (result1.distanceOriginToClosestIntersectionPointSquared < result2.distanceOriginToClosestIntersectionPointSquared) {
+                    return result1;
+                }
+                return result2;
+            }
+            return result1 || result2;
+        }
+
         const distance = vec3.squaredDistance(pointA, pointB);
         if (distance < this.#radius * this.#radius) {
             // check if origin is inside the cylinder
@@ -170,8 +236,6 @@ export class LineRestriction extends AbstractRestriction implements IRestriction
             // Compute the entry distance
             const entry = da - offset;
             const closestIntersectionPoint = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, entry);
-
-
 
             return {
                 closestIntersectionPoint,
