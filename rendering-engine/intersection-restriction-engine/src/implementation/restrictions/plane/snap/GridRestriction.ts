@@ -124,7 +124,7 @@ export class GridRestriction extends AbstractSnapRestriction implements ISnapRes
     // public get
     public snap(ray: IRay, point: vec3, distance: number, metaData: RestrictionMetaData): RestrictionResult | undefined {
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
-        if (this.enabled === false && !(metaData?.pressedKeys?.length === 1 && metaData?.pressedKeys[0] === this.#activationKey)) return;
+        if (this.enabled === false && !(metaData?.toggledKeys?.length === 1 && metaData?.toggledKeys[0] === this.#activationKey)) return;
 
         /**
          * Explanation of the following code:

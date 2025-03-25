@@ -64,6 +64,7 @@ export interface IRestriction {
 /* eslint-disable @typescript-eslint/ban-types */
 export interface RestrictionMetaData {
     pressedKeys?: string[];
+    toggledKeys?: string[];
     startPoint?: vec3;
     type: 'drawing' | 'dragging';
 }
@@ -99,13 +100,13 @@ export interface RestrictionPropertiesBase {
 }
 
 export type RayTraceResult = {
- distance?: number,
- distanceSquared?: number,
- dragAnchor?: IDragAnchor,
- point: vec3,
- closestPointOnRay?: vec3,
- restriction: IRestriction,
- transformation?: mat4,
+    distance?: number,
+    distanceSquared?: number,
+    dragAnchor?: IDragAnchor,
+    point: vec3,
+    closestPointOnRay?: vec3,
+    restriction: IRestriction,
+    transformation?: mat4,
 };
 
 export type RestrictionProperties = PointRestrictionProperties | PlaneRestrictionProperties | LineRestrictionProperties | GeometryRestrictionProperties | CameraPlaneRestrictionProperties;

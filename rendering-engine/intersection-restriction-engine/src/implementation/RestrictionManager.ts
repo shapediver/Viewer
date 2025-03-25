@@ -47,6 +47,7 @@ export class RestrictionManager implements IRestrictionManager {
 
     #closed: boolean = false;
     #keysPressed: { [key: string]: boolean } = {};
+    #keysToggled: { [key: string]: boolean } = {};
     #restrictionManagerNode: ITreeNode;
     #showRestrictionVisualization: boolean = false;
 
@@ -186,6 +187,10 @@ export class RestrictionManager implements IRestrictionManager {
         return Object.keys(this.#keysPressed).filter(key => this.#keysPressed[key] === true);
     }
 
+    public getToggleKeys(): string[] {
+        return Object.keys(this.#keysToggled).filter(key => this.#keysToggled[key] === true);
+    }
+
     public getRestriction(token: string): IRestriction | undefined {
         return this.#restrictions[token];
     }
@@ -194,13 +199,14 @@ export class RestrictionManager implements IRestrictionManager {
         const restrictionResults: RestrictionResult[] = [];
 
         metaData.pressedKeys = this.getPressedKeys();
+        metaData.toggledKeys = this.getToggleKeys();
 
         for (const restrictionId in this.#restrictions) {
             const restriction = this.#restrictions[restrictionId];
 
             const hit = restriction.rayTrace(ray, metaData);
             if (!hit) continue;
-            
+
             const distanceSquared = hit.distanceOriginToClosestIntersectionPointSquared;
             if (distanceSquared >= Infinity) continue;
 
@@ -225,7 +231,7 @@ export class RestrictionManager implements IRestrictionManager {
                 // check if the closest point of the restriction with the higher priority is within the radius of the restriction with the lower priority
                 const hitHigherPriority = result.closestIntersectionPoint;
                 if (restrictionResult.restriction instanceof PointRestriction || restrictionResult.restriction instanceof LineRestriction) {
-                    if(restrictionResult.restriction.isWithinRadius(hitHigherPriority)) {
+                    if (restrictionResult.restriction.isWithinRadius(hitHigherPriority)) {
                         restrictionResult = result;
                     }
                 }
@@ -240,7 +246,7 @@ export class RestrictionManager implements IRestrictionManager {
         }
 
         // if the restriction is hideable, we check if the closest restriction is actually hidden
-        if(restrictionResult.restriction.hideable) {
+        if (restrictionResult.restriction.hideable) {
             // create a filter to check if the node is hidden or is not fully opaque
             const filter: IIntersectionFilter = (node: ITreeNode, geometryData?: IGeometryData) => {
                 if (node.visible === false) return false;
@@ -276,7 +282,6 @@ export class RestrictionManager implements IRestrictionManager {
                 }
             }
         }
-        
 
         if (isDraggingRestriction(metaData)) {
             const { matrix, dragAnchor } = calculateDragMatrix(restrictionResult.targetPoint, (restrictionResult.restriction as IRestriction).rotation, metaData.dragOrigin, metaData.dragAnchors, restrictionResult.closestIntersectionPoint);
@@ -319,8 +324,10 @@ export class RestrictionManager implements IRestrictionManager {
 
     private onKeyDown(event: KeyboardEvent): void {
         if (this.closed) return;
-
         this.#keysPressed[event.key] = true;
+
+        if (this.#keysToggled[event.key] === undefined) this.#keysToggled[event.key] = true;
+        else this.#keysToggled[event.key] = !this.#keysToggled[event.key];
     }
 
     private onKeyUp(event: KeyboardEvent): void {
