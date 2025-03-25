@@ -1,43 +1,40 @@
-import * as THREE from 'three'
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { IThreejsData } from './IThreejsData';
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import * as THREE from "three";
+import {IThreejsData} from "./IThreejsData";
 
 export class ThreejsData extends AbstractTreeNodeData implements IThreejsData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    #obj: THREE.Object3D;
+	#obj: THREE.Object3D;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(
-        obj: THREE.Object3D,
-        id?: string
-    ) {
-        super(id);
-        this.#obj = obj;
-    }
+	constructor(obj: THREE.Object3D, id?: string) {
+		super(id);
+		this.#obj = obj;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+	// #region Public Accessors (2)
 
-    public get obj(): THREE.Object3D {
+	public get obj(): THREE.Object3D {
 		return this.#obj;
 	}
 
-    public set obj(value: THREE.Object3D) {
+	public set obj(value: THREE.Object3D) {
 		this.#obj = value;
 	}
 
-    // #endregion Public Accessors (2)
+	// #endregion Public Accessors (2)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    public clone(): IThreejsData {
-        return new ThreejsData(this.obj, this.id);
-    }
+	public clone(): IThreejsData {
+		return new ThreejsData(this.obj, this.id);
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

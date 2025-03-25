@@ -1,9 +1,9 @@
-import { Gumball } from './implementation/Gumball';
-import { GumballEventResponseMapping } from './interfaces/events/EventResponseMapping';
-import { IGumball } from './interfaces/IGumball';
-import { IGumballEvent } from './interfaces/events/IGumballEvent';
-import { updateGumballTransformation } from './implementation/updateGumballTransformation';
+import {Gumball} from "./implementation/Gumball";
+import {updateGumballTransformation} from "./implementation/updateGumballTransformation";
+import {GumballEventResponseMapping} from "./interfaces/events/EventResponseMapping";
+import {IGumballEvent} from "./interfaces/events/IGumballEvent";
+import {IGumball} from "./interfaces/IGumball";
 
-export { IGumball, Gumball };
-export { GumballEventResponseMapping, IGumballEvent };
-export { updateGumballTransformation };
+export {IGumball, Gumball};
+export {GumballEventResponseMapping, IGumballEvent};
+export {updateGumballTransformation};

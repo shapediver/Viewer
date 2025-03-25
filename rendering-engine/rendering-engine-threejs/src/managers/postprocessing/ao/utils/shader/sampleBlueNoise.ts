@@ -35,4 +35,4 @@ vec4 sampleBlueNoise(sampler2D texture, int seed, vec2 repeat, vec2 texSize) {
 
     return blueNoise;
 }
-`
+`;

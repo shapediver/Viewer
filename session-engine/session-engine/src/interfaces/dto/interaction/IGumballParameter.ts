@@ -1,5 +1,8 @@
-import { IInteractionParameter } from './IInteractionParameter';
-import { IParameter } from '../IParameter';
-import { IGumballParameterProps } from '@shapediver/viewer.shared.types';
+import {IGumballParameterProps} from "@shapediver/viewer.shared.types";
+import {IParameter} from "../IParameter";
+import {IInteractionParameter} from "./IInteractionParameter";
 
-export interface IGumballParameter extends IParameter<string>, IInteractionParameter, IGumballParameterProps { }
+export interface IGumballParameter
+	extends IParameter<string>,
+		IInteractionParameter,
+		IGumballParameterProps {}

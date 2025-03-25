@@ -1,32 +1,28 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { IBoneData } from '../../interfaces/data/IBoneData';
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {IBoneData} from "../../interfaces/data/IBoneData";
 
 export class BoneData extends AbstractTreeNodeData implements IBoneData {
+	// #region Constructors (1)
 
-    // #region Constructors (1)
+	/**
+	 * Creates a Bone data node.
+	 *
+	 * @param id the id
+	 */
+	constructor(id?: string, version?: string) {
+		super(id, version);
+	}
 
-    /**
-     * Creates a Bone data node.
-     * 
-     * @param id the id
-     */
-    constructor(
-        id?: string,
-        version?: string
-    ) {
-        super(id, version);
-    }
+	// #endregion Constructors (1)
 
-    // #endregion Constructors (1)
+	// #region Public Methods (1)
 
-    // #region Public Methods (1)
+	/**
+	 * Clones the scene graph data.
+	 */
+	public clone(): IBoneData {
+		return new BoneData(this.id, this.version);
+	}
 
-    /**
-     * Clones the scene graph data.
-     */
-    public clone(): IBoneData {
-        return new BoneData(this.id, this.version);
-    }
-
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

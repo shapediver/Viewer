@@ -1,5 +1,5 @@
-import { IDragConstraint } from '../../interfaces/utils/IDragConstraint';
-import { vec3 } from 'gl-matrix';
+import {vec3} from "gl-matrix";
+import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
 
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
@@ -10,52 +10,55 @@ import { vec3 } from 'gl-matrix';
  * @deprecated This class is deprecated and will be removed in the future. Please use the `PointRestriction` instead.
  */
 export class PointConstraint implements IDragConstraint {
-    // #region Properties (3)
+	// #region Properties (3)
 
-    #point: vec3;
-    #radius: number = 0;
-    #rotation: {
-        axis: vec3,
-        angle: number
-    };
+	#point: vec3;
+	#radius: number = 0;
+	#rotation: {
+		axis: vec3;
+		angle: number;
+	};
 
-    // #endregion Properties (3)
+	// #endregion Properties (3)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    /**
-     * @param _point the point
-     * @param _radius the radius in which the point is considered
-     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
-     */
-    constructor(
-        _point: vec3,
-        _radius: number = 0,
-        _rotation?: {
-            axis: vec3,
-            angle: number
-        }
-    ) {
-        this.#point = _point;
-        this.#radius = _radius;
-        this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
-    }
+	/**
+	 * @param _point the point
+	 * @param _radius the radius in which the point is considered
+	 * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
+	 */
+	constructor(
+		_point: vec3,
+		_radius: number = 0,
+		_rotation?: {
+			axis: vec3;
+			angle: number;
+		},
+	) {
+		this.#point = _point;
+		this.#radius = _radius;
+		this.#rotation = _rotation || {
+			axis: vec3.fromValues(0, 0, 1),
+			angle: 0,
+		};
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (3)
+	// #region Public Getters And Setters (3)
 
-    public get point(): vec3 {
-        return this.#point;
-    }
+	public get point(): vec3 {
+		return this.#point;
+	}
 
-    public get radius(): number {
-        return this.#radius;
-    }
+	public get radius(): number {
+		return this.#radius;
+	}
 
-    public get rotation(): { axis: vec3, angle: number } | undefined {
-        return this.#rotation;
-    }
+	public get rotation(): {axis: vec3; angle: number} | undefined {
+		return this.#rotation;
+	}
 
-    // #endregion Public Getters And Setters (3)
+	// #endregion Public Getters And Setters (3)
 }

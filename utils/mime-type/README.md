@@ -4,8 +4,8 @@ This package is part of the [`@shapediver/viewer`](https://www.npmjs.com/package
 It is used to expand the format property of the [ShapeDiver](www.shapediver.com) file parameters.
 Additionally, it can be used to to find additional mime-types for provided file endings.
 
-
 ## Install
+
 ```
 npm install @shapediver/viewer.utils.mime-type
 ```

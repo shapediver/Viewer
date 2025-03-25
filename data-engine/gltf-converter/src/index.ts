@@ -1,5 +1,3 @@
-import { GLTFConverter } from './GLTFConverter'
+import {GLTFConverter} from "./GLTFConverter";
 
-export {
-  GLTFConverter
-}
+export {GLTFConverter};

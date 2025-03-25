@@ -1,16 +1,16 @@
-import { IOutputApi } from '../IOutputApi';
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {IOutputApi} from "../IOutputApi";
 
 export interface IOutputApiData extends ITreeNodeData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    api: IOutputApi;
+	api: IOutputApi;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): IOutputApiData;
+	clone(): IOutputApiData;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

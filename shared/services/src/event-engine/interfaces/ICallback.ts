@@ -1,5 +1,5 @@
-import { IEvent } from './IEvent'
+import {IEvent} from "./IEvent";
 
 export interface ICallback {
-    (event: IEvent): void;
+	(event: IEvent): void;
 }

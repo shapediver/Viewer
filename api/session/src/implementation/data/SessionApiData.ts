@@ -1,53 +1,52 @@
-import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { ISessionApi } from '../../interfaces/ISessionApi';
-import { ISessionApiData } from '../../interfaces/data/ISessionApiData';
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ISessionApiData} from "../../interfaces/data/ISessionApiData";
+import {ISessionApi} from "../../interfaces/ISessionApi";
 
-export class SessionApiData extends AbstractTreeNodeData implements ISessionApiData {
-    // #region Properties (1)
+export class SessionApiData
+	extends AbstractTreeNodeData
+	implements ISessionApiData
+{
+	// #region Properties (1)
 
-    #api: ISessionApi;
+	#api: ISessionApi;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    /**
-     * Creates a SessionApi data node.
-     * 
-     * @param _data the data as key- value pairs 
-     * @param id the id
-     */
-    constructor(
-        api: ISessionApi,
-        id?: string,
-        version?: string
-    ) {
-        super(id, version);
-        this.#api = api;
-    }
+	/**
+	 * Creates a SessionApi data node.
+	 *
+	 * @param _data the data as key- value pairs
+	 * @param id the id
+	 */
+	constructor(api: ISessionApi, id?: string, version?: string) {
+		super(id, version);
+		this.#api = api;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (2)
+	// #region Public Getters And Setters (2)
 
-    public get api(): ISessionApi {
-        return this.#api;
-    }
+	public get api(): ISessionApi {
+		return this.#api;
+	}
 
-    public set api(value: ISessionApi) {
-        this.#api = value;
-    }
+	public set api(value: ISessionApi) {
+		this.#api = value;
+	}
 
-    // #endregion Public Getters And Setters (2)
+	// #endregion Public Getters And Setters (2)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    /**
-     * Clones the scene graph data.
-     */
-    public clone(): ISessionApiData {
-        return new SessionApiData(this.api, this.id, this.version);
-    }
+	/**
+	 * Clones the scene graph data.
+	 */
+	public clone(): ISessionApiData {
+		return new SessionApiData(this.api, this.id, this.version);
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

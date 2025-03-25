@@ -1,4 +1,5 @@
 ![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
+
 # Viewer
 
 This Repository is the main repository for the Shapediver Viewer.
@@ -9,7 +10,9 @@ If you are not from the ShapeDiver organization and are part if the development,
 The setup is built on `lerna` which is a package that is build for handling javascript monorepos. I extended some functionality and made created some further custom scripts for creating packages and building them. But trust me, there is no magic involved, mostly just creating a nice project setup.
 
 ## 1. Setup
+
 ### Node / NPM
+
 You need to install a specific version of node (15.14.0) and npm (7.7.6). You can do this in any way you want to, but in the following steps we will explain how to do this with nvm.
 
 First of all, download nvm ([windows](https://github.com/coreybutler/nvm-windows)/[unix](https://github.com/nvm-sh/nvm)/[mac](https://github.com/nvm-sh/nvm)).
@@ -24,6 +27,7 @@ and
 This will install node (15.14.0) and the corresponding npm version (7.7.6).
 
 ### GIT
+
 Make sure to have GIT installed on your system.
 Set the `script-shell` of npm to bash via
 
@@ -36,7 +40,7 @@ Just call `npm run init`
 ## 2. Creating Packages and Libraries
 
 In the root of the project, call `npm run create-package`. You will be prompted to add a scope and a name. Inside this call a `lerna` command is executed first and then some smaller file changes are done after.
-Your package name will be `@shapediver/viewer.SCOPE.NAME`. 
+Your package name will be `@shapediver/viewer.SCOPE.NAME`.
 
 ## 3. Bootstrapping
 
@@ -61,8 +65,8 @@ This works just similarly with `npm run add-dependency @shapediver/viewer.test.a
 
 In the main package.json, there is only one build script, please see the specific packages for further build tasks.
 
-| Usage | Description |
-| ------------- | ------------- |
+| Usage           | Description                           |
+| --------------- | ------------------------------------- |
 | `npm run build` | Builds each package. (folder: `dist`) |
 
 ## 5. Testing
@@ -78,6 +82,7 @@ Naturally, please be smart with the naming of packages.
 First, if you haven't already, create an access token on github. An explanation can be seen [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token). You need permissions for `repo`, `write:packages`, `read:packages` and `delete:packages`.
 
 Then create on the root of this repository a `.npmrc` file, if there isn't one already and add the following.
+
 ```bash
 //npm.pkg.github.com/:_authToken=TOKEN
 registry=https://npm.pkg.github.com/shapediver

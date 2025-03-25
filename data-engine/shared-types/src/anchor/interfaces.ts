@@ -1,57 +1,67 @@
-import { Color, IAnchorDataImage, IAnchorDataText } from "@shapediver/viewer.shared.types";
+import {
+	Color,
+	IAnchorDataImage,
+	IAnchorDataText,
+} from "@shapediver/viewer.shared.types";
 
 export enum TAG3D_JUSTIFICATION {
-    TOP_LEFT = 'TL',
-    TOP_CENTER = 'TC',
-    TOP_RIGHT = 'TR',
-    MIDDLE_LEFT = 'ML',
-    MIDDLE_CENTER = 'MC',
-    MIDDLE_RIGHT = 'MR',
-    BOTTOM_LEFT = 'BL',
-    BOTTOM_CENTER = 'BC',
-    BOTTOM_RIGHT = 'BR'
+	TOP_LEFT = "TL",
+	TOP_CENTER = "TC",
+	TOP_RIGHT = "TR",
+	MIDDLE_LEFT = "ML",
+	MIDDLE_CENTER = "MC",
+	MIDDLE_RIGHT = "MR",
+	BOTTOM_LEFT = "BL",
+	BOTTOM_CENTER = "BC",
+	BOTTOM_RIGHT = "BR",
 }
 
 export interface ITag3D {
-    // #region Properties (6)
+	// #region Properties (6)
 
-    color: Color,
-    justification: TAG3D_JUSTIFICATION,
-    location: {
-        normal: { X: number, Y: number, Z: number },
-        yAxis: { X: number, Y: number, Z: number },
-        xAxis: { X: number, Y: number, Z: number },
-        origin: { X: number, Y: number, Z: number }
-    },
-    size?: number,
-    text?: string,
-    version: string
+	color: Color;
+	justification: TAG3D_JUSTIFICATION;
+	location: {
+		normal: {X: number; Y: number; Z: number};
+		yAxis: {X: number; Y: number; Z: number};
+		xAxis: {X: number; Y: number; Z: number};
+		origin: {X: number; Y: number; Z: number};
+	};
+	size?: number;
+	text?: string;
+	version: string;
 
-    // #endregion Properties (6)
+	// #endregion Properties (6)
 }
 
 export interface ITag2D {
-    // #region Properties (4)
+	// #region Properties (4)
 
-    color: Color,
-    location: { X: number, Y: number, Z: number }
+	color: Color;
+	location: {X: number; Y: number; Z: number};
 
-    text: string,
-    version: string,
+	text: string;
+	version: string;
 
-    // #endregion Properties (4)
+	// #endregion Properties (4)
 }
 
 export interface IAnchor {
-    // #region Properties (7)
+	// #region Properties (7)
 
-    data?: IAnchorDataImage | IAnchorDataText,
-    format?: 'text' | 'image',
-    hideable?: boolean,
-    intersectionTarget?: { min: { x: number, y: number, z: number }, max: { x: number, y: number, z: number } } | string | string[]
-    location: { x: number, y: number, z: number },
-    version: string,
-    viewports?: [],
+	data?: IAnchorDataImage | IAnchorDataText;
+	format?: "text" | "image";
+	hideable?: boolean;
+	intersectionTarget?:
+		| {
+				min: {x: number; y: number; z: number};
+				max: {x: number; y: number; z: number};
+		  }
+		| string
+		| string[];
+	location: {x: number; y: number; z: number};
+	version: string;
+	viewports?: [];
 
-    // #endregion Properties (7)
+	// #endregion Properties (7)
 }

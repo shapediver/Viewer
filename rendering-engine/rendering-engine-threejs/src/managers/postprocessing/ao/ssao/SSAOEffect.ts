@@ -1,11 +1,14 @@
-import { EffectComposer } from 'postprocessing';
-import { Camera, Scene, Vector3 } from 'three';
-import { AOEffect } from '../ao/AOEffect';
-import { AOPass } from '../ao/AOPass';
-import { ssao as fragmentShader } from './shader/ssao';
-import { ao_utils } from '../ao/shader/ao_utils';
+import {EffectComposer} from "postprocessing";
+import {Camera, Scene, Vector3} from "three";
+import {AOEffect} from "../ao/AOEffect";
+import {AOPass} from "../ao/AOPass";
+import {ao_utils} from "../ao/shader/ao_utils";
+import {ssao as fragmentShader} from "./shader/ssao";
 
-const finalFragmentShader = fragmentShader.replace('#include <ao_utils>', ao_utils);
+const finalFragmentShader = fragmentShader.replace(
+	"#include <ao_utils>",
+	ao_utils,
+);
 
 class SSAOPass extends AOPass {
 	// #region Constructors (1)
@@ -26,7 +29,12 @@ class SSAOEffect extends AOEffect {
 
 	// #region Constructors (1)
 
-	constructor(composer: EffectComposer, camera: Camera, scene: Scene, options?: { [key: string]: unknown }) {
+	constructor(
+		composer: EffectComposer,
+		camera: Camera,
+		scene: Scene,
+		options?: {[key: string]: unknown},
+	) {
 		super(composer, camera, scene, new SSAOPass(camera, scene), options);
 
 		SSAOEffect.DefaultOptions = {
@@ -35,13 +43,13 @@ class SSAOEffect extends AOEffect {
 				spp: 16,
 				distance: 1,
 				distancePower: 0.25,
-				power: 2
-			}
+				power: 2,
+			},
 		};
 
 		options = {
 			...SSAOEffect.DefaultOptions,
-			...options
+			...options,
 		};
 	}
 
@@ -64,10 +72,10 @@ class SSAOEffect extends AOEffect {
 		return points;
 	}
 
-	public makeOptionsReactive(options: { [key: string]: unknown }) {
+	public makeOptionsReactive(options: {[key: string]: unknown}) {
 		super.makeOptionsReactive(options);
 
-		for (const key of ['spp']) {
+		for (const key of ["spp"]) {
 			Object.defineProperty(this, key, {
 				get() {
 					return options[key];
@@ -78,8 +86,9 @@ class SSAOEffect extends AOEffect {
 					options[key] = value;
 
 					switch (key) {
-						case 'spp': {
-							this.aoPass.fullscreenMaterial.defines.spp = value.toFixed(0);
+						case "spp": {
+							this.aoPass.fullscreenMaterial.defines.spp =
+								value.toFixed(0);
 
 							const samples = this.getPointsOnSphere(value);
 
@@ -88,22 +97,26 @@ class SSAOEffect extends AOEffect {
 								samplesR.push((i + 1) / value);
 							}
 
-							this.aoPass.fullscreenMaterial.uniforms.samples = { value: samples };
-							this.aoPass.fullscreenMaterial.uniforms.samplesR = { value: samplesR };
+							this.aoPass.fullscreenMaterial.uniforms.samples = {
+								value: samples,
+							};
+							this.aoPass.fullscreenMaterial.uniforms.samplesR = {
+								value: samplesR,
+							};
 
 							this.aoPass.fullscreenMaterial.needsUpdate = true;
 							break;
 						}
 					}
 				},
-				configurable: true
+				configurable: true,
 			});
 		}
 
-		this.spp = options['spp'] as number;
+		this.spp = options["spp"] as number;
 	}
 
 	// #endregion Public Methods (2)
 }
 
-export { SSAOEffect };
+export {SSAOEffect};

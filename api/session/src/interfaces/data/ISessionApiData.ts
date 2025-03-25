@@ -1,16 +1,16 @@
-import { ISessionApi } from '../ISessionApi';
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ISessionApi} from "../ISessionApi";
 
 export interface ISessionApiData extends ITreeNodeData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    api: ISessionApi;
+	api: ISessionApi;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): ISessionApiData;
+	clone(): ISessionApiData;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

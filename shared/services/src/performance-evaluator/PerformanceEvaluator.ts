@@ -1,146 +1,158 @@
 export class PerformanceEvaluator {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    private static _instance: PerformanceEvaluator;
+	private static _instance: PerformanceEvaluator;
 
-    private _eval: {
-        start: number;
-        section: {
-            [key: string]: {
-                start: number;
-                continued?: number;
-                end?: number;
-                duration?: number;
-            };
-        };
-        end?: number;
-        duration?: number;
-    } | undefined;
+	private _eval:
+		| {
+				start: number;
+				section: {
+					[key: string]: {
+						start: number;
+						continued?: number;
+						end?: number;
+						duration?: number;
+					};
+				};
+				end?: number;
+				duration?: number;
+		  }
+		| undefined;
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 
-    // #region Public Static Accessors (1)
+	// #region Public Static Accessors (1)
 
-    public static get instance() {
-        return this._instance || (this._instance = new this());
-    }
+	public static get instance() {
+		return this._instance || (this._instance = new this());
+	}
 
-    // #endregion Public Static Accessors (1)
+	// #endregion Public Static Accessors (1)
 
-    // #region Public Methods (8)
+	// #region Public Methods (8)
 
-    /**
-     * Continue the performance evaluation.
-     * 
-     * @param id 
-     */
-    public continueSection(sectionId: string): void {
-        if (!this._eval) return;
-        if (this._eval.end) return;
-        if (!this._eval.section[sectionId]) return;
-        if (this._eval.section[sectionId].end) return;
+	/**
+	 * Continue the performance evaluation.
+	 *
+	 * @param id
+	 */
+	public continueSection(sectionId: string): void {
+		if (!this._eval) return;
+		if (this._eval.end) return;
+		if (!this._eval.section[sectionId]) return;
+		if (this._eval.section[sectionId].end) return;
 
-        this._eval.section[sectionId].continued = performance.now();
-    }
+		this._eval.section[sectionId].continued = performance.now();
+	}
 
-    /**
-     * End the performance evaluation and calculate the duration.
-     * 
-     * @param id 
-     */
-    public end(): void {
-        if (!this._eval) return;
-        if (this._eval.end) return;
+	/**
+	 * End the performance evaluation and calculate the duration.
+	 *
+	 * @param id
+	 */
+	public end(): void {
+		if (!this._eval) return;
+		if (this._eval.end) return;
 
-        this._eval.end = performance.now();
-        this._eval.duration = this._eval.end! - this._eval.start;
-    }
+		this._eval.end = performance.now();
+		this._eval.duration = this._eval.end! - this._eval.start;
+	}
 
-    /**
-     * End the performance evaluation of a section and calculate the duration.
-     * 
-     * @param id 
-     */
-    public endSection(sectionId: string): void {
-        if (!this._eval) return;
-        if (this._eval.end) return;
-        if (!this._eval.section[sectionId]) return;
-        if (this._eval.section[sectionId].end) return;
+	/**
+	 * End the performance evaluation of a section and calculate the duration.
+	 *
+	 * @param id
+	 */
+	public endSection(sectionId: string): void {
+		if (!this._eval) return;
+		if (this._eval.end) return;
+		if (!this._eval.section[sectionId]) return;
+		if (this._eval.section[sectionId].end) return;
 
-        this._eval.section[sectionId].end = performance.now();
+		this._eval.section[sectionId].end = performance.now();
 
-        this._eval.section[sectionId].duration = (this._eval.section[sectionId].duration || 0) + (this._eval.section[sectionId].end! - (this._eval.section[sectionId].continued || this._eval.section[sectionId].start));
-    }
+		this._eval.section[sectionId].duration =
+			(this._eval.section[sectionId].duration || 0) +
+			(this._eval.section[sectionId].end! -
+				(this._eval.section[sectionId].continued ||
+					this._eval.section[sectionId].start));
+	}
 
-    /**
-     * Get the evaluation data for a specific id.
-     * 
-     * @param id 
-     */
-    public getEvaluation(): {
-        start: number,
-        section: {
-            [key: string]: {
-                start: number,
-                continued?: number,
-                end?: number,
-                duration?: number
-            }
-        },
-        end?: number,
-        duration?: number,
-    } | undefined {
-        return this._eval;
-    }
+	/**
+	 * Get the evaluation data for a specific id.
+	 *
+	 * @param id
+	 */
+	public getEvaluation():
+		| {
+				start: number;
+				section: {
+					[key: string]: {
+						start: number;
+						continued?: number;
+						end?: number;
+						duration?: number;
+					};
+				};
+				end?: number;
+				duration?: number;
+		  }
+		| undefined {
+		return this._eval;
+	}
 
-    /**
-     * Get the evaluation data for a specific id.
-     * 
-     * @param id 
-     */
-    public getEvaluationToString(): string {
-        const e = this._eval;
-        return `Performance Evaluation: ${e!.duration}ms\n`;
-    }
+	/**
+	 * Get the evaluation data for a specific id.
+	 *
+	 * @param id
+	 */
+	public getEvaluationToString(): string {
+		const e = this._eval;
+		return `Performance Evaluation: ${e!.duration}ms\n`;
+	}
 
-    /**
-     * Pause the performance evaluation.
-     * 
-     * @param id 
-     */
-    public pauseSection(sectionId: string): void {
-        if (!this._eval) return;
-        if (this._eval.end) return;
-        if (!this._eval.section[sectionId]) return;
-        if (this._eval.section[sectionId].end) return;
+	/**
+	 * Pause the performance evaluation.
+	 *
+	 * @param id
+	 */
+	public pauseSection(sectionId: string): void {
+		if (!this._eval) return;
+		if (this._eval.end) return;
+		if (!this._eval.section[sectionId]) return;
+		if (this._eval.section[sectionId].end) return;
 
-        this._eval.section[sectionId].duration = (this._eval.section[sectionId].duration || 0) + performance.now() - (this._eval.section[sectionId].continued || this._eval.section[sectionId].start);
-    }
+		this._eval.section[sectionId].duration =
+			(this._eval.section[sectionId].duration || 0) +
+			performance.now() -
+			(this._eval.section[sectionId].continued ||
+				this._eval.section[sectionId].start);
+	}
 
-    /**
-     * Start the evaluation with a specific id.
-     * 
-     * @param id 
-     */
-    public start(time?: number): void {
-        this._eval = {
-            start: time || performance.now(),
-            section: {}
-        }
-    }
+	/**
+	 * Start the evaluation with a specific id.
+	 *
+	 * @param id
+	 */
+	public start(time?: number): void {
+		this._eval = {
+			start: time || performance.now(),
+			section: {},
+		};
+	}
 
-    /**
-     * Start the evaluation of a section with a specific id.
-     * 
-     * @param id 
-     */
-    public startSection(sectionId: string, time?: number): void {
-        if (!this._eval) return;
-        if (this._eval.end) return;
-        this._eval.section[sectionId] = {
-            start: time || performance.now(),
-        }
-    }
+	/**
+	 * Start the evaluation of a section with a specific id.
+	 *
+	 * @param id
+	 */
+	public startSection(sectionId: string, time?: number): void {
+		if (!this._eval) return;
+		if (this._eval.end) return;
+		this._eval.section[sectionId] = {
+			start: time || performance.now(),
+		};
+	}
 
-    // #endregion Public Methods (8)
+	// #endregion Public Methods (8)
 }

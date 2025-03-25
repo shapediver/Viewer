@@ -1,15 +1,15 @@
 export interface IRestrictionApi {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    /**
-     * The unique identifier of the restriction.
-     */
-    readonly id: string;
+	/**
+	 * The unique identifier of the restriction.
+	 */
+	readonly id: string;
 
-    /**
-     * Whether the restriction is enabled or not.
-     */
-    enabled: boolean;
+	/**
+	 * Whether the restriction is enabled or not.
+	 */
+	enabled: boolean;
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 }

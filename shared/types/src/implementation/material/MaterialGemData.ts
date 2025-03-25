@@ -1,310 +1,334 @@
-import { AbstractMaterialData } from './AbstractMaterialData';
-import { IMaterialGemData, IMaterialGemDataProperties } from '../../interfaces/data/material/IMaterialGemDataProperties';
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
-import { IMapData } from '../../interfaces/data/material/IMapData';
-import { mat3, mat4, vec3 } from 'gl-matrix';
-import { Color } from '../../types';
+import {vec3} from "gl-matrix";
+import {IMapData} from "../../interfaces/data/material/IMapData";
+import {
+	MATERIAL_ALPHA,
+	MATERIAL_SHADING,
+	MATERIAL_SIDE,
+} from "../../interfaces/data/material/IMaterialAbstractData";
+import {
+	IMaterialGemData,
+	IMaterialGemDataProperties,
+} from "../../interfaces/data/material/IMaterialGemDataProperties";
+import {Color} from "../../types";
+import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialGemData extends AbstractMaterialData implements IMaterialGemData {
-    // #region Properties (5)
+export class MaterialGemData
+	extends AbstractMaterialData
+	implements IMaterialGemData
+{
+	// #region Properties (5)
 
+	#refractionIndex: number = 2.4;
+	#impurityMap?: IMapData;
+	#impurityScale: number = 1.0;
+	#colorTransferBegin: Color = "#ffffff";
+	#colorTransferEnd: Color = "#ffffff";
+	#center: vec3 = vec3.create();
+	#radius: number = 1;
+	#sphericalNormalMap?: IMapData;
+	#gamma: number = 1;
+	#contrast: number = 1;
+	#brightness: number = 0;
+	#dispersion: number = 0;
+	#tracingDepth: number = 5;
+	#tracingOpacity: number = 0;
+	#envMap?: string | string[];
 
-    #refractionIndex: number = 2.4;
-    #impurityMap?: IMapData;
-    #impurityScale: number = 1.0;
-    #colorTransferBegin: Color = '#ffffff';
-    #colorTransferEnd: Color = '#ffffff';
-    #center: vec3 = vec3.create();
-    #radius: number = 1;
-    #sphericalNormalMap?: IMapData;
-    #gamma: number = 1;
-    #contrast: number = 1;
-    #brightness: number = 0;
-    #dispersion: number = 0;
-    #tracingDepth: number = 5;
-    #tracingOpacity: number = 0;
-    #envMap?: string | string[];
+	// #endregion Properties (5)
 
-    // #endregion Properties (5)
+	// #region Constructors (1)
 
-    // #region Constructors (1)
+	/**
+	 * Creates a material data object.
+	 *
+	 * @param _attributes the attributes of the material
+	 * @param id the id
+	 */
+	constructor(
+		properties?: IMaterialGemDataProperties,
+		id?: string,
+		version?: string,
+	) {
+		super(properties, id, version);
+		if (!properties) return;
 
-    /**
-     * Creates a material data object.
-     * 
-     * @param _attributes the attributes of the material
-     * @param id the id
-     */
-    constructor(
-        properties?: IMaterialGemDataProperties,
-        id?: string,
-        version?: string
-    ) {
-        super(properties, id, version);
-        if (!properties) return;
+		if (properties.refractionIndex !== undefined)
+			this.refractionIndex = properties.refractionIndex;
+		if (properties.impurityMap !== undefined)
+			this.impurityMap = properties.impurityMap;
+		if (properties.impurityScale !== undefined)
+			this.impurityScale = properties.impurityScale;
+		if (properties.colorTransferBegin !== undefined)
+			this.colorTransferBegin = properties.colorTransferBegin;
+		if (properties.colorTransferEnd !== undefined)
+			this.colorTransferEnd = properties.colorTransferEnd;
+		if (properties.center !== undefined) this.center = properties.center;
+		if (properties.tracingDepth !== undefined)
+			this.tracingDepth = properties.tracingDepth;
+		if (properties.radius !== undefined) this.radius = properties.radius;
+		if (properties.sphericalNormalMap !== undefined)
+			this.sphericalNormalMap = properties.sphericalNormalMap;
+		if (properties.gamma !== undefined) this.gamma = properties.gamma;
+		if (properties.contrast !== undefined)
+			this.contrast = properties.contrast;
+		if (properties.brightness !== undefined)
+			this.brightness = properties.brightness;
+		if (properties.dispersion !== undefined)
+			this.dispersion = properties.dispersion;
+		if (properties.tracingOpacity !== undefined)
+			this.tracingOpacity = properties.tracingOpacity;
+		if (properties.envMap !== undefined) this.envMap = properties.envMap;
+	}
 
-        if (properties.refractionIndex !== undefined) this.refractionIndex = properties.refractionIndex;
-        if (properties.impurityMap !== undefined) this.impurityMap = properties.impurityMap;
-        if (properties.impurityScale !== undefined) this.impurityScale = properties.impurityScale;
-        if (properties.colorTransferBegin !== undefined) this.colorTransferBegin = properties.colorTransferBegin;
-        if (properties.colorTransferEnd !== undefined) this.colorTransferEnd = properties.colorTransferEnd;
-        if (properties.center !== undefined) this.center = properties.center;
-        if (properties.tracingDepth !== undefined) this.tracingDepth = properties.tracingDepth;
-        if (properties.radius !== undefined) this.radius = properties.radius;
-        if (properties.sphericalNormalMap !== undefined) this.sphericalNormalMap = properties.sphericalNormalMap;
-        if (properties.gamma !== undefined) this.gamma = properties.gamma;
-        if (properties.contrast !== undefined) this.contrast = properties.contrast;
-        if (properties.brightness !== undefined) this.brightness = properties.brightness;
-        if (properties.dispersion !== undefined) this.dispersion = properties.dispersion;
-        if (properties.tracingOpacity !== undefined) this.tracingOpacity = properties.tracingOpacity;
-        if (properties.envMap !== undefined) this.envMap = properties.envMap;
-    }
+	// #endregion Constructors (1)
 
-    // #endregion Constructors (1)
+	// #region Public Accessors (10)
 
-    // #region Public Accessors (10)
+	public get refractionIndex(): number {
+		return this.#refractionIndex;
+	}
 
-    public get refractionIndex(): number {
-        return this.#refractionIndex;
-    }
+	public set refractionIndex(value: number) {
+		this.#refractionIndex = value;
+	}
 
-    public set refractionIndex(value: number) {
-        this.#refractionIndex = value;
-    }
+	public get impurityMap(): IMapData | undefined {
+		return this.#impurityMap;
+	}
 
-    public get impurityMap(): IMapData | undefined {
-        return this.#impurityMap;
-    }
+	public set impurityMap(value: IMapData | undefined) {
+		this.#impurityMap = value;
+	}
 
-    public set impurityMap(value: IMapData | undefined) {
-        this.#impurityMap = value;
-    }
+	public get impurityScale(): number {
+		return this.#impurityScale;
+	}
 
-    public get impurityScale(): number {
-        return this.#impurityScale;
-    }
+	public set impurityScale(value: number) {
+		this.#impurityScale = value;
+	}
 
-    public set impurityScale(value: number) {
-        this.#impurityScale = value;
-    }
+	public get colorTransferBegin(): Color {
+		return this.#colorTransferBegin;
+	}
 
-    public get colorTransferBegin(): Color {
-        return this.#colorTransferBegin;
-    }
+	public set colorTransferBegin(value: Color) {
+		this.#colorTransferBegin = value;
+	}
 
-    public set colorTransferBegin(value: Color) {
-        this.#colorTransferBegin = value;
-    }
+	public get colorTransferEnd(): Color {
+		return this.#colorTransferEnd;
+	}
 
-    public get colorTransferEnd(): Color {
-        return this.#colorTransferEnd;
-    }
+	public set colorTransferEnd(value: Color) {
+		this.#colorTransferEnd = value;
+	}
 
-    public set colorTransferEnd(value: Color) {
-        this.#colorTransferEnd = value;
-    }
+	public get center(): vec3 {
+		return this.#center;
+	}
 
-    public get center(): vec3 {
-        return this.#center;
-    }
+	public set center(value: vec3) {
+		this.#center = value;
+	}
 
-    public set center(value: vec3) {
-        this.#center = value;
-    }
+	public get tracingDepth(): number {
+		return this.#tracingDepth;
+	}
 
-    public get tracingDepth(): number {
-        return this.#tracingDepth;
-    }
+	public set tracingDepth(value: number) {
+		this.#tracingDepth = value;
+	}
 
-    public set tracingDepth(value: number) {
-        this.#tracingDepth = value;
-    }
+	public get radius(): number {
+		return this.#radius;
+	}
 
-    public get radius(): number {
-        return this.#radius;
-    }
+	public set radius(value: number) {
+		this.#radius = value;
+	}
 
-    public set radius(value: number) {
-        this.#radius = value;
-    }
+	public get sphericalNormalMap(): IMapData | undefined {
+		return this.#sphericalNormalMap;
+	}
 
-    public get sphericalNormalMap(): IMapData | undefined {
-        return this.#sphericalNormalMap;
-    }
+	public set sphericalNormalMap(value: IMapData | undefined) {
+		this.#sphericalNormalMap = value;
+	}
 
-    public set sphericalNormalMap(value: IMapData | undefined) {
-        this.#sphericalNormalMap = value;
-    }
+	public get gamma(): number {
+		return this.#gamma;
+	}
 
-    public get gamma(): number {
-        return this.#gamma;
-    }
+	public set gamma(value: number) {
+		this.#gamma = value;
+	}
 
-    public set gamma(value: number) {
-        this.#gamma = value;
-    }
+	public get contrast(): number {
+		return this.#contrast;
+	}
 
-    public get contrast(): number {
-        return this.#contrast;
-    }
+	public set contrast(value: number) {
+		this.#contrast = value;
+	}
 
-    public set contrast(value: number) {
-        this.#contrast = value;
-    }
+	public get brightness(): number {
+		return this.#brightness;
+	}
 
-    public get brightness(): number {
-        return this.#brightness;
-    }
+	public set brightness(value: number) {
+		this.#brightness = value;
+	}
 
-    public set brightness(value: number) {
-        this.#brightness = value;
-    }
+	public get dispersion(): number {
+		return this.#dispersion;
+	}
 
-    public get dispersion(): number {
-        return this.#dispersion;
-    }
+	public set dispersion(value: number) {
+		this.#dispersion = value;
+	}
 
-    public set dispersion(value: number) {
-        this.#dispersion = value;
-    }
+	public get tracingOpacity(): number {
+		return this.#tracingOpacity;
+	}
 
-    public get tracingOpacity(): number {
-        return this.#tracingOpacity;
-    }
+	public set tracingOpacity(value: number) {
+		this.#tracingOpacity = value;
+	}
 
-    public set tracingOpacity(value: number) {
-        this.#tracingOpacity = value;
-    }
-  
-    public get envMap(): string | string[] | undefined {
-      return this.#envMap;
-    }
-  
-    public set envMap(value: string | string[] | undefined) {
-      this.#envMap = value;
-    }
+	public get envMap(): string | string[] | undefined {
+		return this.#envMap;
+	}
 
-    // #endregion Public Accessors (10)
+	public set envMap(value: string | string[] | undefined) {
+		this.#envMap = value;
+	}
 
-    // #region Public Methods (3)
+	// #endregion Public Accessors (10)
 
-    public clone(): IMaterialGemData {
-        return new MaterialGemData({
-            alphaMap: this.alphaMap,
-            alphaCutoff: this.alphaCutoff,
-            alphaMode: this.alphaMode,
-            aoMap: this.aoMap,
-            aoMapIntensity: this.aoMapIntensity,
-            bumpMap: this.bumpMap,
-            bumpScale: this.bumpScale,
-            color: this.color,
-            depthTest: this.depthTest,
-            depthWrite: this.depthWrite,
-            emissiveMap: this.emissiveMap,
-            emissiveness: this.emissiveness,
-            shading: this.shading,
-            map: this.map,
-            name: this.name,
-            normalMap: this.normalMap,
-            normalScale: this.normalScale,
-            opacity: this.opacity,
-            side: this.side,
-            transparent: this.transparent,
-            refractionIndex: this.refractionIndex,
-            impurityMap: this.impurityMap,
-            impurityScale: this.impurityScale,
-            colorTransferBegin: this.colorTransferBegin,
-            colorTransferEnd: this.colorTransferEnd,
-            center: this.center,
-            tracingDepth: this.tracingDepth,
-            radius: this.radius,
-            sphericalNormalMap: this.sphericalNormalMap,
-            gamma: this.gamma,
-            contrast: this.contrast,
-            brightness: this.brightness,
-            dispersion: this.dispersion,
-            tracingOpacity: this.tracingOpacity,
-            envMap: this.envMap,
-        }, this.id, this.version);
-    }
+	// #region Public Methods (3)
 
-    public copy(source: MaterialGemData): void {
-        this.alphaCutoff = source.alphaCutoff;
-        this.alphaMap = source.alphaMap;
-        this.alphaMode = source.alphaMode;
-        this.aoMap = source.aoMap;
-        this.aoMapIntensity = source.aoMapIntensity;
-        this.bumpMap = source.bumpMap;
-        this.bumpScale = source.bumpScale;
-        this.color = source.color;
-        this.depthTest = source.depthTest;
-        this.depthWrite = source.depthWrite;
-        this.emissiveMap = source.emissiveMap;
-        this.emissiveness = source.emissiveness;
-        this.materialOutput = source.materialOutput;
-        this.map = source.map;
-        this.normalMap = source.normalMap;
-        this.normalScale = source.normalScale;
-        this.opacity = source.opacity;
-        this.shading = source.shading;
-        this.side = source.side;
-        this.transparent = source.transparent;
-        
-        this.refractionIndex = source.refractionIndex;
-        this.impurityMap = source.impurityMap;
-        this.impurityScale = source.impurityScale;
-        this.colorTransferBegin = source.colorTransferBegin;
-        this.colorTransferEnd = source.colorTransferEnd;
-        this.center = source.center;
-        this.tracingDepth = source.tracingDepth;
-        this.radius = source.radius;
-        this.sphericalNormalMap = source.sphericalNormalMap;
-        this.gamma = source.gamma;
-        this.contrast = source.contrast;
-        this.brightness = source.brightness;
-        this.dispersion = source.dispersion;
-        this.tracingOpacity = source.tracingOpacity;
-        this.envMap = source.envMap;
-    }
+	public clone(): IMaterialGemData {
+		return new MaterialGemData(
+			{
+				alphaMap: this.alphaMap,
+				alphaCutoff: this.alphaCutoff,
+				alphaMode: this.alphaMode,
+				aoMap: this.aoMap,
+				aoMapIntensity: this.aoMapIntensity,
+				bumpMap: this.bumpMap,
+				bumpScale: this.bumpScale,
+				color: this.color,
+				depthTest: this.depthTest,
+				depthWrite: this.depthWrite,
+				emissiveMap: this.emissiveMap,
+				emissiveness: this.emissiveness,
+				shading: this.shading,
+				map: this.map,
+				name: this.name,
+				normalMap: this.normalMap,
+				normalScale: this.normalScale,
+				opacity: this.opacity,
+				side: this.side,
+				transparent: this.transparent,
+				refractionIndex: this.refractionIndex,
+				impurityMap: this.impurityMap,
+				impurityScale: this.impurityScale,
+				colorTransferBegin: this.colorTransferBegin,
+				colorTransferEnd: this.colorTransferEnd,
+				center: this.center,
+				tracingDepth: this.tracingDepth,
+				radius: this.radius,
+				sphericalNormalMap: this.sphericalNormalMap,
+				gamma: this.gamma,
+				contrast: this.contrast,
+				brightness: this.brightness,
+				dispersion: this.dispersion,
+				tracingOpacity: this.tracingOpacity,
+				envMap: this.envMap,
+			},
+			this.id,
+			this.version,
+		);
+	}
 
-    public reset(): void {
-        this.alphaCutoff = 0;
-        this.alphaMap = undefined;
-        this.alphaMode = MATERIAL_ALPHA.OPAQUE;
-        this.aoMap = undefined;
-        this.aoMapIntensity = 1.0;
-        this.bumpMap = undefined;
-        this.bumpScale = 1.0;
-        this.color = '#ffffff';
-        this.depthTest = undefined;
-        this.depthWrite = undefined;
-        this.emissiveMap = undefined;
-        this.emissiveness = '#000000';
-        this.materialOutput = false;
-        this.map = undefined;
-        this.normalMap = undefined;
-        this.normalScale = 1.0;
-        this.opacity = 1.0;
-        this.shading = MATERIAL_SHADING.SMOOTH;
-        this.side = MATERIAL_SIDE.DOUBLE;
-        this.transparent = undefined;
+	public copy(source: MaterialGemData): void {
+		this.alphaCutoff = source.alphaCutoff;
+		this.alphaMap = source.alphaMap;
+		this.alphaMode = source.alphaMode;
+		this.aoMap = source.aoMap;
+		this.aoMapIntensity = source.aoMapIntensity;
+		this.bumpMap = source.bumpMap;
+		this.bumpScale = source.bumpScale;
+		this.color = source.color;
+		this.depthTest = source.depthTest;
+		this.depthWrite = source.depthWrite;
+		this.emissiveMap = source.emissiveMap;
+		this.emissiveness = source.emissiveness;
+		this.materialOutput = source.materialOutput;
+		this.map = source.map;
+		this.normalMap = source.normalMap;
+		this.normalScale = source.normalScale;
+		this.opacity = source.opacity;
+		this.shading = source.shading;
+		this.side = source.side;
+		this.transparent = source.transparent;
 
-        this.refractionIndex = 2.4;
-        this.impurityMap = undefined;
-        this.impurityScale = 1.0;
-        this.colorTransferBegin = '#ffffff';
-        this.colorTransferEnd = '#ffffff';
-        this.center = vec3.create();
-        this.radius = 1;
-        this.sphericalNormalMap = undefined;
-        this.gamma = 1;
-        this.contrast = 1;
-        this.brightness = 0;
-        this.dispersion = 0;
-        this.tracingDepth = 5;
-        this.tracingOpacity = 0;
-        this.envMap = undefined;
-    }
+		this.refractionIndex = source.refractionIndex;
+		this.impurityMap = source.impurityMap;
+		this.impurityScale = source.impurityScale;
+		this.colorTransferBegin = source.colorTransferBegin;
+		this.colorTransferEnd = source.colorTransferEnd;
+		this.center = source.center;
+		this.tracingDepth = source.tracingDepth;
+		this.radius = source.radius;
+		this.sphericalNormalMap = source.sphericalNormalMap;
+		this.gamma = source.gamma;
+		this.contrast = source.contrast;
+		this.brightness = source.brightness;
+		this.dispersion = source.dispersion;
+		this.tracingOpacity = source.tracingOpacity;
+		this.envMap = source.envMap;
+	}
 
-    // #endregion Public Methods (3)
+	public reset(): void {
+		this.alphaCutoff = 0;
+		this.alphaMap = undefined;
+		this.alphaMode = MATERIAL_ALPHA.OPAQUE;
+		this.aoMap = undefined;
+		this.aoMapIntensity = 1.0;
+		this.bumpMap = undefined;
+		this.bumpScale = 1.0;
+		this.color = "#ffffff";
+		this.depthTest = undefined;
+		this.depthWrite = undefined;
+		this.emissiveMap = undefined;
+		this.emissiveness = "#000000";
+		this.materialOutput = false;
+		this.map = undefined;
+		this.normalMap = undefined;
+		this.normalScale = 1.0;
+		this.opacity = 1.0;
+		this.shading = MATERIAL_SHADING.SMOOTH;
+		this.side = MATERIAL_SIDE.DOUBLE;
+		this.transparent = undefined;
+
+		this.refractionIndex = 2.4;
+		this.impurityMap = undefined;
+		this.impurityScale = 1.0;
+		this.colorTransferBegin = "#ffffff";
+		this.colorTransferEnd = "#ffffff";
+		this.center = vec3.create();
+		this.radius = 1;
+		this.sphericalNormalMap = undefined;
+		this.gamma = 1;
+		this.contrast = 1;
+		this.brightness = 0;
+		this.dispersion = 0;
+		this.tracingDepth = 5;
+		this.tracingOpacity = 0;
+		this.envMap = undefined;
+	}
+
+	// #endregion Public Methods (3)
 }

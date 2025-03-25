@@ -1,188 +1,337 @@
-import { AbstractMaterialData } from './implementation/material/AbstractMaterialData';
-import { AnimationData } from './implementation/data/AnimationData';
-import { AttributeData, GeometryData, PrimitiveData } from './implementation/data/GeometryData';
-import { BoneData } from './implementation/data/BoneData';
+import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
+import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
+import {AnimationData} from "./implementation/data/AnimationData";
+import {BoneData} from "./implementation/data/BoneData";
+import {CustomData} from "./implementation/data/CustomData";
 import {
-  BUSY_MODE_DISPLAY,
-  FLAG_TYPE,
-  RENDERER_TYPE,
-  SPINNER_POSITIONING,
-  TEXTURE_ENCODING,
-  TONE_MAPPING,
-  VISIBILITY_MODE
-  } from './interfaces/renderingEngine/enums';
+	AttributeData,
+	GeometryData,
+	PrimitiveData,
+} from "./implementation/data/GeometryData";
 import {
-  Color,
-  ISessionSettingsSections,
-  ISettingsSections,
-  IViewportSettingsSections,
-  PARAMETER_TYPE,
-  PARAMETER_VISUALIZATION,
-  SessionCreationDefinition,
-  ViewportCreationDefinition
-  } from './types';
-import { CustomData } from './implementation/data/CustomData';
-import { DraggingParameterValue, IDraggableObject, IDraggingParameterProps } from './interfaces/parameter/IDraggingParameterSettings';
+	HTMLElementAnchorCustomData,
+	HTMLElementAnchorData,
+	HTMLElementAnchorImageData,
+	HTMLElementAnchorTextData,
+} from "./implementation/data/HTMLElementAnchorData";
+import {InstanceData} from "./implementation/data/InstanceData";
+import {AbstractMaterialData} from "./implementation/material/AbstractMaterialData";
+import {MapData} from "./implementation/material/MapData";
+import {MaterialBasicLineData} from "./implementation/material/MaterialBasicLineData";
+import {MaterialGemData} from "./implementation/material/MaterialGemData";
+import {MaterialMultiPointData} from "./implementation/material/MaterialMultiPointData";
+import {MaterialPointData} from "./implementation/material/MaterialPointData";
+import {MaterialShadowData} from "./implementation/material/MaterialShadowData";
+import {MaterialSpecularGlossinessData} from "./implementation/material/MaterialSpecularGlossinessData";
+import {MaterialStandardData} from "./implementation/material/MaterialStandardData";
+import {MaterialUnlitData} from "./implementation/material/MaterialUnlitData";
+import {MaterialVariantsData} from "./implementation/material/MaterialVariantsData";
 import {
-  DrawingParameterValue,
-  IDrawingParameterJsonSchema,
-  IDrawingParameterSettings,
-  validateDrawingParameterSettings
-  } from './interfaces/parameter/IDrawingParametersSettings';
-import { EventResponseMapping } from './interfaces/events/EventResponseMapping';
-import { GumballParameterValue, IGumballParameterProps } from './interfaces/parameter/IGumballParameterSettings';
+	SDTFAttributeData,
+	SDTFAttributesData,
+} from "./implementation/sdtf/SDTFAttributesData";
+import {SDTFItemData} from "./implementation/sdtf/SDTFItemData";
+import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
 import {
-  HTMLElementAnchorCustomData,
-  HTMLElementAnchorData,
-  HTMLElementAnchorImageData,
-  HTMLElementAnchorTextData
-  } from './implementation/data/HTMLElementAnchorData';
-import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData';
-import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData';
+	IAnimationData,
+	IAnimationTrack,
+} from "./interfaces/data/IAnimationData";
+import {IBoneData} from "./interfaces/data/IBoneData";
+import {ICustomData} from "./interfaces/data/ICustomData";
 import {
-  IAttributeData,
-  IGeometryData,
-  IPrimitiveData,
-  PRIMITIVE_MODE
-  } from './interfaces/data/IGeometryData';
-import { IBoneData } from './interfaces/data/IBoneData';
-import { ICameraEvent } from './interfaces/events/ICameraEvent';
-import { ICustomData } from './interfaces/data/ICustomData';
+	IAttributeData,
+	IGeometryData,
+	IPrimitiveData,
+	PRIMITIVE_MODE,
+} from "./interfaces/data/IGeometryData";
 import {
-  IDraggingParameterJsonSchema,
-  IGumballParameterJsonSchema,
-  IInteractionParameterJsonSchema,
-  IInteractionParameterProps,
-  IInteractionParameterSettings,
-  InteractionParameterSettingsType,
-  ISelectionParameterJsonSchema,
-  validateDraggingParameterSettings,
-  validateGumballParameterSettings,
-  validateInteractionParameterSettings,
-  validateSelectionParameterSettings
-  } from './interfaces/parameter/IInteractionParameterSettings';
-import { IInstanceData } from './interfaces/data/IInstanceData';
-import { IIntersection } from './interfaces/renderingEngine/IIntersection';
-import { IIntersectionFilter } from './interfaces/renderingEngine/IIntersectionFilter';
+	IAnchorDataImage,
+	IAnchorDataText,
+	IHTMLElementAnchorData,
+} from "./interfaces/data/IHTMLElementAnchorData";
+import {IInstanceData} from "./interfaces/data/IInstanceData";
 import {
-  IMapData,
-  IMapDataProperties,
-  IMapDataPropertiesDefinition,
-  TEXTURE_FILTERING,
-  TEXTURE_WRAPPING
-  } from './interfaces/data/material/IMapData';
+	IMapData,
+	IMapDataProperties,
+	IMapDataPropertiesDefinition,
+	TEXTURE_FILTERING,
+	TEXTURE_WRAPPING,
+} from "./interfaces/data/material/IMapData";
 import {
-  IMaterialAbstractData,
-  IMaterialAbstractDataProperties,
-  IMaterialAbstractDataPropertiesDefinition,
-  MATERIAL_ALPHA,
-  MATERIAL_SHADING,
-  MATERIAL_SIDE,
-  MATERIAL_TYPE
-  } from './interfaces/data/material/IMaterialAbstractData';
-import { IMaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition } from './interfaces/data/material/IMaterialBasicLineData';
-import { IMaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition } from './interfaces/data/material/IMaterialGemDataProperties';
-import { IMaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialMultiPointData';
-import { IMaterialPointData, IMaterialPointDataProperties, IMaterialPointDataPropertiesDefinition } from './interfaces/data/material/IMaterialPointData';
-import { IMaterialShadowData, IMaterialShadowDataProperties, IMaterialShadowDataPropertiesDefinition } from './interfaces/data/material/IMaterialShadowData';
-import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialSpecularGlossinessDataPropertiesDefinition } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
-import { IMaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition } from './interfaces/data/material/IMaterialStandardData';
-import { IMaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition } from './interfaces/data/material/IMaterialUnlitData';
-import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVariantsData';
-import { InstanceData } from './implementation/data/InstanceData';
-import { IOutputEvent } from './interfaces/events/IOutputEvent';
-import { IParameterEvent } from './interfaces/events/IParameterEvent';
-import { IRay } from './interfaces/renderingEngine/IRay';
-import { IRenderingEvent } from './interfaces/events/IRenderingEvent';
-import { ISceneEvent } from './interfaces/events/ISceneEvent';
-import { ISDTFAttributeData, ISDTFAttributesData } from './interfaces/sdtf/ISDTFAttributesData';
-import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData';
-import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData';
-import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData';
-import { ISelectionParameterProps, SelectionParameterValue } from './interfaces/parameter/ISelectionParameterSettings';
-import { ISessionEvent } from './interfaces/events/ISessionEvent';
-import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent';
-import { IViewportEvent } from './interfaces/events/IViewportEvent';
-import { MapData } from './implementation/material/MapData';
-import { MaterialBasicLineData } from './implementation/material/MaterialBasicLineData';
-import { MaterialGemData } from './implementation/material/MaterialGemData';
-import { MaterialMultiPointData } from './implementation/material/MaterialMultiPointData';
-import { MaterialPointData } from './implementation/material/MaterialPointData';
-import { MaterialShadowData } from './implementation/material/MaterialShadowData';
-import { MaterialSpecularGlossinessData } from './implementation/material/MaterialSpecularGlossinessData';
-import { MaterialUnlitData } from './implementation/material/MaterialUnlitData';
-import { MaterialVariantsData } from './implementation/material/MaterialVariantsData';
-import { RestrictionDefinition, Rotation } from './interfaces/parameter/IRestrictionSettings';
-import { SDTFAttributeData, SDTFAttributesData } from './implementation/sdtf/SDTFAttributesData';
-import { SDTFItemData } from './implementation/sdtf/SDTFItemData';
-import { SDTFOverviewData } from './implementation/sdtf/SDTFOverviewData';
-import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives';
-import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1';
+	IMaterialAbstractData,
+	IMaterialAbstractDataProperties,
+	IMaterialAbstractDataPropertiesDefinition,
+	MATERIAL_ALPHA,
+	MATERIAL_SHADING,
+	MATERIAL_SIDE,
+	MATERIAL_TYPE,
+} from "./interfaces/data/material/IMaterialAbstractData";
 import {
-  MaterialStandardData,
-} from './implementation/material/MaterialStandardData';
+	IMaterialBasicLineData,
+	IMaterialBasicLineDataProperties,
+	IMaterialBasicLineDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialBasicLineData";
+import {
+	IMaterialGemData,
+	IMaterialGemDataProperties,
+	IMaterialGemDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialGemDataProperties";
+import {
+	IMaterialMultiPointData,
+	IMaterialMultiPointDataProperties,
+	IMaterialMultiPointDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialMultiPointData";
+import {
+	IMaterialPointData,
+	IMaterialPointDataProperties,
+	IMaterialPointDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialPointData";
+import {
+	IMaterialShadowData,
+	IMaterialShadowDataProperties,
+	IMaterialShadowDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialShadowData";
+import {
+	IMaterialSpecularGlossinessData,
+	IMaterialSpecularGlossinessDataProperties,
+	IMaterialSpecularGlossinessDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialSpecularGlossinessDataProperties";
+import {
+	IMaterialStandardData,
+	IMaterialStandardDataProperties,
+	IMaterialStandardDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialStandardData";
+import {
+	IMaterialUnlitData,
+	IMaterialUnlitDataProperties,
+	IMaterialUnlitDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialUnlitData";
+import {IMaterialVariantsData} from "./interfaces/data/material/IMaterialVariantsData";
+import {EventResponseMapping} from "./interfaces/events/EventResponseMapping";
+import {ICameraEvent} from "./interfaces/events/ICameraEvent";
+import {IOutputEvent} from "./interfaces/events/IOutputEvent";
+import {IParameterEvent} from "./interfaces/events/IParameterEvent";
+import {IRenderingEvent} from "./interfaces/events/IRenderingEvent";
+import {ISceneEvent} from "./interfaces/events/ISceneEvent";
+import {ISessionEvent} from "./interfaces/events/ISessionEvent";
+import {ITaskEvent, TASK_TYPE} from "./interfaces/events/ITaskEvent";
+import {IViewportEvent} from "./interfaces/events/IViewportEvent";
+import {
+	DraggingParameterValue,
+	IDraggableObject,
+	IDraggingParameterProps,
+} from "./interfaces/parameter/IDraggingParameterSettings";
+import {
+	DrawingParameterValue,
+	IDrawingParameterJsonSchema,
+	IDrawingParameterSettings,
+	validateDrawingParameterSettings,
+} from "./interfaces/parameter/IDrawingParametersSettings";
+import {
+	GumballParameterValue,
+	IGumballParameterProps,
+} from "./interfaces/parameter/IGumballParameterSettings";
+import {
+	IDraggingParameterJsonSchema,
+	IGumballParameterJsonSchema,
+	IInteractionParameterJsonSchema,
+	IInteractionParameterProps,
+	IInteractionParameterSettings,
+	InteractionParameterSettingsType,
+	ISelectionParameterJsonSchema,
+	validateDraggingParameterSettings,
+	validateGumballParameterSettings,
+	validateInteractionParameterSettings,
+	validateSelectionParameterSettings,
+} from "./interfaces/parameter/IInteractionParameterSettings";
+import {
+	RestrictionDefinition,
+	Rotation,
+} from "./interfaces/parameter/IRestrictionSettings";
+import {
+	ISelectionParameterProps,
+	SelectionParameterValue,
+} from "./interfaces/parameter/ISelectionParameterSettings";
+import {
+	BUSY_MODE_DISPLAY,
+	FLAG_TYPE,
+	RENDERER_TYPE,
+	SPINNER_POSITIONING,
+	TEXTURE_ENCODING,
+	TONE_MAPPING,
+	VISIBILITY_MODE,
+} from "./interfaces/renderingEngine/enums";
+import {IIntersection} from "./interfaces/renderingEngine/IIntersection";
+import {IIntersectionFilter} from "./interfaces/renderingEngine/IIntersectionFilter";
+import {IRay} from "./interfaces/renderingEngine/IRay";
+import {
+	ISDTFAttributeData,
+	ISDTFAttributesData,
+} from "./interfaces/sdtf/ISDTFAttributesData";
+import {ISDTFAttributeVisualizationData} from "./interfaces/sdtf/ISDTFAttributeVisualizationData";
+import {ISDTFItemData} from "./interfaces/sdtf/ISDTFItemData";
+import {
+	ISDTFOverview,
+	ISDTFOverviewData,
+} from "./interfaces/sdtf/ISDTFOverviewData";
+import {
+	Color,
+	ISessionSettingsSections,
+	ISettingsSections,
+	IViewportSettingsSections,
+	PARAMETER_TYPE,
+	PARAMETER_VISUALIZATION,
+	SessionCreationDefinition,
+	ViewportCreationDefinition,
+} from "./types";
 
 export {
-  IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialStandardDataPropertiesDefinition,
-  IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData, IMaterialAbstractDataPropertiesDefinition,
-  IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialUnlitDataPropertiesDefinition,
-  IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties, IMaterialShadowDataPropertiesDefinition,
-  IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialSpecularGlossinessDataPropertiesDefinition,
-  IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMaterialGemDataPropertiesDefinition,
-  IMaterialPointData, MaterialPointData, IMaterialPointDataProperties, IMaterialPointDataPropertiesDefinition,
-  IMaterialMultiPointData, MaterialMultiPointData, IMaterialMultiPointDataProperties, IMaterialMultiPointDataPropertiesDefinition,
-  IMaterialBasicLineData, MaterialBasicLineData, IMaterialBasicLineDataProperties, IMaterialBasicLineDataPropertiesDefinition,
-  IMapData, IMapDataProperties, IMapDataPropertiesDefinition, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_TYPE, TEXTURE_WRAPPING, TEXTURE_FILTERING
+	IMaterialStandardData,
+	MaterialStandardData,
+	IMaterialStandardDataProperties,
+	IMaterialStandardDataPropertiesDefinition,
+	IMaterialAbstractData,
+	IMaterialAbstractDataProperties,
+	AbstractMaterialData,
+	IMaterialAbstractDataPropertiesDefinition,
+	IMaterialUnlitData,
+	MaterialUnlitData,
+	IMaterialUnlitDataProperties,
+	IMaterialUnlitDataPropertiesDefinition,
+	IMaterialShadowData,
+	MaterialShadowData,
+	IMaterialShadowDataProperties,
+	IMaterialShadowDataPropertiesDefinition,
+	IMaterialSpecularGlossinessData,
+	MaterialSpecularGlossinessData,
+	IMaterialSpecularGlossinessDataProperties,
+	IMaterialSpecularGlossinessDataPropertiesDefinition,
+	IMaterialGemData,
+	MaterialGemData,
+	IMaterialGemDataProperties,
+	IMaterialGemDataPropertiesDefinition,
+	IMaterialPointData,
+	MaterialPointData,
+	IMaterialPointDataProperties,
+	IMaterialPointDataPropertiesDefinition,
+	IMaterialMultiPointData,
+	MaterialMultiPointData,
+	IMaterialMultiPointDataProperties,
+	IMaterialMultiPointDataPropertiesDefinition,
+	IMaterialBasicLineData,
+	MaterialBasicLineData,
+	IMaterialBasicLineDataProperties,
+	IMaterialBasicLineDataPropertiesDefinition,
+	IMapData,
+	IMapDataProperties,
+	IMapDataPropertiesDefinition,
+	MapData,
+	MATERIAL_SIDE,
+	MATERIAL_ALPHA,
+	MATERIAL_SHADING,
+	MATERIAL_TYPE,
+	TEXTURE_WRAPPING,
+	TEXTURE_FILTERING,
 };
-
 export {
-  IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, PRIMITIVE_MODE
+	IAnimationData,
+	AnimationData,
+	IAnimationTrack,
+	IGeometryData,
+	IAttributeData,
+	IPrimitiveData,
+	IMaterialVariantsData,
+	GeometryData,
+	AttributeData,
+	PrimitiveData,
+	MaterialVariantsData,
+	PRIMITIVE_MODE,
 };
-
 export {
-  IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
+	IAnchorDataImage,
+	IAnchorDataText,
+	IHTMLElementAnchorData,
+	HTMLElementAnchorCustomData,
+	HTMLElementAnchorTextData,
+	HTMLElementAnchorImageData,
+	HTMLElementAnchorData,
 };
-
 export {
-  ICustomData, CustomData, IBoneData, BoneData, IInstanceData, InstanceData
+	ICustomData,
+	CustomData,
+	IBoneData,
+	BoneData,
+	IInstanceData,
+	InstanceData,
 };
-
 export {
-  EventResponseMapping, IViewportEvent, ISessionEvent, IOutputEvent, ICameraEvent, IRenderingEvent, IParameterEvent, ISceneEvent, ITaskEvent, TASK_TYPE
+	EventResponseMapping,
+	IViewportEvent,
+	ISessionEvent,
+	IOutputEvent,
+	ICameraEvent,
+	IRenderingEvent,
+	IParameterEvent,
+	ISceneEvent,
+	ITaskEvent,
+	TASK_TYPE,
 };
-
 export {
-  ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData,
-  SdtfTypeHintName as SDTF_TYPEHINT, SdtfPrimitiveTypeGuard
+	ISDTFOverviewData,
+	SDTFOverviewData,
+	ISDTFOverview,
+	SDTFAttributesData,
+	ISDTFAttributesData,
+	ISDTFAttributeData,
+	SDTFAttributeData,
+	SDTFItemData,
+	ISDTFItemData,
+	ISDTFAttributeVisualizationData,
+	SdtfTypeHintName as SDTF_TYPEHINT,
+	SdtfPrimitiveTypeGuard,
 };
-
 export {
-  Color, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ISettingsSections, ISessionSettingsSections, IViewportSettingsSections
+	Color,
+	PARAMETER_TYPE,
+	PARAMETER_VISUALIZATION,
+	ISettingsSections,
+	ISessionSettingsSections,
+	IViewportSettingsSections,
 };
-
 export {
-  InteractionParameterSettingsType, IInteractionParameterProps, IInteractionParameterSettings, IInteractionParameterJsonSchema, validateInteractionParameterSettings,
-  ISelectionParameterProps, SelectionParameterValue, ISelectionParameterJsonSchema, validateSelectionParameterSettings,
-  IGumballParameterProps, GumballParameterValue, IGumballParameterJsonSchema, validateGumballParameterSettings,
-  IDraggingParameterProps, DraggingParameterValue, IDraggingParameterJsonSchema, validateDraggingParameterSettings,
-  IDrawingParameterSettings, DrawingParameterValue, IDrawingParameterJsonSchema, validateDrawingParameterSettings,
-  IDraggableObject, RestrictionDefinition, Rotation
+	InteractionParameterSettingsType,
+	IInteractionParameterProps,
+	IInteractionParameterSettings,
+	IInteractionParameterJsonSchema,
+	validateInteractionParameterSettings,
+	ISelectionParameterProps,
+	SelectionParameterValue,
+	ISelectionParameterJsonSchema,
+	validateSelectionParameterSettings,
+	IGumballParameterProps,
+	GumballParameterValue,
+	IGumballParameterJsonSchema,
+	validateGumballParameterSettings,
+	IDraggingParameterProps,
+	DraggingParameterValue,
+	IDraggingParameterJsonSchema,
+	validateDraggingParameterSettings,
+	IDrawingParameterSettings,
+	DrawingParameterValue,
+	IDrawingParameterJsonSchema,
+	validateDrawingParameterSettings,
+	IDraggableObject,
+	RestrictionDefinition,
+	Rotation,
 };
-
 export {
-  BUSY_MODE_DISPLAY,
-  FLAG_TYPE,
-  RENDERER_TYPE,
-  SPINNER_POSITIONING,
-  TEXTURE_ENCODING,
-  TONE_MAPPING,
-  VISIBILITY_MODE
+	BUSY_MODE_DISPLAY,
+	FLAG_TYPE,
+	RENDERER_TYPE,
+	SPINNER_POSITIONING,
+	TEXTURE_ENCODING,
+	TONE_MAPPING,
+	VISIBILITY_MODE,
 };
-
-export {
-  IRay, IIntersection, IIntersectionFilter
-};
-
-export {
-  SessionCreationDefinition, ViewportCreationDefinition
-};
+export {IRay, IIntersection, IIntersectionFilter};
+export {SessionCreationDefinition, ViewportCreationDefinition};

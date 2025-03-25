@@ -1,60 +1,66 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { IMaterialVariantsData } from '../../interfaces/data/material/IMaterialVariantsData';
-import { GeometryData, PrimitiveData } from '../data/GeometryData';
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {IMaterialVariantsData} from "../../interfaces/data/material/IMaterialVariantsData";
+import {GeometryData} from "../data/GeometryData";
 
-export class MaterialVariantsData extends AbstractTreeNodeData implements IMaterialVariantsData {
-    // #region Properties (1)
+export class MaterialVariantsData
+	extends AbstractTreeNodeData
+	implements IMaterialVariantsData
+{
+	// #region Properties (1)
 
-    readonly #variants: string[] = [];
-    readonly #geometryData: GeometryData[] = [];
-    #variantIndex?: number;
+	readonly #variants: string[] = [];
+	readonly #geometryData: GeometryData[] = [];
+	#variantIndex?: number;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(id?: string, version?: string) {
-        super(id, version);
-    }
+	constructor(id?: string, version?: string) {
+		super(id, version);
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+	// #region Public Accessors (2)
 
-    public get geometryData(): GeometryData[] {
-        return this.#geometryData;
-    }
+	public get geometryData(): GeometryData[] {
+		return this.#geometryData;
+	}
 
-    public get variants(): string[] {
-        return this.#variants;
-    }
+	public get variants(): string[] {
+		return this.#variants;
+	}
 
-    public get variantIndex(): number | undefined {
-        return this.#variantIndex;
-    }
+	public get variantIndex(): number | undefined {
+		return this.#variantIndex;
+	}
 
-    public set variantIndex(value: number | undefined) {
-        this.#variantIndex = value;
-        for(let i = 0; i < this.geometryData.length; i++) {            
-            const variant = this.geometryData[i].materialVariants.find(v => v.variant === this.#variantIndex);
-            if(variant) {
-                this.geometryData[i].material = variant.material;
-            } else {
-                this.geometryData[i].material = this.geometryData[i].standardMaterial;
-            }
-        }
-    }
+	public set variantIndex(value: number | undefined) {
+		this.#variantIndex = value;
+		for (let i = 0; i < this.geometryData.length; i++) {
+			const variant = this.geometryData[i].materialVariants.find(
+				(v) => v.variant === this.#variantIndex,
+			);
+			if (variant) {
+				this.geometryData[i].material = variant.material;
+			} else {
+				this.geometryData[i].material =
+					this.geometryData[i].standardMaterial;
+			}
+		}
+	}
 
-    // #endregion Public Accessors (2)
+	// #endregion Public Accessors (2)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    /**
-     * Clones the scene graph data.
-     */
-    public clone(): IMaterialVariantsData {
-        return new MaterialVariantsData(this.id, this.version);
-    }
+	/**
+	 * Clones the scene graph data.
+	 */
+	public clone(): IMaterialVariantsData {
+		return new MaterialVariantsData(this.id, this.version);
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

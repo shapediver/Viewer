@@ -1,10 +1,10 @@
-import { InteractionParameterSettingsType } from '@shapediver/viewer.shared.types';
-import { IParameter } from '../IParameter';
+import {InteractionParameterSettingsType} from "@shapediver/viewer.shared.types";
+import {IParameter} from "../IParameter";
 
 export interface IInteractionParameter extends IParameter<string> {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    interactionType: InteractionParameterSettingsType;
+	interactionType: InteractionParameterSettingsType;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 }

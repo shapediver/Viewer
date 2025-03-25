@@ -1,6 +1,4 @@
-import { CreationControlCenterSession } from './implementation/CreationControlCenterSession';
-import { ICreationControlCenterSession } from './interfaces/ICreationControlCenterSession';
+import {CreationControlCenterSession} from "./implementation/CreationControlCenterSession";
+import {ICreationControlCenterSession} from "./interfaces/ICreationControlCenterSession";
 
-export {
-    ICreationControlCenterSession, CreationControlCenterSession
-};
+export {ICreationControlCenterSession, CreationControlCenterSession};

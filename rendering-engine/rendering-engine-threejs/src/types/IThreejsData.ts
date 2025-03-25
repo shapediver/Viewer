@@ -1,16 +1,16 @@
-import * as THREE from 'three'
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import * as THREE from "three";
 
 export interface IThreejsData extends ITreeNodeData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    obj: THREE.Object3D;
+	obj: THREE.Object3D;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): IThreejsData;
+	clone(): IThreejsData;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

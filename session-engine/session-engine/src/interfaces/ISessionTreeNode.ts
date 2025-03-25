@@ -1,9 +1,9 @@
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 export interface ISessionTreeNode extends ITreeNode {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    readonly sessionNode: boolean;
+	readonly sessionNode: boolean;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 }

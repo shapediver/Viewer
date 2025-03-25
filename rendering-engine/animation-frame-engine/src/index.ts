@@ -1,7 +1,4 @@
-import { AnimationFrameEngine } from "./implementation/AnimationFrameEngine";
-import { IAnimationFrameEngine } from "./interfaces/IAnimationFrameEngine";
+import {AnimationFrameEngine} from "./implementation/AnimationFrameEngine";
+import {IAnimationFrameEngine} from "./interfaces/IAnimationFrameEngine";
 
-export {
-    IAnimationFrameEngine,
-    AnimationFrameEngine
-}
+export {IAnimationFrameEngine, AnimationFrameEngine};

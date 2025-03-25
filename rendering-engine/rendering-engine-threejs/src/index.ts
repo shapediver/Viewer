@@ -1,83 +1,131 @@
+import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
-  ANTI_ALIASING_TECHNIQUE,
-  IBloomEffectDefinition,
-  IChromaticAberrationEffectDefinition,
-  IDepthOfFieldEffectDefinition,
-  IDotScreenEffectDefinition,
-  IGodRaysEffectDefinition,
-  IGridEffectDefinition,
-  IHBAOEffectDefinition,
-  IHueSaturationEffectDefinition,
-  INoiseEffectDefinition,
-  IOutlineEffectDefinition,
-  IPixelationEffectDefinition,
-  IPostProcessingEffectDefinition,
-  IPostProcessingEffectsArray,
-  IScanlineEffectDefinition,
-  ISelectiveBloomEffectDefinition,
-  ISepiaEffectDefinition,
-  ISSAOEffectDefinition,
-  ITiltShiftEffectDefinition,
-  IVignetteEffectDefinition,
-  POST_PROCESSING_EFFECT_TYPE
-} from './interfaces/IPostProcessingEffectDefinitions';
+	BlendFunction,
+	BloomEffect,
+	ChromaticAberrationEffect,
+	DepthOfFieldEffect,
+	DotScreenEffect,
+	EdgeDetectionMode,
+	Effect,
+	EffectComposer,
+	FXAAEffect,
+	GodRaysEffect,
+	GridEffect,
+	HueSaturationEffect,
+	KernelSize,
+	NoiseEffect,
+	OutlineEffect,
+	PixelationEffect,
+	PredicationMode,
+	Resolution,
+	ScanlineEffect,
+	SelectiveBloomEffect,
+	SepiaEffect,
+	SMAAEffect,
+	SMAAPreset,
+	SSAOEffect,
+	TiltShiftEffect,
+	VignetteEffect,
+	VignetteTechnique,
+} from "postprocessing";
+import {TextureUnifierInjector} from "./injectors/TextureUnifierInjector";
 import {
-  BlendFunction,
-  BloomEffect,
-  ChromaticAberrationEffect,
-  DepthOfFieldEffect,
-  DotScreenEffect,
-  EdgeDetectionMode,
-  Effect,
-  EffectComposer,
-  FXAAEffect,
-  GodRaysEffect,
-  GridEffect,
-  HueSaturationEffect,
-  KernelSize,
-  NoiseEffect,
-  OutlineEffect,
-  PixelationEffect,
-  PredicationMode,
-  Resolution,
-  ScanlineEffect,
-  SelectiveBloomEffect,
-  SepiaEffect,
-  SMAAEffect,
-  SMAAPreset,
-  SSAOEffect,
-  TiltShiftEffect,
-  VignetteEffect,
-  VignetteTechnique
-} from 'postprocessing';
-import { CSS2DObject, CSS2DRenderer } from './three/CSS2DRenderer';
-import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY } from './loaders/EnvironmentMapLoader';
-import { GlobalAccessObjects } from '@shapediver/viewer.shared.global-access-objects';
-import { IThreejsData } from './types/IThreejsData';
-import { MultiPointsMaterial } from './materials/MultiPointsMaterial';
-import { PostProcessingManager } from './managers/PostProcessingManager';
-import { RenderingEngine } from './RenderingEngine';
-import { TextureUnifierInjector } from './injectors/TextureUnifierInjector';
-import { ThreejsData } from './types/ThreejsData';
+	ANTI_ALIASING_TECHNIQUE,
+	IBloomEffectDefinition,
+	IChromaticAberrationEffectDefinition,
+	IDepthOfFieldEffectDefinition,
+	IDotScreenEffectDefinition,
+	IGodRaysEffectDefinition,
+	IGridEffectDefinition,
+	IHBAOEffectDefinition,
+	IHueSaturationEffectDefinition,
+	INoiseEffectDefinition,
+	IOutlineEffectDefinition,
+	IPixelationEffectDefinition,
+	IPostProcessingEffectDefinition,
+	IPostProcessingEffectsArray,
+	IScanlineEffectDefinition,
+	ISelectiveBloomEffectDefinition,
+	ISepiaEffectDefinition,
+	ISSAOEffectDefinition,
+	ITiltShiftEffectDefinition,
+	IVignetteEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE,
+} from "./interfaces/IPostProcessingEffectDefinitions";
+import {
+	ENVIRONMENT_MAP,
+	ENVIRONMENT_MAP_CUBE,
+	ENVIRONMENT_MAP_EMPTY,
+} from "./loaders/EnvironmentMapLoader";
+import {PostProcessingManager} from "./managers/PostProcessingManager";
+import {MultiPointsMaterial} from "./materials/MultiPointsMaterial";
+import {RenderingEngine} from "./RenderingEngine";
+import {CSS2DObject, CSS2DRenderer} from "./three/CSS2DRenderer";
+import {IThreejsData} from "./types/IThreejsData";
+import {ThreejsData} from "./types/ThreejsData";
 
 export {
-  RenderingEngine, IThreejsData, ThreejsData, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, ENVIRONMENT_MAP_EMPTY
+	RenderingEngine,
+	IThreejsData,
+	ThreejsData,
+	ENVIRONMENT_MAP,
+	ENVIRONMENT_MAP_CUBE,
+	ENVIRONMENT_MAP_EMPTY,
 };
-
+export {MultiPointsMaterial};
 export {
-  MultiPointsMaterial
+	PostProcessingManager,
+	ANTI_ALIASING_TECHNIQUE,
+	POST_PROCESSING_EFFECT_TYPE,
+	IPostProcessingEffectDefinition,
+	Effect,
+	EffectComposer,
+	IPostProcessingEffectsArray,
+	IBloomEffectDefinition,
+	IChromaticAberrationEffectDefinition,
+	IDepthOfFieldEffectDefinition,
+	IDotScreenEffectDefinition,
+	IGodRaysEffectDefinition,
+	IGridEffectDefinition,
+	IHBAOEffectDefinition,
+	IHueSaturationEffectDefinition,
+	INoiseEffectDefinition,
+	IOutlineEffectDefinition,
+	IPixelationEffectDefinition,
+	ISSAOEffectDefinition,
+	IScanlineEffectDefinition,
+	ISelectiveBloomEffectDefinition,
+	ISepiaEffectDefinition,
+	ITiltShiftEffectDefinition,
+	IVignetteEffectDefinition,
+	BloomEffect,
+	ChromaticAberrationEffect,
+	DepthOfFieldEffect,
+	DotScreenEffect,
+	FXAAEffect,
+	GodRaysEffect,
+	GridEffect,
+	HueSaturationEffect,
+	NoiseEffect,
+	OutlineEffect,
+	PixelationEffect,
+	SMAAEffect,
+	SSAOEffect,
+	ScanlineEffect,
+	SelectiveBloomEffect,
+	SepiaEffect,
+	TiltShiftEffect,
+	VignetteEffect,
+	BlendFunction,
+	VignetteTechnique,
+	KernelSize,
+	SMAAPreset,
+	EdgeDetectionMode,
+	PredicationMode,
+	Resolution,
 };
-
-export {
-  PostProcessingManager, ANTI_ALIASING_TECHNIQUE, POST_PROCESSING_EFFECT_TYPE, IPostProcessingEffectDefinition, Effect, EffectComposer, IPostProcessingEffectsArray,
-  IBloomEffectDefinition, IChromaticAberrationEffectDefinition, IDepthOfFieldEffectDefinition, IDotScreenEffectDefinition, IGodRaysEffectDefinition, IGridEffectDefinition, IHBAOEffectDefinition, IHueSaturationEffectDefinition, INoiseEffectDefinition, IOutlineEffectDefinition, IPixelationEffectDefinition, ISSAOEffectDefinition, IScanlineEffectDefinition, ISelectiveBloomEffectDefinition, ISepiaEffectDefinition, ITiltShiftEffectDefinition, IVignetteEffectDefinition,
-  BloomEffect, ChromaticAberrationEffect, DepthOfFieldEffect, DotScreenEffect, FXAAEffect, GodRaysEffect, GridEffect, HueSaturationEffect, NoiseEffect, OutlineEffect, PixelationEffect, SMAAEffect, SSAOEffect, ScanlineEffect, SelectiveBloomEffect, SepiaEffect, TiltShiftEffect, VignetteEffect,
-  BlendFunction, VignetteTechnique, KernelSize, SMAAPreset, EdgeDetectionMode, PredicationMode, Resolution
-};
-
-export {
-  CSS2DObject, CSS2DRenderer
-};
+export {CSS2DObject, CSS2DRenderer};
 
 const textureUnifierInjector = new TextureUnifierInjector();
-GlobalAccessObjects.instance.combineTextures = textureUnifierInjector.combineTextures.bind(textureUnifierInjector);
+GlobalAccessObjects.instance.combineTextures =
+	textureUnifierInjector.combineTextures.bind(textureUnifierInjector);

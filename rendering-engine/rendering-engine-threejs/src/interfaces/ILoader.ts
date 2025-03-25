@@ -1,3 +1,3 @@
 export interface ILoader {
-    init(): void;
+	init(): void;
 }

@@ -1,18 +1,18 @@
-import { ICamera } from './ICamera';
-import { ICameraControls } from '../controls/ICameraControls';
+import {ICameraControls} from "../controls/ICameraControls";
+import {ICamera} from "./ICamera";
 
 export interface IPerspectiveCamera extends ICamera {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    readonly controls: ICameraControls;
+	readonly controls: ICameraControls;
 
-    fov: number;
+	fov: number;
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): IPerspectiveCamera;
+	clone(): IPerspectiveCamera;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

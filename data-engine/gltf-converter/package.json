@@ -1,51 +1,51 @@
 {
-  "name": "@shapediver/viewer.data-engine.gltf-converter",
-  "version": "3.9.1-rc.4",
-  "description": "",
-  "keywords": [],
-  "author": "Michael Oppitz <michael@shapediver.com>",
-  "license": "polyform-noncommercial-1.0.0",
-  "main": "dist/index.js",
-  "directories": {
-    "test": "__tests__"
-  },
-  "files": [
-    "package.json",
-    "dist/",
-    "README.md",
-    "LICENSE"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shapediver/Viewer.git"
-  },
-  "scripts": {
-    "check": "tsc --noEmit",
-    "build": "bash ../../scripts/building/build.sh",
-    "build-watch": "bash ../../scripts/building/build-watch.sh",
-    "build-dep": "bash ../../scripts/building/build-dep.sh"
-  },
-  "bugs": {
-    "url": "https://github.com/shapediver/Viewer/issues"
-  },
-  "homepage": "https://github.com/shapediver/Viewer#readme",
-  "typings": "dist/index.d.ts",
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
-  "dependencies": {
-    "@shapediver/viewer.data-engine.shared-types": "3.9.1-rc.4",
-    "@shapediver/viewer.shared.build-data": "3.9.1-rc.4",
-    "@shapediver/viewer.shared.global-access-objects": "3.9.1-rc.4",
-    "@shapediver/viewer.shared.node-tree": "3.9.1-rc.4",
-    "@shapediver/viewer.shared.services": "3.9.1-rc.4",
-    "@shapediver/viewer.shared.types": "3.9.1-rc.4",
-    "axios": "^1.2.6",
-    "gl-matrix": "3.3.0"
-  },
-  "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
+	"name": "@shapediver/viewer.data-engine.gltf-converter",
+	"version": "3.9.1-rc.4",
+	"description": "",
+	"keywords": [],
+	"author": "Michael Oppitz <michael@shapediver.com>",
+	"license": "polyform-noncommercial-1.0.0",
+	"main": "dist/index.js",
+	"directories": {
+		"test": "__tests__"
+	},
+	"files": [
+		"package.json",
+		"dist/",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/shapediver/Viewer.git"
+	},
+	"scripts": {
+		"check": "tsc --noEmit",
+		"build": "bash ../../scripts/building/build.sh",
+		"build-watch": "bash ../../scripts/building/build-watch.sh",
+		"build-dep": "bash ../../scripts/building/build-dep.sh"
+	},
+	"bugs": {
+		"url": "https://github.com/shapediver/Viewer/issues"
+	},
+	"homepage": "https://github.com/shapediver/Viewer#readme",
+	"typings": "dist/index.d.ts",
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node"
+	},
+	"dependencies": {
+		"@shapediver/viewer.data-engine.shared-types": "3.9.1-rc.4",
+		"@shapediver/viewer.shared.build-data": "3.9.1-rc.4",
+		"@shapediver/viewer.shared.global-access-objects": "3.9.1-rc.4",
+		"@shapediver/viewer.shared.node-tree": "3.9.1-rc.4",
+		"@shapediver/viewer.shared.services": "3.9.1-rc.4",
+		"@shapediver/viewer.shared.types": "3.9.1-rc.4",
+		"axios": "^1.2.6",
+		"gl-matrix": "3.3.0"
+	},
+	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

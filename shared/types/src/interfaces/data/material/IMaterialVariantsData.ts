@@ -1,19 +1,19 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { IGeometryData } from "../IGeometryData";
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {IGeometryData} from "../IGeometryData";
 
 export interface IMaterialVariantsData extends ITreeNodeData {
-    // #region Properties (3)
+	// #region Properties (3)
 
-    readonly geometryData: IGeometryData[];
-    readonly variants: string[];
+	readonly geometryData: IGeometryData[];
+	readonly variants: string[];
 
-    variantIndex?: number;
+	variantIndex?: number;
 
-    // #endregion Properties (3)
+	// #endregion Properties (3)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): IMaterialVariantsData;
+	clone(): IMaterialVariantsData;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

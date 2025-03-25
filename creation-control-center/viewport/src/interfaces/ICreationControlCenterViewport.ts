@@ -1,21 +1,32 @@
-import { ISettings } from '@shapediver/viewer.settings';
-import { IViewportSettingsSections, ViewportCreationDefinition } from '@shapediver/viewer.shared.types';
-import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine.rendering-engine-threejs';
+import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+import {ISettings} from "@shapediver/viewer.settings";
+import {
+	IViewportSettingsSections,
+	ViewportCreationDefinition,
+} from "@shapediver/viewer.shared.types";
 
 export interface ICreationControlCenterViewport {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    updateViewports?: (viewportEngines: { [key: string]: RenderingEngineThreeJs; }) => void;
-    viewportEngines: { [key: string]: RenderingEngineThreeJs; };
+	updateViewports?: (viewportEngines: {
+		[key: string]: RenderingEngineThreeJs;
+	}) => void;
+	viewportEngines: {[key: string]: RenderingEngineThreeJs};
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 
-    // #region Public Methods (4)
+	// #region Public Methods (4)
 
-    applyViewportSettings(viewportId: string, settings: ISettings, sections?: IViewportSettingsSections): Promise<void>;
-    closeViewportEngine(id: string): Promise<void>;
-    createViewportEngine(properties: ViewportCreationDefinition): Promise<RenderingEngineThreeJs>;
-    getViewportSettings(viewportId: string): ISettings;
+	applyViewportSettings(
+		viewportId: string,
+		settings: ISettings,
+		sections?: IViewportSettingsSections,
+	): Promise<void>;
+	closeViewportEngine(id: string): Promise<void>;
+	createViewportEngine(
+		properties: ViewportCreationDefinition,
+	): Promise<RenderingEngineThreeJs>;
+	getViewportSettings(viewportId: string): ISettings;
 
-    // #endregion Public Methods (4)
+	// #endregion Public Methods (4)
 }

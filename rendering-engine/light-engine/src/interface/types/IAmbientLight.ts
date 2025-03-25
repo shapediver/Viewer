@@ -1,5 +1,5 @@
-import { ILight } from '../ILight'
+import {ILight} from "../ILight";
 
 export interface IAmbientLight extends ILight {
-    clone(): IAmbientLight;
+	clone(): IAmbientLight;
 }

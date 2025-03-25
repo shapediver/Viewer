@@ -1,35 +1,35 @@
-import { AbstractSnapRestrictionApi } from '../../AbstractSnapRestrictionApi';
-import { GridRestriction } from '../../../../implementation/restrictions/plane/snap/GridRestriction';
+import {GridRestriction} from "../../../../implementation/restrictions/plane/snap/GridRestriction";
+import {AbstractSnapRestrictionApi} from "../../AbstractSnapRestrictionApi";
 
 export class GridRestrictionApi extends AbstractSnapRestrictionApi {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    readonly #gridRestriction: GridRestriction;
+	readonly #gridRestriction: GridRestriction;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(restriction: GridRestriction) {
-        super(restriction);
-        this.#gridRestriction = restriction;
-    }
+	constructor(restriction: GridRestriction) {
+		super(restriction);
+		this.#gridRestriction = restriction;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (3)
+	// #region Public Getters And Setters (3)
 
-    public get gridUnit(): number {
-        return this.#gridRestriction.gridUnit;
-    }
+	public get gridUnit(): number {
+		return this.#gridRestriction.gridUnit;
+	}
 
-    public set gridUnit(value: number) {
-        this.#gridRestriction.gridUnit = value;
-    }
+	public set gridUnit(value: number) {
+		this.#gridRestriction.gridUnit = value;
+	}
 
-    public get gridUnitEditable(): boolean {
-        return this.#gridRestriction.gridUnitEditable;
-    }
+	public get gridUnitEditable(): boolean {
+		return this.#gridRestriction.gridUnitEditable;
+	}
 
-    // #endregion Public Getters And Setters (3)
+	// #endregion Public Getters And Setters (3)
 }

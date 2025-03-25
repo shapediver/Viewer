@@ -1,176 +1,330 @@
-import * as THREE from 'three';
-import { DrawingToolsManager } from '../../../DrawingToolsManager';
-import { EventEngine, EVENTTYPE_DRAWING_TOOLS, ShapeDiverViewerDrawingToolsError } from '@shapediver/viewer.shared.services';
-import { GeometryManager } from '../GeometryManager';
-import { GeometryState } from '../GeometryState';
-import { IViewportApi } from '@shapediver/viewer';
-import { MATERIAL_INDEX } from '../../../../interfaces/IDrawingToolsManager';
-import { vec3 } from 'gl-matrix';
+import {IViewportApi} from "@shapediver/viewer";
+import {
+	EventEngine,
+	EVENTTYPE_DRAWING_TOOLS,
+	ShapeDiverViewerDrawingToolsError,
+} from "@shapediver/viewer.shared.services";
+import {vec3} from "gl-matrix";
+import * as THREE from "three";
+import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";
+import {DrawingToolsManager} from "../../../DrawingToolsManager";
+import {GeometryManager} from "../GeometryManager";
+import {GeometryState} from "../GeometryState";
 
 export class GeometryManagerHelper {
-    // #region Properties (4)
+	// #region Properties (4)
 
-    readonly #eventEngine = EventEngine.instance;
-    readonly #geometryManager: GeometryManager;
-    readonly #geometryState: GeometryState;
-    readonly #viewport: IViewportApi;
+	readonly #eventEngine = EventEngine.instance;
+	readonly #geometryManager: GeometryManager;
+	readonly #geometryState: GeometryState;
+	readonly #viewport: IViewportApi;
 
-    // #endregion Properties (4)
+	// #endregion Properties (4)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(drawingToolsManager: DrawingToolsManager, geometryManager: GeometryManager, geometryState: GeometryState) {
-        this.#geometryManager = geometryManager;
-        this.#geometryState = geometryState;
-        this.#viewport = drawingToolsManager.viewport;
-    }
+	constructor(
+		drawingToolsManager: DrawingToolsManager,
+		geometryManager: GeometryManager,
+		geometryState: GeometryState,
+	) {
+		this.#geometryManager = geometryManager;
+		this.#geometryState = geometryState;
+		this.#viewport = drawingToolsManager.viewport;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Methods (6)
+	// #region Public Methods (6)
 
-    public addPoint(insertionIndex: number, position?: vec3 | undefined, temporary = false): boolean {
-        const positionArrayLength = this.#geometryState.positionArray.length / 3;
-        if(positionArrayLength === 0 && !position) return false;
+	public addPoint(
+		insertionIndex: number,
+		position?: vec3 | undefined,
+		temporary = false,
+	): boolean {
+		const positionArrayLength =
+			this.#geometryState.positionArray.length / 3;
+		if (positionArrayLength === 0 && !position) return false;
 
-        const scaledIndex = insertionIndex * 3;
-        if (insertionIndex < 0 || insertionIndex > positionArrayLength) {
-            throw new ShapeDiverViewerDrawingToolsError('The insertion index is out of range. Please provide a valid index.');
-        }
+		const scaledIndex = insertionIndex * 3;
+		if (insertionIndex < 0 || insertionIndex > positionArrayLength) {
+			throw new ShapeDiverViewerDrawingToolsError(
+				"The insertion index is out of range. Please provide a valid index.",
+			);
+		}
 
-        const newPositionArray = new Float32Array(this.#geometryState.positionArray.length + 3);
+		const newPositionArray = new Float32Array(
+			this.#geometryState.positionArray.length + 3,
+		);
 
-        let p: vec3;
-        if (position) {
-            p = position;
-        } else if (insertionIndex === 0) {
-            p = [this.#geometryState.positionArray.at(scaledIndex + 0)!, this.#geometryState.positionArray.at(scaledIndex + 1)!, this.#geometryState.positionArray.at(scaledIndex + 2)!];
-        } else if (insertionIndex === positionArrayLength) {
-            p = [this.#geometryState.positionArray.at(scaledIndex - 3)!, this.#geometryState.positionArray.at(scaledIndex - 2)!, this.#geometryState.positionArray.at(scaledIndex - 1)!];
-        } else {
-            const p1 = vec3.fromValues(this.#geometryState.positionArray.at(scaledIndex + 0)!, this.#geometryState.positionArray.at(scaledIndex + 1)!, this.#geometryState.positionArray.at(scaledIndex + 2)!);
-            const p2 = vec3.fromValues(this.#geometryState.positionArray.at(scaledIndex + 3)!, this.#geometryState.positionArray.at(scaledIndex + 4)!, this.#geometryState.positionArray.at(scaledIndex + 5)!);
-            p = vec3.div(vec3.create(), vec3.add(vec3.create(), p2, p1), vec3.fromValues(2, 2, 2));
-            // get neighboring point and calculate center
-        }
+		let p: vec3;
+		if (position) {
+			p = position;
+		} else if (insertionIndex === 0) {
+			p = [
+				this.#geometryState.positionArray.at(scaledIndex + 0)!,
+				this.#geometryState.positionArray.at(scaledIndex + 1)!,
+				this.#geometryState.positionArray.at(scaledIndex + 2)!,
+			];
+		} else if (insertionIndex === positionArrayLength) {
+			p = [
+				this.#geometryState.positionArray.at(scaledIndex - 3)!,
+				this.#geometryState.positionArray.at(scaledIndex - 2)!,
+				this.#geometryState.positionArray.at(scaledIndex - 1)!,
+			];
+		} else {
+			const p1 = vec3.fromValues(
+				this.#geometryState.positionArray.at(scaledIndex + 0)!,
+				this.#geometryState.positionArray.at(scaledIndex + 1)!,
+				this.#geometryState.positionArray.at(scaledIndex + 2)!,
+			);
+			const p2 = vec3.fromValues(
+				this.#geometryState.positionArray.at(scaledIndex + 3)!,
+				this.#geometryState.positionArray.at(scaledIndex + 4)!,
+				this.#geometryState.positionArray.at(scaledIndex + 5)!,
+			);
+			p = vec3.div(
+				vec3.create(),
+				vec3.add(vec3.create(), p2, p1),
+				vec3.fromValues(2, 2, 2),
+			);
+			// get neighboring point and calculate center
+		}
 
-        newPositionArray.set([...this.#geometryState.positionArray.slice(0, scaledIndex), ...p, ...this.#geometryState.positionArray.slice(scaledIndex, this.#geometryState.positionArray.length)]);
+		newPositionArray.set([
+			...this.#geometryState.positionArray.slice(0, scaledIndex),
+			...p,
+			...this.#geometryState.positionArray.slice(
+				scaledIndex,
+				this.#geometryState.positionArray.length,
+			),
+		]);
 
-        // set the material index at that point to 0 and move the other indices back
-        const materialIndexArray = this.#geometryState.materialIndexArray.slice(0, insertionIndex).concat([0], this.#geometryState.materialIndexArray.slice(insertionIndex, this.#geometryState.materialIndexArray.length - 1));
-        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-        this.#geometryState.updateData(newPositionArray, temporary);
+		// set the material index at that point to 0 and move the other indices back
+		const materialIndexArray = this.#geometryState.materialIndexArray
+			.slice(0, insertionIndex)
+			.concat(
+				[0],
+				this.#geometryState.materialIndexArray.slice(
+					insertionIndex,
+					this.#geometryState.materialIndexArray.length - 1,
+				),
+			);
+		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
+		this.#geometryState.updateData(newPositionArray, temporary);
 
-        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.ADDED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: insertionIndex });
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.ADDED, {
+			viewportId: this.#viewport.id,
+			drawingToolsId: this.#geometryManager.parentNode.id,
+			temporary,
+			index: insertionIndex,
+		});
 
-        return true;
-    }
+		return true;
+	}
 
-    public movePoint(index: number, point: vec3, temporary = false): void {
-        const threeJsPointsGeometry: THREE.Points = this.#geometryState.geometryDataPoints.convertedObject[this.#viewport.id] as THREE.Points;
-        threeJsPointsGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
-        threeJsPointsGeometry.geometry.attributes['position'].needsUpdate = true;
+	public movePoint(index: number, point: vec3, temporary = false): void {
+		const threeJsPointsGeometry: THREE.Points = this.#geometryState
+			.geometryDataPoints.convertedObject[
+			this.#viewport.id
+		] as THREE.Points;
+		threeJsPointsGeometry.geometry.attributes["position"].setXYZ(
+			index,
+			point[0],
+			point[1],
+			point[2],
+		);
+		threeJsPointsGeometry.geometry.attributes["position"].needsUpdate =
+			true;
 
-        if (this.#geometryState.geometryDataLines) {
-            const threeJsLinesGeometry: THREE.LineSegments = this.#geometryState.geometryDataLines.convertedObject[this.#viewport.id] as THREE.LineSegments;
-            threeJsLinesGeometry.geometry.attributes['position'].setXYZ(index, point[0], point[1], point[2]);
-            threeJsLinesGeometry.geometry.attributes['position'].needsUpdate = true;
-        }
+		if (this.#geometryState.geometryDataLines) {
+			const threeJsLinesGeometry: THREE.LineSegments = this.#geometryState
+				.geometryDataLines.convertedObject[
+				this.#viewport.id
+			] as THREE.LineSegments;
+			threeJsLinesGeometry.geometry.attributes["position"].setXYZ(
+				index,
+				point[0],
+				point[1],
+				point[2],
+			);
+			threeJsLinesGeometry.geometry.attributes["position"].needsUpdate =
+				true;
+		}
 
-        if (temporary === false) {
-            // adjust position array
-            const positionArray = new Float32Array(this.#geometryState.positionArray);
-            positionArray.set([...positionArray.slice(0, index * 3), ...point, ...positionArray.slice(index * 3 + 3, positionArray.length)]);
-            this.#geometryState.updateData(positionArray, temporary);
-        }
+		if (temporary === false) {
+			// adjust position array
+			const positionArray = new Float32Array(
+				this.#geometryState.positionArray,
+			);
+			positionArray.set([
+				...positionArray.slice(0, index * 3),
+				...point,
+				...positionArray.slice(index * 3 + 3, positionArray.length),
+			]);
+			this.#geometryState.updateData(positionArray, temporary);
+		}
 
-        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index });
-    }
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MOVED, {
+			viewportId: this.#viewport.id,
+			drawingToolsId: this.#geometryManager.parentNode.id,
+			temporary,
+			index,
+		});
+	}
 
-    public removePoint(removalIndex: number, temporary = false): boolean {
-        const positionArrayLength = this.#geometryState.positionArray.length / 3;
-        if (removalIndex < 0 || removalIndex >= positionArrayLength) {
-            throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
-        }
+	public removePoint(removalIndex: number, temporary = false): boolean {
+		const positionArrayLength =
+			this.#geometryState.positionArray.length / 3;
+		if (removalIndex < 0 || removalIndex >= positionArrayLength) {
+			throw new ShapeDiverViewerDrawingToolsError(
+				"The removal index is out of range. Please provide a valid index.",
+			);
+		}
 
-        /**
-         * Adjust the position attribute
-         * 
-         * Logic:
-         *  - remove :D
-         */
-        const newPositionArray = new Float32Array(this.#geometryState.positionArray.length - 3);
-        if (removalIndex > 0 && removalIndex < positionArrayLength) {
-            newPositionArray.set([...this.#geometryState.positionArray.slice(0, Math.max(removalIndex, 0) * 3), ...this.#geometryState.positionArray.slice(Math.min(removalIndex + 1, this.#geometryState.positionArray.length) * 3, this.#geometryState.positionArray.length)]);
-        } else if (removalIndex === 0) {
-            newPositionArray.set(this.#geometryState.positionArray.slice(3, this.#geometryState.positionArray.length));
-        } else {
-            newPositionArray.set(this.#geometryState.positionArray.slice(0, this.#geometryState.positionArray.length - 3));
-        }
+		/**
+		 * Adjust the position attribute
+		 *
+		 * Logic:
+		 *  - remove :D
+		 */
+		const newPositionArray = new Float32Array(
+			this.#geometryState.positionArray.length - 3,
+		);
+		if (removalIndex > 0 && removalIndex < positionArrayLength) {
+			newPositionArray.set([
+				...this.#geometryState.positionArray.slice(
+					0,
+					Math.max(removalIndex, 0) * 3,
+				),
+				...this.#geometryState.positionArray.slice(
+					Math.min(
+						removalIndex + 1,
+						this.#geometryState.positionArray.length,
+					) * 3,
+					this.#geometryState.positionArray.length,
+				),
+			]);
+		} else if (removalIndex === 0) {
+			newPositionArray.set(
+				this.#geometryState.positionArray.slice(
+					3,
+					this.#geometryState.positionArray.length,
+				),
+			);
+		} else {
+			newPositionArray.set(
+				this.#geometryState.positionArray.slice(
+					0,
+					this.#geometryState.positionArray.length - 3,
+				),
+			);
+		}
 
-        // remove the material index at that point and move the other indices one forward
-        const materialIndexArray = this.#geometryState.materialIndexArray.slice(0, removalIndex).concat(this.#geometryState.materialIndexArray.slice(removalIndex + 1, this.#geometryState.materialIndexArray.length));
-        // add a 0 at the end
-        materialIndexArray.push(0);
-        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-        this.#geometryState.updateData(newPositionArray, temporary);
+		// remove the material index at that point and move the other indices one forward
+		const materialIndexArray = this.#geometryState.materialIndexArray
+			.slice(0, removalIndex)
+			.concat(
+				this.#geometryState.materialIndexArray.slice(
+					removalIndex + 1,
+					this.#geometryState.materialIndexArray.length,
+				),
+			);
+		// add a 0 at the end
+		materialIndexArray.push(0);
+		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
+		this.#geometryState.updateData(newPositionArray, temporary);
 
-        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary, index: removalIndex });
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
+			viewportId: this.#viewport.id,
+			drawingToolsId: this.#geometryManager.parentNode.id,
+			temporary,
+			index: removalIndex,
+		});
 
-        return true;
-    }
+		return true;
+	}
 
-    public removePoints(indices: number[]): void {
-        // sort indices so that highest is first
-        indices.sort((a, b) => b - a);
+	public removePoints(indices: number[]): void {
+		// sort indices so that highest is first
+		indices.sort((a, b) => b - a);
 
-        let positionArray = new Float32Array(this.#geometryState.positionArray);
-        let materialIndexArray = this.#geometryState.materialIndexArray;
+		let positionArray = new Float32Array(this.#geometryState.positionArray);
+		let materialIndexArray = this.#geometryState.materialIndexArray;
 
-        for (const removalIndex of indices) {
-            const positionArrayLength = positionArray.length / 3;
-            if (removalIndex < 0 || removalIndex >= positionArrayLength) {
-                throw new ShapeDiverViewerDrawingToolsError('The removal index is out of range. Please provide a valid index.');
-            }
+		for (const removalIndex of indices) {
+			const positionArrayLength = positionArray.length / 3;
+			if (removalIndex < 0 || removalIndex >= positionArrayLength) {
+				throw new ShapeDiverViewerDrawingToolsError(
+					"The removal index is out of range. Please provide a valid index.",
+				);
+			}
 
-            /**
-             * Adjust the position attribute
-             * 
-             * Logic:
-             *  - remove :D
-             */
-            const newPositionArray = new Float32Array(positionArray.length - 3);
-            if (removalIndex > 0 && removalIndex < positionArrayLength) {
-                newPositionArray.set([...positionArray.slice(0, Math.max(removalIndex, 0) * 3), ...positionArray.slice(Math.min(removalIndex + 1, positionArray.length) * 3, positionArray.length)]);
-            } else if (removalIndex === 0) {
-                newPositionArray.set(positionArray.slice(3, positionArray.length));
-            } else {
-                newPositionArray.set(positionArray.slice(0, positionArray.length - 3));
-            }
+			/**
+			 * Adjust the position attribute
+			 *
+			 * Logic:
+			 *  - remove :D
+			 */
+			const newPositionArray = new Float32Array(positionArray.length - 3);
+			if (removalIndex > 0 && removalIndex < positionArrayLength) {
+				newPositionArray.set([
+					...positionArray.slice(0, Math.max(removalIndex, 0) * 3),
+					...positionArray.slice(
+						Math.min(removalIndex + 1, positionArray.length) * 3,
+						positionArray.length,
+					),
+				]);
+			} else if (removalIndex === 0) {
+				newPositionArray.set(
+					positionArray.slice(3, positionArray.length),
+				);
+			} else {
+				newPositionArray.set(
+					positionArray.slice(0, positionArray.length - 3),
+				);
+			}
 
-            positionArray = newPositionArray;
+			positionArray = newPositionArray;
 
-            materialIndexArray = materialIndexArray.slice(0, removalIndex).concat(materialIndexArray.slice(removalIndex + 1, materialIndexArray.length));
-            // add a 0 at the end
-            materialIndexArray.push(0);
-        }
-        this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-        this.#geometryState.updateData(positionArray);
+			materialIndexArray = materialIndexArray
+				.slice(0, removalIndex)
+				.concat(
+					materialIndexArray.slice(
+						removalIndex + 1,
+						materialIndexArray.length,
+					),
+				);
+			// add a 0 at the end
+			materialIndexArray.push(0);
+		}
+		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
+		this.#geometryState.updateData(positionArray);
 
-        this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, { viewportId: this.#viewport.id, drawingToolsId: this.#geometryManager.parentNode.id, temporary: false, index: indices });
-    }
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
+			viewportId: this.#viewport.id,
+			drawingToolsId: this.#geometryManager.parentNode.id,
+			temporary: false,
+			index: indices,
+		});
+	}
 
-    public resetMaterialIndices(): void {
-        this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
-    }
+	public resetMaterialIndices(): void {
+		this.#geometryState.updateMaterialIndexArray(new Array(1024).fill(0));
+	}
 
-    public updateMaterialIndex(index: number, materialIndex: MATERIAL_INDEX): void {
-        // change material index
-        if(this.#geometryState.materialIndexArray[index] !== materialIndex) {
-            this.#geometryState.materialIndexArray[index] = materialIndex;
-            this.#geometryState.updateMaterialIndexArray(this.#geometryState.materialIndexArray);
-        }
-    }
+	public updateMaterialIndex(
+		index: number,
+		materialIndex: MATERIAL_INDEX,
+	): void {
+		// change material index
+		if (this.#geometryState.materialIndexArray[index] !== materialIndex) {
+			this.#geometryState.materialIndexArray[index] = materialIndex;
+			this.#geometryState.updateMaterialIndexArray(
+				this.#geometryState.materialIndexArray,
+			);
+		}
+	}
 
-    // #endregion Public Methods (6)
+	// #endregion Public Methods (6)
 }

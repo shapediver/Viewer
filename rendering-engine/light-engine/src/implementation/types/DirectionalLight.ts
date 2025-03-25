@@ -1,111 +1,118 @@
-import { AbstractLight } from '../AbstractLight';
-import { Color } from '@shapediver/viewer.shared.types';
-import { IDirectionalLight } from '../../interface/types/IDirectionalLight';
-import { LIGHT_TYPE } from '../../interface/ILight';
-import { vec3 } from 'gl-matrix';
+import {Color} from "@shapediver/viewer.shared.types";
+import {vec3} from "gl-matrix";
+import {LIGHT_TYPE} from "../../interface/ILight";
+import {IDirectionalLight} from "../../interface/types/IDirectionalLight";
+import {AbstractLight} from "../AbstractLight";
 
-export class DirectionalLight extends AbstractLight implements IDirectionalLight {
-    // #region Properties (4)
+export class DirectionalLight
+	extends AbstractLight
+	implements IDirectionalLight
+{
+	// #region Properties (4)
 
-    #castShadow: boolean = true;
-    #direction: vec3 = vec3.fromValues(-1, 0, 1);
-    #shadowMapBias: number = -0.003;
-    #shadowMapResolution: number = 1024;
+	#castShadow: boolean = true;
+	#direction: vec3 = vec3.fromValues(-1, 0, 1);
+	#shadowMapBias: number = -0.003;
+	#shadowMapResolution: number = 1024;
 
-    // #endregion Properties (4)
+	// #endregion Properties (4)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(properties: {
-        color?: Color,
-        intensity?: number,
-        direction?: vec3,
-        castShadow?: boolean,
-        shadowMapResolution?: number,
-        shadowMapBias?: number,
-        name?: string,
-        order?: number,
-        id?: string,
-        version?: string
-    }) {
-        super({
-            color: properties.color || '#ffffff',
-            intensity: properties.intensity !== undefined ? properties.intensity : 1,
-            type: LIGHT_TYPE.DIRECTIONAL,
-            name: properties.name,
-            order: properties.order,
-            id: properties.id,
-            version: properties.version
-        });
+	constructor(properties: {
+		color?: Color;
+		intensity?: number;
+		direction?: vec3;
+		castShadow?: boolean;
+		shadowMapResolution?: number;
+		shadowMapBias?: number;
+		name?: string;
+		order?: number;
+		id?: string;
+		version?: string;
+	}) {
+		super({
+			color: properties.color || "#ffffff",
+			intensity:
+				properties.intensity !== undefined ? properties.intensity : 1,
+			type: LIGHT_TYPE.DIRECTIONAL,
+			name: properties.name,
+			order: properties.order,
+			id: properties.id,
+			version: properties.version,
+		});
 
-        if (properties.direction) this.#direction = properties.direction;
-        if (properties.castShadow !== undefined) this.#castShadow = properties.castShadow;
-        if (properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
-        if (properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
-    }
+		if (properties.direction) this.#direction = properties.direction;
+		if (properties.castShadow !== undefined)
+			this.#castShadow = properties.castShadow;
+		if (properties.shadowMapResolution)
+			this.#shadowMapResolution = properties.shadowMapResolution;
+		if (properties.shadowMapBias)
+			this.#shadowMapBias = properties.shadowMapBias;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (8)
+	// #region Public Getters And Setters (8)
 
-    public get castShadow(): boolean {
-        return this.#castShadow;
-    }
+	public get castShadow(): boolean {
+		return this.#castShadow;
+	}
 
-    public set castShadow(value: boolean) {
-        this.#castShadow = value;
-        this.updateVersion();
-        if (this.parentNode) this.parentNode.updateVersion();
-    }
+	public set castShadow(value: boolean) {
+		this.#castShadow = value;
+		this.updateVersion();
+		if (this.parentNode) this.parentNode.updateVersion();
+	}
 
-    public get direction(): vec3 {
-        return this.#direction;
-    }
+	public get direction(): vec3 {
+		return this.#direction;
+	}
 
-    public set direction(value: vec3) {
-        this.#direction = value;
-        this.updateVersion();
-        if (this.parentNode) this.parentNode.updateVersion();
-    }
+	public set direction(value: vec3) {
+		this.#direction = value;
+		this.updateVersion();
+		if (this.parentNode) this.parentNode.updateVersion();
+	}
 
-    public get shadowMapBias(): number {
-        return this.#shadowMapBias;
-    }
+	public get shadowMapBias(): number {
+		return this.#shadowMapBias;
+	}
 
-    public set shadowMapBias(value: number) {
-        this.#shadowMapBias = value;
-        this.updateVersion();
-        if (this.parentNode) this.parentNode.updateVersion();
-    }
+	public set shadowMapBias(value: number) {
+		this.#shadowMapBias = value;
+		this.updateVersion();
+		if (this.parentNode) this.parentNode.updateVersion();
+	}
 
-    public get shadowMapResolution(): number {
-        return this.#shadowMapResolution;
-    }
+	public get shadowMapResolution(): number {
+		return this.#shadowMapResolution;
+	}
 
-    public set shadowMapResolution(value: number) {
-        this.#shadowMapResolution = value;
-        this.updateVersion();
-        if (this.parentNode) this.parentNode.updateVersion();
-    }
+	public set shadowMapResolution(value: number) {
+		this.#shadowMapResolution = value;
+		this.updateVersion();
+		if (this.parentNode) this.parentNode.updateVersion();
+	}
 
-    // #endregion Public Getters And Setters (8)
+	// #endregion Public Getters And Setters (8)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    public clone(): IDirectionalLight {
-        return new DirectionalLight({
-            color: this.color,
-            intensity: this.intensity,
-            direction: this.direction,
-            castShadow: this.castShadow,
-            shadowMapResolution: this.shadowMapResolution,
-            shadowMapBias: this.shadowMapBias,
-            name: this.name,
-            order: this.order,
-            id: this.id,
-            version: this.version
-        });
-    }
+	public clone(): IDirectionalLight {
+		return new DirectionalLight({
+			color: this.color,
+			intensity: this.intensity,
+			direction: this.direction,
+			castShadow: this.castShadow,
+			shadowMapResolution: this.shadowMapResolution,
+			shadowMapBias: this.shadowMapBias,
+			name: this.name,
+			order: this.order,
+			id: this.id,
+			version: this.version,
+		});
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

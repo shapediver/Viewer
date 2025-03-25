@@ -1,107 +1,196 @@
-import { AttributeData } from '@shapediver/viewer.shared.types';
 import {
-    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-    ACCESSORTYPE_V2 as ACCESSORTYPE,
-    IGLTF_v2
-} from '@shapediver/viewer.data-engine.shared-types';
-import { Logger } from '@shapediver/viewer.shared.services';
+	ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+	ACCESSORTYPE_V2 as ACCESSORTYPE,
+	IGLTF_v2,
+} from "@shapediver/viewer.data-engine.shared-types";
+import {Logger} from "@shapediver/viewer.shared.services";
+import {AttributeData} from "@shapediver/viewer.shared.types";
 
-import { BufferViewLoader } from './BufferViewLoader';
+import {BufferViewLoader} from "./BufferViewLoader";
 
 export class AccessorLoader {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    private readonly _logger: Logger = Logger.instance;
+	private readonly _logger: Logger = Logger.instance;
 
-    private _loaded: {
-        [key: string]: AttributeData | null
-    } = {};
+	private _loaded: {
+		[key: string]: AttributeData | null;
+	} = {};
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(private readonly _content: IGLTF_v2, private readonly _bufferViewLoader: BufferViewLoader) { }
+	constructor(
+		private readonly _content: IGLTF_v2,
+		private readonly _bufferViewLoader: BufferViewLoader,
+	) {}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Methods (2)
+	// #region Public Methods (2)
 
-    public getAccessor(accessorId: number): AttributeData | null {
-        if (!this._content.accessors) throw new Error('AccessorLoader.getAccessor: Accessors not available.');
-        if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.getAccessor: Accessor not available.');
-        if (this._loaded[accessorId] === undefined) throw new Error('AccessorLoader.getAccessor: Accessor not loaded.');
-        return this._loaded[accessorId];
-    }
+	public getAccessor(accessorId: number): AttributeData | null {
+		if (!this._content.accessors)
+			throw new Error(
+				"AccessorLoader.getAccessor: Accessors not available.",
+			);
+		if (!this._content.accessors[accessorId])
+			throw new Error(
+				"AccessorLoader.getAccessor: Accessor not available.",
+			);
+		if (this._loaded[accessorId] === undefined)
+			throw new Error("AccessorLoader.getAccessor: Accessor not loaded.");
+		return this._loaded[accessorId];
+	}
 
-    public load(): void {
-        if (!this._content.accessors) return;
-        for (let i = 0; i < this._content.accessors.length; i++) {
-            const accessorId = i;
-            if (!this._content.accessors[accessorId]) throw new Error('AccessorLoader.load: BufferView not available.');
-            const accessor = this._content.accessors[accessorId];
+	public load(): void {
+		if (!this._content.accessors) return;
+		for (let i = 0; i < this._content.accessors.length; i++) {
+			const accessorId = i;
+			if (!this._content.accessors[accessorId])
+				throw new Error(
+					"AccessorLoader.load: BufferView not available.",
+				);
+			const accessor = this._content.accessors[accessorId];
 
-            if (accessor.bufferView === undefined) {
-                // Ignore empty accessors, which may be used to declare runtime
-                // information about attributes coming from another source (e.g. Draco
-                // compression extension).
-                this._loaded[accessorId] = null;
-                continue;
-            }
+			if (accessor.bufferView === undefined) {
+				// Ignore empty accessors, which may be used to declare runtime
+				// information about attributes coming from another source (e.g. Draco
+				// compression extension).
+				this._loaded[accessorId] = null;
+				continue;
+			}
 
-            const arrayBuffer = this._bufferViewLoader.getBufferView(accessor.bufferView!);
+			const arrayBuffer = this._bufferViewLoader.getBufferView(
+				accessor.bufferView!,
+			);
 
-            const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-            if (accessor.componentType === 5124) this._logger.warn('GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
-            const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
+			const itemSize =
+				ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
+			if (accessor.componentType === 5124)
+				this._logger.warn(
+					"GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.",
+				);
+			const ArrayType =
+				ACCESSOR_COMPONENTTYPE[
+					<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType
+				];
 
-            const elementBytes = ArrayType.BYTES_PER_ELEMENT;
-            const itemBytes = elementBytes * itemSize;
-            const byteOffset = accessor.byteOffset || 0;
-            const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].byteStride : undefined : undefined;
-            const normalized = accessor.normalized === true;
-            const target = this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].target : undefined;
-            let array;
+			const elementBytes = ArrayType.BYTES_PER_ELEMENT;
+			const itemBytes = elementBytes * itemSize;
+			const byteOffset = accessor.byteOffset || 0;
+			const byteStride =
+				accessor.bufferView !== undefined
+					? this._content.bufferViews
+						? this._content.bufferViews[accessor.bufferView]
+								.byteStride
+						: undefined
+					: undefined;
+			const normalized = accessor.normalized === true;
+			const target = this._content.bufferViews
+				? this._content.bufferViews[accessor.bufferView].target
+				: undefined;
+			let array;
 
-            if (byteStride && byteStride !== itemBytes) {
-                // Each "slice" of the buffer, as defined by 'count' elements of 'byteStride' bytes, gets its own InterleavedBuffer
-                // This makes sure that IBA.count reflects accessor.count properly
-                const ibSlice = Math.floor(byteOffset / byteStride);
-                array = new ArrayType(arrayBuffer, ibSlice * byteStride, accessor.count * byteStride / elementBytes);
-            } else {
-                if (arrayBuffer === null) {
-                    array = new ArrayType(accessor.count * itemSize);
-                } else {
-                    array = new ArrayType(arrayBuffer, byteOffset, accessor.count * itemSize);
-                }
-            }
+			if (byteStride && byteStride !== itemBytes) {
+				// Each "slice" of the buffer, as defined by 'count' elements of 'byteStride' bytes, gets its own InterleavedBuffer
+				// This makes sure that IBA.count reflects accessor.count properly
+				const ibSlice = Math.floor(byteOffset / byteStride);
+				array = new ArrayType(
+					arrayBuffer,
+					ibSlice * byteStride,
+					(accessor.count * byteStride) / elementBytes,
+				);
+			} else {
+				if (arrayBuffer === null) {
+					array = new ArrayType(accessor.count * itemSize);
+				} else {
+					array = new ArrayType(
+						arrayBuffer,
+						byteOffset,
+						accessor.count * itemSize,
+					);
+				}
+			}
 
-            if (array.length === 0) {
-                // Ignore empty accessors, they are not allowed in glTF
-                this._logger.warn('GLTFLoader.loadAccessor: Accessor with zero length found.');
-                this._loaded[accessorId] = null;
-                continue;
-            }
+			if (array.length === 0) {
+				// Ignore empty accessors, they are not allowed in glTF
+				this._logger.warn(
+					"GLTFLoader.loadAccessor: Accessor with zero length found.",
+				);
+				this._loaded[accessorId] = null;
+				continue;
+			}
 
-            if (accessor.sparse !== undefined) {
-                const itemSizeIndices = ACCESSORTYPE.SCALAR;
-                const IndicesArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.sparse.indices.componentType];
+			if (accessor.sparse !== undefined) {
+				const itemSizeIndices = ACCESSORTYPE.SCALAR;
+				const IndicesArrayType =
+					ACCESSOR_COMPONENTTYPE[
+						<keyof typeof ACCESSOR_COMPONENTTYPE>(
+							accessor.sparse.indices.componentType
+						)
+					];
 
-                const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
-                const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
+				const byteOffsetIndices =
+					accessor.sparse.indices.byteOffset || 0;
+				const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
 
-                if (!accessor.sparse.indices.bufferView || !accessor.sparse.values.bufferView) throw new Error('Sparse Mesh not properly defined.');
+				if (
+					!accessor.sparse.indices.bufferView ||
+					!accessor.sparse.values.bufferView
+				)
+					throw new Error("Sparse Mesh not properly defined.");
 
-                const sparseIndices = new IndicesArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.indices.bufferView!), byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
-                const sparseValues = new ArrayType(this._bufferViewLoader.getBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);
+				const sparseIndices = new IndicesArrayType(
+					this._bufferViewLoader.getBufferView(
+						accessor.sparse.indices.bufferView!,
+					),
+					byteOffsetIndices,
+					accessor.sparse.count * itemSizeIndices,
+				);
+				const sparseValues = new ArrayType(
+					this._bufferViewLoader.getBufferView(
+						accessor.sparse.values.bufferView!,
+					),
+					byteOffsetValues,
+					accessor.sparse.count * itemSize,
+				);
 
-                this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, target, true, sparseIndices, sparseValues);
-                continue;
-            }
+				this._loaded[accessorId] = new AttributeData(
+					array,
+					itemSize,
+					itemBytes,
+					byteOffset,
+					elementBytes,
+					normalized,
+					accessor.count,
+					accessor.min,
+					accessor.max,
+					byteStride,
+					target,
+					true,
+					sparseIndices,
+					sparseValues,
+				);
+				continue;
+			}
 
-            this._loaded[accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, target);
-        }
-    }
+			this._loaded[accessorId] = new AttributeData(
+				array,
+				itemSize,
+				itemBytes,
+				byteOffset,
+				elementBytes,
+				normalized,
+				accessor.count,
+				accessor.min,
+				accessor.max,
+				byteStride,
+				target,
+			);
+		}
+	}
 
-    // #endregion Public Methods (2)
+	// #endregion Public Methods (2)
 }

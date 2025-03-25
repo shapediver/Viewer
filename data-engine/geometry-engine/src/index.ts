@@ -1,5 +1,3 @@
-import { GeometryEngine } from './GeometryEngine'
+import {GeometryEngine} from "./GeometryEngine";
 
-export {
-  GeometryEngine
-}
+export {GeometryEngine};

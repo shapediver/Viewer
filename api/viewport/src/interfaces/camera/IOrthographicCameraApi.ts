@@ -1,5 +1,5 @@
-import { ICameraApi } from './ICameraApi';
-import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine';
+import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {ICameraApi} from "./ICameraApi";
 
 /**
  * The api for an orthographic camera.
@@ -7,12 +7,12 @@ import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engi
  * A camera has a multitude of properties and methods that can be used to adjust the behavior.
  */
 export interface IOrthographicCameraApi extends ICameraApi {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    /**
-     * The direction of the camera. (default: ORTHOGRAPHIC_CAMERA_DIRECTION.CUSTOM)
-     */
-    direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
+	/**
+	 * The direction of the camera. (default: ORTHOGRAPHIC_CAMERA_DIRECTION.CUSTOM)
+	 */
+	direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 }

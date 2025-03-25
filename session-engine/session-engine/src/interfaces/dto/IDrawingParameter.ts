@@ -1,4 +1,6 @@
-import { IDrawingParameterSettings } from '@shapediver/viewer.shared.types';
-import { IParameter } from './IParameter';
+import {IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
+import {IParameter} from "./IParameter";
 
-export interface IDrawingParameter extends IParameter<string>, IDrawingParameterSettings { }
+export interface IDrawingParameter
+	extends IParameter<string>,
+		IDrawingParameterSettings {}

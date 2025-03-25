@@ -1,11 +1,11 @@
-import { Color } from "@shapediver/viewer.shared.types";
+import {Color} from "@shapediver/viewer.shared.types";
 
 export interface ILayer {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    enabled: boolean;
-    opacity: number;
-    color: Color
+	enabled: boolean;
+	opacity: number;
+	color: Color;
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 }

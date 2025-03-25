@@ -1,160 +1,204 @@
-import { IExport } from '@shapediver/viewer.session-engine.session-engine';
-import { IExportApi } from '../interfaces/IExportApi';
-import { InputValidator, Logger } from '@shapediver/viewer.shared.services';
 import {
-    ShapeDiverResponseExport,
-    ShapeDiverResponseExportContent,
-    ShapeDiverResponseExportDefinitionType,
-    ShapeDiverResponseExportResult,
-    ShapeDiverResponseModelComputationStatus,
-    ShapeDiverResponseParameterGroup
-} from '@shapediver/sdk.geometry-api-sdk-v2';
+	ShapeDiverResponseExport,
+	ShapeDiverResponseExportContent,
+	ShapeDiverResponseExportDefinitionType,
+	ShapeDiverResponseExportResult,
+	ShapeDiverResponseModelComputationStatus,
+	ShapeDiverResponseParameterGroup,
+} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {IExport} from "@shapediver/viewer.session-engine.session-engine";
+import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
+import {IExportApi} from "../interfaces/IExportApi";
 
 export class ExportApi implements IExportApi {
-    // #region Properties (3)
+	// #region Properties (3)
 
-    readonly #export: IExport;
-    readonly #inputValidator: InputValidator = InputValidator.instance;
-    readonly #logger: Logger = Logger.instance;
+	readonly #export: IExport;
+	readonly #inputValidator: InputValidator = InputValidator.instance;
+	readonly #logger: Logger = Logger.instance;
 
-    // #endregion Properties (3)
+	// #endregion Properties (3)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(exportD: IExport) {
-        this.#export = exportD;
-    }
+	constructor(exportD: IExport) {
+		this.#export = exportD;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (24)
+	// #region Public Getters And Setters (24)
 
-    public get content(): ShapeDiverResponseExportContent[] | undefined {
-        return this.#export.content;
-    }
+	public get content(): ShapeDiverResponseExportContent[] | undefined {
+		return this.#export.content;
+	}
 
-    public get delay(): number | undefined {
-        return this.#export.delay;
-    }
+	public get delay(): number | undefined {
+		return this.#export.delay;
+	}
 
-    public get dependency(): string[] {
-        return this.#export.dependency;
-    }
+	public get dependency(): string[] {
+		return this.#export.dependency;
+	}
 
-    public get displayname(): string | undefined {
-        return this.#export.displayname;
-    }
+	public get displayname(): string | undefined {
+		return this.#export.displayname;
+	}
 
-    public set displayname(value: string | undefined) {
-        const scope = 'displayname';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'string', false);
-        this.#export.displayname = value;
-        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.displayname}.`);
-    }
+	public set displayname(value: string | undefined) {
+		const scope = "displayname";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			value,
+			"string",
+			false,
+		);
+		this.#export.displayname = value;
+		this.#logger.debug(
+			`ExportApi.${scope}: ${scope} was updated to ${this.#export.displayname}.`,
+		);
+	}
 
-    public get filename(): string | undefined {
-        return this.#export.filename;
-    }
+	public get filename(): string | undefined {
+		return this.#export.filename;
+	}
 
-    public get group(): ShapeDiverResponseParameterGroup | undefined {
-        return this.#export.group;
-    }
+	public get group(): ShapeDiverResponseParameterGroup | undefined {
+		return this.#export.group;
+	}
 
-    public get hidden(): boolean {
-        return this.#export.hidden;
-    }
+	public get hidden(): boolean {
+		return this.#export.hidden;
+	}
 
-    public set hidden(value: boolean) {
-        const scope = 'hidden';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'boolean');
-        this.#export.hidden = value;
-        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.hidden}.`);
-    }
+	public set hidden(value: boolean) {
+		const scope = "hidden";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#export.hidden = value;
+		this.#logger.debug(
+			`ExportApi.${scope}: ${scope} was updated to ${this.#export.hidden}.`,
+		);
+	}
 
-    public get id(): string {
-        return this.#export.id;
-    }
+	public get id(): string {
+		return this.#export.id;
+	}
 
-    public get maxWaitTime(): number {
-        return this.#export.maxWaitTime;
-    }
+	public get maxWaitTime(): number {
+		return this.#export.maxWaitTime;
+	}
 
-    public set maxWaitTime(value: number) {
-        const scope = 'maxWaitTime';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'number');
-        this.#export.maxWaitTime = value;
-        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.maxWaitTime}.`);
-    }
+	public set maxWaitTime(value: number) {
+		const scope = "maxWaitTime";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			value,
+			"number",
+		);
+		this.#export.maxWaitTime = value;
+		this.#logger.debug(
+			`ExportApi.${scope}: ${scope} was updated to ${this.#export.maxWaitTime}.`,
+		);
+	}
 
-    public get msg(): string | undefined {
-        return this.#export.msg;
-    }
+	public get msg(): string | undefined {
+		return this.#export.msg;
+	}
 
-    public get name(): string {
-        return this.#export.name;
-    }
+	public get name(): string {
+		return this.#export.name;
+	}
 
-    public get order(): number | undefined {
-        return this.#export.order;
-    }
+	public get order(): number | undefined {
+		return this.#export.order;
+	}
 
-    public set order(value: number | undefined) {
-        const scope = 'order';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'number', false);
-        this.#export.order = value;
-        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.order}.`);
-    }
+	public set order(value: number | undefined) {
+		const scope = "order";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			value,
+			"number",
+			false,
+		);
+		this.#export.order = value;
+		this.#logger.debug(
+			`ExportApi.${scope}: ${scope} was updated to ${this.#export.order}.`,
+		);
+	}
 
-    public get result(): ShapeDiverResponseExportResult | undefined {
-        return this.#export.result;
-    }
+	public get result(): ShapeDiverResponseExportResult | undefined {
+		return this.#export.result;
+	}
 
-    public get status_collect(): ShapeDiverResponseModelComputationStatus | undefined {
-        return this.#export.status_collect;
-    }
+	public get status_collect():
+		| ShapeDiverResponseModelComputationStatus
+		| undefined {
+		return this.#export.status_collect;
+	}
 
-    public get status_computation(): ShapeDiverResponseModelComputationStatus | undefined {
-        return this.#export.status_computation;
-    }
+	public get status_computation():
+		| ShapeDiverResponseModelComputationStatus
+		| undefined {
+		return this.#export.status_computation;
+	}
 
-    public get tooltip(): string | undefined {
-        return this.#export.tooltip;
-    }
+	public get tooltip(): string | undefined {
+		return this.#export.tooltip;
+	}
 
-    public set tooltip(value: string | undefined) {
-        const scope = 'tooltip';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, value, 'string', false);
-        this.#export.tooltip = value;
-        this.#logger.debug(`ExportApi.${scope}: ${scope} was updated to ${this.#export.tooltip}.`);
-    }
+	public set tooltip(value: string | undefined) {
+		const scope = "tooltip";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			value,
+			"string",
+			false,
+		);
+		this.#export.tooltip = value;
+		this.#logger.debug(
+			`ExportApi.${scope}: ${scope} was updated to ${this.#export.tooltip}.`,
+		);
+	}
 
-    public get type(): ShapeDiverResponseExportDefinitionType {
-        return this.#export.type;
-    }
+	public get type(): ShapeDiverResponseExportDefinitionType {
+		return this.#export.type;
+	}
 
-    public get uid(): string | undefined {
-        return this.#export.uid;
-    }
+	public get uid(): string | undefined {
+		return this.#export.uid;
+	}
 
-    public get version(): string | undefined {
-        return this.#export.version;
-    }
+	public get version(): string | undefined {
+		return this.#export.version;
+	}
 
-    // #endregion Public Getters And Setters (24)
+	// #endregion Public Getters And Setters (24)
 
-    // #region Public Methods (2)
+	// #region Public Methods (2)
 
-    public async request(parameters: { [key: string]: unknown } = {}): Promise<ShapeDiverResponseExport> {
-        const scope = 'request';
-        this.#inputValidator.validateAndError(`ExportApi.${scope}`, parameters, 'object');
-        return this.#export.request(parameters);
-    }
+	public async request(
+		parameters: {[key: string]: unknown} = {},
+	): Promise<ShapeDiverResponseExport> {
+		const scope = "request";
+		this.#inputValidator.validateAndError(
+			`ExportApi.${scope}`,
+			parameters,
+			"object",
+		);
+		return this.#export.request(parameters);
+	}
 
-    public updateExport() {
-        this.#export.updateExport();
-    }
+	public updateExport() {
+		this.#export.updateExport();
+	}
 
-    // #endregion Public Methods (2)
+	// #endregion Public Methods (2)
 }
 
-export const isExportApi = (obj: unknown): obj is IExportApi => obj instanceof ExportApi;
+export const isExportApi = (obj: unknown): obj is IExportApi =>
+	obj instanceof ExportApi;

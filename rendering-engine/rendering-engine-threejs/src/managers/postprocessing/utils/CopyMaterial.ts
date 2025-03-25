@@ -1,8 +1,14 @@
-import { AddEquation, AdditiveBlending, CustomBlending, MultiplyBlending, NoBlending, NormalBlending, OneFactor, OneMinusSrcColorFactor, ShaderMaterial, SrcAlphaFactor, SrcAlphaSaturateFactor, SrcColorFactor, SubtractiveBlending, Uniform, WebGLRenderTarget, ZeroFactor } from "three";
+import {
+	AddEquation,
+	CustomBlending,
+	OneFactor,
+	ShaderMaterial,
+	Uniform,
+	WebGLRenderTarget,
+	ZeroFactor,
+} from "three";
 
-
-const vertexShader = 
-`
+const vertexShader = `
 varying vec2 vUv;
 
 void main() {
@@ -11,11 +17,9 @@ void main() {
 	gl_Position = vec4(position.xy, 1.0, 1.0);
 
 }
-`
+`;
 
-
-const fragmentShader = 
-`
+const fragmentShader = `
 #include <common>
 #include <dithering_pars_fragment>
 
@@ -42,38 +46,35 @@ void main() {
 	#include <dithering_fragment>
 
 }
-`
+`;
 
 /**
  * A simple copy shader material.
  */
 
 export class CopyMaterial extends ShaderMaterial {
-
 	/**
 	 * Constructs a new copy material.
 	 */
 
 	constructor() {
-
 		super({
 			name: "CopyMaterial",
 			uniforms: {
 				inputBuffer: new Uniform(null),
-				opacity: new Uniform(1.0)
+				opacity: new Uniform(1.0),
 			},
 			blending: CustomBlending,
-            blendEquation: AddEquation,
-            blendDst: ZeroFactor,
-            blendSrc: OneFactor,
+			blendEquation: AddEquation,
+			blendDst: ZeroFactor,
+			blendSrc: OneFactor,
 			toneMapped: false,
 			depthWrite: false,
 			depthTest: false,
-            transparent: true,
+			transparent: true,
 			fragmentShader,
-			vertexShader
+			vertexShader,
 		});
-
 	}
 
 	/**
@@ -83,9 +84,7 @@ export class CopyMaterial extends ShaderMaterial {
 	 */
 
 	set inputBuffer(value: WebGLRenderTarget) {
-
 		this.uniforms.inputBuffer.value = value;
-
 	}
 
 	/**
@@ -96,9 +95,7 @@ export class CopyMaterial extends ShaderMaterial {
 	 */
 
 	setInputBuffer(value: WebGLRenderTarget) {
-
 		this.uniforms.inputBuffer.value = value;
-
 	}
 
 	/**
@@ -109,9 +106,7 @@ export class CopyMaterial extends ShaderMaterial {
 	 */
 
 	getOpacity(value: number) {
-
 		return this.uniforms.opacity.value;
-
 	}
 
 	/**
@@ -122,9 +117,6 @@ export class CopyMaterial extends ShaderMaterial {
 	 */
 
 	setOpacity(value: number) {
-
 		this.uniforms.opacity.value = value;
-
 	}
-
 }

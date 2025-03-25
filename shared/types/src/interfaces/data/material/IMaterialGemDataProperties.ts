@@ -1,46 +1,56 @@
-import { Color } from '../../../types';
-import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
-import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
-import { vec3 } from 'gl-matrix';
+import {vec3} from "gl-matrix";
+import {Color} from "../../../types";
+import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
+import {
+	IMaterialAbstractData,
+	IMaterialAbstractDataPropertiesGeneric,
+} from "./IMaterialAbstractData";
 
 // #region Type aliases (2)
 
-export type IMaterialGemDataProperties = Partial<IMaterialGemDataPropertiesGeneric<IMapData>>;
-export type IMaterialGemDataPropertiesDefinition = Partial<IMaterialGemDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
+export type IMaterialGemDataProperties = Partial<
+	IMaterialGemDataPropertiesGeneric<IMapData>
+>;
+export type IMaterialGemDataPropertiesDefinition = Partial<
+	IMaterialGemDataPropertiesGeneric<IMapDataPropertiesDefinition>
+>;
 
 // #endregion Type aliases (2)
 
 // #region Interfaces (2)
 
-export interface IMaterialGemData extends IMaterialAbstractData, IMaterialGemDataPropertiesGeneric<IMapData> {
-    // #region Public Methods (2)
+export interface IMaterialGemData
+	extends IMaterialAbstractData,
+		IMaterialGemDataPropertiesGeneric<IMapData> {
+	// #region Public Methods (2)
 
-    clone(): IMaterialGemData;
-    copy(source: IMaterialGemData): void;
+	clone(): IMaterialGemData;
+	copy(source: IMaterialGemData): void;
 
-    // #endregion Public Methods (2)
+	// #endregion Public Methods (2)
 }
 
-interface IMaterialGemDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
-    // #region Properties (15)
+interface IMaterialGemDataPropertiesGeneric<T>
+	extends IMaterialAbstractDataPropertiesGeneric<T> {
+	// #region Properties (15)
 
-    brightness?: number;
-    center?: vec3;
-    colorTransferBegin?: Color;
-    colorTransferEnd?: Color;
-    contrast?: number;
-    dispersion?: number;
-    envMap?: string | string[];
-    gamma?: number;
-    impurityMap?: T;
-    impurityScale?: number;
-    radius?: number;
-    refractionIndex?: number;
-    sphericalNormalMap?: T;
-    tracingDepth?: number;
-    tracingOpacity?: number;
+	brightness?: number;
+	center?: vec3;
+	colorTransferBegin?: Color;
+	colorTransferEnd?: Color;
+	contrast?: number;
+	dispersion?: number;
+	envMap?: string | string[];
+	gamma?: number;
+	impurityMap?: T;
+	impurityScale?: number;
+	radius?: number;
+	refractionIndex?: number;
+	sphericalNormalMap?: T;
+	tracingDepth?: number;
+	tracingOpacity?: number;
 
-    // #endregion Properties (15)
+	// #endregion Properties (15)
 }
 
 // #endregion Interfaces (2)

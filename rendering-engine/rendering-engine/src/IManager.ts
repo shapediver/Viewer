@@ -1,3 +1,3 @@
 export interface IManager {
-    init(): void;
+	init(): void;
 }

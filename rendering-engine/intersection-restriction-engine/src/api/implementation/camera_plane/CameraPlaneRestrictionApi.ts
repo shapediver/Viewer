@@ -1,19 +1,19 @@
-import { AbstractRestrictionApi } from '../AbstractRestrictionApi';
-import { CameraPlaneRestriction } from '../../../implementation/restrictions/camera_plane/CameraPlaneRestriction';
+import {CameraPlaneRestriction} from "../../../implementation/restrictions/camera_plane/CameraPlaneRestriction";
+import {AbstractRestrictionApi} from "../AbstractRestrictionApi";
 
 export class CameraPlaneRestrictionApi extends AbstractRestrictionApi {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    readonly #cameraPlaneRestriction: CameraPlaneRestriction;
+	readonly #cameraPlaneRestriction: CameraPlaneRestriction;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(restriction: CameraPlaneRestriction) {
-        super(restriction);
-        this.#cameraPlaneRestriction = restriction;
-    }
+	constructor(restriction: CameraPlaneRestriction) {
+		super(restriction);
+		this.#cameraPlaneRestriction = restriction;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 }

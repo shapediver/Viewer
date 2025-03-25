@@ -1,4 +1,3 @@
+import {ISettings} from "../v4/ISettings";
 
-import { ISettings } from "../v4/ISettings";
-
-export { ISettings };
+export {ISettings};

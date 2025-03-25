@@ -1,36 +1,46 @@
-import { Color } from '../../../types';
-import { IMapData, IMapDataPropertiesDefinition } from './IMapData';
-import { IMaterialAbstractData, IMaterialAbstractDataPropertiesGeneric } from './IMaterialAbstractData';
+import {Color} from "../../../types";
+import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
+import {
+	IMaterialAbstractData,
+	IMaterialAbstractDataPropertiesGeneric,
+} from "./IMaterialAbstractData";
 
 // #region Type aliases (2)
 
-export type IMaterialSpecularGlossinessDataProperties = Partial<IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>>;
-export type IMaterialSpecularGlossinessDataPropertiesDefinition = Partial<IMaterialSpecularGlossinessDataPropertiesGeneric<IMapDataPropertiesDefinition>>;
+export type IMaterialSpecularGlossinessDataProperties = Partial<
+	IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>
+>;
+export type IMaterialSpecularGlossinessDataPropertiesDefinition = Partial<
+	IMaterialSpecularGlossinessDataPropertiesGeneric<IMapDataPropertiesDefinition>
+>;
 
 // #endregion Type aliases (2)
 
 // #region Interfaces (2)
 
-export interface IMaterialSpecularGlossinessData extends IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>, IMaterialAbstractData {
-    // #region Public Methods (2)
+export interface IMaterialSpecularGlossinessData
+	extends IMaterialSpecularGlossinessDataPropertiesGeneric<IMapData>,
+		IMaterialAbstractData {
+	// #region Public Methods (2)
 
-    clone(): IMaterialSpecularGlossinessData;
-    copy(source: IMaterialSpecularGlossinessData): void;
+	clone(): IMaterialSpecularGlossinessData;
+	copy(source: IMaterialSpecularGlossinessData): void;
 
-    // #endregion Public Methods (2)
+	// #endregion Public Methods (2)
 }
 
-interface IMaterialSpecularGlossinessDataPropertiesGeneric<T> extends IMaterialAbstractDataPropertiesGeneric<T> {
-    // #region Properties (6)
+interface IMaterialSpecularGlossinessDataPropertiesGeneric<T>
+	extends IMaterialAbstractDataPropertiesGeneric<T> {
+	// #region Properties (6)
 
-    envMap?: string | string[];
-    glossiness?: number,
-    glossinessMap?: T,
-    specular?: Color,
-    specularGlossinessMap?: T,
-    specularMap?: T
+	envMap?: string | string[];
+	glossiness?: number;
+	glossinessMap?: T;
+	specular?: Color;
+	specularGlossinessMap?: T;
+	specularMap?: T;
 
-    // #endregion Properties (6)
+	// #endregion Properties (6)
 }
 
 // #endregion Interfaces (2)

@@ -1,14 +1,14 @@
 {
-  "packages": [
-    "shared/*",
-    "data-engine/*",
-    "session-engine/*",
-    "examples/*",
-    "rendering-engine/*",
-    "tests/*",
-    "features/*",
-    "api/*",
-    "creation-control-center/*"
-  ],
-  "version": "independent"
+	"packages": [
+		"shared/*",
+		"data-engine/*",
+		"session-engine/*",
+		"examples/*",
+		"rendering-engine/*",
+		"tests/*",
+		"features/*",
+		"api/*",
+		"creation-control-center/*"
+	],
+	"version": "independent"
 }

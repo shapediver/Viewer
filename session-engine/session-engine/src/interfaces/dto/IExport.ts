@@ -1,17 +1,19 @@
-import { ShapeDiverResponseExport } from '@shapediver/sdk.geometry-api-sdk-v2';
+import {ShapeDiverResponseExport} from "@shapediver/sdk.geometry-api-sdk-v2";
 
 export interface IExport extends ShapeDiverResponseExport {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    maxWaitTime: number;
+	maxWaitTime: number;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (3)
+	// #region Public Methods (3)
 
-    request(parameters?: { [key: string]: unknown }): Promise<ShapeDiverResponseExport>;
-    updateExport(): void;
-    updateExportDefinition(exportDef: ShapeDiverResponseExport): void;
+	request(parameters?: {
+		[key: string]: unknown;
+	}): Promise<ShapeDiverResponseExport>;
+	updateExport(): void;
+	updateExportDefinition(exportDef: ShapeDiverResponseExport): void;
 
-    // #endregion Public Methods (3)
+	// #endregion Public Methods (3)
 }

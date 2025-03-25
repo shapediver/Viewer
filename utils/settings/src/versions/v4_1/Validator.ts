@@ -1,5 +1,3 @@
-import { validate } from "../v4/Validator";
+import {validate} from "../v4/Validator";
 
-export {
-    validate
-}
+export {validate};

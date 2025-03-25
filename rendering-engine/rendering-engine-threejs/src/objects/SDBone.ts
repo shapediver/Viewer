@@ -1,51 +1,48 @@
-import * as THREE from 'three'
-import { Bone } from 'three'
-import { mat4 } from 'gl-matrix'
-import { ISDObject } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import {ISDObject} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {mat4} from "gl-matrix";
+import * as THREE from "three";
+import {Bone} from "three";
 
 export class SDBone extends Bone implements ISDObject {
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    #SDid: string;
-    #SDversion: string;
+	#SDid: string;
+	#SDversion: string;
 
-    constructor(
-        SDid: string,
-        SDversion: string
-    ) {
-        super();
-        this.#SDid = SDid;
-        this.#SDversion = SDversion;
-    }
-    
-    public applyTransformation(transformation: mat4): void {
-        this.matrix.identity();
-        this.matrixWorld.identity();
-        this.position.set(0,0,0)
-        this.scale.set(1,1,1)
-        this.quaternion.set(0,0,0,1)
-        this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
-    }
+	constructor(SDid: string, SDversion: string) {
+		super();
+		this.#SDid = SDid;
+		this.#SDversion = SDversion;
+	}
 
-    // #endregion Constructors (1)
+	public applyTransformation(transformation: mat4): void {
+		this.matrix.identity();
+		this.matrixWorld.identity();
+		this.position.set(0, 0, 0);
+		this.scale.set(1, 1, 1);
+		this.quaternion.set(0, 0, 0, 1);
+		this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
+	}
 
-    // #region Public Accessors (4)
+	// #endregion Constructors (1)
 
-    public get SDid(): string {
-        return this.#SDid;
-    }
+	// #region Public Accessors (4)
 
-    public set SDid(value: string) {
-        this.#SDid = value;
-    }
+	public get SDid(): string {
+		return this.#SDid;
+	}
 
-    public get SDversion(): string {
-        return this.#SDversion;
-    }
+	public set SDid(value: string) {
+		this.#SDid = value;
+	}
 
-    public set SDversion(value: string) {
-        this.#SDversion = value;
-    }
+	public get SDversion(): string {
+		return this.#SDversion;
+	}
 
-    // #endregion Public Accessors (4)
+	public set SDversion(value: string) {
+		this.#SDversion = value;
+	}
+
+	// #endregion Public Accessors (4)
 }

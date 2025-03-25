@@ -1,55 +1,55 @@
-import { ITreeNode } from './ITreeNode';
+import {ITreeNode} from "./ITreeNode";
 
 export interface ITree {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    /**
-     * The root of the tree.
-     */
-    readonly root: ITreeNode;
+	/**
+	 * The root of the tree.
+	 */
+	readonly root: ITreeNode;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (5)
+	// #region Public Methods (5)
 
-    /**
-     * Add the node as a child of the corresponding parent node.
-     * 
-     * @param node the node to be added
-     * @param parent the targeted parent node
-     * @param root optional root at which the process begins, root node will be used per default
-     */
-    addNode(node: ITreeNode, parent?: ITreeNode, root?: ITreeNode): boolean;
-    /**
-     * Add the node at the corresponding path. (paths are dot separated ids)
-     * 
-     * @param node the node to be added
-     * @param path the path at which the node should be added
-     * @param root optional root at which the process begins, root node will be used per default
-     */
-    addNodeAtPath(node: ITreeNode, path?: string, root?: ITreeNode): boolean;
-    /**
-     * Get the node at the provided path.
-     * 
-     * @param path 
-     * @param root 
-     * @returns 
-     */
-    getNodeAtPath(path?: string, root?: ITreeNode): ITreeNode | null;
-    /**
-     * Remove a node from the tree.
-     * 
-     * @param node the node to remove 
-     * @param root optional root at which the process begins, root node will be used per default
-     */
-    removeNode(node: ITreeNode, root?: ITreeNode): boolean;
-    /**
-     * Remove a node via the path of it.
-     * 
-     * @param path the path of the node to be removed
-     * @param root optional root at which the process begins, root node will be used per default
-     */
-    removeNodeAtPath(path: string, root?: ITreeNode): boolean;
+	/**
+	 * Add the node as a child of the corresponding parent node.
+	 *
+	 * @param node the node to be added
+	 * @param parent the targeted parent node
+	 * @param root optional root at which the process begins, root node will be used per default
+	 */
+	addNode(node: ITreeNode, parent?: ITreeNode, root?: ITreeNode): boolean;
+	/**
+	 * Add the node at the corresponding path. (paths are dot separated ids)
+	 *
+	 * @param node the node to be added
+	 * @param path the path at which the node should be added
+	 * @param root optional root at which the process begins, root node will be used per default
+	 */
+	addNodeAtPath(node: ITreeNode, path?: string, root?: ITreeNode): boolean;
+	/**
+	 * Get the node at the provided path.
+	 *
+	 * @param path
+	 * @param root
+	 * @returns
+	 */
+	getNodeAtPath(path?: string, root?: ITreeNode): ITreeNode | null;
+	/**
+	 * Remove a node from the tree.
+	 *
+	 * @param node the node to remove
+	 * @param root optional root at which the process begins, root node will be used per default
+	 */
+	removeNode(node: ITreeNode, root?: ITreeNode): boolean;
+	/**
+	 * Remove a node via the path of it.
+	 *
+	 * @param path the path of the node to be removed
+	 * @param root optional root at which the process begins, root node will be used per default
+	 */
+	removeNodeAtPath(path: string, root?: ITreeNode): boolean;
 
-    // #endregion Public Methods (5)
+	// #endregion Public Methods (5)
 }

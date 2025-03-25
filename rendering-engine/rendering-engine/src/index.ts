@@ -1,11 +1,6 @@
-import { IManager } from './IManager';
-import { IRenderingEngine } from './IRenderingEngine';
-import { ISDObject } from './ISDObject';
+import {IManager} from "./IManager";
+import {IRenderingEngine} from "./IRenderingEngine";
+import {ISDObject} from "./ISDObject";
 
-export {
-  IRenderingEngine, ISDObject
-};
-
-export {
-  IManager
-};
+export {IRenderingEngine, ISDObject};
+export {IManager};

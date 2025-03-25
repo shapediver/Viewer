@@ -1,31 +1,31 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
+import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 
 export interface ISDTFOverview {
-    // #region Public Indexers (1)
+	// #region Public Indexers (1)
 
-    [key: string]: {
-        typeHint: SdtfTypeHintName | string;
-        count: number;
-        values?: string[];
-        min?: number;
-        max?: number;
-    }[];
+	[key: string]: {
+		typeHint: SdtfTypeHintName | string;
+		count: number;
+		values?: string[];
+		min?: number;
+		max?: number;
+	}[];
 
-    // #endregion Public Indexers (1)
-};
+	// #endregion Public Indexers (1)
+}
 
 export interface ISDTFOverviewData extends ITreeNodeData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    readonly overview: ISDTFOverview;
+	readonly overview: ISDTFOverview;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Public Methods (2)
+	// #region Public Methods (2)
 
-    clone(): ISDTFOverviewData;
-    merge(data: ISDTFOverviewData): void;
+	clone(): ISDTFOverviewData;
+	merge(data: ISDTFOverviewData): void;
 
-    // #endregion Public Methods (2)
+	// #endregion Public Methods (2)
 }

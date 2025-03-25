@@ -5,6 +5,7 @@ This is the npm package for the ShapeDiver Viewer Drawing Tools feature. Please 
 For more information on ShapeDiver, please visit our [homepage](https://shapediver.com/). If you need help, have a look at our [help desk](https://help.shapediver.com/doc/Viewer.1836580882.html).
 
 ## Installation
+
 ```
 npm install --save @shapediver/viewer.features.drawing-tools
 ```
@@ -30,15 +31,15 @@ The settings that can be provided to the drawing tools are separated into four s
 The geometry settings of the drawing tool.
 Here you can define the points, the mode and specific details of the geometry.
 
-| Property | Description |
-| :-------- | :------ |
-| points | The points that are used when starting the drawing tool. The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point. If the mode is set to 'lines', the points are connected in the order they are defined. If the mode is set to 'points', the points are not connected. |
-| mode | The mode of the geometry. If the mode is set to 'lines', the points are connected in the order they are defined. If the mode is set to 'points', the points are not connected. |
-| minPoints | The minimum amount of points, if undefined, the geometry is not restricted. This value is checked whenever the user tries to update or finish the drawing tool. |
-| maxPoints | The maximum amount of points, if undefined, the geometry is not restricted. This value is checked whenever the user tries to update or finish the drawing tool. |
+| Property           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| points             | The points that are used when starting the drawing tool. The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point. If the mode is set to 'lines', the points are connected in the order they are defined. If the mode is set to 'points', the points are not connected.                                                                                                                                                                  |
+| mode               | The mode of the geometry. If the mode is set to 'lines', the points are connected in the order they are defined. If the mode is set to 'points', the points are not connected.                                                                                                                                                                                                                                                                                                                  |
+| minPoints          | The minimum amount of points, if undefined, the geometry is not restricted. This value is checked whenever the user tries to update or finish the drawing tool.                                                                                                                                                                                                                                                                                                                                 |
+| maxPoints          | The maximum amount of points, if undefined, the geometry is not restricted. This value is checked whenever the user tries to update or finish the drawing tool.                                                                                                                                                                                                                                                                                                                                 |
 | strictMinMaxPoints | If the number of points is strictly checked during the drawing process. If this setting is set to true, once the minimum or maximum amount of points is reached, the user cannot add or remove points that would violate the restriction. If this setting is set to false, the user can add or remove points even if the minimum or maximum amount of points is exceeded temporarily. Once the user tries to update or finish the drawing tool, the amount of points is checked in either case. |
-| close | If the mode is set to 'lines', if it is a closed line or not. If the mode is set to 'points', this setting is ignored. A line can be closed by connecting the last point with the first point. |
-| autoClose | If the mode is set to 'lines', if the line is automatically closed. If the mode is set to 'points', this setting is ignored. The first and last point are always connected if the line is automatically closed. |
+| close              | If the mode is set to 'lines', if it is a closed line or not. If the mode is set to 'points', this setting is ignored. A line can be closed by connecting the last point with the first point.                                                                                                                                                                                                                                                                                                  |
+| autoClose          | If the mode is set to 'lines', if the line is automatically closed. If the mode is set to 'points', this setting is ignored. The first and last point are always connected if the line is automatically closed.                                                                                                                                                                                                                                                                                 |
 
 #### restrictions
 
@@ -54,43 +55,43 @@ Each restriction is defined by a type and the corresponding properties of that r
 The visualization settings of the drawing tool.
 Here you can define the visualization of the drawing tool.
 
-| Property | Description |
-| :-------- | :------ |
-| distanceMultiplicationFactor | The multiplication factor of the point size when interactions are performed. If the factor is set to 2, the point size is doubled when interacting. |
-| pointLabels | If the point labels are shown. The point labels display the position of the points. |
-| distanceLabels | If the distance labels are shown. The distance labels display the distance between the points. |
-| points | The material properties of the points. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialMultiPointDataProperties.html). |
-| lines | The material properties of the lines. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialBasicLineData.html). |
+| Property                     | Description                                                                                                                                                                                           |
+| :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| distanceMultiplicationFactor | The multiplication factor of the point size when interactions are performed. If the factor is set to 2, the point size is doubled when interacting.                                                   |
+| pointLabels                  | If the point labels are shown. The point labels display the position of the points.                                                                                                                   |
+| distanceLabels               | If the distance labels are shown. The distance labels display the distance between the points.                                                                                                        |
+| points                       | The material properties of the points. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialMultiPointDataProperties.html). |
+| lines                        | The material properties of the lines. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialBasicLineData.html).             |
 
 #### controls
 
-The control settings of the drawing tool. 
+The control settings of the drawing tool.
 Here you can define which keys are used for the different actions of the drawing tool.
 
-| Property | Description |
-| :-------- | :------ |
-| insert | The key that is used to insert a point. |
-| delete | The key that is used to delete a point. |
-| confirm | The key that is used to confirm actions. |
-| cancel | The key that is used to cancel drawing. |
-| undo | The keys that are used to undo the last action. |
-| redo | The keys that are used to redo the last action. |
+| Property | Description                                     |
+| :------- | :---------------------------------------------- |
+| insert   | The key that is used to insert a point.         |
+| delete   | The key that is used to delete a point.         |
+| confirm  | The key that is used to confirm actions.        |
+| cancel   | The key that is used to cancel drawing.         |
+| undo     | The keys that are used to undo the last action. |
+| redo     | The keys that are used to redo the last action. |
 
 #### general
 
 The general settings of the drawing tool.
 Here you can define general settings of the drawing tool.
 
-| Property | Description |
-| :-------- | :------ |
-| autoStart | If the drawing tool is started automatically when no points are defined. |
-| autoUpdate | If the drawing tool is updated automatically when the drawing is changed. |
-| closeOnUpdate | If the drawing tool is closed when the drawing is updated. |
-| displayUnit | The unit that will be displayed in the distance and point labels. |
+| Property      | Description                                                               |
+| :------------ | :------------------------------------------------------------------------ |
+| autoStart     | If the drawing tool is started automatically when no points are defined.  |
+| autoUpdate    | If the drawing tool is updated automatically when the drawing is changed. |
+| closeOnUpdate | If the drawing tool is closed when the drawing is updated.                |
+| displayUnit   | The unit that will be displayed in the distance and point labels.         |
 
 ## Code Example
 
-```typescript  
+```typescript
 import {
     addListener,
     createSession,
@@ -121,14 +122,14 @@ import {
      * Define the settings you want to use for the drawing tools
      */
     const customizationProperties: Settings = {
-        
+
     };
 
     /**
      * Callback function for the drawing tool
      * executed when the drawing tool is updated
-     * 
-     * @param geometryData 
+     *
+     * @param geometryData
      */
     const onUpdate = async (pointsData: PointsData) => {
         console.log('Drawing tools updated', pointsData);

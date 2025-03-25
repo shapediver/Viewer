@@ -1,5 +1,3 @@
-import { SDTFEngine } from './SDTFEngine'
+import {SDTFEngine} from "./SDTFEngine";
 
-export {
-  SDTFEngine
-}
+export {SDTFEngine};

@@ -1,6 +1,4 @@
-import { CreationControlCenterViewport } from './implementation/CreationControlCenterViewport';
-import { ICreationControlCenterViewport } from './interfaces/ICreationControlCenterViewport';
+import {CreationControlCenterViewport} from "./implementation/CreationControlCenterViewport";
+import {ICreationControlCenterViewport} from "./interfaces/ICreationControlCenterViewport";
 
-export {
-    ICreationControlCenterViewport, CreationControlCenterViewport
-};
+export {ICreationControlCenterViewport, CreationControlCenterViewport};

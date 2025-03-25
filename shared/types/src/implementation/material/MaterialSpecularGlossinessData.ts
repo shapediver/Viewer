@@ -1,191 +1,209 @@
-import { AbstractMaterialData } from './AbstractMaterialData';
-import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from '../../interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
-import { IMapData } from '../../interfaces/data/material/IMapData';
-import { Color } from '../../types';
+import {IMapData} from "../../interfaces/data/material/IMapData";
+import {
+	MATERIAL_ALPHA,
+	MATERIAL_SHADING,
+	MATERIAL_SIDE,
+} from "../../interfaces/data/material/IMaterialAbstractData";
+import {
+	IMaterialSpecularGlossinessData,
+	IMaterialSpecularGlossinessDataProperties,
+} from "../../interfaces/data/material/IMaterialSpecularGlossinessDataProperties";
+import {Color} from "../../types";
+import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialSpecularGlossinessData extends AbstractMaterialData implements IMaterialSpecularGlossinessData {
-    // #region Properties (5)
+export class MaterialSpecularGlossinessData
+	extends AbstractMaterialData
+	implements IMaterialSpecularGlossinessData
+{
+	// #region Properties (5)
 
-    #glossiness: number = 1;
-    #glossinessMap?: IMapData;
-    #specular: Color = '#ffffff';
-    #specularGlossinessMap?: IMapData;
-    #specularMap?: IMapData;
-    #envMap?: string | string[];
+	#glossiness: number = 1;
+	#glossinessMap?: IMapData;
+	#specular: Color = "#ffffff";
+	#specularGlossinessMap?: IMapData;
+	#specularMap?: IMapData;
+	#envMap?: string | string[];
 
-    // #endregion Properties (5)
+	// #endregion Properties (5)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    /**
-     * Creates a material data object.
-     * 
-     * @param _attributes the attributes of the material
-     * @param id the id
-     */
-    constructor(
-        properties?: IMaterialSpecularGlossinessDataProperties,
-        id?: string,
-        version?: string
-    ) {
-        super(properties, id, version);
-        if (!properties) return;
-        if (properties.glossiness !== undefined) this.glossiness = properties.glossiness;
-        if (properties.specular !== undefined) this.specular = properties.specular;
-        if (properties.specularGlossinessMap !== undefined) this.specularGlossinessMap = properties.specularGlossinessMap;
-        if (properties.specularMap !== undefined) this.specularMap = properties.specularMap;
-        if (properties.glossinessMap !== undefined) this.glossinessMap = properties.glossinessMap;
-        if (properties.envMap !== undefined) this.envMap = properties.envMap;
-    }
+	/**
+	 * Creates a material data object.
+	 *
+	 * @param _attributes the attributes of the material
+	 * @param id the id
+	 */
+	constructor(
+		properties?: IMaterialSpecularGlossinessDataProperties,
+		id?: string,
+		version?: string,
+	) {
+		super(properties, id, version);
+		if (!properties) return;
+		if (properties.glossiness !== undefined)
+			this.glossiness = properties.glossiness;
+		if (properties.specular !== undefined)
+			this.specular = properties.specular;
+		if (properties.specularGlossinessMap !== undefined)
+			this.specularGlossinessMap = properties.specularGlossinessMap;
+		if (properties.specularMap !== undefined)
+			this.specularMap = properties.specularMap;
+		if (properties.glossinessMap !== undefined)
+			this.glossinessMap = properties.glossinessMap;
+		if (properties.envMap !== undefined) this.envMap = properties.envMap;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Accessors (10)
+	// #region Public Accessors (10)
 
+	public get envMap(): string | string[] | undefined {
+		return this.#envMap;
+	}
 
-    public get envMap(): string | string[] | undefined {
-        return this.#envMap;
-    }
+	public set envMap(value: string | string[] | undefined) {
+		this.#envMap = value;
+	}
 
-    public set envMap(value: string | string[] | undefined) {
-        this.#envMap = value;
-    }
+	public get glossiness(): number {
+		return this.#glossiness;
+	}
 
-    public get glossiness(): number {
-        return this.#glossiness;
-    }
+	public set glossiness(value: number) {
+		this.#glossiness = value;
+	}
 
-    public set glossiness(value: number) {
-        this.#glossiness = value;
-    }
+	public get glossinessMap(): IMapData | undefined {
+		return this.#glossinessMap;
+	}
 
-    public get glossinessMap(): IMapData | undefined {
-        return this.#glossinessMap;
-    }
+	public set glossinessMap(value: IMapData | undefined) {
+		this.#glossinessMap = value;
+	}
 
-    public set glossinessMap(value: IMapData | undefined) {
-        this.#glossinessMap = value;
-    }
+	public get specular(): Color {
+		return this.#specular;
+	}
 
-    public get specular(): Color {
-        return this.#specular;
-    }
+	public set specular(value: Color) {
+		this.#specular = value;
+	}
 
-    public set specular(value: Color) {
-        this.#specular = value;
-    }
+	public get specularGlossinessMap(): IMapData | undefined {
+		return this.#specularGlossinessMap;
+	}
 
-    public get specularGlossinessMap(): IMapData | undefined {
-        return this.#specularGlossinessMap;
-    }
+	public set specularGlossinessMap(value: IMapData | undefined) {
+		this.#specularGlossinessMap = value;
+	}
 
-    public set specularGlossinessMap(value: IMapData | undefined) {
-        this.#specularGlossinessMap = value;
-    }
+	public get specularMap(): IMapData | undefined {
+		return this.#specularMap;
+	}
 
-    public get specularMap(): IMapData | undefined {
-        return this.#specularMap;
-    }
+	public set specularMap(value: IMapData | undefined) {
+		this.#specularMap = value;
+	}
 
-    public set specularMap(value: IMapData | undefined) {
-        this.#specularMap = value;
-    }
+	// #endregion Public Accessors (10)
 
-    // #endregion Public Accessors (10)
+	// #region Public Methods (3)
 
-    // #region Public Methods (3)
+	public clone(): IMaterialSpecularGlossinessData {
+		return new MaterialSpecularGlossinessData(
+			{
+				alphaMap: this.alphaMap,
+				alphaCutoff: this.alphaCutoff,
+				alphaMode: this.alphaMode,
+				aoMap: this.aoMap,
+				aoMapIntensity: this.aoMapIntensity,
+				bumpMap: this.bumpMap,
+				bumpScale: this.bumpScale,
+				color: this.color,
+				depthTest: this.depthTest,
+				depthWrite: this.depthWrite,
+				emissiveMap: this.emissiveMap,
+				emissiveness: this.emissiveness,
+				shading: this.shading,
+				map: this.map,
+				name: this.name,
+				normalMap: this.normalMap,
+				normalScale: this.normalScale,
+				opacity: this.opacity,
+				side: this.side,
+				transparent: this.transparent,
+				specular: this.specular,
+				specularMap: this.specularMap,
+				specularGlossinessMap: this.specularGlossinessMap,
+				glossiness: this.glossiness,
+				glossinessMap: this.glossinessMap,
+				envMap: this.envMap,
+			},
+			this.id,
+			this.version,
+		);
+	}
 
-    public clone(): IMaterialSpecularGlossinessData {
-        return new MaterialSpecularGlossinessData({
-            alphaMap: this.alphaMap,
-            alphaCutoff: this.alphaCutoff,
-            alphaMode: this.alphaMode,
-            aoMap: this.aoMap,
-            aoMapIntensity: this.aoMapIntensity,
-            bumpMap: this.bumpMap,
-            bumpScale: this.bumpScale,
-            color: this.color,
-            depthTest: this.depthTest,
-            depthWrite: this.depthWrite,
-            emissiveMap: this.emissiveMap,
-            emissiveness: this.emissiveness,
-            shading: this.shading,
-            map: this.map,
-            name: this.name,
-            normalMap: this.normalMap,
-            normalScale: this.normalScale,
-            opacity: this.opacity,
-            side: this.side,
-            transparent: this.transparent,
-            specular: this.specular,
-            specularMap: this.specularMap,
-            specularGlossinessMap: this.specularGlossinessMap,
-            glossiness: this.glossiness,
-            glossinessMap: this.glossinessMap,
-            envMap: this.envMap,
-        }, this.id, this.version);
-    }
+	public copy(source: MaterialSpecularGlossinessData): void {
+		this.alphaCutoff = source.alphaCutoff;
+		this.alphaMap = source.alphaMap;
+		this.alphaMode = source.alphaMode;
+		this.aoMap = source.aoMap;
+		this.aoMapIntensity = source.aoMapIntensity;
+		this.bumpMap = source.bumpMap;
+		this.bumpScale = source.bumpScale;
+		this.color = source.color;
+		this.depthTest = source.depthTest;
+		this.depthWrite = source.depthWrite;
+		this.emissiveMap = source.emissiveMap;
+		this.emissiveness = source.emissiveness;
+		this.materialOutput = source.materialOutput;
+		this.map = source.map;
+		this.normalMap = source.normalMap;
+		this.normalScale = source.normalScale;
+		this.opacity = source.opacity;
+		this.shading = source.shading;
+		this.side = source.side;
+		this.transparent = source.transparent;
 
-    public copy(source: MaterialSpecularGlossinessData): void {
-        this.alphaCutoff = source.alphaCutoff;
-        this.alphaMap = source.alphaMap;
-        this.alphaMode = source.alphaMode;
-        this.aoMap = source.aoMap;
-        this.aoMapIntensity = source.aoMapIntensity;
-        this.bumpMap = source.bumpMap;
-        this.bumpScale = source.bumpScale;
-        this.color = source.color;
-        this.depthTest = source.depthTest;
-        this.depthWrite = source.depthWrite;
-        this.emissiveMap = source.emissiveMap;
-        this.emissiveness = source.emissiveness;
-        this.materialOutput = source.materialOutput;
-        this.map = source.map;
-        this.normalMap = source.normalMap;
-        this.normalScale = source.normalScale;
-        this.opacity = source.opacity;
-        this.shading = source.shading;
-        this.side = source.side;
-        this.transparent = source.transparent;
+		this.glossiness = source.glossiness;
+		this.specular = source.specular;
+		this.specularGlossinessMap = source.specularGlossinessMap;
+		this.specularMap = source.specularMap;
+		this.glossinessMap = source.glossinessMap;
+		this.envMap = source.envMap;
+	}
 
-        this.glossiness = source.glossiness;
-        this.specular = source.specular;
-        this.specularGlossinessMap = source.specularGlossinessMap;
-        this.specularMap = source.specularMap;
-        this.glossinessMap = source.glossinessMap;
-        this.envMap = source.envMap;
-    }
+	public reset(): void {
+		this.alphaCutoff = 0;
+		this.alphaMap = undefined;
+		this.alphaMode = MATERIAL_ALPHA.OPAQUE;
+		this.aoMap = undefined;
+		this.aoMapIntensity = 1.0;
+		this.bumpMap = undefined;
+		this.bumpScale = 1.0;
+		this.color = "#ffffff";
+		this.depthTest = undefined;
+		this.depthWrite = undefined;
+		this.emissiveMap = undefined;
+		this.emissiveness = "#000000";
+		this.materialOutput = false;
+		this.map = undefined;
+		this.normalMap = undefined;
+		this.normalScale = 1.0;
+		this.opacity = 1.0;
+		this.shading = MATERIAL_SHADING.SMOOTH;
+		this.side = MATERIAL_SIDE.DOUBLE;
+		this.transparent = undefined;
 
-    public reset(): void {
-        this.alphaCutoff = 0;
-        this.alphaMap = undefined;
-        this.alphaMode = MATERIAL_ALPHA.OPAQUE;
-        this.aoMap = undefined;
-        this.aoMapIntensity = 1.0;
-        this.bumpMap = undefined;
-        this.bumpScale = 1.0;
-        this.color = '#ffffff';
-        this.depthTest = undefined;
-        this.depthWrite = undefined;
-        this.emissiveMap = undefined;
-        this.emissiveness = '#000000';
-        this.materialOutput = false;
-        this.map = undefined;
-        this.normalMap = undefined;
-        this.normalScale = 1.0;
-        this.opacity = 1.0;
-        this.shading = MATERIAL_SHADING.SMOOTH;
-        this.side = MATERIAL_SIDE.DOUBLE;
-        this.transparent = undefined;
+		this.glossiness = 1;
+		this.specular = "#ffffff";
+		this.specularGlossinessMap = undefined;
+		this.specularMap = undefined;
+		this.glossinessMap = undefined;
+		this.envMap = undefined;
+	}
 
-        this.glossiness = 1;
-        this.specular = '#ffffff';
-        this.specularGlossinessMap = undefined;
-        this.specularMap = undefined;
-        this.glossinessMap = undefined;
-        this.envMap = undefined;
-    }
-
-    // #endregion Public Methods (3)
+	// #endregion Public Methods (3)
 }

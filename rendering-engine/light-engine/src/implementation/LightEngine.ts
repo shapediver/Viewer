@@ -1,337 +1,502 @@
-import { AbstractLight } from './AbstractLight';
-import { AmbientLight } from './types/AmbientLight';
+import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
-    Converter,
-    SettingsEngine,
-    UuidGenerator
-} from '@shapediver/viewer.shared.services';
-import { DirectionalLight } from './types/DirectionalLight';
-import { HemisphereLight } from './types/HemisphereLight';
+	IAmbientLightProperties,
+	IDirectionalLightProperties,
+	IHemisphereLightProperties,
+	ILightSceneSettings,
+	IPointLightProperties,
+	ISpotLightProperties,
+} from "@shapediver/viewer.settings";
 import {
-    IAmbientLightProperties,
-    IDirectionalLightProperties,
-    IHemisphereLightProperties,
-    ILightSceneSettings,
-    IPointLightProperties,
-    ISpotLightProperties
-} from '@shapediver/viewer.settings';
-import { LIGHT_TYPE } from '../interface/ILight';
-import { ILightEngine } from '../interface/ILightEngine';
-import { ILightScene } from '../interface/ILightScene';
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
+	ITree,
+	ITreeNode,
+	Tree,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
-    ITree,
-    ITreeNode,
-    Tree,
-    TreeNode
-} from '@shapediver/viewer.shared.node-tree';
-import { LightScene } from './LightScene';
-import { PointLight } from './types/PointLight';
-import { SpotLight } from './types/SpotLight';
-import { vec3 } from 'gl-matrix';
+	Converter,
+	SettingsEngine,
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
+import {vec3} from "gl-matrix";
+import {LIGHT_TYPE} from "../interface/ILight";
+import {ILightEngine} from "../interface/ILightEngine";
+import {ILightScene} from "../interface/ILightScene";
+import {AbstractLight} from "./AbstractLight";
+import {LightScene} from "./LightScene";
+import {AmbientLight} from "./types/AmbientLight";
+import {DirectionalLight} from "./types/DirectionalLight";
+import {HemisphereLight} from "./types/HemisphereLight";
+import {PointLight} from "./types/PointLight";
+import {SpotLight} from "./types/SpotLight";
 
 export class LightEngine implements ILightEngine {
-    // #region Properties (7)
+	// #region Properties (7)
 
-    private readonly _converter: Converter = Converter.instance;
-    private readonly _lightNode: ITreeNode = new TreeNode('lights');
-    private readonly _tree: ITree = Tree.instance;
-    private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+	private readonly _converter: Converter = Converter.instance;
+	private readonly _lightNode: ITreeNode = new TreeNode("lights");
+	private readonly _tree: ITree = Tree.instance;
+	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-    private _lightScene: LightScene | null = null;
-    private _lightScenes: { [key: string]: LightScene; } = {};
-    private _update?: () => void;
+	private _lightScene: LightScene | null = null;
+	private _lightScenes: {[key: string]: LightScene} = {};
+	private _update?: () => void;
 
-    // #endregion Properties (7)
+	// #endregion Properties (7)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: IRenderingEngine) {
-        this._tree.root.addChild(this._lightNode);
-        this._lightNode.restrictViewports = [this._renderingEngine.id];
-    }
+	constructor(private readonly _renderingEngine: IRenderingEngine) {
+		this._tree.root.addChild(this._lightNode);
+		this._lightNode.restrictViewports = [this._renderingEngine.id];
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (4)
+	// #region Public Getters And Setters (4)
 
-    public get lightScene(): LightScene | null {
-        return this._lightScene;
-    }
+	public get lightScene(): LightScene | null {
+		return this._lightScene;
+	}
 
-    public get lightScenes(): {
-        [key: string]: LightScene
-    } {
-        return this._lightScenes;
-    }
+	public get lightScenes(): {
+		[key: string]: LightScene;
+	} {
+		return this._lightScenes;
+	}
 
-    public get update(): (() => void) | undefined {
-        return this._update;
-    }
+	public get update(): (() => void) | undefined {
+		return this._update;
+	}
 
-    public set update(value: (() => void) | undefined) {
-        this._update = value;
-    }
+	public set update(value: (() => void) | undefined) {
+		this._update = value;
+	}
 
-    // #endregion Public Getters And Setters (4)
+	// #endregion Public Getters And Setters (4)
 
-    // #region Public Methods (6)
+	// #region Public Methods (6)
 
-    public applySettings(settingsEngine: SettingsEngine): void {
-        this._lightScenes = {};
+	public applySettings(settingsEngine: SettingsEngine): void {
+		this._lightScenes = {};
 
-        for (const lightSceneId in settingsEngine.light.lightScenes) {
-            const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
-            const lightSceneName = settingsEngine.light.lightScenes[lightSceneId].name ? settingsEngine.light.lightScenes[lightSceneId].name : lightSceneId;
-            const ls = new LightScene(this._renderingEngine, { id: lightSceneUUID, name: lightSceneName });
-            for (const lightId in settingsEngine.light.lightScenes[lightSceneId].lights) {
-                const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
-                const light = settingsEngine.light.lightScenes[lightSceneId].lights[lightId];
-                let l: AbstractLight;
-                switch (light.type) {
-                    case LIGHT_TYPE.DIRECTIONAL:
-                        l = new DirectionalLight({
-                            color: this._converter.toHexColor((<IDirectionalLightProperties>light.properties).color),
-                            intensity: (<IDirectionalLightProperties>light.properties).intensity,
-                            direction: this._converter.toVec3((<IDirectionalLightProperties>light.properties).direction),
-                            castShadow: (<IDirectionalLightProperties>light.properties).castShadow,
-                            shadowMapResolution: (<IDirectionalLightProperties>light.properties).shadowMapResolution,
-                            shadowMapBias: (<IDirectionalLightProperties>light.properties).shadowMapBias,
-                            name: light.name ? light.name : lightId,
-                            order: light.order,
-                            id: lightUUID
-                        });
-                        break;
-                    case LIGHT_TYPE.HEMISPHERE:
-                        l = new HemisphereLight({
-                            color: this._converter.toHexColor((<IHemisphereLightProperties>light.properties).skyColor),
-                            intensity: (<IHemisphereLightProperties>light.properties).intensity,
-                            groundColor: this._converter.toHexColor((<IHemisphereLightProperties>light.properties).groundColor),
-                            name: light.name ? light.name : lightId,
-                            order: light.order,
-                            id: lightUUID
-                        });
-                        break;
-                    case LIGHT_TYPE.POINT:
-                        l = new PointLight({
-                            color: this._converter.toHexColor((<IPointLightProperties>light.properties).color),
-                            intensity: (<IPointLightProperties>light.properties).intensity,
-                            position: this._converter.toVec3((<IPointLightProperties>light.properties).position),
-                            distance: (<IPointLightProperties>light.properties).distance,
-                            decay: (<IPointLightProperties>light.properties).decay,
-                            name: light.name ? light.name : lightId,
-                            order: light.order,
-                            id: lightUUID
-                        });
-                        break;
-                    case LIGHT_TYPE.SPOT:
-                        l = new SpotLight({
-                            color: this._converter.toHexColor((<ISpotLightProperties>light.properties).color),
-                            intensity: (<ISpotLightProperties>light.properties).intensity,
-                            position: this._converter.toVec3((<ISpotLightProperties>light.properties).position),
-                            target: this._converter.toVec3((<ISpotLightProperties>light.properties).target),
-                            distance: (<ISpotLightProperties>light.properties).distance,
-                            decay: (<ISpotLightProperties>light.properties).decay,
-                            angle: (<ISpotLightProperties>light.properties).angle,
-                            penumbra: (<ISpotLightProperties>light.properties).penumbra,
-                            name: light.name ? light.name : lightId,
-                            order: light.order,
-                            id: lightUUID
-                        });
-                        break;
-                    case LIGHT_TYPE.AMBIENT:
-                    default:
-                        l = new AmbientLight({
-                            color: this._converter.toHexColor((<IAmbientLightProperties>light.properties).color),
-                            intensity: (<IAmbientLightProperties>light.properties).intensity,
-                            name: light.name ? light.name : lightId,
-                            order: light.order,
-                            id: lightUUID
-                        });
-                }
-                ls.addLight(l);
-            }
-            this._lightScenes[ls.id] = ls;
-        }
+		for (const lightSceneId in settingsEngine.light.lightScenes) {
+			const lightSceneUUID = this._uuidGenerator.validate(lightSceneId)
+				? lightSceneId
+				: this._uuidGenerator.create();
+			const lightSceneName = settingsEngine.light.lightScenes[
+				lightSceneId
+			].name
+				? settingsEngine.light.lightScenes[lightSceneId].name
+				: lightSceneId;
+			const ls = new LightScene(this._renderingEngine, {
+				id: lightSceneUUID,
+				name: lightSceneName,
+			});
+			for (const lightId in settingsEngine.light.lightScenes[lightSceneId]
+				.lights) {
+				const lightUUID = this._uuidGenerator.validate(lightId)
+					? lightId
+					: this._uuidGenerator.create();
+				const light =
+					settingsEngine.light.lightScenes[lightSceneId].lights[
+						lightId
+					];
+				let l: AbstractLight;
+				switch (light.type) {
+					case LIGHT_TYPE.DIRECTIONAL:
+						l = new DirectionalLight({
+							color: this._converter.toHexColor(
+								(<IDirectionalLightProperties>light.properties)
+									.color,
+							),
+							intensity: (<IDirectionalLightProperties>(
+								light.properties
+							)).intensity,
+							direction: this._converter.toVec3(
+								(<IDirectionalLightProperties>light.properties)
+									.direction,
+							),
+							castShadow: (<IDirectionalLightProperties>(
+								light.properties
+							)).castShadow,
+							shadowMapResolution: (<IDirectionalLightProperties>(
+								light.properties
+							)).shadowMapResolution,
+							shadowMapBias: (<IDirectionalLightProperties>(
+								light.properties
+							)).shadowMapBias,
+							name: light.name ? light.name : lightId,
+							order: light.order,
+							id: lightUUID,
+						});
+						break;
+					case LIGHT_TYPE.HEMISPHERE:
+						l = new HemisphereLight({
+							color: this._converter.toHexColor(
+								(<IHemisphereLightProperties>light.properties)
+									.skyColor,
+							),
+							intensity: (<IHemisphereLightProperties>(
+								light.properties
+							)).intensity,
+							groundColor: this._converter.toHexColor(
+								(<IHemisphereLightProperties>light.properties)
+									.groundColor,
+							),
+							name: light.name ? light.name : lightId,
+							order: light.order,
+							id: lightUUID,
+						});
+						break;
+					case LIGHT_TYPE.POINT:
+						l = new PointLight({
+							color: this._converter.toHexColor(
+								(<IPointLightProperties>light.properties).color,
+							),
+							intensity: (<IPointLightProperties>light.properties)
+								.intensity,
+							position: this._converter.toVec3(
+								(<IPointLightProperties>light.properties)
+									.position,
+							),
+							distance: (<IPointLightProperties>light.properties)
+								.distance,
+							decay: (<IPointLightProperties>light.properties)
+								.decay,
+							name: light.name ? light.name : lightId,
+							order: light.order,
+							id: lightUUID,
+						});
+						break;
+					case LIGHT_TYPE.SPOT:
+						l = new SpotLight({
+							color: this._converter.toHexColor(
+								(<ISpotLightProperties>light.properties).color,
+							),
+							intensity: (<ISpotLightProperties>light.properties)
+								.intensity,
+							position: this._converter.toVec3(
+								(<ISpotLightProperties>light.properties)
+									.position,
+							),
+							target: this._converter.toVec3(
+								(<ISpotLightProperties>light.properties).target,
+							),
+							distance: (<ISpotLightProperties>light.properties)
+								.distance,
+							decay: (<ISpotLightProperties>light.properties)
+								.decay,
+							angle: (<ISpotLightProperties>light.properties)
+								.angle,
+							penumbra: (<ISpotLightProperties>light.properties)
+								.penumbra,
+							name: light.name ? light.name : lightId,
+							order: light.order,
+							id: lightUUID,
+						});
+						break;
+					case LIGHT_TYPE.AMBIENT:
+					default:
+						l = new AmbientLight({
+							color: this._converter.toHexColor(
+								(<IAmbientLightProperties>light.properties)
+									.color,
+							),
+							intensity: (<IAmbientLightProperties>(
+								light.properties
+							)).intensity,
+							name: light.name ? light.name : lightId,
+							order: light.order,
+							id: lightUUID,
+						});
+				}
+				ls.addLight(l);
+			}
+			this._lightScenes[ls.id] = ls;
+		}
 
-        // there is a light scene but no id is saved (old viewer)
-        if (settingsEngine.light.lightSceneId === undefined && Object.values(settingsEngine.light.lightScenes).length > 0) {
-            const res = this.assignLightScene(Object.keys(settingsEngine.light.lightScenes)[0]);
-            if (res === false) {
-                const ls = <LightScene>this.createLightScene({ name: settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
-                ls.addLight(new AmbientLight({ color: '#ffffff', intensity: 0.5, name: 'ambient0' }));
-                ls.addLight(new DirectionalLight({ color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0' }));
-                ls.addLight(new DirectionalLight({ color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1' }));
-                this._lightScenes[ls.id] = ls;
-            }
-        } // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
-        else if (settingsEngine.light.lightSceneId) {
-            const res = this.assignLightScene(settingsEngine.light.lightSceneId);
-            if (res === false) {
-                const ls = <LightScene>this.createLightScene({ name: settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
-                ls.addLight(new AmbientLight({ color: '#ffffff', intensity: 0.5, name: 'ambient0' }));
-                ls.addLight(new DirectionalLight({ color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0' }));
-                ls.addLight(new DirectionalLight({ color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1' }));
-                this._lightScenes[ls.id] = ls;
-            }
-        } else {
-            this.assignLightScene();
-        }
+		// there is a light scene but no id is saved (old viewer)
+		if (
+			settingsEngine.light.lightSceneId === undefined &&
+			Object.values(settingsEngine.light.lightScenes).length > 0
+		) {
+			const res = this.assignLightScene(
+				Object.keys(settingsEngine.light.lightScenes)[0],
+			);
+			if (res === false) {
+				const ls = <LightScene>this.createLightScene({
+					name:
+						settingsEngine.light.lightSceneId === "default"
+							? "default"
+							: "standard",
+				});
+				ls.addLight(
+					new AmbientLight({
+						color: "#ffffff",
+						intensity: 0.5,
+						name: "ambient0",
+					}),
+				);
+				ls.addLight(
+					new DirectionalLight({
+						color: "#ffffff",
+						intensity: 0.75,
+						direction: vec3.fromValues(0.5774, -0.5774, 0.5774),
+						castShadow: true,
+						name: "directional0",
+					}),
+				);
+				ls.addLight(
+					new DirectionalLight({
+						color: "#ffffff",
+						intensity: 0.35,
+						direction: vec3.fromValues(0.25, -1, 1),
+						castShadow: false,
+						name: "directional1",
+					}),
+				);
+				this._lightScenes[ls.id] = ls;
+			}
+		} // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
+		else if (settingsEngine.light.lightSceneId) {
+			const res = this.assignLightScene(
+				settingsEngine.light.lightSceneId,
+			);
+			if (res === false) {
+				const ls = <LightScene>this.createLightScene({
+					name:
+						settingsEngine.light.lightSceneId === "default"
+							? "default"
+							: "standard",
+				});
+				ls.addLight(
+					new AmbientLight({
+						color: "#ffffff",
+						intensity: 0.5,
+						name: "ambient0",
+					}),
+				);
+				ls.addLight(
+					new DirectionalLight({
+						color: "#ffffff",
+						intensity: 0.75,
+						direction: vec3.fromValues(0.5774, -0.5774, 0.5774),
+						castShadow: true,
+						name: "directional0",
+					}),
+				);
+				ls.addLight(
+					new DirectionalLight({
+						color: "#ffffff",
+						intensity: 0.35,
+						direction: vec3.fromValues(0.25, -1, 1),
+						castShadow: false,
+						name: "directional1",
+					}),
+				);
+				this._lightScenes[ls.id] = ls;
+			}
+		} else {
+			this.assignLightScene();
+		}
 
-        if (this._update) this._update();
-    }
+		if (this._update) this._update();
+	}
 
-    public assignLightScene(id?: string): boolean {
-        if(!id) {
-            this._lightScene = null;
-                
-            while (this._lightNode.children.length > 0)
-                this._lightNode.removeChild(this._lightNode.children[0]);
-            this._lightNode.updateVersion();
+	public assignLightScene(id?: string): boolean {
+		if (!id) {
+			this._lightScene = null;
 
-            return true;
-        }
+			while (this._lightNode.children.length > 0)
+				this._lightNode.removeChild(this._lightNode.children[0]);
+			this._lightNode.updateVersion();
 
-        if (!this._lightScenes[id]) {
-            for (const lightSceneId in this._lightScenes) {
-                const lightScene = this._lightScenes[lightSceneId];
-                const lightSceneName = lightScene.name || lightSceneId;
-                if (lightSceneName === id) {
-                    const res = this.assignLightScene(lightSceneId);
-                    return res;
-                }
-            }
-            return false;
-        }
-        this._lightScene = this._lightScenes[id];
-        while (this._lightNode.children.length > 0)
-            this._lightNode.removeChild(this._lightNode.children[0]);
-        this._lightNode.addChild(this._lightScene!.node);
-        this._lightNode.updateVersion();
+			return true;
+		}
 
-        return true;
-    }
+		if (!this._lightScenes[id]) {
+			for (const lightSceneId in this._lightScenes) {
+				const lightScene = this._lightScenes[lightSceneId];
+				const lightSceneName = lightScene.name || lightSceneId;
+				if (lightSceneName === id) {
+					const res = this.assignLightScene(lightSceneId);
+					return res;
+				}
+			}
+			return false;
+		}
+		this._lightScene = this._lightScenes[id];
+		while (this._lightNode.children.length > 0)
+			this._lightNode.removeChild(this._lightNode.children[0]);
+		this._lightNode.addChild(this._lightScene!.node);
+		this._lightNode.updateVersion();
 
-    public close(): void {
-        this._tree.root.removeChild(this._lightNode);
-    }
+		return true;
+	}
 
-    public createLightScene(properties: { name?: string, standard?: boolean }): ILightScene {
-        const lightSceneId = this._uuidGenerator.create();
-        const lightScene = new LightScene(this._renderingEngine, { id: lightSceneId, name: properties.name });
-        if (properties.standard === true) {
-            lightScene.addLight(new DirectionalLight({ color: '#ffffff', intensity: 2.5, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0' }));
-            lightScene.addLight(new AmbientLight({ color: '#ffffff', intensity: 0.3, name: 'ambient0' }));
-        }
-        this._lightScenes[lightSceneId] = lightScene;
-        this._lightScene = lightScene;
-        while (this._lightNode.children.length > 0)
-            this._lightNode.removeChild(this._lightNode.children[0]);
-        this._lightNode.addChild(this._lightScene!.node);
-        this._lightNode.updateVersion();
+	public close(): void {
+		this._tree.root.removeChild(this._lightNode);
+	}
 
-        if (this._update) this._update();
-        return lightScene;
-    }
+	public createLightScene(properties: {
+		name?: string;
+		standard?: boolean;
+	}): ILightScene {
+		const lightSceneId = this._uuidGenerator.create();
+		const lightScene = new LightScene(this._renderingEngine, {
+			id: lightSceneId,
+			name: properties.name,
+		});
+		if (properties.standard === true) {
+			lightScene.addLight(
+				new DirectionalLight({
+					color: "#ffffff",
+					intensity: 2.5,
+					direction: vec3.fromValues(0.5774, -0.5774, 0.5774),
+					castShadow: true,
+					name: "directional0",
+				}),
+			);
+			lightScene.addLight(
+				new AmbientLight({
+					color: "#ffffff",
+					intensity: 0.3,
+					name: "ambient0",
+				}),
+			);
+		}
+		this._lightScenes[lightSceneId] = lightScene;
+		this._lightScene = lightScene;
+		while (this._lightNode.children.length > 0)
+			this._lightNode.removeChild(this._lightNode.children[0]);
+		this._lightNode.addChild(this._lightScene!.node);
+		this._lightNode.updateVersion();
 
-    public removeLightScene(id: string): boolean {
-        if (!this._lightScenes[id]) {
-            for (const lightSceneId in this._lightScenes) {
-                const lightScene = this._lightScenes[lightSceneId];
-                const lightSceneName = lightScene.name || lightSceneId;
-                if (lightSceneName === id) {
-                    const res = this.removeLightScene(lightSceneId);
-                    return res;
-                }
-            }
-            return false;
-        }
+		if (this._update) this._update();
+		return lightScene;
+	}
 
-        if (this._lightScene && this._lightScene.id === id) {
-            (<any>this._lightScene) = undefined;
+	public removeLightScene(id: string): boolean {
+		if (!this._lightScenes[id]) {
+			for (const lightSceneId in this._lightScenes) {
+				const lightScene = this._lightScenes[lightSceneId];
+				const lightSceneName = lightScene.name || lightSceneId;
+				if (lightSceneName === id) {
+					const res = this.removeLightScene(lightSceneId);
+					return res;
+				}
+			}
+			return false;
+		}
 
-            while (this._lightNode.children.length > 0)
-                this._lightNode.removeChild(this._lightNode.children[0]);
-            this._lightNode.updateVersion();
-        }
-        delete this._lightScenes[id];
+		if (this._lightScene && this._lightScene.id === id) {
+			(<any>this._lightScene) = undefined;
 
-        if (this._update) this._update();
-        return true;
-    }
+			while (this._lightNode.children.length > 0)
+				this._lightNode.removeChild(this._lightNode.children[0]);
+			this._lightNode.updateVersion();
+		}
+		delete this._lightScenes[id];
 
-    public saveSettings(settingsEngine: SettingsEngine) {
-        settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : undefined;
+		if (this._update) this._update();
+		return true;
+	}
 
-        const converted: ILightSceneSettings = {};
-        for (const lightSceneId in this._lightScenes) {
-            const lightScene = this._lightScenes[lightSceneId];
-            const lightSceneName = lightScene.name || lightSceneId;
-            converted[lightSceneId] = {
-                name: lightSceneName,
-                lights: {}
-            };
-            for (const lightId in lightScene.lights) {
-                const light = lightScene.lights[lightId];
+	public saveSettings(settingsEngine: SettingsEngine) {
+		settingsEngine.light.lightSceneId = this.lightScene
+			? this.lightScene.id
+			: undefined;
 
-                let properties;
-                switch (light.type) {
-                    case LIGHT_TYPE.DIRECTIONAL:
-                        properties = {
-                            color: this._converter.toHexColor(light.color),
-                            intensity: light.intensity,
-                            direction: { x: (<DirectionalLight>light).direction[0], y: (<DirectionalLight>light).direction[1], z: (<DirectionalLight>light).direction[2] },
-                            castShadow: (<DirectionalLight>light).castShadow,
-                            shadowMapResolution: (<DirectionalLight>light).shadowMapResolution,
-                            shadowMapBias: (<DirectionalLight>light).shadowMapBias
-                        };
-                        break;
-                    case LIGHT_TYPE.HEMISPHERE:
-                        properties = {
-                            skyColor: this._converter.toHexColor(light.color),
-                            intensity: light.intensity,
-                            groundColor: this._converter.toHexColor((<HemisphereLight>light).groundColor)
-                        };
-                        break;
-                    case LIGHT_TYPE.POINT:
-                        properties = {
-                            color: this._converter.toHexColor(light.color),
-                            intensity: light.intensity,
-                            position: { x: (<PointLight>light).position[0], y: (<PointLight>light).position[1], z: (<PointLight>light).position[2] },
-                            distance: (<PointLight>light).distance,
-                            decay: (<PointLight>light).decay
-                        };
-                        break;
-                    case LIGHT_TYPE.SPOT:
-                        properties = {
-                            color: this._converter.toHexColor(light.color),
-                            intensity: light.intensity,
-                            position: { x: (<SpotLight>light).position[0], y: (<SpotLight>light).position[1], z: (<SpotLight>light).position[2] },
-                            target: { x: (<SpotLight>light).target[0], y: (<SpotLight>light).target[1], z: (<SpotLight>light).target[2] },
-                            distance: (<SpotLight>light).distance,
-                            decay: (<SpotLight>light).decay,
-                            angle: (<SpotLight>light).angle,
-                            penumbra: (<SpotLight>light).penumbra
-                        };
-                        break;
-                    case LIGHT_TYPE.AMBIENT:
-                    default:
-                        properties = {
-                            color: this._converter.toHexColor(light.color),
-                            intensity: light.intensity
-                        };
-                }
-                converted[lightSceneId].lights[lightId] = {
-                    name: light.name,
-                    type: light.type,
-                    properties
-                };
-                if (light.order !== undefined)
-                    converted[lightSceneId].lights[lightId].order = light.order;
-            }
-        }
-        settingsEngine.light.lightScenes = converted;
-    }
+		const converted: ILightSceneSettings = {};
+		for (const lightSceneId in this._lightScenes) {
+			const lightScene = this._lightScenes[lightSceneId];
+			const lightSceneName = lightScene.name || lightSceneId;
+			converted[lightSceneId] = {
+				name: lightSceneName,
+				lights: {},
+			};
+			for (const lightId in lightScene.lights) {
+				const light = lightScene.lights[lightId];
 
-    // #endregion Public Methods (6)
+				let properties;
+				switch (light.type) {
+					case LIGHT_TYPE.DIRECTIONAL:
+						properties = {
+							color: this._converter.toHexColor(light.color),
+							intensity: light.intensity,
+							direction: {
+								x: (<DirectionalLight>light).direction[0],
+								y: (<DirectionalLight>light).direction[1],
+								z: (<DirectionalLight>light).direction[2],
+							},
+							castShadow: (<DirectionalLight>light).castShadow,
+							shadowMapResolution: (<DirectionalLight>light)
+								.shadowMapResolution,
+							shadowMapBias: (<DirectionalLight>light)
+								.shadowMapBias,
+						};
+						break;
+					case LIGHT_TYPE.HEMISPHERE:
+						properties = {
+							skyColor: this._converter.toHexColor(light.color),
+							intensity: light.intensity,
+							groundColor: this._converter.toHexColor(
+								(<HemisphereLight>light).groundColor,
+							),
+						};
+						break;
+					case LIGHT_TYPE.POINT:
+						properties = {
+							color: this._converter.toHexColor(light.color),
+							intensity: light.intensity,
+							position: {
+								x: (<PointLight>light).position[0],
+								y: (<PointLight>light).position[1],
+								z: (<PointLight>light).position[2],
+							},
+							distance: (<PointLight>light).distance,
+							decay: (<PointLight>light).decay,
+						};
+						break;
+					case LIGHT_TYPE.SPOT:
+						properties = {
+							color: this._converter.toHexColor(light.color),
+							intensity: light.intensity,
+							position: {
+								x: (<SpotLight>light).position[0],
+								y: (<SpotLight>light).position[1],
+								z: (<SpotLight>light).position[2],
+							},
+							target: {
+								x: (<SpotLight>light).target[0],
+								y: (<SpotLight>light).target[1],
+								z: (<SpotLight>light).target[2],
+							},
+							distance: (<SpotLight>light).distance,
+							decay: (<SpotLight>light).decay,
+							angle: (<SpotLight>light).angle,
+							penumbra: (<SpotLight>light).penumbra,
+						};
+						break;
+					case LIGHT_TYPE.AMBIENT:
+					default:
+						properties = {
+							color: this._converter.toHexColor(light.color),
+							intensity: light.intensity,
+						};
+				}
+				converted[lightSceneId].lights[lightId] = {
+					name: light.name,
+					type: light.type,
+					properties,
+				};
+				if (light.order !== undefined)
+					converted[lightSceneId].lights[lightId].order = light.order;
+			}
+		}
+		settingsEngine.light.lightScenes = converted;
+	}
+
+	// #endregion Public Methods (6)
 }

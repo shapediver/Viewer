@@ -1,11 +1,6 @@
-import { IIntersectionEngine } from './interfaces/IIntersectionEngine';
-import { IntersectionEngine } from './implementation/IntersectionEngine';
-import { RaycasterParameters } from 'three';
+import {RaycasterParameters} from "three";
+import {IntersectionEngine} from "./implementation/IntersectionEngine";
+import {IIntersectionEngine} from "./interfaces/IIntersectionEngine";
 
-export {
-  IIntersectionEngine, RaycasterParameters
-};
-
-export {
-  IntersectionEngine
-};
+export {IIntersectionEngine, RaycasterParameters};
+export {IntersectionEngine};

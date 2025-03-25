@@ -1,6 +1,9 @@
-import { ICanvas } from './ICanvas'
+import {ICanvas} from "./ICanvas";
 
 export interface ICanvasEngine {
-    createCanvasObject(canvasDefinition?: string | HTMLCanvasElement, storageId?: string): string;
-    getCanvas(storageId: string): ICanvas;
+	createCanvasObject(
+		canvasDefinition?: string | HTMLCanvasElement,
+		storageId?: string,
+	): string;
+	getCanvas(storageId: string): ICanvas;
 }

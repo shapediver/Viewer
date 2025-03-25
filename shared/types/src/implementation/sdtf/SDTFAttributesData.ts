@@ -1,47 +1,47 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { ISDTFAttributeData, ISDTFAttributesData } from '../../interfaces/sdtf/ISDTFAttributesData';
-import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
+import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {
+	ISDTFAttributeData,
+	ISDTFAttributesData,
+} from "../../interfaces/sdtf/ISDTFAttributesData";
 
 export class SDTFAttributeData implements ISDTFAttributeData {
-    // #region Properties (2)
+	// #region Properties (2)
 
-    readonly #typeHint;
-    readonly #value;
+	readonly #typeHint;
+	readonly #value;
 
-    #resolvedValue: any;
+	#resolvedValue: any;
 
-    // #endregion Properties (2)
+	// #endregion Properties (2)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(
-        typeHint: SdtfTypeHintName | string,
-        value: any
-    ) {
-        this.#typeHint = typeHint;
-        this.#value = value;
-    }
+	constructor(typeHint: SdtfTypeHintName | string, value: any) {
+		this.#typeHint = typeHint;
+		this.#value = value;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+	// #region Public Accessors (2)
 
-    public get typeHint(): SdtfTypeHintName | string {
-        return this.#typeHint;
-    }
+	public get typeHint(): SdtfTypeHintName | string {
+		return this.#typeHint;
+	}
 
-    public get value(): any {
-        if(this.#value instanceof Function && !this.#resolvedValue) {
-            this.#resolvedValue = this.#value();
-            return this.#resolvedValue;
-        } else if(this.#value instanceof Function) {
-            return this.#resolvedValue;
-        }
+	public get value(): any {
+		if (this.#value instanceof Function && !this.#resolvedValue) {
+			this.#resolvedValue = this.#value();
+			return this.#resolvedValue;
+		} else if (this.#value instanceof Function) {
+			return this.#resolvedValue;
+		}
 
-        return this.#value;
-    }
+		return this.#value;
+	}
 
-    // #endregion Public Accessors (2)
+	// #endregion Public Accessors (2)
 }
 
 // export class SDTFAttributeAsyncData {
@@ -81,48 +81,51 @@ export class SDTFAttributeData implements ISDTFAttributeData {
 //     // #endregion Constructors (1)
 // }
 
-export class SDTFAttributesData extends AbstractTreeNodeData implements ISDTFAttributesData {
-    // #region Properties (1)
+export class SDTFAttributesData
+	extends AbstractTreeNodeData
+	implements ISDTFAttributesData
+{
+	// #region Properties (1)
 
-    readonly #attributes: {
-        [key: string]: SDTFAttributeData
-    } = {};
+	readonly #attributes: {
+		[key: string]: SDTFAttributeData;
+	} = {};
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(
-        attributes: {
-            [key: string]: SDTFAttributeData
-        } = {},
-        id?: string,
-        version?: string
-    ) {
-        super(id, version);
-        this.#attributes = attributes;
-    }
+	constructor(
+		attributes: {
+			[key: string]: SDTFAttributeData;
+		} = {},
+		id?: string,
+		version?: string,
+	) {
+		super(id, version);
+		this.#attributes = attributes;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+	// #region Public Accessors (1)
 
-    public get attributes(): {
-        [key: string]: SDTFAttributeData
-    } {
-        return this.#attributes;
-    }
+	public get attributes(): {
+		[key: string]: SDTFAttributeData;
+	} {
+		return this.#attributes;
+	}
 
-    // #endregion Public Accessors (1)
+	// #endregion Public Accessors (1)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    /**
-     * Clones the scene graph data.
-     */
-    public clone(): ISDTFAttributesData {
-        return new SDTFAttributesData(this.attributes, this.id, this.version);
-    }
+	/**
+	 * Clones the scene graph data.
+	 */
+	public clone(): ISDTFAttributesData {
+		return new SDTFAttributesData(this.attributes, this.id, this.version);
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

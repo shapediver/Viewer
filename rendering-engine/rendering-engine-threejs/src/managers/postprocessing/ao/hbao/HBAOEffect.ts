@@ -1,12 +1,15 @@
-import { EffectComposer } from 'postprocessing';
-import { Camera, Scene } from 'three';
-import { AOEffect } from '../ao/AOEffect';
+import {EffectComposer} from "postprocessing";
+import {Camera, Scene} from "three";
+import {AOEffect} from "../ao/AOEffect";
 
-import { AOPass } from '../ao/AOPass';
-import { hbao as fragmentShader } from './shader/hbao';
-import { ao_utils } from '../ao/shader/ao_utils';
+import {AOPass} from "../ao/AOPass";
+import {ao_utils} from "../ao/shader/ao_utils";
+import {hbao as fragmentShader} from "./shader/hbao";
 
-const finalFragmentShader = fragmentShader.replace('#include <ao_utils>', ao_utils);
+const finalFragmentShader = fragmentShader.replace(
+	"#include <ao_utils>",
+	ao_utils,
+);
 
 class HBAOPass extends AOPass {
 	// #region Constructors (1)
@@ -21,21 +24,26 @@ class HBAOPass extends AOPass {
 class HBAOEffect extends AOEffect {
 	// #region Properties (1)
 
-	public lastSize = { width: 0, height: 0, resolutionScale: 0 };
+	public lastSize = {width: 0, height: 0, resolutionScale: 0};
 
 	// #endregion Properties (1)
 
 	// #region Constructors (1)
 
-	constructor(composer: EffectComposer, camera: Camera, scene: Scene, options: { [key: string]: unknown } = AOEffect.DefaultOptions) {
+	constructor(
+		composer: EffectComposer,
+		camera: Camera,
+		scene: Scene,
+		options: {[key: string]: unknown} = AOEffect.DefaultOptions,
+	) {
 		super(composer, camera, scene, new HBAOPass(camera, scene), {
 			...AOEffect.DefaultOptions,
 			...HBAOEffect.DefaultOptions,
-			...options
+			...options,
 		});
 	}
 
 	// #endregion Constructors (1)
 }
 
-export { HBAOEffect };
+export {HBAOEffect};

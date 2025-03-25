@@ -5,16 +5,16 @@ import {
 	Effect,
 	EffectAttribute,
 	LuminancePass,
-	ToneMappingMode
-	} from 'postprocessing';
+	ToneMappingMode,
+} from "postprocessing";
 import {
 	LinearMipmapLinearFilter,
 	REVISION,
 	Uniform,
 	WebGLRenderer,
-	WebGLRenderTarget
-	} from 'three';
-import { tone_mapping } from './tone-mapping';
+	WebGLRenderTarget,
+} from "three";
+import {tone_mapping} from "./tone-mapping";
 
 /**
  * A tone mapping effect.
@@ -51,7 +51,9 @@ export class ToneMappingEffect extends Effect {
 	constructor({
 		blendFunction = BlendFunction.SRC,
 		adaptive = false,
-		mode = adaptive ? ToneMappingMode.REINHARD2_ADAPTIVE : ToneMappingMode.AGX,
+		mode = adaptive
+			? ToneMappingMode.REINHARD2_ADAPTIVE
+			: ToneMappingMode.AGX,
 		resolution = 256,
 		maxLuminance = 4.0,
 		whitePoint = maxLuminance,
@@ -71,16 +73,16 @@ export class ToneMappingEffect extends Effect {
 		averageLuminance?: number;
 		adaptationRate?: number;
 	} = {}) {
-		super('ToneMappingEffect', tone_mapping, {
+		super("ToneMappingEffect", tone_mapping, {
 			attributes: EffectAttribute.DEPTH,
 			blendFunction,
 			uniforms: new Map([
-				['luminanceBuffer', new Uniform(null)],
-				['maxLuminance', new Uniform(maxLuminance)], // Unused
-				['whitePoint', new Uniform(whitePoint)],
-				['middleGrey', new Uniform(middleGrey)],
-				['averageLuminance', new Uniform(averageLuminance)]
-			] as any)
+				["luminanceBuffer", new Uniform(null)],
+				["maxLuminance", new Uniform(maxLuminance)], // Unused
+				["whitePoint", new Uniform(whitePoint)],
+				["middleGrey", new Uniform(middleGrey)],
+				["averageLuminance", new Uniform(averageLuminance)],
+			] as any),
 		});
 		/**
 		 * The render target for the current luminance.
@@ -91,11 +93,11 @@ export class ToneMappingEffect extends Effect {
 
 		this.renderTargetLuminance = new WebGLRenderTarget(1, 1, {
 			minFilter: LinearMipmapLinearFilter,
-			depthBuffer: false
+			depthBuffer: false,
 		});
 
 		this.renderTargetLuminance.texture.generateMipmaps = true;
-		this.renderTargetLuminance.texture.name = 'Luminance';
+		this.renderTargetLuminance.texture.name = "Luminance";
 
 		/**
 		 * A luminance pass.
@@ -105,7 +107,7 @@ export class ToneMappingEffect extends Effect {
 		 */
 
 		this.luminancePass = new LuminancePass({
-			renderTarget: this.renderTargetLuminance
+			renderTarget: this.renderTargetLuminance,
 		});
 
 		/**
@@ -115,12 +117,16 @@ export class ToneMappingEffect extends Effect {
 		 * @private
 		 */
 
-		this.adaptiveLuminancePass = new AdaptiveLuminancePass(this.luminancePass.texture, {
-			minLuminance,
-			adaptationRate
-		});
+		this.adaptiveLuminancePass = new AdaptiveLuminancePass(
+			this.luminancePass.texture,
+			{
+				minLuminance,
+				adaptationRate,
+			},
+		);
 
-		this.uniforms.get('luminanceBuffer')!.value = this.adaptiveLuminancePass.texture;
+		this.uniforms.get("luminanceBuffer")!.value =
+			this.adaptiveLuminancePass.texture;
 
 		this.resolution = resolution;
 		this.mode = mode;
@@ -149,11 +155,13 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get adaptive() {
-		return (this.mode === ToneMappingMode.REINHARD2_ADAPTIVE);
+		return this.mode === ToneMappingMode.REINHARD2_ADAPTIVE;
 	}
 
 	public set adaptive(value) {
-		this.mode = value ? ToneMappingMode.REINHARD2_ADAPTIVE : ToneMappingMode.REINHARD2;
+		this.mode = value
+			? ToneMappingMode.REINHARD2_ADAPTIVE
+			: ToneMappingMode.REINHARD2;
 	}
 
 	/**
@@ -175,11 +183,11 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get averageLuminance() {
-		return this.uniforms.get('averageLuminance')!.value;
+		return this.uniforms.get("averageLuminance")!.value;
 	}
 
 	public set averageLuminance(value) {
-		this.uniforms.get('averageLuminance')!.value = value;
+		this.uniforms.get("averageLuminance")!.value = value;
 	}
 
 	/**
@@ -188,12 +196,12 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get distinction() {
-		console.warn(this.name, 'distinction was removed.');
+		console.warn(this.name, "distinction was removed.");
 		return 1.0;
 	}
 
 	public set distinction(value) {
-		console.warn(this.name, 'distinction was removed.');
+		console.warn(this.name, "distinction was removed.");
 	}
 
 	/**
@@ -205,11 +213,11 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get middleGrey() {
-		return this.uniforms.get('middleGrey')!.value;
+		return this.uniforms.get("middleGrey")!.value;
 	}
 
 	public set middleGrey(value) {
-		this.uniforms.get('middleGrey')!.value = value;
+		this.uniforms.get("middleGrey")!.value = value;
 	}
 
 	/**
@@ -219,7 +227,7 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get mode() {
-		return Number(this.defines.get('TONE_MAPPING_MODE'));
+		return Number(this.defines.get("TONE_MAPPING_MODE"));
 	}
 
 	public set mode(value) {
@@ -227,44 +235,60 @@ export class ToneMappingEffect extends Effect {
 			return;
 		}
 
-		const revision = +REVISION.replace(/\D+/g, '');
-		const cineonToneMapping = (revision >= 168) ? 'CineonToneMapping(texel)' : 'OptimizedCineonToneMapping(texel)';
+		const revision = +REVISION.replace(/\D+/g, "");
+		const cineonToneMapping =
+			revision >= 168
+				? "CineonToneMapping(texel)"
+				: "OptimizedCineonToneMapping(texel)";
 
 		this.defines.clear();
-		this.defines.set('TONE_MAPPING_MODE', value.toFixed(0));
+		this.defines.set("TONE_MAPPING_MODE", value.toFixed(0));
 
 		// Use one of the built-in tone mapping operators.
 		switch (value) {
 			case ToneMappingMode.LINEAR:
-				this.defines.set('toneMapping(texel)', 'LinearToneMapping(texel)');
+				this.defines.set(
+					"toneMapping(texel)",
+					"LinearToneMapping(texel)",
+				);
 				break;
 
 			case ToneMappingMode.REINHARD:
-				this.defines.set('toneMapping(texel)', 'ReinhardToneMapping(texel)');
+				this.defines.set(
+					"toneMapping(texel)",
+					"ReinhardToneMapping(texel)",
+				);
 				break;
 
 			case ToneMappingMode.OPTIMIZED_CINEON:
-				this.defines.set('toneMapping(texel)', cineonToneMapping);
+				this.defines.set("toneMapping(texel)", cineonToneMapping);
 				break;
 
 			case ToneMappingMode.ACES_FILMIC:
-				this.defines.set('toneMapping(texel)', 'ACESFilmicToneMapping(texel)');
+				this.defines.set(
+					"toneMapping(texel)",
+					"ACESFilmicToneMapping(texel)",
+				);
 				break;
 
 			case ToneMappingMode.AGX:
-				this.defines.set('toneMapping(texel)', 'AgXToneMapping(texel)');
+				this.defines.set("toneMapping(texel)", "AgXToneMapping(texel)");
 				break;
 
 			case ToneMappingMode.NEUTRAL:
-				this.defines.set('toneMapping(texel)', 'NeutralToneMapping(texel)');
+				this.defines.set(
+					"toneMapping(texel)",
+					"NeutralToneMapping(texel)",
+				);
 				break;
 
 			default:
-				this.defines.set('toneMapping(texel)', 'texel');
+				this.defines.set("toneMapping(texel)", "texel");
 				break;
 		}
 
-		this.adaptiveLuminancePass.enabled = (value === ToneMappingMode.REINHARD2_ADAPTIVE);
+		this.adaptiveLuminancePass.enabled =
+			value === ToneMappingMode.REINHARD2_ADAPTIVE;
 		this.setChanged();
 	}
 
@@ -296,11 +320,11 @@ export class ToneMappingEffect extends Effect {
 	 */
 
 	public get whitePoint() {
-		return this.uniforms.get('whitePoint')!.value;
+		return this.uniforms.get("whitePoint")!.value;
 	}
 
 	public set whitePoint(value) {
-		this.uniforms.get('whitePoint')!.value = value;
+		this.uniforms.get("whitePoint")!.value = value;
 	}
 
 	/**
@@ -344,7 +368,11 @@ export class ToneMappingEffect extends Effect {
 	 * @param {number} frameBufferType - The type of the main frame buffers.
 	 */
 
-	public initialize(renderer: WebGLRenderer, alpha: boolean, frameBufferType: number) {
+	public initialize(
+		renderer: WebGLRenderer,
+		alpha: boolean,
+		frameBufferType: number,
+	) {
 		this.adaptiveLuminancePass.initialize(renderer, alpha, frameBufferType);
 	}
 
@@ -378,7 +406,11 @@ export class ToneMappingEffect extends Effect {
 	 * @param {number} [deltaTime] - The time between the last frame and the current one in seconds.
 	 */
 
-	public update(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget, deltaTime: number) {
+	public update(
+		renderer: WebGLRenderer,
+		inputBuffer: WebGLRenderTarget,
+		deltaTime: number,
+	) {
 		if (this.adaptiveLuminancePass.enabled) {
 			(this.luminancePass as any).render(renderer, inputBuffer);
 			this.adaptiveLuminancePass.render(renderer, null, null, deltaTime);

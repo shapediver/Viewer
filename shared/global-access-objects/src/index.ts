@@ -1,5 +1,3 @@
-import { GlobalAccessObjects } from './GlobalAccessObjects';
+import {GlobalAccessObjects} from "./GlobalAccessObjects";
 
-export {
-    GlobalAccessObjects
-};
+export {GlobalAccessObjects};

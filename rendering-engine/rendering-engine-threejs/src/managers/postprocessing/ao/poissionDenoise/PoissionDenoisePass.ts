@@ -1,4 +1,5 @@
-import { basic as vertexShader } from '../utils/shader/basic';
+import {HttpClient, Logger} from "@shapediver/viewer.shared.services";
+import {Pass} from "postprocessing";
 import {
 	Camera,
 	HalfFloatType,
@@ -11,14 +12,16 @@ import {
 	TextureLoader,
 	Vector2,
 	WebGLRenderer,
-	WebGLRenderTarget
-} from 'three';
-import { HttpClient, Logger } from '@shapediver/viewer.shared.services';
-import { Pass } from 'postprocessing';
-import { poissionDenoise as fragmentShader } from './shader/poissionDenoise';
-import { sampleBlueNoise } from '../utils/shader/sampleBlueNoise';
+	WebGLRenderTarget,
+} from "three";
+import {basic as vertexShader} from "../utils/shader/basic";
+import {sampleBlueNoise} from "../utils/shader/sampleBlueNoise";
+import {poissionDenoise as fragmentShader} from "./shader/poissionDenoise";
 
-const finalFragmentShader = fragmentShader.replace('#include <sampleBlueNoise>', sampleBlueNoise);
+const finalFragmentShader = fragmentShader.replace(
+	"#include <sampleBlueNoise>",
+	sampleBlueNoise,
+);
 
 const defaultPoissonBlurOptions = {
 	iterations: 1,
@@ -29,7 +32,7 @@ const defaultPoissonBlurOptions = {
 	normalPhi: 3.25,
 	samples: 16,
 	distance: 1,
-	normalTexture: null
+	normalTexture: null,
 };
 
 export class PoissionDenoisePass extends Pass {
@@ -51,16 +54,24 @@ export class PoissionDenoisePass extends Pass {
 
 	// #region Constructors (1)
 
-	constructor(camera: Camera, inputTexture: Texture, depthTexture: Texture, options: { [key: string]: unknown } = defaultPoissonBlurOptions) {
-		super('PoissionBlurPass');
+	constructor(
+		camera: Camera,
+		inputTexture: Texture,
+		depthTexture: Texture,
+		options: {[key: string]: unknown} = defaultPoissonBlurOptions,
+	) {
+		super("PoissionBlurPass");
 
 		if (PoissionDenoisePass.blueNoiseTexture === undefined) {
 			PoissionDenoisePass.loadBlueNoiseTexture().then(() => {
-				(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value = PoissionDenoisePass.blueNoiseTexture;
+				(
+					this.fullscreenMaterial as ShaderMaterial
+				).uniforms.blueNoiseTexture.value =
+					PoissionDenoisePass.blueNoiseTexture;
 			});
 		}
 
-		options = { ...defaultPoissonBlurOptions, ...options };
+		options = {...defaultPoissonBlurOptions, ...options};
 
 		this.inputTexture = inputTexture;
 
@@ -68,64 +79,71 @@ export class PoissionDenoisePass extends Pass {
 			fragmentShader: finalFragmentShader,
 			vertexShader,
 			uniforms: {
-				depthTexture: { value: null },
-				inputTexture: { value: null },
-				projectionMatrixInverse: { value: new Matrix4() },
-				cameraMatrixWorld: { value: new Matrix4() },
-				lumaPhi: { value: 5.0 },
-				depthPhi: { value: 5.0 },
-				normalPhi: { value: 5.0 },
-				distance: { value: 1.0 },
-				resolution: { value: new Vector2() },
-				blueNoiseTexture: { value: null },
-				index: { value: 0 },
-				blueNoiseRepeat: { value: new Vector2() }
-			}
+				depthTexture: {value: null},
+				inputTexture: {value: null},
+				projectionMatrixInverse: {value: new Matrix4()},
+				cameraMatrixWorld: {value: new Matrix4()},
+				lumaPhi: {value: 5.0},
+				depthPhi: {value: 5.0},
+				normalPhi: {value: 5.0},
+				distance: {value: 1.0},
+				resolution: {value: new Vector2()},
+				blueNoiseTexture: {value: null},
+				index: {value: 0},
+				blueNoiseRepeat: {value: new Vector2()},
+			},
 		});
 
 		const renderTargetOptions = {
 			type: HalfFloatType,
-			depthBuffer: false
+			depthBuffer: false,
 		};
 
 		this.renderTargetA = new WebGLRenderTarget(1, 1, renderTargetOptions);
 		this.renderTargetB = new WebGLRenderTarget(1, 1, renderTargetOptions);
 
-		const { uniforms } = (this.fullscreenMaterial as ShaderMaterial);
+		const {uniforms} = this.fullscreenMaterial as ShaderMaterial;
 
-		uniforms['inputTexture'].value = this.inputTexture;
-		uniforms['depthTexture'].value = depthTexture;
-		uniforms['projectionMatrixInverse'].value = camera.projectionMatrixInverse;
-		uniforms['cameraMatrixWorld'].value = camera.matrixWorld;
-		uniforms['depthPhi'].value = options.depthPhi;
-		uniforms['normalPhi'].value = options.normalPhi;
-		uniforms['distance'].value = options.distance;
+		uniforms["inputTexture"].value = this.inputTexture;
+		uniforms["depthTexture"].value = depthTexture;
+		uniforms["projectionMatrixInverse"].value =
+			camera.projectionMatrixInverse;
+		uniforms["cameraMatrixWorld"].value = camera.matrixWorld;
+		uniforms["depthPhi"].value = options.depthPhi;
+		uniforms["normalPhi"].value = options.normalPhi;
+		uniforms["distance"].value = options.distance;
 
 		if (options.normalTexture) {
-			uniforms['normalTexture'] = { value: options.normalTexture };
+			uniforms["normalTexture"] = {value: options.normalTexture};
 		} else {
-			(this.fullscreenMaterial as ShaderMaterial).defines.NORMAL_IN_RGB = '';
+			(this.fullscreenMaterial as ShaderMaterial).defines.NORMAL_IN_RGB =
+				"";
 		}
 
 		// these properties need the shader to be recompiled
-		for (const prop of ['radius', 'rings', 'samples']) {
+		for (const prop of ["radius", "rings", "samples"]) {
 			Object.defineProperty(this, prop, {
 				get: () => options[prop],
-				set: value => {
+				set: (value) => {
 					options[prop] = value;
 
-					this.setSize(this.renderTargetA.width, this.renderTargetA.height);
-				}
+					this.setSize(
+						this.renderTargetA.width,
+						this.renderTargetA.height,
+					);
+				},
 			});
 		}
 	}
 
 	public static async loadBlueNoiseTexture() {
-		const result = await HttpClient.instance.loadTexture('https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png');
+		const result = await HttpClient.instance.loadTexture(
+			"https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png",
+		);
 
 		if (result) {
 			const url = URL.createObjectURL(result.data.blob);
-			new TextureLoader().load(url, texture => {
+			new TextureLoader().load(url, (texture) => {
 				URL.revokeObjectURL(url);
 				PoissionDenoisePass.blueNoiseTexture = texture;
 				PoissionDenoisePass.blueNoiseTexture.minFilter = NearestFilter;
@@ -136,7 +154,9 @@ export class PoissionDenoisePass extends Pass {
 				PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
 			});
 		} else {
-			Logger.instance.warn('The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...');
+			Logger.instance.warn(
+				"The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...",
+			);
 
 			// if there was an issue loading the texture
 			// set a timeout with 1 second to try again
@@ -158,7 +178,12 @@ export class PoissionDenoisePass extends Pass {
 
 	// #region Public Methods (4)
 
-	public generateDenoiseSamples(numSamples: number, numRings: number, r: number, texelSize: Vector2) {
+	public generateDenoiseSamples(
+		numSamples: number,
+		numRings: number,
+		r: number,
+		texelSize: Vector2,
+	) {
 		const angleStep = (2 * Math.PI * numRings) / numSamples;
 		const invNumSamples = 1.0 / numSamples;
 		const radiusStep = invNumSamples;
@@ -172,11 +197,9 @@ export class PoissionDenoisePass extends Pass {
 				.multiply(texelSize)
 				.multiplyScalar(r);
 
-			if (isNaN(v.x) || v.x === Infinity || v.x === -Infinity)
-				v.x = 0;
+			if (isNaN(v.x) || v.x === Infinity || v.x === -Infinity) v.x = 0;
 
-			if (isNaN(v.y) || v.y === Infinity || v.y === -Infinity)
-				v.y = 0;
+			if (isNaN(v.y) || v.y === Infinity || v.y === -Infinity) v.y = 0;
 
 			samples.push(v);
 			radius += radiusStep;
@@ -189,20 +212,20 @@ export class PoissionDenoisePass extends Pass {
 	public generatePoissonDiskConstant(poissonDisk: Vector2[]) {
 		const samples = poissonDisk.length;
 
-		let glslCode = 'const vec2 poissonDisk[samples] = vec2[samples](\n';
+		let glslCode = "const vec2 poissonDisk[samples] = vec2[samples](\n";
 
 		for (let i = 0; i < samples; i++) {
 			const sample = poissonDisk[i];
 			glslCode += `    vec2(${sample.x}, ${sample.y})`;
 
 			if (i < samples - 1) {
-				glslCode += ',';
+				glslCode += ",";
 			}
 
-			glslCode += '\n';
+			glslCode += "\n";
 		}
 
-		glslCode += ');';
+		glslCode += ");";
 
 		return glslCode;
 	}
@@ -210,28 +233,45 @@ export class PoissionDenoisePass extends Pass {
 	public render(renderer: WebGLRenderer) {
 		(this.fullscreenMaterial as ShaderMaterial).uniforms.index.value = 0;
 
-		const noiseTexture = (this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseTexture.value;
-		if (noiseTexture !== undefined && noiseTexture !== null && noiseTexture instanceof Texture) {
-			const { width, height } = (noiseTexture as Texture).source.data;
+		const noiseTexture = (this.fullscreenMaterial as ShaderMaterial)
+			.uniforms.blueNoiseTexture.value;
+		if (
+			noiseTexture !== undefined &&
+			noiseTexture !== null &&
+			noiseTexture instanceof Texture
+		) {
+			const {width, height} = (noiseTexture as Texture).source.data;
 
-			(this.fullscreenMaterial as ShaderMaterial).uniforms.blueNoiseRepeat.value.set(
+			(
+				this.fullscreenMaterial as ShaderMaterial
+			).uniforms.blueNoiseRepeat.value.set(
 				this.renderTargetA.width / width,
-				this.renderTargetA.height / height
+				this.renderTargetA.height / height,
 			);
 		}
 
 		for (let i = 0; i < 2 * this.iterations; i++) {
 			const horizontal = i % 2 === 0;
 
-			const inputRenderTarget = horizontal ? this.renderTargetB : this.renderTargetA;
-			(this.fullscreenMaterial as ShaderMaterial).uniforms['inputTexture'].value = i === 0 ? this.inputTexture : inputRenderTarget.texture;
+			const inputRenderTarget = horizontal
+				? this.renderTargetB
+				: this.renderTargetA;
+			(this.fullscreenMaterial as ShaderMaterial).uniforms[
+				"inputTexture"
+			].value = i === 0 ? this.inputTexture : inputRenderTarget.texture;
 
-			const renderTarget = horizontal ? this.renderTargetA : this.renderTargetB;
+			const renderTarget = horizontal
+				? this.renderTargetA
+				: this.renderTargetB;
 
 			renderer.setRenderTarget(renderTarget);
 			renderer.render(this.scene, this.camera);
 
-			(this.fullscreenMaterial as ShaderMaterial).uniforms.index.value = ((this.fullscreenMaterial as ShaderMaterial).uniforms.index.value + 1) % 4;
+			(this.fullscreenMaterial as ShaderMaterial).uniforms.index.value =
+				((this.fullscreenMaterial as ShaderMaterial).uniforms.index
+					.value +
+					1) %
+				4;
 		}
 	}
 
@@ -239,20 +279,24 @@ export class PoissionDenoisePass extends Pass {
 		this.renderTargetA.setSize(width, height);
 		this.renderTargetB.setSize(width, height);
 
-		(this.fullscreenMaterial as ShaderMaterial).uniforms.resolution.value.set(width, height);
+		(
+			this.fullscreenMaterial as ShaderMaterial
+		).uniforms.resolution.value.set(width, height);
 
 		const poissonDisk = this.generateDenoiseSamples(
 			this.samples,
 			this.rings,
 			this.radius,
-			new Vector2(1 / width, 1 / height)
+			new Vector2(1 / width, 1 / height),
 		);
 
 		const sampleDefine = `const int samples = ${this.samples};\n`;
 
-		const poissonDiskConstant = this.generatePoissonDiskConstant(poissonDisk);
+		const poissonDiskConstant =
+			this.generatePoissonDiskConstant(poissonDisk);
 
-		(this.fullscreenMaterial as ShaderMaterial).fragmentShader = sampleDefine + poissonDiskConstant + '\n' + finalFragmentShader;
+		(this.fullscreenMaterial as ShaderMaterial).fragmentShader =
+			sampleDefine + poissonDiskConstant + "\n" + finalFragmentShader;
 		(this.fullscreenMaterial as ShaderMaterial).needsUpdate = true;
 	}
 

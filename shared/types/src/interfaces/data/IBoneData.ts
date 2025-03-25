@@ -1,9 +1,9 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 
 export interface IBoneData extends ITreeNodeData {
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    clone(): IBoneData;
+	clone(): IBoneData;
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

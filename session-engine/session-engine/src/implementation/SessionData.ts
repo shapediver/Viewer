@@ -1,44 +1,44 @@
-import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { ISessionData } from '../interfaces/ISessionData';
-import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2';
+import {ShapeDiverResponseDto} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ISessionData} from "../interfaces/ISessionData";
 
 export class SessionData extends AbstractTreeNodeData implements ISessionData {
-    // #region Properties (1)
+	// #region Properties (1)
 
-    #responseDto: ShapeDiverResponseDto;
+	#responseDto: ShapeDiverResponseDto;
 
-    // #endregion Properties (1)
+	// #endregion Properties (1)
 
-    // #region Constructors (1)
+	// #region Constructors (1)
 
-    constructor(
-        responseDto: ShapeDiverResponseDto,
-        id?: string,
-        version?: string
-    ) {
-        super(id, version);
-        this.#responseDto = responseDto;
-    }
+	constructor(
+		responseDto: ShapeDiverResponseDto,
+		id?: string,
+		version?: string,
+	) {
+		super(id, version);
+		this.#responseDto = responseDto;
+	}
 
-    // #endregion Constructors (1)
+	// #endregion Constructors (1)
 
-    // #region Public Getters And Setters (2)
+	// #region Public Getters And Setters (2)
 
-    public get responseDto(): ShapeDiverResponseDto {
-        return this.#responseDto;
-    }
+	public get responseDto(): ShapeDiverResponseDto {
+		return this.#responseDto;
+	}
 
-    public set responseDto(value: ShapeDiverResponseDto) {
-        this.#responseDto = value;
-    }
+	public set responseDto(value: ShapeDiverResponseDto) {
+		this.#responseDto = value;
+	}
 
-    // #endregion Public Getters And Setters (2)
+	// #endregion Public Getters And Setters (2)
 
-    // #region Public Methods (1)
+	// #region Public Methods (1)
 
-    public clone(): ISessionData {
-        return new SessionData(this.responseDto, this.id, this.version);
-    }
+	public clone(): ISessionData {
+		return new SessionData(this.responseDto, this.id, this.version);
+	}
 
-    // #endregion Public Methods (1)
+	// #endregion Public Methods (1)
 }

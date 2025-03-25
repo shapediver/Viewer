@@ -1,5 +1,3 @@
-import { HTMLElementAnchorEngine } from './HTMLElementAnchorEngine'
+import {HTMLElementAnchorEngine} from "./HTMLElementAnchorEngine";
 
-export {
-    HTMLElementAnchorEngine
-}
+export {HTMLElementAnchorEngine};
