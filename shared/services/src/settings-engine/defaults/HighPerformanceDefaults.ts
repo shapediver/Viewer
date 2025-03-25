@@ -49,8 +49,38 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 			showMessages: true,
 		},
 		light: {
-			lightSceneId: "",
-			lightScenes: {},
+			lightSceneId: "standard",
+			lightScenes: {
+				standard: {
+					name: "standard",
+					lights: {
+						directional0: {
+							name: "directional0",
+							type: "directional",
+							properties: {
+								color: "#fff4e1ff",
+								intensity: 1.5,
+								direction: {
+									x: 0.5774000287055969,
+									y: -0.5774000287055969,
+									z: 0.5774000287055969,
+								},
+								castShadow: false,
+							},
+							order: 0,
+						},
+						ambient0: {
+							name: "ambient0",
+							type: "ambient",
+							properties: {
+								color: "#ffffff",
+								intensity: 1,
+							},
+							order: 1,
+						},
+					},
+				},
+			},
 		},
 		postprocessing: {
 			antiAliasingTechnique: "fxaa",
@@ -75,7 +105,7 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 		session: {},
 		material: {
 			defaultMaterialColor: "#199b9bff",
-			materialOverrideType: "unlit",
+			materialOverrideType: "lambert",
 		},
 	};
 };

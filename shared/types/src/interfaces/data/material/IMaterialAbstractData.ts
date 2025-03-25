@@ -87,6 +87,8 @@ export enum MATERIAL_TYPE {
 	SPECULAR_GLOSSINESS = "specular_glossiness",
 	UNLIT = "unlit",
 	GEM = "gem",
+	LAMBERT = "lambert",
+	PHONG = "phong",
 }
 
 // #endregion Enums (4)
