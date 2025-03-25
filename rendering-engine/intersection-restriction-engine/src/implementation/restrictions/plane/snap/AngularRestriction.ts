@@ -127,7 +127,7 @@ export class AngularRestriction extends AbstractSnapRestriction implements ISnap
         if (!isDrawingRestriction(metaData)) return;
 
         // if the restriction is not enabled OR the activation key is set and the key is not pressed, return
-        if (this.enabled === false && !(metaData?.pressedKeys?.length === 1 && metaData?.pressedKeys[0] === this.#activationKey)) return;
+        if (this.enabled === false && !(metaData?.toggledKeys?.length === 1 && metaData?.toggledKeys[0] === this.#activationKey)) return;
 
         if (this.#labelNext) this.#labelNext.visible = false;
         if (this.#labelPrevious) this.#labelPrevious.visible = false;
