@@ -10,7 +10,9 @@ import {
 	IMaterialAbstractData,
 	MaterialBasicLineData,
 	MaterialGemData,
+	MaterialLambertData,
 	MaterialMultiPointData,
+	MaterialPhongData,
 	MaterialPointData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
@@ -47,7 +49,9 @@ type MaterialDataMeshTypes =
 	| MaterialStandardData
 	| MaterialGemData
 	| MaterialSpecularGlossinessData
-	| MaterialUnlitData;
+	| MaterialUnlitData
+	| MaterialLambertData
+	| MaterialPhongData;
 export type MaterialSettings = {
 	mode: PRIMITIVE_MODE;
 	useVertexTangents: boolean;
@@ -65,7 +69,9 @@ type ThreeJsMaterialParameterTypes =
 	| THREE.MeshPhysicalMaterialParameters
 	| SpecularGlossinessMaterialParameters
 	| GemMaterialParameters
-	| THREE.ShadowMaterialParameters;
+	| THREE.ShadowMaterialParameters
+	| THREE.MeshLambertMaterialParameters
+	| THREE.MeshPhongMaterialParameters;
 type ThreeJsMaterialTypes =
 	| THREE.Material
 	| THREE.MeshPhysicalMaterial
@@ -74,11 +80,16 @@ type ThreeJsMaterialTypes =
 	| THREE.PointsMaterial
 	| MultiPointsMaterial
 	| THREE.LineBasicMaterial
-	| THREE.ShadowMaterial;
+	| THREE.ShadowMaterial
+	| THREE.MeshLambertMaterial
+	| THREE.MeshPhongMaterial;
 type ThreeJsMeshMaterialTypes =
 	| THREE.MeshPhysicalMaterial
 	| THREE.MeshStandardMaterial
-	| THREE.MeshBasicMaterial;
+	| THREE.MeshBasicMaterial
+	| THREE.MeshLambertMaterial
+	| THREE.MeshPhongMaterial;
+
 type ThreeJsTextureCacheObject = {
 	texture: THREE.Texture;
 	usage: number;
@@ -294,9 +305,9 @@ export class MaterialLoader implements ILoader {
 					THREE.LineBasicMaterial &&
 				this._materialCache[cacheKey].materialData === null
 			) {
-				const material: THREE.LineBasicMaterial = <
-					THREE.LineBasicMaterial
-				>this._materialCache[cacheKey].material;
+				const material: THREE.LineBasicMaterial = this._materialCache[
+					cacheKey
+				].material as THREE.LineBasicMaterial;
 				const {properties, mapCount} = this.getMaterialProperties(
 					this._defaultLineMaterialData,
 					GEOMETRY_MATERIAL_TYPE.LINE,
@@ -321,6 +332,14 @@ export class MaterialLoader implements ILoader {
 				this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 				if (material instanceof THREE.MeshBasicMaterial) {
 					material.copy(new THREE.MeshBasicMaterial(properties));
+				} else if (material instanceof THREE.MeshPhongMaterial) {
+					material.copy(new THREE.MeshPhongMaterial(properties));
+				} else if (material instanceof THREE.MeshLambertMaterial) {
+					material.copy(
+						new THREE.MeshLambertMaterial(
+							properties as THREE.MeshLambertMaterialParameters,
+						),
+					);
 				} else if (material instanceof SpecularGlossinessMaterial) {
 					material.copy(new SpecularGlossinessMaterial(properties));
 				} else {
@@ -366,11 +385,15 @@ export class MaterialLoader implements ILoader {
 				this._materialCache[cacheKey].material instanceof
 					THREE.MeshStandardMaterial ||
 				this._materialCache[cacheKey].material instanceof
-					THREE.MeshBasicMaterial
+					THREE.MeshBasicMaterial ||
+				this._materialCache[cacheKey].material instanceof
+					THREE.MeshLambertMaterial ||
+				this._materialCache[cacheKey].material instanceof
+					THREE.MeshPhongMaterial
 			) {
-				const material: ThreeJsMeshMaterialTypes = <
-					ThreeJsMeshMaterialTypes
-				>this._materialCache[cacheKey].material;
+				const material: ThreeJsMeshMaterialTypes = this._materialCache[
+					cacheKey
+				].material as ThreeJsMeshMaterialTypes;
 				if (
 					this._materialCache[cacheKey].materialData &&
 					(this._materialCache[cacheKey].materialData instanceof
@@ -380,7 +403,11 @@ export class MaterialLoader implements ILoader {
 						this._materialCache[cacheKey].materialData instanceof
 							MaterialSpecularGlossinessData ||
 						this._materialCache[cacheKey].materialData instanceof
-							MaterialUnlitData) &&
+							MaterialUnlitData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialLambertData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialPhongData) &&
 					(<MaterialDataMeshTypes>(
 						this._materialCache[cacheKey].materialData
 					)).envMap !== undefined
@@ -388,8 +415,12 @@ export class MaterialLoader implements ILoader {
 					continue;
 
 				if (
-					this._materialCache[cacheKey].materialData instanceof
-						MaterialUnlitData &&
+					(this._materialCache[cacheKey].materialData instanceof
+						MaterialUnlitData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialLambertData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialPhongData) &&
 					this._renderingEngine.environmentMapForUnlitMaterials ===
 						false
 				)
@@ -417,18 +448,34 @@ export class MaterialLoader implements ILoader {
 		for (const cacheKey in this._materialCache) {
 			if (
 				this._materialCache[cacheKey].material instanceof
-				THREE.MeshBasicMaterial
+					THREE.MeshBasicMaterial ||
+				this._materialCache[cacheKey].material instanceof
+					THREE.MeshLambertMaterial ||
+				this._materialCache[cacheKey].material instanceof
+					THREE.MeshPhongMaterial
 			) {
-				const material: THREE.MeshBasicMaterial = <
-					THREE.MeshBasicMaterial
-				>this._materialCache[cacheKey].material;
+				const material:
+					| THREE.MeshBasicMaterial
+					| THREE.MeshLambertMaterial
+					| THREE.MeshPhongMaterial = this._materialCache[cacheKey]
+					.material as
+					| THREE.MeshBasicMaterial
+					| THREE.MeshLambertMaterial
+					| THREE.MeshPhongMaterial;
 				if (
 					this._materialCache[cacheKey].materialData &&
-					this._materialCache[cacheKey].materialData instanceof
-						MaterialUnlitData &&
-					(<MaterialUnlitData>(
-						this._materialCache[cacheKey].materialData
-					)).envMap !== undefined
+					(this._materialCache[cacheKey].materialData instanceof
+						MaterialUnlitData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialLambertData ||
+						this._materialCache[cacheKey].materialData instanceof
+							MaterialPhongData) &&
+					(
+						this._materialCache[cacheKey].materialData as
+							| MaterialUnlitData
+							| MaterialLambertData
+							| MaterialPhongData
+					).envMap !== undefined
 				)
 					continue;
 
@@ -462,9 +509,10 @@ export class MaterialLoader implements ILoader {
 			) {
 				const material:
 					| THREE.MeshPhysicalMaterial
-					| THREE.MeshStandardMaterial = <
-					THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial
-				>this._materialCache[cacheKey].material;
+					| THREE.MeshStandardMaterial = this._materialCache[cacheKey]
+					.material as
+					| THREE.MeshPhysicalMaterial
+					| THREE.MeshStandardMaterial;
 				if (
 					this._materialCache[cacheKey].materialData &&
 					(this._materialCache[cacheKey].materialData instanceof
@@ -511,9 +559,10 @@ export class MaterialLoader implements ILoader {
 			) {
 				const material:
 					| THREE.MeshPhysicalMaterial
-					| THREE.MeshStandardMaterial = <
-					THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial
-				>this._materialCache[cacheKey].material;
+					| THREE.MeshStandardMaterial = this._materialCache[cacheKey]
+					.material as
+					| THREE.MeshPhysicalMaterial
+					| THREE.MeshStandardMaterial;
 				if (
 					this._materialCache[cacheKey].materialData &&
 					(this._materialCache[cacheKey].materialData instanceof
@@ -524,13 +573,13 @@ export class MaterialLoader implements ILoader {
 							MaterialSpecularGlossinessData ||
 						this._materialCache[cacheKey].materialData instanceof
 							MaterialUnlitData) &&
-					(<
-						| MaterialStandardData
-						| MaterialGemData
-						| MaterialSpecularGlossinessData
-						| MaterialUnlitData
-					>this._materialCache[cacheKey].materialData).envMap !==
-						undefined
+					(
+						this._materialCache[cacheKey].materialData as
+							| MaterialStandardData
+							| MaterialGemData
+							| MaterialSpecularGlossinessData
+							| MaterialUnlitData
+					).envMap !== undefined
 				)
 					continue;
 
@@ -767,6 +816,16 @@ export class MaterialLoader implements ILoader {
 							material = new SpecularGlossinessMaterial(
 								properties,
 							);
+						} else if (
+							this._materialOverrideType === MATERIAL_TYPE.LAMBERT
+						) {
+							material = new THREE.MeshLambertMaterial(
+								properties as THREE.MeshLambertMaterialParameters,
+							);
+						} else if (
+							this._materialOverrideType === MATERIAL_TYPE.PHONG
+						) {
+							material = new THREE.MeshPhongMaterial(properties);
 						} else {
 							material = new THREE.MeshPhysicalMaterial(
 								properties,
@@ -778,6 +837,12 @@ export class MaterialLoader implements ILoader {
 						material = new SpecularGlossinessMaterial(properties);
 					} else if (materialData instanceof MaterialGemData) {
 						material = new GemMaterial(properties);
+					} else if (materialData instanceof MaterialLambertData) {
+						material = new THREE.MeshLambertMaterial(
+							properties as THREE.MeshLambertMaterialParameters,
+						);
+					} else if (materialData instanceof MaterialPhongData) {
+						material = new THREE.MeshPhongMaterial(properties);
 					} else {
 						material = new THREE.MeshPhysicalMaterial(properties);
 					}
@@ -822,7 +887,9 @@ export class MaterialLoader implements ILoader {
 			materialData instanceof MaterialStandardData ||
 			materialData instanceof MaterialGemData ||
 			materialData instanceof MaterialSpecularGlossinessData ||
-			materialData instanceof MaterialUnlitData
+			materialData instanceof MaterialUnlitData ||
+			materialData instanceof MaterialLambertData ||
+			materialData instanceof MaterialPhongData
 		) {
 			if (materialData.envMap !== undefined) {
 				const envMapInput = (<MaterialDataMeshTypes>materialData)
@@ -834,7 +901,9 @@ export class MaterialLoader implements ILoader {
 						);
 					envMapResult.map.then((envMap) => {
 						if (
-							material instanceof THREE.MeshBasicMaterial &&
+							(material instanceof THREE.MeshBasicMaterial ||
+								material instanceof THREE.MeshLambertMaterial ||
+								material instanceof THREE.MeshPhongMaterial) &&
 							this._renderingEngine
 								.environmentMapForUnlitMaterials === false
 						)
@@ -1438,9 +1507,80 @@ export class MaterialLoader implements ILoader {
 
 		if (
 			materialData instanceof MaterialUnlitData ||
-			this._materialOverrideType === MATERIAL_TYPE.UNLIT
+			this._materialOverrideType === MATERIAL_TYPE.UNLIT ||
+			this._materialOverrideType === MATERIAL_TYPE.LAMBERT ||
+			this._materialOverrideType === MATERIAL_TYPE.PHONG
 		)
 			return {properties: basicProperties, mapCount};
+
+		if (
+			materialData instanceof MaterialPhongData &&
+			this._materialOverrideType === undefined
+		) {
+			const phongProperties: THREE.MeshPhongMaterialParameters =
+				basicProperties;
+
+			phongProperties.shininess = materialData.shininess;
+
+			if (materialData.specular !== undefined)
+				phongProperties.specular =
+					this._renderingEngine.createThreeJsColor(
+						materialData.specular,
+					);
+
+			if (materialData.specularMap !== undefined) {
+				phongProperties.specularMap = this.createTexture(
+					materialData.specularMap,
+				);
+				mapCount++;
+			}
+
+			phongProperties.displacementBias = materialData.displacementBias;
+
+			if (materialData.displacementMap !== undefined) {
+				phongProperties.displacementMap = this.createTexture(
+					materialData.displacementMap,
+				);
+				mapCount++;
+			}
+
+			phongProperties.displacementScale = materialData.displacementScale;
+
+			phongProperties.reflectivity = materialData.reflectivity;
+
+			return {properties: phongProperties, mapCount};
+		}
+
+		if (
+			materialData instanceof MaterialLambertData &&
+			this._materialOverrideType === undefined
+		) {
+			const lambertProperties: THREE.MeshLambertMaterialParameters =
+				basicProperties as THREE.MeshLambertMaterialParameters;
+
+			if (materialData.specularMap !== undefined) {
+				lambertProperties.specularMap = this.createTexture(
+					materialData.specularMap,
+				);
+				mapCount++;
+			}
+
+			lambertProperties.displacementBias = materialData.displacementBias;
+
+			if (materialData.displacementMap !== undefined) {
+				lambertProperties.displacementMap = this.createTexture(
+					materialData.displacementMap,
+				);
+				mapCount++;
+			}
+
+			lambertProperties.displacementScale =
+				materialData.displacementScale;
+
+			lambertProperties.reflectivity = materialData.reflectivity;
+
+			return {properties: lambertProperties, mapCount};
+		}
 
 		/**
 		 * We know evaluate properties that can be applied to MeshPhysicalMaterials, SpecularGlossinessMaterials and GemMaterialParameters

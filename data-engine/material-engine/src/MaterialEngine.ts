@@ -24,6 +24,10 @@ import {
 	IMaterialAbstractDataPropertiesDefinition,
 	IMaterialGemDataProperties,
 	IMaterialGemDataPropertiesDefinition,
+	IMaterialLambertDataProperties,
+	IMaterialLambertDataPropertiesDefinition,
+	IMaterialPhongDataProperties,
+	IMaterialPhongDataPropertiesDefinition,
 	IMaterialSpecularGlossinessDataProperties,
 	IMaterialSpecularGlossinessDataPropertiesDefinition,
 	IMaterialStandardDataProperties,
@@ -32,6 +36,8 @@ import {
 	IMaterialUnlitDataPropertiesDefinition,
 	MapData,
 	MaterialGemData,
+	MaterialLambertData,
+	MaterialPhongData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
@@ -79,6 +85,10 @@ export class MaterialEngine {
 				return new MaterialUnlitData(materialProperties);
 			case MATERIAL_TYPE.GEM:
 				return new MaterialGemData(materialProperties);
+			case MATERIAL_TYPE.PHONG:
+				return new MaterialPhongData(materialProperties);
+			case MATERIAL_TYPE.LAMBERT:
+				return new MaterialLambertData(materialProperties);
 			default:
 				return new MaterialStandardData(materialProperties);
 		}
@@ -210,6 +220,71 @@ export class MaterialEngine {
 				await Promise.all(promises);
 				return new MaterialUnlitData(unlitProperties);
 			}
+			case MATERIAL_TYPE.PHONG: {
+				const phongProperties: IMaterialPhongDataProperties =
+					abstractProperties;
+				const phongDefinition: IMaterialPhongDataPropertiesDefinition =
+					definition;
+				phongProperties.displacementBias =
+					phongDefinition.displacementBias;
+				promises.push(
+					this.loadMapFromDefinition(
+						phongDefinition.displacementMap,
+					).then((map) => {
+						if (map) phongProperties.displacementMap = map;
+						return map;
+					}),
+				);
+				phongProperties.displacementScale =
+					phongDefinition.displacementScale;
+				phongProperties.envMap = phongDefinition.envMap;
+				phongProperties.reflectivity = phongDefinition.reflectivity;
+				phongProperties.shininess = phongDefinition.shininess;
+				phongProperties.specular = phongDefinition.specular;
+				promises.push(
+					this.loadMapFromDefinition(
+						phongDefinition.specularMap,
+					).then((map) => {
+						if (map) phongProperties.specularMap = map;
+						return map;
+					}),
+				);
+
+				await Promise.all(promises);
+				return new MaterialPhongData(phongProperties);
+			}
+			case MATERIAL_TYPE.LAMBERT: {
+				const lambertProperties: IMaterialLambertDataProperties =
+					abstractProperties;
+				const lambertDefinition: IMaterialLambertDataPropertiesDefinition =
+					definition;
+				lambertProperties.displacementBias =
+					lambertDefinition.displacementBias;
+				promises.push(
+					this.loadMapFromDefinition(
+						lambertDefinition.displacementMap,
+					).then((map) => {
+						if (map) lambertProperties.displacementMap = map;
+						return map;
+					}),
+				);
+				lambertProperties.displacementScale =
+					lambertDefinition.displacementScale;
+				lambertProperties.envMap = lambertDefinition.envMap;
+				lambertProperties.reflectivity = lambertDefinition.reflectivity;
+				promises.push(
+					this.loadMapFromDefinition(
+						lambertDefinition.specularMap,
+					).then((map) => {
+						if (map) lambertProperties.specularMap = map;
+						return map;
+					}),
+				);
+
+				await Promise.all(promises);
+				return new MaterialLambertData(lambertProperties);
+			}
+
 			case MATERIAL_TYPE.GEM: {
 				const gemProperties: IMaterialGemDataProperties =
 					abstractProperties;

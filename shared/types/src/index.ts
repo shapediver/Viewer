@@ -19,7 +19,9 @@ import {AbstractMaterialData} from "./implementation/material/AbstractMaterialDa
 import {MapData} from "./implementation/material/MapData";
 import {MaterialBasicLineData} from "./implementation/material/MaterialBasicLineData";
 import {MaterialGemData} from "./implementation/material/MaterialGemData";
+import {MaterialLambertData} from "./implementation/material/MaterialLambertData";
 import {MaterialMultiPointData} from "./implementation/material/MaterialMultiPointData";
+import {MaterialPhongData} from "./implementation/material/MaterialPhongData";
 import {MaterialPointData} from "./implementation/material/MaterialPointData";
 import {MaterialShadowData} from "./implementation/material/MaterialShadowData";
 import {MaterialSpecularGlossinessData} from "./implementation/material/MaterialSpecularGlossinessData";
@@ -77,10 +79,20 @@ import {
 	IMaterialGemDataPropertiesDefinition,
 } from "./interfaces/data/material/IMaterialGemDataProperties";
 import {
+	IMaterialLambertData,
+	IMaterialLambertDataProperties,
+	IMaterialLambertDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialLambertData";
+import {
 	IMaterialMultiPointData,
 	IMaterialMultiPointDataProperties,
 	IMaterialMultiPointDataPropertiesDefinition,
 } from "./interfaces/data/material/IMaterialMultiPointData";
+import {
+	IMaterialPhongData,
+	IMaterialPhongDataProperties,
+	IMaterialPhongDataPropertiesDefinition,
+} from "./interfaces/data/material/IMaterialPhongData";
 import {
 	IMaterialPointData,
 	IMaterialPointDataProperties,
@@ -222,6 +234,14 @@ export {
 	MaterialBasicLineData,
 	IMaterialBasicLineDataProperties,
 	IMaterialBasicLineDataPropertiesDefinition,
+	IMaterialLambertData,
+	MaterialLambertData,
+	IMaterialLambertDataProperties,
+	IMaterialLambertDataPropertiesDefinition,
+	IMaterialPhongData,
+	MaterialPhongData,
+	IMaterialPhongDataProperties,
+	IMaterialPhongDataPropertiesDefinition,
 	IMapData,
 	IMapDataProperties,
 	IMapDataPropertiesDefinition,
