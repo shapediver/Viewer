@@ -289,11 +289,39 @@ export class LineRestriction
 					result1.distanceOriginToClosestIntersectionPointSquared <
 					result2.distanceOriginToClosestIntersectionPointSquared
 				) {
-					return result1;
+					return {
+						closestIntersectionPoint:
+							result1.closestIntersectionPoint,
+						distanceOriginToClosestIntersectionPointSquared:
+							result1.distanceOriginToClosestIntersectionPointSquared,
+						targetPoint: result1.targetPoint,
+						distanceClosestPointToTargetPointSquared:
+							result1.distanceClosestPointToTargetPointSquared,
+						restriction: this,
+					};
 				}
-				return result2;
+				return {
+					closestIntersectionPoint: result2.closestIntersectionPoint,
+					distanceOriginToClosestIntersectionPointSquared:
+						result2.distanceOriginToClosestIntersectionPointSquared,
+					targetPoint: result2.targetPoint,
+					distanceClosestPointToTargetPointSquared:
+						result2.distanceClosestPointToTargetPointSquared,
+					restriction: this,
+				};
 			}
-			return result1 || result2;
+
+			const result = (result1 || result2)!;
+
+			return {
+				closestIntersectionPoint: result.closestIntersectionPoint,
+				distanceOriginToClosestIntersectionPointSquared:
+					result.distanceOriginToClosestIntersectionPointSquared,
+				targetPoint: result.targetPoint,
+				distanceClosestPointToTargetPointSquared:
+					result.distanceClosestPointToTargetPointSquared,
+				restriction: this,
+			};
 		}
 
 		const distance = vec3.squaredDistance(pointA, pointB);
