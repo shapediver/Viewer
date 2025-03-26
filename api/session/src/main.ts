@@ -1,8 +1,5 @@
 import {showConsoleMessage} from "@shapediver/viewer.api.general";
-import {
-	CreationControlCenterSession,
-	ICreationControlCenterSession,
-} from "@shapediver/viewer.creation-control-center.session";
+import {CreationControlCenterSession} from "@shapediver/viewer.creation-control-center.session";
 import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {
 	InputValidator,
@@ -13,20 +10,13 @@ import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 import {SessionApi} from "./implementation/SessionApi";
 import {ISessionApi} from "./interfaces/ISessionApi";
 
-const creationControlCenterSession: ICreationControlCenterSession =
-	CreationControlCenterSession.instance;
-const inputValidator: InputValidator = InputValidator.instance;
-const logger: Logger = Logger.instance;
-
 /**
  * The sessions that are currently being used.
  */
 export const sessions: {[key: string]: ISessionApi} = {};
 
 // Whenever a session or viewport is added or removed, this update is called.
-creationControlCenterSession.updateSessions = (sessionEngines: {
-	[key: string]: SessionEngine;
-}) => {
+const updateSessions = (sessionEngines: {[key: string]: SessionEngine}) => {
 	for (const s in sessionEngines)
 		if (!sessions[s]) sessions[s] = new SessionApi(sessionEngines[s]);
 
@@ -65,6 +55,14 @@ creationControlCenterSession.updateSessions = (sessionEngines: {
 export const createSession = async (
 	properties: SessionCreationDefinition,
 ): Promise<ISessionApi> => {
+	const logger: Logger = Logger.instance;
+	const inputValidator: InputValidator = InputValidator.instance;
+	const creationControlCenterSession: CreationControlCenterSession =
+		CreationControlCenterSession.instance;
+
+	if (creationControlCenterSession.updateSessions === undefined)
+		creationControlCenterSession.updateSessions = updateSessions;
+
 	showConsoleMessage();
 
 	logger.debug(

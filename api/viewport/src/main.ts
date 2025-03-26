@@ -19,18 +19,13 @@ import {
 import {ViewportApi} from "./implementation/ViewportApi";
 import {IViewportApi} from "./interfaces/IViewportApi";
 
-const creationControlCenterViewport: ICreationControlCenterViewport =
-	CreationControlCenterViewport.instance;
-const inputValidator: InputValidator = InputValidator.instance;
-const logger: Logger = Logger.instance;
-
 /**
  * The viewports that are currently being used.
  */
 export const viewports: {[key: string]: IViewportApi} = {};
 
 // Whenever a session or viewport is added or removed, this update is called.
-creationControlCenterViewport.updateViewports = (renderingEngines: {
+const updateViewports = (renderingEngines: {
 	[key: string]: RenderingEngineThreeJs;
 }) => {
 	for (const v in renderingEngines)
@@ -64,6 +59,14 @@ creationControlCenterViewport.updateViewports = (renderingEngines: {
 export const createViewport = async (
 	properties?: ViewportCreationDefinition,
 ): Promise<IViewportApi> => {
+	const creationControlCenterViewport: ICreationControlCenterViewport =
+		CreationControlCenterViewport.instance;
+	const inputValidator: InputValidator = InputValidator.instance;
+	const logger: Logger = Logger.instance;
+
+	if (creationControlCenterViewport.updateViewports === undefined)
+		creationControlCenterViewport.updateViewports = updateViewports;
+
 	showConsoleMessage();
 
 	const prop = Object.assign({}, properties);
