@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.data-engine.material-engine",
-	"version": "3.9.3",
+	"version": "3.9.4",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,10 +39,10 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "1.12.2",
-		"@shapediver/viewer.data-engine.shared-types": "3.9.3",
-		"@shapediver/viewer.shared.node-tree": "3.9.3",
-		"@shapediver/viewer.shared.services": "3.9.3",
-		"@shapediver/viewer.shared.types": "3.9.3",
+		"@shapediver/viewer.data-engine.shared-types": "3.9.4",
+		"@shapediver/viewer.shared.node-tree": "3.9.4",
+		"@shapediver/viewer.shared.services": "3.9.4",
+		"@shapediver/viewer.shared.types": "3.9.4",
 		"axios": "^1.2.6",
 		"gl-matrix": "3.3.0"
 	},
