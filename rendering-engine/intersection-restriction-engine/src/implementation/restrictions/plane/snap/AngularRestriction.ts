@@ -149,16 +149,13 @@ export class AngularRestriction
 		metaData?: RestrictionMetaData,
 	): RestrictionResult | undefined {
 		if (!isDrawingRestriction(metaData)) return;
+		// check if the activation key is pressed
+		const isKeyToggled =
+			metaData?.toggledKeys?.length === 1 &&
+			metaData?.toggledKeys[0] === this.#activationKey;
 
 		// if the restriction is not enabled OR the activation key is set and the key is not pressed, return
-		if (
-			this.enabled === false &&
-			!(
-				metaData?.toggledKeys?.length === 1 &&
-				metaData?.toggledKeys[0] === this.#activationKey
-			)
-		)
-			return;
+		if (this.enabled === false && !isKeyToggled) return;
 
 		if (this.#labelNext) this.#labelNext.visible = false;
 		if (this.#labelPrevious) this.#labelPrevious.visible = false;

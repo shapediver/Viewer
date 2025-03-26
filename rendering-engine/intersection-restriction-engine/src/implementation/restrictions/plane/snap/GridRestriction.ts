@@ -1,5 +1,10 @@
 import {Box, ITreeNode, IViewportApi, sceneTree} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {
+	EventEngine,
+	EVENTTYPE_SCENE,
+	IEvent,
+} from "@shapediver/viewer.shared.services";
+import {IRay, ISceneEvent} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {
@@ -43,6 +48,7 @@ export class GridRestriction
 	// #region Properties (9)
 
 	readonly #activationKey: string;
+	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #planeRestriction: PlaneRestriction;
 
 	#active: boolean = false;
@@ -51,6 +57,7 @@ export class GridRestriction
 	#gridUnit: number;
 	#gridUnitEditable: boolean = true;
 	#offsetFromUnit: vec3 = vec3.create();
+	#toggleInversion: boolean = false;
 	#priority: number = 0;
 
 	// #endregion Properties (9)
@@ -71,7 +78,69 @@ export class GridRestriction
 		this.#activationKey = properties?.activationKey || "g";
 		this.enabled = properties?.enabled ?? false;
 		this._enabledEditable = properties?.enabledEditable ?? true;
-		this.#gridUnit = properties?.gridUnit || 1;
+		// if a grid unit is provided, we toggle it on by default
+		if (properties?.gridUnit !== undefined && properties?.gridUnit !== 0) {
+			this.#toggleInversion = true;
+			this.#gridUnit = properties.gridUnit;
+		} else {
+			// we define our own grid unit
+			this.#gridUnit = 1;
+
+			/**
+			 * Depending on the scene radius, we calculate the grid unit.
+			 * The grid unit is calculated as follows:
+			 * - calculate 1% of the scene radius
+			 * - find the closest power of 10 that is smaller than the 1% of the scene radius
+			 * - find the closest power of 10 that is larger than the 1% of the scene radius
+			 * - the grid unit is whichever of the two is closer to the 1% of the scene radius
+			 *
+			 * @param sceneRadius
+			 * @returns
+			 */
+			const calculateGridUnit = (sceneRadius: number) => {
+				const percentage = 0.01;
+				const percentageSceneRadius = sceneRadius * percentage;
+				const log10 = Math.log10(percentageSceneRadius);
+				const smaller = Math.pow(10, Math.floor(log10));
+				const larger = Math.pow(10, Math.ceil(log10));
+				const gridUnit =
+					Math.abs(smaller - percentageSceneRadius) <
+					Math.abs(larger - percentageSceneRadius)
+						? smaller
+						: larger;
+				return gridUnit;
+			};
+
+			if (sceneTree.root.boundingBox.isEmpty()) {
+				// add an event listener to update the grid size
+				const eventListenerToken = this.#eventEngine.addListener(
+					EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_CHANGE,
+					(e: IEvent) => {
+						const sceneEvent = e as ISceneEvent;
+						if (sceneEvent.boundingBox) {
+							const box = new Box(
+								sceneEvent.boundingBox.min,
+								sceneEvent.boundingBox.max,
+							);
+							if (box.isEmpty()) return;
+							this.#gridUnit = calculateGridUnit(
+								box.boundingSphere.radius,
+							);
+							this.createOffsetFromUnit();
+							this.createGridVisualization();
+							this.#eventEngine.removeListener(
+								eventListenerToken,
+							);
+						}
+					},
+				);
+			} else {
+				this.#gridUnit = calculateGridUnit(
+					sceneTree.root.boundingBox.boundingSphere.radius,
+				);
+			}
+		}
+
 		this.#gridUnitEditable = properties?.gridUnitEditable ?? true;
 		this.#priority = properties?.priority || 0;
 
@@ -135,15 +204,14 @@ export class GridRestriction
 		distance: number,
 		metaData: RestrictionMetaData,
 	): RestrictionResult | undefined {
-		// if the restriction is not enabled OR the activation key is set and the key is not pressed, return
-		if (
-			this.enabled === false &&
-			!(
-				metaData?.toggledKeys?.length === 1 &&
-				metaData?.toggledKeys[0] === this.#activationKey
-			)
-		)
-			return;
+		// check if the activation key is pressed
+		let isKeyToggled =
+			metaData?.toggledKeys?.length === 1 &&
+			metaData?.toggledKeys[0] === this.#activationKey;
+		// invert the result if toggleInversion is set
+		if (this.#toggleInversion) isKeyToggled = !isKeyToggled;
+		// if the restriction is not enabled and the activation key is set and the key is not pressed, return
+		if (this.enabled === false && !isKeyToggled) return;
 
 		/**
 		 * Explanation of the following code:
