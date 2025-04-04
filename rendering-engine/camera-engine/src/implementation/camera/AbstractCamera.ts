@@ -7,11 +7,9 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE,
-	IEvent,
 	SettingsEngine,
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
-import {IViewportEvent} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3, vec4} from "gl-matrix";
 import {ICamera, ICameraOptions} from "../../interfaces/camera/ICamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
@@ -405,39 +403,13 @@ export abstract class AbstractCamera
 
 	protected assignViewerInternal(viewportId: string) {
 		this._viewportId = viewportId;
-
-		this.#eventListenerSceneCreatedToken = this._eventEngine.addListener(
-			EVENTTYPE.SESSION.SESSION_CREATED,
-			async () => {
-				if (this.#autoAdjust === true) {
-					const innerListenerToken = this._eventEngine.addListener(
-						EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
-						async (e: IEvent) => {
-							const viewportEvent = e as IViewportEvent;
-							if (viewportEvent.viewportId !== this._viewportId)
-								return;
-
-							this.zoomTo();
-							this._eventEngine.removeListener(
-								innerListenerToken,
-							);
-						},
-					);
-				}
-			},
-		);
-
-		this.#eventListenerViewportUpdatedToken = this._eventEngine.addListener(
+		this._eventEngine.addListener(
 			EVENTTYPE.SESSION.SESSION_CUSTOMIZED,
 			async () => {
 				if (this.#autoAdjust === true) {
 					const innerListenerToken = this._eventEngine.addListener(
 						EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
-						async (e: IEvent) => {
-							const viewportEvent = e as IViewportEvent;
-							if (viewportEvent.viewportId !== this._viewportId)
-								return;
-
+						async () => {
 							this.zoomTo();
 							this._eventEngine.removeListener(
 								innerListenerToken,
