@@ -54,6 +54,7 @@ const updateViewports = (renderingEngines: {
  * @param properties.visibilitySessionIds Optional list of session ids to be displayed in the viewport when the {@link VISIBILITY_MODE} is set to {@link VISIBILITY_MODE.SESSIONS}.
  * @param properties.sessionSettingsId Optional identifier of the session to be used for loading / persisting settings of the viewport when the {@link SESSION_SETTINGS_MODE} is set to MANUAL.
  * @param properties.sessionSettingsMode Allows to control which session to use for loading / persisting settings of the viewport. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
+ * @param properties.flags Optional flags that should be initially set on the viewport. The key is the token that is used to identify the flag, and the value is the type of the flag.
  * @returns
  */
 export const createViewport = async (
@@ -116,6 +117,12 @@ export const createViewport = async (
 		"enum",
 		false,
 		Object.values(VISIBILITY_MODE),
+	);
+	inputValidator.validateAndError(
+		"createViewport",
+		prop.flags,
+		"object",
+		false,
 	);
 
 	inputValidator.validateAndError(

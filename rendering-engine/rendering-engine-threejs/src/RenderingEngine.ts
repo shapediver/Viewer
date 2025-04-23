@@ -281,6 +281,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._geometryLoader.init();
 		this._htmlElementAnchorLoader.init();
 		this._lightLoader.init();
+
+		for (const token in prop.flags) {
+			this.addFlag(prop.flags[token], token);
+		}
 	}
 
 	// #endregion Constructors (1)
@@ -1001,8 +1005,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	// #region Public Methods (25)
 
-	public addFlag(flag: FLAG_TYPE): string {
-		const token = this._uuidGenerator.create();
+	public addFlag(flag: FLAG_TYPE, inputToken?: string): string {
+		const token = inputToken || this._uuidGenerator.create();
 		if (flag === FLAG_TYPE.BUSY_MODE) {
 			this.stateEngine.viewportEngines[this.id]?.busy.push(token);
 		} else {
@@ -1246,6 +1250,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			if (currentSuspendSceneUpdatesState) {
 				if (this.#flags[FLAG_TYPE.SUSPEND_SCENE_UPDATES].length === 0) {
 					this.suspendSceneUpdates = false;
+					this.update("suspendSceneUpdates: false");
 					this._renderingManager.render();
 				}
 			} else {

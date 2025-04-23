@@ -6,6 +6,7 @@ import {SESSION_SETTINGS_MODE} from "@shapediver/viewer.shared.services";
 import {vec3, vec4} from "gl-matrix";
 import {
 	BUSY_MODE_DISPLAY,
+	FLAG_TYPE,
 	SPINNER_POSITIONING,
 	VISIBILITY_MODE,
 } from "./interfaces/renderingEngine/enums";
@@ -152,4 +153,11 @@ export type ViewportCreationDefinition = {
 	 * It's recommended that with this workflow, the {@link sessionSettingsMode} is set to {@link SESSION_SETTINGS_MODE.SESSION} and a {@link sessionSettingsId} is provided.
 	 */
 	visibilitySessionIds?: string[];
+	/**
+	 * Optional flags that should be initially set on the viewport.
+	 * The key is the token that is used to identify the flag, and the value is the type of the flag.
+	 */
+	flags?: {
+		[key: string]: FLAG_TYPE;
+	};
 };
