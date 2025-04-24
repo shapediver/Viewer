@@ -103,24 +103,18 @@ export class TextureLoader {
 								if (!response) {
 									resolve();
 								} else {
-									if (typeof window !== "undefined") {
-										Converter.instance
-											.responseToImage(response)
-											.then((img) => {
-												this._loaded[textureId] = {
-													image: img,
-													blob: response.data.blob,
-												};
-												resolve();
-											})
-											.catch((e) => reject(e));
+									if (response.data.image) {
+										this._loaded[textureId] = {
+											image: response.data.image,
+											blob: response.data.blob,
+										};
 									} else {
 										this._loaded[textureId] = {
 											image: response.data.buffer,
 											blob: response.data.blob,
 										};
-										resolve();
 									}
+									resolve();
 								}
 							})
 							.catch((e) => reject(e));

@@ -547,9 +547,8 @@ export class MaterialEngine {
 
 		if (!response) return;
 
-		if (typeof window !== "undefined") {
-			const image = await Converter.instance.responseToImage(response);
-			return new MapData(image, {blob: response.data.blob});
+		if (response.data.image) {
+			return new MapData(response.data.image, {blob: response.data.blob});
 		} else {
 			return new MapData(response.data.buffer, {
 				blob: response.data.blob,
@@ -628,34 +627,18 @@ export class MaterialEngine {
 			? vec2.fromValues(texture.repeat[0], texture.repeat[1])
 			: vec2.fromValues(1, 1);
 
-		if (typeof window !== "undefined") {
-			const image = await Converter.instance.responseToImage(response);
-			return new MapData(image, {
-				blob: response.data.blob,
-				wrapS,
-				wrapT,
-				minFilter: TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR,
-				magFilter: TEXTURE_FILTERING.LINEAR,
-				center,
-				color,
-				offset,
-				repeat,
-				rotation: texture.rotation || 0,
-			});
-		} else {
-			return new MapData(response.data.buffer, {
-				blob: response.data.blob,
-				wrapS,
-				wrapT,
-				minFilter: TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR,
-				magFilter: TEXTURE_FILTERING.LINEAR,
-				center,
-				color,
-				offset,
-				repeat,
-				rotation: texture.rotation || 0,
-			});
-		}
+		return new MapData(response.data.image ?? response.data.buffer, {
+			blob: response.data.blob,
+			wrapS,
+			wrapT,
+			minFilter: TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR,
+			magFilter: TEXTURE_FILTERING.LINEAR,
+			center,
+			color,
+			offset,
+			repeat,
+			rotation: texture.rotation || 0,
+		});
 	}
 
 	public loadMaterialDefinitionV1(

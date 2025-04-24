@@ -5,6 +5,7 @@ import {
 	ShapeDiverError as ShapeDiverBackendError,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import axios, {AxiosRequestConfig} from "axios";
+import {Converter} from "../converter/Converter";
 import {Logger} from "../logger/Logger";
 import {
 	ShapeDiverGeometryBackendError,
@@ -277,32 +278,72 @@ export class HttpClient {
 	 * @param href The URL of the texture to load.
 	 * @returns Either the texture as a buffer and blob or undefined if the texture could not be loaded.
 	 */
-	public async loadTexture(
-		href: string,
-	): Promise<HttpResponse<{buffer: ArrayBuffer; blob: Blob}> | undefined> {
-		let result: HttpResponse<{buffer: ArrayBuffer; blob: Blob}> | undefined;
+	public async loadTexture(href: string): Promise<
+		HttpResponse<{
+			image?: HTMLImageElement;
+			buffer: ArrayBuffer;
+			blob: Blob;
+		}>
+	> {
+		const dataKey = this.hrefToDataKey(href);
 
+		// return element if it exists in cache
+		if (this._dataCache.has(dataKey))
+			return this.getFromCache(dataKey) as Promise<
+				HttpResponse<{
+					image?: HTMLImageElement;
+					buffer: ArrayBuffer;
+					blob: Blob;
+				}>
+			>;
+		let loadingPromise;
 		try {
-			const response = (await this.get(
-				href,
-				undefined,
-				true,
-			)) as HttpResponse<ArrayBuffer>;
-			const buffer = response.data;
-			const arrayBufferView = new Uint8Array(response.data);
-			const blob = new Blob([arrayBufferView], {
-				type: response.headers["content-type"],
+			loadingPromise = (
+				this.get(href, undefined, true) as Promise<
+					HttpResponse<ArrayBuffer>
+				>
+			).then(async (response) => {
+				const buffer = response.data;
+				const arrayBufferView = new Uint8Array(response.data);
+				const blob = new Blob([arrayBufferView], {
+					type: response.headers["content-type"],
+				});
+
+				if (typeof window !== "undefined") {
+					const image = await Converter.instance.responseToImage({
+						data: {
+							buffer,
+							blob,
+						},
+						size: response.data.byteLength,
+						headers: response.headers,
+					});
+
+					return {
+						data: {
+							image,
+							buffer,
+							blob,
+						},
+						size: response.data.byteLength,
+						headers: response.headers,
+					};
+				} else {
+					return {
+						data: {
+							buffer,
+							blob,
+						},
+						size: response.data.byteLength,
+						headers: response.headers,
+					};
+				}
 			});
 
-			// assign the result
-			result = {
-				data: {
-					buffer,
-					blob,
-				},
-				size: response.data.byteLength,
-				headers: response.headers,
-			};
+			const dataKey = this.hrefToDataKey(href);
+			// add the result to the cache
+
+			this.addToCache(dataKey, loadingPromise);
 		} catch (e) {
 			// log the error and return undefined
 			this._logger.error(`Failed to load texture: ${e}`);
@@ -310,7 +351,13 @@ export class HttpClient {
 
 		// return undefined if the texture could not be loaded
 		// that way the loading can be continued without the texture
-		return result;
+		return loadingPromise as Promise<
+			HttpResponse<{
+				image?: HTMLImageElement;
+				buffer: ArrayBuffer;
+				blob: Blob;
+			}>
+		>;
 	}
 
 	/**
@@ -335,10 +382,11 @@ export class HttpClient {
 	private addToCache(key: string, value: Promise<HttpResponse<unknown>>) {
 		// Remove items from the cache until the cache size is smaller than the maximum cache size.
 		// Only resolved promises are evaluated, as unresolved promises don't add any size.
-		while (this.calculateCacheSize() >= this._maxCacheSize) {
+		let oldestKey: string | undefined = this._dataCache.keys().next().value;
+		while (this.calculateCacheSize() >= this._maxCacheSize && oldestKey) {
 			// Remove the oldest entry if the cache is full
-			const oldestKey = this._dataCache.keys().next().value;
 			this._dataCache.delete(oldestKey);
+			oldestKey = this._dataCache.keys().next().value;
 		}
 
 		const timestamp = Date.now();
