@@ -31,6 +31,7 @@ export class TreeNode implements ITreeNode {
 		| null = null;
 	#version: string;
 	#visible: boolean = true;
+	#displayName: string | undefined;
 
 	// #endregion Properties (19)
 
@@ -103,6 +104,14 @@ export class TreeNode implements ITreeNode {
 
 	public get data(): ITreeNodeData[] {
 		return this.#data;
+	}
+
+	public get displayName(): string | undefined {
+		return this.#displayName;
+	}
+
+	public set displayName(value: string | undefined) {
+		this.#displayName = value;
 	}
 
 	public get excludeViewports(): string[] {
@@ -273,8 +282,15 @@ export class TreeNode implements ITreeNode {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		clone.originalId = this.originalId;
-		clone.visible = this.visible;
+		clone.displayName = this.displayName;
+		clone.excludeViewports = this.excludeViewports;
+		clone.restrictViewports = this.restrictViewports;
+		clone.skinNode = this.skinNode;
+		clone.boneInverses = this.boneInverses;
+		clone.bones = this.bones;
 		clone.intersectionTest = this.intersectionTest;
+		clone.visible = this.visible;
+
 		for (const child of this.#children) clone.addChild(child.clone());
 		for (const data of this.#data) clone.data.push(data.clone());
 		for (const transform of this.#transformations)
@@ -294,8 +310,14 @@ export class TreeNode implements ITreeNode {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		clone.originalId = this.originalId;
-		clone.visible = this.visible;
+		clone.displayName = this.displayName;
+		clone.excludeViewports = this.excludeViewports;
+		clone.restrictViewports = this.restrictViewports;
+		clone.skinNode = this.skinNode;
+		clone.boneInverses = this.boneInverses;
+		clone.bones = this.bones;
 		clone.intersectionTest = this.intersectionTest;
+		clone.visible = this.visible;
 		for (const child of this.#children)
 			clone.addChild(child.cloneInstance());
 		for (const data of this.#data) clone.data.push(data);

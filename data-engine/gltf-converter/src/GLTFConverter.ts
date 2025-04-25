@@ -151,7 +151,7 @@ export class GLTFConverter {
 		sceneNode.addChild(node);
 
 		const sceneDef: IGLTF_v2_Scene = {
-			name: sceneNode.name,
+			name: sceneNode.displayName ?? sceneNode.name,
 		};
 
 		const globalTransformationInverseId = this._uuidGenerator.create();
@@ -722,7 +722,7 @@ export class GLTFConverter {
 			return this._materialCache[data.id + "_" + data.version];
 
 		const materialDef: IGLTF_v2_Material = {
-			name: data.id,
+			name: this._convertForAR ? this._uuidGenerator.create() : data.name,
 			pbrMetallicRoughness: {},
 		};
 
@@ -940,7 +940,6 @@ export class GLTFConverter {
 
 		const meshDef: IGLTF_v2_Mesh = {
 			primitives: [],
-			name: data.id,
 		};
 
 		meshDef.primitives?.push(this.convertPrimitive(data, data.primitive));
@@ -954,7 +953,9 @@ export class GLTFConverter {
 	private async convertNode(node: ITreeNode): Promise<number> {
 		if (!this._content.nodes) this._content.nodes = [];
 		const nodeDef: IGLTF_v2_Node = {
-			name: this._convertForAR ? this._uuidGenerator.create() : node.name,
+			name: this._convertForAR
+				? this._uuidGenerator.create()
+				: (node.displayName ?? node.name),
 		};
 
 		if (node.transformations.length > 0) {
@@ -973,7 +974,7 @@ export class GLTFConverter {
 					nodeDef.matrix[i] = matrix[i];
 			} else {
 				Logger.instance.warn(
-					`GLTFConverter.convertNode: The matrix of node ${node.name} is not invertible and will be ignored.`,
+					`GLTFConverter.convertNode: The matrix of node ${node.displayName ?? node.name} is not invertible and will be ignored.`,
 				);
 			}
 		}
@@ -1013,7 +1014,10 @@ export class GLTFConverter {
 							// create intermediate nodes for each instance
 							for (let j = 0; j < instanceMatrices.length; j++) {
 								this._content.nodes.push({
-									name: node.name + "_instance_" + j,
+									name:
+										(node.displayName ?? node.name) +
+										"_instance_" +
+										j,
 									matrix: Array.from(instanceMatrices[j]),
 									mesh: meshDef,
 								});

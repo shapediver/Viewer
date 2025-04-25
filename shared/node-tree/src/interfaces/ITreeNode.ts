@@ -88,6 +88,11 @@ export interface ITreeNode {
 	 */
 	convertedObject: {[key: string]: unknown};
 	/**
+	 * An optional name that can be used for display purposes.
+	 * If not specified, the {@link name} property will be used.
+	 */
+	displayName?: string;
+	/**
 	 * The viewports to exclude this tree node from.
 	 */
 	excludeViewports: string[];
