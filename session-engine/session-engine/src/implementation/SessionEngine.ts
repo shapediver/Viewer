@@ -1530,6 +1530,8 @@ export class SessionEngine implements ISessionEngine {
 				outputs,
 				outputsFreeze,
 				taskEventInfo,
+				true,
+				true,
 			);
 			node.data.push(new SessionData(responseDto));
 			return node;

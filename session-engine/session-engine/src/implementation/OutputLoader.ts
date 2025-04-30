@@ -101,6 +101,7 @@ export class OutputLoader {
 		outputsFreeze: {[key: string]: boolean},
 		taskEventInfo: OutputLoaderTaskEventInfo,
 		throwDelay = true,
+		cloneNodes = false,
 	): Promise<SessionTreeNode> {
 		this._performanceEvaluator.startSection("outputLoading");
 		const node = new SessionTreeNode(nodeName);
@@ -265,11 +266,24 @@ export class OutputLoader {
 			promisesNodes[i].addChild(await promises[i]);
 
 		// here we assign all outputs just to the node and return it
-		for (const outputID in outputInfo)
-			if (currentNodes[outputID][outputInfo[outputID].version])
-				node.addChild(
-					currentNodes[outputID][outputInfo[outputID].version],
-				);
+		for (const outputID in outputInfo) {
+			if (currentNodes[outputID][outputInfo[outputID].version]) {
+				// when using parallel customization we need to clone the node
+				// as a node can only be added to one parent
+				// and this node might be added to multiple parents
+				if (cloneNodes) {
+					const clonedNode =
+						currentNodes[outputID][
+							outputInfo[outputID].version
+						].clone();
+					node.addChild(clonedNode);
+				} else {
+					node.addChild(
+						currentNodes[outputID][outputInfo[outputID].version],
+					);
+				}
+			}
+		}
 
 		// save the nodes as the last available version
 		for (const outputID in outputInfo) {
