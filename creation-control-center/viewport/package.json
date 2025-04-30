@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.creation-control-center.viewport",
-	"version": "3.9.9-rc.0",
+	"version": "3.9.9",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,13 +38,13 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.rendering-engine.rendering-engine": "3.9.9-rc.0",
-		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.9.9-rc.0",
+		"@shapediver/viewer.rendering-engine.rendering-engine": "3.9.9",
+		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.9.9",
 		"@shapediver/viewer.settings": "1.1.6",
-		"@shapediver/viewer.shared.math": "3.9.9-rc.0",
-		"@shapediver/viewer.shared.node-tree": "3.9.9-rc.0",
-		"@shapediver/viewer.shared.services": "3.9.9-rc.0",
-		"@shapediver/viewer.shared.types": "3.9.9-rc.0"
+		"@shapediver/viewer.shared.math": "3.9.9",
+		"@shapediver/viewer.shared.node-tree": "3.9.9",
+		"@shapediver/viewer.shared.services": "3.9.9",
+		"@shapediver/viewer.shared.types": "3.9.9"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
