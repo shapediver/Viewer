@@ -5,6 +5,7 @@ import {
 	GeometryData,
 	IAnimationData,
 } from "@shapediver/viewer.shared.types";
+import * as TWEEN from "@tweenjs/tween.js";
 import {mat4, quat, vec3, vec4} from "gl-matrix";
 import {IAnimationEngine} from "../interfaces/IAnimationEngine";
 
@@ -139,6 +140,36 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 							);
 						}
 
+						let mappedFactor = factor;
+						if (track.interpolation instanceof Function) {
+							mappedFactor = track.interpolation(factor);
+						} else if (
+							track.interpolation !== "step" &&
+							track.interpolation !== "linear"
+						) {
+							// the track.interpolation is in the dot-separated format "easingFamily.easingFunction"
+							const keys = track.interpolation.split(".");
+
+							// in the case this does not match the format we just use the factor as is
+							// this will result in a linear interpolation
+							if (keys.length === 2) {
+								const easingFamily =
+									TWEEN.Easing[
+										<keyof typeof TWEEN.Easing>keys[0]
+									];
+								if (easingFamily) {
+									const easingFunction:
+										| ((amount: number) => number)
+										| undefined = easingFamily[
+										<keyof typeof easingFamily>keys[1]
+									] as (amount: number) => number;
+									if (easingFunction) {
+										mappedFactor = easingFunction(factor);
+									}
+								}
+							}
+						}
+
 						if (track.path === "rotation") {
 							let pivotMatrix: mat4 | undefined,
 								pivotMatrixInverse: mat4 | undefined;
@@ -184,7 +215,7 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 										track.values[k * 4 + 2],
 										track.values[k * 4 + 3],
 									),
-									factor,
+									mappedFactor,
 								);
 							}
 
@@ -226,7 +257,7 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 										track.values[k * 3 + 1],
 										track.values[k * 3 + 2],
 									),
-									factor,
+									mappedFactor,
 								);
 							}
 							translationTransformation.matrix =
@@ -273,7 +304,7 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 										track.values[k * 3 + 1],
 										track.values[k * 3 + 2],
 									),
-									factor,
+									mappedFactor,
 								);
 							}
 
@@ -295,7 +326,7 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 								scaleTransformation.matrix = scalingMatrix;
 							}
 						} else if (track.path === "weights") {
-							let weights: number[] = [];
+							const weights: number[] = [];
 							const weightCount =
 								track.values.length / track.times.length;
 
@@ -310,8 +341,8 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 										track.values[
 											(k - 1) * weightCount + l
 										] *
-											(1.0 - factor) +
-											factor *
+											(1.0 - mappedFactor) +
+											mappedFactor *
 												track.values[
 													(k - 1) * weightCount + l
 												],

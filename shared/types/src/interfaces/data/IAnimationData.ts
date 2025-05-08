@@ -8,7 +8,7 @@ import {vec3} from "gl-matrix";
 export interface IAnimationTrack {
 	// #region Properties (6)
 
-	interpolation: "linear" | "step";
+	interpolation: "linear" | "step" | string | ((amount: number) => number);
 	node: ITreeNode;
 	path: "scale" | "translation" | "rotation";
 	previousMatrix?: ITransformation;
