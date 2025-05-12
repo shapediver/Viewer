@@ -298,12 +298,6 @@ export class InteractionManager {
 			document.body.style.cursor = "default";
 		}
 
-		if (!currentRestrictedPoint)
-			currentRestrictedPoint = this.#restrictionManager.rayTrace(ray, {
-				type: "drawing",
-				positionArray: this.#drawingToolsManager.positionArray,
-			})?.point;
-
 		// if the insertion is active, but the current point is not restricted, pause the insertion
 		if (
 			!currentRestrictedPoint &&
@@ -343,11 +337,6 @@ export class InteractionManager {
 		this.#restrictionManager.showRestrictionVisualization = true;
 
 		this.#midPointInteractionHandler.stopMidPointInsertion();
-
-		if (!this.#cameraFreezeFlag)
-			this.#cameraFreezeFlag = this.#viewport.addFlag(
-				FLAG_TYPE.CAMERA_FREEZE,
-			);
 
 		return this.#insertionInteractionHandler.startInsertion(
 			this.#lastEvent!,
