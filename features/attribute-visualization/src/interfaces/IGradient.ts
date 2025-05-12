@@ -26,8 +26,10 @@ export interface INumberGradient extends IGradient {
 
 export interface IStringGradient extends IGradient {
 	type: "string";
-	/** The steps of the gradient */
-	steps: {
+	/** The default color that is used if the value is not in the steps (default: grey) */
+	defaultColor?: Color;
+	/** The colors used for the values */
+	labelColors: {
 		/** The value of the step */
 		values: string[];
 		/** The color used for the values */
