@@ -444,7 +444,7 @@ const numberVisualization = (
 	let factor = (value - min) / (max - min);
 	factor = Math.min(1, Math.max(0, factor));
 	// check if the type is part of the enum
-	if (typeof type === "string" && type in ATTRIBUTE_VISUALIZATION) {
+	if (typeof type === "string") {
 		switch (type) {
 			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
 				return grayscaleVisualization(factor, materialType);
@@ -490,7 +490,7 @@ const stringVisualization = (
 	factor = Math.min(1, Math.max(0, factor));
 
 	// check if the type is part of the enum
-	if (typeof type === "string" && type in ATTRIBUTE_VISUALIZATION) {
+	if (typeof type === "string") {
 		switch (type) {
 			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
 				return grayscaleVisualization(factor, materialType);
