@@ -1,7 +1,7 @@
 import {Color} from "@shapediver/viewer.shared.types";
 import {ATTRIBUTE_VISUALIZATION} from "./IAttribute";
 
-type IGradient = {
+export type IGradient = {
 	type: "number" | "string";
 };
 

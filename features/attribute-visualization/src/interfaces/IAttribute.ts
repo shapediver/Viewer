@@ -1,5 +1,6 @@
 import {SDTF_TYPEHINT} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
+import {Gradient} from "./IGradient";
 
 export enum ATTRIBUTE_VISUALIZATION {
 	GRAYSCALE = "grayscale",
@@ -17,17 +18,17 @@ export interface IAttribute {
 	type: SDTF_TYPEHINT;
 }
 
-export interface IColorAttribute extends IAttribute {}
+export type IColorAttribute = IAttribute;
 
 export interface INumberAttribute extends IAttribute {
 	min: number;
 	max: number;
-	visualization: ATTRIBUTE_VISUALIZATION;
+	visualization: Gradient;
 }
 
 export interface IStringAttribute extends IAttribute {
 	values: string[];
-	visualization: ATTRIBUTE_VISUALIZATION;
+	visualization: Gradient;
 }
 export interface IDefaultAttribute extends IAttribute {
 	color: string | vec3 | number[];
