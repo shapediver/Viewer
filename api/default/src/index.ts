@@ -135,6 +135,7 @@ import {
 	TreeNode,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	Converter,
 	defaultSettings,
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
@@ -532,7 +533,7 @@ export {
 	ISDTFAttributeVisualizationData,
 	SdtfPrimitiveTypeGuard,
 };
-export {DataEngine, GeometryEngine, MaterialEngine, SystemInfo};
+export {Converter, DataEngine, GeometryEngine, MaterialEngine, SystemInfo};
 export {ISessionData, SessionData, ISessionOutputData, SessionOutputData};
 export {
 	ShapeDiverViewerErrorType,
