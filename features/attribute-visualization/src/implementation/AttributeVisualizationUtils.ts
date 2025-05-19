@@ -365,43 +365,61 @@ const interpolateColors = (
 	const colorArray1 = converter.toColorArray(color1);
 	const colorArray2 = converter.toColorArray(color2);
 
-	const r = Math.floor(
-		colorArray1[0] + (colorArray2[0] - colorArray1[0]) * factor,
-	);
-	const g = Math.floor(
-		colorArray1[1] + (colorArray2[1] - colorArray1[1]) * factor,
-	);
-	const b = Math.floor(
-		colorArray1[2] + (colorArray2[2] - colorArray1[2]) * factor,
-	);
+	// Interpolate the colors
+	const r = colorArray1[0] + factor * (colorArray2[0] - colorArray1[0]);
+	const g = colorArray1[1] + factor * (colorArray2[1] - colorArray1[1]);
+	const b = colorArray1[2] + factor * (colorArray2[2] - colorArray1[2]);
 
-	return "rgb(" + r + ", " + g + ", " + b + ")";
+	// Convert the interpolated color back to a hex string
+	return converter.toHexColor([r * 256, g * 256, b * 256]);
 };
 
 const numberGradientVisualization = (
 	factor: number,
 	gradient: INumberGradient,
 ): ISDTFAttributeVisualizationData => {
-	const steps = gradient.steps;
-	const stepCount = steps.length;
+	for (let i = 0; i < gradient.steps.length; i++) {
+		if (gradient.steps[i].value >= factor) {
+			// check if the value is the first step
+			if (i === 0) {
+				return {
+					material: new MaterialStandardData({
+						color: gradient.steps[i].colorBefore,
+						opacity: 1,
+					}),
+					matrix: mat4.create(),
+				};
+			} else {
+				// get the previous color
+				const previousColor = gradient.steps[i - 1].colorAfter;
+				// get the current color
+				const currentColor = gradient.steps[i].colorBefore;
 
-	let stepFactor = 0;
-	let colorBefore = steps[0].colorBefore;
-	let colorAfter = steps[0].colorAfter;
+				// calculate where the factor is between the two colors
+				const stepFactor =
+					(factor - gradient.steps[i - 1].value) /
+					(gradient.steps[i].value - gradient.steps[i - 1].value);
 
-	for (let i = 1; i < stepCount; i++) {
-		if (factor <= steps[i].value) {
-			colorBefore = steps[i - 1].colorBefore;
-			colorAfter = steps[i].colorAfter;
-			stepFactor =
-				(factor - steps[i - 1].value) /
-				(steps[i].value - steps[i - 1].value);
+				// return interpolated color
+				return {
+					material: new MaterialStandardData({
+						color: interpolateColors(
+							previousColor,
+							currentColor,
+							stepFactor,
+						),
+						opacity: 1,
+					}),
+					matrix: mat4.create(),
+				};
+			}
 		}
 	}
 
+	// return the after color of the last step
 	return {
 		material: new MaterialStandardData({
-			color: interpolateColors(colorBefore, colorAfter, stepFactor),
+			color: gradient.steps[gradient.steps.length - 1].colorAfter,
 			opacity: 1,
 		}),
 		matrix: mat4.create(),
