@@ -27,6 +27,7 @@ export interface INumberAttribute extends IAttribute {
 }
 
 export interface IStringAttribute extends IAttribute {
+	countForValue: number[];
 	values: string[];
 	visualization: Gradient;
 }
