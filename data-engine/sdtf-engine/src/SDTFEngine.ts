@@ -148,7 +148,7 @@ export class SDTFEngine {
 					if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
 						if (!entry.values?.includes(<string>value)) {
 							entry.values?.push(<string>value);
-							entry.countForValue = entry.countForValue || [];
+							entry.countForValue?.push(1);
 						} else {
 							const index = entry.values?.indexOf(<string>value);
 							if (index !== undefined && index > -1)
