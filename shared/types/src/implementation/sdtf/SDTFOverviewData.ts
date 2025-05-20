@@ -61,11 +61,11 @@ export class SDTFOverviewData
 								(item) => entry.values!.indexOf(item) < 0,
 							),
 						);
-						entry.countPerValue = entry.countPerValue?.map(
+						entry.countForValue = entry.countForValue?.map(
 							(count, index) =>
 								count +
-								(dataToCopy.countPerValue
-									? dataToCopy.countPerValue[index]
+								(dataToCopy.countForValue
+									? dataToCopy.countForValue[index]
 									: 0),
 						);
 					}
@@ -80,7 +80,7 @@ export class SDTFOverviewData
 						typeHint: dataToCopy.typeHint,
 						count: dataToCopy.count,
 						values: dataToCopy.values,
-						countPerValue: dataToCopy.countPerValue,
+						countForValue: dataToCopy.countForValue,
 						min: dataToCopy.min,
 						max: dataToCopy.max,
 					});
@@ -90,7 +90,7 @@ export class SDTFOverviewData
 							typeHint: dataToCopy.typeHint,
 							count: dataToCopy.count,
 							values: dataToCopy.values,
-							countPerValue: dataToCopy.countPerValue,
+							countForValue: dataToCopy.countForValue,
 							min: dataToCopy.min,
 							max: dataToCopy.max,
 						},

@@ -148,11 +148,11 @@ export class SDTFEngine {
 					if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
 						if (!entry.values?.includes(<string>value)) {
 							entry.values?.push(<string>value);
-							entry.countPerValue = entry.countPerValue || [];
+							entry.countForValue = entry.countForValue || [];
 						} else {
 							const index = entry.values?.indexOf(<string>value);
 							if (index !== undefined && index > -1)
-								entry.countPerValue![index] += 1;
+								entry.countForValue![index] += 1;
 						}
 					}
 
@@ -184,7 +184,7 @@ export class SDTFEngine {
 						overview[key][overview[key].length - 1].values = [
 							<string>value,
 						];
-						overview[key][overview[key].length - 1].countPerValue =
+						overview[key][overview[key].length - 1].countForValue =
 							[1];
 					}
 
