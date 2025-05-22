@@ -1,4 +1,6 @@
+import {Converter} from "@shapediver/viewer.shared.services";
 import {
+	Color,
 	IMaterialAbstractData,
 	ISDTFAttributeVisualizationData,
 	MaterialStandardData,
@@ -6,6 +8,14 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {ATTRIBUTE_VISUALIZATION} from "../interfaces/IAttribute";
+import {
+	Gradient,
+	IGradient,
+	INumberGradient,
+	isNumberGradient,
+	isStringGradient,
+	IStringGradient,
+} from "../interfaces/IGradient";
 
 const grayscaleVisualization = (
 	factor: number,
@@ -346,73 +356,190 @@ const hslVisualization = (
 	};
 };
 
+const interpolateColors = (
+	color1: Color,
+	color2: Color,
+	factor: number,
+): string => {
+	const converter = Converter.instance;
+	const colorArray1 = converter.toColorArray(color1);
+	const colorArray2 = converter.toColorArray(color2);
+
+	// Interpolate the colors
+	const r = colorArray1[0] + factor * (colorArray2[0] - colorArray1[0]);
+	const g = colorArray1[1] + factor * (colorArray2[1] - colorArray1[1]);
+	const b = colorArray1[2] + factor * (colorArray2[2] - colorArray1[2]);
+
+	// Convert the interpolated color back to a hex string
+	return converter.toHexColor([r * 256, g * 256, b * 256]);
+};
+
+const numberGradientVisualization = (
+	factor: number,
+	gradient: INumberGradient,
+): ISDTFAttributeVisualizationData => {
+	for (let i = 0; i < gradient.steps.length; i++) {
+		if (gradient.steps[i].value >= factor) {
+			// check if the value is the first step
+			if (i === 0) {
+				return {
+					material: new MaterialStandardData({
+						color: gradient.steps[i].colorBefore,
+						opacity: 1,
+					}),
+					matrix: mat4.create(),
+				};
+			} else {
+				// get the previous color
+				const previousColor = gradient.steps[i - 1].colorAfter;
+				// get the current color
+				const currentColor = gradient.steps[i].colorBefore;
+
+				// calculate where the factor is between the two colors
+				const stepFactor =
+					(factor - gradient.steps[i - 1].value) /
+					(gradient.steps[i].value - gradient.steps[i - 1].value);
+
+				// return interpolated color
+				return {
+					material: new MaterialStandardData({
+						color: interpolateColors(
+							previousColor,
+							currentColor,
+							stepFactor,
+						),
+						opacity: 1,
+					}),
+					matrix: mat4.create(),
+				};
+			}
+		}
+	}
+
+	// return the after color of the last step
+	return {
+		material: new MaterialStandardData({
+			color: gradient.steps[gradient.steps.length - 1].colorAfter,
+			opacity: 1,
+		}),
+		matrix: mat4.create(),
+	};
+};
+
+const stringGradientVisualization = (
+	value: string,
+	gradient: IStringGradient,
+): ISDTFAttributeVisualizationData => {
+	const steps = gradient.labelColors;
+	const stepCount = steps.length;
+
+	let color = gradient.defaultColor || "rgb(128, 128, 128)";
+
+	for (let i = 0; i < stepCount; i++) {
+		if (steps[i].values.includes(value)) {
+			color = steps[i].color;
+			break;
+		}
+	}
+
+	return {
+		material: new MaterialStandardData({
+			color: color,
+			opacity: 1,
+		}),
+		matrix: mat4.create(),
+	};
+};
+
 const numberVisualization = (
 	value: number,
 	min: number,
 	max: number,
-	type: ATTRIBUTE_VISUALIZATION,
+	type: Gradient,
 	materialType: "unlit" | "standard",
 	defaultMaterial: IMaterialAbstractData,
-): ISDTFAttributeVisualizationData => {
+): ISDTFAttributeVisualizationData | undefined => {
 	let factor = (value - min) / (max - min);
 	factor = Math.min(1, Math.max(0, factor));
-
-	switch (type) {
-		case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
-			return grayscaleVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.OPACITY:
-			return opacityVisualization(factor, materialType, defaultMaterial);
-		case ATTRIBUTE_VISUALIZATION.BLUE_RED:
-			return blueRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
-			return blueWhiteRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.GREEN_RED:
-			return greenRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
-			return greenWhiteRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
-			return blueGreenRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
-			return blueGreenYellowRedPurpleWhiteVisualization(
-				factor,
-				materialType,
-			);
-		case ATTRIBUTE_VISUALIZATION.HSL:
-			return hslVisualization(factor, materialType);
+	// check if the type is part of the enum
+	if (typeof type === "string") {
+		switch (type) {
+			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
+				return grayscaleVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.OPACITY:
+				return opacityVisualization(
+					factor,
+					materialType,
+					defaultMaterial,
+				);
+			case ATTRIBUTE_VISUALIZATION.BLUE_RED:
+				return blueRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
+				return blueWhiteRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.GREEN_RED:
+				return greenRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
+				return greenWhiteRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
+				return blueGreenRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
+				return blueGreenYellowRedPurpleWhiteVisualization(
+					factor,
+					materialType,
+				);
+			case ATTRIBUTE_VISUALIZATION.HSL:
+				return hslVisualization(factor, materialType);
+		}
+	} else {
+		if (isNumberGradient(type as IGradient)) {
+			return numberGradientVisualization(factor, type as INumberGradient);
+		}
 	}
 };
 
 const stringVisualization = (
 	value: string,
 	values: string[],
-	type: ATTRIBUTE_VISUALIZATION,
+	type: Gradient,
 	materialType: "unlit" | "standard",
 	defaultMaterial: IMaterialAbstractData,
-): ISDTFAttributeVisualizationData => {
+): ISDTFAttributeVisualizationData | undefined => {
 	let factor = values.indexOf(value) / (values.length - 1);
 	factor = Math.min(1, Math.max(0, factor));
-	switch (type) {
-		case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
-			return grayscaleVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.OPACITY:
-			return opacityVisualization(factor, materialType, defaultMaterial);
-		case ATTRIBUTE_VISUALIZATION.BLUE_RED:
-			return blueRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
-			return blueWhiteRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.GREEN_RED:
-			return greenRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
-			return greenWhiteRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
-			return blueGreenRedVisualization(factor, materialType);
-		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
-			return blueGreenYellowRedPurpleWhiteVisualization(
-				factor,
-				materialType,
-			);
-		case ATTRIBUTE_VISUALIZATION.HSL:
-			return hslVisualization(factor, materialType);
+
+	// check if the type is part of the enum
+	if (typeof type === "string") {
+		switch (type) {
+			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
+				return grayscaleVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.OPACITY:
+				return opacityVisualization(
+					factor,
+					materialType,
+					defaultMaterial,
+				);
+			case ATTRIBUTE_VISUALIZATION.BLUE_RED:
+				return blueRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
+				return blueWhiteRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.GREEN_RED:
+				return greenRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
+				return greenWhiteRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
+				return blueGreenRedVisualization(factor, materialType);
+			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
+				return blueGreenYellowRedPurpleWhiteVisualization(
+					factor,
+					materialType,
+				);
+			case ATTRIBUTE_VISUALIZATION.HSL:
+				return hslVisualization(factor, materialType);
+		}
+	} else {
+		if (isStringGradient(type as IGradient)) {
+			return stringGradientVisualization(value, type as IStringGradient);
+		}
 	}
 };
 

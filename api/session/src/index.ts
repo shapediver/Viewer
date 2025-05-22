@@ -51,6 +51,7 @@ import {
 	TreeNode,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	Converter,
 	defaultSettings,
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
@@ -343,6 +344,7 @@ export {
 	SESSION_SETTINGS_MODE,
 };
 export {
+	Converter,
 	SystemInfo,
 	TASK_TYPE,
 	MainEventTypes,

@@ -7,7 +7,6 @@ import {
 	ISdtfReadableChunk,
 	ISdtfReadableDataItem,
 	ISdtfReadableNode,
-	SdtfTypeHintName,
 } from "@shapediver/sdk.sdtf-v1";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -15,6 +14,7 @@ import {
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
 import {
+	ISDTFOverview,
 	SDTFAttributeData,
 	SDTFAttributesData,
 	SDTFItemData,
@@ -116,15 +116,7 @@ export class SDTFEngine {
 	 * @returns
 	 */
 	private async createSDTFOverview(): Promise<SDTFOverviewData> {
-		const overview: {
-			[key: string]: {
-				typeHint: SdtfTypeHintName | string;
-				count: number;
-				values?: string[];
-				min?: number;
-				max?: number;
-			}[];
-		} = {};
+		const overview: ISDTFOverview = {};
 
 		// go through all attributes
 		for (let i = 0; i < this._parsedFile.attributes.length; i++) {
@@ -154,8 +146,14 @@ export class SDTFEngine {
 
 					// update the values
 					if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
-						if (!entry.values?.includes(<string>value))
+						if (!entry.values?.includes(<string>value)) {
 							entry.values?.push(<string>value);
+							entry.countForValue?.push(1);
+						} else {
+							const index = entry.values?.indexOf(<string>value);
+							if (index !== undefined && index > -1)
+								entry.countForValue![index] += 1;
+						}
 					}
 
 					// update the min and max
@@ -186,6 +184,8 @@ export class SDTFEngine {
 						overview[key][overview[key].length - 1].values = [
 							<string>value,
 						];
+						overview[key][overview[key].length - 1].countForValue =
+							[1];
 					}
 
 					// update the min and max

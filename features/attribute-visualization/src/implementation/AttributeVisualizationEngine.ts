@@ -321,9 +321,17 @@ export class AttributeVisualizationEngine
 										this.#visualizedMaterialType,
 										this.#defaultMaterial,
 									);
-								numberVisualizationData.material.opacity *=
-									layer.opacity;
-								return numberVisualizationData;
+
+								if (!numberVisualizationData) {
+									return {
+										matrix: mat4.create(),
+										material,
+									};
+								} else {
+									numberVisualizationData.material.opacity *=
+										layer.opacity;
+									return numberVisualizationData;
+								}
 							case SdtfPrimitiveTypeGuard.isStringType(a.type):
 								const stringAttribute = <IStringAttribute>a;
 								const stringVisualizationData =
@@ -336,9 +344,16 @@ export class AttributeVisualizationEngine
 										this.#defaultMaterial,
 									);
 
-								stringVisualizationData.material.opacity *=
-									layer.opacity;
-								return stringVisualizationData;
+								if (!stringVisualizationData) {
+									return {
+										matrix: mat4.create(),
+										material,
+									};
+								} else {
+									stringVisualizationData.material.opacity *=
+										layer.opacity;
+									return stringVisualizationData;
+								}
 							default:
 								const defaultAttribute = <IDefaultAttribute>a;
 								material.color = defaultAttribute.color;

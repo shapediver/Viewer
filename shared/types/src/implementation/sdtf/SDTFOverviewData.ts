@@ -61,6 +61,13 @@ export class SDTFOverviewData
 								(item) => entry.values!.indexOf(item) < 0,
 							),
 						);
+						entry.countForValue = entry.countForValue?.map(
+							(count, index) =>
+								count +
+								(dataToCopy.countForValue
+									? dataToCopy.countForValue[index]
+									: 0),
+						);
 					}
 					if (
 						SdtfPrimitiveTypeGuard.isNumberType(dataToCopy.typeHint)
@@ -73,6 +80,7 @@ export class SDTFOverviewData
 						typeHint: dataToCopy.typeHint,
 						count: dataToCopy.count,
 						values: dataToCopy.values,
+						countForValue: dataToCopy.countForValue,
 						min: dataToCopy.min,
 						max: dataToCopy.max,
 					});
@@ -82,6 +90,7 @@ export class SDTFOverviewData
 							typeHint: dataToCopy.typeHint,
 							count: dataToCopy.count,
 							values: dataToCopy.values,
+							countForValue: dataToCopy.countForValue,
 							min: dataToCopy.min,
 							max: dataToCopy.max,
 						},

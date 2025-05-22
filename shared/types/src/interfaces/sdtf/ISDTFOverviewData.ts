@@ -8,6 +8,7 @@ export interface ISDTFOverview {
 		typeHint: SdtfTypeHintName | string;
 		count: number;
 		values?: string[];
+		countForValue?: number[];
 		min?: number;
 		max?: number;
 	}[];

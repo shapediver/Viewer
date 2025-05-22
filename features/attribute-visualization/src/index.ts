@@ -1,4 +1,5 @@
 import {AttributeVisualizationEngine} from "./implementation/AttributeVisualizationEngine";
+import {AttributeVisualizationUtils} from "./implementation/AttributeVisualizationUtils";
 import {
 	ATTRIBUTE_VISUALIZATION,
 	IAttribute,
@@ -8,9 +9,29 @@ import {
 	IStringAttribute,
 } from "./interfaces/IAttribute";
 import {IAttributeVisualizationEngine} from "./interfaces/IAttributeVisualizationEngine";
+import {
+	Gradient,
+	INumberGradient,
+	isGradient,
+	isNumberGradient,
+	isStringGradient,
+	IStringGradient,
+} from "./interfaces/IGradient";
 import {ILayer} from "./interfaces/ILayer";
 
-export {IAttributeVisualizationEngine, AttributeVisualizationEngine};
+export {
+	INumberGradient,
+	isGradient,
+	isNumberGradient,
+	isStringGradient,
+	IStringGradient,
+	Gradient,
+};
+export {
+	IAttributeVisualizationEngine,
+	AttributeVisualizationEngine,
+	AttributeVisualizationUtils,
+};
 export {
 	ILayer,
 	IAttribute,

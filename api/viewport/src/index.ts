@@ -103,6 +103,7 @@ import {
 	TreeNode,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	Converter,
 	defaultSettings,
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
@@ -346,6 +347,7 @@ export {
 	SPINNER_POSITIONING,
 };
 export {
+	Converter,
 	SystemInfo,
 	TASK_TYPE,
 	MainEventTypes,
