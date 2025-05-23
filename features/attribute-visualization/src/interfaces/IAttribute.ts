@@ -9,9 +9,20 @@ export enum ATTRIBUTE_VISUALIZATION {
 	BLUE_WHITE_RED = "blue_white_red",
 	GREEN_RED = "green_red",
 	GREEN_WHITE_RED = "green_white_red",
+	GREEN_YELLOW_RED = "green_yellow_red",
+	BLUE_YELLOW_RED = "blue_yellow_red",
 	BLUE_GREEN_RED = "blue_green_red",
 	BLUE_GREEN_YELLOW_RED_PURPLE_WHITE = "blue_green_yellow_red_purple_white",
 	HSL = "hsl",
+	VIRIDIS = "viridis",
+	PLASMA = "plasma",
+	SEISMIC = "seismic",
+	TURBO = "turbo",
+	INFERNO = "inferno",
+	MAGMA = "magma",
+	CIVIDIS = "cividis",
+	COOLWARM = "coolwarm",
+	PASTEL = "pastel",
 }
 export interface IAttribute {
 	key: string;

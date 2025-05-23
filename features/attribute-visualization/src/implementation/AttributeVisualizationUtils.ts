@@ -17,26 +17,726 @@ import {
 	IStringGradient,
 } from "../interfaces/IGradient";
 
-const grayscaleVisualization = (
+export const getColorSteps = (
+	gradient: ATTRIBUTE_VISUALIZATION,
+):
+	| {
+			value: number;
+			colorBefore: string;
+			colorAfter: string;
+	  }[]
+	| undefined => {
+	switch (gradient) {
+		case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 0)",
+					colorAfter: "rgb(0, 0, 0)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 255, 255)",
+					colorAfter: "rgb(255, 255, 255)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.BLUE_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(255, 255, 255)",
+					colorAfter: "rgb(255, 255, 255)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.GREEN_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 255, 0)",
+					colorAfter: "rgb(0, 255, 0)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 255, 0)",
+					colorAfter: "rgb(0, 255, 0)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(255, 255, 255)",
+					colorAfter: "rgb(255, 255, 255)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.GREEN_YELLOW_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 255, 0)",
+					colorAfter: "rgb(0, 255, 0)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(255, 255, 0)",
+					colorAfter: "rgb(255, 255, 0)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.BLUE_YELLOW_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(255, 255, 0)",
+					colorAfter: "rgb(255, 255, 0)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(0, 255, 0)",
+					colorAfter: "rgb(0, 255, 0)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
+			return [
+				{
+					value: 0,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(0, 255, 0)",
+					colorAfter: "rgb(0, 255, 0)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(255, 255, 0)",
+					colorAfter: "rgb(255, 255, 0)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(255, 0, 255)",
+					colorAfter: "rgb(255, 0, 255)",
+				},
+				{
+					value: 1,
+					colorBefore: "rgb(255, 255, 255)",
+					colorAfter: "rgb(255, 255, 255)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.VIRIDIS:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(68, 1, 84)",
+					colorAfter: "rgb(68, 1, 84)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(65, 44, 123)",
+					colorAfter: "rgb(65, 44, 123)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(52, 83, 138)",
+					colorAfter: "rgb(52, 83, 138)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(38, 119, 140)",
+					colorAfter: "rgb(38, 119, 140)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(31, 144, 137)",
+					colorAfter: "rgb(31, 144, 137)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(37, 170, 121)",
+					colorAfter: "rgb(37, 170, 121)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(86, 193, 90)",
+					colorAfter: "rgb(86, 193, 90)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(150, 211, 45)",
+					colorAfter: "rgb(150, 211, 45)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(218, 230, 35)",
+					colorAfter: "rgb(218, 230, 35)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(253, 231, 36)",
+					colorAfter: "rgb(253, 231, 36)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(252, 254, 178)",
+					colorAfter: "rgb(252, 254, 178)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.PLASMA:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(13, 8, 135)",
+					colorAfter: "rgb(13, 8, 135)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(75, 3, 161)",
+					colorAfter: "rgb(75, 3, 161)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(125, 3, 168)",
+					colorAfter: "rgb(125, 3, 168)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(168, 34, 150)",
+					colorAfter: "rgb(168, 34, 150)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(203, 70, 121)",
+					colorAfter: "rgb(203, 70, 121)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(229, 107, 93)",
+					colorAfter: "rgb(229, 107, 93)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(248, 148, 65)",
+					colorAfter: "rgb(248, 148, 65)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(253, 195, 40)",
+					colorAfter: "rgb(253, 195, 40)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(240, 242, 51)",
+					colorAfter: "rgb(240, 242, 51)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(210, 252, 98)",
+					colorAfter: "rgb(210, 252, 98)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(254, 255, 178)",
+					colorAfter: "rgb(254, 255, 178)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.SEISMIC:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(0, 0, 127)",
+					colorAfter: "rgb(0, 0, 127)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(0, 0, 191)",
+					colorAfter: "rgb(0, 0, 191)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(0, 0, 255)",
+					colorAfter: "rgb(0, 0, 255)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(63, 63, 255)",
+					colorAfter: "rgb(63, 63, 255)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(127, 127, 255)",
+					colorAfter: "rgb(127, 127, 255)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(255, 255, 255)",
+					colorAfter: "rgb(255, 255, 255)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(255, 127, 127)",
+					colorAfter: "rgb(255, 127, 127)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(255, 63, 63)",
+					colorAfter: "rgb(255, 63, 63)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(255, 0, 0)",
+					colorAfter: "rgb(255, 0, 0)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(191, 0, 0)",
+					colorAfter: "rgb(191, 0, 0)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(127, 0, 0)",
+					colorAfter: "rgb(127, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.TURBO:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(48, 18, 59)",
+					colorAfter: "rgb(48, 18, 59)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(55, 47, 122)",
+					colorAfter: "rgb(55, 47, 122)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(23, 111, 171)",
+					colorAfter: "rgb(23, 111, 171)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(16, 153, 142)",
+					colorAfter: "rgb(16, 153, 142)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(69, 186, 99)",
+					colorAfter: "rgb(69, 186, 99)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(165, 202, 65)",
+					colorAfter: "rgb(165, 202, 65)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(234, 190, 70)",
+					colorAfter: "rgb(234, 190, 70)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(251, 142, 79)",
+					colorAfter: "rgb(251, 142, 79)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(243, 87, 65)",
+					colorAfter: "rgb(243, 87, 65)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(224, 37, 77)",
+					colorAfter: "rgb(224, 37, 77)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(127, 0, 45)",
+					colorAfter: "rgb(127, 0, 45)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.INFERNO:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(0, 0, 3)",
+					colorAfter: "rgb(0, 0, 3)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(31, 12, 72)",
+					colorAfter: "rgb(31, 12, 72)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(85, 15, 109)",
+					colorAfter: "rgb(85, 15, 109)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(136, 34, 106)",
+					colorAfter: "rgb(136, 34, 106)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(186, 54, 85)",
+					colorAfter: "rgb(186, 54, 85)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(227, 89, 51)",
+					colorAfter: "rgb(227, 89, 51)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(249, 140, 10)",
+					colorAfter: "rgb(249, 140, 10)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(252, 190, 57)",
+					colorAfter: "rgb(252, 190, 57)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(241, 237, 105)",
+					colorAfter: "rgb(241, 237, 105)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(252, 253, 191)",
+					colorAfter: "rgb(252, 253, 191)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(252, 254, 164)",
+					colorAfter: "rgb(252, 254, 164)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.MAGMA:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(0, 0, 4)",
+					colorAfter: "rgb(0, 0, 4)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(28, 16, 68)",
+					colorAfter: "rgb(28, 16, 68)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(79, 18, 123)",
+					colorAfter: "rgb(79, 18, 123)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(129, 37, 129)",
+					colorAfter: "rgb(129, 37, 129)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(178, 65, 114)",
+					colorAfter: "rgb(178, 65, 114)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(221, 104, 89)",
+					colorAfter: "rgb(221, 104, 89)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(251, 150, 62)",
+					colorAfter: "rgb(251, 150, 62)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(254, 198, 83)",
+					colorAfter: "rgb(254, 198, 83)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(237, 243, 129)",
+					colorAfter: "rgb(237, 243, 129)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(252, 254, 191)",
+					colorAfter: "rgb(252, 254, 191)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(252, 254, 164)",
+					colorAfter: "rgb(252, 254, 164)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.CIVIDIS:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(0, 32, 76)",
+					colorAfter: "rgb(0, 32, 76)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(20, 53, 96)",
+					colorAfter: "rgb(20, 53, 96)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(48, 75, 108)",
+					colorAfter: "rgb(48, 75, 108)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(82, 95, 115)",
+					colorAfter: "rgb(82, 95, 115)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(120, 113, 114)",
+					colorAfter: "rgb(120, 113, 114)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(159, 130, 109)",
+					colorAfter: "rgb(159, 130, 109)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(195, 145, 99)",
+					colorAfter: "rgb(195, 145, 99)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(227, 158, 85)",
+					colorAfter: "rgb(227, 158, 85)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(251, 171, 71)",
+					colorAfter: "rgb(251, 171, 71)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(254, 200, 116)",
+					colorAfter: "rgb(254, 200, 116)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(252, 255, 164)",
+					colorAfter: "rgb(252, 255, 164)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.COOLWARM:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(59, 76, 192)",
+					colorAfter: "rgb(59, 76, 192)",
+				},
+				{
+					value: 0.1,
+					colorBefore: "rgb(95, 115, 204)",
+					colorAfter: "rgb(95, 115, 204)",
+				},
+				{
+					value: 0.2,
+					colorBefore: "rgb(138, 156, 211)",
+					colorAfter: "rgb(138, 156, 211)",
+				},
+				{
+					value: 0.3,
+					colorBefore: "rgb(186, 199, 216)",
+					colorAfter: "rgb(186, 199, 216)",
+				},
+				{
+					value: 0.4,
+					colorBefore: "rgb(235, 240, 219)",
+					colorAfter: "rgb(235, 240, 219)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(245, 245, 245)",
+					colorAfter: "rgb(245, 245, 245)",
+				},
+				{
+					value: 0.6,
+					colorBefore: "rgb(244, 212, 184)",
+					colorAfter: "rgb(244, 212, 184)",
+				},
+				{
+					value: 0.7,
+					colorBefore: "rgb(240, 171, 131)",
+					colorAfter: "rgb(240, 171, 131)",
+				},
+				{
+					value: 0.8,
+					colorBefore: "rgb(229, 120, 90)",
+					colorAfter: "rgb(229, 120, 90)",
+				},
+				{
+					value: 0.9,
+					colorBefore: "rgb(217, 64, 58)",
+					colorAfter: "rgb(217, 64, 58)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(179, 0, 0)",
+					colorAfter: "rgb(179, 0, 0)",
+				},
+			];
+		case ATTRIBUTE_VISUALIZATION.PASTEL:
+			return [
+				{
+					value: 0.0,
+					colorBefore: "rgb(251, 180, 174)",
+					colorAfter: "rgb(251, 180, 174)",
+				},
+				{
+					value: 0.125,
+					colorBefore: "rgb(179, 205, 227)",
+					colorAfter: "rgb(179, 205, 227)",
+				},
+				{
+					value: 0.25,
+					colorBefore: "rgb(204, 235, 197)",
+					colorAfter: "rgb(204, 235, 197)",
+				},
+				{
+					value: 0.375,
+					colorBefore: "rgb(222, 203, 228)",
+					colorAfter: "rgb(222, 203, 228)",
+				},
+				{
+					value: 0.5,
+					colorBefore: "rgb(254, 217, 166)",
+					colorAfter: "rgb(254, 217, 166)",
+				},
+				{
+					value: 0.625,
+					colorBefore: "rgb(255, 255, 204)",
+					colorAfter: "rgb(255, 255, 204)",
+				},
+				{
+					value: 0.75,
+					colorBefore: "rgb(229, 216, 189)",
+					colorAfter: "rgb(229, 216, 189)",
+				},
+				{
+					value: 0.875,
+					colorBefore: "rgb(253, 218, 236)",
+					colorAfter: "rgb(253, 218, 236)",
+				},
+				{
+					value: 1.0,
+					colorBefore: "rgb(242, 242, 242)",
+					colorAfter: "rgb(242, 242, 242)",
+				},
+			];
+		default:
+			return;
+	}
+};
+
+export const getColorAt = (
+	gradient: ATTRIBUTE_VISUALIZATION,
 	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	const color = Math.floor(factor * 255.0);
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" + color + ", " + color + ", " + color + ")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" + color + ", " + color + ", " + color + ")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
+): string | undefined => {
+	const steps = getColorSteps(gradient);
+	if (!steps) return;
+	for (let i = 0; i < steps.length; i++) {
+		if (steps[i].value >= factor) {
+			// check if the value is the first step
+			if (i === 0) {
+				return steps[i].colorBefore;
+			} else {
+				// get the previous color
+				const previousColor = steps[i - 1].colorAfter;
+				// get the current color
+				const currentColor = steps[i].colorBefore;
+
+				// calculate where the factor is between the two colors
+				const stepFactor =
+					(factor - steps[i - 1].value) /
+					(steps[i].value - steps[i - 1].value);
+
+				// return interpolated color
+				return interpolateColors(
+					previousColor,
+					currentColor,
+					stepFactor,
+				);
+			}
+		}
+	}
 };
 
 const opacityVisualization = (
@@ -54,283 +754,6 @@ const opacityVisualization = (
 				: new MaterialStandardData({
 						color: defaultMaterial.color,
 						opacity: factor,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const blueRedVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	const red = factor * 255.0;
-	const blue = (1 - factor) * 255.0;
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(0) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(0) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const blueWhiteRedVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	let red = 255,
-		green = 255,
-		blue = 255;
-
-	if (factor < 0.5) {
-		const remappedFactor = factor / 0.5;
-		red = 255.0 * remappedFactor;
-		green = 255.0 * remappedFactor;
-		blue = 255.0;
-	} else {
-		const remappedFactor = (factor - 0.5) / 0.5;
-		red = 255.0;
-		green = 255.0 * (1 - remappedFactor);
-		blue = 255.0 * (1 - remappedFactor);
-	}
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const greenRedVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	const red = factor * 255.0;
-	const green = (1 - factor) * 255.0;
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(0) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(0) +
-							")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const greenWhiteRedVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	let red = 255,
-		green = 255,
-		blue = 255;
-
-	if (factor < 0.5) {
-		const remappedFactor = factor / 0.5;
-		red = 255.0 * remappedFactor;
-		green = 255.0;
-		blue = 255.0 * remappedFactor;
-	} else {
-		const remappedFactor = (factor - 0.5) / 0.5;
-		red = 255.0;
-		green = 255.0 * (1 - remappedFactor);
-		blue = 255.0 * (1 - remappedFactor);
-	}
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const blueGreenRedVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	let red = 255,
-		green = 255,
-		blue = 255;
-
-	if (factor < 0.5) {
-		const remappedFactor = factor / 0.5;
-		red = 0;
-		green = 255.0 * remappedFactor;
-		blue = 255.0 * (1 - remappedFactor);
-	} else {
-		const remappedFactor = (factor - 0.5) / 0.5;
-		red = 255.0 * remappedFactor;
-		green = 255.0 * (1 - remappedFactor);
-		blue = 0;
-	}
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					}),
-		matrix: mat4.create(),
-	};
-};
-
-const blueGreenYellowRedPurpleWhiteVisualization = (
-	factor: number,
-	materialType: "unlit" | "standard",
-): ISDTFAttributeVisualizationData => {
-	let red = 255,
-		green = 255,
-		blue = 255;
-
-	if (factor < 0.2) {
-		const remappedFactor = factor / 0.2;
-		red = 0;
-		green = 255.0 * remappedFactor;
-		blue = 255.0 * (1 - remappedFactor);
-	} else if (factor < 0.4) {
-		const remappedFactor = (factor - 0.2) / 0.2;
-		red = 255.0 * remappedFactor;
-		green = 255.0;
-		blue = 0.0;
-	} else if (factor < 0.6) {
-		const remappedFactor = (factor - 0.4) / 0.2;
-		red = 255.0;
-		green = 255.0 * (1 - remappedFactor);
-		blue = 0.0;
-	} else if (factor < 0.8) {
-		const remappedFactor = (factor - 0.6) / 0.2;
-		red = 255.0;
-		green = 0.0;
-		blue = 255.0 * remappedFactor;
-	} else {
-		const remappedFactor = (factor - 0.8) / 0.2;
-		red = 255.0;
-		green = 255.0 * remappedFactor;
-		blue = 255.0;
-	}
-	return {
-		material:
-			materialType === "unlit"
-				? new MaterialUnlitData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
-					})
-				: new MaterialStandardData({
-						color:
-							"rgb(" +
-							Math.floor(red) +
-							", " +
-							Math.floor(green) +
-							", " +
-							Math.floor(blue) +
-							")",
-						opacity: 1,
 					}),
 		matrix: mat4.create(),
 	};
@@ -463,32 +886,25 @@ const numberVisualization = (
 	factor = Math.min(1, Math.max(0, factor));
 	// check if the type is part of the enum
 	if (typeof type === "string") {
-		switch (type) {
-			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
-				return grayscaleVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.OPACITY:
-				return opacityVisualization(
-					factor,
-					materialType,
-					defaultMaterial,
-				);
-			case ATTRIBUTE_VISUALIZATION.BLUE_RED:
-				return blueRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
-				return blueWhiteRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.GREEN_RED:
-				return greenRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
-				return greenWhiteRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
-				return blueGreenRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
-				return blueGreenYellowRedPurpleWhiteVisualization(
-					factor,
-					materialType,
-				);
-			case ATTRIBUTE_VISUALIZATION.HSL:
-				return hslVisualization(factor, materialType);
+		const color = getColorAt(type, factor);
+		if (color) {
+			return {
+				material:
+					materialType === "unlit"
+						? new MaterialUnlitData({
+								color: color,
+								opacity: 1,
+							})
+						: new MaterialStandardData({
+								color: color,
+								opacity: 1,
+							}),
+				matrix: mat4.create(),
+			};
+		} else if (type === ATTRIBUTE_VISUALIZATION.OPACITY) {
+			return opacityVisualization(factor, materialType, defaultMaterial);
+		} else if (type === ATTRIBUTE_VISUALIZATION.HSL) {
+			return hslVisualization(factor, materialType);
 		}
 	} else {
 		if (isNumberGradient(type as IGradient)) {
@@ -509,32 +925,25 @@ const stringVisualization = (
 
 	// check if the type is part of the enum
 	if (typeof type === "string") {
-		switch (type) {
-			case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
-				return grayscaleVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.OPACITY:
-				return opacityVisualization(
-					factor,
-					materialType,
-					defaultMaterial,
-				);
-			case ATTRIBUTE_VISUALIZATION.BLUE_RED:
-				return blueRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
-				return blueWhiteRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.GREEN_RED:
-				return greenRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
-				return greenWhiteRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
-				return blueGreenRedVisualization(factor, materialType);
-			case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
-				return blueGreenYellowRedPurpleWhiteVisualization(
-					factor,
-					materialType,
-				);
-			case ATTRIBUTE_VISUALIZATION.HSL:
-				return hslVisualization(factor, materialType);
+		const color = getColorAt(type, factor);
+		if (color) {
+			return {
+				material:
+					materialType === "unlit"
+						? new MaterialUnlitData({
+								color: color,
+								opacity: 1,
+							})
+						: new MaterialStandardData({
+								color: color,
+								opacity: 1,
+							}),
+				matrix: mat4.create(),
+			};
+		} else if (type === ATTRIBUTE_VISUALIZATION.OPACITY) {
+			return opacityVisualization(factor, materialType, defaultMaterial);
+		} else if (type === ATTRIBUTE_VISUALIZATION.HSL) {
+			return hslVisualization(factor, materialType);
 		}
 	} else {
 		if (isStringGradient(type as IGradient)) {

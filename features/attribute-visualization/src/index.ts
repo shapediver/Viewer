@@ -1,5 +1,9 @@
 import {AttributeVisualizationEngine} from "./implementation/AttributeVisualizationEngine";
-import {AttributeVisualizationUtils} from "./implementation/AttributeVisualizationUtils";
+import {
+	AttributeVisualizationUtils,
+	getColorAt,
+	getColorSteps,
+} from "./implementation/AttributeVisualizationUtils";
 import {
 	ATTRIBUTE_VISUALIZATION,
 	IAttribute,
@@ -26,6 +30,8 @@ export {
 	isStringGradient,
 	IStringGradient,
 	Gradient,
+	getColorSteps,
+	getColorAt,
 };
 export {
 	IAttributeVisualizationEngine,
