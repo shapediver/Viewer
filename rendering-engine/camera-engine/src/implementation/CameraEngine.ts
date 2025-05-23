@@ -202,7 +202,18 @@ export class CameraEngine implements ICameraEngine {
 							viewerEvent.boundingBox!.max,
 						);
 						if (this._boundingBox.isEmpty() || !this.camera) return;
-						this.camera?.zoomTo(this._boundingBox, {duration: 0});
+
+						// check if the at least a part of the bounding box is visible
+						if (
+							!this.camera.boundingSphereVisible(
+								this._boundingBox.boundingSphere,
+							)
+						) {
+							this.camera.zoomTo(this._boundingBox, {
+								duration: 0,
+							});
+						}
+
 						this._eventEngine.removeListener(token);
 					}
 				},
