@@ -1953,6 +1953,7 @@ export class MaterialLoader implements ILoader {
 
 	public removeFromMaterialCache(id: string) {
 		const converted = btoaCustom(id);
+		if (!this._materialCache[converted]) return;
 		this._materialCache[converted].material.dispose();
 		delete this._materialCache[converted];
 	}
