@@ -141,7 +141,7 @@ export class PoissionDenoisePass extends Pass {
 			"https://viewer.shapediver.com/v3/graphics/LDR_RGBA_0.png",
 		);
 
-		if (result) {
+		if (result && result.data && result.data.blob) {
 			const url = URL.createObjectURL(result.data.blob);
 			new TextureLoader().load(url, (texture) => {
 				URL.revokeObjectURL(url);
@@ -153,7 +153,7 @@ export class PoissionDenoisePass extends Pass {
 				PoissionDenoisePass.blueNoiseTexture.colorSpace = NoColorSpace;
 				PoissionDenoisePass.blueNoiseTexture.needsUpdate = true;
 			});
-		} else {
+		} else if (!result) {
 			Logger.instance.warn(
 				"The blue noise texture could not be loaded. This may result in a suboptimal denoising quality. Retrying in 1 second...",
 			);
