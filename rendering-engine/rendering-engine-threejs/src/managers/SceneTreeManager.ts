@@ -612,6 +612,14 @@ export class SceneTreeManager implements IManager {
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
 
+		// directional lights need to be updated every time
+		// as they are sensitive to the bounding box
+		root.traverseData((data) => {
+			if (data instanceof DirectionalLight) {
+				data.updateVersion();
+			}
+		});
+
 		if (!this._mainNode) {
 			this._mainNode = new SDObject(root.id, root.version);
 			const oldObj = root.convertedObject[
@@ -634,12 +642,14 @@ export class SceneTreeManager implements IManager {
 		this._boundingBox =
 			root.boundingBoxViewport[this._renderingEngine.id].clone();
 
-		for (let i = 0; i < this._boundingBoxSensitiveData.length; i++)
+		for (let i = 0; i < this._boundingBoxSensitiveData.length; i++) {
+			console.log(this._boundingBoxSensitiveData[i].data.name);
 			this._renderingEngine.lightLoader.adjustToBoundingBox(
 				this._boundingBoxSensitiveData[i].data,
 				this._boundingBoxSensitiveData[i].dataChild,
 				this._boundingBox,
 			);
+		}
 
 		if (
 			!(
