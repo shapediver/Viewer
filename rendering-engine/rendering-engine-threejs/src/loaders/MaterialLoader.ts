@@ -1,9 +1,5 @@
 import {ITreeNodeData, Tree} from "@shapediver/viewer.shared.node-tree";
-import {
-	atobCustom,
-	btoaCustom,
-	Converter,
-} from "@shapediver/viewer.shared.services";
+import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
 	IMapData,
@@ -1956,13 +1952,9 @@ export class MaterialLoader implements ILoader {
 	}
 
 	public removeFromMaterialCache(id: string) {
-		for (const cacheKey in this._materialCache) {
-			const decodedCacheKey = atobCustom(cacheKey);
-			if (decodedCacheKey.startsWith(id)) {
-				this._materialCache[cacheKey].material.dispose();
-				delete this._materialCache[cacheKey];
-			}
-		}
+		const converted = btoaCustom(id);
+		this._materialCache[converted].material.dispose();
+		delete this._materialCache[converted];
 	}
 
 	public updateMaterials(): void {
@@ -2028,15 +2020,7 @@ export class MaterialLoader implements ILoader {
 		materialSettings?: MaterialSettings,
 	): string {
 		return data
-			? btoaCustom(
-					data.id +
-						"_" +
-						data.version +
-						"_" +
-						type +
-						"_" +
-						JSON.stringify(materialSettings),
-				)
+			? btoaCustom(data.id + "_" + data.version)
 			: btoaCustom(type + "_" + JSON.stringify(materialSettings));
 	}
 

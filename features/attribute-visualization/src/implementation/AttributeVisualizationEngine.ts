@@ -67,11 +67,8 @@ export class AttributeVisualizationEngine
 
 		this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
 		this.createLayers();
-		this.constructAttributeVisualization();
 		this.gatherNodesWithAttributeData();
-		this.#nodesWithAttributeData.forEach((n) =>
-			this.#viewport.updateNode(n),
-		);
+		this.constructAttributeVisualization();
 
 		addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
 			this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
@@ -82,8 +79,8 @@ export class AttributeVisualizationEngine
 				if (this.#layers[l]) this.#layers[l] = layers[l];
 			}
 
-			this.constructAttributeVisualization();
 			this.gatherNodesWithAttributeData();
+			this.constructAttributeVisualization();
 
 			for (const l in this.#listeners) this.#listeners[l]();
 		});
@@ -375,9 +372,12 @@ export class AttributeVisualizationEngine
 				};
 			}
 		};
-		this.#nodesWithAttributeData.forEach((n) =>
-			this.#viewport.updateNode(n),
-		);
+		this.#nodesWithAttributeData.forEach((n) => {
+			n.traverseData((d) => {
+				d.updateVersion();
+			});
+			this.#viewport.updateNode(n);
+		});
 	}
 
 	private createMaterialCopy(

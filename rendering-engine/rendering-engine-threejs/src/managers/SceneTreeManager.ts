@@ -483,15 +483,25 @@ export class SceneTreeManager implements IManager {
 
 		// convert all data items of the current node
 		// old versions will be replaced by new ones
-		for (let i = 0, len = node.data.length; i < len; i++)
-			this.updateData(
-				node,
-				convertedObject,
-				node.data[i],
-				filter,
-				isVisibleInHierarchy,
-				skeleton,
+		for (let i = 0, len = node.data.length; i < len; i++) {
+			const convertedObjectData = <SDData>(
+				convertedObject.children.find(
+					(oc) =>
+						(<SDData>oc).SDid === node.data[i].id &&
+						(<SDData>oc).SDversion === node.data[i].version,
+				)
 			);
+			if (!convertedObjectData) {
+				this.updateData(
+					node,
+					convertedObject,
+					node.data[i],
+					filter,
+					isVisibleInHierarchy,
+					skeleton,
+				);
+			}
+		}
 
 		// add new children and update the ones that have a different version
 		for (let i = 0, len = node.children.length; i < len; i++) {
@@ -578,12 +588,23 @@ export class SceneTreeManager implements IManager {
 
 	public updateSceneTree(root: ITreeNode): void {
 		// check if we currently have the same root version
-		if (this._tree.root.version === this._lastRootVersion) return;
+		if (
+			this._tree.root.version === this._lastRootVersion &&
+			this._renderingEngine.type === this._lastRendererType
+		)
+			return;
 
 		// check if scene tree updates are currently suspended
 		if (this._suspendSceneUpdates) return;
 
 		this._lastRootVersion = this._tree.root.version;
+		if (this._renderingEngine.type !== this._lastRendererType) {
+			root.traverseData((data) => {
+				if (data instanceof GeometryData) {
+					data.updateVersion();
+				}
+			});
+		}
 		this._lastRendererType = this._renderingEngine.type;
 
 		if (this._renderingEngine.closed) return;
