@@ -1496,9 +1496,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._renderingManager.updateShadowMap();
 		this._animationEngine.updateAnimationData();
 		this._renderingManager.render();
-		this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <
-			IViewportEvent
-		>{viewportId: this.id});
+		this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, {
+			viewportId: this.id,
+		} as IViewportEvent);
 	}
 
 	public updateEnvironmentGeometry(): void {

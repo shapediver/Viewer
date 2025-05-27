@@ -1937,6 +1937,9 @@ export class MaterialLoader implements ILoader {
 			type,
 			materialSettings,
 		);
+
+		material.userData.cacheKey = cacheKey;
+
 		if (this._materialCache[cacheKey]) {
 			this._materialCache[cacheKey].material.copy(material);
 			return this._materialCache[cacheKey].material;
@@ -1951,11 +1954,10 @@ export class MaterialLoader implements ILoader {
 		return material;
 	}
 
-	public removeFromMaterialCache(id: string) {
-		const converted = btoaCustom(id);
-		if (!this._materialCache[converted]) return;
-		this._materialCache[converted].material.dispose();
-		delete this._materialCache[converted];
+	public removeFromMaterialCache(cacheKey: string): void {
+		if (!this._materialCache[cacheKey]) return;
+		this._materialCache[cacheKey].material.dispose();
+		delete this._materialCache[cacheKey];
 	}
 
 	public updateMaterials(): void {
@@ -2016,13 +2018,19 @@ export class MaterialLoader implements ILoader {
 	}
 
 	private createDataKeyFromMaterial(
-		data: ITreeNodeData | undefined,
+		data: ITreeNodeData,
 		type: GEOMETRY_MATERIAL_TYPE,
 		materialSettings?: MaterialSettings,
 	): string {
-		return data
-			? btoaCustom(data.id + "_" + data.version)
-			: btoaCustom(type + "_" + JSON.stringify(materialSettings));
+		return btoaCustom(
+			data.id +
+				"_" +
+				data.version +
+				"_" +
+				type +
+				"_" +
+				JSON.stringify(materialSettings),
+		);
 	}
 
 	private createTexture(map: IMapData): THREE.Texture {

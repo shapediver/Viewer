@@ -182,6 +182,7 @@ export class GeometryLoader implements ILoader {
 				this._geometryCache[
 					geometry.id + "_" + geometry.version
 				].clones.push(obj);
+				obj.userData.cacheKey = geometry.id + "_" + geometry.version;
 				parent.add(obj);
 			}
 
@@ -205,6 +206,7 @@ export class GeometryLoader implements ILoader {
 				skeleton,
 				instanceData,
 			);
+			obj.userData.cacheKey = geometry.id + "_" + geometry.version;
 			this._geometryCache[geometry.id + "_" + geometry.version] = {
 				obj,
 				counter: 1,

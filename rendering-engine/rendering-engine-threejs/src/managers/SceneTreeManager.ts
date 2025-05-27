@@ -500,6 +500,75 @@ export class SceneTreeManager implements IManager {
 					isVisibleInHierarchy,
 					skeleton,
 				);
+			} else {
+				// assign the bb
+				if (node.data[i] instanceof GeometryData) {
+					const geometry = node.data[i] as GeometryData;
+					let bb: IBox = new Box();
+					if (skeleton) {
+						bb = geometry.primitive.computeBoundingBox(
+							node.worldMatrix,
+						);
+					} else {
+						const clone = convertedObjectData.clone();
+						clone.applyTransformation(node.worldMatrix);
+						const threeBox = new THREE.Box3().setFromObject(
+							clone,
+							true,
+						);
+						bb = new Box(
+							vec3.fromValues(
+								threeBox.min.x,
+								threeBox.min.y,
+								threeBox.min.z,
+							),
+							vec3.fromValues(
+								threeBox.max.x,
+								threeBox.max.y,
+								threeBox.max.z,
+							),
+						);
+					}
+
+					// adjust the general BB
+					node.boundingBox.union(bb);
+
+					// create the specific BB if it doesn't exist yet
+					if (!node.boundingBoxViewport[this._renderingEngine.id])
+						node.boundingBoxViewport[this._renderingEngine.id] =
+							new Box();
+
+					// adjust the specific BB
+					node.boundingBoxViewport[this._renderingEngine.id].union(
+						bb,
+					);
+				} else if (node.data[i] instanceof ThreejsData) {
+					const threejsData = <ThreejsData>node.data[i];
+					const bbThree = new THREE.Box3().setFromObject(
+						threejsData.obj,
+					);
+
+					// adjust the general BB
+					node.boundingBox.union(
+						new Box(
+							vec3.fromValues(...bbThree.min.toArray()),
+							vec3.fromValues(...bbThree.max.toArray()),
+						),
+					);
+
+					// create the specific BB if it doesn't exist yet
+					if (!node.boundingBoxViewport[this._renderingEngine.id])
+						node.boundingBoxViewport[this._renderingEngine.id] =
+							new Box();
+
+					// adjust the specific BB
+					node.boundingBoxViewport[this._renderingEngine.id].union(
+						new Box(
+							vec3.fromValues(...bbThree.min.toArray()),
+							vec3.fromValues(...bbThree.max.toArray()),
+						),
+					);
+				}
 			}
 		}
 
@@ -643,7 +712,6 @@ export class SceneTreeManager implements IManager {
 			root.boundingBoxViewport[this._renderingEngine.id].clone();
 
 		for (let i = 0; i < this._boundingBoxSensitiveData.length; i++) {
-			console.log(this._boundingBoxSensitiveData[i].data.name);
 			this._renderingEngine.lightLoader.adjustToBoundingBox(
 				this._boundingBoxSensitiveData[i].data,
 				this._boundingBoxSensitiveData[i].dataChild,
@@ -832,15 +900,12 @@ export class SceneTreeManager implements IManager {
 						o instanceof THREE.LineLoop
 					) {
 						this.scene.remove(o);
+
 						this._renderingEngine.geometryLoader.removeFromGeometryCache(
-							o.geometry.userData.SDid +
-								"_" +
-								o.geometry.userData.SDversion,
+							o.geometry.userData.cacheKey,
 						);
 						this._renderingEngine.materialLoader.removeFromMaterialCache(
-							o.material.userData.SDid +
-								"_" +
-								o.material.userData.SDversion,
+							o.material.userData.cacheKey,
 						);
 
 						const texturesToRemove: THREE.Texture[] = [];
