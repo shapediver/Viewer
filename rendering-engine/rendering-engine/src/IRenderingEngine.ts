@@ -11,30 +11,24 @@ import {
 	RENDERER_TYPE,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
+
 import {vec2, vec3} from "gl-matrix";
 
-// #region Interfaces (1)
-
 export interface IRenderingEngine {
-	// #region Properties (13)
-
 	automaticResizing: boolean;
 	canvas: HTMLCanvasElement;
 	closed: boolean;
 	domEventEngine: DomEventEngine;
 	id: string;
-	visibilitySessionIds?: string[];
 	pointSize: number;
 	sessionSettingsId?: string;
 	sessionSettingsMode: SESSION_SETTINGS_MODE;
+	settingsEngine?: SettingsEngine;
 	show: boolean;
 	showStatistics: boolean;
 	type: RENDERER_TYPE;
 	visibility: VISIBILITY_MODE;
-
-	// #endregion Properties (13)
-
-	// #region Public Methods (16)
+	visibilitySessionIds?: string[];
 
 	addFlag(flag: FLAG_TYPE): string;
 	assignSettingsEngine(settingsEngine: SettingsEngine): void;
@@ -68,8 +62,4 @@ export interface IRenderingEngine {
 		},
 	): Promise<void>;
 	viewableInAR(): boolean;
-
-	// #endregion Public Methods (16)
 }
-
-// #endregion Interfaces (1)

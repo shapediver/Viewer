@@ -30,6 +30,7 @@ import {
 	ISDTFOverview,
 	ISDTFOverviewData,
 	IViewportEvent,
+	IViewportSettingsSections,
 	MaterialBasicLineData,
 	MaterialPointData,
 	MaterialStandardData,
@@ -811,6 +812,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._settingsManager.sessionSettingsMode;
 	}
 
+	public get settingsEngine(): SettingsEngine | undefined {
+		return this._settingsManager.settingsEngine;
+	}
+
 	public get shadows(): boolean {
 		return this._shadows;
 	}
@@ -960,6 +965,26 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._flagManager.addFlag(flag, inputToken);
 	}
 
+	public async applySettings(
+		sections: IViewportSettingsSections = {
+			ar: true,
+			scene: true,
+			camera: true,
+			light: true,
+			environment: true,
+			general: true,
+			postprocessing: true,
+		},
+		settingsEngine?: SettingsEngine,
+		updateViewport: boolean = true,
+	): Promise<void> {
+		return this._settingsManager.applySettings(
+			sections,
+			settingsEngine,
+			updateViewport,
+		);
+	}
+
 	public assignSettingsEngine(settingsEngine: SettingsEngine): void {
 		this._settingsManager.assignSettingsEngine(settingsEngine);
 	}
@@ -1066,10 +1091,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._sceneTracingManager.pointerEventToRay(event);
 	}
 
-	public removeFlag(token: string): boolean {
-		return this._flagManager.removeFlag(token);
-	}
-
 	public raytraceScene(
 		origin: vec3,
 		direction: vec3,
@@ -1080,6 +1101,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			direction,
 			filterCriteria,
 		);
+	}
+
+	public removeFlag(token: string): boolean {
+		return this._flagManager.removeFlag(token);
 	}
 
 	public reset() {

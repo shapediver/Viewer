@@ -157,9 +157,7 @@ export class SettingsManager implements IManager {
 		this._settingsEngine = settingsEngine;
 	}
 
-	public init(): void {
-		throw new Error("Method not implemented.");
-	}
+	public init(): void {}
 
 	public saveSettings(settingsEngine?: SettingsEngine) {
 		settingsEngine = settingsEngine || this._settingsEngine;

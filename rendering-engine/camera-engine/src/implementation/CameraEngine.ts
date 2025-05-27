@@ -17,7 +17,9 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {ISceneEvent} from "@shapediver/viewer.shared.types";
+
 import {vec3} from "gl-matrix";
+
 import {ICamera} from "../interfaces/camera/ICamera";
 import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "../interfaces/camera/IOrthographicCamera";
 import {CAMERA_TYPE, ICameraEngine} from "../interfaces/ICameraEngine";
