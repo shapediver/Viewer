@@ -25,6 +25,7 @@ import {
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {RenderingEngine} from "../RenderingEngine";
+import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
 export class RenderingManager implements IManager {
@@ -380,9 +381,9 @@ export class RenderingManager implements IManager {
 			this.updateShadowMap();
 			this._animationEngine.updateAnimationData();
 			this.render();
-			this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <
-				IViewportEvent
-			>{viewportId: this._renderingEngine.id});
+			this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, {
+				viewportId: this._renderingEngine.id,
+			} as IViewportEvent);
 		}
 
 		if (this._renderingEngine.preRenderingCallback)
@@ -399,7 +400,10 @@ export class RenderingManager implements IManager {
 				{transformationOnly: true},
 			);
 		if (this._runningAnimation)
-			this._renderingEngine.sceneTreeManager.updateMorphWeights();
+			updateMorphWeights(
+				this._tree.root,
+				this._renderingEngine.sceneTreeManager.mainNode,
+			);
 
 		// get the current size
 		const {width, height, adjustedWidth, adjustedHeight} =

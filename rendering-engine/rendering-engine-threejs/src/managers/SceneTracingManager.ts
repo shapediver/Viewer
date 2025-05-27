@@ -1,28 +1,29 @@
+import * as THREE from "three";
+
 import {
 	AbstractCamera,
 	OrthographicCamera,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
+import {IntersectionEngine} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {ShapeDiverViewerViewportError} from "@shapediver/viewer.shared.services";
+import {
+	IGeometryData,
+	IIntersectionFilter,
+} from "@shapediver/viewer.shared.types";
+
 import {vec2, vec3} from "gl-matrix";
-import * as THREE from "three";
+
 import {RenderingEngine} from "../RenderingEngine";
 
 export class SceneTracingManager implements IManager {
-	// #region Properties (1)
-
+	private readonly _intersectionManager: IntersectionEngine =
+		IntersectionEngine.instance;
 	private readonly _raycaster = new THREE.Raycaster();
 
-	// #endregion Properties (1)
-
-	// #region Constructors (1)
-
 	constructor(private readonly _renderingEngine: RenderingEngine) {}
-
-	// #endregion Constructors (1)
-
-	// #region Public Methods (3)
 
 	public convert3Dto2D(p: vec3): {
 		container: vec2;
@@ -252,5 +253,22 @@ export class SceneTracingManager implements IManager {
 		return {origin, direction};
 	}
 
-	// #endregion Public Methods (3)
+	public raytraceScene(
+		origin: vec3,
+		direction: vec3,
+		filterCriteria?: IIntersectionFilter[],
+	): {distance: number; node: ITreeNode; data?: IGeometryData}[] {
+		const intersect = this._intersectionManager.intersect(
+			{origin, direction},
+			this._renderingEngine.id,
+			filterCriteria,
+		);
+		return intersect.map((i) => {
+			return {
+				distance: i.distance,
+				node: i.node,
+				data: i.geometryData,
+			};
+		});
+	}
 }

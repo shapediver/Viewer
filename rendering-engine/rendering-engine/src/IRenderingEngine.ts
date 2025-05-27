@@ -27,7 +27,6 @@ export interface IRenderingEngine {
 	pointSize: number;
 	sessionSettingsId?: string;
 	sessionSettingsMode: SESSION_SETTINGS_MODE;
-	settingsEngine?: SettingsEngine;
 	show: boolean;
 	showStatistics: boolean;
 	type: RENDERER_TYPE;

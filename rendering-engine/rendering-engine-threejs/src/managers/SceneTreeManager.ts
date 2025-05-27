@@ -12,34 +12,36 @@ import {
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	EventEngine,
+	EVENTTYPE,
+	InputValidator,
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
+import {
 	AbstractMaterialData,
 	AnimationData,
 	BoneData,
 	GeometryData,
 	HTMLElementAnchorData,
-	IMaterialAbstractData,
 	InstanceData,
 	ISDTFOverview,
-	MaterialStandardData,
 	RENDERER_TYPE,
-	SDTFItemData,
-	SDTFOverviewData,
 } from "@shapediver/viewer.shared.types";
-import {mat4, vec3} from "gl-matrix";
+import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDBone} from "../objects/SDBone";
 import {SDData, SD_DATA_TYPE} from "../objects/SDData";
 import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
-/* eslint-disable @typescript-eslint/no-empty-function */
 import {
-	EventEngine,
-	EVENTTYPE,
-	InputValidator,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
+	assignBoundingBox,
+	getBone,
+	removeData,
+} from "./sceneTree/SceenTreeManagerUtils";
+import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
 
+/* eslint-disable @typescript-eslint/no-empty-function */
 // #region Type aliases (1)
 
 type UpdateFilter = {
@@ -96,6 +98,10 @@ export class SceneTreeManager implements IManager {
 		return this._lastRootVersion;
 	}
 
+	public get mainNode() {
+		return this._mainNode;
+	}
+
 	public get scene() {
 		return this._scene;
 	}
@@ -113,18 +119,6 @@ export class SceneTreeManager implements IManager {
 	// #region Public Methods (6)
 
 	public init(): void {}
-
-	public isEmpty() {
-		return (
-			(this._boundingBox.min[0] === 0 &&
-				this._boundingBox.min[1] === 0 &&
-				this._boundingBox.min[2] === 0 &&
-				this._boundingBox.max[0] === 0 &&
-				this._boundingBox.max[1] === 0 &&
-				this._boundingBox.max[2] === 0) ||
-			this._boundingBox.isEmpty()
-		);
-	}
 
 	/**
 	 * Convert the data of the scene graph node into the format of the implementation.
@@ -156,7 +150,12 @@ export class SceneTreeManager implements IManager {
 		}
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			this.injectAttributeData(node, data);
+			injectAttributeData(
+				this._renderingEngine,
+				this._currentSDTFOverview,
+				node,
+				data,
+			);
 		} else {
 			const sdtfTransform = node.getTransformation("sdtf");
 			if (sdtfTransform) node.removeTransformation(sdtfTransform);
@@ -183,76 +182,12 @@ export class SceneTreeManager implements IManager {
 							skeleton,
 							instanceTransformationData,
 						);
-
-					let bb: IBox = new Box();
-					if (skeleton) {
-						bb = (<GeometryData>data).primitive.computeBoundingBox(
-							node.worldMatrix,
-						);
-					} else {
-						const clone = dataChild.clone();
-						clone.applyTransformation(node.worldMatrix);
-						const threeBox = new THREE.Box3().setFromObject(
-							clone,
-							true,
-						);
-						bb = new Box(
-							vec3.fromValues(
-								threeBox.min.x,
-								threeBox.min.y,
-								threeBox.min.z,
-							),
-							vec3.fromValues(
-								threeBox.max.x,
-								threeBox.max.y,
-								threeBox.max.z,
-							),
-						);
-					}
-
-					// adjust the general BB
-					node.boundingBox.union(bb);
-
-					// create the specific BB if it doesn't exist yet
-					if (!node.boundingBoxViewport[this._renderingEngine.id])
-						node.boundingBoxViewport[this._renderingEngine.id] =
-							new Box();
-
-					// adjust the specific BB
-					node.boundingBoxViewport[this._renderingEngine.id].union(
-						bb,
-					);
 				}
 				break;
 			case data instanceof ThreejsData:
 				{
 					dataChild.SDtype = SD_DATA_TYPE.THREEJS;
 					dataChild.add(<SDData>(<ThreejsData>data).obj);
-
-					const bbThree = new THREE.Box3().setFromObject(
-						(<ThreejsData>data).obj,
-					);
-
-					// adjust the general BB
-					node.boundingBox.union(
-						new Box(
-							vec3.fromValues(...bbThree.min.toArray()),
-							vec3.fromValues(...bbThree.max.toArray()),
-						),
-					);
-
-					// create the specific BB if it doesn't exist yet
-					if (!node.boundingBoxViewport[this._renderingEngine.id])
-						node.boundingBoxViewport[this._renderingEngine.id] =
-							new Box();
-
-					// adjust the specific BB
-					node.boundingBoxViewport[this._renderingEngine.id].union(
-						new Box(
-							vec3.fromValues(...bbThree.min.toArray()),
-							vec3.fromValues(...bbThree.max.toArray()),
-						),
-					);
 				}
 				break;
 			case data instanceof AbstractMaterialData:
@@ -298,46 +233,13 @@ export class SceneTreeManager implements IManager {
 				// if there is no valid conversion here, call the convertData of the implementation
 				break;
 		}
-	}
-
-	public updateMorphWeights(
-		node: ITreeNode = this._tree.root,
-		obj: SDObject = this._mainNode,
-	) {
-		if (!node || !obj) return;
-
-		for (let i = 0, len = node.data.length; i < len; i++) {
-			if (node.data[i] instanceof GeometryData) {
-				const data: GeometryData = <GeometryData>node.data[i];
-				const dataChild = <SDData>(
-					obj.children.find(
-						(oc) =>
-							(<SDData>oc).SDid === data.id &&
-							(<SDData>oc).SDversion === data.version,
-					)
-				);
-				if (dataChild)
-					dataChild.traverse((o) => {
-						if (
-							o instanceof THREE.Points ||
-							o instanceof THREE.LineSegments ||
-							o instanceof THREE.LineLoop ||
-							o instanceof THREE.Line ||
-							o instanceof THREE.Mesh
-						)
-							o.morphTargetInfluences = data.morphWeights;
-					});
-			}
-		}
-
-		for (let i = 0, len = node.children.length; i < len; i++) {
-			const nodeChild = node.children[i];
-			if (!nodeChild) continue;
-			const objChild = <SDObject>(
-				obj.children.find((oc) => (<SDObject>oc).SDid === nodeChild.id)
-			);
-			if (objChild) this.updateMorphWeights(nodeChild, objChild);
-		}
+		assignBoundingBox(
+			node,
+			data,
+			this._renderingEngine.id,
+			dataChild,
+			skeleton !== undefined,
+		);
 	}
 
 	/**
@@ -425,7 +327,7 @@ export class SceneTreeManager implements IManager {
 			});
 
 			dataToRemove.forEach((dTR) => {
-				this.removeData(<SDData>dTR);
+				removeData(this._renderingEngine, <SDData>dTR);
 				convertedObject.remove(dTR);
 			});
 
@@ -451,7 +353,8 @@ export class SceneTreeManager implements IManager {
 			});
 			childrenToRemove.forEach((cTR) => {
 				cTR.traverse((o) => {
-					if (o instanceof SDData) this.removeData(o);
+					if (o instanceof SDData)
+						removeData(this._renderingEngine, o);
 				});
 				convertedObject.remove(cTR);
 			});
@@ -461,7 +364,7 @@ export class SceneTreeManager implements IManager {
 		if (node.skinNode === true) {
 			const bones: THREE.Bone[] = [];
 			for (let i = 0; i < node.bones.length; i++)
-				bones.push(this.getBone(node.bones[i]));
+				bones.push(getBone(this._mainNode, node.bones[i]));
 
 			const boneInverses: THREE.Matrix4[] = [];
 			for (let i = 0; i < node.boneInverses.length; i++)
@@ -501,74 +404,13 @@ export class SceneTreeManager implements IManager {
 					skeleton,
 				);
 			} else {
-				// assign the bb
-				if (node.data[i] instanceof GeometryData) {
-					const geometry = node.data[i] as GeometryData;
-					let bb: IBox = new Box();
-					if (skeleton) {
-						bb = geometry.primitive.computeBoundingBox(
-							node.worldMatrix,
-						);
-					} else {
-						const clone = convertedObjectData.clone();
-						clone.applyTransformation(node.worldMatrix);
-						const threeBox = new THREE.Box3().setFromObject(
-							clone,
-							true,
-						);
-						bb = new Box(
-							vec3.fromValues(
-								threeBox.min.x,
-								threeBox.min.y,
-								threeBox.min.z,
-							),
-							vec3.fromValues(
-								threeBox.max.x,
-								threeBox.max.y,
-								threeBox.max.z,
-							),
-						);
-					}
-
-					// adjust the general BB
-					node.boundingBox.union(bb);
-
-					// create the specific BB if it doesn't exist yet
-					if (!node.boundingBoxViewport[this._renderingEngine.id])
-						node.boundingBoxViewport[this._renderingEngine.id] =
-							new Box();
-
-					// adjust the specific BB
-					node.boundingBoxViewport[this._renderingEngine.id].union(
-						bb,
-					);
-				} else if (node.data[i] instanceof ThreejsData) {
-					const threejsData = <ThreejsData>node.data[i];
-					const bbThree = new THREE.Box3().setFromObject(
-						threejsData.obj,
-					);
-
-					// adjust the general BB
-					node.boundingBox.union(
-						new Box(
-							vec3.fromValues(...bbThree.min.toArray()),
-							vec3.fromValues(...bbThree.max.toArray()),
-						),
-					);
-
-					// create the specific BB if it doesn't exist yet
-					if (!node.boundingBoxViewport[this._renderingEngine.id])
-						node.boundingBoxViewport[this._renderingEngine.id] =
-							new Box();
-
-					// adjust the specific BB
-					node.boundingBoxViewport[this._renderingEngine.id].union(
-						new Box(
-							vec3.fromValues(...bbThree.min.toArray()),
-							vec3.fromValues(...bbThree.max.toArray()),
-						),
-					);
-				}
+				assignBoundingBox(
+					node,
+					node.data[i],
+					this._renderingEngine.id,
+					convertedObjectData,
+					skeleton !== undefined,
+				);
 			}
 		}
 
@@ -706,7 +548,7 @@ export class SceneTreeManager implements IManager {
 
 		this._boundingBoxSensitiveData = [];
 
-		this._currentSDTFOverview = this.createSDTFOverview();
+		this._currentSDTFOverview = createSDTFOverview(root);
 		this.updateNode(root, this._mainNode);
 		this._boundingBox =
 			root.boundingBoxViewport[this._renderingEngine.id].clone();
@@ -802,174 +644,6 @@ export class SceneTreeManager implements IManager {
 	}
 
 	// #endregion Public Methods (6)
-
-	// #region Private Methods (5)
-
-	private collectSDTFItemData(node: ITreeNode): SDTFItemData | undefined {
-		for (let i = 0, len = node.data.length; i < len; i++)
-			if (node.data[i] instanceof SDTFItemData)
-				return <SDTFItemData>node.data[i];
-
-		if (!node.parent) return;
-		return this.collectSDTFItemData(node.parent);
-	}
-
-	private createSDTFOverview(
-		node: ITreeNode = this._tree.root,
-	): ISDTFOverview {
-		const out: SDTFOverviewData = new SDTFOverviewData({});
-		for (let i = 0, len = node.data.length; i < len; i++)
-			if (node.data[i] instanceof SDTFOverviewData)
-				out.merge(<SDTFOverviewData>node.data[i]);
-
-		for (let i = 0, len = node.children.length; i < len; i++)
-			out.merge(
-				new SDTFOverviewData(this.createSDTFOverview(node.children[i])),
-			);
-
-		return out.overview;
-	}
-
-	private getBone(node: ITreeNode): SDBone {
-		let bone: SDBone;
-		this._mainNode.traverse((o) => {
-			if ((<SDObject>o).SDid === node.id) bone = <SDBone>o;
-		});
-		return bone!;
-	}
-
-	private injectAttributeData(node: ITreeNode, data: ITreeNodeData) {
-		const itemData = this.collectSDTFItemData(node);
-		const visData: {
-			material: IMaterialAbstractData;
-			matrix: mat4;
-		} = {
-			material: new MaterialStandardData({
-				color: this._renderingEngine.defaultMaterialColor,
-				opacity: 1,
-			}),
-			matrix: mat4.create(),
-		};
-
-		if (this._renderingEngine.visualizeAttributes) {
-			const userVisData = this._renderingEngine.visualizeAttributes(
-				this._currentSDTFOverview,
-				itemData,
-			);
-			this._inputValidator.validateAndError(
-				"Viewer.visualizeAttributes",
-				userVisData,
-				"object",
-				true,
-			);
-			this._inputValidator.validateAndError(
-				"Viewer.visualizeAttributes",
-				userVisData.matrix,
-				"mat4",
-				true,
-			);
-			visData.material = userVisData.material;
-			visData.matrix = userVisData.matrix;
-		}
-
-		node.addTransformation({
-			id: "sdtf",
-			matrix: visData.matrix,
-		});
-
-		if (data instanceof GeometryData)
-			data.attributeMaterial = visData.material;
-	}
-
-	private removeData(dataObject: SDData) {
-		if (dataObject.userData.removed === true) return;
-		dataObject.userData.removed = true;
-
-		switch (true) {
-			case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
-				dataObject.traverse((o) => {
-					if (dataObject.id !== o.id && o.userData.removed === true)
-						return;
-					o.userData.removed = true;
-
-					if (
-						o instanceof THREE.Mesh ||
-						o instanceof THREE.Line ||
-						o instanceof THREE.Points ||
-						o instanceof THREE.LineSegments ||
-						o instanceof THREE.LineLoop
-					) {
-						this.scene.remove(o);
-
-						this._renderingEngine.geometryLoader.removeFromGeometryCache(
-							o.geometry.userData.cacheKey,
-						);
-						this._renderingEngine.materialLoader.removeFromMaterialCache(
-							o.material.userData.cacheKey,
-						);
-
-						const texturesToRemove: THREE.Texture[] = [];
-						for (const t in o.material) {
-							if (o.material[t] instanceof THREE.Texture) {
-								o.material[t].name = t;
-								if (t !== "envMap") {
-									if (
-										!texturesToRemove.includes(
-											o.material[t],
-										)
-									)
-										texturesToRemove.push(o.material[t]);
-								}
-							}
-						}
-
-						for (const texture of texturesToRemove) {
-							if (texture.userData.cacheKey) {
-								this._renderingEngine.materialLoader
-									.threeJsTextureCache[
-									texture.userData.cacheKey
-								].usage--;
-							} else {
-								if (texture.name === "sphericalNormalMap") {
-									this._renderingEngine.geometryLoader.removeFromGemSphericalMapsCache(
-										o.geometry.userData.primitiveSDid +
-											"_" +
-											o.geometry.userData
-												.primitiveSDversion,
-									);
-									texture.dispose();
-								} else {
-									texture.dispose();
-								}
-							}
-						}
-					}
-				});
-				break;
-			case dataObject.SDtype === SD_DATA_TYPE.THREEJS:
-				break;
-			case dataObject.SDtype === SD_DATA_TYPE.MATERIAL:
-				break;
-			case dataObject.SDtype === SD_DATA_TYPE.LIGHT:
-				dataObject.traverse((o) => {
-					if (o instanceof THREE.Light) o.dispose();
-				});
-				break;
-			case dataObject.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
-				this._renderingEngine.htmlElementAnchorLoader.removeData(
-					dataObject.SDid,
-					dataObject.SDversion,
-				);
-				break;
-			case dataObject.SDtype === SD_DATA_TYPE.ANIMATION:
-				break;
-			default:
-				// if there is no valid conversion here, call the convertData of the implementation
-				break;
-		}
-	}
-
-	// #endregion Private Methods (5)
 }
 
 // #endregion Classes (1)
