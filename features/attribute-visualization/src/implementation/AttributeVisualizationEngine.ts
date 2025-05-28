@@ -7,6 +7,7 @@ import {
 } from "@shapediver/viewer";
 import {EVENTTYPE, UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
+	GeometryData,
 	IMaterialAbstractData,
 	ISDTFItemData,
 	ISDTFOverview,
@@ -372,11 +373,14 @@ export class AttributeVisualizationEngine
 				};
 			}
 		};
+
+		// update all nodes with attribute data
+		// also update the geometry data items
 		this.#nodesWithAttributeData.forEach((n) => {
 			n.traverseData((d) => {
-				d.updateVersion();
+				if (d instanceof GeometryData) d.updateVersion();
 			});
-			this.#viewport.updateNode(n);
+			n.updateVersion();
 		});
 	}
 
