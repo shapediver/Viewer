@@ -292,14 +292,6 @@ export class SceneTreeManager implements IManager {
 
 		const convertedObject = <SDObject>obj;
 
-		if (
-			convertedObject.SDid === node.id &&
-			convertedObject.SDversion === node.version &&
-			node.boundingBoxViewport[this._renderingEngine.id]
-		)
-			// if the converted object is already up to date, return
-			return;
-
 		// reset the general bounding box of the current node
 		// it will be recomputed in the following steps
 		node.boundingBox.reset();
