@@ -1431,7 +1431,6 @@ export class ViewportApi implements IViewportApi {
 				"node",
 			);
 
-		this.update("createSDTFOverview");
 		return this.#renderingEngine.createSDTFOverview(node);
 	}
 
