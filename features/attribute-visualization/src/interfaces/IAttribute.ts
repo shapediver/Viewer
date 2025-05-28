@@ -16,13 +16,9 @@ export enum ATTRIBUTE_VISUALIZATION {
 	HSL = "hsl",
 	VIRIDIS = "viridis",
 	PLASMA = "plasma",
-	SEISMIC = "seismic",
 	TURBO = "turbo",
-	INFERNO = "inferno",
 	MAGMA = "magma",
 	CIVIDIS = "cividis",
-	COOLWARM = "coolwarm",
-	PASTEL = "pastel",
 }
 export interface IAttribute {
 	key: string;

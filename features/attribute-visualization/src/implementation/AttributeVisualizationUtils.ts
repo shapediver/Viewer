@@ -305,7 +305,6 @@ export const getColorSteps = (
 					colorAfter: "rgb(254, 255, 178)",
 				},
 			];
-		case ATTRIBUTE_VISUALIZATION.SEISMIC:
 			return [
 				{
 					value: 0.0,
@@ -421,7 +420,6 @@ export const getColorSteps = (
 					colorAfter: "rgb(127, 0, 45)",
 				},
 			];
-		case ATTRIBUTE_VISUALIZATION.INFERNO:
 			return [
 				{
 					value: 0.0,
@@ -593,112 +591,6 @@ export const getColorSteps = (
 					value: 1.0,
 					colorBefore: "rgb(252, 255, 164)",
 					colorAfter: "rgb(252, 255, 164)",
-				},
-			];
-		case ATTRIBUTE_VISUALIZATION.COOLWARM:
-			return [
-				{
-					value: 0.0,
-					colorBefore: "rgb(59, 76, 192)",
-					colorAfter: "rgb(59, 76, 192)",
-				},
-				{
-					value: 0.1,
-					colorBefore: "rgb(95, 115, 204)",
-					colorAfter: "rgb(95, 115, 204)",
-				},
-				{
-					value: 0.2,
-					colorBefore: "rgb(138, 156, 211)",
-					colorAfter: "rgb(138, 156, 211)",
-				},
-				{
-					value: 0.3,
-					colorBefore: "rgb(186, 199, 216)",
-					colorAfter: "rgb(186, 199, 216)",
-				},
-				{
-					value: 0.4,
-					colorBefore: "rgb(235, 240, 219)",
-					colorAfter: "rgb(235, 240, 219)",
-				},
-				{
-					value: 0.5,
-					colorBefore: "rgb(245, 245, 245)",
-					colorAfter: "rgb(245, 245, 245)",
-				},
-				{
-					value: 0.6,
-					colorBefore: "rgb(244, 212, 184)",
-					colorAfter: "rgb(244, 212, 184)",
-				},
-				{
-					value: 0.7,
-					colorBefore: "rgb(240, 171, 131)",
-					colorAfter: "rgb(240, 171, 131)",
-				},
-				{
-					value: 0.8,
-					colorBefore: "rgb(229, 120, 90)",
-					colorAfter: "rgb(229, 120, 90)",
-				},
-				{
-					value: 0.9,
-					colorBefore: "rgb(217, 64, 58)",
-					colorAfter: "rgb(217, 64, 58)",
-				},
-				{
-					value: 1.0,
-					colorBefore: "rgb(179, 0, 0)",
-					colorAfter: "rgb(179, 0, 0)",
-				},
-			];
-		case ATTRIBUTE_VISUALIZATION.PASTEL:
-			return [
-				{
-					value: 0.0,
-					colorBefore: "rgb(251, 180, 174)",
-					colorAfter: "rgb(251, 180, 174)",
-				},
-				{
-					value: 0.125,
-					colorBefore: "rgb(179, 205, 227)",
-					colorAfter: "rgb(179, 205, 227)",
-				},
-				{
-					value: 0.25,
-					colorBefore: "rgb(204, 235, 197)",
-					colorAfter: "rgb(204, 235, 197)",
-				},
-				{
-					value: 0.375,
-					colorBefore: "rgb(222, 203, 228)",
-					colorAfter: "rgb(222, 203, 228)",
-				},
-				{
-					value: 0.5,
-					colorBefore: "rgb(254, 217, 166)",
-					colorAfter: "rgb(254, 217, 166)",
-				},
-				{
-					value: 0.625,
-					colorBefore: "rgb(255, 255, 204)",
-					colorAfter: "rgb(255, 255, 204)",
-				},
-				{
-					value: 0.75,
-					colorBefore: "rgb(229, 216, 189)",
-					colorAfter: "rgb(229, 216, 189)",
-				},
-				{
-					value: 0.875,
-					colorBefore: "rgb(253, 218, 236)",
-					colorAfter: "rgb(253, 218, 236)",
-				},
-				{
-					value: 1.0,
-					colorBefore: "rgb(242, 242, 242)",
-					colorAfter: "rgb(242, 242, 242)",
 				},
 			];
 		default:
