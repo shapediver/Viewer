@@ -254,6 +254,11 @@ export interface IViewportApi {
 	 */
 	lights: boolean;
 	/**
+	 * Option to load the default cameras when the viewport is created. (default: true)
+	 * This will create 6 orthographic cameras (top, bottom, left, right, front, back).
+	 */
+	loadDefaultCameras: boolean;
+	/**
 	 * The type of material that is used as an override for all materials in the scene.
 	 * This can be used to enforce a specific material type for all materials in the scene.
 	 *

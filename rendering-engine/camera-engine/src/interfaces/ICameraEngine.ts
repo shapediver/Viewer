@@ -3,6 +3,8 @@ import {ICamera} from "./camera/ICamera";
 // #region Interfaces (1)
 
 export interface ICameraEngine {
+	loadDefaultCameras: boolean;
+
 	// #region Properties (1)
 
 	update?: () => void;

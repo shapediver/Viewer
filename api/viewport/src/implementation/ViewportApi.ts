@@ -736,6 +736,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("lights");
 	}
 
+	public get loadDefaultCameras(): boolean {
+		return this.#renderingEngine.loadDefaultCameras;
+	}
+
+	public set loadDefaultCameras(value: boolean) {
+		const scope = "loadDefaultCameras";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.loadDefaultCameras = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("loadDefaultCameras");
+	}
+
 	public get materialOverrideType(): MATERIAL_TYPE | undefined {
 		return this.#renderingEngine.materialOverrideType;
 	}

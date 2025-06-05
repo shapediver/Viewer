@@ -35,6 +35,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	groundPlaneVisibility: boolean;
 	lightSceneId: string;
 	lights: boolean;
+	loadDefaultCameras: boolean;
 	materialOverrideType: MATERIAL_TYPE | undefined;
 	maximumRenderingSize: {
 		width: number;
