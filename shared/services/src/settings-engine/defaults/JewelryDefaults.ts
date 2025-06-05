@@ -4,7 +4,7 @@ export const JewelryDefaults: () => ISettings = () => {
 	return {
 		build_date: "",
 		build_version: "",
-		settings_version: "6.1",
+		settings_version: "6.2",
 		ar: {
 			enable: true,
 			autoScaling: true,
@@ -12,6 +12,7 @@ export const JewelryDefaults: () => ISettings = () => {
 		camera: {
 			cameraId: "",
 			cameras: {},
+			loadDefaultCameras: true,
 		},
 		environment: {
 			clearAlpha: 1.0,

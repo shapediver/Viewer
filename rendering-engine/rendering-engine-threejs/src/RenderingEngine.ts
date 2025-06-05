@@ -668,6 +668,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._lights = value;
 	}
 
+	public get loadDefaultCameras(): boolean {
+		return this._cameraEngine.loadDefaultCameras;
+	}
+
+	public set loadDefaultCameras(value: boolean) {
+		this._cameraEngine.loadDefaultCameras = value;
+	}
+
 	public get logoDivElement(): HTMLDivElement {
 		return this._logoDivElement;
 	}

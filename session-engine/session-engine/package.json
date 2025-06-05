@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "1.12.2",
 		"@shapediver/viewer.data-engine.shared-types": "3.10.1-rc.3",
-		"@shapediver/viewer.settings": "1.1.6",
+		"@shapediver/viewer.settings": "1.1.8",
 		"@shapediver/viewer.shared.build-data": "3.10.1-rc.3",
 		"@shapediver/viewer.shared.global-access-objects": "3.10.1-rc.3",
 		"@shapediver/viewer.shared.node-tree": "3.10.1-rc.3",

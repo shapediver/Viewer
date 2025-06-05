@@ -242,6 +242,28 @@ import {
 import {ISettings as ISettingsV6_1} from "./versions/v6_1/ISettings";
 import {validate as validateV6_1} from "./versions/v6_1/Validator";
 
+import {
+	IAmbientLightProperties as IAmbientLightPropertiesV6_2,
+	IDirectionalLightProperties as IDirectionalLightPropertiesV6_2,
+	IHemisphereLightProperties as IHemisphereLightPropertiesV6_2,
+	ILightSceneSettings as ILightSceneSettingsV6_2,
+	IPointLightProperties as IPointLightPropertiesV6_2,
+	ISpotLightProperties as ISpotLightPropertiesV6_2,
+} from "./versions/v3/ILightSceneSettings";
+import {IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6_2} from "./versions/v4/IPostProcessingEffectSettings";
+import {
+	ICameraControlsSettings as ICameraControlsSettingsV6_2,
+	ICameraSettings as ICameraSettingsV6_2,
+	IOrthographicCameraSettings as IOrthographicCameraSettingsV6_2,
+	IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_2,
+} from "./versions/v5/ICameraSettings";
+import {
+	convertFromPrevious as convertFromPreviousV6_2,
+	convertToPrevious as convertToPreviousV6_2,
+} from "./versions/v6_2/Converter";
+import {ISettings as ISettingsV6_2} from "./versions/v6_2/ISettings";
+import {validate as validateV6_2} from "./versions/v6_2/Validator";
+
 export {ISettingsV1, DefaultsV1};
 export {ISettingsV2, DefaultsV2};
 export {
@@ -394,20 +416,34 @@ export {
 	ISpotLightPropertiesV6_1,
 	IPostProcessingEffectsArrayV6_1,
 };
+export {
+	ISettingsV6_2,
+	ICameraSettingsV6_2,
+	IOrthographicCameraSettingsV6_2,
+	IPerspectiveCameraSettingsV6_2,
+	ICameraControlsSettingsV6_2,
+	ILightSceneSettingsV6_2,
+	IAmbientLightPropertiesV6_2,
+	IDirectionalLightPropertiesV6_2,
+	IHemisphereLightPropertiesV6_2,
+	IPointLightPropertiesV6_2,
+	ISpotLightPropertiesV6_2,
+	IPostProcessingEffectsArrayV6_2,
+};
 // this changes every version
 export {
-	ISettingsV6_1 as ISettings,
-	ICameraSettingsV6_1 as ICameraSettings,
-	IOrthographicCameraSettingsV6_1 as IOrthographicCameraSettings,
-	IPerspectiveCameraSettingsV6_1 as IPerspectiveCameraSettings,
-	ICameraControlsSettingsV6_1 as ICameraControlsSettings,
-	ILightSceneSettingsV6_1 as ILightSceneSettings,
-	IAmbientLightPropertiesV6_1 as IAmbientLightProperties,
-	IDirectionalLightPropertiesV6_1 as IDirectionalLightProperties,
-	IHemisphereLightPropertiesV6_1 as IHemisphereLightProperties,
-	IPointLightPropertiesV6_1 as IPointLightProperties,
-	ISpotLightPropertiesV6_1 as ISpotLightProperties,
-	IPostProcessingEffectsArrayV6_1 as IPostProcessingEffectsArray,
+	ISettingsV6_2 as ISettings,
+	ICameraSettingsV6_2 as ICameraSettings,
+	IOrthographicCameraSettingsV6_2 as IOrthographicCameraSettings,
+	IPerspectiveCameraSettingsV6_2 as IPerspectiveCameraSettings,
+	ICameraControlsSettingsV6_2 as ICameraControlsSettings,
+	ILightSceneSettingsV6_2 as ILightSceneSettings,
+	IAmbientLightPropertiesV6_2 as IAmbientLightProperties,
+	IDirectionalLightPropertiesV6_2 as IDirectionalLightProperties,
+	IHemisphereLightPropertiesV6_2 as IHemisphereLightProperties,
+	IPointLightPropertiesV6_2 as IPointLightProperties,
+	ISpotLightPropertiesV6_2 as ISpotLightProperties,
+	IPostProcessingEffectsArrayV6_2 as IPostProcessingEffectsArray,
 };
 
 export type versions =
@@ -422,7 +458,8 @@ export type versions =
 	| "4.1"
 	| "5.0"
 	| "6.0"
-	| "6.1";
+	| "6.1"
+	| "6.2";
 export const previousVersion: versions[] = [
 	"1.0",
 	"2.0",
@@ -435,6 +472,7 @@ export const previousVersion: versions[] = [
 	"4.1",
 	"5.0",
 	"6.0",
+	"6.1",
 ];
 
 const settingsUtilities: {
@@ -525,6 +563,12 @@ settingsUtilities.push({
 	convertToPrevious: convertToPreviousV6_1,
 	convertFromPrevious: convertFromPreviousV6_1,
 	validate: validateV6_1,
+});
+settingsUtilities.push({
+	version: "6.2",
+	convertToPrevious: convertToPreviousV6_2,
+	convertFromPrevious: convertFromPreviousV6_2,
+	validate: validateV6_2,
 });
 
 /**
@@ -641,7 +685,10 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
 			.filter(Boolean)
 			.map((match) => parseInt(match!));
 
-		if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 8) {
+		if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 11) {
+			// starting from 3.3.11.0
+			return "6.2";
+		} else if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 8) {
 			// starting from 3.3.8.0
 			// version 6.0 was never really in use due to a bug in the versioning
 			return "6.1";
@@ -678,4 +725,4 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
 	return "1.0";
 };
 
-export const latestVersion = "6.1";
+export const latestVersion = "6.2";

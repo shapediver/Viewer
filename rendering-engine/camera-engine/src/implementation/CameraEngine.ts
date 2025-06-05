@@ -39,8 +39,17 @@ export class CameraEngine implements ICameraEngine {
 	private readonly _stateEngine: StateEngine = StateEngine.instance;
 	private readonly _tree: ITree = Tree.instance;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+	private readonly _defaultCameraIds = [
+		"top",
+		"bottom",
+		"left",
+		"right",
+		"front",
+		"back",
+	];
 
 	private _camera: ICamera | null = null;
+	private _loadDefaultCameras: boolean = true;
 	private _settingsApplied: boolean = false;
 	private _update?: () => void;
 
@@ -102,6 +111,53 @@ export class CameraEngine implements ICameraEngine {
 		return this._cameras;
 	}
 
+	public get loadDefaultCameras(): boolean {
+		return this._loadDefaultCameras;
+	}
+
+	public set loadDefaultCameras(value: boolean) {
+		this._loadDefaultCameras = value;
+
+		if (value) {
+			// if the default cameras are not yet created, we create them
+			if (!this.hasDefaultCameras()) {
+				this.createDefaultCameras(true, false);
+			}
+		} else {
+			// check if there are currently default cameras and remove them
+			if (this.hasDefaultCameras()) {
+				for (const cameraId of this._defaultCameraIds) {
+					if (this._cameras[cameraId]) this.removeCamera(cameraId);
+				}
+
+				// check if the current camera is one of the default cameras
+				if (!this._camera) {
+					// check if there are other cameras available
+					const cameraKeys = Object.keys(this._cameras);
+					if (cameraKeys.length > 0) {
+						// if so, assign the first camera
+						this.assignCamera(cameraKeys[0]);
+					} else {
+						// create the perspective camera if no cameras are available
+						this.createDefaultCameras(false, true);
+					}
+				} else {
+					// if the current camera is one of the default cameras, we need to assign a new camera
+					if (this._defaultCameraIds.includes(this._camera.id)) {
+						// if the current camera is one of the default cameras, assign the first camera
+						const cameraKeys = Object.keys(this._cameras);
+						if (cameraKeys.length > 0) {
+							this.assignCamera(cameraKeys[0]);
+						} else {
+							// create the perspective camera if no cameras are available
+							this.createDefaultCameras(false, true);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	public get update(): (() => void) | undefined {
 		return this._update;
 	}
@@ -118,6 +174,18 @@ export class CameraEngine implements ICameraEngine {
 			)).cameraControlsEventDistribution.activateCameraEvents();
 	}
 
+	public hasDefaultCameras(): boolean {
+		let defaultCamerasInSettings = true;
+
+		for (const cameraId of this._defaultCameraIds) {
+			if (!this._cameras[cameraId]) {
+				defaultCamerasInSettings = false;
+				break;
+			}
+		}
+		return defaultCamerasInSettings;
+	}
+
 	public applySettings(settingsEngine: SettingsEngine) {
 		const cameras = this.cameras;
 		for (const c in cameras) this.removeCamera(c);
@@ -127,17 +195,9 @@ export class CameraEngine implements ICameraEngine {
 		 * we save the orthographic default cameras, even if they were never changed.
 		 * Now we check if the six cameras exist and were not change and if so, we never add them
 		 */
-		const defaultCameras = [
-			"top",
-			"bottom",
-			"left",
-			"right",
-			"front",
-			"back",
-		];
 		let defaultCamerasInSettings = true;
 
-		for (const cameraId of defaultCameras) {
+		for (const cameraId of this._defaultCameraIds) {
 			if (settingsEngine.settings.camera.cameraId === cameraId) {
 				// the camera was set as the default, don't remove it
 				defaultCamerasInSettings = false;
@@ -154,15 +214,15 @@ export class CameraEngine implements ICameraEngine {
 				this.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
 			} else {
 				const isDefault =
-					defaultCamerasInSettings && defaultCameras.includes(id);
+					defaultCamerasInSettings &&
+					this._defaultCameraIds.includes(id);
 				const camera = this.createCamera(
 					CAMERA_TYPE.ORTHOGRAPHIC,
 					id,
 					isDefault,
 				);
-				(<OrthographicCamera>camera).direction = <
-					ORTHOGRAPHIC_CAMERA_DIRECTION
-				>cameraSetting.type;
+				(<OrthographicCamera>camera).direction =
+					cameraSetting.type as ORTHOGRAPHIC_CAMERA_DIRECTION;
 			}
 		}
 
@@ -180,11 +240,11 @@ export class CameraEngine implements ICameraEngine {
 			// create the default orthographic cameras if there are no cameras with the default names
 			if (
 				!defaultCamerasInSettings &&
-				cameraKeys.every((key) => !defaultCameras.includes(key))
+				cameraKeys.every((key) => !this._defaultCameraIds.includes(key))
 			)
-				this.createDefaultCameras(true);
+				this.createDefaultCameras(this._loadDefaultCameras, false);
 		} else {
-			this.createDefaultCameras();
+			this.createDefaultCameras(this._loadDefaultCameras, true);
 			this.camera!.applySettings(settingsEngine);
 		}
 
@@ -280,32 +340,37 @@ export class CameraEngine implements ICameraEngine {
 		return camera;
 	}
 
-	public createDefaultCameras(createOnlyOrthographic: boolean = false): void {
-		const topCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "top", true)
-		);
-		topCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
-		const bottomCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "bottom", true)
-		);
-		bottomCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
-		const leftCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "left", true)
-		);
-		leftCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
-		const rightCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "right", true)
-		);
-		rightCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
-		const frontCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "front", true)
-		);
-		frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
-		const backCamera = <OrthographicCamera>(
-			this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "back", true)
-		);
-		backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
-		if (createOnlyOrthographic === false) {
+	public createDefaultCameras(
+		createOrthographic: boolean = true,
+		createPerspective: boolean = true,
+	): void {
+		if (createOrthographic) {
+			const topCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "top", true)
+			);
+			topCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
+			const bottomCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "bottom", true)
+			);
+			bottomCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
+			const leftCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "left", true)
+			);
+			leftCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
+			const rightCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "right", true)
+			);
+			rightCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
+			const frontCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "front", true)
+			);
+			frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
+			const backCamera = <OrthographicCamera>(
+				this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, "back", true)
+			);
+			backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
+		}
+		if (createPerspective) {
 			const camera = this.createCamera(
 				CAMERA_TYPE.PERSPECTIVE,
 				"perspective",
@@ -340,6 +405,7 @@ export class CameraEngine implements ICameraEngine {
 	}
 
 	public saveSettings(settingsEngine: SettingsEngine) {
+		settingsEngine.camera.loadDefaultCameras = this._loadDefaultCameras;
 		settingsEngine.settings.camera.cameraId = this._camera
 			? this._camera.id
 			: "perspective";
