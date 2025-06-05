@@ -355,8 +355,10 @@ describe("evaluateSettingsVersion", () => {
 		const targetVersion28 = evaluateSettingsVersion("3.3.0.0"); // results in '5.0'
 		expect(targetVersion28).toBe("5.0");
 
-		const targetVersion29 = evaluateSettingsVersion("3.3.8.0"); // results in '6.0'
-		expect(targetVersion29).toBe("6.0");
+		const targetVersion29 = evaluateSettingsVersion("3.3.8.0"); // results in '6.1'
+		expect(targetVersion29).toBe("6.1");
+		const targetVersion30 = evaluateSettingsVersion("3.3.11.0"); // results in '6.2'
+		expect(targetVersion30).toBe("6.2");
 	});
 });
 
