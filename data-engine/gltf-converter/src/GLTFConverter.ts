@@ -498,7 +498,10 @@ export class GLTFConverter {
 				} = {
 					input: this.convertAccessor(inputData),
 					output: this.convertAccessor(outputData),
-					interpolation: track.interpolation.toUpperCase(),
+					interpolation:
+						typeof track.interpolation === "string"
+							? track.interpolation.toUpperCase()
+							: "LINEAR",
 				};
 				animationDef.samplers.push(samplerDef);
 
