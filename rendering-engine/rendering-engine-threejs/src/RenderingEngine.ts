@@ -13,8 +13,10 @@ import {
 	DomEventEngine,
 	EventEngine,
 	EVENTTYPE_VIEWPORT,
+	Logger,
 	SESSION_SETTINGS_MODE,
 	SettingsEngine,
+	ShapeDiverViewerEnvironmentMapError,
 	StateEngine,
 	SystemInfo,
 	UuidGenerator,
@@ -91,6 +93,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private readonly _converter: Converter = Converter.instance;
 	private readonly _domEventEngine: DomEventEngine;
 	private readonly _environmentGeometryManager: EnvironmentGeometryManager;
+	private readonly _logger: Logger = Logger.instance;
 
 	// loaders
 	private readonly _environmentMapLoader: EnvironmentMapLoader;
@@ -514,8 +517,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMap(value: string | string[]) {
+		const previous = this._environmentMap;
 		this._environmentMap = value;
-		this._environmentMapLoader.load(this.environmentMap);
+		this._environmentMapLoader.load(this.environmentMap).catch((error) => {
+			if (error instanceof ShapeDiverViewerEnvironmentMapError) {
+				this._logger.error(error.message);
+			} else {
+				this._logger.error(
+					`RenderingEngine.environmentMap: Error while loading environment map ${value}: ${error}`,
+				);
+			}
+
+			this._environmentMap = previous;
+			this._environmentMapLoader.load(this.environmentMap);
+		});
 	}
 
 	public get environmentMapAsBackground(): boolean {

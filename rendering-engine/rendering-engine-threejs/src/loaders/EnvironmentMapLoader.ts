@@ -259,9 +259,20 @@ export class EnvironmentMapLoader implements ILoader {
 
 	public async load(name: string | string[]): Promise<boolean> {
 		const eventId = this._uuidGenerator.create();
-		const res = this.loadEnvMap(name, eventId);
-		await this.assignEnvironmentMap(res.name, res.type, eventId);
-		return Promise.resolve(true);
+		try {
+			const res = this.loadEnvMap(name, eventId);
+			await this.assignEnvironmentMap(res.name, res.type, eventId);
+		} catch (e) {
+			if (e instanceof ShapeDiverViewerEnvironmentMapError) {
+				throw e;
+			} else {
+				throw new ShapeDiverViewerEnvironmentMapError(
+					"EnvironmentMapLoader.load: Was not able to load environment map.",
+					name,
+				);
+			}
+		}
+		return true;
 	}
 
 	public loadEnvMap(
