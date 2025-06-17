@@ -1151,6 +1151,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._renderingManager.render();
 	}
 
+	public saveSettings(settingsEngine?: SettingsEngine) {
+		this._settingsManager.saveSettings(settingsEngine);
+	}
+
 	public start() {
 		this._renderingManager.start();
 
