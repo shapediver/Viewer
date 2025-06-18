@@ -142,6 +142,7 @@ export class SessionEngine implements ISessionEngine {
 		"X-ShapeDiver-BuildVersion": "",
 		"X-ShapeDiver-BuildDate": "",
 	};
+	private _ignoreUnknownParams?: boolean;
 	private _initialized: boolean = false;
 	private _jwtToken?: string;
 	private _loadSdtf: boolean = false;
@@ -181,6 +182,7 @@ export class SessionEngine implements ISessionEngine {
 		jwtToken?: string;
 		excludeViewports?: string[];
 		allowOutputLoading: boolean;
+		ignoreUnknownParams?: boolean;
 		loadSdtf: boolean;
 		modelStateId?: string;
 		modelStateValidationMode?: boolean;
@@ -194,6 +196,7 @@ export class SessionEngine implements ISessionEngine {
 		this._excludeViewports = properties.excludeViewports || [];
 		this._jwtToken = properties.jwtToken;
 		this._allowOutputLoading = properties.allowOutputLoading;
+		this._ignoreUnknownParams = properties.ignoreUnknownParams;
 		this._loadSdtf = properties.loadSdtf;
 		this._modelStateId = properties.modelStateId;
 		this._modelStateValidationMode = properties.modelStateValidationMode;
@@ -1296,8 +1299,8 @@ export class SessionEngine implements ISessionEngine {
 					await new SessionApi(this._sdkConfig).createSessionByTicket(
 						this._ticket,
 						this._modelStateId,
-						this._modelStateValidationMode, // TODO
-						this._modelStateValidationMode, // TODO
+						this._ignoreUnknownParams,
+						this._modelStateValidationMode,
 						parameterSet,
 					)
 				).data;
@@ -1306,8 +1309,8 @@ export class SessionEngine implements ISessionEngine {
 					await new SessionApi(this._sdkConfig).createSessionByModel(
 						this._guid,
 						this._modelStateId,
-						this._modelStateValidationMode, // TODO
-						this._modelStateValidationMode, // TODO
+						this._ignoreUnknownParams,
+						this._modelStateValidationMode,
 						parameterSet,
 					)
 				).data;
@@ -1651,6 +1654,7 @@ export class SessionEngine implements ISessionEngine {
 				this._sessionId!,
 				{exports: [exportId], parameters: requestParameterSet},
 				maxWaitTime,
+				this._ignoreUnknownParams,
 			);
 			this.updateResponseDto(responseDto);
 			return this.exports[exportId];
@@ -1750,6 +1754,7 @@ export class SessionEngine implements ISessionEngine {
 					max_wait_time: body.max_wait_time,
 				},
 				maxWaitMsec,
+				this._ignoreUnknownParams,
 			);
 			this.updateResponseDto(responseDto);
 
@@ -2838,7 +2843,12 @@ export class SessionEngine implements ISessionEngine {
 			this._performanceEvaluator.startSection("sessionResponse");
 			const responseDto = await new UtilsApi(
 				this._sdkConfig,
-			).submitAndWaitForOutput(this._sessionId!, parameters);
+			).submitAndWaitForOutput(
+				this._sessionId!,
+				parameters,
+				undefined,
+				this._ignoreUnknownParams,
+			);
 			this._performanceEvaluator.endSection("sessionResponse");
 			if (loadOutputs === true && this._allowOutputLoading === true) {
 				if (cancelRequest()) return new SessionTreeNode();

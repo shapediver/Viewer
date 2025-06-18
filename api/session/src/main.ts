@@ -42,6 +42,7 @@ const updateSessions = (sessionEngines: {[key: string]: SessionEngine}) => {
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.
+ * @param properties.ignoreUnknownParams Option to allow relaxed validation of parameter identifiers. When set to `true`, unrecognized parameters will be ignored rather than causing an error. (default: false)
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
  * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true)
  * @param properties.loadSdtf Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
@@ -144,6 +145,12 @@ export const createSession = async (
 	inputValidator.validateAndError(
 		"createSession",
 		properties.modelStateValidationMode,
+		"boolean",
+		false,
+	);
+	inputValidator.validateAndError(
+		"createSession",
+		properties.ignoreUnknownParams,
 		"boolean",
 		false,
 	);
