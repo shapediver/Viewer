@@ -1,6 +1,6 @@
 import {
-	ShapeDiverRequestGltfUploadQueryConversion,
-	ShapeDiverResponseDto,
+	QueryGltfConversion,
+	ResBase,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {
@@ -75,8 +75,8 @@ export class SessionGlobalAccessObject
 
 	public uploadGLTF(
 		gltf: Blob,
-		name: ShapeDiverRequestGltfUploadQueryConversion | undefined,
-	): Promise<ShapeDiverResponseDto> {
+		name: QueryGltfConversion | undefined,
+	): Promise<ResBase> {
 		return this.#sessionEngine.uploadGLTF(gltf, name);
 	}
 

@@ -1,6 +1,6 @@
 import {
-	ShapeDiverResponseParameterType,
-	ShapeDiverResponseParameterVisualization,
+	ResParameterType,
+	ResVisualizationType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SESSION_SETTINGS_MODE} from "@shapediver/viewer.shared.services";
 import {vec3, vec4} from "gl-matrix";
@@ -17,8 +17,8 @@ export type Color = string | number | number[] | vec3 | vec4;
  * The type of the parameter.
  */
 export {
-	ShapeDiverResponseParameterType as PARAMETER_TYPE,
-	ShapeDiverResponseParameterVisualization as PARAMETER_VISUALIZATION,
+	ResParameterType as PARAMETER_TYPE,
+	ResVisualizationType as PARAMETER_VISUALIZATION,
 };
 
 export interface ISettingsSections {
@@ -92,6 +92,8 @@ export type SessionCreationDefinition = {
 	waitForOutputs?: boolean;
 	/** Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true) */
 	allowOutputLoading?: boolean;
+	/** Option to allow relaxed validation of parameter identifiers. When set to `true`, unrecognized parameters will be ignored rather than causing an error.  (default: false) */
+	ignoreUnknownParams?: string;
 	/** Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true) */
 	loadOutputs?: boolean;
 	/** Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) */

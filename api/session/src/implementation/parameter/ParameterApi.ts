@@ -1,6 +1,6 @@
 import {
-	ShapeDiverResponseParameterGroup,
-	ShapeDiverResponseParameterStructure,
+	ResParameterGroup,
+	ResStructureType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {IParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
@@ -38,7 +38,7 @@ export class ParameterApi<T> implements IParameterApi<T> {
 	}
 
 	public get defval(): string {
-		return this.#parameter.defval;
+		return this.#parameter.defval as string;
 	}
 
 	public get displayname(): string | undefined {
@@ -67,7 +67,7 @@ export class ParameterApi<T> implements IParameterApi<T> {
 		return this.#parameter.format;
 	}
 
-	public get group(): ShapeDiverResponseParameterGroup | undefined {
+	public get group(): ResParameterGroup | undefined {
 		return this.#parameter.group;
 	}
 
@@ -138,7 +138,7 @@ export class ParameterApi<T> implements IParameterApi<T> {
 		return this.#parameter.settings;
 	}
 
-	public get structure(): ShapeDiverResponseParameterStructure | undefined {
+	public get structure(): ResStructureType | undefined {
 		return this.#parameter.structure;
 	}
 

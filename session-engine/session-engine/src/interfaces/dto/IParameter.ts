@@ -1,6 +1,6 @@
-import {ShapeDiverResponseParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 
-export interface IParameter<T> extends ShapeDiverResponseParameter {
+export interface IParameter<T> extends ResParameter {
 	// #region Properties (2)
 
 	sessionValue: T | string;

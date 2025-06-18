@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IMaterialContentData,
 	IMaterialContentDataV1,
@@ -477,9 +477,7 @@ export class MaterialEngine {
 	 * @param content the material content
 	 * @returns the scene graph node
 	 */
-	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
-	): Promise<ITreeNode> {
+	public async loadContent(content: ResOutputContent): Promise<ITreeNode> {
 		const node = new TreeNode(content.name || "material");
 		if (!content)
 			throw new ShapeDiverViewerDataProcessingError(

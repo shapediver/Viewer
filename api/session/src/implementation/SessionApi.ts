@@ -1,7 +1,8 @@
 import {
-	ShapeDiverRequestExport,
-	ShapeDiverResponseDto,
-	ShapeDiverResponseModelState,
+	ReqExport,
+	ResBase,
+	ResGetModelState,
+	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	CreationControlCenterSession,
@@ -235,7 +236,7 @@ export class SessionApi implements ISessionApi {
 		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
 	}
 
-	public get modelState(): ShapeDiverResponseModelState | undefined {
+	public get modelState(): ResModelState | undefined {
 		return this.#sessionEngine.modelState;
 	}
 
@@ -340,7 +341,7 @@ export class SessionApi implements ISessionApi {
 	// #region Public Methods (32)
 
 	public applySettings(
-		response: ShapeDiverResponseDto,
+		response: ResBase,
 		sections?: ISettingsSections,
 	): Promise<void> {
 		const scope = "applySettings";
@@ -483,7 +484,7 @@ export class SessionApi implements ISessionApi {
 
 	public customizeResult(parameterValues: {
 		[key: string]: unknown;
-	}): Promise<ShapeDiverResponseDto> {
+	}): Promise<ResBase> {
 		const scope = "customizeResult";
 		this.#inputValidator.validateAndError(
 			`SessionApi.${scope}`,
@@ -493,11 +494,11 @@ export class SessionApi implements ISessionApi {
 		return this.#sessionEngine.customizeParallel(
 			parameterValues,
 			false,
-		) as Promise<ShapeDiverResponseDto>;
+		) as Promise<ResBase>;
 	}
 
 	public customizeWithModelState(
-		modelState: string | ShapeDiverResponseDto,
+		modelState: string | ResGetModelState,
 	): Promise<ITreeNode> {
 		return this.#sessionEngine.customizeWithModelState(modelState);
 	}
@@ -609,10 +610,10 @@ export class SessionApi implements ISessionApi {
 	}
 
 	public async requestExports(
-		body: ShapeDiverRequestExport,
+		body: ReqExport,
 		loadOutputs?: boolean,
 		maxWaitMsec?: number,
-	): Promise<ShapeDiverResponseDto> {
+	): Promise<ResBase> {
 		const scope = "requestExports";
 		this.#inputValidator.validateAndError(
 			`SessionApi.${scope}`,

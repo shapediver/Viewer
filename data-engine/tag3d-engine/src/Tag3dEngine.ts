@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {ITag3D} from "@shapediver/viewer.data-engine.shared-types";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
@@ -72,9 +72,7 @@ export class Tag3dEngine {
 	 * @param content the tag3d content
 	 * @returns the scene graph node
 	 */
-	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
-	): Promise<ITreeNode> {
+	public async loadContent(content: ResOutputContent): Promise<ITreeNode> {
 		const node = new TreeNode("tag3d");
 
 		if (!content)

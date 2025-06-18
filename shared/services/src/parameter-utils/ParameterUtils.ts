@@ -1,14 +1,14 @@
 import {
-	ShapeDiverResponseParameter,
-	ShapeDiverResponseParameterType,
-	ShapeDiverResponseParameterVisualization,
-} from "@shapediver/api.geometry-api-dto-v2";
+	ResParameter,
+	ResParameterType,
+	ResVisualizationType,
+} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {Converter} from "../converter/Converter";
 import {InputValidator} from "../input-validator/InputValidator";
 import {ShapeDiverViewerSessionError} from "../logger/ShapeDiverViewerErrors";
 
 export const isValid = (
-	definition: ShapeDiverResponseParameter,
+	definition: ResParameter,
 	value: unknown,
 	throwError?: boolean,
 ): boolean => {
@@ -21,14 +21,14 @@ export const isValid = (
 };
 
 const validateParameterValue = (
-	definition: ShapeDiverResponseParameter,
+	definition: ResParameter,
 	value: unknown,
 ): boolean => {
 	const {id, type, min, max, decimalplaces, choices, visualization} =
 		definition;
 
 	switch (true) {
-		case type === ShapeDiverResponseParameterType.BOOL:
+		case type === ResParameterType.BOOL:
 			if (typeof value === "string") {
 				if (!(value === "true" || value === "false"))
 					throw new ShapeDiverViewerSessionError(
@@ -42,24 +42,24 @@ const validateParameterValue = (
 				);
 			}
 			break;
-		case type === ShapeDiverResponseParameterType.COLOR:
+		case type === ResParameterType.COLOR:
 			InputValidator.instance.validateAndError(
 				`Parameter(${id}).isValid`,
 				value,
 				"color",
 			);
 			break;
-		case type === ShapeDiverResponseParameterType.FILE:
+		case type === ResParameterType.FILE:
 			InputValidator.instance.validateAndError(
 				`Parameter(${id}).isValid`,
 				value,
 				"file",
 			);
 			break;
-		case type === ShapeDiverResponseParameterType.EVEN ||
-			type === ShapeDiverResponseParameterType.FLOAT ||
-			type === ShapeDiverResponseParameterType.INT ||
-			type === ShapeDiverResponseParameterType.ODD:
+		case type === ResParameterType.EVEN ||
+			type === ResParameterType.FLOAT ||
+			type === ResParameterType.INT ||
+			type === ResParameterType.ODD:
 			{
 				let temp = value as number;
 				if (typeof value === "string") temp = +value;
@@ -68,17 +68,17 @@ const validateParameterValue = (
 					temp,
 					"number",
 				);
-				if (type === ShapeDiverResponseParameterType.EVEN) {
+				if (type === ResParameterType.EVEN) {
 					if (temp % 2 !== 0)
 						throw new ShapeDiverViewerSessionError(
 							`Parameter(${id}).isValid: The value ${value} is not even.`,
 						);
-				} else if (type === ShapeDiverResponseParameterType.ODD) {
+				} else if (type === ResParameterType.ODD) {
 					if (temp % 2 === 0)
 						throw new ShapeDiverViewerSessionError(
 							`Parameter(${id}).isValid: The value ${value} is not odd.`,
 						);
-				} else if (type === ShapeDiverResponseParameterType.INT) {
+				} else if (type === ResParameterType.INT) {
 					if (!Number.isInteger(temp))
 						throw new ShapeDiverViewerSessionError(
 							`Parameter(${id}).isValid: The value ${value} is not an integer.`,
@@ -108,7 +108,7 @@ const validateParameterValue = (
 				}
 			}
 			break;
-		case type === ShapeDiverResponseParameterType.STRINGLIST: {
+		case type === ResParameterType.STRINGLIST: {
 			InputValidator.instance.validateAndError(
 				`Parameter(${id}).isValid`,
 				value,
@@ -130,10 +130,7 @@ const validateParameterValue = (
 					);
 			};
 
-			if (
-				visualization ===
-				ShapeDiverResponseParameterVisualization.CHECKLIST
-			) {
+			if (visualization === ResVisualizationType.CHECKLIST) {
 				// comma separated numbers
 				if ((value as string).includes(",")) {
 					const values: string[] = (value as string).split(",");
@@ -182,29 +179,26 @@ const validateParameterValue = (
 	return true;
 };
 
-export const stringify = (
-	definition: ShapeDiverResponseParameter,
-	value: unknown,
-): string => {
+export const stringify = (definition: ResParameter, value: unknown): string => {
 	const {id, type, decimalplaces} = definition;
 
 	switch (true) {
-		case type === ShapeDiverResponseParameterType.BOOL:
+		case type === ResParameterType.BOOL:
 			return typeof value === "string"
 				? value
 				: <boolean>(<unknown>value) + "";
-		case type === ShapeDiverResponseParameterType.COLOR:
+		case type === ResParameterType.COLOR:
 			return Converter.instance.toHex8Color(value);
-		case type === ShapeDiverResponseParameterType.FILE:
+		case type === ResParameterType.FILE:
 			if (typeof value !== "string")
 				throw new ShapeDiverViewerSessionError(
 					`Parameter(${id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`,
 				);
 			return <string>value;
-		case type === ShapeDiverResponseParameterType.EVEN ||
-			type === ShapeDiverResponseParameterType.FLOAT ||
-			type === ShapeDiverResponseParameterType.INT ||
-			type === ShapeDiverResponseParameterType.ODD:
+		case type === ResParameterType.EVEN ||
+			type === ResParameterType.FLOAT ||
+			type === ResParameterType.INT ||
+			type === ResParameterType.ODD:
 			if (typeof value === "string") {
 				// cast to number and round to decimalplaces if they exist
 				if (decimalplaces || decimalplaces === 0) {

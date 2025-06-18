@@ -1,6 +1,6 @@
 import {
-	ShapeDiverRequestGltfUploadQueryConversion,
-	ShapeDiverResponseDto,
+	QueryGltfConversion,
+	ResBase,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SettingsEngine} from "../settings-engine/SettingsEngine";
 import {StatePromise} from "./StatePromise";
@@ -24,8 +24,8 @@ export interface ISessionGlobalAccessObjectDefinition {
 	isFirstSession: boolean;
 	uploadGLTF: (
 		gltf: Blob,
-		name: ShapeDiverRequestGltfUploadQueryConversion | undefined,
-	) => Promise<ShapeDiverResponseDto>;
+		name: QueryGltfConversion | undefined,
+	) => Promise<ResBase>;
 
 	// #endregion Properties (9)
 }

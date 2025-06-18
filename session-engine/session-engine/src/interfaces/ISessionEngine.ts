@@ -1,11 +1,11 @@
 import {
-	ShapeDiverRequestCustomization,
-	ShapeDiverRequestExport,
-	ShapeDiverRequestGltfUploadQueryConversion,
-	ShapeDiverResponseDto,
-	ShapeDiverResponseExport,
-	ShapeDiverResponseFileInfo,
-	ShapeDiverResponseModelState,
+	QueryGltfConversion,
+	ReqCustomization,
+	ReqExport,
+	ResBase,
+	ResExport,
+	ResFileInfo,
+	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
@@ -27,7 +27,7 @@ export interface ISessionEngine {
 	id: string;
 	initialized: boolean;
 	loadSdtf: boolean;
-	modelState?: ShapeDiverResponseModelState;
+	modelState?: ResModelState;
 	modelViewUrl: string;
 	outputs: {[key: string]: IOutput};
 	parameters: {[key: string]: IParameter<unknown>};
@@ -40,10 +40,7 @@ export interface ISessionEngine {
 
 	// #region Public Methods (26)
 
-	applySettings(
-		response: ShapeDiverResponseDto,
-		sections?: ISettingsSections,
-	): void;
+	applySettings(response: ResBase, sections?: ISettingsSections): void;
 	canGoBack(): boolean;
 	canGoForward(): boolean;
 	close(): Promise<void>;
@@ -68,18 +65,13 @@ export interface ISessionEngine {
 	customize(
 		force: boolean,
 		waitForViewportUpdate?: boolean,
-	): Promise<ITreeNode | ShapeDiverResponseDto>;
+	): Promise<ITreeNode | ResBase>;
 	customizeParallel(
 		parameterValues: {[key: string]: string},
 		loadOutputs: boolean,
-	): Promise<ITreeNode | ShapeDiverResponseDto>;
-	customizeWithModelState(
-		modelState: string | ShapeDiverResponseDto,
-	): Promise<ITreeNode>;
-	getFileInfo(
-		parameterId: string,
-		fileId: string,
-	): Promise<ShapeDiverResponseFileInfo>;
+	): Promise<ITreeNode | ResBase>;
+	customizeWithModelState(modelState: string | ResBase): Promise<ITreeNode>;
+	getFileInfo(parameterId: string, fileId: string): Promise<ResFileInfo>;
 	goBack(): Promise<ITreeNode>;
 	goForward(): Promise<ITreeNode>;
 	init(parameterValues?: {[key: string]: string}): Promise<void>;
@@ -93,20 +85,20 @@ export interface ISessionEngine {
 		taskEventInfo: OutputLoaderTaskEventInfo,
 	): Promise<ITreeNode>;
 	loadOutputsParallel(
-		responseDto: ShapeDiverResponseDto,
+		responseDto: ResBase,
 		cancelRequest: () => boolean,
 		taskEventInfo: OutputLoaderTaskEventInfo,
 	): Promise<ITreeNode>;
 	requestExport(
 		exportId: string,
-		parameters: ShapeDiverRequestCustomization,
+		parameters: ReqCustomization,
 		maxWaitTime: number,
-	): Promise<ShapeDiverResponseExport>;
+	): Promise<ResExport>;
 	requestExports(
-		body: ShapeDiverRequestExport,
+		body: ReqExport,
 		loadOutputs?: boolean,
 		maxWaitMsec?: number,
-	): Promise<ShapeDiverResponseDto>;
+	): Promise<ResBase>;
 	resetSettings(sections?: ISettingsSections): void;
 	saveDefaultParameterValues(): Promise<boolean>;
 	saveSettings(viewportId?: string): Promise<boolean>;
@@ -120,10 +112,7 @@ export interface ISessionEngine {
 	uploadFileParameters(parameterValues?: {
 		[key: string]: string | File | Blob;
 	}): Promise<{[key: string]: string}>;
-	uploadGLTF(
-		blob: Blob,
-		conversion?: ShapeDiverRequestGltfUploadQueryConversion,
-	): Promise<ShapeDiverResponseDto>;
+	uploadGLTF(blob: Blob, conversion?: QueryGltfConversion): Promise<ResBase>;
 
 	// #endregion Public Methods (26)
 }

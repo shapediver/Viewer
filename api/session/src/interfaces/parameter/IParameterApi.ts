@@ -1,4 +1,4 @@
-import {ShapeDiverResponseParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 
 /**
  * The api for a parameter of a corresponding [session]{@link ISessionApi}.
@@ -8,7 +8,7 @@ import {ShapeDiverResponseParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
  *
  * The current value can be changed by setting the {@link value} property.
  */
-export interface IParameterApi<T> extends ShapeDiverResponseParameter {
+export interface IParameterApi<T> extends ResParameter {
 	// #region Properties (2)
 
 	/**

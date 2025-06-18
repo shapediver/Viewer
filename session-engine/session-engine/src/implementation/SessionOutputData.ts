@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {ISessionOutputData} from "../interfaces/ISessionOutputData";
 
@@ -8,17 +8,13 @@ export class SessionOutputData
 {
 	// #region Properties (1)
 
-	#responseOutput: ShapeDiverResponseOutput;
+	#responseOutput: ResOutput;
 
 	// #endregion Properties (1)
 
 	// #region Constructors (1)
 
-	constructor(
-		responseOutput: ShapeDiverResponseOutput,
-		id?: string,
-		version?: string,
-	) {
+	constructor(responseOutput: ResOutput, id?: string, version?: string) {
 		super(id, version);
 		this.#responseOutput = responseOutput;
 	}
@@ -27,11 +23,11 @@ export class SessionOutputData
 
 	// #region Public Getters And Setters (2)
 
-	public get responseOutput(): ShapeDiverResponseOutput {
+	public get responseOutput(): ResOutput {
 		return this.#responseOutput;
 	}
 
-	public set responseOutput(value: ShapeDiverResponseOutput) {
+	public set responseOutput(value: ResOutput) {
 		this.#responseOutput = value;
 	}
 

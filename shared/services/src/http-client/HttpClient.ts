@@ -1,8 +1,7 @@
 import {
-	isGBError,
-	isGBRequestError,
-	isGBResponseError,
-	ShapeDiverError as ShapeDiverBackendError,
+	RequestError,
+	ResponseError,
+	SdGeometryError as ShapeDiverBackendError,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import axios, {AxiosRequestConfig} from "axios";
 import {Converter} from "../converter/Converter";
@@ -40,11 +39,8 @@ export class HttpClient {
 	private _maxCacheSize: number = 1024 * 1024 * 32;
 	private _sessionLoading: {
 		[key: string]: {
-			getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>;
-			downloadTexture: (
-				sessionId: string,
-				url: string,
-			) => Promise<[ArrayBuffer, string]>;
+			getAsset: (url: string) => Promise<[ArrayBuffer, string]>;
+			downloadTexture: (url: string) => Promise<[ArrayBuffer, string]>;
 		};
 	} = {};
 
@@ -105,11 +101,8 @@ export class HttpClient {
 	public addDataLoading(
 		sessionId: string,
 		callbacks: {
-			getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>;
-			downloadTexture: (
-				sessionId: string,
-				url: string,
-			) => Promise<[ArrayBuffer, string]>;
+			getAsset: (url: string) => Promise<[ArrayBuffer, string]>;
+			downloadTexture: (url: string) => Promise<[ArrayBuffer, string]>;
 		},
 	) {
 		this._sessionLoading[sessionId] = callbacks;
@@ -117,24 +110,24 @@ export class HttpClient {
 
 	/**
 	 * Maps the geometry backend error to the corresponding viewer errors:
-	 * - ShapeDiverResponseError is mapped to ShapeDiverGeometryBackendResponseError
-	 * - ShapeDiverRequestError is mapped to ShapeDiverGeometryBackendRequestError
+	 * - ResError is mapped to ShapeDiverGeometryBackendResponseError
+	 * - ReqError is mapped to ShapeDiverGeometryBackendRequestError
 	 *
 	 * Other error types are thrown as is.
 	 *
 	 * @param e
 	 */
 	public convertError(e: ShapeDiverBackendError | Error | unknown) {
-		if (isGBResponseError(e)) {
+		if (e instanceof ResponseError) {
 			throw new ShapeDiverGeometryBackendResponseError(
 				e.message,
 				e.status,
-				e.error,
-				e.desc,
+				e.type,
+				e.description,
 			);
-		} else if (isGBRequestError(e)) {
-			throw new ShapeDiverGeometryBackendRequestError(e.message, e.desc);
-		} else if (isGBError(e)) {
+		} else if (e instanceof RequestError) {
+			throw new ShapeDiverGeometryBackendRequestError(e.message);
+		} else if (e instanceof ShapeDiverBackendError) {
 			throw new ShapeDiverGeometryBackendError(e.message);
 		} else {
 			throw e;
@@ -173,11 +166,8 @@ export class HttpClient {
 		// get the session loading functions, if available
 		let sessionLoading:
 			| {
-					getAsset: (
-						url: string,
-					) => Promise<[ArrayBuffer, string, string]>;
+					getAsset: (url: string) => Promise<[ArrayBuffer, string]>;
 					downloadTexture: (
-						sessionId: string,
 						url: string,
 					) => Promise<[ArrayBuffer, string]>;
 			  }
@@ -199,7 +189,7 @@ export class HttpClient {
 				loadingPromise = new Promise<HttpResponse<ArrayBuffer>>(
 					(resolve, reject) => {
 						sessionLoading!
-							.downloadTexture(sessionId!, href)
+							.downloadTexture(href)
 							.then(async (result) => {
 								resolve({
 									data: result[0],

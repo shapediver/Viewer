@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {HTMLElementAnchorEngine} from "@shapediver/viewer.data-engine.html-element-anchor-engine";
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
@@ -41,7 +41,7 @@ export class DataEngine {
 	// #region Public Methods (1)
 
 	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
+		content: ResOutputContent,
 		jwtToken?: string,
 		taskEventId?: string,
 	): Promise<ITreeNode> {

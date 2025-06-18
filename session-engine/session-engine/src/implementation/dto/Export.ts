@@ -1,10 +1,10 @@
 import {
-	ShapeDiverResponseExport,
-	ShapeDiverResponseExportContent,
-	ShapeDiverResponseExportDefinitionType,
-	ShapeDiverResponseExportResult,
-	ShapeDiverResponseModelComputationStatus,
-	ShapeDiverResponseParameterGroup,
+	ResComputationStatus,
+	ResExport,
+	ResExportContent,
+	ResExportDefinitionType,
+	ResExportResult,
+	ResParameterGroup,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	EventEngine,
@@ -26,38 +26,36 @@ export class Export implements IExport {
 	readonly #logger: Logger = Logger.instance;
 	readonly #name: string;
 	readonly #sessionEngine: SessionEngine;
-	readonly #type: ShapeDiverResponseExportDefinitionType;
+	readonly #type: ResExportDefinitionType;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-	#content?: ShapeDiverResponseExportContent[];
+	#content?: ResExportContent[];
 	#delay?: number;
 	#dependency!: string[];
 	#displayname?: string;
 	#filename?: string;
-	#group?: ShapeDiverResponseParameterGroup;
+	#group?: ResParameterGroup;
 	#hidden: boolean = false;
 	#maxWaitTime: number = 300000;
 	#msg?: string;
 	#order?: number;
-	#result?: ShapeDiverResponseExportResult;
-	#status_collect?: ShapeDiverResponseModelComputationStatus;
-	#status_computation?: ShapeDiverResponseModelComputationStatus;
+	#result?: ResExportResult;
+	#status_collect?: ResComputationStatus;
+	#status_computation?: ResComputationStatus;
 	#tooltip?: string;
 	#uid?: string;
-	#version?: string;
+	#version: string;
 
 	// #endregion Properties (24)
 
 	// #region Constructors (1)
 
-	constructor(
-		exportDef: ShapeDiverResponseExport,
-		sessionEngine: SessionEngine,
-	) {
+	constructor(exportDef: ResExport, sessionEngine: SessionEngine) {
 		this.#sessionEngine = sessionEngine;
 		this.#id = exportDef.id;
 		this.#name = exportDef.name;
 		this.#type = exportDef.type;
+		this.#version = exportDef.version as string;
 
 		this.updateExportDefinition(exportDef);
 	}
@@ -66,7 +64,7 @@ export class Export implements IExport {
 
 	// #region Public Getters And Setters (24)
 
-	public get content(): ShapeDiverResponseExportContent[] | undefined {
+	public get content(): ResExportContent[] | undefined {
 		return this.#content;
 	}
 
@@ -90,7 +88,7 @@ export class Export implements IExport {
 		return this.#filename;
 	}
 
-	public get group(): ShapeDiverResponseParameterGroup | undefined {
+	public get group(): ResParameterGroup | undefined {
 		return this.#group;
 	}
 
@@ -130,19 +128,15 @@ export class Export implements IExport {
 		this.#order = value;
 	}
 
-	public get result(): ShapeDiverResponseExportResult | undefined {
+	public get result(): ResExportResult | undefined {
 		return this.#result;
 	}
 
-	public get status_collect():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_collect(): ResComputationStatus | undefined {
 		return this.#status_collect;
 	}
 
-	public get status_computation():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_computation(): ResComputationStatus | undefined {
 		return this.#status_computation;
 	}
 
@@ -154,7 +148,7 @@ export class Export implements IExport {
 		this.#tooltip = value;
 	}
 
-	public get type(): ShapeDiverResponseExportDefinitionType {
+	public get type(): ResExportDefinitionType {
 		return this.#type;
 	}
 
@@ -162,7 +156,7 @@ export class Export implements IExport {
 		return this.#uid;
 	}
 
-	public get version(): string | undefined {
+	public get version(): string {
 		return this.#version;
 	}
 
@@ -172,7 +166,7 @@ export class Export implements IExport {
 
 	public async request(
 		parameterValues: {[key: string]: unknown} = {},
-	): Promise<ShapeDiverResponseExport> {
+	): Promise<ResExport> {
 		const eventId = this.#uuidGenerator.create();
 		try {
 			const event: ITaskEvent = {
@@ -222,8 +216,8 @@ export class Export implements IExport {
 		}
 	}
 
-	public updateExport() {
-		const exportDef = this.#sessionEngine.exports[this.id];
+	public updateExport(e?: ResExport) {
+		const exportDef = e || this.#sessionEngine.exports[this.id];
 		this.#dependency = exportDef.dependency;
 		this.#uid = exportDef.uid;
 		this.#displayname = exportDef.displayname;
@@ -241,14 +235,14 @@ export class Export implements IExport {
 		this.#group = exportDef.group;
 	}
 
-	public updateExportDefinition(exportDef: ShapeDiverResponseExport) {
+	public updateExportDefinition(exportDef: ResExport) {
 		this.#dependency = exportDef.dependency;
 		this.#uid = exportDef.uid;
 		this.#displayname = exportDef.displayname;
 		this.#order = exportDef.order;
 		this.#hidden = exportDef.hidden;
 		this.#tooltip = exportDef.tooltip;
-		this.#version = exportDef.version;
+		this.#version = exportDef.version as string;
 		this.#delay = exportDef.delay;
 		this.#content = exportDef.content;
 		this.#msg = exportDef.msg;
