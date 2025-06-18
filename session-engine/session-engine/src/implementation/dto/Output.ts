@@ -1,6 +1,6 @@
 import {
-	ShapeDiverResponseModelComputationStatus,
-	ShapeDiverResponseOutput,
+	ResComputationStatus,
+	ResOutput,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -10,8 +10,8 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	IOutput,
-	ShapeDiverResponseOutputChunk,
-	ShapeDiverResponseOutputContent,
+	ResOutputChunk,
+	ResOutputContent,
 } from "../../interfaces/dto/IOutput";
 import {SessionEngine} from "../SessionEngine";
 
@@ -27,8 +27,8 @@ export class Output implements IOutput {
 
 	#bbmax?: number[];
 	#bbmin?: number[];
-	#chunks?: ShapeDiverResponseOutputChunk[];
-	#content?: ShapeDiverResponseOutputContent[];
+	#chunks?: ResOutputChunk[];
+	#content?: ResOutputContent[];
 	#delay?: number;
 	#dependency!: string[];
 	#displayname?: string;
@@ -36,8 +36,8 @@ export class Output implements IOutput {
 	#material?: string;
 	#msg?: string;
 	#order?: number;
-	#status_collect?: ShapeDiverResponseModelComputationStatus;
-	#status_computation?: ShapeDiverResponseModelComputationStatus;
+	#status_collect?: ResComputationStatus;
+	#status_computation?: ResComputationStatus;
 	#tooltip?: string;
 	#uid?: string;
 	#updateCallback:
@@ -49,15 +49,12 @@ export class Output implements IOutput {
 
 	// #region Constructors (1)
 
-	constructor(
-		outputDef: ShapeDiverResponseOutput,
-		sessionEngine: SessionEngine,
-	) {
+	constructor(outputDef: ResOutput, sessionEngine: SessionEngine) {
 		this.#sessionEngine = sessionEngine;
 
 		this.#id = outputDef.id;
 		this.#name = outputDef.name;
-		this.#version = outputDef.version;
+		this.#version = outputDef.version as string;
 		this.updateOutputDefinition(outputDef);
 	}
 
@@ -73,15 +70,15 @@ export class Output implements IOutput {
 		return this.#bbmin;
 	}
 
-	public get chunks(): ShapeDiverResponseOutputChunk[] | undefined {
+	public get chunks(): ResOutputChunk[] | undefined {
 		return this.#chunks;
 	}
 
-	public get content(): ShapeDiverResponseOutputContent[] | undefined {
+	public get content(): ResOutputContent[] | undefined {
 		return this.#content;
 	}
 
-	public set content(value: ShapeDiverResponseOutputContent[] | undefined) {
+	public set content(value: ResOutputContent[] | undefined) {
 		this.#content = value;
 	}
 
@@ -151,15 +148,11 @@ export class Output implements IOutput {
 		this.#order = value;
 	}
 
-	public get status_collect():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_collect(): ResComputationStatus | undefined {
 		return this.#status_collect;
 	}
 
-	public get status_computation():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_computation(): ResComputationStatus | undefined {
 		return this.#status_computation;
 	}
 
@@ -222,7 +215,7 @@ export class Output implements IOutput {
 	}
 
 	public async updateOutputContent(
-		outputContent: ShapeDiverResponseOutputContent[],
+		outputContent: ResOutputContent[],
 		preventUpdate: boolean = false,
 		waitForViewportUpdate: boolean = false,
 	): Promise<ITreeNode | undefined> {
@@ -237,7 +230,7 @@ export class Output implements IOutput {
 		return this.node;
 	}
 
-	public updateOutputDefinition(outputDef: ShapeDiverResponseOutput) {
+	public updateOutputDefinition(outputDef: ResOutput) {
 		this.#dependency = outputDef.dependency;
 		this.#uid = outputDef.uid;
 		this.#material = outputDef.material;
@@ -251,7 +244,7 @@ export class Output implements IOutput {
 		this.#status_collect = outputDef.status_collect;
 		this.#content = outputDef.content;
 		this.#delay = outputDef.delay;
-		this.#version = outputDef.version;
+		this.#version = outputDef.version as string;
 		this.#displayname = outputDef.displayname;
 		this.#order = outputDef.order;
 		this.#hidden = outputDef.hidden;

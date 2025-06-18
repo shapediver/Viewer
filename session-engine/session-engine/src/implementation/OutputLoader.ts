@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -97,7 +97,7 @@ export class OutputLoader {
 	 */
 	public async loadOutputs(
 		nodeName: string,
-		outputs: {[key: string]: ShapeDiverResponseOutput},
+		outputs: {[key: string]: ResOutput},
 		outputsFreeze: {[key: string]: boolean},
 		taskEventInfo: OutputLoaderTaskEventInfo,
 		throwDelay = true,

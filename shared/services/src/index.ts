@@ -1,4 +1,4 @@
-import {ShapeDiverResponseErrorType as ShapeDiverGeometryBackendResponseErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResErrorType as ShapeDiverGeometryBackendResponseErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {Converter} from "./converter/Converter";
 import {DomEventEngine} from "./dom-event-engine/DomEventEngine";
 import {IDomEventListener} from "./dom-event-engine/IDomEventListener";

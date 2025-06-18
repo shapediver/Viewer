@@ -1,14 +1,14 @@
 import {
-	ShapeDiverResponseExport,
-	ShapeDiverResponseExportContent,
-	ShapeDiverResponseExportDefinitionGroup,
-	ShapeDiverResponseExportDefinitionType as EXPORT_TYPE,
-	ShapeDiverResponseExportResult,
-	ShapeDiverResponseModelComputationStatus,
-	ShapeDiverResponseOutput,
-	ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
-	ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend,
-	ShapeDiverResponseParameter,
+	ResExport as ShapeDiverResponseExport,
+	ResExportContent as ShapeDiverResponseExportContent,
+	ResExportDefinitionGroup as ShapeDiverResponseExportDefinitionGroup,
+	ResExportDefinitionType as EXPORT_TYPE,
+	ResExportResult as ShapeDiverResponseExportResult,
+	ResModelComputationStats as ShapeDiverResponseModelComputationStatus,
+	ResOutput as ShapeDiverResponseOutput,
+	ResOutputChunk as ShapeDiverResponseOutputChunkBackend,
+	ResOutputContent as ShapeDiverResponseOutputContentBackend,
+	ResParameter as ShapeDiverResponseParameter,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	addListener,
@@ -30,10 +30,10 @@ import {
 import {
 	ISessionData,
 	ISessionOutputData,
+	ResOutputChunk as ShapeDiverResponseOutputChunk,
+	ResOutputContent as ShapeDiverResponseOutputContent,
 	SessionData,
 	SessionOutputData,
-	ShapeDiverResponseOutputChunk,
-	ShapeDiverResponseOutputContent,
 } from "@shapediver/viewer.session-engine.session-engine";
 import {
 	Box,

@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {IAnchor, ITag2D} from "@shapediver/viewer.data-engine.shared-types";
 import {Box} from "@shapediver/viewer.shared.math";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
@@ -42,9 +42,7 @@ export class HTMLElementAnchorEngine {
 	 * @param content the material content
 	 * @returns the scene graph node
 	 */
-	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
-	): Promise<ITreeNode> {
+	public async loadContent(content: ResOutputContent): Promise<ITreeNode> {
 		try {
 			const node = new TreeNode("htmlElementAnchors");
 			if (content.format === "tag2d") {

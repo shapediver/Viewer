@@ -1,10 +1,10 @@
-import {ShapeDiverResponseOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 
 export interface ISessionOutputData extends ITreeNodeData {
 	// #region Properties (1)
 
-	responseOutput: ShapeDiverResponseOutput;
+	responseOutput: ResOutput;
 
 	// #endregion Properties (1)
 

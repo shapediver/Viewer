@@ -1,7 +1,7 @@
 import {
-	ShapeDiverRequestExport,
-	ShapeDiverResponseDto,
-	ShapeDiverResponseModelState,
+	ReqExport,
+	ResBase,
+	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {ISettingsSections} from "@shapediver/viewer.shared.types";
@@ -62,7 +62,7 @@ export interface ISessionApi {
 	 * This object contains information about the model state.
 	 * It is only available if a model state id was provided on session creation.
 	 */
-	readonly modelState?: ShapeDiverResponseModelState;
+	readonly modelState?: ResModelState;
 	/**
 	 * The modelViewUrl of the
 	 * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}
@@ -165,13 +165,13 @@ export interface ISessionApi {
 	 * @see {@link IViewportApi.sessionSettingsMode}
 	 * @see {@link IViewportApi.sessionSettingsId}
 	 *
-	 * @param response the ShapeDiverResponseDto of the model whose settings shall be applied
+	 * @param response the ResBase of the model whose settings shall be applied
 	 * @param sections specify true for those parts of the settings that should be applied
 	 *
 	 * @throws {@link ShapeDiverViewerError}
 	 */
 	applySettings(
-		response: ShapeDiverResponseDto,
+		response: ResBase,
 		sections?: ISettingsSections,
 	): Promise<void>;
 	/**
@@ -331,18 +331,16 @@ export interface ISessionApi {
 	 */
 	customizeResult(parameterValues: {
 		[key: string]: unknown;
-	}): Promise<ShapeDiverResponseDto>;
+	}): Promise<ResBase>;
 	/**
 	 * Customize the session with a given model state.
 	 * This function creates uses the parameter values of the given model state to customize the session.
 	 *
-	 * @param modelState The model state to use. This can be a model state id or a ShapeDiverResponseDto.
+	 * @param modelState The model state to use. This can be a model state id or a ResBase.
 	 *
 	 * @throws {@type ShapeDiverViewerError}
 	 */
-	customizeWithModelState(
-		modelState: string | ShapeDiverResponseDto,
-	): Promise<ITreeNode>;
+	customizeWithModelState(modelState: string | ResBase): Promise<ITreeNode>;
 	/**
 	 * Get an export definition by id.
 	 *
@@ -459,10 +457,10 @@ export interface ISessionApi {
 	 * @throws {@type ShapeDiverViewerError}
 	 */
 	requestExports(
-		body: ShapeDiverRequestExport,
+		body: ReqExport,
 		loadOutputs?: boolean,
 		maxWaitMsec?: number,
-	): Promise<ShapeDiverResponseDto>;
+	): Promise<ResBase>;
 	/**
 	 * Reset the parameters to their stored default values and customize the scene.
 	 *

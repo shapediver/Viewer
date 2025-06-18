@@ -1,21 +1,17 @@
-import {ShapeDiverResponseDto} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResBase} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {ISessionData} from "../interfaces/ISessionData";
 
 export class SessionData extends AbstractTreeNodeData implements ISessionData {
 	// #region Properties (1)
 
-	#responseDto: ShapeDiverResponseDto;
+	#responseDto: ResBase;
 
 	// #endregion Properties (1)
 
 	// #region Constructors (1)
 
-	constructor(
-		responseDto: ShapeDiverResponseDto,
-		id?: string,
-		version?: string,
-	) {
+	constructor(responseDto: ResBase, id?: string, version?: string) {
 		super(id, version);
 		this.#responseDto = responseDto;
 	}
@@ -24,11 +20,11 @@ export class SessionData extends AbstractTreeNodeData implements ISessionData {
 
 	// #region Public Getters And Setters (2)
 
-	public get responseDto(): ShapeDiverResponseDto {
+	public get responseDto(): ResBase {
 		return this.#responseDto;
 	}
 
-	public set responseDto(value: ShapeDiverResponseDto) {
+	public set responseDto(value: ResBase) {
 		this.#responseDto = value;
 	}
 

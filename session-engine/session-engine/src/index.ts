@@ -18,8 +18,8 @@ import {IInteractionParameter} from "./interfaces/dto/interaction/IInteractionPa
 import {ISelectionParameter} from "./interfaces/dto/interaction/ISelectionParameter";
 import {
 	IOutput,
-	ShapeDiverResponseOutputChunk,
-	ShapeDiverResponseOutputContent,
+	ResOutputChunk,
+	ResOutputContent,
 } from "./interfaces/dto/IOutput";
 import {IParameter} from "./interfaces/dto/IParameter";
 import {ISessionData} from "./interfaces/ISessionData";
@@ -47,6 +47,6 @@ export {
 	DrawingParameter,
 	IExport,
 	Export,
-	ShapeDiverResponseOutputContent,
-	ShapeDiverResponseOutputChunk,
+	ResOutputContent,
+	ResOutputChunk,
 };

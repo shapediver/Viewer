@@ -1,7 +1,4 @@
-import {
-	ShapeDiverResponseExport,
-	ShapeDiverResponseOutput,
-} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResExport, ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	ShapeDiverViewerError,
 	ShapeDiverViewerErrorType,
@@ -92,8 +89,8 @@ export class ShapeDiverViewerCustomizationError extends ShapeDiverViewerError {
 	constructor(
 		public readonly message: string,
 		public readonly errorObject: {
-			outputs: {[id: string]: ShapeDiverResponseOutput};
-			exports: {[key: string]: ShapeDiverResponseExport};
+			outputs: {[id: string]: ResOutput};
+			exports: {[key: string]: ResExport};
 		},
 	) {
 		super(

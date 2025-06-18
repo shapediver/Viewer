@@ -112,6 +112,36 @@ export class Converter {
 		}
 	}
 
+	/**
+	 * Convert the given input to a Blob.
+	 *
+	 * @param input
+	 * @returns
+	 */
+	public async convertToBlob(
+		input:
+			| (() => Promise<ArrayBuffer>)
+			| ArrayBuffer
+			| (() => Promise<Blob>)
+			| Blob
+			| File,
+	): Promise<Blob> {
+		if (input instanceof File) {
+			return input;
+		} else if (input instanceof Blob) {
+			return input;
+		} else if (input instanceof ArrayBuffer) {
+			return new Blob([input]);
+		} else {
+			const result = await input();
+			if (result instanceof Blob) {
+				return result;
+			} else {
+				return new Blob([result]);
+			}
+		}
+	}
+
 	// #endregion Public Static Getters And Setters (1)
 
 	// #region Public Methods (8)

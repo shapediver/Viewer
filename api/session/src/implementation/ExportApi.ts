@@ -1,10 +1,10 @@
 import {
-	ShapeDiverResponseExport,
-	ShapeDiverResponseExportContent,
-	ShapeDiverResponseExportDefinitionType,
-	ShapeDiverResponseExportResult,
-	ShapeDiverResponseModelComputationStatus,
-	ShapeDiverResponseParameterGroup,
+	ResComputationStatus,
+	ResExport,
+	ResExportContent,
+	ResExportDefinitionType,
+	ResExportResult,
+	ResParameterGroup,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {IExport} from "@shapediver/viewer.session-engine.session-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
@@ -29,7 +29,7 @@ export class ExportApi implements IExportApi {
 
 	// #region Public Getters And Setters (24)
 
-	public get content(): ShapeDiverResponseExportContent[] | undefined {
+	public get content(): ResExportContent[] | undefined {
 		return this.#export.content;
 	}
 
@@ -63,7 +63,7 @@ export class ExportApi implements IExportApi {
 		return this.#export.filename;
 	}
 
-	public get group(): ShapeDiverResponseParameterGroup | undefined {
+	public get group(): ResParameterGroup | undefined {
 		return this.#export.group;
 	}
 
@@ -131,19 +131,15 @@ export class ExportApi implements IExportApi {
 		);
 	}
 
-	public get result(): ShapeDiverResponseExportResult | undefined {
+	public get result(): ResExportResult | undefined {
 		return this.#export.result;
 	}
 
-	public get status_collect():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_collect(): ResComputationStatus | undefined {
 		return this.#export.status_collect;
 	}
 
-	public get status_computation():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_computation(): ResComputationStatus | undefined {
 		return this.#export.status_computation;
 	}
 
@@ -165,7 +161,7 @@ export class ExportApi implements IExportApi {
 		);
 	}
 
-	public get type(): ShapeDiverResponseExportDefinitionType {
+	public get type(): ResExportDefinitionType {
 		return this.#export.type;
 	}
 
@@ -173,7 +169,7 @@ export class ExportApi implements IExportApi {
 		return this.#export.uid;
 	}
 
-	public get version(): string | undefined {
+	public get version(): string {
 		return this.#export.version;
 	}
 
@@ -183,7 +179,7 @@ export class ExportApi implements IExportApi {
 
 	public async request(
 		parameters: {[key: string]: unknown} = {},
-	): Promise<ShapeDiverResponseExport> {
+	): Promise<ResExport> {
 		const scope = "request";
 		this.#inputValidator.validateAndError(
 			`ExportApi.${scope}`,

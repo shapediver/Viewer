@@ -1,6 +1,6 @@
 import {
-	ShapeDiverResponseParameterType,
-	ShapeDiverResponseParameterVisualization,
+	ResParameterType,
+	ResVisualizationType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SESSION_SETTINGS_MODE} from "@shapediver/viewer.shared.services";
 import {vec3, vec4} from "gl-matrix";
@@ -17,8 +17,8 @@ export type Color = string | number | number[] | vec3 | vec4;
  * The type of the parameter.
  */
 export {
-	ShapeDiverResponseParameterType as PARAMETER_TYPE,
-	ShapeDiverResponseParameterVisualization as PARAMETER_VISUALIZATION,
+	ResParameterType as PARAMETER_TYPE,
+	ResVisualizationType as PARAMETER_VISUALIZATION,
 };
 
 export interface ISettingsSections {

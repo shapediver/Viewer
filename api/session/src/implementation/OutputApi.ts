@@ -1,8 +1,8 @@
-import {ShapeDiverResponseModelComputationStatus} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResComputationStatus} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IOutput,
-	ShapeDiverResponseOutputChunk,
-	ShapeDiverResponseOutputContent,
+	ResOutputChunk,
+	ResOutputContent,
 } from "@shapediver/viewer.session-engine.session-engine";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
@@ -44,11 +44,11 @@ export class OutputApi implements IOutputApi {
 		return this.#output.bbmin;
 	}
 
-	public get chunks(): ShapeDiverResponseOutputChunk[] | undefined {
+	public get chunks(): ResOutputChunk[] | undefined {
 		return this.#output.chunks;
 	}
 
-	public get content(): ShapeDiverResponseOutputContent[] | undefined {
+	public get content(): ResOutputContent[] | undefined {
 		return this.#output.content;
 	}
 
@@ -154,15 +154,11 @@ export class OutputApi implements IOutputApi {
 		);
 	}
 
-	public get status_collect():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_collect(): ResComputationStatus | undefined {
 		return this.#output.status_collect;
 	}
 
-	public get status_computation():
-		| ShapeDiverResponseModelComputationStatus
-		| undefined {
+	public get status_computation(): ResComputationStatus | undefined {
 		return this.#output.status_computation;
 	}
 
@@ -235,7 +231,7 @@ export class OutputApi implements IOutputApi {
 	// #region Public Methods (1)
 
 	public async updateOutputContent(
-		outputContent: ShapeDiverResponseOutputContent[],
+		outputContent: ResOutputContent[],
 		preventUpdate: boolean = false,
 	): Promise<ITreeNode | undefined> {
 		const scope = "updateOutputContent";

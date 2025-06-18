@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
 import {
 	create,
@@ -49,7 +49,7 @@ export class SDTFEngine {
 	 * @returns the scene graph node
 	 */
 	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
+		content: ResOutputContent,
 		jwtToken?: string,
 	): Promise<ITreeNode> {
 		const node = new TreeNode("sdtf");

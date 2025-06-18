@@ -1,4 +1,4 @@
-import {ShapeDiverRequestGltfUploadQueryConversion} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {QueryGltfConversion} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {sceneTree} from "@shapediver/viewer.api.general";
 import {
 	CreationControlCenterViewport,
@@ -1316,7 +1316,7 @@ export class ViewportApi implements IViewportApi {
 			sessionEngineId!
 		]?.uploadGLTF(
 			new Blob([blob], {type: "application/octet-stream"}),
-			ShapeDiverRequestGltfUploadQueryConversion.SCENE,
+			QueryGltfConversion.SCENE,
 		);
 
 		const backends: {
@@ -1759,8 +1759,8 @@ export class ViewportApi implements IViewportApi {
 		]?.uploadGLTF(
 			new Blob([blob], {type: "application/octet-stream"}),
 			this.#systemInfo.isIOS
-				? ShapeDiverRequestGltfUploadQueryConversion.USDZ
-				: ShapeDiverRequestGltfUploadQueryConversion.NONE,
+				? QueryGltfConversion.USDZ
+				: QueryGltfConversion.NONE,
 		);
 		const href = response?.gltf?.href;
 		if (href) this.#renderingEngine.viewInAR(href);

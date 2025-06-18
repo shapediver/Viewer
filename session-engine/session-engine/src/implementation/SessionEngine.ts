@@ -1,24 +1,32 @@
 import {
-	create,
-	isGBResponseError,
-	ShapeDiverError as ShapeDiverBackendError,
-	ShapeDiverRequestConfigure,
-	ShapeDiverRequestCustomization,
-	ShapeDiverRequestExport,
-	ShapeDiverRequestFileUploadPart,
-	ShapeDiverRequestGltfUploadQueryConversion,
-	ShapeDiverRequestModelState,
-	ShapeDiverResponseDto,
-	ShapeDiverResponseErrorType,
-	ShapeDiverResponseExport,
-	ShapeDiverResponseExportDefinitionType,
-	ShapeDiverResponseFileInfo,
-	ShapeDiverResponseModelComputationStatus,
-	ShapeDiverResponseModelState,
-	ShapeDiverResponseOutput,
-	ShapeDiverResponseParameter,
-	ShapeDiverSdk,
-	ShapeDiverSdkConfigType,
+	Configuration,
+	ExportApi,
+	extractFileInfo,
+	FileApi,
+	GltfApi,
+	ModelApi,
+	ModelStateApi,
+	OutputApi,
+	QueryGltfConversion,
+	ReqConfigure,
+	ReqCustomization,
+	ReqExport,
+	ReqFileDefinition,
+	ResBase,
+	ResComputationStatus,
+	ResErrorType,
+	ResExport,
+	ResExportDefinitionType,
+	ResFileInfo,
+	ResGetCachedOutputs,
+	ResGetModelState,
+	ResModelState,
+	ResOutput,
+	ResParameter,
+	ResponseError,
+	SdGeometryError,
+	SessionApi,
+	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	convert,
@@ -138,14 +146,14 @@ export class SessionEngine implements ISessionEngine {
 	private _jwtToken?: string;
 	private _loadSdtf: boolean = false;
 	private _modelId?: string;
-	private _modelState?: ShapeDiverResponseModelState;
+	private _modelState?: ResModelState;
 	private _modelStateId?: string;
 	private _modelStateValidationMode?: boolean;
 	private _node: ITreeNode;
 	private _refreshJwtToken?: () => Promise<string>;
-	private _responseDto?: ShapeDiverResponseDto;
+	private _responseDto?: ResBase;
 	private _retryCounter = 0;
-	private _sdk!: ShapeDiverSdk;
+	private _sdkConfig!: Configuration;
 	private _sessionId?: string;
 	private _updateCallback:
 		| ((newNode?: ITreeNode, oldNode?: ITreeNode) => void)
@@ -200,11 +208,13 @@ export class SessionEngine implements ISessionEngine {
 		this._outputLoader = new OutputLoader(this);
 
 		try {
-			this._sdk = create(this._modelViewUrl, this._jwtToken);
-			this._sdk.setConfigurationValue(
-				ShapeDiverSdkConfigType.REQUEST_HEADERS,
-				this._headers,
-			);
+			this._sdkConfig = new Configuration({
+				basePath: this._modelViewUrl,
+				accessToken: this._jwtToken,
+				baseOptions: {
+					headers: this._headers,
+				},
+			});
 		} catch (e) {
 			throw this._httpClient.convertError(e);
 		}
@@ -294,7 +304,7 @@ export class SessionEngine implements ISessionEngine {
 		}
 	}
 
-	public get modelState(): ShapeDiverResponseModelState | undefined {
+	public get modelState(): ResModelState | undefined {
 		return this._modelState;
 	}
 
@@ -358,10 +368,7 @@ export class SessionEngine implements ISessionEngine {
 
 	// #region Public Methods (31)
 
-	public applySettings(
-		response: ShapeDiverResponseDto,
-		sections?: ISettingsSections,
-	) {
+	public applySettings(response: ResBase, sections?: ISettingsSections) {
 		sections = sections || {};
 		if (sections.session === undefined) {
 			sections.session = {
@@ -394,8 +401,8 @@ export class SessionEngine implements ISessionEngine {
 			};
 
 		let config: object;
-		if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
-			config = (<ShapeDiverResponseDto>response).viewer!.config;
+		if ((<ResBase>response).viewer !== undefined) {
+			config = (<ResBase>response).viewer!.config;
 		} else {
 			throw new ShapeDiverViewerSettingsError(
 				"Session.applySettings: No config object available.",
@@ -618,7 +625,9 @@ export class SessionEngine implements ISessionEngine {
 
 		try {
 			this._httpClient.removeDataLoading(this._sessionId!);
-			await this._sdk.session.close(this._sessionId!);
+			await new SessionApi(this._sdkConfig).closeSession(
+				this._sessionId!,
+			);
 			if (this._automaticSceneUpdate)
 				this.removeFromSceneTree(this._node);
 
@@ -680,7 +689,7 @@ export class SessionEngine implements ISessionEngine {
 			);
 
 			// process the image input
-			let imageData: ShapeDiverRequestFileUploadPart | undefined;
+			let imageData: ReqFileDefinition | undefined;
 			let imageArrayBuffer: ArrayBuffer | undefined;
 			if (image) {
 				promises.push(
@@ -696,17 +705,18 @@ export class SessionEngine implements ISessionEngine {
 			if (arScene) {
 				promises.push(
 					this._converter
-						.convertToArrayBuffer(arScene)
-						.then((arSceneArrayBuffer) =>
-							this._sdk.gltf.upload(
+						.convertToBlob(arScene)
+						.then((arSceneBlob) =>
+							new GltfApi(this._sdkConfig).uploadGltf(
 								this._sessionId!,
-								arSceneArrayBuffer,
-								"model/gltf-binary",
-								ShapeDiverRequestGltfUploadQueryConversion.SCENE,
+								new File([arSceneBlob], "arScene.gltf", {
+									type: "model/gltf-binary",
+								}),
+								QueryGltfConversion.SCENE,
 							),
 						)
 						.then((arSceneResponseDto) => {
-							arSceneId = arSceneResponseDto.gltf?.sceneId;
+							arSceneId = arSceneResponseDto.data.gltf?.sceneId;
 						}),
 				);
 			}
@@ -715,18 +725,20 @@ export class SessionEngine implements ISessionEngine {
 			await Promise.all(promises);
 
 			// create the model state
-			const response = await this._sdk.modelState.create(
-				this._sessionId!,
-				{
-					parameters: parameterSet,
-					data: data,
-					image: imageData,
-					arSceneId: arSceneId,
-				} as ShapeDiverRequestModelState,
-			);
+			const response = (
+				await new ModelStateApi(this._sdkConfig).createModelState(
+					this._sessionId!,
+					{
+						parameters: parameterSet,
+						data: data,
+						image: imageData,
+						arSceneId: arSceneId,
+					},
+				)
+			).data;
 
 			if (imageData && imageArrayBuffer)
-				await this._sdk.utils.uploadAsset(
+				await new UtilsApi(this._sdkConfig).uploadAsset(
 					response.asset!.modelState!.href,
 					imageArrayBuffer,
 					response.asset!.modelState!.headers,
@@ -877,10 +889,10 @@ export class SessionEngine implements ISessionEngine {
 
 			this._warningCreator(
 				this._responseDto!.outputs as {
-					[key: string]: ShapeDiverResponseOutput;
+					[key: string]: ResOutput;
 				},
 				this._responseDto!.exports as {
-					[key: string]: ShapeDiverResponseExport;
+					[key: string]: ResExport;
 				},
 				this._throwOnCustomizationError,
 			);
@@ -1084,7 +1096,7 @@ export class SessionEngine implements ISessionEngine {
 	public async customizeParallel(
 		parameterValues: {[key: string]: unknown},
 		loadOutputs = true,
-	): Promise<ISessionTreeNode | ShapeDiverResponseDto> {
+	): Promise<ISessionTreeNode | ResBase> {
 		const eventId = this._uuidGenerator.create();
 
 		const eventStart: ITaskEvent = {
@@ -1145,16 +1157,20 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	public async customizeWithModelState(
-		modelState: string | ShapeDiverResponseDto,
+		modelState: string | ResGetModelState,
 		retry = false,
 	): Promise<ITreeNode> {
 		this.checkAvailability();
 
 		try {
 			// get the model state if it is not already a response
-			let response: ShapeDiverResponseDto;
+			let response: ResGetModelState;
 			if (typeof modelState === "string") {
-				response = await this._sdk.modelState.get(modelState);
+				response = (
+					await new ModelStateApi(this._sdkConfig).getModelState(
+						modelState,
+					)
+				).data;
 			} else {
 				response = modelState;
 			}
@@ -1177,14 +1193,22 @@ export class SessionEngine implements ISessionEngine {
 		parameterId: string,
 		fileId: string,
 		retry = false,
-	): Promise<ShapeDiverResponseFileInfo> {
+	): Promise<ResFileInfo> {
 		this.checkAvailability();
 		try {
-			return await this._sdk.file.info(
+			const response = await new FileApi(this._sdkConfig).getFileMetadata(
 				this._sessionId!,
 				parameterId,
 				fileId,
 			);
+
+			const {size, filename} = extractFileInfo(response.headers);
+			return {
+				parameterId: parameterId,
+				id: fileId,
+				size: size!,
+				filename: filename,
+			};
 		} catch (e) {
 			await this.handleError(e, retry);
 			return await this.getFileInfo(parameterId, fileId, true);
@@ -1268,19 +1292,25 @@ export class SessionEngine implements ISessionEngine {
 				).slice(1);
 
 			if (this._ticket) {
-				this._responseDto = await this._sdk.session.init(
-					this._ticket,
-					parameterSet,
-					this._modelStateId,
-					this._modelStateValidationMode,
-				);
+				this._responseDto = (
+					await new SessionApi(this._sdkConfig).createSessionByTicket(
+						this._ticket,
+						this._modelStateId,
+						this._modelStateValidationMode, // TODO
+						this._modelStateValidationMode, // TODO
+						parameterSet,
+					)
+				).data;
 			} else if (this._guid) {
-				this._responseDto = await this._sdk.session.initForModel(
-					this._guid,
-					parameterSet,
-					this._modelStateId,
-					this._modelStateValidationMode,
-				);
+				this._responseDto = (
+					await new SessionApi(this._sdkConfig).createSessionByModel(
+						this._guid,
+						this._modelStateId,
+						this._modelStateValidationMode, // TODO
+						this._modelStateValidationMode, // TODO
+						parameterSet,
+					)
+				).data;
 			} else {
 				// we should never get here
 				throw new ShapeDiverViewerSessionError(
@@ -1288,19 +1318,39 @@ export class SessionEngine implements ISessionEngine {
 				);
 			}
 			this._performanceEvaluator.endSection("sessionResponse");
-
 			this._viewerSettings = this._responseDto.viewer?.config;
 			this._viewerSettingsVersionBackend =
 				this._responseDto.viewerSettingsVersion || latestVersion;
 			this._sessionId = this._responseDto.sessionId;
 			this._modelId = this._responseDto.model?.id;
-			this._modelState = this._responseDto.modelState;
+			this._modelState = this._responseDto.modelState as ResModelState;
 
 			this._httpClient.addDataLoading(this._sessionId!, {
-				getAsset: this._sdk.asset.getAsset.bind(this._sdk.asset),
-				downloadTexture: this._sdk.asset.downloadImage.bind(
-					this._sdk.asset,
-				),
+				getAsset: async (url: string) => {
+					const response = await new UtilsApi(
+						this._sdkConfig,
+					).downloadAsset(url, {
+						responseType: "arraybuffer",
+					})[0];
+					return [
+						response.data as unknown as ArrayBuffer,
+						response.headers["content-type"],
+					];
+				},
+				downloadTexture: async (
+					url: string,
+				): Promise<[ArrayBuffer, string]> => {
+					const response = await new UtilsApi(
+						this._sdkConfig,
+					).downloadImage(this._sessionId!, url, {
+						responseType: "arraybuffer",
+					});
+
+					return [
+						response.data as unknown as ArrayBuffer,
+						response.headers["content-type"],
+					];
+				},
 			});
 
 			this._settingsEngine.loadSettings(this._viewerSettings);
@@ -1369,10 +1419,12 @@ export class SessionEngine implements ISessionEngine {
 			}
 
 			// get the cached outputs
-			const responseDto = await this._sdk.output.getCache(
-				this._sessionId!,
-				outputMapping,
-			);
+			const responseDto: ResGetCachedOutputs = (
+				await new OutputApi(this._sdkConfig).getCachedOutputs(
+					this._sessionId!,
+					outputMapping,
+				)
+			).data;
 
 			// create atomic output api objects for them
 			const outputs: {
@@ -1381,7 +1433,7 @@ export class SessionEngine implements ISessionEngine {
 			for (const outputId in responseDto.outputs) {
 				responseDto.outputs[outputId].id = outputId;
 				outputs[outputId] = new Output(
-					<ShapeDiverResponseOutput>responseDto.outputs[outputId],
+					<ResOutput>responseDto.outputs[outputId],
 					this,
 				);
 			}
@@ -1472,10 +1524,12 @@ export class SessionEngine implements ISessionEngine {
 			for (const output in o) outputMapping[output] = o[output].version;
 
 			try {
-				const responseDto = await this._sdk.output.getCache(
-					this._sessionId!,
-					outputMapping,
-				);
+				const responseDto = (
+					await new OutputApi(this._sdkConfig).getCachedOutputs(
+						this._sessionId!,
+						outputMapping,
+					)
+				).data;
 				if (cancelRequest()) return new SessionTreeNode();
 				this.updateResponseDto(responseDto);
 				return await this.loadOutputs(cancelRequest, taskEventInfo);
@@ -1500,7 +1554,7 @@ export class SessionEngine implements ISessionEngine {
 	 * @returns promise with a scene graph node
 	 */
 	public async loadOutputsParallel(
-		responseDto: ShapeDiverResponseDto,
+		responseDto: ResBase,
 		cancelRequest: () => boolean = () => false,
 		taskEventInfo: OutputLoaderTaskEventInfo,
 		retry = false,
@@ -1519,7 +1573,7 @@ export class SessionEngine implements ISessionEngine {
 			if (this.outputsFreeze[outputId] === undefined)
 				outputsFreeze[outputId] = false;
 			outputs[outputId] = new Output(
-				<ShapeDiverResponseOutput>responseDto.outputs[outputId],
+				<ResOutput>responseDto.outputs[outputId],
 				this,
 			);
 		}
@@ -1555,10 +1609,12 @@ export class SessionEngine implements ISessionEngine {
 				outputMapping[output] = outputs[output].version;
 
 			try {
-				const responseDto = await this._sdk.output.getCache(
-					this._sessionId!,
-					outputMapping,
-				);
+				const responseDto = (
+					await new OutputApi(this._sdkConfig).getCachedOutputs(
+						this._sessionId!,
+						outputMapping,
+					)
+				).data;
 				if (cancelRequest()) return new SessionTreeNode();
 				this.updateResponseDto(responseDto);
 				return await this.loadOutputsParallel(
@@ -1584,15 +1640,16 @@ export class SessionEngine implements ISessionEngine {
 		parameters: {[key: string]: unknown},
 		maxWaitTime: number,
 		retry = false,
-	): Promise<ShapeDiverResponseExport> {
+	): Promise<ResExport> {
 		this.checkAvailability("export");
 		try {
 			await this.uploadFileParameters(parameters);
 			const requestParameterSet = this.cleanExportParameters(parameters);
-			const responseDto = await this._sdk.utils.submitAndWaitForExport(
-				this._sdk,
+			const responseDto = await new UtilsApi(
+				this._sdkConfig,
+			).submitAndWaitForExport(
 				this._sessionId!,
-				{exports: {id: exportId}, parameters: requestParameterSet},
+				{exports: [exportId], parameters: requestParameterSet},
 				maxWaitTime,
 			);
 			this.updateResponseDto(responseDto);
@@ -1609,11 +1666,11 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	public async requestExports(
-		body: ShapeDiverRequestExport,
+		body: ReqExport,
 		loadOutputs: boolean = false,
 		maxWaitMsec?: number,
 		retry = false,
-	): Promise<ShapeDiverResponseDto> {
+	): Promise<ResBase> {
 		let processId;
 		const eventId = this._uuidGenerator.create();
 		// if the outputs are loaded, we treat this as a customization by sending the same events
@@ -1682,8 +1739,9 @@ export class SessionEngine implements ISessionEngine {
 				);
 			}
 
-			const responseDto = await this._sdk.utils.submitAndWaitForExport(
-				this._sdk,
+			const responseDto = await new UtilsApi(
+				this._sdkConfig,
+			).submitAndWaitForExport(
 				this._sessionId!,
 				{
 					exports: body.exports,
@@ -1808,7 +1866,7 @@ export class SessionEngine implements ISessionEngine {
 	public async saveDefaultParameters(retry = false): Promise<boolean> {
 		this.checkAvailability("defaultparam", true);
 		try {
-			await this._sdk.model.setDefaultParams(
+			await new ModelApi(this._sdkConfig).updateParameterDefaultValues(
 				this._modelId!,
 				this._parameterValues,
 			);
@@ -1838,7 +1896,10 @@ export class SessionEngine implements ISessionEngine {
 	): Promise<boolean> {
 		this.checkAvailability("export-definition", true);
 		try {
-			await this._sdk.export.updateDefinitions(this._modelId!, exports);
+			await new ExportApi(this._sdkConfig).updateExportDefinitions(
+				this._modelId!,
+				exports,
+			);
 			return true;
 		} catch (e) {
 			await this.handleError(e, retry);
@@ -1865,7 +1926,10 @@ export class SessionEngine implements ISessionEngine {
 	): Promise<boolean> {
 		this.checkAvailability("output-definition", true);
 		try {
-			await this._sdk.output.updateDefinitions(this._modelId!, outputs);
+			await new OutputApi(this._sdkConfig).updateOutputDefinitions(
+				this._modelId!,
+				outputs,
+			);
 			return true;
 		} catch (e) {
 			await this.handleError(e, retry);
@@ -1892,7 +1956,7 @@ export class SessionEngine implements ISessionEngine {
 	): Promise<boolean> {
 		this.checkAvailability("parameter-definition", true);
 		try {
-			await this._sdk.model.updateParameterDefinitions(
+			await new ModelApi(this._sdkConfig).updateParameterDefinitions(
 				this._modelId!,
 				parameters,
 			);
@@ -1928,9 +1992,9 @@ export class SessionEngine implements ISessionEngine {
 		}
 
 		try {
-			await this._sdk.model.updateConfig(
+			await new ModelApi(this._sdkConfig).updateModelConfig(
 				this._modelId!,
-				json as ShapeDiverRequestConfigure,
+				json as ReqConfigure,
 			);
 			return true;
 		} catch (e) {
@@ -2056,13 +2120,12 @@ export class SessionEngine implements ISessionEngine {
 
 		this._jwtToken = value;
 		try {
-			this._sdk.setConfigurationValue(
-				ShapeDiverSdkConfigType.JWT_TOKEN,
-				value,
-			);
-			const responseDto = await this._sdk.session.default(
-				this._sessionId!,
-			);
+			this._sdkConfig.accessToken = value;
+			const responseDto = (
+				await new SessionApi(this._sdkConfig).getSessionDefaults(
+					this._sessionId!,
+				)
+			).data;
 			if (this._responseDto)
 				this._responseDto.actions = responseDto.actions;
 		} catch (e) {
@@ -2147,10 +2210,10 @@ export class SessionEngine implements ISessionEngine {
 
 		this._warningCreator(
 			this._responseDto!.outputs as {
-				[key: string]: ShapeDiverResponseOutput;
+				[key: string]: ResOutput;
 			},
 			this._responseDto!.exports as {
-				[key: string]: ShapeDiverResponseExport;
+				[key: string]: ResExport;
 			},
 			this._throwOnCustomizationError,
 		);
@@ -2346,16 +2409,18 @@ export class SessionEngine implements ISessionEngine {
 	): Promise<string> {
 		this.checkAvailability("file-upload");
 		try {
-			const result = await this._sdk.file.requestUpload(
-				this._sessionId!,
-				{
-					[parameterId]: {
-						size: data.size,
-						format: type,
-						filename: data.name === "" ? undefined : data.name,
+			const result = (
+				await new FileApi(this._sdkConfig).uploadFile(
+					this._sessionId!,
+					{
+						[parameterId]: {
+							size: data.size,
+							format: type,
+							filename: data.name === "" ? undefined : data.name,
+						},
 					},
-				},
-			);
+				)
+			).data;
 
 			if (
 				result &&
@@ -2364,7 +2429,7 @@ export class SessionEngine implements ISessionEngine {
 				result.asset.file[parameterId]
 			) {
 				const fileAsset = result.asset.file[parameterId];
-				await this._sdk.utils.uploadAsset(
+				await new UtilsApi(this._sdkConfig).uploadAsset(
 					fileAsset.href,
 					await data.arrayBuffer(),
 					fileAsset.headers,
@@ -2434,17 +2499,20 @@ export class SessionEngine implements ISessionEngine {
 
 	public async uploadGLTF(
 		blob: Blob,
-		conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE,
+		conversion: QueryGltfConversion = QueryGltfConversion.NONE,
 		retry = false,
-	): Promise<ShapeDiverResponseDto> {
+	): Promise<ResBase> {
 		this.checkAvailability("gltf-upload");
 		try {
-			const responseDto = await this._sdk.gltf.upload(
-				this._sessionId!,
-				await blob.arrayBuffer(),
-				"model/gltf-binary",
-				conversion,
-			);
+			const responseDto = (
+				await new GltfApi(this._sdkConfig).uploadGltf(
+					this._sessionId!,
+					new File([blob], "model.gltf", {
+						type: "model/gltf-binary",
+					}),
+					conversion,
+				)
+			).data;
 			if (!responseDto || !responseDto.gltf || !responseDto.gltf.href)
 				throw new ShapeDiverViewerSessionError(
 					"Session.uploadGLTF: Upload reply has not the required format.",
@@ -2489,12 +2557,12 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	private _warningCreator(
-		outputs: {[id: string]: ShapeDiverResponseOutput} | undefined,
-		exports: {[key: string]: ShapeDiverResponseExport},
+		outputs: {[id: string]: ResOutput} | undefined,
+		exports: {[key: string]: ResExport},
 		throwError = false,
 	) {
-		const outputsWithIssues: {[key: string]: ShapeDiverResponseOutput} = {};
-		const exportsWithIssues: {[key: string]: ShapeDiverResponseExport} = {};
+		const outputsWithIssues: {[key: string]: ResOutput} = {};
+		const exportsWithIssues: {[key: string]: ResExport} = {};
 
 		for (const outputId in outputs) {
 			const outputObj = outputs[outputId];
@@ -2502,10 +2570,10 @@ export class SessionEngine implements ISessionEngine {
 				(throwError === false && outputObj.msg !== undefined) ||
 				(outputObj.status_collect &&
 					outputObj.status_collect !==
-						ShapeDiverResponseModelComputationStatus.SUCCESS) ||
+						ResComputationStatus.SUCCESS) ||
 				(outputObj.status_computation &&
 					outputObj.status_computation !==
-						ShapeDiverResponseModelComputationStatus.SUCCESS)
+						ResComputationStatus.SUCCESS)
 			) {
 				outputsWithIssues[outputId] = outputObj;
 			}
@@ -2518,10 +2586,10 @@ export class SessionEngine implements ISessionEngine {
 				(throwError === false && exportObj.msg !== undefined) ||
 				(exportObj.status_collect &&
 					exportObj.status_collect !==
-						ShapeDiverResponseModelComputationStatus.SUCCESS) ||
+						ResComputationStatus.SUCCESS) ||
 				(exportObj.status_computation &&
 					exportObj.status_computation !==
-						ShapeDiverResponseModelComputationStatus.SUCCESS)
+						ResComputationStatus.SUCCESS)
 			) {
 				exportsWithIssues[exportId] = exportObj;
 			}
@@ -2545,13 +2613,13 @@ export class SessionEngine implements ISessionEngine {
 					if (
 						outputsWithIssues[outputId].status_collect &&
 						outputsWithIssues[outputId].status_collect !==
-							ShapeDiverResponseModelComputationStatus.SUCCESS
+							ResComputationStatus.SUCCESS
 					)
 						warning += `\n\t- status_collect is ${outputsWithIssues[outputId].status_collect}`;
 					if (
 						outputsWithIssues[outputId].status_computation &&
 						outputsWithIssues[outputId].status_computation !==
-							ShapeDiverResponseModelComputationStatus.SUCCESS
+							ResComputationStatus.SUCCESS
 					)
 						warning += `\n\t- status_computation is ${outputsWithIssues[outputId].status_computation}`;
 					if (warning)
@@ -2566,13 +2634,13 @@ export class SessionEngine implements ISessionEngine {
 					if (
 						exportsWithIssues[exportId].status_collect &&
 						exportsWithIssues[exportId].status_collect !==
-							ShapeDiverResponseModelComputationStatus.SUCCESS
+							ResComputationStatus.SUCCESS
 					)
 						warning += `\n\t- status_collect is ${exportsWithIssues[exportId].status_collect}`;
 					if (
 						exportsWithIssues[exportId].status_computation &&
 						exportsWithIssues[exportId].status_computation !==
-							ShapeDiverResponseModelComputationStatus.SUCCESS
+							ResComputationStatus.SUCCESS
 					)
 						warning += `\n\t- status_computation is ${exportsWithIssues[exportId].status_computation}`;
 					if (warning)
@@ -2679,8 +2747,8 @@ export class SessionEngine implements ISessionEngine {
 
 	private cleanExportParameters(parameters: {
 		[key: string]: unknown;
-	}): ShapeDiverRequestCustomization {
-		const requestParameterSet: ShapeDiverRequestCustomization = {};
+	}): ReqCustomization {
+		const requestParameterSet: ReqCustomization = {};
 
 		// first step, we convert all our names and displaynames to ids
 		for (const parameterIdOrName in parameters) {
@@ -2724,7 +2792,7 @@ export class SessionEngine implements ISessionEngine {
 	 * @returns
 	 */
 	private createInteractionParameter(
-		parameter: ShapeDiverResponseParameter,
+		parameter: ResParameter,
 	): IParameter<unknown> {
 		const result = validateInteractionParameterSettings(parameter.settings);
 		if (result.success) {
@@ -2768,12 +2836,9 @@ export class SessionEngine implements ISessionEngine {
 		this.checkAvailability("customize");
 		try {
 			this._performanceEvaluator.startSection("sessionResponse");
-			const responseDto =
-				await this._sdk.utils.submitAndWaitForCustomization(
-					this._sdk,
-					this._sessionId!,
-					parameters,
-				);
+			const responseDto = await new UtilsApi(
+				this._sdkConfig,
+			).submitAndWaitForOutput(this._sessionId!, parameters);
 			this._performanceEvaluator.endSection("sessionResponse");
 			if (loadOutputs === true && this._allowOutputLoading === true) {
 				if (cancelRequest()) return new SessionTreeNode();
@@ -2832,11 +2897,11 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	private async handleError(
-		e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown,
+		e: SdGeometryError | ShapeDiverViewerError | Error | unknown,
 		retry = false,
 	) {
-		if (isGBResponseError(e)) {
-			if (e.error === ShapeDiverResponseErrorType.SESSION_GONE_ERROR) {
+		if (e instanceof ResponseError) {
+			if (e.type === ResErrorType.SESSION_GONE_ERROR) {
 				// case 1: the session is no longer available
 				// we try to re-initialize the session 3 times, if that does not work, we close it
 
@@ -2859,12 +2924,12 @@ export class SessionEngine implements ISessionEngine {
 					// eslint-disable-next-line no-empty
 					try {
 						await this._closeOnFailure();
-					} catch (e) {}
+					} catch (e) {
+						/* empty */
+					}
 					throw this._httpClient.convertError(e);
 				}
-			} else if (
-				e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR
-			) {
+			} else if (e.type === ResErrorType.JWT_VALIDATION_ERROR) {
 				// if any of the above errors occur, we try to get a new bearer token
 				// if we get a new one, we retry 3 times (by requiring new bearer tokens every time)
 				if (this._retryCounter < 3) {
@@ -2880,7 +2945,9 @@ export class SessionEngine implements ISessionEngine {
 						// eslint-disable-next-line no-empty
 						try {
 							await this._closeOnFailure();
-						} catch (e) {}
+						} catch (e) {
+							/* empty */
+						}
 						throw this._httpClient.convertError(e);
 					}
 				} else {
@@ -2891,7 +2958,9 @@ export class SessionEngine implements ISessionEngine {
 					// eslint-disable-next-line no-empty
 					try {
 						await this._closeOnFailure();
-					} catch (e) {}
+					} catch (e) {
+						/* empty */
+					}
 					throw this._httpClient.convertError(e);
 				}
 			} else {
@@ -2922,7 +2991,7 @@ export class SessionEngine implements ISessionEngine {
 			| Blob
 			| File,
 	): Promise<{
-		imageData: ShapeDiverRequestFileUploadPart;
+		imageData: ReqFileDefinition;
 		arrayBuffer: ArrayBuffer;
 	}> {
 		if (image instanceof File || image instanceof Blob)
@@ -2956,16 +3025,19 @@ export class SessionEngine implements ISessionEngine {
 			};
 		} else {
 			// case where the image is a URL
-			const [arrayBuffer, type] = await this._sdk.asset.downloadImage(
+			const file = await new UtilsApi(this._sdkConfig).downloadImage(
 				this._sessionId!,
 				imageString,
+				{
+					responseType: "arraybuffer",
+				},
 			);
 			return {
 				imageData: {
-					format: type,
-					size: arrayBuffer.byteLength,
+					format: file.data.type,
+					size: file.data.size,
 				},
-				arrayBuffer,
+				arrayBuffer: await file.data.arrayBuffer(),
 			};
 		}
 	}
@@ -3005,7 +3077,7 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	private updateResponseDto(
-		responseDto: ShapeDiverResponseDto,
+		responseDto: ResBase,
 		initialParameters?: {
 			[key: string]: string;
 		},
@@ -3164,19 +3236,19 @@ export class SessionEngine implements ISessionEngine {
 		for (const exportId in this._responseDto.exports) {
 			if (
 				this._responseDto.exports[exportId].type ===
-					ShapeDiverResponseExportDefinitionType.EMAIL ||
+					ResExportDefinitionType.EMAIL ||
 				this._responseDto.exports[exportId].type ===
-					ShapeDiverResponseExportDefinitionType.DOWNLOAD
+					ResExportDefinitionType.DOWNLOAD
 			) {
 				if (!this.exports[exportId]) {
 					this._responseDto.exports[exportId].id = exportId;
 					this.exports[exportId] = new Export(
-						this._responseDto.exports[exportId],
+						this._responseDto.exports[exportId] as ResExport,
 						this,
 					);
 				} else {
-					this.exports[exportId].updateExportDefinition(
-						this._responseDto.exports[exportId],
+					this.exports[exportId].updateExport(
+						this._responseDto.exports[exportId] as ResExport,
 					);
 				}
 			}
@@ -3188,16 +3260,12 @@ export class SessionEngine implements ISessionEngine {
 				if (this.outputsFreeze[outputId] === undefined)
 					this.outputsFreeze[outputId] = false;
 				this.outputs[outputId] = new Output(
-					<ShapeDiverResponseOutput>(
-						this._responseDto.outputs[outputId]
-					),
+					this._responseDto.outputs[outputId] as ResOutput,
 					this,
 				);
 			} else {
 				this.outputs[outputId].updateOutputDefinition(
-					<ShapeDiverResponseOutput>(
-						this._responseDto.outputs[outputId]
-					),
+					<ResOutput>this._responseDto.outputs[outputId],
 				);
 			}
 		}

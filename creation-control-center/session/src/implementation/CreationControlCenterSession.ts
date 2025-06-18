@@ -1,4 +1,4 @@
-import {ShapeDiverResponseDto} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResBase} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {ISettings, latestVersion} from "@shapediver/viewer.settings";
 import {build_data} from "@shapediver/viewer.shared.build-data";
@@ -56,7 +56,7 @@ export class CreationControlCenterSession
 
 	public applySettings(
 		sessionId: string,
-		response: ShapeDiverResponseDto,
+		response: ResBase,
 		sections?: ISettingsSections,
 	): Promise<void> {
 		sections = sections || {};

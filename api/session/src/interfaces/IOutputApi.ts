@@ -1,5 +1,5 @@
-import {ShapeDiverResponseOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ShapeDiverResponseOutputContent} from "@shapediver/viewer.session-engine.session-engine";
+import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/viewer.session-engine.session-engine";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 /**
@@ -33,7 +33,7 @@ import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
  * Using the {@link freeze} property the output's content can be frozen, which means subsequent
  * {@link customize} calls will not update the output.
  */
-export interface IOutputApi extends ShapeDiverResponseOutput {
+export interface IOutputApi extends ResOutput {
 	// #region Properties (4)
 
 	/**
@@ -82,7 +82,7 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
 	 * @throws {@type ShapeDiverViewerError}
 	 */
 	updateOutputContent(
-		content: ShapeDiverResponseOutputContent[],
+		content: ResOutputContent[],
 		preventUpdate?: boolean,
 	): Promise<ITreeNode | undefined>;
 

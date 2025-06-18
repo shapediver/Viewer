@@ -1,4 +1,4 @@
-import {ShapeDiverResponseParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IInteractionParameterSettings,
 	InteractionParameterSettingsType,
@@ -21,10 +21,7 @@ export class SelectionParameter
 
 	// #region Constructors (1)
 
-	constructor(
-		paramDef: ShapeDiverResponseParameter,
-		sessionEngine: SessionEngine,
-	) {
+	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
 		super(paramDef, sessionEngine);
 		this.#sessionEngine = sessionEngine;
 	}

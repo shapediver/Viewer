@@ -1,7 +1,7 @@
 import {
-	ShapeDiverResponseParameter,
-	ShapeDiverResponseParameterGroup,
-	ShapeDiverResponseParameterStructure,
+	ResParameter,
+	ResParameterGroup,
+	ResStructureType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	Converter,
@@ -32,17 +32,17 @@ export class Parameter<T> implements IParameter<T> {
 	readonly #eventEngine = EventEngine.instance;
 	readonly #expression?: string;
 	readonly #format?: string[];
-	readonly #group?: ShapeDiverResponseParameterGroup;
+	readonly #group?: ResParameterGroup;
 	readonly #id: string;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #max?: number;
 	readonly #min?: number;
 	readonly #name: string;
-	readonly #paramDef: ShapeDiverResponseParameter;
+	readonly #paramDef: ResParameter;
 	readonly #sessionEngine: SessionEngine;
-	readonly #settings?: Record<string, unknown>;
-	readonly #structure?: ShapeDiverResponseParameterStructure;
+	readonly #settings?: object;
+	readonly #structure?: ResStructureType;
 	readonly #type: PARAMETER_TYPE;
 	readonly #visualization?: PARAMETER_VISUALIZATION;
 
@@ -58,15 +58,12 @@ export class Parameter<T> implements IParameter<T> {
 
 	// #region Constructors (1)
 
-	constructor(
-		paramDef: ShapeDiverResponseParameter,
-		sessionEngine: SessionEngine,
-	) {
+	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
 		this.#sessionEngine = sessionEngine;
 		this.#paramDef = paramDef;
 
 		this.#id = paramDef.id;
-		this.#defval = paramDef.defval;
+		this.#defval = paramDef.defval!;
 		this.#name = paramDef.name;
 		this.#type = <PARAMETER_TYPE>paramDef.type;
 		if (paramDef.choices !== undefined) this.#choices = paramDef.choices;
@@ -153,7 +150,7 @@ export class Parameter<T> implements IParameter<T> {
 		return this.#format;
 	}
 
-	public get group(): ShapeDiverResponseParameterGroup | undefined {
+	public get group(): ResParameterGroup | undefined {
 		return this.#group;
 	}
 
@@ -211,11 +208,11 @@ export class Parameter<T> implements IParameter<T> {
 		);
 	}
 
-	public get settings(): Record<string, unknown> | undefined {
+	public get settings(): object | undefined {
 		return this.#settings;
 	}
 
-	public get structure(): ShapeDiverResponseParameterStructure | undefined {
+	public get structure(): ResStructureType | undefined {
 		return this.#structure;
 	}
 

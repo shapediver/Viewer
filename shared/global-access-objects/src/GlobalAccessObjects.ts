@@ -1,4 +1,4 @@
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 export class GlobalAccessObjects {
@@ -12,7 +12,7 @@ export class GlobalAccessObjects {
 		blue?: HTMLImageElement | ArrayBuffer,
 	) => Promise<{image: HTMLImageElement | ArrayBuffer; blob: Blob}>;
 	#loadContent?: (
-		content: ShapeDiverResponseOutputContent,
+		content: ResOutputContent,
 		jwtToken?: string,
 		taskEventId?: string,
 	) => Promise<ITreeNode>;
@@ -52,7 +52,7 @@ export class GlobalAccessObjects {
 	public set loadContent(
 		value:
 			| ((
-					content: ShapeDiverResponseOutputContent,
+					content: ResOutputContent,
 					jwtToken?: string,
 					taskEventId?: string,
 			  ) => Promise<ITreeNode>)

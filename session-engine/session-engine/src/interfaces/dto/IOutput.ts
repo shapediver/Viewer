@@ -1,7 +1,7 @@
 import {
-	ShapeDiverResponseOutput,
-	ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend,
-	ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend,
+	ResOutput,
+	ResOutputChunk as ResOutputChunkBackend,
+	ResOutputContent as ResOutputContentBackend,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IAnchor,
@@ -16,7 +16,7 @@ import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 // #region Interfaces (3)
 
-export interface IOutput extends ShapeDiverResponseOutput {
+export interface IOutput extends ResOutput {
 	// #region Properties (4)
 
 	readonly node?: ITreeNode;
@@ -32,20 +32,19 @@ export interface IOutput extends ShapeDiverResponseOutput {
 	triggerUpdateCallback(newNode?: ITreeNode, oldNode?: ITreeNode): void;
 	updateOutput(newNode?: ITreeNode, oldNode?: ITreeNode): void;
 	updateOutputContent(
-		content: ShapeDiverResponseOutputContent[],
+		content: ResOutputContent[],
 		preventUpdate?: boolean,
 		waitForViewportUpdate?: boolean,
 	): Promise<ITreeNode | undefined>;
-	updateOutputDefinition(outputDef: ShapeDiverResponseOutput): void;
+	updateOutputDefinition(outputDef: ResOutput): void;
 
 	// #endregion Public Methods (4)
 }
 
 /**
- * Extension of the ShapeDiverResponseOutputChunk with a node
+ * Extension of the ResOutputChunk with a node
  */
-export interface ShapeDiverResponseOutputChunk
-	extends ShapeDiverResponseOutputChunkBackend {
+export interface ResOutputChunk extends ResOutputChunkBackend {
 	// #region Properties (1)
 
 	node?: ITreeNode;
@@ -54,10 +53,9 @@ export interface ShapeDiverResponseOutputChunk
 }
 
 /**
- * Extension of the ShapeDiverResponseOutputContent as the viewer already creates types for them
+ * Extension of the ResOutputContent as the viewer already creates types for them
  */
-export interface ShapeDiverResponseOutputContent
-	extends ShapeDiverResponseOutputContentBackend {
+export interface ResOutputContent extends ResOutputContentBackend {
 	// #region Properties (1)
 
 	data?:

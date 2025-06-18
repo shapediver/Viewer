@@ -1,4 +1,4 @@
-import {ShapeDiverResponseErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	ShapeDiverViewerError,
 	ShapeDiverViewerErrorType,
@@ -7,13 +7,10 @@ import {
 export class ShapeDiverGeometryBackendRequestError extends ShapeDiverViewerError {
 	// #region Constructors (1)
 
-	constructor(
-		message: string,
-		public readonly desc: string,
-	) {
+	constructor(message: string) {
 		super(
 			ShapeDiverViewerErrorType.GEOMETRY_BACKEND_REQUEST_ERROR,
-			desc,
+			"A request to the geometry backend failed.",
 			message,
 		);
 	}
@@ -27,7 +24,7 @@ export class ShapeDiverGeometryBackendResponseError extends ShapeDiverViewerErro
 	constructor(
 		message: string,
 		public readonly status: number,
-		public readonly geometryBackendErrorType: ShapeDiverResponseErrorType,
+		public readonly geometryBackendErrorType: ResErrorType,
 		public readonly desc: string,
 	) {
 		super(

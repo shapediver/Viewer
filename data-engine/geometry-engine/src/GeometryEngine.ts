@@ -7,7 +7,7 @@ import {
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
 
-import {ShapeDiverResponseOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
 import {GLTFLoader as GLTF_v2Loader} from "./gltfv2/GLTFLoader";
 
@@ -55,7 +55,7 @@ export class GeometryEngine {
 	 * @returns the scene graph node
 	 */
 	public async loadContent(
-		content: ShapeDiverResponseOutputContent,
+		content: ResOutputContent,
 		taskEventId: string,
 	): Promise<ITreeNode> {
 		if (!content || (content && !content.href))
