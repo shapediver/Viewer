@@ -42,17 +42,24 @@ export class HTMLElementAnchorLoader implements ILoader {
 	public adjustPositions(scaleWidth: number, scaleHeight: number): void {
 		for (const anchorId in this._htmlElements) {
 			const anchor = this._htmlElements[anchorId].anchor;
+			let node = this._htmlElements[anchorId].node;
+
+			// get the transformation from the node
+			const transformedAnchor = vec3.transformMat4(
+				vec3.create(),
+				anchor.location,
+				node.worldMatrix,
+			);
+
 			const {page, container, client, hidden} =
 				this._renderingEngine.sceneTracingManager.convert3Dto2D(
-					vec3.clone(anchor.location),
+					transformedAnchor,
 				);
 
 			const htmlElement = anchor.createViewerHtmlElement(
 				this._renderingEngine.id,
 			);
 			if (!htmlElement) continue;
-
-			let node = this._htmlElements[anchorId].node;
 
 			let visible = node.visible;
 			while (node.parent) {
