@@ -559,8 +559,7 @@ export class SessionEngine implements ISessionEngine {
 		}
 
 		if (sections.viewport.general) {
-			currentSettings.general.commitParameters =
-				settings.general.commitParameters;
+			currentSettings.configuration = settings.configuration;
 			currentSettings.general.pointSize = settings.general.pointSize;
 			currentSettings.material.defaultMaterialColor =
 				settings.material.defaultMaterialColor;

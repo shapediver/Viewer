@@ -115,15 +115,83 @@ export interface ISessionApi {
 	 */
 	automaticSceneUpdate: boolean;
 	/**
-	 * (Platform specific) Option to enable commit-mode for parameters.
-	 * This setting is used purely for UI purposes, it does not have any influence on the session itself.
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
 	 */
-	commitParameters: boolean;
+	parametersCommit?: boolean;
 	/**
-	 * (Platform specific) Option to enable commit-mode for settings.
-	 * This setting is used purely for UI purposes, it does not have any influence on the session itself.
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
 	 */
-	commitSettings: boolean;
+	parametersDisable?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideDataOutputs?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideDataOutputsIframe?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideDesktopClients?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideExports?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideExportsIframe?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideSavedStates?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideSavedStatesIframe?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideAttributeVisualization?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideAttributeVisualizationIframe?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideJsonMenu?: boolean;
+	/**
+	 * Configuration Settings for the model.
+	 * This settings is not used within the viewer, but is passed through for usage in the platform or App Builder.
+	 * If you want to change this setting, please do so on the model edit page of the ShapeDiver platform.
+	 */
+	hideJsonMenuIframe?: boolean;
 	/**
 	 * Option to trigger a call to {@link customize} whenever a parameter value is changed.
 	 *

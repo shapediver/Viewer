@@ -34,10 +34,6 @@ export const convertFromPrevious = (
 		},
 	};
 
-	/**
-	 * SETTINGS OBJECTS THAT DID CHANGE
-	 */
-
 	return <ISettingsV6>settings;
 };
 
@@ -46,7 +42,7 @@ export const convertToPrevious = (
 	v: versions,
 ): IGlobalSettings => {
 	const newSettings = <ISettingsV6>s;
-	const settings = {
+	const settings: ISettingsV5 = {
 		settings_version: "5.0",
 		ar: newSettings.ar,
 		build_date: newSettings.build_date,
@@ -59,9 +55,13 @@ export const convertToPrevious = (
 			commitParameters: newSettings.general.commitParameters,
 			pointSize: newSettings.general.pointSize,
 			showMessages: newSettings.general.showMessages,
-			defaultMaterialColor: newSettings.material
-				? newSettings.material.defaultMaterialColor
-				: newSettings.general.defaultMaterialColor,
+			defaultMaterialColor:
+				newSettings.material &&
+				newSettings.material.defaultMaterialColor
+					? newSettings.material.defaultMaterialColor
+					: newSettings.general.defaultMaterialColor
+						? newSettings.general.defaultMaterialColor
+						: "#199b9b",
 		},
 		light: newSettings.light,
 		session: newSettings.session,
@@ -80,10 +80,6 @@ export const convertToPrevious = (
 		rendering: newSettings.rendering,
 		postprocessing: newSettings.postprocessing,
 	};
-
-	/**
-	 * SETTINGS OBJECTS THAT DID CHANGE
-	 */
 
 	return <ISettingsV5>settings;
 };
