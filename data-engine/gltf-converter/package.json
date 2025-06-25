@@ -38,13 +38,12 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.data-engine.shared-types": "3.11.0",
-		"@shapediver/viewer.shared.build-data": "3.11.0",
-		"@shapediver/viewer.shared.global-access-objects": "3.11.0",
-		"@shapediver/viewer.shared.node-tree": "3.11.0",
-		"@shapediver/viewer.shared.services": "3.11.0",
-		"@shapediver/viewer.shared.types": "3.11.0",
-		"axios": "^1.2.6",
+		"@shapediver/viewer.data-engine.shared-types": "3.11.2",
+		"@shapediver/viewer.shared.build-data": "3.11.2",
+		"@shapediver/viewer.shared.global-access-objects": "3.11.2",
+		"@shapediver/viewer.shared.node-tree": "3.11.2",
+		"@shapediver/viewer.shared.services": "3.11.2",
+		"@shapediver/viewer.shared.types": "3.11.2",
 		"gl-matrix": "3.3.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
