@@ -43,6 +43,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				if (node.data[i] instanceof GeometryData) {
 					const geometryData = <GeometryData>node.data[i];
 					geometryData.effectMaterials.push({material, token});
+					geometryData.updateVersion();
 				}
 			}
 
@@ -68,8 +69,10 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 					const index = geometryData.effectMaterials.findIndex(
 						(e) => e.token === token,
 					);
-					if (index !== -1)
+					if (index !== -1) {
 						geometryData.effectMaterials.splice(index, 1);
+						geometryData.updateVersion();
+					}
 				}
 			}
 

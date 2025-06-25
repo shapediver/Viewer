@@ -141,12 +141,14 @@ export const convertUserDefinedNameFilters = (
 	// we store the result with the output ID as the key and an array of patterns as the value
 	for (let i = 0; i < nameFilter.length; i++) {
 		const parts = nameFilter[i].split(".");
-		const outputName = parts[0];
+
+		// escape special characters in the instance ID (except for "*")
+		const escaped = parts[0].replace(/[-[\]{}()+?.,\\^$|#\s]/g, "\\$&");
 
 		// replace the "*" with ".*" to create a regex pattern
 		// if it's not already a ".*" pattern
 		const outputNameRegex = new RegExp(
-			`^${outputName.replace(/(?<!\.)\*(?!\*)/g, ".*")}$`,
+			`^${escaped.replace(/(?<!\.)\*(?!\*)/g, ".*")}$`,
 		);
 		// find the IDs of outputs whose names match
 		const outputIds = Object.entries(outputIdsToNamesMapping)
