@@ -23,18 +23,18 @@ export interface ISettings extends IGlobalSettings {
 	session: ISettingsV6_2["session"];
 	material: ISettingsV6_2["material"];
 	configuration?: {
-		parametersCommit: boolean;
-		parametersDisable: boolean;
-		hideDataOutputs: boolean;
-		hideDataOutputsIframe: boolean;
-		hideDesktopClients: boolean;
-		hideExports: boolean;
-		hideExportsIframe: boolean;
-		hideSavedStates: boolean;
-		hideSavedStatesIframe: boolean;
-		hideAttributeVisualization: boolean;
-		hideAttributeVisualizationIframe: boolean;
-		hideJsonMenu: boolean;
-		hideJsonMenuIframe: boolean;
+		parametersCommit?: boolean;
+		parametersDisable?: boolean;
+		hideDataOutputs?: boolean;
+		hideDataOutputsIframe?: boolean;
+		hideDesktopClients?: boolean;
+		hideExports?: boolean;
+		hideExportsIframe?: boolean;
+		hideSavedStates?: boolean;
+		hideSavedStatesIframe?: boolean;
+		hideAttributeVisualization?: boolean;
+		hideAttributeVisualizationIframe?: boolean;
+		hideJsonMenu?: boolean;
+		hideJsonMenuIframe?: boolean;
 	};
 }

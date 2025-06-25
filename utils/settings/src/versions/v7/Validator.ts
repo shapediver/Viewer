@@ -26,19 +26,19 @@ export const generalSettingsSchema = z.object({
 
 export const configurationSettingsSchema = z
 	.object({
-		parametersCommit: z.boolean(),
-		parametersDisable: z.boolean(),
-		hideDataOutputs: z.boolean(),
-		hideDataOutputsIframe: z.boolean(),
-		hideDesktopClients: z.boolean(),
-		hideExports: z.boolean(),
-		hideExportsIframe: z.boolean(),
-		hideSavedStates: z.boolean(),
-		hideSavedStatesIframe: z.boolean(),
-		hideAttributeVisualization: z.boolean(),
-		hideAttributeVisualizationIframe: z.boolean(),
-		hideJsonMenu: z.boolean(),
-		hideJsonMenuIframe: z.boolean(),
+		parametersCommit: z.boolean().optional(),
+		parametersDisable: z.boolean().optional(),
+		hideDataOutputs: z.boolean().optional(),
+		hideDataOutputsIframe: z.boolean().optional(),
+		hideDesktopClients: z.boolean().optional(),
+		hideExports: z.boolean().optional(),
+		hideExportsIframe: z.boolean().optional(),
+		hideSavedStates: z.boolean().optional(),
+		hideSavedStatesIframe: z.boolean().optional(),
+		hideAttributeVisualization: z.boolean().optional(),
+		hideAttributeVisualizationIframe: z.boolean().optional(),
+		hideJsonMenu: z.boolean().optional(),
+		hideJsonMenuIframe: z.boolean().optional(),
 	})
 	.optional();
 

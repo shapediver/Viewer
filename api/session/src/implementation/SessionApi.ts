@@ -137,33 +137,246 @@ export class SessionApi implements ISessionApi {
 		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
 	}
 
-	public get commitParameters(): boolean {
-		return this.#sessionEngine.settingsEngine.general.commitParameters;
+	public get parametersCommit(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.parametersCommit;
 	}
 
-	public set commitParameters(value: boolean) {
-		const scope = "commitParameters";
+	public set parametersCommit(value: boolean | undefined) {
+		const scope = "parametersCommit";
 		this.#inputValidator.validateAndError(
 			`SessionApi.${scope}`,
 			value,
 			"boolean",
 		);
-		this.#sessionEngine.settingsEngine.general.commitParameters = value;
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.parametersCommit =
+			value;
 		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
 	}
 
-	public get commitSettings(): boolean {
-		return this.#sessionEngine.settingsEngine.general.commitSettings;
+	public get parametersDisable(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.parametersDisable;
 	}
 
-	public set commitSettings(value: boolean) {
-		const scope = "commitSettings";
+	public set parametersDisable(value: boolean | undefined) {
+		const scope = "parametersDisable";
 		this.#inputValidator.validateAndError(
 			`SessionApi.${scope}`,
 			value,
 			"boolean",
 		);
-		this.#sessionEngine.settingsEngine.general.commitSettings = value;
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.parametersDisable =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideDataOutputs(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideDataOutputs;
+	}
+
+	public set hideDataOutputs(value: boolean | undefined) {
+		const scope = "hideDataOutputs";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideDataOutputs =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideDataOutputsIframe(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideDataOutputsIframe;
+	}
+
+	public set hideDataOutputsIframe(value: boolean | undefined) {
+		const scope = "hideDataOutputsIframe";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideDataOutputsIframe =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideDesktopClients(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideDesktopClients;
+	}
+
+	public set hideDesktopClients(value: boolean | undefined) {
+		const scope = "hideDesktopClients";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideDesktopClients =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideExports(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration?.hideExports;
+	}
+
+	public set hideExports(value: boolean | undefined) {
+		const scope = "hideExports";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideExports = value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideExportsIframe(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideExportsIframe;
+	}
+
+	public set hideExportsIframe(value: boolean | undefined) {
+		const scope = "hideExportsIframe";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideExportsIframe =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideSavedStates(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideSavedStates;
+	}
+
+	public set hideSavedStates(value: boolean | undefined) {
+		const scope = "hideSavedStates";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideSavedStates =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideSavedStatesIframe(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideSavedStatesIframe;
+	}
+
+	public set hideSavedStatesIframe(value: boolean | undefined) {
+		const scope = "hideSavedStatesIframe";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideSavedStatesIframe =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideAttributeVisualization(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideAttributeVisualization;
+	}
+
+	public set hideAttributeVisualization(value: boolean | undefined) {
+		const scope = "hideAttributeVisualization";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideAttributeVisualization =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideAttributeVisualizationIframe(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideAttributeVisualizationIframe;
+	}
+
+	public set hideAttributeVisualizationIframe(value: boolean | undefined) {
+		const scope = "hideAttributeVisualizationIframe";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideAttributeVisualizationIframe =
+			value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideJsonMenu(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration?.hideJsonMenu;
+	}
+
+	public set hideJsonMenu(value: boolean | undefined) {
+		const scope = "hideJsonMenu";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideJsonMenu = value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
+	public get hideJsonMenuIframe(): boolean | undefined {
+		return this.#sessionEngine.settingsEngine.configuration
+			?.hideJsonMenuIframe;
+	}
+
+	public set hideJsonMenuIframe(value: boolean | undefined) {
+		const scope = "hideJsonMenuIframe";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		if (!this.#sessionEngine.settingsEngine.configuration)
+			this.#sessionEngine.settingsEngine.configuration = {};
+		this.#sessionEngine.settingsEngine.configuration.hideJsonMenuIframe =
+			value;
 		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
 	}
 

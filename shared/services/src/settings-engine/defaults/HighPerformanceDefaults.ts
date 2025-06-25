@@ -1,10 +1,10 @@
 import {ISettings} from "@shapediver/viewer.settings";
 
 export const HighPerformanceDefaults: () => ISettings = () => {
-	return {
+	const s: ISettings = {
 		build_date: "",
 		build_version: "",
-		settings_version: "6.2",
+		settings_version: "7.0",
 		ar: {
 			enable: true,
 			autoScaling: true,
@@ -44,8 +44,6 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 				rotation: {x: 0, y: 0, z: 0},
 			},
 			blurWhenBusy: true,
-			commitSettings: false,
-			commitParameters: false,
 			pointSize: 1.0,
 			showMessages: true,
 		},
@@ -109,4 +107,6 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 			materialOverrideType: "lambert",
 		},
 	};
+
+	return s;
 };

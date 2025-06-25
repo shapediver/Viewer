@@ -17,6 +17,7 @@ import {TwoDimensionalDefaults} from "./defaults/TwoDimensionalDefaults";
 
 type IARSettings = ISettings["ar"];
 type ICameraSettings = ISettings["camera"];
+type IConfigurationSettings = ISettings["configuration"];
 type IEnvironmentGeometrySettings = ISettings["environmentGeometry"];
 type IEnvironmentSettings = ISettings["environment"];
 type IGeneralSettings = ISettings["general"];
@@ -46,6 +47,14 @@ export class SettingsEngine {
 
 	public get camera(): ICameraSettings {
 		return this._settings.camera;
+	}
+
+	public get configuration(): IConfigurationSettings {
+		return this._settings.configuration;
+	}
+
+	public set configuration(value: IConfigurationSettings) {
+		this._settings.configuration = value;
 	}
 
 	public get environment(): IEnvironmentSettings {

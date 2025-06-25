@@ -28,10 +28,6 @@ export const convertFromPrevious = (
 		material: oldSettings.material,
 	};
 
-	/**
-	 * SETTINGS OBJECTS THAT DID CHANGE
-	 */
-
 	return <ISettingsV6_2>settings;
 };
 
@@ -40,7 +36,7 @@ export const convertToPrevious = (
 	v: versions,
 ): IGlobalSettings => {
 	const newSettings = <ISettingsV6_2>s;
-	const settings = {
+	const settings: ISettingsV6_1 = {
 		settings_version: "6.1",
 		ar: newSettings.ar,
 		build_date: newSettings.build_date,
@@ -58,10 +54,6 @@ export const convertToPrevious = (
 		postprocessing: newSettings.postprocessing,
 		material: newSettings.material,
 	};
-
-	/**
-	 * SETTINGS OBJECTS THAT DID CHANGE
-	 */
 
 	return <ISettingsV6_1>settings;
 };
