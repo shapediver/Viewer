@@ -1191,6 +1191,23 @@ export class SessionEngine implements ISessionEngine {
 		}
 	}
 
+	public async getModelState(
+		modelStateId?: string,
+	): Promise<ShapeDiverResponseDto> {
+		this.checkAvailability();
+		try {
+			const id = modelStateId || this._modelStateId;
+			if (!id)
+				throw new ShapeDiverViewerSessionError(
+					"Session.getModelState: No model state id available.",
+				);
+
+			return await this._sdk.modelState.get(id);
+		} catch (e) {
+			throw this._httpClient.convertError(e);
+		}
+	}
+
 	public async goBack(): Promise<ITreeNode> {
 		if (!this.canGoBack()) {
 			this._logger.debug(

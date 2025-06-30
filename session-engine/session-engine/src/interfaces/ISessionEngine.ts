@@ -80,6 +80,7 @@ export interface ISessionEngine {
 		parameterId: string,
 		fileId: string,
 	): Promise<ShapeDiverResponseFileInfo>;
+	getModelState(modelStateId?: string): Promise<ShapeDiverResponseDto>;
 	goBack(): Promise<ITreeNode>;
 	goForward(): Promise<ITreeNode>;
 	init(parameterValues?: {[key: string]: string}): Promise<void>;

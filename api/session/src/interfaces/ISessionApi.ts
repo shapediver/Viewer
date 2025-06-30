@@ -364,6 +364,12 @@ export interface ISessionApi {
 	 */
 	getExportByType(type: string): IExportApi[];
 	/**
+	 * Get the model state of the provided model state id.
+	 *
+	 * @param modelStateId The id of the model state to get. If not provided, the current model state will be returned.
+	 */
+	getModelState(modelStateId?: string): Promise<ShapeDiverResponseDto>;
+	/**
 	 * Get output definitions by format of the output's current content.
 	 *
 	 * This function filters output definitions by the format of the output's

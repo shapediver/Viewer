@@ -532,6 +532,19 @@ export class SessionApi implements ISessionApi {
 		return Object.values(this.#exports).filter((e) => e.type === type);
 	}
 
+	public getModelState(
+		modelStateId?: string,
+	): Promise<ShapeDiverResponseDto> {
+		const scope = "getModelState";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			modelStateId,
+			"string",
+			false,
+		);
+		return this.#sessionEngine.getModelState(modelStateId);
+	}
+
 	public getOutputByFormat(format: string): IOutputApi[] {
 		const scope = "getOutputByFormat";
 		this.#inputValidator.validateAndError(
