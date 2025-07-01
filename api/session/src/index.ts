@@ -240,6 +240,11 @@ import {
 	TEXTURE_FILTERING,
 	TEXTURE_WRAPPING,
 	TONE_MAPPING,
+	validateDraggingParameterSettings,
+	validateDrawingParameterSettings,
+	validateGumballParameterSettings,
+	validateInteractionParameterSettings,
+	validateSelectionParameterSettings,
 	ViewportCreationDefinition,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
@@ -306,6 +311,11 @@ export {
 	DrawingParameterValue,
 	IDrawingParameterSettings,
 	IDrawingParameterJsonSchema,
+	validateInteractionParameterSettings,
+	validateSelectionParameterSettings,
+	validateGumballParameterSettings,
+	validateDraggingParameterSettings,
+	validateDrawingParameterSettings,
 };
 export {ISessionApiData, SessionApiData, IOutputApiData, OutputApiData};
 export {createSession, sessions};
