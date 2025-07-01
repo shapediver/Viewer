@@ -47,7 +47,9 @@ export interface IGumballParameterProps extends IInteractionParameterProps {
 		y?: boolean;
 		z?: boolean;
 	};
-	/** The names of the objects that can be interacted with. (see Jira document and discussion result) */
+	/** The initial transformation of the gumball. If no transformation is supplied, the bounding box center of the object is used. (default: undefined) */
+	initialTransformations?: number[];
+	/** The names of the objects that can be interacted with. */
 	nameFilter?: string[];
 	/** The scale of the controls. The scale divides the scene bounding sphere to get the actual size. (default: 0.005) */
 	scale?: number;

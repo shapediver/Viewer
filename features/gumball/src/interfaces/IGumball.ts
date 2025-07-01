@@ -40,6 +40,10 @@ export type Settings = {
 		z?: boolean;
 	};
 	/**
+	 * The initial transformation of the gumball. (default: undefined)
+	 */
+	initialTransformation?: number[];
+	/**
 	 * The scale of the Gumball compared to the screen size. (default: 0.15)
 	 */
 	scale: number;

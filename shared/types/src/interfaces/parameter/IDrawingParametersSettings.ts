@@ -71,6 +71,18 @@ export interface IDrawingParameterSettings {
 			/** The text when the parameter is inactive. */
 			activeText?: string;
 		};
+		options?: {
+			/** If true, the distance labels are shown. (default: true) */
+			showDistanceLabels?: boolean;
+			/** If true, the point labels are shown. (default: false) */
+			showPointLabels?: boolean;
+			/** If true, the snapping to vertices is enabled, if there is a geometry restriction. (default: true) */
+			snapToVertices?: boolean;
+			/** If true, the snapping to edges is enabled, if there is a geometry restriction. (default: true) */
+			snapToEdges?: boolean;
+			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
+			snapToFaces?: boolean;
+		};
 	};
 
 	// #endregion Properties (2)
@@ -98,6 +110,15 @@ export const IDrawingParameterJsonSchema = z.object({
 					inactiveTitle: z.string().optional(),
 					activeTitle: z.string().optional(),
 					activeText: z.string().optional(),
+				})
+				.optional(),
+			options: z
+				.object({
+					showDistanceLabels: z.boolean().optional(),
+					showPointLabels: z.boolean().optional(),
+					snapToVertices: z.boolean().optional(),
+					snapToEdges: z.boolean().optional(),
+					snapToFaces: z.boolean().optional(),
 				})
 				.optional(),
 		})
