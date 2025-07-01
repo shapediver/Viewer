@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.data-engine.tag3d-engine",
-	"version": "3.11.5",
+	"version": "3.11.6",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,12 +39,12 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "1.12.2",
-		"@shapediver/viewer.data-engine.geometry-engine": "3.11.5",
-		"@shapediver/viewer.data-engine.shared-types": "3.11.5",
-		"@shapediver/viewer.shared.global-access-objects": "3.11.5",
-		"@shapediver/viewer.shared.node-tree": "3.11.5",
-		"@shapediver/viewer.shared.services": "3.11.5",
-		"@shapediver/viewer.shared.types": "3.11.5"
+		"@shapediver/viewer.data-engine.geometry-engine": "3.11.6",
+		"@shapediver/viewer.data-engine.shared-types": "3.11.6",
+		"@shapediver/viewer.shared.global-access-objects": "3.11.6",
+		"@shapediver/viewer.shared.node-tree": "3.11.6",
+		"@shapediver/viewer.shared.services": "3.11.6",
+		"@shapediver/viewer.shared.types": "3.11.6"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
