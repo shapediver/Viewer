@@ -297,6 +297,7 @@ describe("device testing", () => {
 			viewer.environmentMapAsBackground = true;
 
 			await Promise.all(promises);
+			await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 			cb();
 		}, materialPresetsTicket);
 		await screenshotCompare(
@@ -304,6 +305,7 @@ describe("device testing", () => {
 			name + "/envMapRotationHDR_Default",
 		);
 
+		await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 		await driver.executeAsyncScript(async (cb: any) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewport = SDV.viewports["myViewer"]!;
