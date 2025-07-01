@@ -5,6 +5,7 @@ import {
 	ResBase,
 	ResExport,
 	ResFileInfo,
+	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
@@ -72,6 +73,7 @@ export interface ISessionEngine {
 	): Promise<ITreeNode | ResBase>;
 	customizeWithModelState(modelState: string | ResBase): Promise<ITreeNode>;
 	getFileInfo(parameterId: string, fileId: string): Promise<ResFileInfo>;
+	getModelState(modelStateId?: string): Promise<ResGetModelState>;
 	goBack(): Promise<ITreeNode>;
 	goForward(): Promise<ITreeNode>;
 	init(parameterValues?: {[key: string]: string}): Promise<void>;
