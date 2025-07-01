@@ -100,6 +100,7 @@ export const IDrawingParameterJsonSchema = z.object({
 			maxPoints: z.number().optional(),
 			strictMinMaxPoints: z.boolean().optional(),
 			close: z.boolean(),
+			autoClose: z.boolean().optional(),
 		})
 		.optional(),
 	restrictions: z.array(z.any()).optional(),
