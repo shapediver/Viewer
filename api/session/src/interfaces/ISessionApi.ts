@@ -1,6 +1,7 @@
 import {
 	ReqExport,
 	ResBase,
+	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
