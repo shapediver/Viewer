@@ -64,10 +64,6 @@ export class GumballParameter
 		return this.getGumballProperties()?.hover;
 	}
 
-	public get initialTransformations(): number[] | undefined {
-		return this.getGumballProperties()?.initialTransformations;
-	}
-
 	public get interactionType(): InteractionParameterSettingsType {
 		return "gumball";
 	}
