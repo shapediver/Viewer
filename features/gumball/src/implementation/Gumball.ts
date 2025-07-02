@@ -10,7 +10,7 @@ import {
 	EventEngine,
 	EVENTTYPE_GUMBALL,
 } from "@shapediver/viewer.shared.services";
-import {mat4} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
 import {IGumballEvent} from "../interfaces/events/IGumballEvent";
 import {IGumball, SettingsOptional} from "../interfaces/IGumball";
@@ -49,7 +49,7 @@ export class Gumball implements IGumball {
 	#enableTranslationX: boolean = true;
 	#enableTranslationY: boolean = true;
 	#enableTranslationZ: boolean = true;
-	#initialGumballTransformation: mat4 = mat4.create();
+	#initialOffset: vec3 = vec3.create();
 	#initialTransform: mat4[] = [];
 	#matrix: mat4 = mat4.create();
 	#moving: boolean = false;
@@ -60,7 +60,6 @@ export class Gumball implements IGumball {
 	#scale: number = 0.15;
 	#show: boolean = true;
 	#space: "local" | "world" = "local";
-	#customInitialTransformation: number[] | undefined;
 
 	// #endregion Properties (38)
 
@@ -102,7 +101,6 @@ export class Gumball implements IGumball {
 		this.#transformControls.space = this.#space;
 		// we don't allow to change the reuseTransformation for now
 		this.#reuseTransformation = settings?.reuseTransformation ?? true;
-		this.#customInitialTransformation = settings?.initialTransformation;
 
 		this.setup();
 	}
@@ -449,10 +447,14 @@ export class Gumball implements IGumball {
 			this.#transformationControlsPlaceholder.matrix,
 		);
 		const placeholderMatrix = mat4.fromValues(...m.toArray());
+		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
+			mat4.create(),
+			vec3.negate(vec3.create(), this.#initialOffset),
+		);
 		const placeholderMatrixWithoutInitialOffset = mat4.multiply(
 			mat4.create(),
 			placeholderMatrix,
-			mat4.invert(mat4.create(), this.#initialGumballTransformation),
+			initialOffsetCorrectionMatrix,
 		);
 
 		this.#matrix = mat4.clone(placeholderMatrixWithoutInitialOffset);
@@ -533,17 +535,12 @@ export class Gumball implements IGumball {
 					}
 				});
 
-				if (!this.#customInitialTransformation) {
-					mat4.fromTranslation(
-						this.#initialGumballTransformation,
-						trueBB.boundingSphere.center,
-					);
-					this.#transformationControlsPlaceholder.applyMatrix4(
-						new THREE.Matrix4().fromArray(
-							this.#initialGumballTransformation,
-						),
-					);
-				}
+				vec3.copy(this.#initialOffset, trueBB.boundingSphere.center);
+				this.#transformationControlsPlaceholder.applyMatrix4(
+					new THREE.Matrix4().makeTranslation(
+						new THREE.Vector3().fromArray(this.#initialOffset),
+					),
+				);
 
 				const transformations: {[key: string]: mat4} = {};
 				this.#nodes[0].traverse((c) => {
@@ -560,68 +557,31 @@ export class Gumball implements IGumball {
 					this.#initialTransform[0] = mat4.clone(
 						transformations[Object.keys(transformations)[0]],
 					);
-
-					if (!this.#customInitialTransformation) {
-						const initialWorldTransform = mat4.multiply(
-							mat4.create(),
-							this.#nodes[0].worldMatrix,
-							this.#initialTransform[0],
-						);
-						this.#transformationControlsPlaceholder.applyMatrix4(
-							new THREE.Matrix4().fromArray(
-								initialWorldTransform,
-							),
-						);
-					}
-				} else {
-					this.#initialTransform[0] = mat4.create();
-					if (!this.#customInitialTransformation) {
-						this.#transformationControlsPlaceholder.applyMatrix4(
-							new THREE.Matrix4().fromArray(
-								this.#nodes[0].worldMatrix,
-							),
-						);
-					}
-				}
-			} else {
-				this.#initialTransform[0] = mat4.create();
-				if (!this.#customInitialTransformation) {
-					mat4.fromTranslation(
-						this.#initialGumballTransformation,
-						this.#nodes[0].boundingBox.boundingSphere.center,
+					const initialWorldTransform = mat4.multiply(
+						mat4.create(),
+						this.#nodes[0].worldMatrix,
+						this.#initialTransform[0],
 					);
 					this.#transformationControlsPlaceholder.applyMatrix4(
+						new THREE.Matrix4().fromArray(initialWorldTransform),
+					);
+				} else {
+					this.#initialTransform[0] = mat4.create();
+					this.#transformationControlsPlaceholder.applyMatrix4(
 						new THREE.Matrix4().fromArray(
-							this.#initialGumballTransformation,
+							this.#nodes[0].worldMatrix,
 						),
 					);
 				}
-			}
-
-			if (this.#customInitialTransformation) {
-				this.#initialGumballTransformation = mat4.fromValues(
-					...(this.#customInitialTransformation as [
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-					]),
+			} else {
+				this.#initialTransform[0] = mat4.create();
+				vec3.copy(
+					this.#initialOffset,
+					this.#nodes[0].boundingBox.boundingSphere.center,
 				);
 				this.#transformationControlsPlaceholder.applyMatrix4(
-					new THREE.Matrix4().fromArray(
-						this.#customInitialTransformation,
+					new THREE.Matrix4().makeTranslation(
+						new THREE.Vector3().fromArray(this.#initialOffset),
 					),
 				);
 			}
@@ -662,44 +622,12 @@ export class Gumball implements IGumball {
 					this.#initialTransform[i] = mat4.create();
 				}
 			}
-
-			if (this.#customInitialTransformation) {
-				this.#initialGumballTransformation = mat4.fromValues(
-					...(this.#customInitialTransformation as [
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-					]),
-				);
-				this.#transformationControlsPlaceholder.applyMatrix4(
-					new THREE.Matrix4().fromArray(
-						this.#customInitialTransformation,
-					),
-				);
-			} else {
-				mat4.fromTranslation(
-					this.#initialGumballTransformation,
-					boundingBox.boundingSphere.center,
-				);
-				this.#transformationControlsPlaceholder.applyMatrix4(
-					new THREE.Matrix4().fromArray(
-						this.#initialGumballTransformation,
-					),
-				);
-			}
+			vec3.copy(this.#initialOffset, boundingBox.boundingSphere.center);
+			this.#transformationControlsPlaceholder.applyMatrix4(
+				new THREE.Matrix4().makeTranslation(
+					new THREE.Vector3().fromArray(this.#initialOffset),
+				),
+			);
 		}
 
 		this.#transformControls.attach(this.#transformationControlsPlaceholder);
@@ -759,15 +687,11 @@ export class Gumball implements IGumball {
 				eventData.nodes.push(node);
 				if (this.#singleNode) {
 					eventData.transformations.push(mat4.clone(matrix));
-					if (!this.#customInitialTransformation)
-						mat4.multiply(
-							matrix,
-							matrix,
-							mat4.invert(
-								mat4.create(),
-								this.#initialTransform[i],
-							),
-						);
+					mat4.multiply(
+						matrix,
+						matrix,
+						mat4.invert(mat4.create(), this.#initialTransform[i]),
+					);
 				} else {
 					eventData.transformations.push(
 						mat4.multiply(
@@ -812,7 +736,7 @@ export class Gumball implements IGumball {
 					this.#previousGumballMatrix![i] as mat4,
 				);
 
-				if (this.#singleNode && !this.#customInitialTransformation)
+				if (this.#singleNode)
 					mat4.multiply(
 						matrix,
 						matrix,
