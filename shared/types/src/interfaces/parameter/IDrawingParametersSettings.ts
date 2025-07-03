@@ -98,9 +98,21 @@ export const IDrawingParameterJsonSchema = z.object({
 			mode: z.enum(["points", "lines"]),
 			minPoints: z.number().optional(),
 			maxPoints: z.number().optional(),
-			strictMinMaxPoints: z.boolean().optional(),
-			close: z.boolean(),
-			autoClose: z.boolean().optional(),
+			strictMinMaxPoints: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean().optional()),
+			close: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean()),
+			autoClose: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean().optional()),
 		})
 		.optional(),
 	restrictions: z.array(z.any()).optional(),
@@ -115,11 +127,31 @@ export const IDrawingParameterJsonSchema = z.object({
 				.optional(),
 			options: z
 				.object({
-					showDistanceLabels: z.boolean().optional(),
-					showPointLabels: z.boolean().optional(),
-					snapToVertices: z.boolean().optional(),
-					snapToEdges: z.boolean().optional(),
-					snapToFaces: z.boolean().optional(),
+					showDistanceLabels: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					showPointLabels: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					snapToVertices: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					snapToEdges: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					snapToFaces: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
 				})
 				.optional(),
 		})

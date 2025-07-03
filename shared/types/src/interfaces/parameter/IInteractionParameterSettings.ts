@@ -55,7 +55,18 @@ export interface IInteractionParameterSettings {
 // #region Variables (7)
 
 const IGeneralInteractionParameterJsonSchema = z.object({
-	hover: z.boolean().optional(),
+	hover: z.preprocess(
+		(val) => {
+			if (val === "true") return true;
+			if (val === "false") return false;
+			return val;
+		},
+		z.preprocess((val) => {
+			if (val === "true") return true;
+			if (val === "false") return false;
+			return val;
+		}, z.boolean().optional()),
+	),
 	hoverColor: z.string().optional(),
 	prompt: z
 		.object({
@@ -81,28 +92,76 @@ export const IGumballParameterJsonSchema = z.object({
 	type: z.literal("gumball"),
 	props: z
 		.object({
-			enableRotation: z.boolean().optional(),
+			enableRotation: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean().optional()),
 			enableRotationAxes: z
 				.object({
-					x: z.boolean().optional(),
-					y: z.boolean().optional(),
-					z: z.boolean().optional(),
+					x: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					y: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					z: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
 				})
 				.optional(),
-			enableScaling: z.boolean().optional(),
+			enableScaling: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean().optional()),
 			enableScalingAxes: z
 				.object({
-					x: z.boolean().optional(),
-					y: z.boolean().optional(),
-					z: z.boolean().optional(),
+					x: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					y: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					z: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
 				})
 				.optional(),
-			enableTranslation: z.boolean().optional(),
+			enableTranslation: z.preprocess((val) => {
+				if (val === "true") return true;
+				if (val === "false") return false;
+				return val;
+			}, z.boolean().optional()),
 			enableTranslationAxes: z
 				.object({
-					x: z.boolean().optional(),
-					y: z.boolean().optional(),
-					z: z.boolean().optional(),
+					x: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					y: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
+					z: z.preprocess((val) => {
+						if (val === "true") return true;
+						if (val === "false") return false;
+						return val;
+					}, z.boolean().optional()),
 				})
 				.optional(),
 			nameFilter: z.array(z.string()).optional(),
