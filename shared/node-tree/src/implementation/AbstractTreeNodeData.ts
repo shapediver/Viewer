@@ -12,6 +12,8 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 		| ((newObj: unknown, oldObj: unknown, viewport: string) => void)
 		| null = null;
 	#version: string;
+	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
+		null;
 
 	// #endregion Properties (5)
 
@@ -41,6 +43,18 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 
 	public get id(): string {
 		return this.#id;
+	}
+
+	public get updateCallback():
+		| ((newVersion: string, oldVersion: string) => void)
+		| null {
+		return this.#updateCallback;
+	}
+
+	public set updateCallback(
+		value: ((newVersion: string, oldVersion: string) => void) | null,
+	) {
+		this.#updateCallback = value;
 	}
 
 	public get updateCallbackConvertedObject():
@@ -77,7 +91,10 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	 * Update the version
 	 */
 	public updateVersion(): void {
+		const oldVersion = this.#version;
 		this.#version = this.#uuidGenerator.create();
+		if (this.#updateCallback)
+			this.#updateCallback(this.#version, oldVersion);
 	}
 
 	// #endregion Public Methods (2)

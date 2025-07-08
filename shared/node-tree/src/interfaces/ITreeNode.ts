@@ -113,6 +113,11 @@ export interface ITreeNode {
 	 */
 	transformations: ITransformation[];
 	/**
+	 * The update callback for the tree node.
+	 * This callback is called when the node is updated, e.g. when the version changes.
+	 */
+	updateCallback: ((newVersion: string, oldVersion: string) => void) | null;
+	/**
 	 * The update callback for the converted object of the tree node.
 	 */
 	updateCallbackConvertedObject:

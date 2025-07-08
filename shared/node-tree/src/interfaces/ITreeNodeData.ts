@@ -9,6 +9,12 @@ export interface ITreeNodeData {
 	 * The ID of the tree node data.
 	 */
 	id: string;
+
+	/**
+	 * The update callback for the tree node data.
+	 * This callback is called when the node is updated, e.g. when the version changes.
+	 */
+	updateCallback: ((newVersion: string, oldVersion: string) => void) | null;
 	/**
 	 * The update callback for the converted object of the tree node.
 	 */

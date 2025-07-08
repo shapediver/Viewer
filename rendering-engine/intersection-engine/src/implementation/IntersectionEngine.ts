@@ -76,8 +76,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 			if (distanceDiff !== 0) return distanceDiff;
 
 			// if the distance is the same, sort by the closest InteractionData within the sceneTree
-			let depthA = -1;
-			let depthB = -1;
+			let depthA = Infinity;
+			let depthB = Infinity;
 
 			const computeDepth = (
 				targetNode: ITreeNode,
@@ -87,7 +87,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 				if (targetNode === node) return depth;
 				if (node.parent)
 					return computeDepth(targetNode, node.parent, depth + 1);
-				return -1;
+				return Infinity;
 			};
 
 			if (a.geometryData) {

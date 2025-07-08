@@ -81,8 +81,8 @@ export class IntersectionManager implements IIntersectionEngine {
 			if (distanceDiff !== 0) return distanceDiff;
 
 			// if the distance is the same, sort by the closest InteractionData within the sceneTree
-			let depthA = -1;
-			let depthB = -1;
+			let depthA = Infinity;
+			let depthB = Infinity;
 
 			const computeDepth = (
 				targetNode: ITreeNode,
@@ -92,7 +92,7 @@ export class IntersectionManager implements IIntersectionEngine {
 				if (targetNode === node) return depth;
 				if (node.parent)
 					return computeDepth(targetNode, node.parent, depth + 1);
-				return -1;
+				return Infinity;
 			};
 
 			if (a.geometryData) {
@@ -119,6 +119,23 @@ export class IntersectionManager implements IIntersectionEngine {
 
 	// #region Private Methods (1)
 
+	private gatherGeometryData(node: ITreeNode): {[key: string]: GeometryData} {
+		const geometryData: {[key: string]: GeometryData} = {};
+		node.traverseData((d) => {
+			if (d instanceof GeometryData) {
+				geometryData[`${d.id}_${d.version}`] = d;
+				d.updateCallback = (newVersion: string, oldVersion: string) => {
+					if (geometryData[`${d.id}_${oldVersion}`]) {
+						geometryData[`${d.id}_${newVersion}`] =
+							geometryData[`${d.id}_${oldVersion}`];
+						delete geometryData[`${d.id}_${oldVersion}`];
+					}
+				};
+			}
+		});
+		return geometryData;
+	}
+
 	private gatherNodes() {
 		this._intersectNodes = [];
 		this._tree.root.traverse((node) => {
@@ -127,12 +144,19 @@ export class IntersectionManager implements IIntersectionEngine {
 
 			for (let i = 0; i < node.data.length; i++) {
 				if (node.data[i] instanceof InteractionData) {
-					const geometryData: {[key: string]: GeometryData} = {};
-					node.traverseData((d) => {
-						if (d instanceof GeometryData) {
-							geometryData[`${d.id}_${d.version}`] = d;
+					const geometryData: {[key: string]: GeometryData} =
+						this.gatherGeometryData(node);
+
+					node.updateCallback = () => {
+						const index = this._intersectNodes.findIndex(
+							(n) => n.node === node,
+						);
+						if (index !== -1) {
+							this._intersectNodes[index].geometryData =
+								this.gatherGeometryData(node);
 						}
-					});
+					};
+
 					this._intersectNodes.push({
 						node: node,
 						geometryData: geometryData,

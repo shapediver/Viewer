@@ -32,6 +32,8 @@ export class TreeNode implements ITreeNode {
 	#version: string;
 	#visible: boolean = true;
 	#displayName: string | undefined;
+	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
+		null;
 
 	// #endregion Properties (19)
 
@@ -202,6 +204,18 @@ export class TreeNode implements ITreeNode {
 
 	public set transformations(value: ITransformation[]) {
 		this.#transformations = value;
+	}
+
+	public get updateCallback():
+		| ((newVersion: string, oldVersion: string) => void)
+		| null {
+		return this.#updateCallback;
+	}
+
+	public set updateCallback(
+		value: ((newVersion: string, oldVersion: string) => void) | null,
+	) {
+		this.#updateCallback = value;
 	}
 
 	public get updateCallbackConvertedObject():
@@ -460,7 +474,10 @@ export class TreeNode implements ITreeNode {
 				this.#children[i].updateVersion(parents, children);
 		}
 
+		const oldVersion = this.#version;
 		this.#version = this.#uuidGenerator.create();
+		if (this.#updateCallback)
+			this.#updateCallback(this.#version, oldVersion);
 	}
 
 	// #endregion Public Methods (20)
