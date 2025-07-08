@@ -101,16 +101,19 @@ export const IDrawingParameterJsonSchema = z.object({
 			strictMinMaxPoints: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
 			}, z.boolean().optional()),
 			close: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
-			}, z.boolean()),
+			}, z.boolean().optional()),
 			autoClose: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
 			}, z.boolean().optional()),
 		})
@@ -130,26 +133,31 @@ export const IDrawingParameterJsonSchema = z.object({
 					showDistanceLabels: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					showPointLabels: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					snapToVertices: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					snapToEdges: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					snapToFaces: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 				})

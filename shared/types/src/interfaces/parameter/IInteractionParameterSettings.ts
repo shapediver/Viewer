@@ -59,11 +59,13 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		(val) => {
 			if (val === "true") return true;
 			if (val === "false") return false;
+			if (val === null) return undefined;
 			return val;
 		},
 		z.preprocess((val) => {
 			if (val === "true") return true;
 			if (val === "false") return false;
+			if (val === null) return undefined;
 			return val;
 		}, z.boolean().optional()),
 	),
@@ -95,6 +97,7 @@ export const IGumballParameterJsonSchema = z.object({
 			enableRotation: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
 			}, z.boolean().optional()),
 			enableRotationAxes: z
@@ -102,16 +105,19 @@ export const IGumballParameterJsonSchema = z.object({
 					x: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					y: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					z: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 				})
@@ -119,6 +125,7 @@ export const IGumballParameterJsonSchema = z.object({
 			enableScaling: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
 			}, z.boolean().optional()),
 			enableScalingAxes: z
@@ -126,16 +133,19 @@ export const IGumballParameterJsonSchema = z.object({
 					x: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					y: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					z: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 				})
@@ -143,6 +153,7 @@ export const IGumballParameterJsonSchema = z.object({
 			enableTranslation: z.preprocess((val) => {
 				if (val === "true") return true;
 				if (val === "false") return false;
+				if (val === null) return undefined;
 				return val;
 			}, z.boolean().optional()),
 			enableTranslationAxes: z
@@ -150,16 +161,19 @@ export const IGumballParameterJsonSchema = z.object({
 					x: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					y: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 					z: z.preprocess((val) => {
 						if (val === "true") return true;
 						if (val === "false") return false;
+						if (val === null) return undefined;
 						return val;
 					}, z.boolean().optional()),
 				})
