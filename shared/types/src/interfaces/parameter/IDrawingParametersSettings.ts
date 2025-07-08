@@ -92,27 +92,22 @@ export interface IDrawingParameterSettings {
 
 // #region Variables (2)
 
+const optionalBoolean = z.preprocess((val) => {
+	if (val === "true") return true;
+	if (val === "false") return false;
+	if (val === null) return undefined;
+	return val;
+}, z.boolean().optional());
+
 export const IDrawingParameterJsonSchema = z.object({
 	geometry: z
 		.object({
 			mode: z.enum(["points", "lines"]),
 			minPoints: z.number().optional(),
 			maxPoints: z.number().optional(),
-			strictMinMaxPoints: z.preprocess((val) => {
-				if (val === "true") return true;
-				if (val === "false") return false;
-				return val;
-			}, z.boolean().optional()),
-			close: z.preprocess((val) => {
-				if (val === "true") return true;
-				if (val === "false") return false;
-				return val;
-			}, z.boolean()),
-			autoClose: z.preprocess((val) => {
-				if (val === "true") return true;
-				if (val === "false") return false;
-				return val;
-			}, z.boolean().optional()),
+			strictMinMaxPoints: optionalBoolean,
+			close: optionalBoolean,
+			autoClose: optionalBoolean,
 		})
 		.optional(),
 	restrictions: z.array(z.any()).optional(),
@@ -127,31 +122,11 @@ export const IDrawingParameterJsonSchema = z.object({
 				.optional(),
 			options: z
 				.object({
-					showDistanceLabels: z.preprocess((val) => {
-						if (val === "true") return true;
-						if (val === "false") return false;
-						return val;
-					}, z.boolean().optional()),
-					showPointLabels: z.preprocess((val) => {
-						if (val === "true") return true;
-						if (val === "false") return false;
-						return val;
-					}, z.boolean().optional()),
-					snapToVertices: z.preprocess((val) => {
-						if (val === "true") return true;
-						if (val === "false") return false;
-						return val;
-					}, z.boolean().optional()),
-					snapToEdges: z.preprocess((val) => {
-						if (val === "true") return true;
-						if (val === "false") return false;
-						return val;
-					}, z.boolean().optional()),
-					snapToFaces: z.preprocess((val) => {
-						if (val === "true") return true;
-						if (val === "false") return false;
-						return val;
-					}, z.boolean().optional()),
+					showDistanceLabels: optionalBoolean,
+					showPointLabels: optionalBoolean,
+					snapToVertices: optionalBoolean,
+					snapToEdges: optionalBoolean,
+					snapToFaces: optionalBoolean,
 				})
 				.optional(),
 		})
