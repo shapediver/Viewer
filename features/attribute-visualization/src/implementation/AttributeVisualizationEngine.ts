@@ -72,7 +72,6 @@ export class AttributeVisualizationEngine
 		this.constructAttributeVisualization();
 
 		const cb = () => {
-			sceneTree.root.updateVersion();
 			this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
 
 			const layers = this.#layers;
