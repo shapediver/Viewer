@@ -692,7 +692,9 @@ const interpolateColors = (
 const numberGradientVisualization = (
 	factor: number,
 	gradient: INumberGradient,
-): ISDTFAttributeVisualizationData => {
+): ISDTFAttributeVisualizationData | undefined => {
+	if (typeof gradient.steps === "string") return;
+
 	for (let i = 0; i < gradient.steps.length; i++) {
 		if (gradient.steps[i].value >= factor) {
 			// check if the value is the first step
@@ -801,6 +803,18 @@ const numberVisualization = (
 		}
 	} else {
 		if (isNumberGradient(type as IGradient)) {
+			// check if the steps are a string
+			if (typeof (type as INumberGradient).steps === "string") {
+				// if so, we use the default gradient visualization
+				return numberVisualization(
+					value,
+					min,
+					max,
+					(type as INumberGradient).steps as ATTRIBUTE_VISUALIZATION,
+					materialType,
+					defaultMaterial,
+				);
+			}
 			return numberGradientVisualization(factor, type as INumberGradient);
 		}
 	}
