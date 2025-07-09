@@ -88,7 +88,6 @@ export class AttributeVisualizationEngine
 
 		addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, cb);
 		addListener(EVENTTYPE.SESSION.SESSION_SDTF_DELAYED_LOADED, cb);
-		addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, cb);
 	}
 
 	// #endregion Constructors (1)
