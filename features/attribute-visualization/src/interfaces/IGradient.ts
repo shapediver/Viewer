@@ -10,15 +10,17 @@ export interface INumberGradient extends IGradient {
 	min?: number;
 	/** The maximum value of the gradient (default: the maximum value of the data) */
 	max?: number;
-	/** The steps of the gradient */
-	steps: {
-		/** The value of the step */
-		value: number;
-		/** The color before the step */
-		colorBefore: string;
-		/** The color after the step */
-		colorAfter: string;
-	}[];
+	/** The steps of the gradient or the gradient to be used {@link ATTRIBUTE_VISUALIZATION}. */
+	steps:
+		| {
+				/** The value of the step */
+				value: number;
+				/** The color before the step */
+				colorBefore: string;
+				/** The color after the step */
+				colorAfter: string;
+		  }[]
+		| string;
 }
 
 export interface IStringGradient extends IGradient {

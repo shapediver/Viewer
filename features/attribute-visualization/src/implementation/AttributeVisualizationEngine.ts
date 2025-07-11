@@ -71,7 +71,7 @@ export class AttributeVisualizationEngine
 		this.gatherNodesWithAttributeData();
 		this.constructAttributeVisualization();
 
-		addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
+		const cb = () => {
 			this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
 
 			const layers = this.#layers;
@@ -84,7 +84,10 @@ export class AttributeVisualizationEngine
 			this.constructAttributeVisualization();
 
 			for (const l in this.#listeners) this.#listeners[l]();
-		});
+		};
+
+		addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, cb);
+		addListener(EVENTTYPE.SESSION.SESSION_SDTF_DELAYED_LOADED, cb);
 	}
 
 	// #endregion Constructors (1)

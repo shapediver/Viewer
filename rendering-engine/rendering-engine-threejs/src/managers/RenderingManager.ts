@@ -673,6 +673,15 @@ export class RenderingManager implements IManager {
 		width: number;
 		height: number;
 	} {
+		if (
+			this._renderingEngine.renderer.pixelRatio !==
+			window.devicePixelRatio
+		) {
+			this._renderingEngine.renderer.setPixelRatio(
+				window.devicePixelRatio,
+			);
+		}
+
 		let width = this._width,
 			height = this._height;
 		if (this._renderingEngine.automaticResizing) {
