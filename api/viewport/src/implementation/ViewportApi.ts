@@ -11,6 +11,7 @@ import {
 	IOrthographicCamera,
 	IPerspectiveCamera,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
+import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
 import {build_data} from "@shapediver/viewer.shared.build-data";
@@ -42,7 +43,7 @@ import {
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
 } from "@shapediver/viewer.shared.types";
-import {mat4, quat, vec2, vec3} from "gl-matrix";
+import {mat4, quat, vec3} from "gl-matrix";
 import * as QRCode from "qrcode";
 import * as THREE from "three";
 import {ICameraApi} from "../interfaces/camera/ICameraApi";
@@ -1220,13 +1221,7 @@ export class ViewportApi implements IViewportApi {
 		this.#renderingEngine.continueRendering();
 	}
 
-	public convert3Dto2D(p: vec3): {
-		container: vec2;
-		client: vec2;
-		page: vec2;
-		hidden: boolean;
-		distance: number;
-	} {
+	public convert3Dto2D(p: vec3): IConvert3Dto2DResult {
 		const scope = "convert3Dto2D";
 		this.#inputValidator.validateAndError(
 			`ViewportApi.${scope}`,

@@ -1,10 +1,11 @@
 import {Box} from "@shapediver/viewer.shared.math";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {vec2, vec3} from "gl-matrix";
+import {vec3} from "gl-matrix";
 import {
 	IAnchorDataImage,
 	IAnchorDataText,
 	IHTMLElementAnchorData,
+	IHTMLElementAnchorUpdateProperties,
 } from "../../interfaces/data/IHTMLElementAnchorData";
 
 export abstract class HTMLElementAnchorData
@@ -144,17 +145,7 @@ export abstract class HTMLElementAnchorData
 		parent: HTMLDivElement;
 	}): void;
 
-	public update(properties: {
-		anchor: IHTMLElementAnchorData;
-		htmlElement: HTMLDivElement;
-		page: vec2;
-		container: vec2;
-		client: vec2;
-		scale: vec2;
-		hidden: boolean;
-		visible: boolean;
-		distance: number;
-	}) {
+	public update(properties: IHTMLElementAnchorUpdateProperties) {
 		properties.htmlElement.style.display = "";
 		if (
 			(this.hideable && properties.hidden) ||
@@ -346,16 +337,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
 		anchor: HTMLElementAnchorData;
 		parent: HTMLDivElement;
 	}) => void;
-	readonly #update: (properties: {
-		anchor: HTMLElementAnchorData;
-		htmlElement: HTMLDivElement;
-		page: vec2;
-		container: vec2;
-		client: vec2;
-		scale: vec2;
-		hidden: boolean;
-		visible: boolean;
-	}) => void;
+	readonly #update: (properties: IHTMLElementAnchorUpdateProperties) => void;
 
 	// #endregion Properties (1)
 
@@ -373,16 +355,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
 			anchor: HTMLElementAnchorData;
 			parent: HTMLDivElement;
 		}) => void;
-		update: (properties: {
-			anchor: HTMLElementAnchorData;
-			htmlElement: HTMLDivElement;
-			page: vec2;
-			container: vec2;
-			client: vec2;
-			scale: vec2;
-			hidden: boolean;
-			visible: boolean;
-		}) => void;
+		update: (properties: IHTMLElementAnchorUpdateProperties) => void;
 	}) {
 		super({
 			location: properties.location,
@@ -408,17 +381,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
 		this.#create(properties);
 	}
 
-	public update(properties: {
-		anchor: HTMLElementAnchorData;
-		htmlElement: HTMLDivElement;
-		page: vec2;
-		container: vec2;
-		client: vec2;
-		scale: vec2;
-		hidden: boolean;
-		visible: boolean;
-		distance: number;
-	}) {
+	public update(properties: IHTMLElementAnchorUpdateProperties) {
 		this.#update(properties);
 	}
 

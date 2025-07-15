@@ -6,7 +6,10 @@ import {
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IntersectionEngine} from "@shapediver/viewer.rendering-engine.intersection-engine";
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {
+	IConvert3Dto2DResult,
+	IManager,
+} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {ShapeDiverViewerViewportError} from "@shapediver/viewer.shared.services";
 import {
@@ -25,13 +28,7 @@ export class SceneTracingManager implements IManager {
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {}
 
-	public convert3Dto2D(p: vec3): {
-		container: vec2;
-		client: vec2;
-		distance: number;
-		page: vec2;
-		hidden: boolean;
-	} {
+	public convert3Dto2D(p: vec3): IConvert3Dto2DResult {
 		const canvasPageCoordinates =
 				this._renderingEngine.canvas.getBoundingClientRect(),
 			width = this._renderingEngine.canvas.width,

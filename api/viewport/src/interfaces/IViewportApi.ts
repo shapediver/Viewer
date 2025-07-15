@@ -1,3 +1,4 @@
+import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ISettings} from "@shapediver/viewer.settings";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -21,7 +22,7 @@ import {
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
 } from "@shapediver/viewer.shared.types";
-import {quat, vec2, vec3} from "gl-matrix";
+import {quat, vec3} from "gl-matrix";
 import * as THREE from "three";
 import {ICameraApi} from "./camera/ICameraApi";
 import {IOrthographicCameraApi} from "./camera/IOrthographicCameraApi";
@@ -444,13 +445,7 @@ export interface IViewportApi {
 	 *
 	 * @param p
 	 */
-	convert3Dto2D(p: vec3): {
-		container: vec2;
-		client: vec2;
-		page: vec2;
-		hidden: boolean;
-		distance: number;
-	};
+	convert3Dto2D(p: vec3): IConvert3Dto2DResult;
 	/**
 	 * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.
 	 *

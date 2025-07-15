@@ -35,6 +35,18 @@ export interface IAnchorDataText {
 	// #endregion Properties (5)
 }
 
+export interface IHTMLElementAnchorUpdateProperties {
+	anchor: IHTMLElementAnchorData;
+	htmlElement: HTMLDivElement;
+	page: vec2;
+	container: vec2;
+	client: vec2;
+	scale: vec2;
+	hidden: boolean;
+	visible: boolean;
+	distance: number;
+}
+
 export interface IHTMLElementAnchorData extends ITreeNodeData {
 	// #region Properties (6)
 
@@ -56,16 +68,7 @@ export interface IHTMLElementAnchorData extends ITreeNodeData {
 	}): void;
 	createViewerHtmlElement(viewer: string): HTMLDivElement | null;
 	getViewerHtmlElement(viewer: string): HTMLDivElement | null;
-	update(properties: {
-		anchor: IHTMLElementAnchorData;
-		htmlElement: HTMLDivElement;
-		page: vec2;
-		container: vec2;
-		client: vec2;
-		scale: vec2;
-		hidden: boolean;
-		visible: boolean;
-	}): void;
+	update(properties: IHTMLElementAnchorUpdateProperties): void;
 
 	// #endregion Public Methods (5)
 }
