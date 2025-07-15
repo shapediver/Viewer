@@ -1225,6 +1225,7 @@ export class ViewportApi implements IViewportApi {
 		client: vec2;
 		page: vec2;
 		hidden: boolean;
+		distance: number;
 	} {
 		const scope = "convert3Dto2D";
 		this.#inputValidator.validateAndError(

@@ -38,6 +38,7 @@ export interface IRenderingEngine {
 		client: vec2;
 		page: vec2;
 		hidden: boolean;
+		distance: number;
 	};
 	getScreenshot(type?: string, encoderOptions?: number): string;
 	isMobileDeviceWithoutBrowserARSupport(): boolean;

@@ -153,6 +153,7 @@ export abstract class HTMLElementAnchorData
 		scale: vec2;
 		hidden: boolean;
 		visible: boolean;
+		distance: number;
 	}) {
 		properties.htmlElement.style.display = "";
 		if (
@@ -416,6 +417,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
 		scale: vec2;
 		hidden: boolean;
 		visible: boolean;
+		distance: number;
 	}) {
 		this.#update(properties);
 	}

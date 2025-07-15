@@ -449,6 +449,7 @@ export interface IViewportApi {
 		client: vec2;
 		page: vec2;
 		hidden: boolean;
+		distance: number;
 	};
 	/**
 	 * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.

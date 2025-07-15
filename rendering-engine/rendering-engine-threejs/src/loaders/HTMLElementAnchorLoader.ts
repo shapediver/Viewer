@@ -51,7 +51,7 @@ export class HTMLElementAnchorLoader implements ILoader {
 				node.worldMatrix,
 			);
 
-			const {page, container, client, hidden} =
+			const {page, container, client, hidden, distance} =
 				this._renderingEngine.sceneTracingManager.convert3Dto2D(
 					transformedAnchor,
 				);
@@ -78,6 +78,7 @@ export class HTMLElementAnchorLoader implements ILoader {
 				scale: vec2.fromValues(scaleWidth, scaleHeight),
 				hidden,
 				visible,
+				distance,
 			});
 		}
 	}

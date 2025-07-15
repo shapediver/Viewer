@@ -28,6 +28,7 @@ export class SceneTracingManager implements IManager {
 	public convert3Dto2D(p: vec3): {
 		container: vec2;
 		client: vec2;
+		distance: number;
 		page: vec2;
 		hidden: boolean;
 	} {
@@ -106,10 +107,12 @@ export class SceneTracingManager implements IManager {
 		// with this we prevent flickering
 		const eps = 0.0001;
 
+		// the distance to the point
+		const distance = vec3.distance(camera.position, p);
+
 		return {
-			hidden:
-				closestIntersectionDistance + eps <
-				vec3.distance(camera.position, p),
+			distance,
+			hidden: closestIntersectionDistance + eps < distance,
 			container: vec2.clone(pos),
 			client: vec2.fromValues(
 				pos[0] + canvasPageCoordinates.left,

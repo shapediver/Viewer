@@ -1041,6 +1041,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		client: vec2;
 		page: vec2;
 		hidden: boolean;
+		distance: number;
 	} {
 		return this.sceneTracingManager.convert3Dto2D(p);
 	}
