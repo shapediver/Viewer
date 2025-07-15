@@ -50,6 +50,7 @@ import {
 	IAnchorDataImage,
 	IAnchorDataText,
 	IHTMLElementAnchorData,
+	IHTMLElementAnchorUpdateProperties,
 } from "./interfaces/data/IHTMLElementAnchorData";
 import {IInstanceData} from "./interfaces/data/IInstanceData";
 import {
@@ -271,6 +272,7 @@ export {
 	IAnchorDataImage,
 	IAnchorDataText,
 	IHTMLElementAnchorData,
+	IHTMLElementAnchorUpdateProperties,
 	HTMLElementAnchorCustomData,
 	HTMLElementAnchorTextData,
 	HTMLElementAnchorImageData,
