@@ -7,6 +7,7 @@ import {
 	ICanvas,
 } from "@shapediver/viewer.rendering-engine.canvas-engine";
 import {LightEngine} from "@shapediver/viewer.rendering-engine.light-engine";
+import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
@@ -45,9 +46,7 @@ import {
 	ViewportCreationDefinition,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
-
-import {quat, vec2, vec3} from "gl-matrix";
-
+import {quat, vec3} from "gl-matrix";
 import {IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
@@ -1036,12 +1035,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._pause = false;
 	}
 
-	public convert3Dto2D(p: vec3): {
-		container: vec2;
-		client: vec2;
-		page: vec2;
-		hidden: boolean;
-	} {
+	public convert3Dto2D(p: vec3): IConvert3Dto2DResult {
 		return this.sceneTracingManager.convert3Dto2D(p);
 	}
 

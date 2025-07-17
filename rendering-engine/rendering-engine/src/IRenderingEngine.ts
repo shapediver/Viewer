@@ -14,6 +14,14 @@ import {
 
 import {vec2, vec3} from "gl-matrix";
 
+export interface IConvert3Dto2DResult {
+	container: vec2;
+	client: vec2;
+	page: vec2;
+	hidden: boolean;
+	distance: number;
+}
+
 export interface IRenderingEngine {
 	automaticResizing: boolean;
 	canvas: HTMLCanvasElement;
@@ -33,12 +41,7 @@ export interface IRenderingEngine {
 	addFlag(flag: FLAG_TYPE): string;
 	assignSettingsEngine(settingsEngine: SettingsEngine): void;
 	continueRendering(): void;
-	convert3Dto2D(p: vec3): {
-		container: vec2;
-		client: vec2;
-		page: vec2;
-		hidden: boolean;
-	};
+	convert3Dto2D(p: vec3): IConvert3Dto2DResult;
 	getScreenshot(type?: string, encoderOptions?: number): string;
 	isMobileDeviceWithoutBrowserARSupport(): boolean;
 	pauseRendering(): void;
