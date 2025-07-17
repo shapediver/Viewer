@@ -93,7 +93,7 @@ export type SessionCreationDefinition = {
 	/** Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true) */
 	allowOutputLoading?: boolean;
 	/** Option to allow relaxed validation of parameter identifiers. When set to `true`, unrecognized parameters will be ignored rather than causing an error.  (default: false) */
-	ignoreUnknownParams?: string;
+	ignoreUnknownParams?: boolean;
 	/** Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true) */
 	loadOutputs?: boolean;
 	/** Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) */

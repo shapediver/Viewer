@@ -268,6 +268,7 @@ export class CreationControlCenterSession
 						: properties.loadSdtf,
 				modelStateId: properties.modelStateId,
 				throwOnCustomizationError: properties.throwOnCustomizationError,
+				ignoreUnknownParams: properties.ignoreUnknownParams,
 			});
 
 			this.#stateEngine.sessionEngines[sessionEngineId] =

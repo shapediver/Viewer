@@ -1228,8 +1228,7 @@ export class SessionEngine implements ISessionEngine {
 					"Session.getModelState: No model state id available.",
 				);
 
-			let response: ResGetModelState;
-			response = (
+			const response: ResGetModelState = (
 				await new ModelStateApi(this._sdkConfig).getModelState(id)
 			).data;
 			return response;
