@@ -44,7 +44,7 @@
 		"@shapediver/viewer.shared.node-tree": "3.12.1",
 		"@shapediver/viewer.shared.services": "3.12.1",
 		"gl-matrix": "3.3.0",
-		"zod": "^3.23.8"
+		"zod": "3.23.8"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
