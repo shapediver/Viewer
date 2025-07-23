@@ -778,7 +778,6 @@ const numberVisualization = (
 ): ISDTFAttributeVisualizationData | undefined => {
 	let factor = (value - min) / (max - min);
 	if (isNaN(factor)) factor = 0.5;
-	factor = Math.min(1, Math.max(0, factor));
 	// check if the type is part of the enum
 	if (typeof type === "string") {
 		const color = getColorAt(type, factor);
@@ -829,8 +828,6 @@ const stringVisualization = (
 ): ISDTFAttributeVisualizationData | undefined => {
 	let factor = values.indexOf(value) / (values.length - 1);
 	if (isNaN(factor)) factor = 0.5;
-	factor = Math.min(1, Math.max(0, factor));
-
 	// check if the type is part of the enum
 	if (typeof type === "string") {
 		const color = getColorAt(type, factor);
