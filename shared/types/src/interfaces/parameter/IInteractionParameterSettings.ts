@@ -63,13 +63,14 @@ const optionalBoolean = z.preprocess((val) => {
 
 const IGeneralInteractionParameterJsonSchema = z.object({
 	hover: optionalBoolean,
-	hoverColor: z.string().optional(),
+	hoverColor: z.string().nullable().optional(),
 	prompt: z
 		.object({
-			inactiveTitle: z.string().optional(),
-			activeTitle: z.string().optional(),
-			activeText: z.string().optional(),
+			inactiveTitle: z.string().nullable().optional(),
+			activeTitle: z.string().nullable().optional(),
+			activeText: z.string().nullable().optional(),
 		})
+		.nullable()
 		.optional(),
 });
 
@@ -77,10 +78,10 @@ export const ISelectionParameterJsonSchema = z.object({
 	type: z.literal("selection"),
 	props: z
 		.object({
-			maximumSelection: z.number().optional(),
-			minimumSelection: z.number().optional(),
-			nameFilter: z.array(z.string()).optional(),
-			selectionColor: z.string().optional(),
+			maximumSelection: z.number().nullable().optional(),
+			minimumSelection: z.number().nullable().optional(),
+			nameFilter: z.array(z.string()).nullable().optional(),
+			selectionColor: z.string().nullable().optional(),
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });
@@ -95,6 +96,7 @@ export const IGumballParameterJsonSchema = z.object({
 					y: optionalBoolean,
 					z: optionalBoolean,
 				})
+				.nullable()
 				.optional(),
 			enableScaling: optionalBoolean,
 			enableScalingAxes: z
@@ -103,6 +105,7 @@ export const IGumballParameterJsonSchema = z.object({
 					y: optionalBoolean,
 					z: optionalBoolean,
 				})
+				.nullable()
 				.optional(),
 			enableTranslation: optionalBoolean,
 			enableTranslationAxes: z
@@ -111,11 +114,16 @@ export const IGumballParameterJsonSchema = z.object({
 					y: optionalBoolean,
 					z: optionalBoolean,
 				})
+				.nullable()
 				.optional(),
-			nameFilter: z.array(z.string()).optional(),
-			scale: z.number().optional(),
-			space: z.literal("local").or(z.literal("world")).optional(),
-			selectionColor: z.string().optional(),
+			nameFilter: z.array(z.string()).nullable().optional(),
+			scale: z.number().nullable().optional(),
+			space: z
+				.literal("local")
+				.or(z.literal("world"))
+				.nullable()
+				.optional(),
+			selectionColor: z.string().nullable().optional(),
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });
@@ -123,7 +131,7 @@ export const IDraggingParameterJsonSchema = z.object({
 	type: z.literal("dragging"),
 	props: z
 		.object({
-			draggingColor: z.string().optional(),
+			draggingColor: z.string().nullable().optional(),
 			objects: z
 				.array(
 					z.object({
@@ -139,13 +147,16 @@ export const IDraggingParameterJsonSchema = z.object({
 											axis: z.array(z.number()),
 											angle: z.number(),
 										})
+										.nullable()
 										.optional(),
 								}),
 							)
+							.nullable()
 							.optional(),
-						dragOrigin: z.array(z.number()).optional(),
+						dragOrigin: z.array(z.number()).nullable().optional(),
 					}),
 				)
+				.nullable()
 				.optional(),
 			restrictions: z
 				.array(
@@ -158,10 +169,12 @@ export const IDraggingParameterJsonSchema = z.object({
 									axis: z.array(z.number()),
 									angle: z.number(),
 								})
+								.nullable()
 								.optional(),
 						})
 						.passthrough(),
 				)
+				.nullable()
 				.optional(),
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),

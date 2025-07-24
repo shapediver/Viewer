@@ -103,22 +103,24 @@ export const IDrawingParameterJsonSchema = z.object({
 	geometry: z
 		.object({
 			mode: z.enum(["points", "lines"]),
-			minPoints: z.number().optional(),
-			maxPoints: z.number().optional(),
+			minPoints: z.number().nullable().optional(),
+			maxPoints: z.number().nullable().optional(),
 			strictMinMaxPoints: optionalBoolean,
 			close: optionalBoolean,
 			autoClose: optionalBoolean,
 		})
+		.nullable()
 		.optional(),
-	restrictions: z.array(z.any()).optional(),
+	restrictions: z.array(z.any()).nullable().optional(),
 	general: z
 		.object({
 			prompt: z
 				.object({
-					inactiveTitle: z.string().optional(),
-					activeTitle: z.string().optional(),
-					activeText: z.string().optional(),
+					inactiveTitle: z.string().nullable().optional(),
+					activeTitle: z.string().nullable().optional(),
+					activeText: z.string().nullable().optional(),
 				})
+				.nullable()
 				.optional(),
 			options: z
 				.object({
@@ -128,8 +130,10 @@ export const IDrawingParameterJsonSchema = z.object({
 					snapToEdges: optionalBoolean,
 					snapToFaces: optionalBoolean,
 				})
+				.nullable()
 				.optional(),
 		})
+		.nullable()
 		.optional(),
 });
 
