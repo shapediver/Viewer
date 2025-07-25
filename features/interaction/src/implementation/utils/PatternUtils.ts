@@ -51,6 +51,7 @@ const NODE_NAME_BLACKLIST = [
 	"TransformZUpToYUp",
 	"no_transformations",
 	"content_array",
+	"ShapeDiverScene",
 ];
 /**
  * Recurse the scene tree downwards starting from the given node, gather all nodes that match the pattern,
