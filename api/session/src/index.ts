@@ -117,6 +117,7 @@ import {
 	AnimationData,
 	AttributeData,
 	BUSY_MODE_DISPLAY,
+	ChunkData,
 	CustomData,
 	DraggingParameterValue,
 	DrawingParameterValue,
@@ -134,6 +135,7 @@ import {
 	IAnimationTrack,
 	IAttributeData,
 	ICameraEvent,
+	IChunkData,
 	ICustomData,
 	IDraggingParameterJsonSchema,
 	IDraggingParameterProps,
@@ -410,6 +412,8 @@ export {
 	ISessionSettingsSections,
 };
 export {
+	IChunkData,
+	ChunkData,
 	IMaterialStandardData,
 	MaterialStandardData,
 	IMaterialStandardDataProperties,

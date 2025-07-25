@@ -201,6 +201,7 @@ import {
 	AnimationData,
 	AttributeData,
 	BUSY_MODE_DISPLAY,
+	ChunkData,
 	CustomData,
 	DraggingParameterValue,
 	DrawingParameterValue,
@@ -218,6 +219,7 @@ import {
 	IAnimationTrack,
 	IAttributeData,
 	ICameraEvent,
+	IChunkData,
 	ICustomData,
 	IDraggingParameterJsonSchema,
 	IDraggingParameterProps,
@@ -674,7 +676,14 @@ export {
 	validateDraggingParameterSettings,
 	validateDrawingParameterSettings,
 };
-export {ISessionApiData, SessionApiData, IOutputApiData, OutputApiData};
+export {
+	ISessionApiData,
+	SessionApiData,
+	IOutputApiData,
+	OutputApiData,
+	IChunkData,
+	ChunkData,
+};
 export {
 	ICameraApi,
 	IOrthographicCameraApi,

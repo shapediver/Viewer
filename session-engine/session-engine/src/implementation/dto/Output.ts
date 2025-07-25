@@ -8,6 +8,7 @@ import {
 	Logger,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
+import {ChunkData} from "@shapediver/viewer.shared.types";
 import {
 	IOutput,
 	ResOutputChunk,
@@ -209,6 +210,11 @@ export class Output implements IOutput {
 					this.chunks[j].node = newNode.children[i].children.find(
 						(child) => child.name === this.chunks![j].id,
 					);
+					if (this.chunks[j].node) {
+						this.chunks[j].node?.addData(
+							new ChunkData(this.chunks![j]),
+						);
+					}
 				}
 			}
 		}

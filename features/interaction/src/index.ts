@@ -67,6 +67,7 @@ import {
 	gatherNodesForPattern,
 	getInstanceNodeData,
 	getNodeData,
+	getNodeName,
 	getNodesByName,
 	matchNodesWithPatterns,
 	NodeNameFilterPattern,
@@ -149,6 +150,7 @@ export {
 	getNodesByName,
 	calculateCombinedDraggedNodes,
 	checkNodeNameMatch,
+	getNodeName,
 };
 export {IRestriction, ISnapRestriction};
 export {

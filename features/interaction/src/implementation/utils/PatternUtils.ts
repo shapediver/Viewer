@@ -1,4 +1,5 @@
 import {
+	ChunkData,
 	DraggingParameterValue,
 	ISessionApi,
 	ITreeNode,
@@ -46,7 +47,11 @@ export type OutputNodeNameFilterPatterns = {
  * These node names will be ignored when checking the node names.
  * These names are used in the ShapeDiver GH plugin for certain operations.
  */
-const NODE_NAME_BLACKLIST = ["TransformZUpToYUp", "no_transformations"];
+const NODE_NAME_BLACKLIST = [
+	"TransformZUpToYUp",
+	"no_transformations",
+	"content_array",
+];
 /**
  * Recurse the scene tree downwards starting from the given node, gather all nodes that match the pattern,
  * and add them to the result array.
@@ -66,9 +71,7 @@ export const gatherNodesForPattern = (
 	count: number = 0,
 	strictNaming: boolean = true,
 ): void => {
-	const nodeName = strictNaming
-		? node.originalName
-		: node.originalName || node.name;
+	const nodeName = getNodeName(node, strictNaming);
 	// escape special characters in the pattern
 	const escapedTest = pattern[count]?.replace(
 		/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g,
@@ -264,9 +267,8 @@ export const getNodeData = (
 			outputApi = sessionApi?.outputs[tempNode.name];
 		}
 
-		const nodeName = strictNaming
-			? tempNode.originalName
-			: tempNode.originalName || tempNode.name;
+		const nodeName = getNodeName(tempNode, strictNaming);
+
 		if (outputApi) {
 			return {
 				outputId: outputApi.id,
@@ -307,9 +309,7 @@ export const getInstanceNodeData = (
 			) as SessionApiData | undefined
 		)?.api;
 
-		const nodeName = strictNaming
-			? tempNode.originalName
-			: tempNode.originalName || tempNode.name;
+		const nodeName = getNodeName(tempNode, strictNaming);
 		if (sessionApi) {
 			return {
 				outputId: nodeName!,
@@ -582,7 +582,7 @@ export const checkNodeNameMatch = (
 	strictNaming: boolean = true,
 ): boolean => {
 	if (strictNaming) {
-		let originalNamePath = node.getOriginalNamePath();
+		let originalNamePath = getOriginalNamePath(node);
 		NODE_NAME_BLACKLIST.forEach((name) => {
 			originalNamePath = originalNamePath.replace(name, "");
 		});
@@ -591,13 +591,67 @@ export const checkNodeNameMatch = (
 		if (!match) return false;
 		return match[0] === nameWithoutDisplayComponent;
 	} else {
-		let namePath = node.getPath();
+		let namePath = getPath(node);
 		NODE_NAME_BLACKLIST.forEach((name) => {
 			namePath = namePath.replace(name, "");
 		});
 
 		return namePath.endsWith(nameWithoutDisplayComponent);
 	}
+};
+
+/**
+ * Get the name of the node.
+ * If the node has a ChunkData, return the name of the ChunkData.
+ * If strictNaming is true, return the original name of the node.
+ * If strictNaming is false, return the original name if it exists, otherwise return the name of the node.
+ *
+ * @param node
+ * @param strictNaming
+ * @returns
+ */
+export const getNodeName = (
+	node: ITreeNode,
+	strictNaming: boolean,
+): string | undefined => {
+	const chunkName = getChunkName(node);
+	let nodeName;
+	if (chunkName) {
+		nodeName = chunkName;
+	} else {
+		nodeName = strictNaming
+			? node.originalName
+			: node.originalName || node.name;
+	}
+
+	return nodeName;
+};
+
+const getPath = (node: ITreeNode): string => {
+	let path = getChunkName(node) || node.name;
+	let parent: ITreeNode | undefined = node.parent;
+	while (parent) {
+		path = getChunkName(parent) || parent.name + "." + path;
+		parent = parent.parent;
+	}
+	return path;
+};
+
+const getOriginalNamePath = (node: ITreeNode): string => {
+	let path = getChunkName(node) || node.originalName || "";
+	let parent: ITreeNode | undefined = node.parent;
+	while (parent) {
+		path = (getChunkName(parent) || parent.originalName || "") + "." + path;
+		parent = parent.parent;
+	}
+	return path;
+};
+
+const getChunkName = (node: ITreeNode): string | undefined => {
+	const chunkData = node.data.find((d) => d instanceof ChunkData) as
+		| ChunkData
+		| undefined;
+	if (chunkData) return chunkData.name;
 };
 
 // #endregion Variables (9)
