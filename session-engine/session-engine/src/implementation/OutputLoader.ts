@@ -488,6 +488,9 @@ export class OutputLoader {
 				}
 				if (!childNode) {
 					childNode = new TreeNode(node1.children[i].name);
+					childNode.originalName =
+						node1.children[i].originalName ||
+						node1.children[i].name;
 					node2.addChild(childNode);
 				}
 
