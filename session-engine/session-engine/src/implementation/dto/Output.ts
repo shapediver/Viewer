@@ -205,18 +205,17 @@ export class Output implements IOutput {
 
 		// add chunk nodes
 		if (this.chunks && newNode) {
-			for (let i = 0; i < newNode.children.length; i++) {
+			newNode.traverse((child) => {
+				if (!this.chunks) return;
 				for (let j = 0; j < this.chunks.length; j++) {
-					this.chunks[j].node = newNode.children[i].children.find(
-						(child) => child.name === this.chunks![j].id,
-					);
-					if (this.chunks[j].node) {
-						this.chunks[j].node?.addData(
-							new ChunkData(this.chunks![j]),
-						);
+					// if the chunk
+					if (child.name === this.chunks![j].id) {
+						this.chunks[j].node = child;
+						// add chunk data to the child
+						child.addData(new ChunkData(this.chunks![j]));
 					}
 				}
-			}
+			});
 		}
 	}
 
