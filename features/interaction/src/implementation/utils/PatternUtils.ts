@@ -592,12 +592,7 @@ export const checkNodeNameMatch = (
 		if (!match) return false;
 		return match[0] === nameWithoutDisplayComponent;
 	} else {
-		let namePath = getPath(node);
-		NODE_NAME_BLACKLIST.forEach((name) => {
-			namePath = namePath.replace(name, "");
-		});
-
-		return namePath.endsWith(nameWithoutDisplayComponent);
+		return getPath(node).endsWith(nameWithoutDisplayComponent);
 	}
 };
 
