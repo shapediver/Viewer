@@ -631,16 +631,6 @@ export const getNodeName = (
 	return nodeName;
 };
 
-const getPath = (node: ITreeNode): string => {
-	let path = node.name;
-	let parent: ITreeNode | undefined = node.parent;
-	while (parent) {
-		path = parent.name + "." + path;
-		parent = parent.parent;
-	}
-	return path;
-};
-
 const getOriginalNamePath = (node: ITreeNode): string => {
 	let path = getChunkName(node) || node.originalName || "";
 	let parent: ITreeNode | undefined = node.parent;
