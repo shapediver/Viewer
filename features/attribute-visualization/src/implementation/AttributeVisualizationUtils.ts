@@ -629,6 +629,9 @@ export const getColorAt = (
 			}
 		}
 	}
+
+	// return the after color of the last step
+	return steps[steps.length - 1].colorAfter;
 };
 
 const opacityVisualization = (
@@ -636,6 +639,9 @@ const opacityVisualization = (
 	materialType: "unlit" | "standard",
 	defaultMaterial: IMaterialAbstractData,
 ): ISDTFAttributeVisualizationData => {
+	// factor clamped to [0, 1]
+	factor = Math.max(0, Math.min(1, factor));
+
 	return {
 		material:
 			materialType === "unlit"
@@ -655,6 +661,8 @@ const hslVisualization = (
 	factor: number,
 	materialType: "unlit" | "standard",
 ): ISDTFAttributeVisualizationData => {
+	// factor clamped to [0, 1]
+	factor = Math.max(0, Math.min(1, factor));
 	const hue = factor * 359.99;
 	return {
 		material:
