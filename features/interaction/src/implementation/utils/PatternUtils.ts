@@ -600,7 +600,7 @@ export const checkNodeNameMatch = (
 		if (!match) return false;
 		return match[0] === nameWithoutDisplayComponent;
 	} else {
-		return getPath(node).endsWith(nameWithoutDisplayComponent);
+		return node.getPath().endsWith(nameWithoutDisplayComponent);
 	}
 };
 
