@@ -620,7 +620,7 @@ export const getNodeName = (
 ): string | undefined => {
 	const chunkName = getChunkName(node);
 	let nodeName;
-	if (chunkName) {
+	if (chunkName && strictNaming) {
 		nodeName = chunkName;
 	} else {
 		nodeName = strictNaming
@@ -632,10 +632,10 @@ export const getNodeName = (
 };
 
 const getPath = (node: ITreeNode): string => {
-	let path = getChunkName(node) || node.name;
+	let path = node.name;
 	let parent: ITreeNode | undefined = node.parent;
 	while (parent) {
-		path = getChunkName(parent) || parent.name + "." + path;
+		path = parent.name + "." + path;
 		parent = parent.parent;
 	}
 	return path;
