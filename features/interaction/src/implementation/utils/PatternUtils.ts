@@ -276,7 +276,11 @@ export const getNodeData = (
 				outputName: outputApi.name,
 				nodeName: names.reverse().join("."),
 			};
-		} else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
+		} else if (
+			nodeName &&
+			((strictNaming && !NODE_NAME_BLACKLIST.includes(nodeName)) ||
+				!strictNaming)
+		) {
 			names.push(nodeName);
 		}
 
@@ -316,7 +320,11 @@ export const getInstanceNodeData = (
 				outputId: nodeName!,
 				nodeName: names.reverse().join("."),
 			};
-		} else if (nodeName && !NODE_NAME_BLACKLIST.includes(nodeName)) {
+		} else if (
+			nodeName &&
+			((strictNaming && !NODE_NAME_BLACKLIST.includes(nodeName)) ||
+				!strictNaming)
+		) {
 			names.push(nodeName);
 		}
 
