@@ -81,7 +81,11 @@ export const gatherNodesForPattern = (
 
 	// if the node has no original name (was not given a name in Grasshopper) or
 	// its name matches the black list, do not consider it for pattern matching
-	if (!nodeName || NODE_NAME_BLACKLIST.includes(nodeName)) {
+	if (
+		!nodeName ||
+		(strictNaming && !NODE_NAME_BLACKLIST.includes(nodeName)) ||
+		!strictNaming
+	) {
 		for (const child of node.children) {
 			gatherNodesForPattern(
 				child,
