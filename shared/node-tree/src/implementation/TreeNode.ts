@@ -296,6 +296,9 @@ export class TreeNode implements ITreeNode {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		clone.originalId = this.originalId;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		clone.originalName = this.originalName;
 		clone.displayName = this.displayName;
 		clone.excludeViewports = this.excludeViewports;
 		clone.restrictViewports = this.restrictViewports;
@@ -324,6 +327,9 @@ export class TreeNode implements ITreeNode {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		clone.originalId = this.originalId;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		clone.originalName = this.originalName;
 		clone.displayName = this.displayName;
 		clone.excludeViewports = this.excludeViewports;
 		clone.restrictViewports = this.restrictViewports;
