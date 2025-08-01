@@ -533,7 +533,8 @@ export class GeometryRestriction
 									),
 								}),
 							);
-							line.applyMatrix4(threeJsObject.matrixWorld);
+							line.matrix.copy(object.matrixWorld);
+							line.matrixAutoUpdate = false;
 							this.#visualizationObject.add(line);
 						}
 					});
