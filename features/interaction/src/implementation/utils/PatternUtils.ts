@@ -3,8 +3,9 @@ import {
 	DraggingParameterValue,
 	ISessionApi,
 	ITreeNode,
-	OutputApiData,
 	SessionApiData,
+	SessionData,
+	SessionOutputData,
 } from "@shapediver/viewer";
 import {mat4, vec3} from "gl-matrix";
 import {InteractionData} from "../InteractionData";
@@ -253,27 +254,32 @@ export const getNodeData = (
 	let tempNode = node;
 	while (tempNode && tempNode.parent) {
 		// look for the output API data in the node
-		let outputApi = (
-			tempNode.data.find((data) => data instanceof OutputApiData) as
-				| OutputApiData
+		let outputData:
+			| {
+					id: string;
+					name: string;
+			  }
+			| undefined = (
+			tempNode.data.find((data) => data instanceof SessionOutputData) as
+				| SessionOutputData
 				| undefined
-		)?.api;
-		if (!outputApi) {
+		)?.responseOutput;
+		if (!outputData) {
 			// try to find it in the session api
 			const sessionApi = (
 				tempNode.parent?.data.find(
-					(data) => data instanceof SessionApiData,
-				) as SessionApiData | undefined
-			)?.api;
-			outputApi = sessionApi?.outputs[tempNode.name];
+					(data) => data instanceof SessionData,
+				) as SessionData | undefined
+			)?.responseDto;
+			outputData = sessionApi?.outputs?.[tempNode.name];
 		}
 
 		const nodeName = getNodeName(tempNode, strictNaming);
 
-		if (outputApi) {
+		if (outputData) {
 			return {
-				outputId: outputApi.id,
-				outputName: outputApi.name,
+				outputId: outputData.id,
+				outputName: outputData.name,
 				nodeName: names.reverse().join("."),
 			};
 		} else if (
@@ -618,9 +624,13 @@ export const getNodeName = (
 	node: ITreeNode,
 	strictNaming: boolean,
 ): string | undefined => {
+	const outputName = getOutputName(node);
 	const chunkName = getChunkName(node);
+
 	let nodeName;
-	if (chunkName && strictNaming) {
+	if (outputName && strictNaming) {
+		nodeName = outputName;
+	} else if (chunkName && strictNaming) {
 		nodeName = chunkName;
 	} else {
 		nodeName = strictNaming
@@ -646,6 +656,13 @@ const getChunkName = (node: ITreeNode): string | undefined => {
 		| ChunkData
 		| undefined;
 	if (chunkData) return chunkData.name;
+};
+
+const getOutputName = (node: ITreeNode): string | undefined => {
+	const sessionOutputData = node.data.find(
+		(data) => data instanceof SessionOutputData,
+	) as SessionOutputData | undefined;
+	if (sessionOutputData) return sessionOutputData.responseOutput.name;
 };
 
 // #endregion Variables (9)
