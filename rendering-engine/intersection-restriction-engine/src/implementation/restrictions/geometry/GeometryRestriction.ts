@@ -519,6 +519,11 @@ export class GeometryRestriction
 					this.#viewport.id
 				] as THREE.Object3D;
 				if (threeJsObject) {
+					let parent = threeJsObject.parent;
+					while (parent) {
+						parent.updateMatrixWorld(true);
+						parent = parent.parent;
+					}
 					threeJsObject.updateMatrixWorld(true);
 					threeJsObject.traverse((object) => {
 						if (object instanceof THREE.Mesh) {
