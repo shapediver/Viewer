@@ -69,6 +69,7 @@ import {
 	getNodeData,
 	getNodeName,
 	getNodesByName,
+	isOnBlacklist,
 	matchNodesWithPatterns,
 	NodeNameFilterPattern,
 	OutputNodeNameFilterPatterns,
@@ -151,6 +152,7 @@ export {
 	calculateCombinedDraggedNodes,
 	checkNodeNameMatch,
 	getNodeName,
+	isOnBlacklist,
 };
 export {IRestriction, ISnapRestriction};
 export {

@@ -82,7 +82,7 @@ export const gatherNodesForPattern = (
 
 	// if the node has no original name (was not given a name in Grasshopper) or
 	// its name matches the black list, do not consider it for pattern matching
-	if (!nodeName || (strictNaming && NODE_NAME_BLACKLIST.includes(nodeName))) {
+	if (!nodeName || (strictNaming && isOnBlacklist(nodeName))) {
 		for (const child of node.children) {
 			gatherNodesForPattern(
 				child,
@@ -284,8 +284,7 @@ export const getNodeData = (
 			};
 		} else if (
 			nodeName &&
-			((strictNaming && !NODE_NAME_BLACKLIST.includes(nodeName)) ||
-				!strictNaming)
+			((strictNaming && !isOnBlacklist(nodeName)) || !strictNaming)
 		) {
 			names.push(nodeName);
 		}
@@ -328,8 +327,7 @@ export const getInstanceNodeData = (
 			};
 		} else if (
 			nodeName &&
-			((strictNaming && !NODE_NAME_BLACKLIST.includes(nodeName)) ||
-				!strictNaming)
+			((strictNaming && !isOnBlacklist(nodeName)) || !strictNaming)
 		) {
 			names.push(nodeName);
 		}
@@ -639,6 +637,10 @@ export const getNodeName = (
 	}
 
 	return nodeName;
+};
+
+export const isOnBlacklist = (name: string): boolean => {
+	return NODE_NAME_BLACKLIST.includes(name);
 };
 
 const getOriginalNamePath = (node: ITreeNode): string => {
