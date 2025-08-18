@@ -3,7 +3,7 @@
 The ShapeDiver Viewer is a comprehensive 3D visualization library built with TypeScript and WebGL. This is the main repository for the ShapeDiver Viewer, which produces the `@shapediver/viewer` npm package and its feature extensions.
 
 **Current Version**: 3.12.11
-**Generated**: 2025-08-13
+**Generated**: 2025-08-18
 
 ## Project Overview
 
@@ -329,4 +329,4 @@ For complete API documentation and interactive examples, visit:
 
 ---
 
-*This file was auto-generated on 2025-08-13 from repository analysis.*
+*This file was auto-generated on 2025-08-18 from repository analysis.*
