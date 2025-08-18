@@ -119,12 +119,15 @@ export class SDTFEngine {
 		const overview: ISDTFOverview = {};
 
 		// go through all attributes
-		for (let i = 0; i < this._parsedFile.attributes.length; i++) {
-			const attributes = this._parsedFile.attributes[i];
+		for (let i = 0; i < this._parsedFile.items.length; i++) {
+			const itemAttributes = this._parsedFile.items[i].attributes;
+
+			// if there are no attributes, continue
+			if (!itemAttributes) continue;
 
 			// go through all entries
-			for (let key in attributes.entries) {
-				const dataToCopy = attributes.entries[key];
+			for (let key in itemAttributes.entries) {
+				const dataToCopy = itemAttributes.entries[key];
 				const value = await dataToCopy.getContent();
 
 				// create the type hint to use
