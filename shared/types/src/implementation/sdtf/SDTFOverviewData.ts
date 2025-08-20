@@ -56,18 +56,21 @@ export class SDTFOverviewData
 					if (
 						SdtfPrimitiveTypeGuard.isStringType(dataToCopy.typeHint)
 					) {
-						entry.values = entry.values?.concat(
-							dataToCopy.values!.filter(
-								(item) => entry.values!.indexOf(item) < 0,
-							),
-						);
-						entry.countForValue = entry.countForValue?.map(
-							(count, index) =>
-								count +
-								(dataToCopy.countForValue
-									? dataToCopy.countForValue[index]
-									: 0),
-						);
+						// combine the countForValue
+						for (let i = 0; i < dataToCopy.values!.length; i++) {
+							const value = dataToCopy.values![i];
+							// check if the the entry already has the value
+							const entryIndex = entry.values!.indexOf(value);
+							if (entryIndex !== -1) {
+								entry.countForValue![entryIndex] +=
+									dataToCopy.countForValue![i];
+							} else {
+								entry.values!.push(value);
+								entry.countForValue!.push(
+									dataToCopy.countForValue![i],
+								);
+							}
+						}
 					}
 					if (
 						SdtfPrimitiveTypeGuard.isNumberType(dataToCopy.typeHint)
