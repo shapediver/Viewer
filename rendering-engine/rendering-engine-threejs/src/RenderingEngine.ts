@@ -31,7 +31,6 @@ import {
 	ISDTFAttributeVisualizationData,
 	ISDTFItemData,
 	ISDTFOverview,
-	ISDTFOverviewData,
 	IViewportEvent,
 	IViewportSettingsSections,
 	MaterialBasicLineData,
@@ -39,7 +38,6 @@ import {
 	MaterialStandardData,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
-	SDTFOverviewData,
 	SPINNER_POSITIONING,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
@@ -60,6 +58,7 @@ import {FlagManager} from "./managers/FlagManager";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {RenderingManager} from "./managers/RenderingManager";
 import {SceneTracingManager} from "./managers/SceneTracingManager";
+import {createSDTFOverview} from "./managers/sceneTree/SDTFUtils";
 import {SceneTreeManager} from "./managers/SceneTreeManager";
 import {SettingsManager} from "./managers/SettingsManager";
 import {SDColor} from "./objects/SDColor";
@@ -1040,17 +1039,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public createSDTFOverview(node: ITreeNode): ISDTFOverview {
-		const out: ISDTFOverviewData = new SDTFOverviewData({});
-		for (let i = 0, len = node.data.length; i < len; i++)
-			if (node.data[i] instanceof SDTFOverviewData)
-				out.merge(<ISDTFOverviewData>node.data[i]);
-
-		for (let i = 0, len = node.children.length; i < len; i++)
-			out.merge(
-				new SDTFOverviewData(this.createSDTFOverview(node.children[i])),
-			);
-
-		return out.overview;
+		return createSDTFOverview(node);
 	}
 
 	public createThreeJsColor(color: Color): THREE.Color {

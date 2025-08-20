@@ -12,7 +12,6 @@ export class SDTFOverviewData
 	// #region Properties (1)
 
 	#overview: ISDTFOverview = {};
-
 	// #endregion Properties (1)
 
 	// #region Constructors (1)
@@ -82,8 +81,12 @@ export class SDTFOverviewData
 					this.overview[overviewKey].push({
 						typeHint: dataToCopy.typeHint,
 						count: dataToCopy.count,
-						values: dataToCopy.values,
-						countForValue: dataToCopy.countForValue,
+						values: dataToCopy.values
+							? [...dataToCopy.values]
+							: dataToCopy.values,
+						countForValue: dataToCopy.countForValue
+							? [...dataToCopy.countForValue]
+							: dataToCopy.countForValue,
 						min: dataToCopy.min,
 						max: dataToCopy.max,
 					});
@@ -92,8 +95,12 @@ export class SDTFOverviewData
 						{
 							typeHint: dataToCopy.typeHint,
 							count: dataToCopy.count,
-							values: dataToCopy.values,
-							countForValue: dataToCopy.countForValue,
+							values: dataToCopy.values
+								? [...dataToCopy.values]
+								: dataToCopy.values,
+							countForValue: dataToCopy.countForValue
+								? [...dataToCopy.countForValue]
+								: dataToCopy.countForValue,
 							min: dataToCopy.min,
 							max: dataToCopy.max,
 						},

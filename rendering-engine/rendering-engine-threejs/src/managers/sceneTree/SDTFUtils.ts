@@ -26,12 +26,12 @@ export const collectSDTFItemData = (
 
 export const createSDTFOverview = (node: ITreeNode): ISDTFOverview => {
 	const out: SDTFOverviewData = new SDTFOverviewData({});
-	for (let i = 0, len = node.data.length; i < len; i++)
-		if (node.data[i] instanceof SDTFOverviewData)
-			out.merge(<SDTFOverviewData>node.data[i]);
 
-	for (let i = 0, len = node.children.length; i < len; i++)
-		out.merge(new SDTFOverviewData(createSDTFOverview(node.children[i])));
+	node.traverseData((d) => {
+		if (d instanceof SDTFOverviewData) {
+			out.merge(<SDTFOverviewData>d);
+		}
+	});
 
 	return out.overview;
 };
