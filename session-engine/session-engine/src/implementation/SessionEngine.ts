@@ -7,6 +7,7 @@ import {
 	ModelApi,
 	ModelStateApi,
 	OutputApi,
+	processError,
 	QueryGltfConversion,
 	ReqConfigure,
 	ReqCustomization,
@@ -2926,9 +2927,14 @@ export class SessionEngine implements ISessionEngine {
 	}
 
 	private async handleError(
-		e: SdGeometryError | ShapeDiverViewerError | Error | unknown,
+		err: SdGeometryError | ShapeDiverViewerError | Error | unknown,
 		retry = false,
 	) {
+		if (!(err instanceof Error)) throw this._httpClient.convertError(err);
+
+		// Process the error
+		const e = processError(err);
+
 		if (e instanceof ResponseError) {
 			if (e.type === ResErrorType.SESSION_GONE_ERROR) {
 				// case 1: the session is no longer available
