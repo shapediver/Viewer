@@ -254,25 +254,7 @@ export const getNodeData = (
 	let tempNode = node;
 	while (tempNode && tempNode.parent) {
 		// look for the output API data in the node
-		let outputData:
-			| {
-					id: string;
-					name: string;
-			  }
-			| undefined = (
-			tempNode.data.find((data) => data instanceof SessionOutputData) as
-				| SessionOutputData
-				| undefined
-		)?.responseOutput;
-		if (!outputData) {
-			// try to find it in the session api
-			const sessionApi = (
-				tempNode.parent?.data.find(
-					(data) => data instanceof SessionData,
-				) as SessionData | undefined
-			)?.responseDto;
-			outputData = sessionApi?.outputs?.[tempNode.name];
-		}
+		let outputData = getOutputData(tempNode);
 
 		const nodeName = getNodeName(tempNode, strictNaming);
 
@@ -351,7 +333,7 @@ const matchNodeWithPatterns = (
 	strictNaming: boolean,
 ): string | undefined => {
 	let nodeData = getNodeData(node, strictNaming);
-	if (!nodeData) {
+	if (!nodeData || !nodeData.nodeName) {
 		nodeData = getInstanceNodeData(node, strictNaming);
 	}
 	if (!nodeData) return;
@@ -466,35 +448,64 @@ export const getNodesByName = (
 			const parts = name.split(".");
 			const outputName = parts[0];
 
-			const outputApis = sessionApi.getOutputByName(outputName);
-			outputApis.forEach((outputApi) => {
-				if (!outputApi || !outputApi.node) return;
-				if (
-					outputApi.format.length === 1 &&
-					outputApi.format[0] === "material"
-				)
-					return;
+			sessionApi.node.children.forEach((node) => {
+				const outputData = getOutputData(node);
 
-				if (parts.length === 1) {
-					nodes.push({
-						name: name,
-						node: outputApi.node,
-					});
+				if (!outputData) {
+					if (outputName !== node.name) return;
+					// instance node?
+					if (parts.length === 1) {
+						nodes.push({
+							name,
+							node,
+						});
+					} else {
+						node.traverse((n) => {
+							if (
+								checkNodeNameMatch(
+									n,
+									parts.join("."),
+									strictNaming,
+								)
+							) {
+								nodes.push({
+									name,
+									node: n,
+								});
+							}
+						});
+					}
 				} else {
-					outputApi.node.traverse((n) => {
-						if (
-							checkNodeNameMatch(
-								n,
-								parts.slice(1).join("."),
-								strictNaming,
-							)
-						) {
-							nodes.push({
-								name: name,
-								node: n,
-							});
-						}
-					});
+					if (outputName !== outputData.name) return;
+
+					if (
+						outputData.content?.filter(
+							(c) => c.format !== "material",
+						).length === 0
+					)
+						return;
+
+					if (parts.length === 1) {
+						nodes.push({
+							name,
+							node,
+						});
+					} else {
+						node.traverse((n) => {
+							if (
+								checkNodeNameMatch(
+									n,
+									parts.slice(1).join("."),
+									strictNaming,
+								)
+							) {
+								nodes.push({
+									name,
+									node: n,
+								});
+							}
+						});
+					}
 				}
 			});
 		});
@@ -644,10 +655,10 @@ export const isOnBlacklist = (name: string): boolean => {
 };
 
 const getOriginalNamePath = (node: ITreeNode): string => {
-	let path = getChunkName(node) || node.originalName || "";
+	let path = getNodeName(node, true) || "";
 	let parent: ITreeNode | undefined = node.parent;
 	while (parent) {
-		path = (getChunkName(parent) || parent.originalName || "") + "." + path;
+		path = (getNodeName(parent, true) || "") + "." + path;
 		parent = parent.parent;
 	}
 	return path;
@@ -665,6 +676,28 @@ const getOutputName = (node: ITreeNode): string | undefined => {
 		(data) => data instanceof SessionOutputData,
 	) as SessionOutputData | undefined;
 	if (sessionOutputData) return sessionOutputData.responseOutput.name;
+};
+
+const getOutputData = (node: ITreeNode) => {
+	// look for the output API data in the node
+	let outputData: SessionOutputData["responseOutput"] | undefined = (
+		node.data.find((data) => data instanceof SessionOutputData) as
+			| SessionOutputData
+			| undefined
+	)?.responseOutput;
+	if (!outputData) {
+		// try to find it in the session api
+		const sessionApi = (
+			node.parent?.data.find((data) => data instanceof SessionData) as
+				| SessionData
+				| undefined
+		)?.responseDto;
+		outputData = sessionApi?.outputs?.[
+			node.name
+		] as SessionOutputData["responseOutput"];
+	}
+
+	return outputData;
 };
 
 // #endregion Variables (9)
