@@ -5,6 +5,7 @@ import {
 	ITreeNode,
 	IViewportApi,
 	sceneTree,
+	SessionApiData,
 } from "@shapediver/viewer";
 import {
 	EventEngine,
@@ -51,6 +52,7 @@ export class Gumball implements IGumball {
 	#enableTranslationZ: boolean = true;
 	#initialOffset: vec3 = vec3.create();
 	#initialTransform: mat4[] = [];
+	#instanceTransform: mat4[] = [];
 	#matrix: mat4 = mat4.create();
 	#moving: boolean = false;
 	#pivotDragging: boolean = false;
@@ -442,15 +444,17 @@ export class Gumball implements IGumball {
 		this.#transformControls.enableScaling = this.#enableScaling;
 	}
 
-	private getMatrix(previousMatrix: mat4): mat4 {
+	private getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const m = new THREE.Matrix4().copy(
 			this.#transformationControlsPlaceholder.matrix,
 		);
+
 		const placeholderMatrix = mat4.fromValues(...m.toArray());
 		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
 			mat4.create(),
 			vec3.negate(vec3.create(), this.#initialOffset),
 		);
+
 		const placeholderMatrixWithoutInitialOffset = mat4.multiply(
 			mat4.create(),
 			placeholderMatrix,
@@ -479,6 +483,13 @@ export class Gumball implements IGumball {
 			}
 		} else {
 			const finalMatrix = mat4.create();
+
+			mat4.multiply(
+				placeholderMatrixWithoutInitialOffset,
+				placeholderMatrixWithoutInitialOffset,
+				instanceMatrix,
+			);
+
 			mat4.multiply(
 				finalMatrix,
 				placeholderMatrixWithoutInitialOffset,
@@ -541,37 +552,71 @@ export class Gumball implements IGumball {
 						new THREE.Vector3().fromArray(this.#initialOffset),
 					),
 				);
+				{
+					const transformations: {[key: string]: mat4} = {};
+					this.#nodes[0].traverse((c) => {
+						if (c.name.startsWith("mesh_") && c.parent)
+							transformations[c.parent.name] = mat4.clone(
+								c.parent.nodeMatrix,
+							);
+					});
 
-				const transformations: {[key: string]: mat4} = {};
-				this.#nodes[0].traverse((c) => {
-					if (c.name.startsWith("mesh_") && c.parent)
-						transformations[c.parent.name] = mat4.clone(
-							c.parent.nodeMatrix,
+					if (
+						Object.keys(transformations).length === 1 &&
+						Object.keys(transformations)[0] !== "no_transformations"
+					) {
+						this.#initialTransform[0] = mat4.clone(
+							transformations[Object.keys(transformations)[0]],
 						);
-				});
-
-				if (
-					Object.keys(transformations).length === 1 &&
-					Object.keys(transformations)[0] !== "no_transformations"
-				) {
-					this.#initialTransform[0] = mat4.clone(
-						transformations[Object.keys(transformations)[0]],
-					);
-					const initialWorldTransform = mat4.multiply(
-						mat4.create(),
-						this.#nodes[0].worldMatrix,
-						this.#initialTransform[0],
-					);
-					this.#transformationControlsPlaceholder.applyMatrix4(
-						new THREE.Matrix4().fromArray(initialWorldTransform),
-					);
-				} else {
-					this.#initialTransform[0] = mat4.create();
-					this.#transformationControlsPlaceholder.applyMatrix4(
-						new THREE.Matrix4().fromArray(
+						const initialWorldTransform = mat4.multiply(
+							mat4.create(),
 							this.#nodes[0].worldMatrix,
-						),
-					);
+							this.#initialTransform[0],
+						);
+						this.#transformationControlsPlaceholder.applyMatrix4(
+							new THREE.Matrix4().fromArray(
+								initialWorldTransform,
+							),
+						);
+					} else {
+						this.#initialTransform[0] = mat4.create();
+						this.#transformationControlsPlaceholder.applyMatrix4(
+							new THREE.Matrix4().fromArray(
+								this.#nodes[0].worldMatrix,
+							),
+						);
+					}
+				}
+				{
+					// the structure is as follows:
+					// sessionNode -> instanceNode -> transformations
+					// therefore we first find the the node with the name "transformations[*]"
+					// and then check if the parent of its parent is the sessionNode
+					let currentNode = this.#nodes[0];
+					this.#instanceTransform[0] = mat4.create();
+					while (currentNode.parent) {
+						// we have found the transformations node
+						if (
+							new RegExp(/^transformations\[\d+\]$/).test(
+								currentNode.name,
+							)
+						) {
+							if (
+								currentNode.parent &&
+								currentNode.parent.parent &&
+								currentNode.parent.parent.data.find(
+									(d) => d instanceof SessionApiData,
+								)
+							) {
+								// we confirm that this is a proper transformations node of an instance
+								this.#instanceTransform[0] = mat4.clone(
+									currentNode.transformations[0].matrix,
+								);
+								break;
+							}
+						}
+						currentNode = currentNode.parent;
+					}
 				}
 			} else {
 				this.#initialTransform[0] = mat4.create();
@@ -602,24 +647,57 @@ export class Gumball implements IGumball {
 				} else {
 					this.#previousGumballMatrix.push(mat4.create());
 				}
-
-				const transformations: {[key: string]: mat4} = {};
-				node.traverse((c) => {
-					if (c.name.startsWith("mesh_") && c.parent) {
-						transformations[c.parent.name] = mat4.clone(
-							c.parent.nodeMatrix,
+				{
+					const transformations: {[key: string]: mat4} = {};
+					node.traverse((c) => {
+						if (c.name.startsWith("mesh_") && c.parent) {
+							transformations[c.parent.name] = mat4.clone(
+								c.parent.nodeMatrix,
+							);
+						}
+					});
+					if (
+						Object.keys(transformations).length === 1 &&
+						Object.keys(transformations)[0] !== "no_transformations"
+					) {
+						this.#initialTransform[i] = mat4.clone(
+							transformations[Object.keys(transformations)[0]],
 						);
+					} else {
+						this.#initialTransform[i] = mat4.create();
 					}
-				});
-				if (
-					Object.keys(transformations).length === 1 &&
-					Object.keys(transformations)[0] !== "no_transformations"
-				) {
-					this.#initialTransform[i] = mat4.clone(
-						transformations[Object.keys(transformations)[0]],
-					);
-				} else {
-					this.#initialTransform[i] = mat4.create();
+				}
+
+				{
+					// the structure is as follows:
+					// sessionNode -> instanceNode -> transformations
+					// therefore we first find the the node with the name "transformations[*]"
+					// and then check if the parent of its parent is the sessionNode
+					let currentNode = node;
+					this.#instanceTransform[i] = mat4.create();
+					while (currentNode.parent) {
+						// we have found the transformations node
+						if (
+							new RegExp(/^transformations\[\d+\]$/).test(
+								currentNode.name,
+							)
+						) {
+							if (
+								currentNode.parent &&
+								currentNode.parent.parent &&
+								currentNode.parent.parent.data.find(
+									(d) => d instanceof SessionApiData,
+								)
+							) {
+								// we confirm that this is a proper transformations node of an instance
+								this.#instanceTransform[i] = mat4.clone(
+									currentNode.transformations[0].matrix,
+								);
+								break;
+							}
+						}
+						currentNode = currentNode.parent;
+					}
 				}
 			}
 			vec3.copy(this.#initialOffset, boundingBox.boundingSphere.center);
@@ -682,10 +760,18 @@ export class Gumball implements IGumball {
 			};
 
 			this.#nodes.forEach((node, i) => {
-				const matrix = this.getMatrix(this.#previousGumballMatrix[i]);
+				const matrix = this.getMatrix(
+					this.#previousGumballMatrix[i],
+					this.#instanceTransform[i],
+				);
 
 				eventData.nodes.push(node);
 				if (this.#singleNode) {
+					mat4.multiply(
+						matrix,
+						mat4.invert(mat4.create(), this.#instanceTransform[i]),
+						matrix,
+					);
 					eventData.transformations.push(mat4.clone(matrix));
 					mat4.multiply(
 						matrix,
@@ -693,12 +779,23 @@ export class Gumball implements IGumball {
 						mat4.invert(mat4.create(), this.#initialTransform[i]),
 					);
 				} else {
-					eventData.transformations.push(
-						mat4.multiply(
-							mat4.create(),
-							matrix,
-							this.#initialTransform[i],
-						),
+					const eventDataMatrix = mat4.clone(matrix);
+					mat4.multiply(
+						eventDataMatrix,
+						eventDataMatrix,
+						this.#initialTransform[i],
+					);
+					mat4.multiply(
+						eventDataMatrix,
+						mat4.invert(mat4.create(), this.#instanceTransform[i]),
+						eventDataMatrix,
+					);
+					eventData.transformations.push(eventDataMatrix);
+
+					mat4.multiply(
+						matrix,
+						mat4.invert(mat4.create(), this.#instanceTransform[i]),
+						matrix,
 					);
 				}
 
@@ -734,14 +831,27 @@ export class Gumball implements IGumball {
 			if (threeJsObject) {
 				const matrix = this.getMatrix(
 					this.#previousGumballMatrix![i] as mat4,
+					this.#instanceTransform[i],
 				);
 
-				if (this.#singleNode)
+				if (this.#singleNode) {
+					mat4.multiply(
+						matrix,
+						mat4.invert(mat4.create(), this.#instanceTransform[i]),
+						matrix,
+					);
 					mat4.multiply(
 						matrix,
 						matrix,
 						mat4.invert(mat4.create(), this.#initialTransform[i]),
 					);
+				} else {
+					mat4.multiply(
+						matrix,
+						mat4.invert(mat4.create(), this.#instanceTransform[i]),
+						matrix,
+					);
+				}
 
 				threeJsObject.matrixAutoUpdate = false;
 				threeJsObject.matrix.copy(
