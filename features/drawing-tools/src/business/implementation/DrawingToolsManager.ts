@@ -354,64 +354,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		if (this.closed) return;
 
 		this.#keysPressed[event.key] = true;
-
-		const insertKeyPressed = this.keyPressed(
-			this.#settings.controls.insert,
-		);
-		const cancelKeyPressed = this.keyPressed(
-			this.#settings.controls.cancel,
-		);
-		const confirmKeyPressed = this.keyPressed(
-			this.#settings.controls.confirm,
-		);
-		const deleteKeyPressed = this.keyPressed(
-			this.#settings.controls.delete,
-		);
 		const undoKeyPressed = this.keyPressed(this.#settings.controls.undo);
 		const redoKeyPressed = this.keyPressed(this.#settings.controls.redo);
-
-		/**
-		 * IF CONFIRM KEY IS PRESSED
-		 * - IF INSERTION IS ACTIVE, STOP INSERTION
-		 * - IF INSERTION IS NOT ACTIVE, UPDATE DRAWING TOOL
-		 */
-		if (confirmKeyPressed) {
-			if (this.insertionActive) {
-				this.#interactionManager.stopInsertion();
-				this.update();
-			} else {
-				this.update();
-			}
-		}
-
-		/**
-		 * IF CANCEL KEY IS PRESSED
-		 * - IF INSERTION IS ACTIVE, STOP INSERTION
-		 * - IF INSERTION IS NOT ACTIVE, CANCEL DRAWING TOOL
-		 */
-		if (cancelKeyPressed) {
-			if (this.insertionActive) {
-				this.#interactionManager.stopInsertion();
-			} else {
-				this.cancel();
-			}
-		}
-
-		/**
-		 * IF INSERT KEY IS PRESSED
-		 * - START INSERTION
-		 */
-		if (insertKeyPressed) {
-			this.startInsertion();
-		}
-
-		/**
-		 * IF DELETE KEY IS PRESSED
-		 * - DELETE SELECTION
-		 */
-		if (deleteKeyPressed) {
-			this.#interactionManager.deleteSelection();
-		}
 
 		/**
 		 * IF UNDO KEY IS PRESSED
@@ -428,6 +372,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		if (redoKeyPressed) {
 			this.#historyManager.redo();
 		}
+
+		this.#interactionManager.onKeyDown();
 	}
 
 	public onKeyUp(event: KeyboardEvent): void {
@@ -522,24 +468,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public resetMaterialIndices(): void {
 		this.#geometryManager.resetMaterialIndices();
-	}
-
-	public startInsertion() {
-		if (this.geometryState.canAddPoint()) {
-			this.#interactionManager.startInsertion();
-		} else {
-			this.#eventEngine.emitEvent(
-				EVENTTYPE_DRAWING_TOOLS.MAXIMUM_POINTS,
-				{
-					viewportId: this.viewport.id,
-					drawingToolsId: this.#uuid,
-					message: `The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded.`,
-				},
-			);
-			throw new ShapeDiverViewerDrawingToolsError(
-				`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded.`,
-			);
-		}
 	}
 
 	public undo(): void {

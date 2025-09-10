@@ -76,6 +76,9 @@ import {
 				snapToEdges: false,
 				snapToVertices: false,
 			},
+			plane: {
+				type: RESTRICTION_TYPE.PLANE,
+			},
 		},
 	};
 
@@ -88,9 +91,9 @@ import {
 	const onUpdate = async (pointsData: PointsData) => {
 		console.log("Drawing tools updated", pointsData);
 
-		const pointsParameter = session.getParameterByName("points")[0];
-		pointsParameter.value = JSON.stringify({points: pointsData});
-		await session.customize();
+		// const pointsParameter = session.getParameterByName("points")[0];
+		// pointsParameter.value = JSON.stringify({points: pointsData});
+		// await session.customize();
 	};
 
 	/**

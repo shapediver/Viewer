@@ -33,7 +33,6 @@ import {
 	RESTRICTION_TYPE,
 	SnapRestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {SystemInfo} from "@shapediver/viewer.shared.services";
 import {RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
 import {IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
@@ -111,11 +110,6 @@ export const createDrawingTools = (
 	callbacks: Callbacks,
 	settings: SettingsOptional,
 ): IDrawingToolsApi => {
-	if (SystemInfo.instance.isMobile)
-		throw new ShapeDiverViewerDrawingToolsError(
-			"The DrawingTools are not supported on mobile devices.",
-		);
-
 	if (drawingTools && drawingTools.closed === false)
 		throw new ShapeDiverViewerDrawingToolsError(
 			"There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.",
