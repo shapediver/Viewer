@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.data-engine.geometry-engine",
-	"version": "3.12.17",
+	"version": "3.12.18",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,14 +39,14 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "2.9.1",
-		"@shapediver/viewer.data-engine.material-engine": "3.12.17",
-		"@shapediver/viewer.data-engine.shared-types": "3.12.17",
-		"@shapediver/viewer.rendering-engine.camera-engine": "3.12.17",
-		"@shapediver/viewer.rendering-engine.light-engine": "3.12.17",
-		"@shapediver/viewer.shared.build-data": "3.12.17",
-		"@shapediver/viewer.shared.node-tree": "3.12.17",
-		"@shapediver/viewer.shared.services": "3.12.17",
-		"@shapediver/viewer.shared.types": "3.12.17",
+		"@shapediver/viewer.data-engine.material-engine": "3.12.18",
+		"@shapediver/viewer.data-engine.shared-types": "3.12.18",
+		"@shapediver/viewer.rendering-engine.camera-engine": "3.12.18",
+		"@shapediver/viewer.rendering-engine.light-engine": "3.12.18",
+		"@shapediver/viewer.shared.build-data": "3.12.18",
+		"@shapediver/viewer.shared.node-tree": "3.12.18",
+		"@shapediver/viewer.shared.services": "3.12.18",
+		"@shapediver/viewer.shared.types": "3.12.18",
 		"gl-matrix": "3.3.0"
 	},
 	"browser": {
