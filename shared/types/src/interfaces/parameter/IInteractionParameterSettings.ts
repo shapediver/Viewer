@@ -124,6 +124,8 @@ export const IGumballParameterJsonSchema = z.object({
 				.nullable()
 				.optional(),
 			selectionColor: z.string().nullable().optional(),
+			maximumSelection: z.number().nullable().optional(),
+			minimumSelection: z.number().nullable().optional(),
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });

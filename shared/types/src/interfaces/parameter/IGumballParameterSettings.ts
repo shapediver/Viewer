@@ -55,6 +55,10 @@ export interface IGumballParameterProps extends IInteractionParameterProps {
 	space?: "local" | "world";
 	/** The color of the objects when selected. (default: '#0d44f0') */
 	selectionColor?: string;
+	/** The maximum number of objects that can be selected. (default: 0) */
+	maximumSelection?: number;
+	/** The minimum number of objects that can be selected. (default: Infinity) */
+	minimumSelection?: number;
 
 	// #endregion Properties (5)
 }
