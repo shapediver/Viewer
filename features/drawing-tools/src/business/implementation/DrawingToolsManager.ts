@@ -19,6 +19,7 @@ import {
 	EVENTTYPE_DRAWING_TOOLS,
 	IEvent,
 	ShapeDiverViewerDrawingToolsError,
+	SystemInfo,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
@@ -118,8 +119,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				) {
 					if (
 						this.#settings.general.autoUpdate &&
-						this.#interactionManager.insertionInteractionHandler
-							.insertionActive === false &&
+						(this.#interactionManager.insertionInteractionHandler
+							.insertionActive === false ||
+							SystemInfo.instance.isMobile === true) &&
 						(this.#settings.geometry.autoClose ||
 							this.#settings.geometry.close ===
 								this.#geometryManager.geometryState.closeLoop)
@@ -393,7 +395,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	public onOut(): void {
 		if (this.closed) return;
 		this.#interactionManager.onOut();
-		if (this.#continuousRenderingFlag) {
+		if (
+			this.#continuousRenderingFlag &&
+			SystemInfo.instance.isMobile === false
+		) {
 			this.#viewport.removeFlag(this.#continuousRenderingFlag);
 			this.#continuousRenderingFlag = undefined;
 		}

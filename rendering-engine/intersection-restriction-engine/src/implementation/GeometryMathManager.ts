@@ -1,4 +1,4 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {IViewportApi, SystemInfo} from "@shapediver/viewer";
 import {IRay} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {IVisualizationSettings} from "../interfaces/IVisualizationSettings";
@@ -404,7 +404,9 @@ export class GeometryMathManager {
 		 */
 		return {
 			distanceSquared: distanceSquared,
-			check: distanceSquared * 4 < threshold ** 2,
+			check:
+				distanceSquared * 4 <
+				(SystemInfo.instance.isMobile ? threshold * 4 : threshold) ** 2,
 		};
 	}
 

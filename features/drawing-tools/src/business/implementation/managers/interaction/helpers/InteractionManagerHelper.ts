@@ -5,7 +5,9 @@ import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
 } from "@shapediver/viewer.shared.services";
+
 import {vec3} from "gl-matrix";
+
 import {
 	MATERIAL_INDEX,
 	Settings,
@@ -15,8 +17,6 @@ import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
 
 export class InteractionManagerHelper {
-	// #region Properties (17)
-
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #eventEngine = EventEngine.instance;
 	readonly #geometryMathManager: GeometryMathManager;
@@ -36,10 +36,6 @@ export class InteractionManagerHelper {
 	#selectedPointIndices: number[] = [];
 	#selectedPointPositions: vec3[] = [];
 
-	// #endregion Properties (17)
-
-	// #region Constructors (1)
-
 	constructor(
 		drawingToolsManager: DrawingToolsManager,
 		interactionManager: InteractionManager,
@@ -56,16 +52,16 @@ export class InteractionManagerHelper {
 		});
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (7)
-
 	public get dragging(): boolean {
 		return this.#dragging;
 	}
 
 	public get hoveredPoint(): number | undefined {
 		return this.#hoveredPoint;
+	}
+
+	public set hoveredPoint(value: number | undefined) {
+		this.#hoveredPoint = value;
 	}
 
 	public get midPointInserted(): boolean {
@@ -87,10 +83,6 @@ export class InteractionManagerHelper {
 	public get selectedPointIndices(): number[] {
 		return this.#selectedPointIndices;
 	}
-
-	// #endregion Public Getters And Setters (7)
-
-	// #region Public Methods (10)
 
 	/**
 	 * A point was added so we have to move the selected indices one forward if they are after the insertion index
@@ -502,6 +494,14 @@ export class InteractionManagerHelper {
 	}
 
 	/**
+	 * Remove all selected points
+	 */
+	public removeAllSelectedPoints(): void {
+		while (this.#selectedPointIndices.length > 0)
+			this.toggleSelection(this.#selectedPointIndices[0]);
+	}
+
+	/**
 	 * A point was removed so we have to move the selected indices one back if they are after the removal index
 	 *
 	 * @param removalIndex
@@ -595,24 +595,12 @@ export class InteractionManagerHelper {
 		return false;
 	}
 
-	// #endregion Public Methods (10)
-
-	// #region Private Methods (2)
-
-	/**
-	 * Remove all selected points
-	 */
-	private removeAllSelectedPoints(): void {
-		while (this.#selectedPointIndices.length > 0)
-			this.toggleSelection(this.#selectedPointIndices[0]);
-	}
-
 	/**
 	 * Select a point, deselect it if it is already selected
 	 *
 	 * @param index
 	 */
-	private toggleSelection(index: number): void {
+	public toggleSelection(index: number): void {
 		// add the id if it is not already in the array
 		// remove it if it is in the array
 		const indexInArray = this.#selectedPointIndices.indexOf(index);
@@ -644,6 +632,4 @@ export class InteractionManagerHelper {
 			});
 		}
 	}
-
-	// #endregion Private Methods (2)
 }

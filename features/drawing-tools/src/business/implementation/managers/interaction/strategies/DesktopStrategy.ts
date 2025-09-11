@@ -276,12 +276,6 @@ export class DesktopStrategy implements IStrategy {
 		const deleteKeyPressed = this.#drawingToolsManager.keyPressed(
 			this.#drawingToolsManager.settings.controls.delete,
 		);
-		const undoKeyPressed = this.#drawingToolsManager.keyPressed(
-			this.#drawingToolsManager.settings.controls.undo,
-		);
-		const redoKeyPressed = this.#drawingToolsManager.keyPressed(
-			this.#drawingToolsManager.settings.controls.redo,
-		);
 
 		/**
 		 * IF CONFIRM KEY IS PRESSED
