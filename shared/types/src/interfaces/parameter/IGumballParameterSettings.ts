@@ -1,4 +1,4 @@
-import {IInteractionParameterProps} from "./IInteractionParameterSettings";
+import {ISelectionParameterProps} from "./ISelectionParameterSettings";
 
 // #region Type aliases (1)
 
@@ -14,7 +14,7 @@ export type GumballParameterValue = {
 /**
  * Properties of a selection parameter.
  */
-export interface IGumballParameterProps extends IInteractionParameterProps {
+export interface IGumballParameterProps extends ISelectionParameterProps {
 	// #region Properties (5)
 
 	/** If the rotation is enabled. (default: true) */
@@ -47,18 +47,10 @@ export interface IGumballParameterProps extends IInteractionParameterProps {
 		y?: boolean;
 		z?: boolean;
 	};
-	/** The names of the objects that can be interacted with. (see Jira document and discussion result) */
-	nameFilter?: string[];
 	/** The scale of the controls. The scale divides the scene bounding sphere to get the actual size. (default: 0.005) */
 	scale?: number;
 	/** The space in which the controls operate. In world space, scaling is not available. (default: 'local') */
 	space?: "local" | "world";
-	/** The color of the objects when selected. (default: '#0d44f0') */
-	selectionColor?: string;
-	/** The maximum number of objects that can be selected. (default: 0) */
-	maximumSelection?: number;
-	/** The minimum number of objects that can be selected. (default: Infinity) */
-	minimumSelection?: number;
 
 	// #endregion Properties (5)
 }

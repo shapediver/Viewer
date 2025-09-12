@@ -82,6 +82,7 @@ export const ISelectionParameterJsonSchema = z.object({
 			minimumSelection: z.number().nullable().optional(),
 			nameFilter: z.array(z.string()).nullable().optional(),
 			selectionColor: z.string().nullable().optional(),
+			deselectOnEmpty: optionalBoolean,
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });
@@ -126,6 +127,7 @@ export const IGumballParameterJsonSchema = z.object({
 			selectionColor: z.string().nullable().optional(),
 			maximumSelection: z.number().nullable().optional(),
 			minimumSelection: z.number().nullable().optional(),
+			deselectOnEmpty: optionalBoolean,
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });

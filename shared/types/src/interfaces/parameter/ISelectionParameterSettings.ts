@@ -24,6 +24,8 @@ export interface ISelectionParameterProps extends IInteractionParameterProps {
 	nameFilter?: string[];
 	/** The color of the objects when selected. (default: '#0d44f0') */
 	selectionColor?: string;
+	/** If true, the selection will be cleared when clicking on an empty space. (default: false) */
+	deselectOnEmpty?: boolean;
 
 	// #endregion Properties (2)
 }
