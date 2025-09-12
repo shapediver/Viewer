@@ -785,6 +785,9 @@ const numberVisualization = (
 	defaultMaterial: IMaterialAbstractData,
 ): ISDTFAttributeVisualizationData | undefined => {
 	let factor = (value - min) / (max - min);
+
+	console.log(value, min, max, factor, type);
+
 	if (isNaN(factor)) factor = 0.5;
 	// check if the type is part of the enum
 	if (typeof type === "string") {
