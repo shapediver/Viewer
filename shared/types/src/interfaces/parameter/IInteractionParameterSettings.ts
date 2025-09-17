@@ -96,6 +96,9 @@ export const IGumballParameterJsonSchema = z.object({
 					x: optionalBoolean,
 					y: optionalBoolean,
 					z: optionalBoolean,
+					xy: optionalBoolean,
+					yz: optionalBoolean,
+					xz: optionalBoolean,
 				})
 				.nullable()
 				.optional(),
@@ -105,6 +108,9 @@ export const IGumballParameterJsonSchema = z.object({
 					x: optionalBoolean,
 					y: optionalBoolean,
 					z: optionalBoolean,
+					xy: optionalBoolean,
+					yz: optionalBoolean,
+					xz: optionalBoolean,
 				})
 				.nullable()
 				.optional(),
@@ -114,6 +120,9 @@ export const IGumballParameterJsonSchema = z.object({
 					x: optionalBoolean,
 					y: optionalBoolean,
 					z: optionalBoolean,
+					xy: optionalBoolean,
+					yz: optionalBoolean,
+					xz: optionalBoolean,
 				})
 				.nullable()
 				.optional(),
@@ -128,6 +137,24 @@ export const IGumballParameterJsonSchema = z.object({
 			maximumSelection: z.number().nullable().optional(),
 			minimumSelection: z.number().nullable().optional(),
 			deselectOnEmpty: optionalBoolean,
+			restrictions: z
+				.array(
+					z
+						.object({
+							id: z.string(),
+							type: z.string(),
+							rotation: z
+								.object({
+									axis: z.array(z.number()),
+									angle: z.number(),
+								})
+								.nullable()
+								.optional(),
+						})
+						.passthrough(),
+				)
+				.nullable()
+				.optional(),
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
 });

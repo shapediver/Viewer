@@ -31,6 +31,10 @@ export interface DrawingRestrictionMetaData extends RestrictionMetaData {
 	type: "drawing";
 }
 
+export interface GumballRestrictionMetaData extends RestrictionMetaData {
+	type: "gumball";
+}
+
 export interface IRestriction {
 	readonly id: string;
 	readonly priority: number;
@@ -69,7 +73,7 @@ export interface RestrictionMetaData {
 	pressedKeys?: string[];
 	toggledKeys?: string[];
 	startPoint?: vec3;
-	type: "drawing" | "dragging";
+	type: "drawing" | "dragging" | "gumball";
 }
 
 export interface RestrictionPropertiesBase {
@@ -138,4 +142,9 @@ export const isDrawingRestriction = (
 	metaData?: RestrictionMetaData,
 ): metaData is DrawingRestrictionMetaData => {
 	return metaData?.type === "drawing";
+};
+export const isGumballRestriction = (
+	metaData?: RestrictionMetaData,
+): metaData is GumballRestrictionMetaData => {
+	return metaData?.type === "gumball";
 };

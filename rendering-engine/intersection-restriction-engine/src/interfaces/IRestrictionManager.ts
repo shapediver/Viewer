@@ -2,6 +2,7 @@ import {IRay} from "@shapediver/viewer.shared.types";
 import {
 	DraggingRestrictionMetaData,
 	DrawingRestrictionMetaData,
+	GumballRestrictionMetaData,
 	IRestriction,
 	RayTraceResult,
 	RestrictionProperties,
@@ -23,7 +24,10 @@ export interface IRestrictionManager {
 	getRestriction(token: string): IRestriction | undefined;
 	rayTrace(
 		ray: IRay,
-		metaData?: DrawingRestrictionMetaData | DraggingRestrictionMetaData,
+		metaData?:
+			| DrawingRestrictionMetaData
+			| DraggingRestrictionMetaData
+			| GumballRestrictionMetaData,
 	): RayTraceResult | undefined;
 	removeRestriction(token: string): boolean;
 

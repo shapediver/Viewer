@@ -1,4 +1,5 @@
 import {IDomEventListener} from "@shapediver/viewer";
+import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
 // #region Type aliases (2)
 
@@ -60,6 +61,8 @@ export type Settings = {
 	 * Reuse the transformation that are already applied to the nodes. (default: true)
 	 */
 	reuseTransformation: boolean;
+
+	restrictions: {[key: string]: RestrictionProperties};
 };
 export type SettingsOptional = Partial<Settings>;
 

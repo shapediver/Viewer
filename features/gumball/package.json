@@ -41,6 +41,7 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "3.12.22-rc.0",
+		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.12.22-rc.0",
 		"@shapediver/viewer.shared.node-tree": "3.12.22-rc.0",
 		"@shapediver/viewer.shared.services": "3.12.22-rc.0",
 		"@shapediver/viewer.shared.types": "3.12.22-rc.0",

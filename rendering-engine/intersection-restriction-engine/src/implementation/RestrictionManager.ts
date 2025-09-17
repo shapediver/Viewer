@@ -9,6 +9,7 @@ import {
 import {
 	DraggingRestrictionMetaData,
 	DrawingRestrictionMetaData,
+	GumballRestrictionMetaData,
 	IRestriction,
 	isDraggingRestriction,
 	RayTraceResult,
@@ -240,7 +241,10 @@ export class RestrictionManager implements IRestrictionManager {
 
 	public rayTrace(
 		ray: IRay,
-		metaData: DrawingRestrictionMetaData | DraggingRestrictionMetaData,
+		metaData:
+			| DrawingRestrictionMetaData
+			| DraggingRestrictionMetaData
+			| GumballRestrictionMetaData,
 	): RayTraceResult | undefined {
 		const restrictionResults: RestrictionResult[] = [];
 

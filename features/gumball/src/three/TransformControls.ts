@@ -1,3 +1,4 @@
+import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	BoxGeometry,
 	BufferGeometry,
@@ -91,6 +92,7 @@ class TransformControls extends Object3D {
 	private _pointStart: Vector3 = new Vector3();
 	private _positionStart: Vector3;
 	private _quaternionStart: Quaternion;
+	private _restrictionManager?: IRestrictionManager;
 	private _rotationAngle: number = 0;
 	private _rotationAxis: Vector3 = new Vector3();
 	private _rotationSnap: number | null = null;
@@ -123,6 +125,7 @@ class TransformControls extends Object3D {
 	constructor(
 		camera: Camera,
 		domElement?: HTMLElement,
+		restrictionManager?: IRestrictionManager,
 		updateCallback?: () => void,
 		updateMatricesCallback?: () => void,
 	) {
@@ -131,6 +134,7 @@ class TransformControls extends Object3D {
 		this.userData.ambientOcclusion = false;
 
 		this._camera = camera;
+		this._restrictionManager = restrictionManager;
 		this._updateCallback = updateCallback;
 		this._updateMatricesCallback = updateMatricesCallback;
 
@@ -770,6 +774,31 @@ class TransformControls extends Object3D {
 		this.pointEnd.copy(planeIntersect.point).sub(this.worldPositionStart);
 
 		if (this.mode === TransformationType.TRANSLATION) {
+			if (this._restrictionManager)
+				this._restrictionManager.showRestrictionVisualization = true;
+
+			const restrictedPoint = this._restrictionManager
+				? this._restrictionManager.rayTrace(
+						{
+							origin: [
+								_raycaster.ray.origin.x,
+								_raycaster.ray.origin.y,
+								_raycaster.ray.origin.z,
+							],
+							direction: [
+								_raycaster.ray.direction.x,
+								_raycaster.ray.direction.y,
+								_raycaster.ray.direction.z,
+							],
+						},
+						{
+							pressedKeys: [],
+							toggledKeys: [],
+							type: "gumball",
+						},
+					)
+				: null;
+
 			// Apply translate
 
 			this._offset.copy(this.pointEnd).sub(this.pointStart);
@@ -796,31 +825,22 @@ class TransformControls extends Object3D {
 
 			// Apply translation snap
 
-			if (this.translationSnap) {
+			if (restrictedPoint && restrictedPoint.point) {
 				if (space === "local") {
 					object.position.applyQuaternion(
 						_tempQuaternion.copy(this._quaternionStart).invert(),
 					);
 
 					if (axis.search("X") !== -1) {
-						object.position.x =
-							Math.round(
-								object.position.x / this.translationSnap,
-							) * this.translationSnap;
+						object.position.x = restrictedPoint.point[0];
 					}
 
 					if (axis.search("Y") !== -1) {
-						object.position.y =
-							Math.round(
-								object.position.y / this.translationSnap,
-							) * this.translationSnap;
+						object.position.y = restrictedPoint.point[1];
 					}
 
 					if (axis.search("Z") !== -1) {
-						object.position.z =
-							Math.round(
-								object.position.z / this.translationSnap,
-							) * this.translationSnap;
+						object.position.z = restrictedPoint.point[2];
 					}
 
 					object.position.applyQuaternion(this._quaternionStart);
@@ -836,24 +856,15 @@ class TransformControls extends Object3D {
 					}
 
 					if (axis.search("X") !== -1) {
-						object.position.x =
-							Math.round(
-								object.position.x / this.translationSnap,
-							) * this.translationSnap;
+						object.position.x = restrictedPoint.point[0];
 					}
 
 					if (axis.search("Y") !== -1) {
-						object.position.y =
-							Math.round(
-								object.position.y / this.translationSnap,
-							) * this.translationSnap;
+						object.position.y = restrictedPoint.point[1];
 					}
 
 					if (axis.search("Z") !== -1) {
-						object.position.z =
-							Math.round(
-								object.position.z / this.translationSnap,
-							) * this.translationSnap;
+						object.position.z = restrictedPoint.point[2];
 					}
 
 					if (object.parent) {
@@ -1009,6 +1020,8 @@ class TransformControls extends Object3D {
 	}
 
 	public pointerUp(pointer: {x: number; y: number; button: any}) {
+		if (this._restrictionManager)
+			this._restrictionManager.showRestrictionVisualization = false;
 		if (pointer !== null && pointer.button !== 0) return;
 
 		if (this.dragging && this.axis !== null) {
@@ -1021,6 +1034,8 @@ class TransformControls extends Object3D {
 
 	public reset() {
 		if (!this.enabled) return;
+		if (this._restrictionManager)
+			this._restrictionManager.showRestrictionVisualization = false;
 
 		if (this.dragging) {
 			this.object?.position.copy(this._positionStart);

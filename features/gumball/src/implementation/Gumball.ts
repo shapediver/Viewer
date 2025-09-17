@@ -8,6 +8,11 @@ import {
 	SessionApiData,
 } from "@shapediver/viewer";
 import {
+	IRestrictionManager,
+	RestrictionManager,
+	RestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
 	EventEngine,
 	EVENTTYPE_GUMBALL,
 } from "@shapediver/viewer.shared.services";
@@ -26,6 +31,7 @@ export class Gumball implements IGumball {
 	readonly #matrixId: string = "SD_gumball_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
+	readonly #restrictionManager?: IRestrictionManager;
 	readonly #singleNode: boolean;
 	readonly #transformControls: TransformControls;
 	readonly #transformationControlsPlaceholder: THREE.Object3D =
@@ -87,9 +93,24 @@ export class Gumball implements IGumball {
 		this.#nodes = nodes;
 		this.#singleNode = nodes.length === 1;
 
+		if (settings?.restrictions !== undefined) {
+			const restrictionsArray: RestrictionProperties[] = [];
+			for (const restrictionId in settings.restrictions) {
+				const restriction = settings.restrictions[restrictionId];
+				if (!restriction.id) restriction.id = restrictionId;
+				restrictionsArray.push(restriction);
+			}
+			this.#restrictionManager = new RestrictionManager(
+				viewport,
+				undefined,
+				restrictionsArray,
+			);
+		}
+
 		this.#transformControls = new TransformControls(
 			viewport.threeJsCoreObjects.camera,
 			viewport.threeJsCoreObjects.renderer.domElement,
+			this.#restrictionManager,
 			this.updateObjects.bind(this),
 			this.updateObjectMatrices.bind(this),
 		);
