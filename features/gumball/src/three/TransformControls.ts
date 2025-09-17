@@ -56,14 +56,23 @@ class TransformControls extends Object3D {
 	private _enableRotationX: boolean = true;
 	private _enableRotationY: boolean = true;
 	private _enableRotationZ: boolean = true;
+	private _enableRotationXY: boolean = true;
+	private _enableRotationYZ: boolean = true;
+	private _enableRotationXZ: boolean = true;
 	private _enableScaling: boolean = true;
 	private _enableScalingX: boolean = true;
 	private _enableScalingY: boolean = true;
 	private _enableScalingZ: boolean = true;
+	private _enableScalingXY: boolean = true;
+	private _enableScalingYZ: boolean = true;
+	private _enableScalingXZ: boolean = true;
 	private _enableTranslation: boolean = true;
 	private _enableTranslationX: boolean = true;
 	private _enableTranslationY: boolean = true;
 	private _enableTranslationZ: boolean = true;
+	private _enableTranslationXY: boolean = true;
+	private _enableTranslationYZ: boolean = true;
+	private _enableTranslationXZ: boolean = true;
 	private _enabled: boolean = true;
 	private _endNorm: Vector3;
 	private _eye: Vector3 = new Vector3();
@@ -234,6 +243,30 @@ class TransformControls extends Object3D {
 		this._enableRotationZ = value;
 	}
 
+	public get enableRotationXY(): boolean {
+		return this._enableRotationXY;
+	}
+
+	public set enableRotationXY(value: boolean) {
+		this._enableRotationXY = value;
+	}
+
+	public get enableRotationYZ(): boolean {
+		return this._enableRotationYZ;
+	}
+
+	public set enableRotationYZ(value: boolean) {
+		this._enableRotationYZ = value;
+	}
+
+	public get enableRotationXZ(): boolean {
+		return this._enableRotationXZ;
+	}
+
+	public set enableRotationXZ(value: boolean) {
+		this._enableRotationXZ = value;
+	}
+
 	public get enableScaling(): boolean {
 		return this._enableScaling;
 	}
@@ -266,6 +299,30 @@ class TransformControls extends Object3D {
 		this._enableScalingZ = value;
 	}
 
+	public get enableScalingXY(): boolean {
+		return this._enableScalingXY;
+	}
+
+	public set enableScalingXY(value: boolean) {
+		this._enableScalingXY = value;
+	}
+
+	public get enableScalingYZ(): boolean {
+		return this._enableScalingYZ;
+	}
+
+	public set enableScalingYZ(value: boolean) {
+		this._enableScalingYZ = value;
+	}
+
+	public get enableScalingXZ(): boolean {
+		return this._enableScalingXZ;
+	}
+
+	public set enableScalingXZ(value: boolean) {
+		this._enableScalingXZ = value;
+	}
+
 	public get enableTranslation(): boolean {
 		return this._enableTranslation;
 	}
@@ -296,6 +353,30 @@ class TransformControls extends Object3D {
 
 	public set enableTranslationZ(value: boolean) {
 		this._enableTranslationZ = value;
+	}
+
+	public get enableTranslationXY(): boolean {
+		return this._enableTranslationXY;
+	}
+
+	public set enableTranslationXY(value: boolean) {
+		this._enableTranslationXY = value;
+	}
+
+	public get enableTranslationYZ(): boolean {
+		return this._enableTranslationYZ;
+	}
+
+	public set enableTranslationYZ(value: boolean) {
+		this._enableTranslationYZ = value;
+	}
+
+	public get enableTranslationXZ(): boolean {
+		return this._enableTranslationXZ;
+	}
+
+	public set enableTranslationXZ(value: boolean) {
+		this._enableTranslationXZ = value;
 	}
 
 	public get enabled(): boolean {
@@ -1599,15 +1680,35 @@ class TransformControlsGizmo extends Object3D {
 					[-Math.PI / 2, 0, 0],
 				],
 			],
-			// XY: [
-			//     [new Mesh(new BoxGeometry(0.15, 0.15, 0.01), scaleMaterialBlueTransparent), [0.15, 0.15, 0]]
-			// ],
-			// YZ: [
-			//     [new Mesh(new BoxGeometry(0.15, 0.15, 0.01), scaleMaterialRedTransparent), [0, 0.15, 0.15], [0, Math.PI / 2, 0]]
-			// ],
-			// XZ: [
-			//     [new Mesh(new BoxGeometry(0.15, 0.15, 0.01), scaleMaterialGreenTransparent), [0.15, 0, 0.15], [- Math.PI / 2, 0, 0]]
-			// ],
+			XY: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.15, -0.15, 0.01),
+						scaleMaterialBlueTransparent,
+					),
+					[-0.15, -0.15, 0],
+				],
+			],
+			YZ: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.15, -0.15, 0.01),
+						scaleMaterialRedTransparent,
+					),
+					[0, -0.15, -0.15],
+					[0, Math.PI / 2, 0],
+				],
+			],
+			XZ: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.15, -0.15, 0.01),
+						scaleMaterialGreenTransparent,
+					),
+					[-0.15, 0, -0.15],
+					[-Math.PI / 2, 0, 0],
+				],
+			],
 			// XYZ: [
 			//     [new Mesh(new BoxGeometry(0.1, 0.1, 0.1), scaleMaterialWhiteTransparent.clone())],
 			// ]
@@ -1647,15 +1748,35 @@ class TransformControlsGizmo extends Object3D {
 					[-Math.PI / 2, 0, 0],
 				],
 			],
-			// XY: [
-			//     [new Mesh(new BoxGeometry(0.2, 0.2, 0.01), scaleMaterialInvisible), [0.15, 0.15, 0]],
-			// ],
-			// YZ: [
-			//     [new Mesh(new BoxGeometry(0.2, 0.2, 0.01), scaleMaterialInvisible), [0, 0.15, 0.15], [0, Math.PI / 2, 0]],
-			// ],
-			// XZ: [
-			//     [new Mesh(new BoxGeometry(0.2, 0.2, 0.01), scaleMaterialInvisible), [0.15, 0, 0.15], [- Math.PI / 2, 0, 0]],
-			// ],
+			XY: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.2, -0.2, 0.01),
+						scaleMaterialInvisible,
+					),
+					[-0.15, -0.15, 0],
+				],
+			],
+			YZ: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.2, -0.2, 0.01),
+						scaleMaterialInvisible,
+					),
+					[0, -0.15, -0.15],
+					[0, Math.PI / 2, 0],
+				],
+			],
+			XZ: [
+				[
+					new Mesh(
+						new BoxGeometry(-0.2, -0.2, 0.01),
+						scaleMaterialInvisible,
+					),
+					[-0.15, 0, -0.15],
+					[-Math.PI / 2, 0, 0],
+				],
+			],
 			// XYZ: [
 			//     [new Mesh(new BoxGeometry(0.2, 0.2, 0.2), scaleMaterialInvisible), [0, 0, 0]],
 			// ]
@@ -1853,6 +1974,33 @@ class TransformControlsGizmo extends Object3D {
 					"Z",
 				);
 
+			// filter out all XY handles if XY is disabled
+			if (this._transformControls.enableTranslationXY === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XY",
+				);
+
+			// filter out all YZ handles if YZ is disabled
+			if (this._transformControls.enableTranslationYZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"YZ",
+				);
+
+			// filter out all XZ handles if XZ is disabled
+			if (this._transformControls.enableTranslationXZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XZ",
+				);
+
 			handles = handles.concat(
 				pickers.map((object) => ({
 					object,
@@ -1903,6 +2051,33 @@ class TransformControlsGizmo extends Object3D {
 					gizmos,
 					helpers,
 					"Z",
+				);
+
+			// filter out all XY handles if XY is disabled
+			if (this._transformControls.enableRotationXY === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XY",
+				);
+
+			// filter out all YZ handles if YZ is disabled
+			if (this._transformControls.enableRotationYZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"YZ",
+				);
+
+			// filter out all XZ handles if XZ is disabled
+			if (this._transformControls.enableRotationXZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XZ",
 				);
 
 			// filter out all E handles if one of the axis is disabled
@@ -1971,6 +2146,33 @@ class TransformControlsGizmo extends Object3D {
 					gizmos,
 					helpers,
 					"Z",
+				);
+
+			// filter out all XY handles if XY is disabled
+			if (this._transformControls.enableScalingXY === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XY",
+				);
+
+			// filter out all YZ handles if YZ is disabled
+			if (this._transformControls.enableScalingYZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"YZ",
+				);
+
+			// filter out all XZ handles if XZ is disabled
+			if (this._transformControls.enableScalingXZ === false)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XZ",
 				);
 
 			handles = handles.concat(

@@ -14,6 +14,9 @@ export type Settings = {
 		x?: boolean;
 		y?: boolean;
 		z?: boolean;
+		xy?: boolean;
+		yz?: boolean;
+		xz?: boolean;
 	};
 	/**
 	 * Enable or disable scaling. (default: true)
@@ -26,6 +29,9 @@ export type Settings = {
 		x?: boolean;
 		y?: boolean;
 		z?: boolean;
+		xy?: boolean;
+		yz?: boolean;
+		xz?: boolean;
 	};
 	/**
 	 * Enable or disable translation. (default: true)
@@ -38,6 +44,9 @@ export type Settings = {
 		x?: boolean;
 		y?: boolean;
 		z?: boolean;
+		xy?: boolean;
+		yz?: boolean;
+		xz?: boolean;
 	};
 	/**
 	 * The scale of the Gumball compared to the screen size. (default: 0.15)
@@ -87,6 +96,18 @@ export interface IGumball extends IDomEventListener {
 	 */
 	enableRotationZ: boolean;
 	/**
+	 * Enable or disable the rotation on the xy-plane.
+	 */
+	enableRotationXY: boolean;
+	/**
+	 * Enable or disable the rotation on the yz-plane.
+	 */
+	enableRotationYZ: boolean;
+	/**
+	 * Enable or disable the rotation on the xz-plane.
+	 */
+	enableRotationXZ: boolean;
+	/**
 	 * Enable or disable scaling
 	 */
 	enableScaling: boolean;
@@ -103,6 +124,18 @@ export interface IGumball extends IDomEventListener {
 	 */
 	enableScalingZ: boolean;
 	/**
+	 * Enable or disable the scaling on the xy-plane.
+	 */
+	enableScalingXY: boolean;
+	/**
+	 * Enable or disable the scaling on the yz-plane.
+	 */
+	enableScalingYZ: boolean;
+	/**
+	 * Enable or disable the scaling on the xz-plane.
+	 */
+	enableScalingXZ: boolean;
+	/**
 	 * Enable or disable translation
 	 */
 	enableTranslation: boolean;
@@ -118,6 +151,18 @@ export interface IGumball extends IDomEventListener {
 	 * Enable or disable the translation on the z-axis.
 	 */
 	enableTranslationZ: boolean;
+	/**
+	 * Enable or disable the translation on the xy-plane.
+	 */
+	enableTranslationXY: boolean;
+	/**
+	 * Enable or disable the translation on the yz-plane.
+	 */
+	enableTranslationYZ: boolean;
+	/**
+	 * Enable or disable the translation on the xz-plane.
+	 */
+	enableTranslationXZ: boolean;
 	/**
 	 * Show or hide the Gumball.
 	 */

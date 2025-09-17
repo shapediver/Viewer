@@ -42,14 +42,23 @@ export class Gumball implements IGumball {
 	#enableRotationX: boolean = true;
 	#enableRotationY: boolean = true;
 	#enableRotationZ: boolean = true;
+	#enableRotationXY: boolean = true;
+	#enableRotationYZ: boolean = true;
+	#enableRotationXZ: boolean = true;
 	#enableScaling: boolean = true;
 	#enableScalingX: boolean = true;
 	#enableScalingY: boolean = true;
 	#enableScalingZ: boolean = true;
+	#enableScalingXY: boolean = true;
+	#enableScalingYZ: boolean = true;
+	#enableScalingXZ: boolean = true;
 	#enableTranslation: boolean = true;
 	#enableTranslationX: boolean = true;
 	#enableTranslationY: boolean = true;
 	#enableTranslationZ: boolean = true;
+	#enableTranslationXY: boolean = true;
+	#enableTranslationYZ: boolean = true;
+	#enableTranslationXZ: boolean = true;
 	#initialOffset: vec3 = vec3.create();
 	#initialTransform: mat4[] = [];
 	#instanceTransform: mat4[] = [];
@@ -89,14 +98,23 @@ export class Gumball implements IGumball {
 		this.enableRotationX = settings?.enableRotationAxes?.x ?? true;
 		this.enableRotationY = settings?.enableRotationAxes?.y ?? true;
 		this.enableRotationZ = settings?.enableRotationAxes?.z ?? true;
+		this.enableRotationXY = settings?.enableRotationAxes?.xy ?? true;
+		this.enableRotationYZ = settings?.enableRotationAxes?.yz ?? true;
+		this.enableRotationXZ = settings?.enableRotationAxes?.xz ?? true;
 		this.enableScaling = settings?.enableScaling ?? false;
 		this.enableScalingX = settings?.enableScalingAxes?.x ?? true;
 		this.enableScalingY = settings?.enableScalingAxes?.y ?? true;
 		this.enableScalingZ = settings?.enableScalingAxes?.z ?? true;
+		this.enableScalingXY = settings?.enableScalingAxes?.xy ?? true;
+		this.enableScalingYZ = settings?.enableScalingAxes?.yz ?? true;
+		this.enableScalingXZ = settings?.enableScalingAxes?.xz ?? true;
 		this.enableTranslation = settings?.enableTranslation ?? true;
 		this.enableTranslationX = settings?.enableTranslationAxes?.x ?? true;
 		this.enableTranslationY = settings?.enableTranslationAxes?.y ?? true;
 		this.enableTranslationZ = settings?.enableTranslationAxes?.z ?? true;
+		this.enableTranslationXY = settings?.enableTranslationAxes?.xy ?? true;
+		this.enableTranslationYZ = settings?.enableTranslationAxes?.yz ?? true;
+		this.enableTranslationXZ = settings?.enableTranslationAxes?.xz ?? true;
 		this.scale = settings?.scale ?? 0.15;
 		// we don't allow to change the space for now
 		this.#space = settings?.space ?? "local";
@@ -151,6 +169,33 @@ export class Gumball implements IGumball {
 		this.#transformControls.enableRotationZ = value;
 	}
 
+	public get enableRotationXY(): boolean {
+		return this.#enableRotationXY;
+	}
+
+	public set enableRotationXY(value: boolean) {
+		this.#enableRotationXY = value;
+		this.#transformControls.enableRotationXY = value;
+	}
+
+	public get enableRotationYZ(): boolean {
+		return this.#enableRotationYZ;
+	}
+
+	public set enableRotationYZ(value: boolean) {
+		this.#enableRotationYZ = value;
+		this.#transformControls.enableRotationYZ = value;
+	}
+
+	public get enableRotationXZ(): boolean {
+		return this.#enableRotationXZ;
+	}
+
+	public set enableRotationXZ(value: boolean) {
+		this.#enableRotationXZ = value;
+		this.#transformControls.enableRotationXZ = value;
+	}
+
 	public get enableScaling(): boolean {
 		return this.#enableScaling;
 	}
@@ -187,6 +232,33 @@ export class Gumball implements IGumball {
 		this.#transformControls.enableScalingZ = value;
 	}
 
+	public get enableScalingXY(): boolean {
+		return this.#enableScalingXY;
+	}
+
+	public set enableScalingXY(value: boolean) {
+		this.#enableScalingXY = value;
+		this.#transformControls.enableScalingXY = value;
+	}
+
+	public get enableScalingYZ(): boolean {
+		return this.#enableScalingYZ;
+	}
+
+	public set enableScalingYZ(value: boolean) {
+		this.#enableScalingYZ = value;
+		this.#transformControls.enableScalingYZ = value;
+	}
+
+	public get enableScalingXZ(): boolean {
+		return this.#enableScalingXZ;
+	}
+
+	public set enableScalingXZ(value: boolean) {
+		this.#enableScalingXZ = value;
+		this.#transformControls.enableScalingXZ = value;
+	}
+
 	public get enableTranslation(): boolean {
 		return this.#enableTranslation;
 	}
@@ -221,6 +293,33 @@ export class Gumball implements IGumball {
 	public set enableTranslationZ(value: boolean) {
 		this.#enableTranslationZ = value;
 		this.#transformControls.enableTranslationZ = value;
+	}
+
+	public get enableTranslationXY(): boolean {
+		return this.#enableTranslationXY;
+	}
+
+	public set enableTranslationXY(value: boolean) {
+		this.#enableTranslationXY = value;
+		this.#transformControls.enableTranslationXY = value;
+	}
+
+	public get enableTranslationYZ(): boolean {
+		return this.#enableTranslationYZ;
+	}
+
+	public set enableTranslationYZ(value: boolean) {
+		this.#enableTranslationYZ = value;
+		this.#transformControls.enableTranslationYZ = value;
+	}
+
+	public get enableTranslationXZ(): boolean {
+		return this.#enableTranslationXZ;
+	}
+
+	public set enableTranslationXZ(value: boolean) {
+		this.#enableTranslationXZ = value;
+		this.#transformControls.enableTranslationXZ = value;
 	}
 
 	public get matrix(): mat4 {
