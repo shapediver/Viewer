@@ -62,7 +62,7 @@ export type Settings = {
 	 */
 	reuseTransformation: boolean;
 
-	restrictions: {[key: string]: RestrictionProperties};
+	restrictions: Partial<{[key: string]: RestrictionProperties}>;
 };
 export type SettingsOptional = Partial<Settings>;
 

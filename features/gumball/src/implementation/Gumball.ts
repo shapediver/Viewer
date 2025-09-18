@@ -97,6 +97,7 @@ export class Gumball implements IGumball {
 			const restrictionsArray: RestrictionProperties[] = [];
 			for (const restrictionId in settings.restrictions) {
 				const restriction = settings.restrictions[restrictionId];
+				if (!restriction) continue;
 				if (!restriction.id) restriction.id = restrictionId;
 				restrictionsArray.push(restriction);
 			}
