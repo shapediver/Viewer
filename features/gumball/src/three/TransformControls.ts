@@ -2016,6 +2016,19 @@ class TransformControlsGizmo extends Object3D {
 					"XZ",
 				);
 
+			// filter out all XYZ handles if XYZ is disabled
+			if (
+				this._transformControls.enableTranslationX === false ||
+				this._transformControls.enableTranslationY === false ||
+				this._transformControls.enableTranslationZ === false
+			)
+				[pickers, gizmos, helpers] = this.filterOutAxis(
+					pickers,
+					gizmos,
+					helpers,
+					"XYZ",
+				);
+
 			handles = handles.concat(
 				pickers.map((object) => ({
 					object,
@@ -2635,15 +2648,9 @@ class TransformControlsGizmo extends Object3D {
 		helpers: Object3D[],
 		axis: string,
 	) {
-		const pickersAxis = pickers.filter((object) =>
-			object.name.includes(axis),
-		);
-		const gizmosAxis = gizmos.filter((object) =>
-			object.name.includes(axis),
-		);
-		const helpersAxis = helpers.filter((object) =>
-			object.name.includes(axis),
-		);
+		const pickersAxis = pickers.filter((object) => object.name === axis);
+		const gizmosAxis = gizmos.filter((object) => object.name === axis);
+		const helpersAxis = helpers.filter((object) => object.name === axis);
 
 		[pickersAxis, gizmosAxis, helpersAxis].forEach((objects) => {
 			objects.forEach((object) => {
@@ -2657,9 +2664,9 @@ class TransformControlsGizmo extends Object3D {
 			this.picker.scale.remove(object);
 		});
 
-		pickers = pickers.filter((object) => !object.name.includes(axis));
-		gizmos = gizmos.filter((object) => !object.name.includes(axis));
-		helpers = helpers.filter((object) => !object.name.includes(axis));
+		pickers = pickers.filter((object) => object.name !== axis);
+		gizmos = gizmos.filter((object) => object.name !== axis);
+		helpers = helpers.filter((object) => object.name !== axis);
 
 		return [pickers, gizmos, helpers];
 	}

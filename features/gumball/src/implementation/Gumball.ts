@@ -120,23 +120,50 @@ export class Gumball implements IGumball {
 		this.enableRotationX = settings?.enableRotationAxes?.x ?? true;
 		this.enableRotationY = settings?.enableRotationAxes?.y ?? true;
 		this.enableRotationZ = settings?.enableRotationAxes?.z ?? true;
-		this.enableRotationXY = settings?.enableRotationAxes?.xy ?? true;
-		this.enableRotationYZ = settings?.enableRotationAxes?.yz ?? true;
-		this.enableRotationXZ = settings?.enableRotationAxes?.xz ?? true;
+		this.enableRotationXY =
+			settings?.enableRotationAxes?.xy === undefined
+				? this.enableRotationX && this.enableRotationY
+				: settings?.enableRotationAxes?.xy;
+		this.enableRotationYZ =
+			settings?.enableRotationAxes?.yz === undefined
+				? this.enableRotationY && this.enableRotationZ
+				: settings?.enableRotationAxes?.yz;
+		this.enableRotationXZ =
+			settings?.enableRotationAxes?.xz === undefined
+				? this.enableRotationX && this.enableRotationZ
+				: settings?.enableRotationAxes?.xz;
 		this.enableScaling = settings?.enableScaling ?? false;
 		this.enableScalingX = settings?.enableScalingAxes?.x ?? true;
 		this.enableScalingY = settings?.enableScalingAxes?.y ?? true;
 		this.enableScalingZ = settings?.enableScalingAxes?.z ?? true;
-		this.enableScalingXY = settings?.enableScalingAxes?.xy ?? true;
-		this.enableScalingYZ = settings?.enableScalingAxes?.yz ?? true;
-		this.enableScalingXZ = settings?.enableScalingAxes?.xz ?? true;
+		this.enableScalingXY =
+			settings?.enableScalingAxes?.xy === undefined
+				? this.enableScalingX && this.enableScalingY
+				: settings?.enableScalingAxes?.xy;
+		this.enableScalingYZ =
+			settings?.enableScalingAxes?.yz === undefined
+				? this.enableScalingY && this.enableScalingZ
+				: settings?.enableScalingAxes?.yz;
+		this.enableScalingXZ =
+			settings?.enableScalingAxes?.xz === undefined
+				? this.enableScalingX && this.enableScalingZ
+				: settings?.enableScalingAxes?.xz;
 		this.enableTranslation = settings?.enableTranslation ?? true;
 		this.enableTranslationX = settings?.enableTranslationAxes?.x ?? true;
 		this.enableTranslationY = settings?.enableTranslationAxes?.y ?? true;
 		this.enableTranslationZ = settings?.enableTranslationAxes?.z ?? true;
-		this.enableTranslationXY = settings?.enableTranslationAxes?.xy ?? true;
-		this.enableTranslationYZ = settings?.enableTranslationAxes?.yz ?? true;
-		this.enableTranslationXZ = settings?.enableTranslationAxes?.xz ?? true;
+		this.enableTranslationXY =
+			settings?.enableTranslationAxes?.xy === undefined
+				? this.enableTranslationX && this.enableTranslationY
+				: settings?.enableTranslationAxes?.xy;
+		this.enableTranslationYZ =
+			settings?.enableTranslationAxes?.yz === undefined
+				? this.enableTranslationY && this.enableTranslationZ
+				: settings?.enableTranslationAxes?.yz;
+		this.enableTranslationXZ =
+			settings?.enableTranslationAxes?.xz === undefined
+				? this.enableTranslationX && this.enableTranslationZ
+				: settings?.enableTranslationAxes?.xz;
 		this.scale = settings?.scale ?? 0.15;
 		// we don't allow to change the space for now
 		this.#space = settings?.space ?? "local";
