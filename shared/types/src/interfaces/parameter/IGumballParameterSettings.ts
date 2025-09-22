@@ -1,4 +1,4 @@
-import {RestrictionDefinition} from "./IRestrictionSettings";
+import {RestrictionDefinition} from "../..";
 import {ISelectionParameterProps} from "./ISelectionParameterSettings";
 
 // #region Type aliases (1)
@@ -11,6 +11,20 @@ export type GumballParameterValue = {
 // #endregion Type aliases (1)
 
 // #region Interfaces (1)
+
+/**
+ * Properties of a draggable object.
+ */
+export interface IDraggableObject {
+	// #region Properties (4)
+
+	/** The name filter for the objects that can be dragged with the defined settings. */
+	nameFilter: string;
+	/** The ids of the restrictions in the restrictions array to apply for these objects. */
+	restrictions: string[];
+
+	// #endregion Properties (4)
+}
 
 /**
  * Properties of a selection parameter.
@@ -61,6 +75,17 @@ export interface IGumballParameterProps extends ISelectionParameterProps {
 	scale?: number;
 	/** The space in which the controls operate. In world space, scaling is not available. (default: 'local') */
 	space?: "local" | "world";
+	/**
+	 * The objects that can be dragged.
+	 *
+	 * For each object, the name filter and the restrictions can be defined.
+	 * The name filter is used to filter the objects that can be dragged with the defined settings.
+	 * This means that multiple objects can be dragged with different settings, but also multiple objects can be dragged with the same settings.
+	 *
+	 * This is only used for dragging, not for rotation or scaling!
+	 */
+	objects?: IDraggableObject[];
+	/** The restrictions that can be applied to the draggable objects. */
 	restrictions?: RestrictionDefinition[];
 	// #endregion Properties (5)
 }

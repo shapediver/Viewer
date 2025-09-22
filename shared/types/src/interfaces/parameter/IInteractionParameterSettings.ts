@@ -137,6 +137,15 @@ export const IGumballParameterJsonSchema = z.object({
 			maximumSelection: z.number().nullable().optional(),
 			minimumSelection: z.number().nullable().optional(),
 			deselectOnEmpty: optionalBoolean,
+			objects: z
+				.array(
+					z.object({
+						nameFilter: z.string(),
+						restrictions: z.array(z.string()),
+					}),
+				)
+				.nullable()
+				.optional(),
 			restrictions: z
 				.array(
 					z
