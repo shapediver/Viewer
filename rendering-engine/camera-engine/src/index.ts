@@ -28,3 +28,24 @@ export {
 	IOrthographicCamera,
 };
 export {PerspectiveCameraControls, OrthographicCameraControls};
+
+// Utility type to extract non-readonly properties
+type WritableKeys<T> = {
+	[K in keyof T]: T[K] extends Readonly<any> ? never : K;
+}[keyof T];
+
+type Writable<T> = Pick<T, WritableKeys<T>>;
+
+// Extract writable properties from camera types
+type WritableOrthographicCamera = Writable<IOrthographicCamera>;
+type WritablePerspectiveCamera = Writable<IPerspectiveCamera>;
+
+// Ensure either 'name' or 'type' must be defined
+type CameraWithNameOrType<T> = T & ({name: string} | {type: CAMERA_TYPE});
+
+export type OrthographicCameraProperties = CameraWithNameOrType<
+	Partial<WritableOrthographicCamera>
+>;
+export type PerspectiveCameraProperties = CameraWithNameOrType<
+	Partial<WritablePerspectiveCamera>
+>;

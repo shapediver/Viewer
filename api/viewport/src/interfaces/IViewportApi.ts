@@ -1,3 +1,7 @@
+import {
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ISettings} from "@shapediver/viewer.settings";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
@@ -526,6 +530,20 @@ export interface IViewportApi {
 	 * @param quality The quality of the screenshot, default is 1.
 	 */
 	getScreenshot(type?: string, quality?: number): string;
+	/**
+	 * Create a screenshot for the requested type and options.
+	 *
+	 * @param type The type as string, default is 'image/png'.
+	 * @param quality The quality of the screenshot, default is 1.
+	 * @param resolution The resolution of the screenshot, default is the current canvas size.
+	 * @param camera The camera that should be used for the screenshot, default is the current camera.
+	 */
+	getScreenshotAdvanced(
+		type?: string,
+		quality?: number,
+		resolution?: {width: number; height: number},
+		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+	): Promise<string>;
 	/**
 	 * Get the current settings object of this viewport.
 	 * Can be re-applied at a later point with {@link applyViewportSettings}.

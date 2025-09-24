@@ -10,6 +10,8 @@ import {
 	CAMERA_TYPE,
 	IOrthographicCamera,
 	IPerspectiveCamera,
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
@@ -1479,6 +1481,58 @@ export class ViewportApi implements IViewportApi {
 		);
 		this.update("getScreenshot");
 		return this.#renderingEngine.getScreenshot(type, quality);
+	}
+
+	public getScreenshotAdvanced(
+		type?: string,
+		quality?: number,
+		resolution?: {width: number; height: number},
+		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+	): Promise<string> {
+		const scope = "getScreenshotAdvanced";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			type,
+			"string",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			quality,
+			"number",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			resolution,
+			"object",
+			false,
+		);
+		if (resolution) {
+			this.#inputValidator.validateAndError(
+				`ViewportApi.${scope}`,
+				resolution.width,
+				"number",
+			);
+			this.#inputValidator.validateAndError(
+				`ViewportApi.${scope}`,
+				resolution.height,
+				"number",
+			);
+		}
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			camera,
+			"object",
+			false,
+		);
+		this.update("getScreenshotAdvanced");
+		return this.#renderingEngine.getScreenshotAdvanced(
+			type,
+			quality,
+			resolution,
+			camera,
+		);
 	}
 
 	public getViewportSettings(): ISettings {

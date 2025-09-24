@@ -1,7 +1,12 @@
 import * as THREE from "three";
 
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
-import {CameraEngine} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {
+	CameraEngine,
+	ICamera,
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	CanvasEngine,
 	ICanvas,
@@ -13,6 +18,7 @@ import {
 	Converter,
 	DomEventEngine,
 	EventEngine,
+	EVENTTYPE_RENDERING,
 	EVENTTYPE_VIEWPORT,
 	Logger,
 	SESSION_SETTINGS_MODE,
@@ -1080,6 +1086,169 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public getScreenshot(type?: string, encoderOptions?: number): string {
 		return this._renderingManager.getScreenshot(type, encoderOptions);
+	}
+
+	public async getScreenshotAdvanced(
+		type?: string,
+		encoderOptions?: number,
+		resolution?: {width: number; height: number},
+		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+	): Promise<string> {
+		const busyModeFlag = this.addFlag(FLAG_TYPE.BUSY_MODE);
+		// if a resolution is provided, we temporarily disable the rendering of the viewer
+		// so that we can take a screenshot with the correct resolution
+		let originalAutomaticResizing = this.automaticResizing;
+		let originalMaximumRenderingSize = JSON.stringify(
+			this.maximumRenderingSize,
+		);
+		let originalBeautyRenderDelay = this.beautyRenderDelay;
+
+		this.beautyRenderDelay = 0; // avoid waiting for beauty render
+
+		// if the resolution or camera is different, don't show the current viewport, but
+		// create a screenshot and show that instead
+		const current = this._renderingManager.getScreenshot();
+		const img = new Image();
+		img.src = current;
+		img.style.position = "absolute";
+		img.style.top = "0%";
+		img.style.left = "0%";
+		img.style.width = "100%";
+		img.style.height = "100%";
+		this.canvas.parentElement!.appendChild(img);
+		this.canvas.style.visibility = "hidden";
+
+		// change the resolution if requested
+		if (resolution) {
+			this.automaticResizing = false;
+			this.maximumRenderingSize = {
+				width: resolution.width,
+				height: resolution.height,
+			};
+			this.resize(resolution.width, resolution.height);
+		}
+
+		// if the camera is changed, we need to restore it afterwards
+		let originalCameraId: string | undefined;
+		// if the camera properties are changed, we need to restore them afterwards
+		let originalCameraProperties:
+			| {
+					id: string;
+					properties: {
+						[f: string]: any;
+					};
+			  }
+			| undefined = undefined;
+		// new camera
+		let newCamera: ICamera | undefined;
+
+		// change the camera if requested
+		if (camera) {
+			if (camera.name) {
+				if (this._cameraEngine.camera?.name === camera.name) {
+					// nothing to do, already assigned
+				} else if (this._cameraEngine.cameras[camera.name]) {
+					const specifiedCamera =
+						this._cameraEngine.cameras[camera.name];
+
+					originalCameraId = this._cameraEngine.camera?.id;
+					this._cameraEngine.assignCamera(specifiedCamera.id);
+				}
+
+				originalCameraProperties = {
+					id: this._cameraEngine.camera!.id,
+					properties: {},
+				};
+				Object.keys(this._cameraEngine.camera!).forEach((key) => {
+					if (key !== "name") {
+						originalCameraProperties!.properties[key] = (
+							this._cameraEngine.camera as any
+						)[key];
+
+						if (
+							(camera as Record<string, any>)[key] !== undefined
+						) {
+							// @ts-ignore
+							this._cameraEngine.camera[key] = (
+								camera as Record<string, any>
+							)[key];
+						}
+					}
+				});
+			} else if (camera.type) {
+				// create a new camera
+				newCamera = this._cameraEngine.createCamera(camera.type);
+				originalCameraId = this._cameraEngine.camera?.id;
+				this._cameraEngine.assignCamera(newCamera.id);
+
+				// assign the properties
+				Object.keys(camera).forEach((key) => {
+					if (key !== "type") {
+						// @ts-ignore
+						(newCamera as any)[key] = (camera as any)[key];
+					}
+				});
+			}
+		}
+
+		this.renderingManager.render();
+		await new Promise<void>((resolve) => {
+			const token = this._eventEngine.addListener(
+				EVENTTYPE_RENDERING.BEAUTY_RENDERING_FINISHED,
+				() => {
+					resolve();
+					this._eventEngine.removeListener(token);
+				},
+			);
+		});
+		const screenshot = this._renderingManager.getScreenshot(
+			type,
+			encoderOptions,
+		);
+		// sometimes the screenshot is not ready immediately (even though it should be)
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		if (resolution) {
+			// restore original settings
+			this.automaticResizing = originalAutomaticResizing;
+			this.maximumRenderingSize = JSON.parse(
+				originalMaximumRenderingSize,
+			);
+		}
+
+		if (camera) {
+			if (originalCameraId) {
+				this._cameraEngine.assignCamera(originalCameraId);
+			}
+
+			if (originalCameraProperties) {
+				if (
+					this._cameraEngine.camera?.id ===
+					originalCameraProperties.id
+				) {
+					Object.keys(originalCameraProperties.properties).forEach(
+						(key) => {
+							// @ts-ignore
+							(this._cameraEngine.camera as any)[key] =
+								originalCameraProperties!.properties[key];
+						},
+					);
+				}
+			}
+
+			if (newCamera) {
+				this._cameraEngine.removeCamera(newCamera.id);
+			}
+		}
+
+		// clean up
+		this.renderingManager.render();
+		this.beautyRenderDelay = originalBeautyRenderDelay;
+		this.canvas.style.visibility = "visible";
+		this.canvas.parentElement!.removeChild(img);
+
+		this.removeFlag(busyModeFlag);
+		return screenshot;
 	}
 
 	public isMobileDeviceWithoutBrowserARSupport(): boolean {

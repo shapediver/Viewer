@@ -35,7 +35,9 @@ import {
 import {
 	CAMERA_TYPE,
 	ICameraOptions,
+	OrthographicCameraProperties,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	PerspectiveCameraProperties,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {LIGHT_TYPE} from "@shapediver/viewer.rendering-engine.light-engine";
 import {
@@ -328,6 +330,8 @@ export {
 	ILightApi,
 	ILightSceneApi,
 	IViewportApi,
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
 };
 export {createViewport, viewports};
 export {
