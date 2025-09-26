@@ -13,6 +13,8 @@ import {
 	ReqCustomization,
 	ReqExport,
 	ReqFileDefinition,
+	ReqSdtfType,
+	ResAssetDefinition,
 	ResBase,
 	ResComputationStatus,
 	ResErrorType,
@@ -26,6 +28,7 @@ import {
 	ResParameter,
 	ResponseError,
 	SdGeometryError,
+	SdtfApi,
 	SessionApi,
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
@@ -2549,6 +2552,52 @@ export class SessionEngine implements ISessionEngine {
 		}
 	}
 
+	public async uploadSDTF(
+		arrayBuffers: ArrayBuffer[],
+		retry = false,
+	): Promise<ResAssetDefinition[]> {
+		this.checkAvailability("file-upload");
+
+		try {
+			const responseDto = (
+				await new SdtfApi(this._sdkConfig).uploadSdtf(
+					this._sessionId!,
+					arrayBuffers.map((arrayBuffer) => {
+						return {
+							namespace: "pub",
+							content_length: arrayBuffer.byteLength,
+							content_type: ReqSdtfType.MODEL_SDTF,
+						};
+					}),
+				)
+			).data;
+			if (
+				!responseDto ||
+				!responseDto.asset ||
+				!responseDto.asset.sdtf ||
+				responseDto.asset.sdtf.length !== arrayBuffers.length
+			)
+				throw new ShapeDiverViewerSessionError(
+					"Session.uploadSDTF: Upload reply has not the required format.",
+				);
+
+			const promises = arrayBuffers.map((buffer, index) => {
+				const url = responseDto.asset.sdtf[index].href;
+				return new UtilsApi(this._sdkConfig).upload(
+					url,
+					buffer,
+					ReqSdtfType.MODEL_SDTF,
+				);
+			});
+			await Promise.all(promises);
+
+			return responseDto.asset.sdtf;
+		} catch (e) {
+			await this.handleError(e, retry);
+			return await this.uploadSDTF(arrayBuffers, true);
+		}
+	}
+
 	// #endregion Public Methods (31)
 
 	// #region Private Methods (18)
@@ -3056,7 +3105,7 @@ export class SessionEngine implements ISessionEngine {
 					format: blob.type,
 					size: blob.size,
 				},
-				arrayBuffer,
+				arrayBuffer: arrayBuffer as ArrayBuffer,
 			};
 		} else {
 			// case where the image is a URL

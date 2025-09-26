@@ -1,5 +1,6 @@
 import {
 	ReqExport,
+	ResAssetDefinition,
 	ResBase,
 	ResGetModelState,
 	ResModelState,
@@ -945,6 +946,12 @@ export class SessionApi implements ISessionApi {
 		const fileParameterIds =
 			await this.#sessionEngine.uploadFileParameters(fileParameters);
 		return fileParameterIds;
+	}
+
+	public async uploadSDTF(
+		arrayBuffers: ArrayBuffer[],
+	): Promise<ResAssetDefinition[]> {
+		return this.#sessionEngine.uploadSDTF(arrayBuffers);
 	}
 
 	// #endregion Public Methods (32)

@@ -2,6 +2,7 @@ import {
 	QueryGltfConversion,
 	ReqCustomization,
 	ReqExport,
+	ResAssetDefinition,
 	ResBase,
 	ResExport,
 	ResFileInfo,
@@ -115,6 +116,7 @@ export interface ISessionEngine {
 		[key: string]: string | File | Blob;
 	}): Promise<{[key: string]: string}>;
 	uploadGLTF(blob: Blob, conversion?: QueryGltfConversion): Promise<ResBase>;
+	uploadSDTF(arrayBuffers: ArrayBuffer[]): Promise<ResAssetDefinition[]>;
 
 	// #endregion Public Methods (26)
 }

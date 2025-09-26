@@ -1,5 +1,6 @@
 import {
 	ReqExport,
+	ResAssetDefinition,
 	ResBase,
 	ResGetModelState,
 	ResModelState,
@@ -613,6 +614,14 @@ export interface ISessionApi {
 	uploadFileParameters(values: {
 		[key: string]: string | File | Blob;
 	}): Promise<{[key: string]: string}>;
+
+	/**
+	 * Upload the provided array buffers as sdTF files.
+	 * The uploaded files will be processed and their definitions returned.
+	 *
+	 * @param arrayBuffers
+	 */
+	uploadSDTF(arrayBuffers: ArrayBuffer[]): Promise<ResAssetDefinition[]>;
 
 	// #endregion Public Methods (31)
 }
