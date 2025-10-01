@@ -29,8 +29,8 @@ export class FileParameterApi
 		return this.#parameter.getFilename(fileId);
 	}
 
-	public upload(): Promise<string> {
-		return this.#parameter.upload();
+	public upload(v?: File | Blob | string): Promise<string> {
+		return this.#parameter.upload(v);
 	}
 
 	// #endregion Public Methods (2)

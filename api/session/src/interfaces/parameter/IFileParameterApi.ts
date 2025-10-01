@@ -31,9 +31,11 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
 	 * You can then use the returned id to either set it as the value of the parameter or use it in a subsequent customization.
 	 * This call returns immediately in case no data is waiting to be uploaded.
 	 *
+	 * @param v - Optionally, the data (File, Blob, or string id) to upload. If not provided, the current {@link value} is used.
+	 * @returns The id of the uploaded file, or the current value if no upload was necessary.
 	 * @throws {@type ShapeDiverViewerError}
 	 */
-	upload(): Promise<string>;
+	upload(v?: File | Blob | string): Promise<string>;
 
 	// #endregion Public Methods (2)
 }
