@@ -905,6 +905,27 @@ class TransformControls extends Object3D {
 				if (axis.search("Z") === -1) {
 					_tempVector2.z = 1;
 				}
+
+				if (axis === "XY") {
+					// assign the same scale to both x and y
+					const avgScale = (_tempVector2.x + _tempVector2.y) / 2;
+					_tempVector2.x = avgScale;
+					_tempVector2.y = avgScale;
+				}
+
+				if (axis === "YZ") {
+					// assign the same scale to both y and z
+					const avgScale = (_tempVector2.y + _tempVector2.z) / 2;
+					_tempVector2.y = avgScale;
+					_tempVector2.z = avgScale;
+				}
+
+				if (axis === "XZ") {
+					// assign the same scale to both x and z
+					const avgScale = (_tempVector2.x + _tempVector2.z) / 2;
+					_tempVector2.x = avgScale;
+					_tempVector2.z = avgScale;
+				}
 			}
 
 			// Apply scale
