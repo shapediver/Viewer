@@ -224,6 +224,13 @@ export class OutputLoader {
 							promises.push(
 								this._globalAccessObjects.loadContent(
 									outputs[outputID].content![i],
+									{
+										id: outputs[outputID].id,
+										name: outputs[outputID].name,
+										displayname:
+											outputs[outputID].displayname,
+										version: outputs[outputID].version,
+									},
 									this._sessionEngine.jwtToken,
 									outputID +
 										"_" +

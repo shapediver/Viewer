@@ -1,6 +1,7 @@
-import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutput, ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {HTMLElementAnchorEngine} from "@shapediver/viewer.data-engine.html-element-anchor-engine";
+import {MaterialDatabaseEngine} from "@shapediver/viewer.data-engine.material-database-engine";
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {SDTFEngine} from "@shapediver/viewer.data-engine.sdtf-engine";
 import {Tag3dEngine} from "@shapediver/viewer.data-engine.tag3d-engine";
@@ -21,6 +22,8 @@ export class DataEngine {
 	private readonly _geometryEngine: GeometryEngine = GeometryEngine.instance;
 	private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine =
 		HTMLElementAnchorEngine.instance;
+	private readonly _materialDatabaseEngine: MaterialDatabaseEngine =
+		MaterialDatabaseEngine.instance;
 	private readonly _materialEngine: MaterialEngine = MaterialEngine.instance;
 	private readonly _sdtfEngine: SDTFEngine = SDTFEngine.instance;
 	private readonly _tag3dEngine: Tag3dEngine = Tag3dEngine.instance;
@@ -42,6 +45,10 @@ export class DataEngine {
 
 	public async loadContent(
 		content: ResOutputContent,
+		outputInfo?: Pick<
+			Partial<ResOutput>,
+			"id" | "name" | "displayname" | "version"
+		>,
 		jwtToken?: string,
 		taskEventId?: string,
 	): Promise<ITreeNode> {
@@ -111,6 +118,24 @@ export class DataEngine {
 				id: taskEventId,
 				progress: 1,
 				status: "SdTF content loaded.",
+			});
+		} else if (
+			content.format === "data" &&
+			(outputInfo?.name?.toLowerCase() === "materialdatabase" ||
+				outputInfo?.displayname?.toLowerCase() === "materialdatabase")
+		) {
+			this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, {
+				type: TASK_TYPE.MATERIAL_DATABASE_LOADING,
+				id: taskEventId,
+				progress: 0,
+				status: "Loading material database content.",
+			});
+			node = await this._materialDatabaseEngine.loadContent(content);
+			this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, {
+				type: TASK_TYPE.MATERIAL_DATABASE_LOADING,
+				id: taskEventId,
+				progress: 1,
+				status: "Material database content loaded.",
 			});
 		} else {
 			this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, {

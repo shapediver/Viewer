@@ -1,5 +1,5 @@
 {
-	"name": "@shapediver/viewer.data-engine.data-engine",
+	"name": "@shapediver/viewer.data-engine.material-database-engine",
 	"version": "3.13.3",
 	"description": "",
 	"keywords": [],
@@ -38,13 +38,8 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "2.9.1",
-		"@shapediver/viewer.data-engine.geometry-engine": "3.13.3",
-		"@shapediver/viewer.data-engine.html-element-anchor-engine": "3.13.3",
-		"@shapediver/viewer.data-engine.material-database-engine": "3.13.3",
 		"@shapediver/viewer.data-engine.material-engine": "3.13.3",
-		"@shapediver/viewer.data-engine.sdtf-engine": "3.13.3",
-		"@shapediver/viewer.data-engine.tag3d-engine": "3.13.3",
+		"@shapediver/viewer.data-engine.shared-types": "3.13.3",
 		"@shapediver/viewer.shared.global-access-objects": "3.13.3",
 		"@shapediver/viewer.shared.node-tree": "3.13.3",
 		"@shapediver/viewer.shared.services": "3.13.3",

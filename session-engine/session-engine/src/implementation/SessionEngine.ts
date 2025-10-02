@@ -39,6 +39,7 @@ import {
 	validate,
 	versions,
 } from "@shapediver/viewer.settings";
+import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
 	ITree,
 	ITreeNode,
@@ -98,6 +99,8 @@ export class SessionEngine implements ISessionEngine {
 	private readonly _converter = Converter.instance;
 	private readonly _eventEngine = EventEngine.instance;
 	private readonly _exports: {[key: string]: IExport} = {};
+	private readonly _globalAccessObjects: GlobalAccessObjects =
+		GlobalAccessObjects.instance;
 	private readonly _guid?: string;
 	private readonly _httpClient: HttpClient = HttpClient.instance;
 	private readonly _id: string;
@@ -3378,6 +3381,11 @@ export class SessionEngine implements ISessionEngine {
 			}
 		}
 		await Promise.all(promises);
+
+		// now that all callbacks are done
+		// we apply the materialDatabase (if there is one)
+		if (this._globalAccessObjects.assignMaterialFromDatabase)
+			await this._globalAccessObjects.assignMaterialFromDatabase(newNode);
 	}
 
 	// #endregion Private Methods (18)

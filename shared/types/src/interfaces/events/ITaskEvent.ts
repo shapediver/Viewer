@@ -48,6 +48,7 @@ export enum TASK_TYPE {
 	GLTF_CREATION = "gltf_creation",
 	GLTF_CONTENT_LOADING = "gltf_content_loading",
 	MATERIAL_CONTENT_LOADING = "material_content_loading",
+	MATERIAL_DATABASE_LOADING = "material_database_loading",
 	TAG_CONTENT_LOADING = "tag_content_loading",
 	SDTF_CONTENT_LOADING = "sdtf_content_loading",
 	SESSION_CUSTOMIZATION = "session_customization",

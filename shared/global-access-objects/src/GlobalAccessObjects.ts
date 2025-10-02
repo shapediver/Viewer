@@ -1,4 +1,4 @@
-import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResOutput, ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 export class GlobalAccessObjects {
@@ -6,6 +6,7 @@ export class GlobalAccessObjects {
 
 	private static _instance: GlobalAccessObjects;
 
+	#assignMaterialFromDatabase?: (node: ITreeNode) => Promise<void>;
 	#combineTextures?: (
 		red?: HTMLImageElement | ArrayBuffer,
 		green?: HTMLImageElement | ArrayBuffer,
@@ -13,6 +14,10 @@ export class GlobalAccessObjects {
 	) => Promise<{image: HTMLImageElement | ArrayBuffer; blob: Blob}>;
 	#loadContent?: (
 		content: ResOutputContent,
+		outputInfo?: Pick<
+			Partial<ResOutput>,
+			"id" | "name" | "displayname" | "version"
+		>,
 		jwtToken?: string,
 		taskEventId?: string,
 	) => Promise<ITreeNode>;
@@ -28,6 +33,16 @@ export class GlobalAccessObjects {
 	// #endregion Public Static Getters And Setters (1)
 
 	// #region Public Getters And Setters (4)
+
+	public get assignMaterialFromDatabase() {
+		return this.#assignMaterialFromDatabase;
+	}
+
+	public set assignMaterialFromDatabase(
+		value: ((node: ITreeNode) => Promise<void>) | undefined,
+	) {
+		this.#assignMaterialFromDatabase = value;
+	}
 
 	public get combineTextures() {
 		return this.#combineTextures;
@@ -53,6 +68,10 @@ export class GlobalAccessObjects {
 		value:
 			| ((
 					content: ResOutputContent,
+					outputInfo?: Pick<
+						Partial<ResOutput>,
+						"id" | "name" | "displayname" | "version"
+					>,
 					jwtToken?: string,
 					taskEventId?: string,
 			  ) => Promise<ITreeNode>)
