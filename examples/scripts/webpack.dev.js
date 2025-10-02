@@ -12,6 +12,7 @@ module.exports = merge(common, {
 	devServer: {
 		open: true,
 		static: path.resolve(__dirname, "dist-dev"),
+		hot: false,
 	},
 	module: {
 		rules: [
