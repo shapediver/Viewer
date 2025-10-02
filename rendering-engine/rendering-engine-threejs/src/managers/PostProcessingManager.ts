@@ -8,7 +8,11 @@ import {
 	SystemInfo,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {ISceneEvent, TONE_MAPPING} from "@shapediver/viewer.shared.types";
+import {
+	FLAG_TYPE,
+	ISceneEvent,
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {
 	BlendFunction,
@@ -115,6 +119,7 @@ export class PostProcessingManager implements IManager {
 	private _ssaaRenderPass?: SSAARenderPass;
 	private _suspendEffectPassUpdate = false;
 	private _toneMappingEffect?: ToneMappingEffect;
+	private _continuousRenderingToken?: string;
 
 	// #endregion Properties (23)
 
@@ -955,6 +960,24 @@ export class PostProcessingManager implements IManager {
 				this._toneMappingEffect,
 			);
 			this.addPassToEffectComposer(effectPass);
+		}
+
+		// if there is at least one outline effect, with a pulse speed > 0, we need to enable continuous rendering
+		if (
+			this._effectDefinitions.find(
+				(e) =>
+					e.definition.type === POST_PROCESSING_EFFECT_TYPE.OUTLINE &&
+					((<IOutlineEffectDefinition>e.definition).properties
+						?.pulseSpeed || 0) > 0,
+			)
+		) {
+			if (this._continuousRenderingToken === undefined)
+				this._continuousRenderingToken = this._renderingEngine.addFlag(
+					FLAG_TYPE.CONTINUOUS_RENDERING,
+				);
+		} else if (this._continuousRenderingToken !== undefined) {
+			this._renderingEngine.removeFlag(this._continuousRenderingToken);
+			this._continuousRenderingToken = undefined;
 		}
 	}
 
