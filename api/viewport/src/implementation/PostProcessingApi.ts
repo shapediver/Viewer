@@ -175,7 +175,10 @@ export class PostProcessingApi implements IPostProcessingApi {
 
 	// #region Public Methods (7)
 
-	public addEffect(definition: IPostProcessingEffectDefinition): string {
+	public addEffect(
+		definition: IPostProcessingEffectDefinition,
+		token?: string,
+	): string {
 		const scope = "addEffect";
 		this.#inputValidator.validateAndError(
 			`PostProcessingApi.${scope}`,
@@ -183,8 +186,10 @@ export class PostProcessingApi implements IPostProcessingApi {
 			"object",
 			false,
 		);
-		const res =
-			this.#renderingEngine.postProcessingManager.addEffect(definition);
+		const res = this.#renderingEngine.postProcessingManager.addEffect(
+			definition,
+			token,
+		);
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was called with definition ${definition}.`,
 		);

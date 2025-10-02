@@ -1,10 +1,12 @@
+import {IViewportApi} from "@shapediver/viewer";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
+import {GeometryData} from "@shapediver/viewer.shared.types";
 import {
-	GeometryData,
-	IMaterialAbstractData,
-} from "@shapediver/viewer.shared.types";
-import {IInteractionEffectUtils} from "../../interfaces/utils/IInteractionEffectUtils";
+	IInteractionEffect,
+	IInteractionEffectUtils,
+	isMaterialData,
+} from "../../interfaces/utils/IInteractionEffectUtils";
 
 export class InteractionEffectUtils implements IInteractionEffectUtils {
 	// #region Properties (2)
@@ -12,6 +14,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	private static _instance: InteractionEffectUtils;
+
+	#viewport?: IViewportApi;
 
 	// #endregion Properties (2)
 
@@ -23,45 +27,77 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
 	// #endregion Public Static Accessors (1)
 
+	public get viewport(): IViewportApi | undefined {
+		return this.#viewport;
+	}
+
+	public set viewport(value: IViewportApi | undefined) {
+		this.#viewport = value;
+	}
 	// #region Public Methods (2)
 
 	/**
-	 * Apply the effect material to the node and all descendents.
+	 * Apply the effect material to the node and all descendants.
 	 *
 	 * @param node
 	 * @param material
 	 * @returns
 	 */
-	public applyEffectMaterial(
+	public applyInteractionEffect(
 		node: ITreeNode,
-		material: IMaterialAbstractData,
+		effect: IInteractionEffect,
 	): string {
 		const token = this.#uuidGenerator.create();
+		if (!effect) return token;
 
-		const applyEffect = (node: ITreeNode) => {
-			for (let i = 0; i < node.data.length; i++) {
-				if (node.data[i] instanceof GeometryData) {
-					const geometryData = <GeometryData>node.data[i];
-					geometryData.effectMaterials.push({material, token});
-					geometryData.updateVersion();
+		if (isMaterialData(effect)) {
+			const applyEffect = (node: ITreeNode) => {
+				for (let i = 0; i < node.data.length; i++) {
+					if (node.data[i] instanceof GeometryData) {
+						const geometryData = <GeometryData>node.data[i];
+						geometryData.effectMaterials.push({
+							material: effect,
+							token,
+						});
+						geometryData.updateVersion();
+					}
 				}
-			}
 
-			for (let i = 0; i < node.children.length; i++) {
-				applyEffect(node.children[i]);
-			}
-		};
-		applyEffect(node);
+				for (let i = 0; i < node.children.length; i++) {
+					applyEffect(node.children[i]);
+				}
+			};
+			applyEffect(node);
+		} else {
+			if (!this.#viewport) return token;
+			const stringified = JSON.stringify(effect);
+			const postProcessingEffect =
+				this.#viewport.postProcessing.outlineEffects[stringified];
+			if (!postProcessingEffect)
+				this.#viewport.postProcessing.addEffect(effect, stringified);
+
+			console.log(
+				"adding selection",
+				node,
+				this.#viewport.postProcessing.outlineEffects[stringified],
+			);
+			this.#viewport.postProcessing.outlineEffects[
+				stringified
+			].addSelection(node);
+
+			return stringified;
+		}
+
 		return token;
 	}
 
 	/**
-	 * Remove the effect material with the specified token from the node and all descendents.
+	 * Remove the effect material with the specified token from the node and all descendants.
 	 *
 	 * @param node
 	 * @param token
 	 */
-	public removeEffectMaterial(node: ITreeNode, token: string) {
+	public removeInteractionEffect(node: ITreeNode, token: string) {
 		const removeEffect = (node: ITreeNode) => {
 			for (let i = 0; i < node.data.length; i++) {
 				if (node.data[i] instanceof GeometryData) {
@@ -81,6 +117,13 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			}
 		};
 		removeEffect(node);
+
+		if (!this.#viewport) return;
+		const postProcessingEffect =
+			this.#viewport.postProcessing.outlineEffects[token];
+		if (postProcessingEffect) {
+			postProcessingEffect.removeSelection(node);
+		}
 	}
 
 	// #endregion Public Methods (2)

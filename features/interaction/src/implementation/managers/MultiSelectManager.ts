@@ -14,6 +14,7 @@ import {
 import {IMultiSelectEvent} from "../../interfaces/events/IMultiSelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionData} from "../InteractionData";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -26,7 +27,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = false;
-	#effectMaterialTokens: (string | undefined)[] = [];
+	#interactionEffectTokens: (string | undefined)[] = [];
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -38,7 +39,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
 		return (node: ITreeNode) => false;
 	};
-	#groupEffectMaterialToken: string[][] = [];
+	#groupInteractionEffectToken: string[][] = [];
 	#groupedNodes: ITreeNode[][] = [];
 	#insertionKey = "Shift";
 	#maximumNodes: number = Infinity;
@@ -53,11 +54,11 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
 	constructor(
 		id?: string,
-		effectMaterial?: IMaterialAbstractData,
+		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
 		minimumNodes?: number,
 		maximumNodes?: number,
 	) {
-		super(id, effectMaterial);
+		super(id, interactionEffect);
 		if (minimumNodes) this.#minimumNodes = minimumNodes;
 		if (maximumNodes) this.#maximumNodes = maximumNodes;
 	}
@@ -343,31 +344,31 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
 		// find and store all nodes that are within the group
 		this.#groupedNodes[this.#nodes.length - 1] = [];
-		this.#groupEffectMaterialToken[this.#nodes.length - 1] = [];
+		this.#groupInteractionEffectToken[this.#nodes.length - 1] = [];
 		if (data && data.groupId)
 			this.#groupedNodes[this.#nodes.length - 1] =
 				this.gatheredGroupedNodes[data.groupId] || [];
 
-		if (this.effectMaterial) {
-			this.#effectMaterialTokens.push(
-				this.interactionEffectUtils.applyEffectMaterial(
+		if (this.interactionEffect) {
+			this.#interactionEffectTokens.push(
+				this.interactionEffectUtils.applyInteractionEffect(
 					intersection.node,
-					this.effectMaterial,
+					this.interactionEffect,
 				),
 			);
 			if (this.#groupedNodes[this.#nodes.length - 1])
 				this.#groupedNodes[this.#nodes.length - 1]!.forEach((n) =>
-					this.#groupEffectMaterialToken[
+					this.#groupInteractionEffectToken[
 						this.#nodes.length - 1
 					]!.push(
-						this.interactionEffectUtils.applyEffectMaterial(
+						this.interactionEffectUtils.applyInteractionEffect(
 							n,
-							this.effectMaterial!,
+							this.interactionEffect!,
 						),
 					),
 				);
 		} else {
-			this.#effectMaterialTokens.push(undefined);
+			this.#interactionEffectTokens.push(undefined);
 		}
 
 		this.viewport.updateNode(intersection.node);
@@ -427,18 +428,18 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		const index = this.#nodes.indexOf(node);
 		if (index === -1) return;
 
-		const effectMaterialToken = this.#effectMaterialTokens[index];
-		this.#effectMaterialTokens.splice(index, 1);
-		if (effectMaterialToken) {
-			this.interactionEffectUtils.removeEffectMaterial(
+		const interactionEffectToken = this.#interactionEffectTokens[index];
+		this.#interactionEffectTokens.splice(index, 1);
+		if (interactionEffectToken) {
+			this.interactionEffectUtils.removeInteractionEffect(
 				node,
-				effectMaterialToken,
+				interactionEffectToken,
 			);
 			if (this.#groupedNodes[index])
 				this.#groupedNodes[index]!.forEach((n, i) =>
-					this.interactionEffectUtils.removeEffectMaterial(
+					this.interactionEffectUtils.removeInteractionEffect(
 						n,
-						this.#groupEffectMaterialToken[index]![i],
+						this.#groupInteractionEffectToken[index]![i],
 					),
 				);
 		}
@@ -461,7 +462,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			groupedNodes: this.#groupedNodes[index],
 		} as IMultiSelectEvent);
 		this.#groupedNodes.splice(index, 1);
-		this.#groupEffectMaterialToken.splice(index, 1);
+		this.#groupInteractionEffectToken.splice(index, 1);
 
 		if (this.#nodes.length < this.#minimumNodes) {
 			this.#eventEngine.emitEvent(

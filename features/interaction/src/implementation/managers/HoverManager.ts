@@ -18,6 +18,7 @@ import {
 import {IHoverEvent} from "../../interfaces/events/IHoverEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionData} from "../InteractionData";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -29,7 +30,7 @@ export class HoverManager extends AbstractInteractionManager {
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
 
-	#effectMaterialToken?: string;
+	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -41,7 +42,7 @@ export class HoverManager extends AbstractInteractionManager {
 
 		return (node: ITreeNode) => false;
 	};
-	#groupEffectMaterialToken?: string[];
+	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
 	#intersection: IIntersection | null = null;
 	#node: ITreeNode | null = null;
@@ -53,8 +54,11 @@ export class HoverManager extends AbstractInteractionManager {
 
 	// #region Constructors (1)
 
-	constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
-		super(id, effectMaterial);
+	constructor(
+		id?: string,
+		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
+	) {
+		super(id, interactionEffect);
 
 		this.#dragEventTokenStart = addListener(
 			EVENTTYPE.INTERACTION.DRAG_START,
@@ -210,7 +214,7 @@ export class HoverManager extends AbstractInteractionManager {
 		this.#node = this.#intersection.node;
 
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
 		const data = this.getInteractionData(this.#node!);
@@ -219,27 +223,27 @@ export class HoverManager extends AbstractInteractionManager {
 		// find and store all nodes that are within the group
 		if (data && data.groupId) {
 			this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
-			this.#groupEffectMaterialToken = [];
+			this.#groupInteractionEffectToken = [];
 		}
 
 		// apply the effect material if there is something to apply
-		if (this.effectMaterial) {
-			this.#effectMaterialToken =
-				this.interactionEffectUtils.applyEffectMaterial(
+		if (this.interactionEffect) {
+			this.#interactionEffectToken =
+				this.interactionEffectUtils.applyInteractionEffect(
 					this.#node,
-					this.effectMaterial,
+					this.interactionEffect,
 				);
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n) =>
-					this.#groupEffectMaterialToken!.push(
-						this.interactionEffectUtils.applyEffectMaterial(
+					this.#groupInteractionEffectToken!.push(
+						this.interactionEffectUtils.applyInteractionEffect(
 							n,
-							this.effectMaterial!,
+							this.interactionEffect!,
 						),
 					),
 				);
 		} else {
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 		}
 
 		this.viewport.updateNode(this.#node);
@@ -277,21 +281,21 @@ export class HoverManager extends AbstractInteractionManager {
 		const data = this.getInteractionData(this.#node!);
 		if (data) data.interactionStates.hover = false;
 
-		if (this.#effectMaterialToken) {
-			this.interactionEffectUtils.removeEffectMaterial(
+		if (this.#interactionEffectToken) {
+			this.interactionEffectUtils.removeInteractionEffect(
 				this.#node!,
-				this.#effectMaterialToken,
+				this.#interactionEffectToken,
 			);
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeEffectMaterial(
+					this.interactionEffectUtils.removeInteractionEffect(
 						n,
-						this.#groupEffectMaterialToken![i],
+						this.#groupInteractionEffectToken![i],
 					),
 				);
-			this.#groupEffectMaterialToken = undefined;
+			this.#groupInteractionEffectToken = undefined;
 		}
 
 		this.viewport.updateNode(this.#node!);
@@ -312,7 +316,7 @@ export class HoverManager extends AbstractInteractionManager {
 		this.#node = null;
 
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 	}
 
 	private getInteractionData(node: ITreeNode): InteractionData | undefined {

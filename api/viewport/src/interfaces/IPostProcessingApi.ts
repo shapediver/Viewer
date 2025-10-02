@@ -206,11 +206,15 @@ export interface IPostProcessingApi {
 	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
 	 *
 	 * @param definition
+	 * @param token Optional token that can be used to identify the effect in other API functions.
 	 *
 	 * @see updateEffect
 	 * @see removeEffect
 	 */
-	addEffect(definition: IPostProcessingEffectDefinition): string;
+	addEffect(
+		definition: IPostProcessingEffectDefinition,
+		token?: string,
+	): string;
 	/**
 	 * Get the default settings of an effect by their type.
 	 *

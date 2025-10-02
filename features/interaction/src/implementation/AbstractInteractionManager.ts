@@ -15,7 +15,11 @@ import {
 	IInteractionFilterOptions,
 	IInteractionManager,
 } from "../interfaces/IInteractionManager";
-import {IInteractionEffectUtils} from "../interfaces/utils/IInteractionEffectUtils";
+import {
+	IInteractionEffect,
+	IInteractionEffectUtils,
+	isMaterialData,
+} from "../interfaces/utils/IInteractionEffectUtils";
 import {InteractionData} from "./InteractionData";
 import {InteractionEffectUtils} from "./utils/InteractionEffectUtils";
 
@@ -28,7 +32,7 @@ export abstract class AbstractInteractionManager
 	readonly #id: string;
 	readonly #tree: Tree = Tree.instance;
 
-	#effectMaterial?: IMaterialAbstractData;
+	#interactionEffect?: IInteractionEffect;
 	#gatheredGroupedNodes: {
 		[key: string]: ITreeNode[];
 	} = {};
@@ -42,9 +46,13 @@ export abstract class AbstractInteractionManager
 
 	// #region Constructors (1)
 
-	constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
+	constructor(
+		id?: string,
+		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
+	) {
 		this.#id = id || UuidGenerator.instance.create();
-		this.#effectMaterial = effectMaterial;
+
+		this.#interactionEffect = interactionEffect;
 
 		this.gatherGroupNodes();
 		this.#eventEngine.addListener(
@@ -60,11 +68,22 @@ export abstract class AbstractInteractionManager
 	// #region Public Getters And Setters (8)
 
 	public get effectMaterial(): IMaterialAbstractData | undefined {
-		return this.#effectMaterial;
+		return this.#interactionEffect &&
+			isMaterialData(this.#interactionEffect)
+			? this.#interactionEffect
+			: undefined;
 	}
 
 	public set effectMaterial(value: IMaterialAbstractData | undefined) {
-		this.#effectMaterial = value;
+		this.#interactionEffect = value;
+	}
+
+	public get interactionEffect(): IInteractionEffect | undefined {
+		return this.#interactionEffect;
+	}
+
+	public set interactionEffect(value: IInteractionEffect | undefined) {
+		this.#interactionEffect = value;
 	}
 
 	public get gatheredGroupedNodes(): {
@@ -91,6 +110,7 @@ export abstract class AbstractInteractionManager
 
 	public set viewport(value: IViewportApi | undefined) {
 		this.#viewport = value;
+		this.#interactionEffectUtils.viewport = value;
 	}
 
 	// #endregion Public Getters And Setters (8)

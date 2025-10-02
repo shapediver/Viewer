@@ -1,11 +1,15 @@
-import {IMaterialAbstractData, IViewportApi} from "@shapediver/viewer";
+import {IViewportApi} from "@shapediver/viewer";
 import {
 	IIntersection,
 	IIntersectionFilter,
+	IMaterialAbstractData,
 	IRay,
 } from "@shapediver/viewer.shared.types";
 import {INTERACTION_STATE} from "./IInteractionEngine";
-import {IInteractionEffectUtils} from "./utils/IInteractionEffectUtils";
+import {
+	IInteractionEffect,
+	IInteractionEffectUtils,
+} from "./utils/IInteractionEffectUtils";
 
 // #region Type aliases (1)
 
@@ -21,8 +25,14 @@ export interface IInteractionManager {
 	// #region Properties (5)
 
 	/**
-	 * The material that is applied to the node once the effect (selection, hovering or dragging) is active.
-	 * If no effect material is applied, the material will not be changed.
+	 * The effect that is applied to the node once the effect (selection, hovering or dragging) is active.
+	 * If no interaction effect is applied, the effect will not be changed.
+	 */
+	interactionEffect?: IInteractionEffect;
+	/**
+	 * The effect material that is applied to the node once the effect (selection, hovering or dragging) is active.
+	 * If no effect material is applied, the effect will not be changed.
+	 * (Note that this is only for backwards compatibility, use interactionEffect instead)
 	 */
 	effectMaterial?: IMaterialAbstractData;
 	/**

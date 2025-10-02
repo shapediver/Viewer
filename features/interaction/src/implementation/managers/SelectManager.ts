@@ -13,6 +13,7 @@ import {
 import {ISelectEvent} from "../../interfaces/events/ISelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionData} from "../InteractionData";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -25,7 +26,7 @@ export class SelectManager extends AbstractInteractionManager {
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = false;
-	#effectMaterialToken?: string;
+	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -37,7 +38,7 @@ export class SelectManager extends AbstractInteractionManager {
 
 		return (node: ITreeNode) => false;
 	};
-	#groupEffectMaterialToken?: string[];
+	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
 	#intersection: IIntersection | null = null;
 	#node: ITreeNode | null = null;
@@ -50,11 +51,11 @@ export class SelectManager extends AbstractInteractionManager {
 
 	constructor(
 		id?: string,
-		effectMaterial?: IMaterialAbstractData,
+		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
 		deselectOnEmpty?: boolean,
 		useModifierKeys?: boolean,
 	) {
-		super(id, effectMaterial);
+		super(id, interactionEffect);
 		if (deselectOnEmpty !== undefined)
 			this.#deselectOnEmpty = deselectOnEmpty;
 		if (useModifierKeys !== undefined)
@@ -250,7 +251,7 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#node = this.#intersection.node;
 
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
 		const data = this.getInteractionData(this.#node!);
@@ -259,27 +260,27 @@ export class SelectManager extends AbstractInteractionManager {
 		// find and store all nodes that are within the group
 		if (data && data.groupId) {
 			this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
-			this.#groupEffectMaterialToken = [];
+			this.#groupInteractionEffectToken = [];
 		}
 
 		// apply the effect material if there is something to apply
-		if (this.effectMaterial) {
-			this.#effectMaterialToken =
-				this.interactionEffectUtils.applyEffectMaterial(
+		if (this.interactionEffect) {
+			this.#interactionEffectToken =
+				this.interactionEffectUtils.applyInteractionEffect(
 					this.#node,
-					this.effectMaterial,
+					this.interactionEffect,
 				);
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n) =>
-					this.#groupEffectMaterialToken!.push(
-						this.interactionEffectUtils.applyEffectMaterial(
+					this.#groupInteractionEffectToken!.push(
+						this.interactionEffectUtils.applyInteractionEffect(
 							n,
-							this.effectMaterial!,
+							this.interactionEffect!,
 						),
 					),
 				);
 		} else {
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 		}
 
 		this.viewport.updateNode(this.#node);
@@ -317,21 +318,21 @@ export class SelectManager extends AbstractInteractionManager {
 		const data = this.getInteractionData(this.#node!);
 		if (data) data.interactionStates.select = false;
 
-		if (this.#effectMaterialToken) {
-			this.interactionEffectUtils.removeEffectMaterial(
+		if (this.#interactionEffectToken) {
+			this.interactionEffectUtils.removeInteractionEffect(
 				this.#node!,
-				this.#effectMaterialToken,
+				this.#interactionEffectToken,
 			);
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeEffectMaterial(
+					this.interactionEffectUtils.removeInteractionEffect(
 						n,
-						this.#groupEffectMaterialToken![i],
+						this.#groupInteractionEffectToken![i],
 					),
 				);
-			this.#groupEffectMaterialToken = undefined;
+			this.#groupInteractionEffectToken = undefined;
 		}
 
 		this.viewport.updateNode(this.#node!);
@@ -353,7 +354,7 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#node = null;
 
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 	}
 
 	private getInteractionData(node: ITreeNode): InteractionData | undefined {

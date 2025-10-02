@@ -34,6 +34,7 @@ import {IDragEvent} from "../../interfaces/events/IDragEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
+import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {CameraPlaneConstraint} from "../dragConstraints/CameraPlaneConstraint";
 import {LineConstraint} from "../dragConstraints/LineConstraint";
@@ -56,7 +57,7 @@ export class DragManager extends AbstractInteractionManager {
 		dragAnchors: IDragAnchor[];
 		dragOrigin: vec3;
 	};
-	#effectMaterialToken?: string;
+	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -68,7 +69,7 @@ export class DragManager extends AbstractInteractionManager {
 
 		return (node: ITreeNode) => false;
 	};
-	#groupEffectMaterialToken?: string[];
+	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
 	#intersection: IIntersection | null = null;
 	#restrictionManager?: RestrictionManager;
@@ -82,8 +83,11 @@ export class DragManager extends AbstractInteractionManager {
 	#tokenContinuousRendering!: string;
 	#tokenContinuousShadowMapUpdate!: string;
 
-	constructor(id?: string, effectMaterial?: IMaterialAbstractData) {
-		super(id, effectMaterial);
+	constructor(
+		id?: string,
+		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
+	) {
+		super(id, interactionEffect);
 	}
 
 	public get filter(): IInteractionFilterOptions {
@@ -574,7 +578,7 @@ export class DragManager extends AbstractInteractionManager {
 		this.#intersection = intersection;
 		const node = this.#intersection.node;
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
 		const data = this.getInteractionData(node);
@@ -583,7 +587,7 @@ export class DragManager extends AbstractInteractionManager {
 		// find and store all nodes that are within the group
 		if (data && data.groupId) {
 			this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
-			this.#groupEffectMaterialToken = [];
+			this.#groupInteractionEffectToken = [];
 		}
 
 		// remove the previous transformation of the dragged node (and all grouped within)
@@ -603,23 +607,23 @@ export class DragManager extends AbstractInteractionManager {
 		if (!worldMatrixInverse) worldMatrixInverse = mat4.create();
 
 		// apply the effect material if there is something to apply
-		if (this.effectMaterial) {
-			this.#effectMaterialToken =
-				this.interactionEffectUtils.applyEffectMaterial(
+		if (this.interactionEffect) {
+			this.#interactionEffectToken =
+				this.interactionEffectUtils.applyInteractionEffect(
 					node,
-					this.effectMaterial,
+					this.interactionEffect,
 				);
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n) =>
-					this.#groupEffectMaterialToken!.push(
-						this.interactionEffectUtils.applyEffectMaterial(
+					this.#groupInteractionEffectToken!.push(
+						this.interactionEffectUtils.applyInteractionEffect(
 							n,
-							this.effectMaterial!,
+							this.interactionEffect!,
 						),
 					),
 				);
 		} else {
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 		}
 
 		// update the node
@@ -685,21 +689,21 @@ export class DragManager extends AbstractInteractionManager {
 		const data = this.getInteractionData(this.#draggedNode.node);
 		if (data) data.interactionStates.drag = false;
 
-		if (this.#effectMaterialToken) {
-			this.interactionEffectUtils.removeEffectMaterial(
+		if (this.#interactionEffectToken) {
+			this.interactionEffectUtils.removeInteractionEffect(
 				this.#draggedNode.node,
-				this.#effectMaterialToken,
+				this.#interactionEffectToken,
 			);
-			this.#effectMaterialToken = undefined;
+			this.#interactionEffectToken = undefined;
 
 			if (this.#groupedNodes)
 				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeEffectMaterial(
+					this.interactionEffectUtils.removeInteractionEffect(
 						n,
-						this.#groupEffectMaterialToken![i],
+						this.#groupInteractionEffectToken![i],
 					),
 				);
-			this.#groupEffectMaterialToken = undefined;
+			this.#groupInteractionEffectToken = undefined;
 		}
 
 		this.viewport.updateNode(this.#draggedNode.node);
@@ -712,7 +716,7 @@ export class DragManager extends AbstractInteractionManager {
 		this.#draggedNode = undefined;
 
 		this.#groupedNodes = undefined;
-		this.#groupEffectMaterialToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 	}
 
 	private getInteractionData(node: ITreeNode): InteractionData | undefined {
