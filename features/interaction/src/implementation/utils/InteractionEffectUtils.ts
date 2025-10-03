@@ -93,6 +93,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 	 * @param token
 	 */
 	public removeInteractionEffect(node: ITreeNode, token: string) {
+		console.log("remove interaction effect", node.id, node.version, token);
 		const removeEffect = (node: ITreeNode) => {
 			for (let i = 0; i < node.data.length; i++) {
 				if (node.data[i] instanceof GeometryData) {
@@ -113,9 +114,17 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		};
 		removeEffect(node);
 
+		console.log(
+			"remove outline effect",
+			this.#viewport?.id,
+			node.id,
+			node.version,
+		);
 		if (!this.#viewport) return;
 		const postProcessingEffect =
 			this.#viewport.postProcessing.outlineEffects[token];
+
+		console.log("postProcessingEffect", postProcessingEffect);
 		if (postProcessingEffect) {
 			console.log(
 				"removing outline effect",
