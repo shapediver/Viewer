@@ -1,5 +1,8 @@
 import {IGumballParameter} from "@shapediver/viewer.session-engine.session-engine";
-import {InteractionParameterSettingsType} from "@shapediver/viewer.shared.types";
+import {
+	InteractionEffect,
+	InteractionParameterSettingsType,
+} from "@shapediver/viewer.shared.types";
 import {IGumballParameterApi} from "../../interfaces/parameter/IGumballParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
@@ -23,6 +26,10 @@ export class GumballParameterApi
 	// #endregion Constructors (1)
 
 	// #region Public Getters And Setters (9)
+
+	public get availableColor(): InteractionEffect | undefined {
+		return this.#parameter.availableColor;
+	}
 
 	public get enableRotation(): boolean | undefined {
 		return this.#parameter.enableRotation;
@@ -52,7 +59,7 @@ export class GumballParameterApi
 		return this.#parameter.scale;
 	}
 
-	public get selectionColor(): string | undefined {
+	public get selectionColor(): InteractionEffect | undefined {
 		return this.#parameter.selectionColor;
 	}
 

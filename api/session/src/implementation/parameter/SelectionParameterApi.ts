@@ -1,5 +1,8 @@
 import {ISelectionParameter} from "@shapediver/viewer.session-engine.session-engine";
-import {InteractionParameterSettingsType} from "@shapediver/viewer.shared.types";
+import {
+	InteractionEffect,
+	InteractionParameterSettingsType,
+} from "@shapediver/viewer.shared.types";
 import {ISelectionParameterApi} from "../../interfaces/parameter/ISelectionParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
@@ -24,6 +27,10 @@ export class SelectionParameterApi
 
 	// #region Public Getters And Setters (5)
 
+	public get availableColor(): InteractionEffect | undefined {
+		return this.#parameter.availableColor;
+	}
+
 	public get hover(): boolean | undefined {
 		return this.#parameter.hover;
 	}
@@ -44,7 +51,7 @@ export class SelectionParameterApi
 		return this.#parameter.nameFilter;
 	}
 
-	public get selectionColor(): string | undefined {
+	public get selectionColor(): InteractionEffect | undefined {
 		return this.#parameter.selectionColor;
 	}
 

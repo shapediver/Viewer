@@ -152,6 +152,7 @@ import {
 	IInteractionParameterJsonSchema,
 	IInteractionParameterProps,
 	IInteractionParameterSettings,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	ISelectionParameterJsonSchema,
 	validateDraggingParameterSettings,
@@ -378,6 +379,7 @@ export {
 };
 export {
 	InteractionParameterSettingsType,
+	InteractionEffect,
 	IInteractionParameterProps,
 	IInteractionParameterSettings,
 	IInteractionParameterJsonSchema,

@@ -1,6 +1,7 @@
 import {IDraggingParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {
 	IDraggableObject,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	RestrictionDefinition,
 } from "@shapediver/viewer.shared.types";
@@ -28,7 +29,11 @@ export class DraggingParameterApi
 
 	// #region Public Getters And Setters (6)
 
-	public get draggingColor(): string | undefined {
+	public get availableColor(): InteractionEffect | undefined {
+		return this.#parameter.availableColor;
+	}
+
+	public get draggingColor(): InteractionEffect | undefined {
 		return this.#parameter.draggingColor;
 	}
 
@@ -36,7 +41,7 @@ export class DraggingParameterApi
 		return this.#parameter.hover;
 	}
 
-	public get hoverColor(): string | undefined {
+	public get hoverColor(): InteractionEffect | undefined {
 		return this.#parameter.hoverColor;
 	}
 
