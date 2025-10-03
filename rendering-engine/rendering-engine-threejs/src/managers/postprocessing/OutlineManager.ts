@@ -60,5 +60,9 @@ export class OutlineManager {
 		this._outlineEffect.selection.set(objects);
 	}
 
+	public selectedNodes(): ITreeNode[] {
+		return this._outlineNodes;
+	}
+
 	// #endregion Public Methods (5)
 }

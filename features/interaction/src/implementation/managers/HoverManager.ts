@@ -94,6 +94,7 @@ export class HoverManager extends AbstractInteractionManager {
 	 * Deselect the current node.
 	 */
 	public deselect() {
+		console.log("deselect hover", this.#node?.id, this.#node?.version);
 		if (this.#node) this.deactivateNode();
 	}
 
@@ -270,6 +271,7 @@ export class HoverManager extends AbstractInteractionManager {
 	 * @param event
 	 */
 	private deactivateNode(event?: PointerEvent) {
+		console.log("deactivate hover", this.#node?.id, this.#node?.version);
 		if (!this.viewport) {
 			this.#logger.warn(
 				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
@@ -281,6 +283,7 @@ export class HoverManager extends AbstractInteractionManager {
 		const data = this.getInteractionData(this.#node!);
 		if (data) data.interactionStates.hover = false;
 
+		console.log("deactivate hover effect", this.#interactionEffectToken);
 		if (this.#interactionEffectToken) {
 			this.interactionEffectUtils.removeInteractionEffect(
 				this.#node!,
