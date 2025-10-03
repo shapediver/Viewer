@@ -9,8 +9,29 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
+	ANTI_ALIASING_TECHNIQUE,
 	FLAG_TYPE,
+	IBloomEffectDefinition,
+	IChromaticAberrationEffectDefinition,
+	IDepthOfFieldEffectDefinition,
+	IDotScreenEffectDefinition,
+	IGodRaysEffectDefinition,
+	IGridEffectDefinition,
+	IHBAOEffectDefinition,
+	IHueSaturationEffectDefinition,
+	INoiseEffectDefinition,
+	IOutlineEffectDefinition,
+	IPixelationEffectDefinition,
+	IPostProcessingEffectDefinition,
+	IPostProcessingEffectsArray,
+	IScanlineEffectDefinition,
 	ISceneEvent,
+	ISelectiveBloomEffectDefinition,
+	ISepiaEffectDefinition,
+	ISSAOEffectDefinition,
+	ITiltShiftEffectDefinition,
+	IVignetteEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE,
 	TONE_MAPPING,
 } from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
@@ -44,29 +65,6 @@ import {
 	VignetteTechnique,
 } from "postprocessing";
 import * as THREE from "three";
-import {
-	ANTI_ALIASING_TECHNIQUE,
-	IBloomEffectDefinition,
-	IChromaticAberrationEffectDefinition,
-	IDepthOfFieldEffectDefinition,
-	IDotScreenEffectDefinition,
-	IGodRaysEffectDefinition,
-	IGridEffectDefinition,
-	IHBAOEffectDefinition,
-	IHueSaturationEffectDefinition,
-	INoiseEffectDefinition,
-	IOutlineEffectDefinition,
-	IPixelationEffectDefinition,
-	IPostProcessingEffectDefinition,
-	IPostProcessingEffectsArray,
-	IScanlineEffectDefinition,
-	ISelectiveBloomEffectDefinition,
-	ISepiaEffectDefinition,
-	ISSAOEffectDefinition,
-	ITiltShiftEffectDefinition,
-	IVignetteEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "../interfaces/IPostProcessingEffectDefinitions";
 import {RenderingEngine} from "../RenderingEngine";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";

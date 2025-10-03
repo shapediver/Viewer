@@ -1,4 +1,6 @@
 import {z} from "zod";
+import {IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
+import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
 
 // #region Type aliases (1)
 
@@ -6,6 +8,11 @@ export type InteractionParameterSettingsType =
 	| "selection"
 	| "gumball"
 	| "dragging";
+
+export type InteractionEffect =
+	| string
+	| IMaterialStandardDataPropertiesDefinition
+	| IOutlineEffectDefinition;
 
 // #endregion Type aliases (1)
 
@@ -19,8 +26,8 @@ export interface IInteractionParameterProps {
 
 	/** If the objects are hoverable. (default: true) */
 	hover?: boolean;
-	/** The color of the objects when hovered. (default: '#00ff78') */
-	hoverColor?: string;
+	/** The interaction effect on objects when hovered. (default: '#00ff78') */
+	hoverColor?: InteractionEffect;
 	/** A prompt that can be defined which is displayed instead of the default prompt. */
 	prompt?: {
 		/** The title when the parameter is inactive. */
@@ -61,9 +68,13 @@ const optionalBoolean = z.preprocess((val) => {
 	return val;
 }, z.boolean().optional());
 
+const interactionEffectSchema = z
+	.union([z.string(), z.object({}).passthrough()])
+	.nullable();
+
 const IGeneralInteractionParameterJsonSchema = z.object({
 	hover: optionalBoolean,
-	hoverColor: z.string().nullable().optional(),
+	hoverColor: interactionEffectSchema.optional(),
 	prompt: z
 		.object({
 			inactiveTitle: z.string().nullable().optional(),
@@ -81,7 +92,8 @@ export const ISelectionParameterJsonSchema = z.object({
 			maximumSelection: z.number().nullable().optional(),
 			minimumSelection: z.number().nullable().optional(),
 			nameFilter: z.array(z.string()).nullable().optional(),
-			selectionColor: z.string().nullable().optional(),
+			selectionColor: interactionEffectSchema.optional(),
+			availableColor: interactionEffectSchema.optional(),
 			deselectOnEmpty: optionalBoolean,
 		})
 		.merge(IGeneralInteractionParameterJsonSchema),
@@ -133,7 +145,8 @@ export const IGumballParameterJsonSchema = z.object({
 				.or(z.literal("world"))
 				.nullable()
 				.optional(),
-			selectionColor: z.string().nullable().optional(),
+			selectionColor: interactionEffectSchema.optional(),
+			availableColor: interactionEffectSchema.optional(),
 			maximumSelection: z.number().nullable().optional(),
 			minimumSelection: z.number().nullable().optional(),
 			deselectOnEmpty: optionalBoolean,
@@ -171,7 +184,8 @@ export const IDraggingParameterJsonSchema = z.object({
 	type: z.literal("dragging"),
 	props: z
 		.object({
-			draggingColor: z.string().nullable().optional(),
+			draggingColor: interactionEffectSchema.optional(),
+			availableColor: interactionEffectSchema.optional(),
 			objects: z
 				.array(
 					z.object({

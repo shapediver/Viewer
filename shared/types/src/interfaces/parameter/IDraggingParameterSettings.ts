@@ -1,4 +1,7 @@
-import {IInteractionParameterProps} from "./IInteractionParameterSettings";
+import {
+	IInteractionParameterProps,
+	InteractionEffect,
+} from "./IInteractionParameterSettings";
 import {RestrictionDefinition, Rotation} from "./IRestrictionSettings";
 
 // #region Type aliases (1)
@@ -61,8 +64,10 @@ export interface IDraggableObject {
 export interface IDraggingParameterProps extends IInteractionParameterProps {
 	// #region Properties (3)
 
-	/** The color of the objects when dragged. (default: '#0d44f0') */
-	draggingColor?: string;
+	/** The interaction effect on objects when dragged. (default: '#0d44f0') */
+	draggingColor?: InteractionEffect;
+	/** The interaction effect on objects when available. (default: '#ffffff') */
+	availableColor?: InteractionEffect;
 	/**
 	 * The objects that can be dragged.
 	 *

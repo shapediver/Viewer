@@ -1,3 +1,4 @@
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	Effect,
@@ -22,8 +23,7 @@ import {
 	ITiltShiftEffectDefinition,
 	IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+} from "@shapediver/viewer.shared.types";
 
 export interface IPostProcessingApi {
 	// #region Properties (9)

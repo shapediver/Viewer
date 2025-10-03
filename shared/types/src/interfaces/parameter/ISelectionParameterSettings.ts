@@ -1,4 +1,7 @@
-import {IInteractionParameterProps} from "./IInteractionParameterSettings";
+import {
+	IInteractionParameterProps,
+	InteractionEffect,
+} from "./IInteractionParameterSettings";
 
 // #region Type aliases (1)
 
@@ -22,8 +25,10 @@ export interface ISelectionParameterProps extends IInteractionParameterProps {
 	minimumSelection?: number;
 	/** The names of the objects that can be interacted with. (see Jira document and discussion result) */
 	nameFilter?: string[];
-	/** The color of the objects when selected. (default: '#0d44f0') */
-	selectionColor?: string;
+	/** The interaction effect on objects when selected. (default: '#0d44f0') */
+	selectionColor?: InteractionEffect;
+	/** The interaction effect on objects when available. (default: '#ffffff') */
+	availableColor?: InteractionEffect;
 	/** If true, the selection will be cleared when clicking on an empty space. (default: false) */
 	deselectOnEmpty?: boolean;
 

@@ -1,3 +1,6 @@
+import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	Effect,
@@ -5,10 +8,7 @@ import {
 	IPostProcessingEffectDefinition,
 	IPostProcessingEffectsArray,
 	POST_PROCESSING_EFFECT_TYPE,
-	RenderingEngine as RenderingEngineThreeJs,
-} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
+} from "@shapediver/viewer.shared.types";
 import {IPostProcessingApi} from "../interfaces/IPostProcessingApi";
 import {IViewportApi} from "../interfaces/IViewportApi";
 

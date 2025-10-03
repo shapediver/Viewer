@@ -1,6 +1,6 @@
-import {Color} from "@shapediver/viewer.shared.types";
 import {vec2} from "gl-matrix";
 import {BlendFunction, KernelSize, VignetteTechnique} from "postprocessing";
+import {Color} from "../../types";
 
 export enum POST_PROCESSING_EFFECT_TYPE {
 	BLOOM = "bloom",
