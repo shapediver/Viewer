@@ -12,7 +12,8 @@ export type InteractionParameterSettingsType =
 export type InteractionEffect =
 	| string
 	| IMaterialStandardDataPropertiesDefinition
-	| IOutlineEffectDefinition;
+	| IOutlineEffectDefinition
+	| null;
 
 // #endregion Type aliases (1)
 
