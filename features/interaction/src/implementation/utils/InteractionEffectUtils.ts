@@ -76,11 +76,6 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			if (!postProcessingEffect)
 				this.#viewport.postProcessing.addEffect(effect, stringified);
 
-			console.log(
-				"adding selection",
-				node,
-				this.#viewport.postProcessing.outlineEffects[stringified],
-			);
 			this.#viewport.postProcessing.outlineEffects[
 				stringified
 			].addSelection(node);

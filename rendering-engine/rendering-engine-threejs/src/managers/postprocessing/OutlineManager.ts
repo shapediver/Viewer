@@ -45,16 +45,17 @@ export class OutlineManager {
 	public updateOutlineEffectObjects() {
 		this._outlineEffect.selection.clear();
 
+		const objects: THREE.Object3D[] = [];
 		for (let i = 0; i < this._outlineNodes.length; i++) {
 			(
 				this._outlineNodes[i].convertedObject[
 					this._renderingEngine.id
 				] as THREE.Object3D
 			).traverse((o) => {
-				if (o instanceof THREE.Mesh)
-					this._outlineEffect.selection.add(o);
+				if (o instanceof THREE.Mesh) objects.push(o);
 			});
 		}
+		this._outlineEffect.selection.set(objects);
 	}
 
 	// #endregion Public Methods (5)

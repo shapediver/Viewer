@@ -139,15 +139,6 @@ export class PostProcessingManager implements IManager {
 				}
 			},
 		);
-
-		// const token = this._uuidGenerator.create();
-		// this._effectDefinitions.push({
-		//     token,
-		//     definition: {
-		//         type: POST_PROCESSING_EFFECT_TYPE.SSAO,
-		//         properties: this.getDefaultEffectProperties(POST_PROCESSING_EFFECT_TYPE.SSAO)
-		//     }
-		// });
 	}
 
 	// #endregion Constructors (1)
@@ -675,6 +666,25 @@ export class PostProcessingManager implements IManager {
 								multisampling: properties.multisampling,
 							},
 						);
+						// if there are multiple outline effects
+						// we have to get the first unused selection layer
+						// starting from 10 (1-9 are reserved)
+						let layer = 10;
+						while (
+							Object.values(this._effects)
+								.filter(
+									(e) => e.effect instanceof OutlineEffect,
+								)
+								.some(
+									(o) =>
+										(o.effect as OutlineEffect).selection
+											.layer === layer,
+								)
+						) {
+							layer++;
+						}
+						outlineEffect.selection.layer = layer;
+
 						this._effects.push({
 							token: this._effectDefinitions[i].token,
 							effect: outlineEffect,
