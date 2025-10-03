@@ -36,8 +36,7 @@ export abstract class AbstractInteractionManager
 	#gatheredGroupedNodes: {
 		[key: string]: ITreeNode[];
 	} = {};
-	#interactionEffectUtils: IInteractionEffectUtils =
-		InteractionEffectUtils.instance;
+	#interactionEffectUtils: IInteractionEffectUtils;
 	#viewport?: IViewportApi;
 
 	public abstract filter: IInteractionFilterOptions;
@@ -53,6 +52,7 @@ export abstract class AbstractInteractionManager
 		this.#id = id || UuidGenerator.instance.create();
 
 		this.#interactionEffect = interactionEffect;
+		this.#interactionEffectUtils = new InteractionEffectUtils();
 
 		this.gatherGroupNodes();
 		this.#eventEngine.addListener(

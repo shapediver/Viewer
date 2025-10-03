@@ -31,10 +31,12 @@ export class OutlineManager {
 
 	public removeSelection(node: ITreeNode): boolean {
 		const index = this._outlineNodes.indexOf(node);
-		if (index !== -1) this._outlineNodes.splice(index, 1);
-
-		this.updateOutlineEffectObjects();
-		return index !== -1;
+		if (index !== -1) {
+			this._outlineNodes.splice(index, 1);
+			this.updateOutlineEffectObjects();
+			return true;
+		}
+		return false;
 	}
 
 	public setEffect(outlineEffect: OutlineEffect) {
@@ -56,6 +58,10 @@ export class OutlineManager {
 			});
 		}
 		this._outlineEffect.selection.set(objects);
+	}
+
+	public selectedNodes(): ITreeNode[] {
+		return this._outlineNodes;
 	}
 
 	// #endregion Public Methods (5)

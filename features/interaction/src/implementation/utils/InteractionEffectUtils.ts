@@ -13,19 +13,9 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-	private static _instance: InteractionEffectUtils;
-
 	#viewport?: IViewportApi;
 
 	// #endregion Properties (2)
-
-	// #region Public Static Accessors (1)
-
-	public static get instance() {
-		return this._instance || (this._instance = new this());
-	}
-
-	// #endregion Public Static Accessors (1)
 
 	public get viewport(): IViewportApi | undefined {
 		return this.#viewport;
@@ -116,9 +106,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		if (!this.#viewport) return;
 		const postProcessingEffect =
 			this.#viewport.postProcessing.outlineEffects[token];
-		if (postProcessingEffect) {
-			postProcessingEffect.removeSelection(node);
-		}
+
+		if (postProcessingEffect) postProcessingEffect.removeSelection(node);
 	}
 
 	// #endregion Public Methods (2)
