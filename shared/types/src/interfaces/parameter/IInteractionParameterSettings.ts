@@ -86,153 +86,157 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		.optional(),
 });
 
+export const ISelectionParameterPropsJsonSchema = z
+	.object({
+		maximumSelection: z.number().nullable().optional(),
+		minimumSelection: z.number().nullable().optional(),
+		nameFilter: z.array(z.string()).nullable().optional(),
+		selectionColor: interactionEffectSchema.optional(),
+		availableColor: interactionEffectSchema.optional(),
+		deselectOnEmpty: optionalBoolean,
+	})
+	.merge(IGeneralInteractionParameterJsonSchema);
+
 export const ISelectionParameterJsonSchema = z.object({
 	type: z.literal("selection"),
-	props: z
-		.object({
-			maximumSelection: z.number().nullable().optional(),
-			minimumSelection: z.number().nullable().optional(),
-			nameFilter: z.array(z.string()).nullable().optional(),
-			selectionColor: interactionEffectSchema.optional(),
-			availableColor: interactionEffectSchema.optional(),
-			deselectOnEmpty: optionalBoolean,
-		})
-		.merge(IGeneralInteractionParameterJsonSchema),
+	props: ISelectionParameterPropsJsonSchema,
 });
-export const IGumballParameterJsonSchema = z.object({
-	type: z.literal("gumball"),
-	props: z
-		.object({
-			enableRotation: optionalBoolean,
-			enableRotationAxes: z
-				.object({
-					x: optionalBoolean,
-					y: optionalBoolean,
-					z: optionalBoolean,
-					xy: optionalBoolean,
-					yz: optionalBoolean,
-					xz: optionalBoolean,
-				})
-				.nullable()
-				.optional(),
-			enableScaling: optionalBoolean,
-			enableScalingAxes: z
-				.object({
-					x: optionalBoolean,
-					y: optionalBoolean,
-					z: optionalBoolean,
-					xy: optionalBoolean,
-					yz: optionalBoolean,
-					xz: optionalBoolean,
-				})
-				.nullable()
-				.optional(),
-			enableTranslation: optionalBoolean,
-			enableTranslationAxes: z
-				.object({
-					x: optionalBoolean,
-					y: optionalBoolean,
-					z: optionalBoolean,
-					xy: optionalBoolean,
-					yz: optionalBoolean,
-					xz: optionalBoolean,
-				})
-				.nullable()
-				.optional(),
-			nameFilter: z.array(z.string()).nullable().optional(),
-			scale: z.number().nullable().optional(),
-			space: z
-				.literal("local")
-				.or(z.literal("world"))
-				.nullable()
-				.optional(),
-			selectionColor: interactionEffectSchema.optional(),
-			availableColor: interactionEffectSchema.optional(),
-			maximumSelection: z.number().nullable().optional(),
-			minimumSelection: z.number().nullable().optional(),
-			deselectOnEmpty: optionalBoolean,
-			objects: z
-				.array(
-					z.object({
-						nameFilter: z.string(),
-						restrictions: z.array(z.string()),
-					}),
-				)
-				.nullable()
-				.optional(),
-			restrictions: z
-				.array(
-					z
-						.object({
-							id: z.string(),
-							type: z.string(),
-							rotation: z
-								.object({
-									axis: z.array(z.number()),
-									angle: z.number(),
-								})
-								.nullable()
-								.optional(),
-						})
-						.passthrough(),
-				)
-				.nullable()
-				.optional(),
-		})
-		.merge(IGeneralInteractionParameterJsonSchema),
-});
-export const IDraggingParameterJsonSchema = z.object({
-	type: z.literal("dragging"),
-	props: z
-		.object({
-			draggingColor: interactionEffectSchema.optional(),
-			availableColor: interactionEffectSchema.optional(),
-			objects: z
-				.array(
-					z.object({
-						nameFilter: z.string(),
-						restrictions: z.array(z.string()),
-						dragAnchors: z
-							.array(
-								z.object({
-									id: z.string(),
-									position: z.array(z.number()),
-									rotation: z
-										.object({
-											axis: z.array(z.number()),
-											angle: z.number(),
-										})
-										.nullable()
-										.optional(),
-								}),
-							)
+
+export const IGumballParameterPropsJsonSchema = z
+	.object({
+		enableRotation: optionalBoolean,
+		enableRotationAxes: z
+			.object({
+				x: optionalBoolean,
+				y: optionalBoolean,
+				z: optionalBoolean,
+				xy: optionalBoolean,
+				yz: optionalBoolean,
+				xz: optionalBoolean,
+			})
+			.nullable()
+			.optional(),
+		enableScaling: optionalBoolean,
+		enableScalingAxes: z
+			.object({
+				x: optionalBoolean,
+				y: optionalBoolean,
+				z: optionalBoolean,
+				xy: optionalBoolean,
+				yz: optionalBoolean,
+				xz: optionalBoolean,
+			})
+			.nullable()
+			.optional(),
+		enableTranslation: optionalBoolean,
+		enableTranslationAxes: z
+			.object({
+				x: optionalBoolean,
+				y: optionalBoolean,
+				z: optionalBoolean,
+				xy: optionalBoolean,
+				yz: optionalBoolean,
+				xz: optionalBoolean,
+			})
+			.nullable()
+			.optional(),
+		nameFilter: z.array(z.string()).nullable().optional(),
+		scale: z.number().nullable().optional(),
+		space: z.literal("local").or(z.literal("world")).nullable().optional(),
+		selectionColor: interactionEffectSchema.optional(),
+		availableColor: interactionEffectSchema.optional(),
+		maximumSelection: z.number().nullable().optional(),
+		minimumSelection: z.number().nullable().optional(),
+		deselectOnEmpty: optionalBoolean,
+		objects: z
+			.array(
+				z.object({
+					nameFilter: z.string(),
+					restrictions: z.array(z.string()),
+				}),
+			)
+			.nullable()
+			.optional(),
+		restrictions: z
+			.array(
+				z
+					.object({
+						id: z.string(),
+						type: z.string(),
+						rotation: z
+							.object({
+								axis: z.array(z.number()),
+								angle: z.number(),
+							})
 							.nullable()
 							.optional(),
-						dragOrigin: z.array(z.number()).nullable().optional(),
-					}),
-				)
-				.nullable()
-				.optional(),
-			restrictions: z
-				.array(
-					z
-						.object({
-							id: z.string(),
-							type: z.string(),
-							rotation: z
-								.object({
-									axis: z.array(z.number()),
-									angle: z.number(),
-								})
-								.nullable()
-								.optional(),
-						})
-						.passthrough(),
-				)
-				.nullable()
-				.optional(),
-		})
-		.merge(IGeneralInteractionParameterJsonSchema),
+					})
+					.passthrough(),
+			)
+			.nullable()
+			.optional(),
+	})
+	.merge(IGeneralInteractionParameterJsonSchema);
+
+export const IGumballParameterJsonSchema = z.object({
+	type: z.literal("gumball"),
+	props: IGumballParameterPropsJsonSchema,
+});
+
+export const IDraggingParameterPropsJsonSchema = z
+	.object({
+		draggingColor: interactionEffectSchema.optional(),
+		availableColor: interactionEffectSchema.optional(),
+		objects: z
+			.array(
+				z.object({
+					nameFilter: z.string(),
+					restrictions: z.array(z.string()),
+					dragAnchors: z
+						.array(
+							z.object({
+								id: z.string(),
+								position: z.array(z.number()),
+								rotation: z
+									.object({
+										axis: z.array(z.number()),
+										angle: z.number(),
+									})
+									.nullable()
+									.optional(),
+							}),
+						)
+						.nullable()
+						.optional(),
+					dragOrigin: z.array(z.number()).nullable().optional(),
+				}),
+			)
+			.nullable()
+			.optional(),
+		restrictions: z
+			.array(
+				z
+					.object({
+						id: z.string(),
+						type: z.string(),
+						rotation: z
+							.object({
+								axis: z.array(z.number()),
+								angle: z.number(),
+							})
+							.nullable()
+							.optional(),
+					})
+					.passthrough(),
+			)
+			.nullable()
+			.optional(),
+	})
+	.merge(IGeneralInteractionParameterJsonSchema);
+
+export const IDraggingParameterJsonSchema = z.object({
+	type: z.literal("dragging"),
+	props: IDraggingParameterPropsJsonSchema,
 });
 
 export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(
