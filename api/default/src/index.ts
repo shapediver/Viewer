@@ -254,6 +254,7 @@ import {
 	IMaterialVariantsData,
 	INoiseEffectDefinition,
 	InstanceData,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	IOutlineEffectDefinition,
 	IOutputEvent,
@@ -660,6 +661,7 @@ export {
 };
 export {
 	InteractionParameterSettingsType,
+	InteractionEffect,
 	IInteractionParameterProps,
 	IInteractionParameterSettings,
 	IInteractionParameterJsonSchema,
