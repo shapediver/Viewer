@@ -90,6 +90,11 @@ export interface IViewportApi {
 	 */
 	readonly id: string;
 	/**
+	 * If the viewer is currently busy.
+	 * This is set by the viewer [addFlag]{@link addFlag} and [removeFlag]{@link removeFlag} methods.
+	 */
+	readonly isBusy: boolean;
+	/**
 	 * The current [light scene]{@link ILightSceneApi}.
 	 */
 	readonly lightScene: ILightSceneApi | null;

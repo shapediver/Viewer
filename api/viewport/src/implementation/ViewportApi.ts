@@ -710,6 +710,10 @@ export class ViewportApi implements IViewportApi {
 		return this.#renderingEngine.id;
 	}
 
+	public get isBusy(): boolean {
+		return this.#renderingEngine.busy;
+	}
+
 	public get lightScene(): ILightSceneApi | null {
 		if (!this.#renderingEngine.lightEngine.lightScene) return null;
 		return this.#lightScenes[
