@@ -1,6 +1,7 @@
 import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IInteractionParameterSettings,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	ISelectionParameterProps,
 	validateSelectionParameterSettings,
@@ -50,7 +51,7 @@ export class SelectionParameter
 		return this.getSelectionProperties()?.nameFilter;
 	}
 
-	public get selectionColor(): string | undefined {
+	public get selectionColor(): InteractionEffect | undefined {
 		return this.getSelectionProperties()?.selectionColor;
 	}
 
