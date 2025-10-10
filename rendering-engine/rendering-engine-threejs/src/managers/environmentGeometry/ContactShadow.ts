@@ -8,7 +8,7 @@ import {RenderingEngine} from "../../RenderingEngine";
 import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
 export class ContactShadow implements IEnvironmentGeometry {
-	// #region Properties (17)
+	// #region Properties (16)
 
 	private _blur = 1.5;
 	private _blurPlane!: THREE.Mesh<
@@ -19,7 +19,6 @@ export class ContactShadow implements IEnvironmentGeometry {
 	private _color: string = "#ffffff";
 	private _contactShadowObject: SDData;
 	private _darkness: number = 2.5;
-	private _depthMaterial!: THREE.MeshDepthMaterial;
 	private _fillPlane!: THREE.Mesh<
 		THREE.PlaneGeometry,
 		THREE.MeshBasicMaterial,
@@ -39,8 +38,12 @@ export class ContactShadow implements IEnvironmentGeometry {
 	private _shadowGroup!: THREE.Group<THREE.Object3DEventMap>;
 	private _verticalBlurMaterial!: THREE.ShaderMaterial;
 	private _currentGridExtents: number = 1;
+	private _originalMaterials: Map<
+		THREE.Object3D,
+		THREE.Material | THREE.Material[]
+	> = new Map();
 
-	// #endregion Properties (17)
+	// #endregion Properties (16)
 
 	// #region Constructors (1)
 
@@ -73,7 +76,6 @@ export class ContactShadow implements IEnvironmentGeometry {
 
 	public set darkness(value: number) {
 		this._darkness = value;
-		this._depthMaterial.userData.darkness.value = value;
 	}
 
 	public get height(): number {
@@ -187,8 +189,16 @@ export class ContactShadow implements IEnvironmentGeometry {
 		const initialBackground = this._renderingEngine.scene.background;
 		this._renderingEngine.scene.background = null;
 
-		// force the depthMaterial to everything
-		this._renderingEngine.scene.overrideMaterial = this._depthMaterial;
+		// Apply transparency-aware depth materials to all mesh objects
+		this._originalMaterials.clear();
+		this._renderingEngine.scene.traverse((object) => {
+			if (object instanceof THREE.Mesh && object.material) {
+				this._originalMaterials.set(object, object.material);
+				object.material = this.createTransparencyAwareDepthMaterial(
+					object.material,
+				);
+			}
+		});
 
 		// set renderer clear alpha
 		const initialClearAlpha =
@@ -202,8 +212,13 @@ export class ContactShadow implements IEnvironmentGeometry {
 			this._shadowCamera,
 		);
 
-		// and reset the override material
-		this._renderingEngine.scene.overrideMaterial = null;
+		// Restore original materials
+		this._originalMaterials.forEach((originalMaterial, object) => {
+			if (object instanceof THREE.Mesh) {
+				object.material = originalMaterial;
+			}
+		});
+		this._originalMaterials.clear();
 
 		this.blurShadow(this._blur);
 
@@ -237,7 +252,68 @@ export class ContactShadow implements IEnvironmentGeometry {
 
 	// #endregion Public Methods (3)
 
-	// #region Private Methods (2)
+	// #region Private Methods (3)
+
+	private createTransparencyAwareDepthMaterial(
+		originalMaterial: THREE.Material | THREE.Material[],
+	): THREE.MeshDepthMaterial {
+		let materialOpacity = 1.0;
+		let isTransparent = false;
+
+		// Extract opacity and transparency from the original material
+		if (Array.isArray(originalMaterial)) {
+			// For multi-materials, use the opacity of the first material that has opacity
+			const materialWithOpacity = originalMaterial.find(
+				(mat) =>
+					"opacity" in mat &&
+					typeof (mat as any).opacity === "number",
+			);
+			if (materialWithOpacity) {
+				materialOpacity = (materialWithOpacity as any).opacity;
+				isTransparent =
+					(materialWithOpacity as any).transparent ||
+					materialOpacity < 1.0;
+			}
+		} else if (
+			"opacity" in originalMaterial &&
+			typeof (originalMaterial as any).opacity === "number"
+		) {
+			materialOpacity = (originalMaterial as any).opacity;
+			isTransparent =
+				(originalMaterial as any).transparent || materialOpacity < 1.0;
+		}
+
+		// If the material is not transparent or has full opacity, treat it as opaque for shadows
+		if (!isTransparent || materialOpacity >= 1.0) {
+			materialOpacity = 1.0;
+		}
+
+		// Calculate adjusted darkness based on material opacity
+		const adjustedDarkness = this._darkness * materialOpacity;
+
+		// Create a new depth material for this specific object
+		const depthMaterial = new THREE.MeshDepthMaterial();
+		depthMaterial.side = THREE.DoubleSide;
+		depthMaterial.userData.darkness = {value: adjustedDarkness};
+
+		depthMaterial.onBeforeCompile = (
+			shader: THREE.WebGLProgramParametersWithUniforms,
+		) => {
+			shader.uniforms.darkness = depthMaterial.userData.darkness;
+			shader.fragmentShader = /* glsl */ `
+				uniform float darkness;
+				${shader.fragmentShader.replace(
+					"gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );",
+					"gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * darkness );",
+				)}
+			`;
+		};
+
+		depthMaterial.depthTest = false;
+		depthMaterial.depthWrite = false;
+
+		return depthMaterial;
+	}
 
 	private blurShadow(amount: number): void {
 		this._blurPlane.visible = true;
@@ -334,26 +410,6 @@ export class ContactShadow implements IEnvironmentGeometry {
 		);
 		this._shadowGroup.add(this._shadowCamera);
 
-		// like MeshDepthMaterial, but goes from black to transparent
-		this._depthMaterial = new THREE.MeshDepthMaterial();
-		this._depthMaterial.side = THREE.DoubleSide;
-		this._depthMaterial.userData.darkness = {value: this._darkness};
-		this._depthMaterial.onBeforeCompile = (
-			shader: THREE.WebGLProgramParametersWithUniforms,
-		) => {
-			shader.uniforms.darkness = this._depthMaterial.userData.darkness;
-			shader.fragmentShader = /* glsl */ `
-						uniform float darkness;
-						${shader.fragmentShader.replace(
-							"gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );",
-							"gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * darkness );",
-						)}
-					`;
-		};
-
-		this._depthMaterial.depthTest = false;
-		this._depthMaterial.depthWrite = false;
-
 		this._horizontalBlurMaterial = new THREE.ShaderMaterial(
 			HorizontalBlurShader,
 		);
@@ -365,5 +421,5 @@ export class ContactShadow implements IEnvironmentGeometry {
 		this._verticalBlurMaterial.depthTest = false;
 	}
 
-	// #endregion Private Methods (2)
+	// #endregion Private Methods (3)
 }
