@@ -13,7 +13,6 @@ import {
 	Matrix4,
 	Mesh,
 	MeshBasicMaterial,
-	MeshNormalMaterial,
 	Object3D,
 	OctahedronGeometry,
 	OrthographicCamera,
@@ -2613,7 +2612,10 @@ class TransformControlsGizmo extends Object3D {
 						this._transformControls.showZ));
 
 			// highlight selected axis
-			if (!(handle.object.material instanceof MeshNormalMaterial)) {
+			if (
+				handle.object.material instanceof MeshBasicMaterial ||
+				handle.object.material instanceof LineBasicMaterial
+			) {
 				(handle.object.material as any)._color =
 					(handle.object.material as any)._color ||
 					handle.object.material.color.clone();
