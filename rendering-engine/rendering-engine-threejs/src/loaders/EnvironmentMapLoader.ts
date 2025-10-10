@@ -15,6 +15,7 @@ import * as THREE from "three";
 import {ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {RenderingEngine} from "..";
 import {ILoader} from "../interfaces/ILoader";
+import {assignEnvironmentMapForThreeJsData} from "../managers/sceneTree/ThreeJsDataUtils";
 import {RGBELoader} from "../three/loaders/RGBELoader";
 
 export enum ENVIRONMENT_MAP_CUBE {
@@ -180,6 +181,10 @@ export class EnvironmentMapLoader implements ILoader {
 	public set textureEncoding(value: THREE.ColorSpace) {
 		this._textureEncoding = value;
 		this.assignTextureEncoding();
+	}
+
+	public get type(): ENVIRONMENT_MAP_TYPE {
+		return this._type;
 	}
 
 	// #endregion Public Accessors (4)
@@ -461,7 +466,15 @@ export class EnvironmentMapLoader implements ILoader {
 		if (name in this._environmentMaps === false) return;
 		this._type = type;
 		const map = await this._environmentMaps[name].map;
+		// set the environment map in the material loader
 		this._renderingEngine.materialLoader.assignEnvironmentMap(map, type);
+		// set the currently used environment map for all ThreejsData in the scene tree
+		assignEnvironmentMapForThreeJsData(
+			map,
+			type,
+			this._renderingEngine.environmentMapIntensity,
+			this._renderingEngine.environmentMapRotation,
+		);
 		this._envMap = map;
 		this.notify(eventId);
 	}

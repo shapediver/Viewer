@@ -40,6 +40,7 @@ import {
 	removeData,
 } from "./sceneTree/SceenTreeManagerUtils";
 import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
+import {assignEnvironmentMapForThreeJsDataObject} from "./sceneTree/ThreeJsDataUtils";
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 // #region Type aliases (1)
@@ -188,6 +189,16 @@ export class SceneTreeManager implements IManager {
 				{
 					dataChild.SDtype = SD_DATA_TYPE.THREEJS;
 					dataChild.add(<SDData>(<ThreejsData>data).obj);
+
+					// set the currently used environment map
+					assignEnvironmentMapForThreeJsDataObject(
+						data as ThreejsData,
+						this._renderingEngine.environmentMapLoader
+							.environmentMap,
+						this._renderingEngine.environmentMapLoader.type,
+						this._renderingEngine.environmentMapIntensity,
+						this._renderingEngine.environmentMapRotation,
+					);
 				}
 				break;
 			case data instanceof AbstractMaterialData:

@@ -65,6 +65,7 @@ import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {RenderingManager} from "./managers/RenderingManager";
 import {SceneTracingManager} from "./managers/SceneTracingManager";
 import {createSDTFOverview} from "./managers/sceneTree/SDTFUtils";
+import {assignEnvironmentMapForThreeJsData} from "./managers/sceneTree/ThreeJsDataUtils";
 import {SceneTreeManager} from "./managers/SceneTreeManager";
 import {SettingsManager} from "./managers/SettingsManager";
 import {SDColor} from "./objects/SDColor";
@@ -572,6 +573,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._environmentMapIntensity = value;
 		this._sceneTreeManager.scene.backgroundIntensity = value;
 		this._materialLoader.assignEnvironmentMapIntensity(value);
+		assignEnvironmentMapForThreeJsData(
+			this._environmentMapLoader.environmentMap,
+			this._environmentMapLoader.type,
+			this.environmentMapIntensity,
+			this.environmentMapRotation,
+		);
 	}
 
 	public get environmentMapLoader(): EnvironmentMapLoader {
@@ -594,6 +601,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set environmentMapRotation(value: quat) {
 		this._environmentMapRotation = value;
 		this._materialLoader.assignEnvironmentMapRotation(value);
+		assignEnvironmentMapForThreeJsData(
+			this._environmentMapLoader.environmentMap,
+			this._environmentMapLoader.type,
+			this.environmentMapIntensity,
+			this.environmentMapRotation,
+		);
 	}
 
 	public get geometryLoader(): GeometryLoader {
