@@ -1,6 +1,5 @@
 import * as SDV from "@shapediver/viewer";
 import {createUi} from "@shapediver/viewer.shared.demo-helper";
-import {IParameter} from "../../../session-engine/session-engine/dist";
 (<any>window).SDV = SDV;
 
 (async () => {
@@ -18,23 +17,11 @@ import {IParameter} from "../../../session-engine/session-engine/dist";
 		id: "mySession",
 		ticket:
 			ticket ??
-			"3c7c067dca90f2fcaa7626964aefa3fe5bbf1a850e4b3a831613e35d9b86c47d015b54f9f9ea6d710be394257204d8c779710b46e4d0b1a81e53ac9cd15fcd5faf64e9bd9c95135501f2b342950a229f0101bd4693e1160d138924fb73429db8cd3743822a9e55-169f1d05952aafa303e06f6fcea4c2f4",
+			"aa8f99304bdad13693a123c9187a6a764c13345c448814ad7c70d79dae1b555b72795fbb2fd6faa368ff8cdee1368821771bec38f4b39c5e9fb7955be8c2b5f8f8da605fd4cdc1708402118ad706e8578a108c1fb6b6429f1e7279e19b12d0944a317848fa3ba8-78c86ce3f2f177c0b6ac5dafbb94e84e",
 		modelViewUrl:
 			modelViewUrl ?? "https://sdr8euc1.eu-central-1.shapediver.com",
-		initialParameterValues: {
-			anchor_3d_1_useContainer: "true",
-		},
 	});
 
-	console.log(
-		typeof (
-			session.getParameterByName(
-				"anchor_2d_1_useContainer",
-			)[0] as IParameter<boolean>
-		).value,
-		typeof session.getParameterByName("anchor_3d_1_useContainer")[0].value,
-	);
-	// stringified
 	// create the parameter ui on the right side
 	const parameterUiDiv = document.createElement("div");
 	parameterUiDiv.style.position = "absolute";
