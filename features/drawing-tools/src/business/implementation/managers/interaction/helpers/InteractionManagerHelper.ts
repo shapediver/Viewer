@@ -291,13 +291,14 @@ export class InteractionManagerHelper {
 			this.#drawingToolsManager.restrictionManager.showRestrictionVisualization =
 				true;
 
-			const intersectionPoint =
+			const rayTraceResult =
 				this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
 					type: "drawing",
 					index: this.#draggedPoint!,
 					startPoint: this.#draggedPointPosition,
 					positionArray: this.#drawingToolsManager.positionArray,
-				})?.point;
+				});
+			const intersectionPoint = rayTraceResult?.point;
 
 			if (intersectionPoint) {
 				const differenceToIntersected = vec3.sub(
@@ -343,6 +344,7 @@ export class InteractionManagerHelper {
 							this.#drawingToolsManager.movePointTemporary(
 								this.#selectedPointIndices[i],
 								firstPoint,
+								rayTraceResult,
 							);
 						} else {
 							// not close enough to close the geometry
@@ -354,6 +356,7 @@ export class InteractionManagerHelper {
 							this.#drawingToolsManager.movePointTemporary(
 								this.#selectedPointIndices[i],
 								this.#selectedMovedPointPositions[i],
+								rayTraceResult,
 							);
 						}
 					} else {
@@ -366,6 +369,7 @@ export class InteractionManagerHelper {
 						this.#drawingToolsManager.movePointTemporary(
 							this.#selectedPointIndices[i],
 							this.#selectedMovedPointPositions[i],
+							rayTraceResult,
 						);
 					}
 				}
@@ -387,6 +391,7 @@ export class InteractionManagerHelper {
 				this.#drawingToolsManager.movePointTemporary(
 					element,
 					this.#selectedPointPositions[i],
+					this.#geometryState.metadataArray[element],
 				);
 			});
 
@@ -394,6 +399,7 @@ export class InteractionManagerHelper {
 			this.#drawingToolsManager.movePointTemporary(
 				this.#draggedPoint!,
 				this.#draggedPointPosition,
+				this.#geometryState.metadataArray[this.#draggedPoint!],
 			);
 		}
 
@@ -458,6 +464,7 @@ export class InteractionManagerHelper {
 					viewportId: this.#drawingToolsManager.viewport.id,
 					drawingToolId: this.#drawingToolsManager.uuid,
 					points: this.#geometryState.getPointsData(),
+					metaData: this.#geometryState.metadataArray,
 					temporary: false,
 					fromHistory: false,
 				},
@@ -486,6 +493,7 @@ export class InteractionManagerHelper {
 						viewportId: this.#drawingToolsManager.viewport.id,
 						drawingToolId: this.#drawingToolsManager.uuid,
 						points: this.#geometryState.getPointsData(),
+						metaData: this.#geometryState.metadataArray,
 						temporary: false,
 					},
 				);

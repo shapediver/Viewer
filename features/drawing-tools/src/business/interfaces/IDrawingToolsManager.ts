@@ -1,6 +1,7 @@
 import {
 	IRestriction,
 	IVisualizationSettings,
+	RayTraceResult,
 	RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {IMapData} from "@shapediver/viewer.shared.types";
@@ -25,7 +26,10 @@ export type Callbacks = {
 	 *
 	 * @param pointsData The points data of the drawing tool.
 	 */
-	onUpdate(pointsData: PointsData): void;
+	onUpdate(
+		pointsData: PointsData,
+		metaData: (RayTraceResult | undefined)[],
+	): void;
 };
 export type DefaultTextures = {[key: string]: Promise<IMapData> | IMapData};
 
@@ -243,7 +247,12 @@ export interface IDrawingToolsManager {
 
 	// #region Public Methods (14)
 
-	addPoint(index: number, position?: vec3, temporary?: boolean): void;
+	addPoint(
+		index: number,
+		position?: vec3,
+		metaData?: RayTraceResult,
+		temporary?: boolean,
+	): void;
 	addRestriction(
 		properties: RestrictionProperties,
 		token?: string,
@@ -253,13 +262,21 @@ export interface IDrawingToolsManager {
 	cancel(): void;
 	close(): void;
 	getPointsData(): PointsData;
-	movePoint(index: number, position: vec3, temporary?: boolean): void;
+	movePoint(
+		index: number,
+		position: vec3,
+		metaData?: RayTraceResult,
+		temporary?: boolean,
+	): void;
 	redo(): void;
 	removePoint(index: number, temporary?: boolean): void;
 	removePoints(indices: number[]): void;
 	removeRestriction(token: string): void;
 	undo(): void;
-	update(): PointsData | undefined;
+	update(): {
+		pointsData: PointsData;
+		metaData: (RayTraceResult | undefined)[];
+	} | void;
 
 	// #endregion Public Methods (14)
 }

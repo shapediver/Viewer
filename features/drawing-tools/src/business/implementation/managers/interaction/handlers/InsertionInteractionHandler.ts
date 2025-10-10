@@ -8,6 +8,8 @@ import {
 	MATERIAL_INDEX,
 	Settings,
 } from "../../../../interfaces/IDrawingToolsManager";
+
+import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
@@ -136,11 +138,13 @@ export class InsertionInteractionHandler {
 			this.#geometryState.getPointCount() > 0 &&
 			this.#insertionActive === true
 		) {
-			const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
-				type: "drawing",
-				index: this.#insertionActiveIndex,
-				positionArray: this.#drawingToolsManager.positionArray,
-			})?.point;
+			const rayTraceResult: RayTraceResult | undefined =
+				this.#restrictionManager.rayTrace(ray, {
+					type: "drawing",
+					index: this.#insertionActiveIndex,
+					positionArray: this.#drawingToolsManager.positionArray,
+				});
+			const restrictedPoint = rayTraceResult?.point;
 
 			if (restrictedPoint) {
 				const canBeClosed =
@@ -178,6 +182,7 @@ export class InsertionInteractionHandler {
 						this.#drawingToolsManager.movePointTemporary(
 							this.#insertionActiveIndex,
 							firstPoint,
+							rayTraceResult,
 						);
 					} else {
 						// not close enough to close the geometry
@@ -188,6 +193,7 @@ export class InsertionInteractionHandler {
 						this.#drawingToolsManager.movePointTemporary(
 							this.#insertionActiveIndex,
 							restrictedPoint,
+							rayTraceResult,
 						);
 					}
 				} else {
@@ -199,6 +205,7 @@ export class InsertionInteractionHandler {
 					this.#drawingToolsManager.movePointTemporary(
 						this.#insertionActiveIndex,
 						restrictedPoint,
+						rayTraceResult,
 					);
 				}
 			}
@@ -213,15 +220,18 @@ export class InsertionInteractionHandler {
 			const ray = this.#viewport.pointerEventToRay(event);
 
 			// add a point at the ray intersection
-			const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
+			const rayTraceResult = this.#restrictionManager.rayTrace(ray, {
 				type: "drawing",
 				positionArray: this.#drawingToolsManager.positionArray,
-			})?.point;
+			});
+			const restrictedPoint = rayTraceResult?.point;
+
 			// add at last position
 			this.#insertionActiveIndex = this.#geometryState.getPointCount();
 			const result = this.#drawingToolsManager.addPointTemporary(
 				this.#insertionActiveIndex,
 				restrictedPoint,
+				rayTraceResult,
 			);
 			if (!result) return;
 			this.#drawingToolsManager.updateMaterialIndex(

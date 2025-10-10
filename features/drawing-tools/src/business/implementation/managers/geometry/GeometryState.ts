@@ -4,6 +4,7 @@ import {
 	ITreeNode,
 	IViewportApi,
 } from "@shapediver/viewer";
+import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {EventEngine, IEvent} from "@shapediver/viewer.shared.services";
 import {
@@ -46,6 +47,7 @@ export class GeometryState {
 	#indicesArrayLines?: Uint8Array | null;
 	#materialIndexArray: number[] = [];
 	#positionArray!: Float32Array;
+	#metadataArray: (RayTraceResult | undefined)[] = [];
 	#positionIndexArray!: Float32Array;
 	#temporaryIndices: number[] = [];
 	#wasWithinMinimumMaximumPointsRange: boolean = false;
@@ -106,7 +108,7 @@ export class GeometryState {
 
 	public set closeLoop(value: boolean) {
 		this.#closeLoop = value;
-		this.updateData(this.#positionArray, true);
+		this.updateData(this.#positionArray, this.#metadataArray, true);
 	}
 
 	public get geometryData(): IGeometryData {
@@ -127,6 +129,10 @@ export class GeometryState {
 
 	public get materialIndexArray(): number[] {
 		return this.#materialIndexArray;
+	}
+
+	public get metadataArray(): (RayTraceResult | undefined)[] {
+		return this.#metadataArray;
 	}
 
 	public get pointsLength(): number {
@@ -297,6 +303,7 @@ export class GeometryState {
 
 			this.#positionArray = new Float32Array(points.length * 3);
 			this.#positionArray.set(([] as number[]).concat(...points));
+			this.#metadataArray = new Array(points.length).fill(undefined);
 		} else {
 			this.#positionArray = new Float32Array();
 		}
@@ -435,7 +442,7 @@ export class GeometryState {
 			);
 		}
 
-		this.updateData(this.#positionArray);
+		this.updateData(this.#positionArray, this.#metadataArray);
 	}
 
 	public makePointPersistent(index: number, recordHistory = true): void {
@@ -451,6 +458,7 @@ export class GeometryState {
 			viewportId: this.#viewport.id,
 			drawingToolId: this.#drawingToolsId,
 			points: this.getPointsData(),
+			metaData: this.#metadataArray,
 			temporary: false,
 			recordHistory,
 		} as IDrawingToolsEvent);
@@ -458,10 +466,12 @@ export class GeometryState {
 
 	public updateData(
 		positionArray: Float32Array,
+		metadataArray: (RayTraceResult | undefined)[],
 		temporary: boolean = false,
 		fromHistory: boolean = false,
 	): void {
 		this.#positionArray = positionArray;
+		this.#metadataArray = metadataArray;
 		this.#positionIndexArray = this.createAndSetPositionIndexArray();
 
 		this.geometryDataPoints.primitive.attributes["POSITION"] =
@@ -565,14 +575,18 @@ export class GeometryState {
 			viewportId: this.#viewport.id,
 			drawingToolId: this.#drawingToolsId,
 			points: this.getPointsData(),
+			metaData: this.#metadataArray,
 			temporary,
 			fromHistory,
 		} as IDrawingToolsEvent);
 	}
 
-	public updateDataFromHistory(points: PointsData): void {
+	public updateDataFromHistory(
+		points: PointsData,
+		metadataArray: RayTraceResult[],
+	): void {
 		const positionArray = this.convertToFloat32Array(points);
-		this.updateData(positionArray, false, true);
+		this.updateData(positionArray, metadataArray, false, true);
 	}
 
 	public updateMaterialIndexArray(materialIndexArray: number[]): void {

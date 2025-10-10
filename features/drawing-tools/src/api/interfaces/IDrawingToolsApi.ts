@@ -1,5 +1,6 @@
 import {
 	IRestrictionApi,
+	RayTraceResult,
 	RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
@@ -94,7 +95,10 @@ export interface IDrawingToolsApi {
 	 *
 	 * @returns The points data of the drawing tool.
 	 */
-	update(): PointsData | undefined;
+	update(): {
+		pointsData: PointsData;
+		metaData: (RayTraceResult | undefined)[];
+	} | void;
 
 	// #endregion Public Methods (11)
 }

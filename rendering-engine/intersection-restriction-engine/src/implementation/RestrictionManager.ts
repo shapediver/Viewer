@@ -403,6 +403,7 @@ export class RestrictionManager implements IRestrictionManager {
 
 			return {
 				restriction: restrictionResult.restriction,
+				restrictionResult: restrictionResult,
 				point: restrictionResult.targetPoint,
 				closestPointOnRay: restrictionResult.closestIntersectionPoint,
 				distanceSquared:
@@ -413,6 +414,7 @@ export class RestrictionManager implements IRestrictionManager {
 		} else {
 			return {
 				restriction: restrictionResult.restriction,
+				restrictionResult: restrictionResult,
 				point: restrictionResult.targetPoint,
 				closestPointOnRay: restrictionResult.closestIntersectionPoint,
 				distanceSquared:

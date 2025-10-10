@@ -11,6 +11,7 @@ import {
 	PlaneRestrictionApi,
 	PointRestriction,
 	PointRestrictionApi,
+	RayTraceResult,
 	RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
@@ -228,7 +229,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		this.#drawingToolsManager.undo();
 	}
 
-	public update(): PointsData | undefined {
+	public update(): {
+		pointsData: PointsData;
+		metaData: (RayTraceResult | undefined)[];
+	} | void {
 		return this.#drawingToolsManager.update();
 	}
 

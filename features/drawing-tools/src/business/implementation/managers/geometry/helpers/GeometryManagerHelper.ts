@@ -1,4 +1,5 @@
 import {IViewportApi} from "@shapediver/viewer";
+import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
@@ -40,6 +41,7 @@ export class GeometryManagerHelper {
 	public addPoint(
 		insertionIndex: number,
 		position?: vec3 | undefined,
+		metaData?: RayTraceResult,
 		temporary = false,
 	): boolean {
 		const positionArrayLength =
@@ -100,6 +102,11 @@ export class GeometryManagerHelper {
 			),
 		]);
 
+		// adjust metadata array
+		const newMetaDataArray: (RayTraceResult | undefined)[] =
+			this.#geometryState.metadataArray.slice();
+		newMetaDataArray.splice(insertionIndex, 0, metaData || undefined);
+
 		// set the material index at that point to 0 and move the other indices back
 		const materialIndexArray = this.#geometryState.materialIndexArray
 			.slice(0, insertionIndex)
@@ -111,7 +118,11 @@ export class GeometryManagerHelper {
 				),
 			);
 		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-		this.#geometryState.updateData(newPositionArray, temporary);
+		this.#geometryState.updateData(
+			newPositionArray,
+			newMetaDataArray,
+			temporary,
+		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.ADDED, {
 			viewportId: this.#viewport.id,
@@ -123,7 +134,12 @@ export class GeometryManagerHelper {
 		return true;
 	}
 
-	public movePoint(index: number, point: vec3, temporary = false): void {
+	public movePoint(
+		index: number,
+		point: vec3,
+		metaData: RayTraceResult | undefined,
+		temporary = false,
+	): void {
 		const threeJsPointsGeometry: THREE.Points = this.#geometryState
 			.geometryDataPoints.convertedObject[
 			this.#viewport.id
@@ -152,6 +168,10 @@ export class GeometryManagerHelper {
 				true;
 		}
 
+		// update the metadata at that index (even if temporary)
+		this.#geometryState.metadataArray[index] = metaData;
+		const metadataArray = this.#geometryState.metadataArray.slice();
+
 		if (temporary === false) {
 			// adjust position array
 			const positionArray = new Float32Array(
@@ -162,7 +182,11 @@ export class GeometryManagerHelper {
 				...point,
 				...positionArray.slice(index * 3 + 3, positionArray.length),
 			]);
-			this.#geometryState.updateData(positionArray, temporary);
+			this.#geometryState.updateData(
+				positionArray,
+				metadataArray,
+				temporary,
+			);
 		}
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.MOVED, {
@@ -191,6 +215,7 @@ export class GeometryManagerHelper {
 		const newPositionArray = new Float32Array(
 			this.#geometryState.positionArray.length - 3,
 		);
+		const metadataArray = this.#geometryState.metadataArray.slice();
 		if (removalIndex > 0 && removalIndex < positionArrayLength) {
 			newPositionArray.set([
 				...this.#geometryState.positionArray.slice(
@@ -205,6 +230,7 @@ export class GeometryManagerHelper {
 					this.#geometryState.positionArray.length,
 				),
 			]);
+			metadataArray.splice(removalIndex, 1);
 		} else if (removalIndex === 0) {
 			newPositionArray.set(
 				this.#geometryState.positionArray.slice(
@@ -212,6 +238,7 @@ export class GeometryManagerHelper {
 					this.#geometryState.positionArray.length,
 				),
 			);
+			metadataArray.splice(0, 1);
 		} else {
 			newPositionArray.set(
 				this.#geometryState.positionArray.slice(
@@ -219,6 +246,7 @@ export class GeometryManagerHelper {
 					this.#geometryState.positionArray.length - 3,
 				),
 			);
+			metadataArray.splice(removalIndex, 1);
 		}
 
 		// remove the material index at that point and move the other indices one forward
@@ -233,7 +261,11 @@ export class GeometryManagerHelper {
 		// add a 0 at the end
 		materialIndexArray.push(0);
 		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-		this.#geometryState.updateData(newPositionArray, temporary);
+		this.#geometryState.updateData(
+			newPositionArray,
+			metadataArray,
+			temporary,
+		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 			viewportId: this.#viewport.id,
@@ -251,6 +283,7 @@ export class GeometryManagerHelper {
 
 		let positionArray = new Float32Array(this.#geometryState.positionArray);
 		let materialIndexArray = this.#geometryState.materialIndexArray;
+		let metadataArray = this.#geometryState.metadataArray.slice();
 
 		for (const removalIndex of indices) {
 			const positionArrayLength = positionArray.length / 3;
@@ -275,14 +308,17 @@ export class GeometryManagerHelper {
 						positionArray.length,
 					),
 				]);
+				metadataArray.splice(removalIndex, 1);
 			} else if (removalIndex === 0) {
 				newPositionArray.set(
 					positionArray.slice(3, positionArray.length),
 				);
+				metadataArray.splice(0, 1);
 			} else {
 				newPositionArray.set(
 					positionArray.slice(0, positionArray.length - 3),
 				);
+				metadataArray.splice(removalIndex, 1);
 			}
 
 			positionArray = newPositionArray;
@@ -299,7 +335,7 @@ export class GeometryManagerHelper {
 			materialIndexArray.push(0);
 		}
 		this.#geometryState.updateMaterialIndexArray(materialIndexArray);
-		this.#geometryState.updateData(positionArray);
+		this.#geometryState.updateData(positionArray, metadataArray);
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 			viewportId: this.#viewport.id,

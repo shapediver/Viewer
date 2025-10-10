@@ -5,6 +5,7 @@ import {
 	IDrawingToolsApi,
 	IDrawingToolsEvent,
 	PointsData,
+	RayTraceResult,
 	RESTRICTION_TYPE,
 	Settings,
 } from "@shapediver/viewer.features.drawing-tools";
@@ -88,8 +89,11 @@ import {
 	 *
 	 * @param geometryData
 	 */
-	const onUpdate = async (pointsData: PointsData) => {
-		console.log("Drawing tools updated", pointsData);
+	const onUpdate = async (
+		pointsData: PointsData,
+		metaData: (RayTraceResult | undefined)[],
+	) => {
+		console.log("Drawing tools updated", pointsData, metaData);
 
 		// const pointsParameter = session.getParameterByName("points")[0];
 		// pointsParameter.value = JSON.stringify({points: pointsData});

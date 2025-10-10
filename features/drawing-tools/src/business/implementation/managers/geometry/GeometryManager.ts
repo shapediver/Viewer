@@ -1,3 +1,4 @@
+import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
 import {MATERIAL_INDEX} from "../../../interfaces/IDrawingToolsManager";
@@ -56,9 +57,15 @@ export class GeometryManager {
 	public addPoint(
 		index: number,
 		position?: vec3,
+		metaData?: RayTraceResult,
 		temporary = false,
 	): boolean {
-		return this.#geometryManagerHelper.addPoint(index, position, temporary);
+		return this.#geometryManagerHelper.addPoint(
+			index,
+			position,
+			metaData,
+			temporary,
+		);
 	}
 
 	public canAddPoint(): boolean {
@@ -79,8 +86,18 @@ export class GeometryManager {
 		this.#geometryState.createLineIndices(loop);
 	}
 
-	public movePoint(index: number, position: vec3, temporary = false): void {
-		this.#geometryManagerHelper.movePoint(index, position, temporary);
+	public movePoint(
+		index: number,
+		position: vec3,
+		metaData: RayTraceResult | undefined,
+		temporary = false,
+	): void {
+		this.#geometryManagerHelper.movePoint(
+			index,
+			position,
+			metaData,
+			temporary,
+		);
 	}
 
 	public removePoint(removalIndex: number, temporary = false): boolean {

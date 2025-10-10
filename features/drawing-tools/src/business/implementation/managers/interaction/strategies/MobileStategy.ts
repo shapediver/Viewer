@@ -216,6 +216,9 @@ export class MobileStrategy implements IStrategy {
 							viewportId: this.#drawingToolsManager.viewport.id,
 							drawingToolId: this.#drawingToolsManager.uuid,
 							points: this.#drawingToolsManager.geometryState.getPointsData(),
+							metaData:
+								this.#drawingToolsManager.geometryState
+									.metadataArray,
 							temporary: false,
 							fromHistory: false,
 						},
@@ -227,15 +230,17 @@ export class MobileStrategy implements IStrategy {
 					this.#downPress!.event,
 				);
 				// add a point at the ray intersection
-				const restrictedPoint = this.#restrictionManager.rayTrace(ray, {
+				const rayTraceResult = this.#restrictionManager.rayTrace(ray, {
 					type: "drawing",
 					positionArray: this.#drawingToolsManager.positionArray,
-				})?.point;
+				});
+				const restrictedPoint = rayTraceResult?.point;
 				const insertionIndex =
 					this.#drawingToolsManager.geometryState.getPointCount();
 				this.#drawingToolsManager.addPoint(
 					insertionIndex,
 					restrictedPoint,
+					rayTraceResult,
 				);
 			}
 		} else {

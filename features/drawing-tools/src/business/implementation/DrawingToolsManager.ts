@@ -11,6 +11,7 @@ import {
 	GeometryMathManager,
 	IRestriction,
 	IRestrictionManager,
+	RayTraceResult,
 	RestrictionProperties,
 	RESTRICTION_TYPE,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
@@ -115,6 +116,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				if (
 					event.temporary === false &&
 					event.points !== undefined &&
+					event.metaData !== undefined &&
 					event.recordHistory !== false
 				) {
 					if (
@@ -240,6 +242,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	public addPoint(
 		index: number,
 		position?: vec3 | undefined,
+		metaData?: RayTraceResult,
 		temporary = false,
 	): boolean {
 		if (this.#closed) return false;
@@ -256,14 +259,20 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				`The maximum amount of points (${this.#settings.geometry.maxPoints}) has been exceeded.`,
 			);
 		}
-		return this.#geometryManager.addPoint(index, position, temporary);
+		return this.#geometryManager.addPoint(
+			index,
+			position,
+			metaData,
+			temporary,
+		);
 	}
 
 	public addPointTemporary(
 		index: number,
 		position?: vec3 | undefined,
+		metaData?: RayTraceResult,
 	): boolean {
-		return this.addPoint(index, position, true);
+		return this.addPoint(index, position, metaData, true);
 	}
 
 	/**
@@ -339,12 +348,21 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		}
 	}
 
-	public movePoint(index: number, position: vec3, temporary = false): void {
-		this.#geometryManager.movePoint(index, position, temporary);
+	public movePoint(
+		index: number,
+		position: vec3,
+		metaData: RayTraceResult | undefined,
+		temporary = false,
+	): void {
+		this.#geometryManager.movePoint(index, position, metaData, temporary);
 	}
 
-	public movePointTemporary(index: number, position: vec3): void {
-		this.movePoint(index, position, true);
+	public movePointTemporary(
+		index: number,
+		position: vec3,
+		metaData: RayTraceResult | undefined,
+	): void {
+		this.movePoint(index, position, metaData, true);
 	}
 
 	public onDown(event: PointerEvent, ray: IRay): void {
@@ -479,7 +497,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#historyManager.undo();
 	}
 
-	public update(): PointsData | undefined {
+	public update(): {
+		pointsData: PointsData;
+		metaData: (RayTraceResult | undefined)[];
+	} | void {
 		if (this.#closed) return;
 
 		const pointsCount = this.geometryState.getPointCount();
@@ -534,7 +555,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		} else {
 			const pointsData = this.geometryState.getPointsData();
 			try {
-				this.#callbacks.onUpdate(pointsData);
+				this.#callbacks.onUpdate(
+					pointsData,
+					this.geometryState.metadataArray,
+				);
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.UPDATE, {
 					viewportId: this.viewport.id,
 					drawingToolsId: this.#uuid,
@@ -545,7 +569,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				);
 			}
 			if (this.#settings.general.closeOnUpdate) this.close();
-			return pointsData;
+			return {
+				pointsData,
+				metaData: this.geometryState.metadataArray,
+			};
 		}
 	}
 

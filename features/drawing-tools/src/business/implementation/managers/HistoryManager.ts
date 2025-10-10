@@ -1,4 +1,5 @@
 import {addListener, EVENTTYPE_DRAWING_TOOLS, IEvent} from "@shapediver/viewer";
+import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
 import {PointsData} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
@@ -7,6 +8,7 @@ import {DrawingToolsManager} from "../DrawingToolsManager";
 
 export type HistoryState = {
 	points: PointsData;
+	metaData: RayTraceResult[];
 };
 
 // #endregion Type aliases (1)
@@ -33,6 +35,7 @@ export class HistoryManager {
 			if (
 				event.temporary === false &&
 				event.points !== undefined &&
+				event.metaData !== undefined &&
 				event.fromHistory !== true &&
 				event.recordHistory !== false
 			) {
@@ -59,6 +62,7 @@ export class HistoryManager {
 
 				this.recordState({
 					points: event.points,
+					metaData: event.metaData,
 				});
 			}
 		});
@@ -71,6 +75,7 @@ export class HistoryManager {
 	public applyState(state: HistoryState): void {
 		this.#drawingToolsManager.geometryState.updateDataFromHistory(
 			state.points,
+			state.metaData,
 		);
 	}
 

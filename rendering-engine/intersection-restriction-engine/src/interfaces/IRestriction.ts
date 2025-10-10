@@ -114,6 +114,7 @@ export type RayTraceResult = {
 	closestPointOnRay?: vec3;
 	restriction: IRestriction;
 	transformation?: mat4;
+	restrictionResult: RestrictionResult;
 };
 
 export type RestrictionProperties =
