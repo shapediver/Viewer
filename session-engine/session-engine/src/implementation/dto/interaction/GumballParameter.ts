@@ -2,6 +2,7 @@ import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IGumballParameterProps,
 	IInteractionParameterSettings,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	validateGumballParameterSettings,
 } from "@shapediver/viewer.shared.types";
@@ -76,7 +77,7 @@ export class GumballParameter
 		return this.getGumballProperties()?.scale;
 	}
 
-	public get selectionColor(): string | undefined {
+	public get selectionColor(): InteractionEffect | undefined {
 		return this.getGumballProperties()?.selectionColor;
 	}
 

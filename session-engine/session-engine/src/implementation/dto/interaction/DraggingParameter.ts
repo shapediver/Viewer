@@ -3,6 +3,7 @@ import {
 	IDraggableObject,
 	IDraggingParameterProps,
 	IInteractionParameterSettings,
+	InteractionEffect,
 	InteractionParameterSettingsType,
 	RestrictionDefinition,
 	validateDraggingParameterSettings,
@@ -32,7 +33,7 @@ export class DraggingParameter
 
 	// #region Public Getters And Setters (6)
 
-	public get draggingColor(): string | undefined {
+	public get draggingColor(): InteractionEffect | undefined {
 		return this.getDraggingProperties()?.draggingColor;
 	}
 
@@ -40,7 +41,7 @@ export class DraggingParameter
 		return this.getDraggingProperties()?.hover;
 	}
 
-	public get hoverColor(): string | undefined {
+	public get hoverColor(): InteractionEffect | undefined {
 		return this.getDraggingProperties()?.hoverColor;
 	}
 
