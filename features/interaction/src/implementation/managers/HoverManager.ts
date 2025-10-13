@@ -224,6 +224,8 @@ export class HoverManager extends AbstractInteractionManager {
 
 		if (data) {
 			console.log("HOVER", this.id, data?.restrictedManagers);
+		} else {
+			console.log("HOVER", this.id, "no data");
 		}
 
 		// find and store all nodes that are within the group
