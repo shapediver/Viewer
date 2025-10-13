@@ -209,7 +209,7 @@ export class DragManager extends AbstractInteractionManager {
 		if (intersections.length > 0) {
 			this.setNode(
 				intersections[0].node,
-				intersection[0].geometryData,
+				intersections[0].geometryData,
 				intersections[0].distance,
 				intersections[0].point,
 				event,

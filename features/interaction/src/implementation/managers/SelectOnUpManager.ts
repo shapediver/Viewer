@@ -127,14 +127,14 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 			if (this.#node) {
 				if (
 					intersections.length > 0 &&
-					intersection[0].node !== this.#node
+					intersections[0].node !== this.#node
 				) {
 					// case other node was clicked, deselect then select
 					this.deactivateNode(event);
 					this.activateNode(intersections[0], event, ray);
 				} else if (
 					intersections.length > 0 &&
-					intersection[0].node === this.#node
+					intersections[0].node === this.#node
 				) {
 					// case same node was clicked, only deselect
 					this.deactivateNode(event);
