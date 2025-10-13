@@ -36,7 +36,7 @@ export class HoverManager extends AbstractInteractionManager {
 	): IIntersectionFilter => {
 		if (interactionState === INTERACTION_STATE.MOVE) {
 			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node);
+				return !!this.getInteractionData(node, false);
 			};
 		}
 
@@ -148,7 +148,7 @@ export class HoverManager extends AbstractInteractionManager {
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
-			const data = this.getInteractionData(i.node);
+			const data = this.getInteractionData(i.node, true);
 			return !(data && data.interactionStates.drag === true) ? i : null;
 		});
 
@@ -219,7 +219,7 @@ export class HoverManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!);
+		const data = this.getInteractionData(this.#node!, true);
 		if (data) data.interactionStates.hover = true;
 
 		// find and store all nodes that are within the group
@@ -280,7 +280,7 @@ export class HoverManager extends AbstractInteractionManager {
 		}
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!);
+		const data = this.getInteractionData(this.#node!, true);
 		if (data) data.interactionStates.hover = false;
 
 		if (this.#interactionEffectToken) {
@@ -321,18 +321,27 @@ export class HoverManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 	}
 
-	private getInteractionData(node: ITreeNode): InteractionData | undefined {
+	private getInteractionData(
+		node: ITreeNode,
+		restrictions: boolean,
+	): InteractionData | undefined {
 		for (let i = 0; i < node.data.length; i++) {
 			if (node.data[i] instanceof InteractionData) {
-				if (
-					((<InteractionData>node.data[i]).restrictedManagers
-						.length === 0 ||
+				const data = node.data[i] as InteractionData;
+				if (data.interactionTypes.hover !== true) continue;
+
+				if (restrictions) {
+					if (
+						(<InteractionData>node.data[i]).restrictedManagers
+							.length === 0 ||
 						(<InteractionData>(
 							node.data[i]
-						)).restrictedManagers.includes(this.id)) &&
-					(<InteractionData>node.data[i]).interactionTypes.hover
-				)
+						)).restrictedManagers.includes(this.id)
+					)
+						return node.data[i] as InteractionData;
+				} else {
 					return node.data[i] as InteractionData;
+				}
 			}
 		}
 	}
