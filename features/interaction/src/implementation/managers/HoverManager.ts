@@ -155,6 +155,14 @@ export class HoverManager extends AbstractInteractionManager {
 		const firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
 
+		console.log(
+			"HOVER",
+			this.id,
+			firstIntersection?.node.data.find(
+				(d) => d instanceof InteractionData,
+			)?.restrictedManagers,
+		);
+
 		if (this.#node) {
 			if (firstIntersection && firstIntersection.node === this.#node) {
 				// do nothing
