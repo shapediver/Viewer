@@ -155,16 +155,6 @@ export class HoverManager extends AbstractInteractionManager {
 		const firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
 
-		console.log(
-			"HOVER",
-			this.id,
-			(
-				firstIntersection?.node.data.find(
-					(d) => d instanceof InteractionData,
-				) as InteractionData
-			).restrictedManagers,
-		);
-
 		if (this.#node) {
 			if (firstIntersection && firstIntersection.node === this.#node) {
 				// do nothing
@@ -231,6 +221,10 @@ export class HoverManager extends AbstractInteractionManager {
 		// find the interaction data
 		const data = this.getInteractionData(this.#node!, true);
 		if (data) data.interactionStates.hover = true;
+
+		if (data) {
+			console.log("HOVER", this.id, data?.restrictedManagers);
+		}
 
 		// find and store all nodes that are within the group
 		if (data && data.groupId) {
