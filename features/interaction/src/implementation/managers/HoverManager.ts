@@ -158,9 +158,11 @@ export class HoverManager extends AbstractInteractionManager {
 		console.log(
 			"HOVER",
 			this.id,
-			firstIntersection?.node.data.find(
-				(d) => d instanceof InteractionData,
-			)?.restrictedManagers,
+			(
+				firstIntersection?.node.data.find(
+					(d) => d instanceof InteractionData,
+				) as InteractionData
+			).restrictedManagers,
 		);
 
 		if (this.#node) {
