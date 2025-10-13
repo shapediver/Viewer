@@ -145,7 +145,7 @@ export class HoverManager extends AbstractInteractionManager {
 		let intersections = intersection.filter((i) =>
 			this.filter(INTERACTION_STATE.MOVE)(i.node),
 		);
-		intersections = intersection.filter((i) => {
+		intersections = intersections.filter((i) => {
 			const data = this.getInteractionData(i.node);
 			return !(data && data.interactionStates.drag === true);
 		});
@@ -153,7 +153,7 @@ export class HoverManager extends AbstractInteractionManager {
 		if (this.#node) {
 			if (
 				intersections.length > 0 &&
-				intersection[0].node === this.#node
+				intersections[0].node === this.#node
 			) {
 				// do nothing
 			} else if (intersections.length > 0) {
