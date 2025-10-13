@@ -149,7 +149,7 @@ export class HoverManager extends AbstractInteractionManager {
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
 			const data = this.getInteractionData(i.node, true);
-			return !(data && data.interactionStates.drag === true) ? i : null;
+			return data && !data.interactionStates.drag ? i : null;
 		});
 
 		const firstIntersection =
