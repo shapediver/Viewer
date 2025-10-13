@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.creation-control-center.session",
-	"version": "3.13.12-rc.2",
+	"version": "3.13.12-rc.3",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,10 +39,10 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "2.9.1",
-		"@shapediver/viewer.session-engine.session-engine": "3.13.12-rc.2",
-		"@shapediver/viewer.shared.build-data": "3.13.12-rc.2",
-		"@shapediver/viewer.shared.services": "3.13.12-rc.2",
-		"@shapediver/viewer.shared.types": "3.13.12-rc.2"
+		"@shapediver/viewer.session-engine.session-engine": "3.13.12-rc.3",
+		"@shapediver/viewer.shared.build-data": "3.13.12-rc.3",
+		"@shapediver/viewer.shared.services": "3.13.12-rc.3",
+		"@shapediver/viewer.shared.types": "3.13.12-rc.3"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
