@@ -63,7 +63,7 @@ export class DragManager extends AbstractInteractionManager {
 	): IIntersectionFilter => {
 		if (interactionState === INTERACTION_STATE.DOWN) {
 			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node);
+				return !!this.getInteractionData(node, false);
 			};
 		}
 
@@ -206,12 +206,21 @@ export class DragManager extends AbstractInteractionManager {
 		const intersections = intersection.filter((i) =>
 			this.filter(INTERACTION_STATE.DOWN)(i.node),
 		);
-		if (intersections.length > 0) {
+
+		// create a list that replaces all irrelevant intersections with null
+		const filteredIntersections = intersections.map((i) => {
+			return this.getInteractionData(i.node, true) ? i : null;
+		});
+
+		const firstIntersection =
+			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
+
+		if (firstIntersection) {
 			this.setNode(
-				intersections[0].node,
-				intersection[0].geometryData,
-				intersections[0].distance,
-				intersections[0].point,
+				firstIntersection.node,
+				firstIntersection.geometryData,
+				firstIntersection.distance,
+				firstIntersection.point,
 				event,
 				ray,
 			);
@@ -281,7 +290,10 @@ export class DragManager extends AbstractInteractionManager {
 		if (!this.#draggedNode) return;
 		this.#restrictionManager!.showRestrictionVisualization = true;
 
-		const interactionData = this.getInteractionData(this.#draggedNode.node);
+		const interactionData = this.getInteractionData(
+			this.#draggedNode.node,
+			true,
+		);
 		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
 			type: "dragging",
 			dragAnchors: this.#draggedNode.dragAnchors,
@@ -369,6 +381,7 @@ export class DragManager extends AbstractInteractionManager {
 		if (ray) {
 			const interactionData = this.getInteractionData(
 				this.#draggedNode.node,
+				true,
 			);
 			transformationResult = this.#restrictionManager!.rayTrace(ray, {
 				type: "dragging",
@@ -581,7 +594,7 @@ export class DragManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
-		const data = this.getInteractionData(node);
+		const data = this.getInteractionData(node, true);
 		if (data) data.interactionStates.drag = true;
 
 		// find and store all nodes that are within the group
@@ -686,7 +699,7 @@ export class DragManager extends AbstractInteractionManager {
 		if (!this.#draggedNode) return;
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#draggedNode.node);
+		const data = this.getInteractionData(this.#draggedNode.node, true);
 		if (data) data.interactionStates.drag = false;
 
 		if (this.#interactionEffectToken) {
@@ -719,18 +732,27 @@ export class DragManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 	}
 
-	private getInteractionData(node: ITreeNode): InteractionData | undefined {
+	private getInteractionData(
+		node: ITreeNode,
+		restrictions: boolean,
+	): InteractionData | undefined {
 		for (let i = 0; i < node.data.length; i++) {
 			if (node.data[i] instanceof InteractionData) {
-				if (
-					((<InteractionData>node.data[i]).restrictedManagers
-						.length === 0 ||
+				const data = node.data[i] as InteractionData;
+				if (data.interactionTypes.drag !== true) continue;
+
+				if (restrictions) {
+					if (
+						(<InteractionData>node.data[i]).restrictedManagers
+							.length === 0 ||
 						(<InteractionData>(
 							node.data[i]
-						)).restrictedManagers.includes(this.id)) &&
-					(<InteractionData>node.data[i]).interactionTypes.drag
-				)
+						)).restrictedManagers.includes(this.id)
+					)
+						return node.data[i] as InteractionData;
+				} else {
 					return node.data[i] as InteractionData;
+				}
 			}
 		}
 	}
