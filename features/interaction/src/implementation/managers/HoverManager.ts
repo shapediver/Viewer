@@ -142,31 +142,29 @@ export class HoverManager extends AbstractInteractionManager {
 			return;
 		}
 
-		const intersections = intersection.filter((i) =>
+		let intersections = intersection.filter((i) =>
 			this.filter(INTERACTION_STATE.MOVE)(i.node),
 		);
-
-		// create a list that replaces all irrelevant intersections with null
-		const filteredIntersections = intersections.map((i) => {
+		intersections = intersections.filter((i) => {
 			const data = this.getInteractionData(i.node);
-			return data && data.interactionStates.drag === false ? i : null;
+			return !(data && data.interactionStates.drag === true);
 		});
 
-		const firstIntersection =
-			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
-
 		if (this.#node) {
-			if (firstIntersection && firstIntersection.node === this.#node) {
+			if (
+				intersections.length > 0 &&
+				intersections[0].node === this.#node
+			) {
 				// do nothing
-			} else if (firstIntersection) {
+			} else if (intersections.length > 0) {
 				this.deactivateNode(event);
-				this.activateNode(firstIntersection, event, ray);
+				this.activateNode(intersections[0], event, ray);
 			} else {
 				this.deactivateNode(event);
 			}
-		} else if (firstIntersection) {
+		} else if (intersections.length > 0) {
 			// easy case, no node hover, just hover this one
-			this.activateNode(firstIntersection, event, ray);
+			this.activateNode(intersections[0], event, ray);
 		}
 	}
 
