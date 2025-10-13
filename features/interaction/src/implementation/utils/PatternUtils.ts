@@ -99,7 +99,7 @@ export const gatherNodesForPattern = (
 		if (count === pattern.length - 1) {
 			let nodeData = getNodeData(node, strictNaming);
 
-			if (!nodeData) {
+			if (!nodeData || !nodeData.nodeName) {
 				nodeData = getInstanceNodeData(node, strictNaming);
 			}
 
