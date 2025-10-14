@@ -32,7 +32,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	): IIntersectionFilter => {
 		if (interactionState === INTERACTION_STATE.UP) {
 			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node);
+				return !!this.getInteractionData(node, false);
 			};
 		}
 
@@ -124,30 +124,40 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 				this.filter(INTERACTION_STATE.UP)(i.node),
 			);
 
+			// create a list that replaces all irrelevant intersections with null
+			const filteredIntersections = intersections.map((i) => {
+				return this.getInteractionData(i.node, true) ? i : null;
+			});
+
+			const firstIntersection =
+				filteredIntersections.length > 0
+					? filteredIntersections[0]
+					: null;
+
 			if (this.#node) {
 				if (
-					intersections.length > 0 &&
-					intersection[0].node !== this.#node
+					firstIntersection &&
+					firstIntersection.node !== this.#node
 				) {
 					// case other node was clicked, deselect then select
 					this.deactivateNode(event);
-					this.activateNode(intersections[0], event, ray);
+					this.activateNode(firstIntersection, event, ray);
 				} else if (
-					intersections.length > 0 &&
-					intersection[0].node === this.#node
+					firstIntersection &&
+					firstIntersection.node === this.#node
 				) {
 					// case same node was clicked, only deselect
 					this.deactivateNode(event);
 				} else if (
-					intersections.length === 0 &&
+					!filteredIntersections.some((i) => i !== null) &&
 					this.#deselectOnEmpty
 				) {
 					// case no node was clicked, only deselect when option is on
 					this.deactivateNode(event);
 				}
-			} else if (intersections.length > 0) {
+			} else if (firstIntersection) {
 				// easy case, no node select, just select this one
-				this.activateNode(intersections[0], event, ray);
+				this.activateNode(firstIntersection, event, ray);
 			}
 		}
 	}
@@ -211,7 +221,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!);
+		const data = this.getInteractionData(this.#node!, true);
 		if (data) data.interactionStates.select = true;
 
 		// find and store all nodes that are within the group
@@ -272,7 +282,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		}
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!);
+		const data = this.getInteractionData(this.#node!, true);
 		if (data) data.interactionStates.select = false;
 
 		if (this.#interactionEffectToken) {
@@ -313,18 +323,27 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 	}
 
-	private getInteractionData(node: ITreeNode): InteractionData | undefined {
+	private getInteractionData(
+		node: ITreeNode,
+		restrictions: boolean,
+	): InteractionData | undefined {
 		for (let i = 0; i < node.data.length; i++) {
 			if (node.data[i] instanceof InteractionData) {
-				if (
-					((<InteractionData>node.data[i]).restrictedManagers
-						.length === 0 ||
+				const data = node.data[i] as InteractionData;
+				if (data.interactionTypes.select !== true) continue;
+
+				if (restrictions) {
+					if (
+						(<InteractionData>node.data[i]).restrictedManagers
+							.length === 0 ||
 						(<InteractionData>(
 							node.data[i]
-						)).restrictedManagers.includes(this.id)) &&
-					(<InteractionData>node.data[i]).interactionTypes.select
-				)
+						)).restrictedManagers.includes(this.id)
+					)
+						return node.data[i] as InteractionData;
+				} else {
 					return node.data[i] as InteractionData;
+				}
 			}
 		}
 	}
