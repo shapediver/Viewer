@@ -826,9 +826,9 @@ class TransformControls extends Object3D {
 
 			if (restrictedPoint && restrictedPoint.point) {
 				if (space === "local") {
-					object.position.applyQuaternion(
-						_tempQuaternion.copy(this._quaternionStart).invert(),
-					);
+					// object.position.applyQuaternion(
+					// 	_tempQuaternion.copy(this._quaternionStart).invert(),
+					// );
 
 					if (axis.search("X") !== -1) {
 						object.position.x = restrictedPoint.point[0];
@@ -842,7 +842,7 @@ class TransformControls extends Object3D {
 						object.position.z = restrictedPoint.point[2];
 					}
 
-					object.position.applyQuaternion(this._quaternionStart);
+					// object.position.applyQuaternion(this._quaternionStart);
 				}
 
 				if (space === "world") {
