@@ -245,7 +245,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 					this.deselectAll();
 					this.activateNode(firstIntersection, event, ray);
 				} else if (
-					filteredIntersections.some((i) => i !== null) &&
+					!filteredIntersections.some((i) => i !== null) &&
 					this.#deselectOnEmpty
 				) {
 					this.deselectAll();

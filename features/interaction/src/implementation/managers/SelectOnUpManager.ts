@@ -149,7 +149,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 					// case same node was clicked, only deselect
 					this.deactivateNode(event);
 				} else if (
-					filteredIntersections.some((i) => i !== null) &&
+					!filteredIntersections.some((i) => i !== null) &&
 					this.#deselectOnEmpty
 				) {
 					// case no node was clicked, only deselect when option is on
