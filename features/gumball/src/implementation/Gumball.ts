@@ -93,7 +93,7 @@ export class Gumball implements IGumball {
 		this.#nodes = nodes;
 		this.#singleNode = nodes.length === 1;
 
-		if (settings?.restrictions !== undefined) {
+		if (this.#singleNode && settings?.restrictions !== undefined) {
 			const restrictionsArray: RestrictionProperties[] = [];
 			for (const restrictionId in settings.restrictions) {
 				const restriction = settings.restrictions[restrictionId];

@@ -791,8 +791,6 @@ class TransformControls extends Object3D {
 							],
 						},
 						{
-							pressedKeys: [],
-							toggledKeys: [],
 							type: "gumball",
 						},
 					)
@@ -826,23 +824,9 @@ class TransformControls extends Object3D {
 
 			if (restrictedPoint && restrictedPoint.point) {
 				if (space === "local") {
-					object.position.applyQuaternion(
-						_tempQuaternion.copy(this._quaternionStart).invert(),
-					);
-
-					if (axis.search("X") !== -1) {
-						object.position.x = restrictedPoint.point[0];
-					}
-
-					if (axis.search("Y") !== -1) {
-						object.position.y = restrictedPoint.point[1];
-					}
-
-					if (axis.search("Z") !== -1) {
-						object.position.z = restrictedPoint.point[2];
-					}
-
-					object.position.applyQuaternion(this._quaternionStart);
+					object.position.x = restrictedPoint.point[0];
+					object.position.y = restrictedPoint.point[1];
+					object.position.z = restrictedPoint.point[2];
 				}
 
 				if (space === "world") {
@@ -853,18 +837,9 @@ class TransformControls extends Object3D {
 							),
 						);
 					}
-
-					if (axis.search("X") !== -1) {
-						object.position.x = restrictedPoint.point[0];
-					}
-
-					if (axis.search("Y") !== -1) {
-						object.position.y = restrictedPoint.point[1];
-					}
-
-					if (axis.search("Z") !== -1) {
-						object.position.z = restrictedPoint.point[2];
-					}
+					object.position.x = restrictedPoint.point[0];
+					object.position.y = restrictedPoint.point[1];
+					object.position.z = restrictedPoint.point[2];
 
 					if (object.parent) {
 						object.position.sub(
