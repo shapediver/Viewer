@@ -266,11 +266,7 @@ export const getNodeData = (
 			return {
 				outputId: outputData.id,
 				outputName: outputData.name,
-				nodeName: node.data.find(
-					(data) => data instanceof SessionOutputData,
-				)
-					? outputData.name
-					: names.reverse().join("."),
+				nodeName: names.reverse().join("."),
 			};
 		} else if (
 			nodeName &&
