@@ -98,9 +98,13 @@ export const gatherNodesForPattern = (
 	else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
 		if (count === pattern.length - 1) {
 			let nodeData = getNodeData(node, strictNaming);
-
 			if (!nodeData || !nodeData.nodeName) {
-				nodeData = getInstanceNodeData(node, strictNaming);
+				const instanceNodeData = getInstanceNodeData(
+					node,
+					strictNaming,
+				);
+				if (instanceNodeData && instanceNodeData.nodeName)
+					nodeData = instanceNodeData;
 			}
 
 			// we reached the end of the pattern, add the node to the result
@@ -338,7 +342,9 @@ const matchNodeWithPatterns = (
 ): string | undefined => {
 	let nodeData = getNodeData(node, strictNaming);
 	if (!nodeData || !nodeData.nodeName) {
-		nodeData = getInstanceNodeData(node, strictNaming);
+		const instanceNodeData = getInstanceNodeData(node, strictNaming);
+		if (instanceNodeData && instanceNodeData.nodeName)
+			nodeData = instanceNodeData;
 	}
 	if (!nodeData) return;
 	const {outputId, outputName, nodeName} = nodeData;
