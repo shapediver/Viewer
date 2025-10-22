@@ -45,7 +45,7 @@ export class AttributeVisualizationEngine
 	});
 	#defaultLayer: ILayer = {
 		color: "#000000",
-		opacity: 0.1,
+		opacity: 1,
 		enabled: true,
 	};
 	#layers: {
