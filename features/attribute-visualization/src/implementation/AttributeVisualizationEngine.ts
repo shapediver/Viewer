@@ -144,6 +144,12 @@ export class AttributeVisualizationEngine
 
 	public updateDefaultMaterial(material: IMaterialAbstractData) {
 		this.#defaultMaterial = material;
+		// we need to update the geometry data of all nodes
+		// otherwise the changes for default materials/layers won't be visible
+		sceneTree.root.traverseData((d) => {
+			if (d instanceof GeometryData) d.updateVersion();
+		});
+		sceneTree.root.updateVersion();
 		this.constructAttributeVisualization();
 	}
 
