@@ -6,27 +6,26 @@ import {
 	Logger,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {ISelectEvent} from "../../interfaces/events/ISelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionData} from "../InteractionData";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class SelectManager extends AbstractInteractionManager {
-	// #region Properties (11)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = false;
-	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -40,31 +39,25 @@ export class SelectManager extends AbstractInteractionManager {
 	};
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
-	#intersection: IIntersection | null = null;
+	#interactionEffectToken?: string;
+	#intersection: IRayTracingIntersection | null = null;
+	#keyPressed: {
+		removal: boolean;
+	} = {
+		removal: false,
+	};
 	#node: ITreeNode | null = null;
 	#removalKey = "Control";
-	#useModifierKeys: boolean = false;
-
-	// #endregion Properties (11)
-
-	// #region Constructors (1)
 
 	constructor(
 		id?: string,
 		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
 		deselectOnEmpty?: boolean,
-		useModifierKeys?: boolean,
 	) {
 		super(id, interactionEffect);
 		if (deselectOnEmpty !== undefined)
 			this.#deselectOnEmpty = deselectOnEmpty;
-		if (useModifierKeys !== undefined)
-			this.#useModifierKeys = useModifierKeys;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (7)
 
 	public get deselectOnEmpty(): boolean {
 		return this.#deselectOnEmpty;
@@ -86,18 +79,6 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#removalKey = value;
 	}
 
-	public get useModifierKeys(): boolean {
-		return this.#useModifierKeys;
-	}
-
-	public set useModifierKeys(value: boolean) {
-		this.#useModifierKeys = value;
-	}
-
-	// #endregion Public Getters And Setters (7)
-
-	// #region Public Methods (7)
-
 	public add(viewport: IViewportApi): void {
 		this.viewport = viewport;
 	}
@@ -112,7 +93,7 @@ export class SelectManager extends AbstractInteractionManager {
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -120,9 +101,11 @@ export class SelectManager extends AbstractInteractionManager {
 			);
 			return;
 		}
-		const intersections = intersection.filter((i) =>
-			this.filter(INTERACTION_STATE.DOWN)(i.node),
-		);
+		const intersections = intersection.filter(
+			(i) =>
+				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
+				i.type === "RayTracingIntersection",
+		) as IRayTracingIntersection[];
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
@@ -132,67 +115,35 @@ export class SelectManager extends AbstractInteractionManager {
 		const firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
 
-		if (this.#useModifierKeys === false) {
-			if (this.#node) {
-				if (
-					firstIntersection &&
-					firstIntersection.node !== this.#node
-				) {
-					// case other node was clicked, deselect then select
-					this.deactivateNode(event);
+		if (this.#node) {
+			if (firstIntersection && firstIntersection.node !== this.#node) {
+				// case other node was clicked, deselect then select
+				this.deactivateNode(event);
+				if (!this.#keyPressed.removal)
 					this.activateNode(firstIntersection, event, ray);
-				} else if (
-					firstIntersection &&
-					firstIntersection.node === this.#node
-				) {
-					// case same node was clicked, only deselect
-					this.deactivateNode(event);
-				} else if (
-					!filteredIntersections.some((i) => i !== null) &&
-					this.#deselectOnEmpty
-				) {
-					// case no node was clicked, only deselect when option is on
-					this.deactivateNode(event);
-				}
-			} else if (firstIntersection) {
-				// easy case, no node select, just select this one
-				this.activateNode(firstIntersection, event, ray);
+			} else if (
+				firstIntersection &&
+				firstIntersection.node === this.#node
+			) {
+				// case same node was clicked, only deselect
+				this.deactivateNode(event);
+			} else if (
+				!filteredIntersections.some((i) => i !== null) &&
+				this.#deselectOnEmpty
+			) {
+				// case no node was clicked, only deselect when option is on
+				this.deactivateNode(event);
 			}
-		} else {
-			const controlPressed = event.ctrlKey;
-			if (this.#node) {
-				if (
-					firstIntersection &&
-					firstIntersection.node !== this.#node
-				) {
-					// case other node was clicked, deselect then select
-					this.deactivateNode(event);
-					this.activateNode(firstIntersection, event, ray);
-				} else if (
-					controlPressed &&
-					firstIntersection &&
-					firstIntersection.node === this.#node
-				) {
-					// case same node was clicked, only deselect
-					this.deactivateNode(event);
-				} else if (
-					filteredIntersections.some((i) => i !== null) &&
-					this.#deselectOnEmpty
-				) {
-					// case no node was clicked, only deselect when option is on
-					this.deactivateNode(event);
-				}
-			} else if (firstIntersection) {
-				// easy case, no node select, just select this one
-				this.activateNode(firstIntersection, event, ray);
-			}
+		} else if (firstIntersection && !this.#keyPressed.removal) {
+			// easy case, no node select, just select this one
+			this.activateNode(firstIntersection, event, ray);
 		}
 	}
 
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
 		if (!this.viewport) {
@@ -203,10 +154,18 @@ export class SelectManager extends AbstractInteractionManager {
 		}
 	}
 
+	public onKeyDown(event: KeyboardEvent): void {
+		if (event.key === this.#removalKey) this.#keyPressed.removal = true;
+	}
+
+	public onKeyUp(event: KeyboardEvent): void {
+		if (event.key === this.#removalKey) this.#keyPressed.removal = false;
+	}
+
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -227,14 +186,10 @@ export class SelectManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IIntersection) {
+	public select(intersection: IRayTracingIntersection) {
 		if (this.#node) this.deactivateNode(undefined, true);
 		this.activateNode(intersection);
 	}
-
-	// #endregion Public Methods (7)
-
-	// #region Private Methods (2)
 
 	/**
 	 * Utility function to make the node the current active node.
@@ -245,7 +200,7 @@ export class SelectManager extends AbstractInteractionManager {
 	 * @param ray
 	 */
 	private activateNode(
-		intersection: IIntersection,
+		intersection: IRayTracingIntersection,
 		event?: PointerEvent,
 		ray?: IRay,
 	) {
@@ -300,7 +255,10 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, {
 			viewportId: this.viewport.id,
 			node: this.#node,
-			intersectionPoint: this.#intersection.point,
+			intersectionPoint:
+				this.#intersection.type === "RayTracingIntersection"
+					? (this.#intersection as IRayTracingIntersection).point
+					: undefined,
 			ray,
 			event,
 			manager: this,
@@ -389,6 +347,4 @@ export class SelectManager extends AbstractInteractionManager {
 			}
 		}
 	}
-
-	// #endregion Private Methods (2)
 }

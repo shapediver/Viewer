@@ -1,3 +1,4 @@
+import {viewports} from "@shapediver/viewer";
 import {
 	IIntersectionEngine,
 	IntersectionEngine,
@@ -7,10 +8,14 @@ import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
-	IIntersection,
+	IBoxSelectionIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+import {vec3} from "gl-matrix";
+import * as THREE from "three";
 import {InteractionData} from "./InteractionData";
 
 export class IntersectionManager implements IIntersectionEngine {
@@ -54,13 +59,13 @@ export class IntersectionManager implements IIntersectionEngine {
 
 	// #region Public Methods (1)
 
-	public intersect(
+	private intersectNodes(
 		ray: IRay,
 		viewportId: string,
 		filterCriteria: IIntersectionFilter[] = [],
 		rayCasterParams?: RaycasterParameters,
-	): IIntersection[] {
-		let intersections: IIntersection[] = [];
+	): IRayTracingIntersection[] {
+		let intersections: IRayTracingIntersection[] = [];
 
 		// intersect all nodes
 		this._intersectNodes.forEach((i) => {
@@ -113,6 +118,147 @@ export class IntersectionManager implements IIntersectionEngine {
 		});
 
 		return intersections;
+	}
+
+	private getSelectionBoxObjects(
+		viewportId: string,
+		filterCriteria: IIntersectionFilter[],
+		selectionBoxCoordinates: {
+			start: {x: number; y: number};
+			end: {x: number; y: number};
+		},
+	): IBoxSelectionIntersection[] {
+		// get the viewport
+		const viewport = Object.values(viewports).find(
+			(v) => v.id === viewportId,
+		);
+		if (!viewport) return [];
+
+		// get the current camera
+		const camera = viewport.camera;
+		if (!camera) return [];
+
+		const minX = Math.min(
+			selectionBoxCoordinates.start.x,
+			selectionBoxCoordinates.end.x,
+		);
+		const maxX = Math.max(
+			selectionBoxCoordinates.start.x,
+			selectionBoxCoordinates.end.x,
+		);
+		const minY = Math.min(
+			selectionBoxCoordinates.start.y,
+			selectionBoxCoordinates.end.y,
+		);
+
+		const maxY = Math.max(
+			selectionBoxCoordinates.start.y,
+			selectionBoxCoordinates.end.y,
+		);
+
+		// check if the selection is from the right or left side
+		const isRightSelection =
+			selectionBoxCoordinates.start.x < selectionBoxCoordinates.end.x;
+
+		// for all nodes that can be intersected
+		// check if the bounding sphere center is within the selection box
+		const selectedObjects: IBoxSelectionIntersection[] = [];
+		this._intersectNodes.forEach((i) => {
+			const shouldTest = filterCriteria
+				? filterCriteria.some((fc) => fc(i.node))
+				: true;
+			if (!shouldTest) return;
+
+			// for the selection from the right side, all points of the bounding box have to be included
+			let isIncluded = false;
+			let breakLoop = false;
+			for (let xPoint of [
+				i.node.boundingBox.min[0],
+				i.node.boundingBox.max[0],
+			]) {
+				for (let yPoint of [
+					i.node.boundingBox.min[1],
+					i.node.boundingBox.max[1],
+				]) {
+					for (let zPoint of [
+						i.node.boundingBox.min[2],
+						i.node.boundingBox.max[2],
+					]) {
+						const projection = camera.project(
+							vec3.fromValues(xPoint, yPoint, zPoint),
+						);
+
+						if (isRightSelection) {
+							if (
+								!(
+									projection[0] >= minX &&
+									projection[0] <= maxX &&
+									projection[1] >= minY &&
+									projection[1] <= maxY
+								)
+							) {
+								isIncluded = false;
+								breakLoop = true;
+							} else {
+								isIncluded = true;
+							}
+						} else {
+							if (
+								projection[0] >= minX &&
+								projection[0] <= maxX &&
+								projection[1] >= minY &&
+								projection[1] <= maxY
+							) {
+								isIncluded = true;
+								breakLoop = true;
+							}
+						}
+
+						if (breakLoop) break;
+					}
+					if (breakLoop) break;
+				}
+				if (breakLoop) break;
+			}
+
+			if (isIncluded) {
+				selectedObjects.push({
+					node: i.node,
+					type: "BoxSelectionIntersection",
+				});
+			}
+		});
+		return selectedObjects;
+	}
+
+	public intersect(
+		ray: IRay,
+		viewportId: string,
+		filterCriteria: IIntersectionFilter[] = [],
+		options?: {
+			rayCasterParams?: THREE.RaycasterParameters;
+			selectionBoxCoordinates?: {
+				start: {x: number; y: number};
+				end: {x: number; y: number};
+			};
+		},
+	): IIntersectionDefinition[] {
+		if (options?.selectionBoxCoordinates) {
+			// box selection
+			return this.getSelectionBoxObjects(
+				viewportId,
+				filterCriteria,
+				options.selectionBoxCoordinates,
+			);
+		} else {
+			// select with ray
+			return this.intersectNodes(
+				ray,
+				viewportId,
+				filterCriteria,
+				options?.rayCasterParams,
+			);
+		}
 	}
 
 	// #endregion Public Methods (1)

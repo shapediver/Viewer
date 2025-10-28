@@ -6,27 +6,26 @@ import {
 	Logger,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {ISelectEvent} from "../../interfaces/events/ISelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionData} from "../InteractionData";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class SelectOnUpManager extends AbstractInteractionManager {
-	// #region Properties (9)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = true;
-	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -40,12 +39,9 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	};
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
-	#intersection: IIntersection | null = null;
+	#interactionEffectToken?: string;
+	#intersection: IIntersectionDefinition | null = null;
 	#node: ITreeNode | null = null;
-
-	// #endregion Properties (9)
-
-	// #region Constructors (1)
 
 	constructor(
 		id?: string,
@@ -56,10 +52,6 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		if (deselectOnEmpty !== undefined)
 			this.#deselectOnEmpty = deselectOnEmpty;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (3)
 
 	/**
 	 * Deselect the selected node when clicking on an empty space in the Viewport.
@@ -79,10 +71,6 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		return this.#filter;
 	}
 
-	// #endregion Public Getters And Setters (3)
-
-	// #region Public Methods (7)
-
 	public add(viewport: IViewportApi): void {
 		this.viewport = viewport;
 	}
@@ -97,7 +85,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -110,7 +98,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
 		if (!this.viewport) {
@@ -120,9 +108,11 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 			return;
 		}
 		if (endState === INTERACTION_STATE.UP) {
-			const intersections = intersection.filter((i) =>
-				this.filter(INTERACTION_STATE.UP)(i.node),
-			);
+			const intersections = intersection.filter(
+				(i) =>
+					this.filter(INTERACTION_STATE.UP)(i.node) &&
+					i.type === "RayTracingIntersection",
+			) as IRayTracingIntersection[];
 
 			// create a list that replaces all irrelevant intersections with null
 			const filteredIntersections = intersections.map((i) => {
@@ -162,10 +152,14 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		}
 	}
 
+	public onKeyDown(event: KeyboardEvent): void {}
+
+	public onKeyUp(event: KeyboardEvent): void {}
+
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -186,14 +180,10 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IIntersection) {
+	public select(intersection: IRayTracingIntersection) {
 		if (this.#node) this.deactivateNode();
 		this.activateNode(intersection);
 	}
-
-	// #endregion Public Methods (7)
-
-	// #region Private Methods (2)
 
 	/**
 	 * Utility function to make the node the current active node.
@@ -204,7 +194,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 	 * @param ray
 	 */
 	private activateNode(
-		intersection: IIntersection,
+		intersection: IRayTracingIntersection,
 		event?: PointerEvent,
 		ray?: IRay,
 	) {
@@ -259,7 +249,10 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, {
 			viewportId: this.viewport.id,
 			node: this.#node,
-			intersectionPoint: this.#intersection.point,
+			intersectionPoint:
+				this.#intersection.type === "RayTracingIntersection"
+					? (this.#intersection as IRayTracingIntersection).point
+					: undefined,
 			ray,
 			event,
 			manager: this,
@@ -347,6 +340,4 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 			}
 		}
 	}
-
-	// #endregion Private Methods (2)
 }

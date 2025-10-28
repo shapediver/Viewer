@@ -29,7 +29,7 @@ export interface IHoverEvent extends IViewportEvent {
 	/**
 	 * The node being hovered.
 	 */
-	node: ITreeNode;
+	nodes: ITreeNode[];
 	/**
 	 * The ray of the hover process. Only provided on HOVER_ON and only if it was not a manual hovering.
 	 */

@@ -180,7 +180,11 @@ import {
 	TONE_MAPPING,
 	VISIBILITY_MODE,
 } from "./interfaces/renderingEngine/enums";
-import {IIntersection} from "./interfaces/renderingEngine/IIntersection";
+import {
+	IBoxSelectionIntersection,
+	IIntersectionDefinition,
+	IRayTracingIntersection,
+} from "./interfaces/renderingEngine/IIntersection";
 import {IIntersectionFilter} from "./interfaces/renderingEngine/IIntersectionFilter";
 import {IRay} from "./interfaces/renderingEngine/IRay";
 import {
@@ -419,7 +423,13 @@ export {
 	TONE_MAPPING,
 	VISIBILITY_MODE,
 };
-export {IRay, IIntersection, IIntersectionFilter};
+export {
+	IRay,
+	IIntersectionDefinition,
+	IBoxSelectionIntersection,
+	IRayTracingIntersection,
+	IIntersectionFilter,
+};
 export {SessionCreationDefinition, ViewportCreationDefinition};
 export {IChunkData, ChunkData};
 export {

@@ -25,11 +25,14 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {mat4, vec3} from "gl-matrix";
+
 import {IDragEvent} from "../../interfaces/events/IDragEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
@@ -41,8 +44,8 @@ import {LineConstraint} from "../dragConstraints/LineConstraint";
 import {PlaneConstraint} from "../dragConstraints/PlaneConstraint";
 import {PointConstraint} from "../dragConstraints/PointConstraint";
 import {IDragAnchor, InteractionData} from "../InteractionData";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class DragManager extends AbstractInteractionManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
@@ -57,7 +60,6 @@ export class DragManager extends AbstractInteractionManager {
 		dragAnchors: IDragAnchor[];
 		dragOrigin: vec3;
 	};
-	#interactionEffectToken?: string;
 	#filter: IInteractionFilterOptions = (
 		interactionState: INTERACTION_STATE,
 	): IIntersectionFilter => {
@@ -71,13 +73,14 @@ export class DragManager extends AbstractInteractionManager {
 	};
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
-	#intersection: IIntersection | null = null;
+	#interactionEffectToken?: string;
+	#intersection: IRayTracingIntersection | null = null;
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
 		viewport: IViewportApi;
 		node: ITreeNode;
 		ray: IRay;
-		intersection: IIntersection;
+		intersection: IRayTracingIntersection;
 	} | null = null;
 	#tokenCameraFreeze!: string;
 	#tokenContinuousRendering!: string;
@@ -195,7 +198,7 @@ export class DragManager extends AbstractInteractionManager {
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -203,9 +206,11 @@ export class DragManager extends AbstractInteractionManager {
 			);
 			return;
 		}
-		const intersections = intersection.filter((i) =>
-			this.filter(INTERACTION_STATE.DOWN)(i.node),
-		);
+		const intersections: IRayTracingIntersection[] = intersection.filter(
+			(i) =>
+				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
+				i.type === "RayTracingIntersection",
+		) as IRayTracingIntersection[];
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
@@ -231,7 +236,7 @@ export class DragManager extends AbstractInteractionManager {
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
 		if (!this.viewport) {
@@ -276,10 +281,14 @@ export class DragManager extends AbstractInteractionManager {
 		this.removeNode(event, ray);
 	}
 
+	public onKeyDown(event: KeyboardEvent): void {}
+
+	public onKeyUp(event: KeyboardEvent): void {}
+
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
 		if (!this.viewport) {
 			this.#logger.warn(
@@ -514,6 +523,7 @@ export class DragManager extends AbstractInteractionManager {
 			distance,
 			point: intersectionPoint,
 			geometryData: geometryData,
+			type: "RayTracingIntersection",
 		});
 		if (!this.#draggedNode) return;
 		this.#setupOptions = {
@@ -581,7 +591,7 @@ export class DragManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	private activateNode(intersection: IIntersection) {
+	private activateNode(intersection: IRayTracingIntersection) {
 		if (!this.viewport) {
 			this.#logger.warn(
 				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
