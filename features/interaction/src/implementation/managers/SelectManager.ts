@@ -7,7 +7,6 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	IIntersectionDefinition,
-	IIntersectionFilter,
 	IRay,
 	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
@@ -17,7 +16,7 @@ import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
-import {InteractionData} from "../InteractionData";
+import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class SelectManager extends AbstractInteractionManager {
@@ -26,17 +25,10 @@ export class SelectManager extends AbstractInteractionManager {
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = false;
-	#filter: IInteractionFilterOptions = (
-		interactionState: INTERACTION_STATE,
-	): IIntersectionFilter => {
-		if (interactionState === INTERACTION_STATE.DOWN) {
-			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node, false);
-			};
-		}
-
-		return (node: ITreeNode) => false;
-	};
+	#filter: IInteractionFilterOptions =
+		InteractionManagerUtils.createInteractionFilter("select", this.id, [
+			INTERACTION_STATE.DOWN,
+		]);
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
 	#interactionEffectToken?: string;
@@ -95,12 +87,13 @@ export class SelectManager extends AbstractInteractionManager {
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		const intersections = intersection.filter(
 			(i) =>
 				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
@@ -109,7 +102,14 @@ export class SelectManager extends AbstractInteractionManager {
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
-			return this.getInteractionData(i.node, true) ? i : null;
+			return InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			)
+				? i
+				: null;
 		});
 
 		const firstIntersection =
@@ -146,12 +146,13 @@ export class SelectManager extends AbstractInteractionManager {
 		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 	}
 
 	public onKeyDown(event: KeyboardEvent): void {
@@ -167,12 +168,13 @@ export class SelectManager extends AbstractInteractionManager {
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 	}
 
 	public remove(): void {
@@ -204,12 +206,13 @@ export class SelectManager extends AbstractInteractionManager {
 		event?: PointerEvent,
 		ray?: IRay,
 	) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		this.#intersection = intersection;
 		this.#node = this.#intersection.node;
 
@@ -217,7 +220,12 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			this.#node!,
+			true,
+			this.id,
+			"select",
+		);
 		if (data) data.interactionStates.select = true;
 
 		// find and store all nodes that are within the group
@@ -227,30 +235,21 @@ export class SelectManager extends AbstractInteractionManager {
 		}
 
 		// apply the effect material if there is something to apply
-		if (this.interactionEffect) {
-			this.#interactionEffectToken =
-				this.interactionEffectUtils.applyInteractionEffect(
-					this.#node,
-					this.interactionEffect,
-				);
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n) =>
-					this.#groupInteractionEffectToken!.push(
-						this.interactionEffectUtils.applyInteractionEffect(
-							n,
-							this.interactionEffect!,
-						),
-					),
-				);
-		} else {
-			this.#interactionEffectToken = undefined;
-		}
+		const {token, groupTokens} =
+			InteractionManagerUtils.applyInteractionEffects(
+				this.#node,
+				this.#groupedNodes,
+				this.interactionEffect,
+				this.interactionEffectUtils,
+			);
+		this.#interactionEffectToken = token;
+		this.#groupInteractionEffectToken = groupTokens;
 
-		this.viewport.updateNode(this.#node);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
-
-		this.viewport.render();
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			this.#node,
+			this.#groupedNodes,
+		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, {
 			viewportId: this.viewport.id,
@@ -273,39 +272,38 @@ export class SelectManager extends AbstractInteractionManager {
 	 * @param event
 	 */
 	private deactivateNode(event?: PointerEvent, reselection: boolean = false) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			this.#node!,
+			true,
+			this.id,
+			"select",
+		);
 		if (data) data.interactionStates.select = false;
 
-		if (this.#interactionEffectToken) {
-			this.interactionEffectUtils.removeInteractionEffect(
-				this.#node!,
-				this.#interactionEffectToken,
-			);
-			this.#interactionEffectToken = undefined;
+		InteractionManagerUtils.removeInteractionEffects(
+			this.#node!,
+			this.#groupedNodes,
+			this.#interactionEffectToken,
+			this.#groupInteractionEffectToken || [],
+			this.interactionEffectUtils,
+		);
+		this.#interactionEffectToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeInteractionEffect(
-						n,
-						this.#groupInteractionEffectToken![i],
-					),
-				);
-			this.#groupInteractionEffectToken = undefined;
-		}
-
-		this.viewport.updateNode(this.#node!);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
-
-		this.viewport.render();
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			this.#node!,
+			this.#groupedNodes,
+		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, {
 			viewportId: this.viewport.id,
@@ -321,30 +319,5 @@ export class SelectManager extends AbstractInteractionManager {
 
 		this.#groupedNodes = undefined;
 		this.#groupInteractionEffectToken = undefined;
-	}
-
-	private getInteractionData(
-		node: ITreeNode,
-		restrictions: boolean,
-	): InteractionData | undefined {
-		for (let i = 0; i < node.data.length; i++) {
-			if (node.data[i] instanceof InteractionData) {
-				const data = node.data[i] as InteractionData;
-				if (data.interactionTypes.select !== true) continue;
-
-				if (restrictions) {
-					if (
-						(<InteractionData>node.data[i]).restrictedManagers
-							.length === 0 ||
-						(<InteractionData>(
-							node.data[i]
-						)).restrictedManagers.includes(this.id)
-					)
-						return node.data[i] as InteractionData;
-				} else {
-					return node.data[i] as InteractionData;
-				}
-			}
-		}
 	}
 }
