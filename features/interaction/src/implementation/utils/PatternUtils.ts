@@ -1,21 +1,14 @@
-import {
-	ChunkData,
-	DraggingParameterValue,
-	ISessionApi,
-	ITreeNode,
-	SessionApiData,
-	SessionData,
-	SessionOutputData,
-} from "@shapediver/viewer";
-import {mat4, vec3} from "gl-matrix";
-import {InteractionData} from "../InteractionData";
+import { ChunkData, DraggingParameterValue, ISessionApi, ITreeNode, SessionApiData, SessionData, SessionOutputData } from "@shapediver/viewer";
 
-// #region Type aliases (2)
+import { mat4, vec3 } from "gl-matrix";
+
+import { InteractionData } from "../InteractionData";
 
 /**
  * Type declaration for a filter pattern used to hierarchically filter nodes of the scene tree by name.
  */
 export type NodeNameFilterPattern = string[];
+
 /**
  * Dictionary type declaration for filter patterns used to filter nodes of the scene tree by name.
  * The dictionary keys correspond to the IDs of outputs of a ShapeDiver model.
@@ -38,94 +31,247 @@ export type OutputNodeNameFilterPatterns = {
 	[outputId: string]: NodeNameFilterPattern[];
 };
 
-// #endregion Type aliases (2)
-
-// #region Variables (9)
-
-/**
- * The black list of node names that should be ignored.
- *
- * These node names will be ignored when checking the node names.
- * These names are used in the ShapeDiver GH plugin for certain operations.
- */
-const NODE_NAME_BLACKLIST = [
-	"TransformZUpToYUp",
-	"no_transformations",
-	"content_array",
-	"ShapeDiverScene",
-];
-/**
- * Recurse the scene tree downwards starting from the given node, gather all nodes that match the pattern,
- * and add them to the result array.
- *
- * @param node The node to start traversing from. Typically this is the node of an output of a ShapeDiver model.
- * @param pattern The hierarchical pattern to check for.
- *                Each string of the pattern represents a regular expression for matching the node name.
- * @param outputApiName The name of the output API to be used for the concatenated node name.
- * @param result The result object, matching nodes will be added here.
- * @param count The current index into the pattern array.
- */
-export const gatherNodesForPattern = (
-	node: ITreeNode,
-	pattern: NodeNameFilterPattern,
-	outputApiName: string,
-	result: {[nodeId: string]: {node: ITreeNode; name: string}},
-	count: number = 0,
-	strictNaming: boolean = true,
-): void => {
-	const nodeName = getNodeName(node, strictNaming);
-	// escape special characters in the pattern
-	const escapedTest = pattern[count]?.replace(
-		/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g,
-		"\\$&",
-	);
-
-	// if the node has no original name (was not given a name in Grasshopper) or
-	// its name matches the black list, do not consider it for pattern matching
-	if (!nodeName || (strictNaming && isOnBlacklist(nodeName))) {
-		for (const child of node.children) {
-			gatherNodesForPattern(
-				child,
-				pattern,
-				outputApiName,
-				result,
-				count,
-				strictNaming,
-			);
-		}
+const getChunkName = (node: ITreeNode): string | undefined => {
+	const chunkData = node.data.find((d) => d instanceof ChunkData) as
+		| ChunkData
+		| undefined;
+	if (chunkData) return chunkData.name;
+};
+const getOriginalNamePath = (node: ITreeNode): string => {
+	let path = getNodeName(node, true) || "";
+	let parent: ITreeNode | undefined = node.parent;
+	while (parent) {
+		path = (getNodeName(parent, true) || "") + "." + path;
+		parent = parent.parent;
 	}
-	// if the original name matches the pattern, check the children
-	else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
-		if (count === pattern.length - 1) {
-			let nodeData = getNodeData(node, strictNaming);
-			if (!nodeData || !nodeData.nodeName) {
-				const instanceNodeData = getInstanceNodeData(
-					node,
-					strictNaming,
-				);
-				if (instanceNodeData && instanceNodeData.nodeName)
-					nodeData = instanceNodeData;
-			}
+	return path;
+};
+const getOutputData = (node: ITreeNode) => {
+	// look for the output API data in the node
+	let outputData: SessionOutputData["responseOutput"] | undefined = (
+		node.data.find((data) => data instanceof SessionOutputData) as
+			| SessionOutputData
+			| undefined
+	)?.responseOutput;
+	if (!outputData) {
+		// try to find it in the session api
+		const sessionApi = (
+			node.parent?.data.find((data) => data instanceof SessionData) as
+				| SessionData
+				| undefined
+		)?.responseDto;
+		outputData = sessionApi?.outputs?.[
+			node.name
+		] as SessionOutputData["responseOutput"];
+	}
 
-			// we reached the end of the pattern, add the node to the result
-			result[node.id] = {
-				node,
-				name: outputApiName + "." + nodeData?.nodeName || "",
-			};
+	return outputData;
+};
+const getOutputName = (node: ITreeNode): string | undefined => {
+	const sessionOutputData = node.data.find(
+		(data) => data instanceof SessionOutputData,
+	) as SessionOutputData | undefined;
+	if (sessionOutputData) return sessionOutputData.responseOutput.name;
+};
+
+/**
+ * Try to match the given node with the patterns.
+ * In case of a match, return the concatenated name of the node as required
+ * for setting values of interaction parameters.
+ *
+ * @param patterns
+ * @param node
+ * @returns
+ */
+const matchNodeWithPatterns = (
+	patterns: OutputNodeNameFilterPatterns,
+	node: ITreeNode,
+	strictNaming: boolean,
+): string | undefined => {
+	let nodeData = getNodeData(node, strictNaming);
+	if (!nodeData || !nodeData.nodeName) {
+		const instanceNodeData = getInstanceNodeData(node, strictNaming);
+		if (instanceNodeData && instanceNodeData.nodeName)
+			nodeData = instanceNodeData;
+	}
+	if (!nodeData) return;
+	const {outputId, outputName, nodeName} = nodeData;
+
+	// check if the path matches the pattern and return the first match
+	for (const pattern of patterns[outputId] ?? []) {
+		if (pattern.length === 0) {
+			// special case, just the output name was provided
+			return outputName || outputId;
 		} else {
-			for (const child of node.children) {
-				gatherNodesForPattern(
-					child,
-					pattern,
-					outputApiName,
-					result,
-					count + 1,
-					strictNaming,
-				);
-			}
+			// escape special characters in the pattern
+			const cleanedPattern = pattern
+				.join(".")
+				.replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, "\\$&");
+			// create a regex pattern from the pattern array, match the original name
+			const match = nodeName.match(`^${cleanedPattern}$`);
+			if (match) return (outputName || outputId) + "." + match[0];
 		}
 	}
 };
+
+/**
+ * Add interaction data to the node.
+ *
+ * If the node already has interaction data, the function will remove the interaction data and add the new interaction data.
+ * Then the function will update the version of the node.
+ *
+ * @param node
+ * @param interactionDataSettings
+ */
+export const addInteractionData = (
+	node: ITreeNode,
+	interactionDataSettings: {
+		select?: boolean;
+		hover?: boolean;
+		drag?: boolean;
+		dragOrigin?: vec3;
+		dragAnchors?: {
+			id: string;
+			position: vec3;
+			rotation?: {angle: number; axis: vec3};
+		}[];
+	},
+	componentId: string,
+) => {
+	for (const data of node.data) {
+		// remove existing interaction data if it is restricted to the current component
+		if (
+			data instanceof InteractionData &&
+			data.restrictedManagers.includes(componentId)
+		) {
+			console.warn(
+				`Node ${node.id} already has interaction data with id ${data.id}, removing it.`,
+			);
+			node.removeData(data);
+		}
+	}
+
+	// add the interaction data to the node
+	const interactionData = new InteractionData(
+		interactionDataSettings,
+		undefined,
+		[componentId],
+	);
+	node.addData(interactionData);
+	node.updateVersion();
+
+	if (interactionDataSettings.dragOrigin)
+		interactionData.dragOrigin = interactionDataSettings.dragOrigin;
+	if (interactionDataSettings.dragAnchors)
+		interactionData.dragAnchors = interactionDataSettings.dragAnchors;
+};
+
+// react to changes of the uiValue and update the selection state if necessary
+export const calculateCombinedDraggedNodes = (
+	currentState: DraggingParameterValue["objects"],
+	draggedNodes: DraggingParameterValue["objects"],
+): DraggingParameterValue["objects"] => {
+	const allDraggedNodesCopy = [...currentState];
+
+	for (const draggedNode of draggedNodes) {
+		const index = allDraggedNodesCopy.findIndex(
+			(n) => n.name === draggedNode.name,
+		);
+
+		if (index === -1) {
+			allDraggedNodesCopy.push({
+				name: draggedNode.name,
+				transformation: draggedNode.transformation,
+				dragAnchorId: draggedNode.dragAnchorId,
+				restrictionId: draggedNode.restrictionId,
+			});
+		} else {
+			const oldDraggedNode = allDraggedNodesCopy[index];
+
+			// multiply the matrices
+			const newMatrix = mat4.multiply(
+				mat4.create(),
+				mat4.fromValues(
+					...(draggedNode.transformation as [
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+					]),
+				),
+				mat4.fromValues(
+					...(oldDraggedNode.transformation as [
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+						number,
+					]),
+				),
+			);
+
+			allDraggedNodesCopy[index] = {
+				name: draggedNode.name,
+				transformation: Array.from(newMatrix),
+				dragAnchorId: draggedNode.dragAnchorId,
+				restrictionId: draggedNode.restrictionId,
+			};
+		}
+	}
+
+	return allDraggedNodesCopy;
+};
+
+/**
+ * This function checks if the name of the node matches the given name.
+ * The name is provided without the display component in the beginning.
+ * It is assumed that the node is in the correct display component.
+ *
+ * @param node
+ * @param nameWithoutDisplayComponent
+ */
+export const checkNodeNameMatch = (
+	node: ITreeNode,
+	nameWithoutDisplayComponent: string,
+	strictNaming: boolean = true,
+): boolean => {
+	if (strictNaming) {
+		let originalNamePath = getOriginalNamePath(node);
+		NODE_NAME_BLACKLIST.forEach((name) => {
+			originalNamePath = originalNamePath.replace(name, "");
+		});
+		// match the dot-separated name at the end of the original name path
+		const match = originalNamePath.match(/([^.]+(\.[^.]+)*)\.*$/);
+		if (!match) return false;
+		return match[0] === nameWithoutDisplayComponent;
+	} else {
+		return node.getPath().endsWith(nameWithoutDisplayComponent);
+	}
+};
+
 /**
  * Convert the user-defined name-filters to filter patterns as used by useNodeInteractionData.
  *
@@ -236,47 +382,37 @@ export const convertUserDefinedNameFiltersForInstances = (
 };
 
 /**
- * Traverse the node hierarchy upwards to find the node that corresponds to an output
- * of the ShapeDiver model.
- * Return the node itself, the corresponding output id and name, and the original names
- * concatenated using dots.
+ * Get the name of the node.
+ * If the node has a ChunkData, return the name of the ChunkData.
+ * If strictNaming is true, return the original name of the node.
+ * If strictNaming is false, return the original name if it exists, otherwise return the name of the node.
  *
- * @param node The node to start the upwards traversal from.
+ * @param node
+ * @param strictNaming
  * @returns
  */
-export const getNodeData = (
+export const getNodeName = (
 	node: ITreeNode,
-	strictNaming: boolean = true,
-):
-	| {
-			outputId: string;
-			outputName?: string;
-			nodeName: string;
-	  }
-	| undefined => {
-	const names: string[] = [];
-	let tempNode = node;
-	while (tempNode && tempNode.parent) {
-		// look for the output API data in the node
-		let outputData = getOutputData(tempNode);
+	strictNaming: boolean,
+): string | undefined => {
+	const outputName = getOutputName(node);
+	const chunkName = getChunkName(node);
 
-		const nodeName = getNodeName(tempNode, strictNaming);
-
-		if (outputData) {
-			return {
-				outputId: outputData.id,
-				outputName: outputData.name,
-				nodeName: names.reverse().join("."),
-			};
-		} else if (
-			nodeName &&
-			((strictNaming && !isOnBlacklist(nodeName)) || !strictNaming)
-		) {
-			names.push(nodeName);
-		}
-
-		tempNode = tempNode.parent;
+	let nodeName;
+	if (outputName && strictNaming) {
+		nodeName = outputName;
+	} else if (chunkName && strictNaming) {
+		nodeName = chunkName;
+	} else {
+		nodeName = strictNaming
+			? node.originalName
+			: node.originalName || node.name;
 	}
+
+	return nodeName;
+};
+export const isOnBlacklist = (name: string): boolean => {
+	return NODE_NAME_BLACKLIST.includes(name);
 };
 
 /**
@@ -323,118 +459,122 @@ export const getInstanceNodeData = (
 };
 
 /**
- * Try to match the given node with the patterns.
- * In case of a match, return the concatenated name of the node as required
- * for setting values of interaction parameters.
+ * Traverse the node hierarchy upwards to find the node that corresponds to an output
+ * of the ShapeDiver model.
+ * Return the node itself, the corresponding output id and name, and the original names
+ * concatenated using dots.
  *
- * @param patterns
- * @param node
+ * @param node The node to start the upwards traversal from.
  * @returns
  */
-const matchNodeWithPatterns = (
-	patterns: OutputNodeNameFilterPatterns,
+export const getNodeData = (
 	node: ITreeNode,
-	strictNaming: boolean,
-): string | undefined => {
-	let nodeData = getNodeData(node, strictNaming);
-	if (!nodeData || !nodeData.nodeName) {
-		const instanceNodeData = getInstanceNodeData(node, strictNaming);
-		if (instanceNodeData && instanceNodeData.nodeName)
-			nodeData = instanceNodeData;
-	}
-	if (!nodeData) return;
-	const {outputId, outputName, nodeName} = nodeData;
-
-	// check if the path matches the pattern and return the first match
-	for (const pattern of patterns[outputId] ?? []) {
-		if (pattern.length === 0) {
-			// special case, just the output name was provided
-			return outputName || outputId;
-		} else {
-			// escape special characters in the pattern
-			const cleanedPattern = pattern
-				.join(".")
-				.replace(/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g, "\\$&");
-			// create a regex pattern from the pattern array, match the original name
-			const match = nodeName.match(`^${cleanedPattern}$`);
-			if (match) return (outputName || outputId) + "." + match[0];
-		}
-	}
-};
-/**
- * Try to match the given nodes with the patterns.
- * For matching nodes, return the concatenated names of the nodes as required
- * for setting values of interaction parameters.
- *
- * @param patterns The patterns to match the node names.
- * @param nodes The nodes to process.
- * @returns The concatenated names of the nodes that match the pattern.
- */
-export const matchNodesWithPatterns = (
-	patterns: OutputNodeNameFilterPatterns,
-	nodes: ITreeNode[],
 	strictNaming: boolean = true,
-): string[] => {
-	// we iterate over the nodes and get the output and node names
-	const nodeNames: string[] = [];
-	nodes.forEach((node) => {
-		const result = matchNodeWithPatterns(patterns, node, strictNaming);
-		if (result) nodeNames.push(result);
-	});
+):
+	| {
+			outputId: string;
+			outputName?: string;
+			nodeName: string;
+	  }
+	| undefined => {
+	const names: string[] = [];
+	let tempNode = node;
+	while (tempNode && tempNode.parent) {
+		// look for the output API data in the node
+		let outputData = getOutputData(tempNode);
 
-	return nodeNames;
-};
-/**
- * Add interaction data to the node.
- *
- * If the node already has interaction data, the function will remove the interaction data and add the new interaction data.
- * Then the function will update the version of the node.
- *
- * @param node
- * @param interactionDataSettings
- */
-export const addInteractionData = (
-	node: ITreeNode,
-	interactionDataSettings: {
-		select?: boolean;
-		hover?: boolean;
-		drag?: boolean;
-		dragOrigin?: vec3;
-		dragAnchors?: {
-			id: string;
-			position: vec3;
-			rotation?: {angle: number; axis: vec3};
-		}[];
-	},
-	componentId: string,
-) => {
-	for (const data of node.data) {
-		// remove existing interaction data if it is restricted to the current component
-		if (
-			data instanceof InteractionData &&
-			data.restrictedManagers.includes(componentId)
+		const nodeName = getNodeName(tempNode, strictNaming);
+
+		if (outputData) {
+			return {
+				outputId: outputData.id,
+				outputName: outputData.name,
+				nodeName: names.reverse().join("."),
+			};
+		} else if (
+			nodeName &&
+			((strictNaming && !isOnBlacklist(nodeName)) || !strictNaming)
 		) {
-			console.warn(
-				`Node ${node.id} already has interaction data with id ${data.id}, removing it.`,
+			names.push(nodeName);
+		}
+
+		tempNode = tempNode.parent;
+	}
+};
+
+/**
+ * Recurse the scene tree downwards starting from the given node, gather all nodes that match the pattern,
+ * and add them to the result array.
+ *
+ * @param node The node to start traversing from. Typically this is the node of an output of a ShapeDiver model.
+ * @param pattern The hierarchical pattern to check for.
+ *                Each string of the pattern represents a regular expression for matching the node name.
+ * @param outputApiName The name of the output API to be used for the concatenated node name.
+ * @param result The result object, matching nodes will be added here.
+ * @param count The current index into the pattern array.
+ */
+export const gatherNodesForPattern = (
+	node: ITreeNode,
+	pattern: NodeNameFilterPattern,
+	outputApiName: string,
+	result: {[nodeId: string]: {node: ITreeNode; name: string}},
+	count: number = 0,
+	strictNaming: boolean = true,
+): void => {
+	const nodeName = getNodeName(node, strictNaming);
+	// escape special characters in the pattern
+	const escapedTest = pattern[count]?.replace(
+		/(?<!\.)\*(?!\*)|[+?^${}()|[\]\\]/g,
+		"\\$&",
+	);
+
+	// if the node has no original name (was not given a name in Grasshopper) or
+	// its name matches the black list, do not consider it for pattern matching
+	if (!nodeName || (strictNaming && isOnBlacklist(nodeName))) {
+		for (const child of node.children) {
+			gatherNodesForPattern(
+				child,
+				pattern,
+				outputApiName,
+				result,
+				count,
+				strictNaming,
 			);
-			node.removeData(data);
 		}
 	}
+	// if the original name matches the pattern, check the children
+	else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
+		if (count === pattern.length - 1) {
+			let nodeData = getNodeData(node, strictNaming);
+			if (!nodeData || !nodeData.nodeName) {
+				const instanceNodeData = getInstanceNodeData(
+					node,
+					strictNaming,
+				);
+				if (instanceNodeData && instanceNodeData.nodeName)
+					nodeData = instanceNodeData;
+			}
 
-	// add the interaction data to the node
-	const interactionData = new InteractionData(
-		interactionDataSettings,
-		undefined,
-		[componentId],
-	);
-	node.addData(interactionData);
-	node.updateVersion();
-
-	if (interactionDataSettings.dragOrigin)
-		interactionData.dragOrigin = interactionDataSettings.dragOrigin;
-	if (interactionDataSettings.dragAnchors)
-		interactionData.dragAnchors = interactionDataSettings.dragAnchors;
+			// we reached the end of the pattern, add the node to the result
+			result[node.id] = {
+				node,
+				name: outputApiName + "." + nodeData?.nodeName || "",
+			};
+		} else {
+			for (const child of node.children) {
+				gatherNodesForPattern(
+					child,
+					pattern,
+					outputApiName,
+					result,
+					count + 1,
+					strictNaming,
+				);
+			}
+		}
+	}
 };
+
 /**
  * Get the nodes within the session API by their names.
  *
@@ -519,191 +659,40 @@ export const getNodesByName = (
 
 	return nodes;
 };
-// react to changes of the uiValue and update the selection state if necessary
-export const calculateCombinedDraggedNodes = (
-	currentState: DraggingParameterValue["objects"],
-	draggedNodes: DraggingParameterValue["objects"],
-): DraggingParameterValue["objects"] => {
-	const allDraggedNodesCopy = [...currentState];
-
-	for (const draggedNode of draggedNodes) {
-		const index = allDraggedNodesCopy.findIndex(
-			(n) => n.name === draggedNode.name,
-		);
-
-		if (index === -1) {
-			allDraggedNodesCopy.push({
-				name: draggedNode.name,
-				transformation: draggedNode.transformation,
-				dragAnchorId: draggedNode.dragAnchorId,
-				restrictionId: draggedNode.restrictionId,
-			});
-		} else {
-			const oldDraggedNode = allDraggedNodesCopy[index];
-
-			// multiply the matrices
-			const newMatrix = mat4.multiply(
-				mat4.create(),
-				mat4.fromValues(
-					...(draggedNode.transformation as [
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-					]),
-				),
-				mat4.fromValues(
-					...(oldDraggedNode.transformation as [
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-						number,
-					]),
-				),
-			);
-
-			allDraggedNodesCopy[index] = {
-				name: draggedNode.name,
-				transformation: Array.from(newMatrix),
-				dragAnchorId: draggedNode.dragAnchorId,
-				restrictionId: draggedNode.restrictionId,
-			};
-		}
-	}
-
-	return allDraggedNodesCopy;
-};
 
 /**
- * This function checks if the name of the node matches the given name.
- * The name is provided without the display component in the beginning.
- * It is assumed that the node is in the correct display component.
+ * Try to match the given nodes with the patterns.
+ * For matching nodes, return the concatenated names of the nodes as required
+ * for setting values of interaction parameters.
  *
- * @param node
- * @param nameWithoutDisplayComponent
+ * @param patterns The patterns to match the node names.
+ * @param nodes The nodes to process.
+ * @returns The concatenated names of the nodes that match the pattern.
  */
-export const checkNodeNameMatch = (
-	node: ITreeNode,
-	nameWithoutDisplayComponent: string,
+export const matchNodesWithPatterns = (
+	patterns: OutputNodeNameFilterPatterns,
+	nodes: ITreeNode[],
 	strictNaming: boolean = true,
-): boolean => {
-	if (strictNaming) {
-		let originalNamePath = getOriginalNamePath(node);
-		NODE_NAME_BLACKLIST.forEach((name) => {
-			originalNamePath = originalNamePath.replace(name, "");
-		});
-		// match the dot-separated name at the end of the original name path
-		const match = originalNamePath.match(/([^.]+(\.[^.]+)*)\.*$/);
-		if (!match) return false;
-		return match[0] === nameWithoutDisplayComponent;
-	} else {
-		return node.getPath().endsWith(nameWithoutDisplayComponent);
-	}
+): string[] => {
+	// we iterate over the nodes and get the output and node names
+	const nodeNames: string[] = [];
+	nodes.forEach((node) => {
+		const result = matchNodeWithPatterns(patterns, node, strictNaming);
+		if (result) nodeNames.push(result);
+	});
+
+	return nodeNames;
 };
 
 /**
- * Get the name of the node.
- * If the node has a ChunkData, return the name of the ChunkData.
- * If strictNaming is true, return the original name of the node.
- * If strictNaming is false, return the original name if it exists, otherwise return the name of the node.
+ * The black list of node names that should be ignored.
  *
- * @param node
- * @param strictNaming
- * @returns
+ * These node names will be ignored when checking the node names.
+ * These names are used in the ShapeDiver GH plugin for certain operations.
  */
-export const getNodeName = (
-	node: ITreeNode,
-	strictNaming: boolean,
-): string | undefined => {
-	const outputName = getOutputName(node);
-	const chunkName = getChunkName(node);
-
-	let nodeName;
-	if (outputName && strictNaming) {
-		nodeName = outputName;
-	} else if (chunkName && strictNaming) {
-		nodeName = chunkName;
-	} else {
-		nodeName = strictNaming
-			? node.originalName
-			: node.originalName || node.name;
-	}
-
-	return nodeName;
-};
-
-export const isOnBlacklist = (name: string): boolean => {
-	return NODE_NAME_BLACKLIST.includes(name);
-};
-
-const getOriginalNamePath = (node: ITreeNode): string => {
-	let path = getNodeName(node, true) || "";
-	let parent: ITreeNode | undefined = node.parent;
-	while (parent) {
-		path = (getNodeName(parent, true) || "") + "." + path;
-		parent = parent.parent;
-	}
-	return path;
-};
-
-const getChunkName = (node: ITreeNode): string | undefined => {
-	const chunkData = node.data.find((d) => d instanceof ChunkData) as
-		| ChunkData
-		| undefined;
-	if (chunkData) return chunkData.name;
-};
-
-const getOutputName = (node: ITreeNode): string | undefined => {
-	const sessionOutputData = node.data.find(
-		(data) => data instanceof SessionOutputData,
-	) as SessionOutputData | undefined;
-	if (sessionOutputData) return sessionOutputData.responseOutput.name;
-};
-
-const getOutputData = (node: ITreeNode) => {
-	// look for the output API data in the node
-	let outputData: SessionOutputData["responseOutput"] | undefined = (
-		node.data.find((data) => data instanceof SessionOutputData) as
-			| SessionOutputData
-			| undefined
-	)?.responseOutput;
-	if (!outputData) {
-		// try to find it in the session api
-		const sessionApi = (
-			node.parent?.data.find((data) => data instanceof SessionData) as
-				| SessionData
-				| undefined
-		)?.responseDto;
-		outputData = sessionApi?.outputs?.[
-			node.name
-		] as SessionOutputData["responseOutput"];
-	}
-
-	return outputData;
-};
-
-// #endregion Variables (9)
+const NODE_NAME_BLACKLIST = [
+	"TransformZUpToYUp",
+	"no_transformations",
+	"content_array",
+	"ShapeDiverScene",
+];

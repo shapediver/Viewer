@@ -25,10 +25,7 @@ export class SelectManager extends AbstractInteractionManager {
 	readonly #tree: Tree = Tree.instance;
 
 	#deselectOnEmpty: boolean = false;
-	#filter: IInteractionFilterOptions =
-		InteractionManagerUtils.createInteractionFilter("select", this.id, [
-			INTERACTION_STATE.DOWN,
-		]);
+	#filter: IInteractionFilterOptions;
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
 	#interactionEffectToken?: string;
@@ -40,15 +37,27 @@ export class SelectManager extends AbstractInteractionManager {
 	};
 	#node: ITreeNode | null = null;
 	#removalKey = "Control";
+	#selectOn: "up" | "down";
 
 	constructor(
 		id?: string,
 		interactionEffect?: IInteractionEffect | IMaterialAbstractData,
 		deselectOnEmpty?: boolean,
+		selectOn: "up" | "down" = "down",
 	) {
 		super(id, interactionEffect);
 		if (deselectOnEmpty !== undefined)
 			this.#deselectOnEmpty = deselectOnEmpty;
+		this.#selectOn = selectOn;
+		this.#filter = InteractionManagerUtils.createInteractionFilter(
+			"select",
+			this.id,
+			[
+				this.#selectOn === "down"
+					? INTERACTION_STATE.DOWN
+					: INTERACTION_STATE.UP,
+			],
+		);
 	}
 
 	public get deselectOnEmpty(): boolean {
@@ -94,49 +103,14 @@ export class SelectManager extends AbstractInteractionManager {
 			)
 		)
 			return;
-		const intersections = intersection.filter(
-			(i) =>
-				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
-				i.type === "RayTracingIntersection",
-		) as IRayTracingIntersection[];
 
-		// create a list that replaces all irrelevant intersections with null
-		const filteredIntersections = intersections.map((i) => {
-			return InteractionManagerUtils.getInteractionData(
-				i.node,
-				true,
-				this.id,
-				"select",
-			)
-				? i
-				: null;
-		});
-
-		const firstIntersection =
-			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
-
-		if (this.#node) {
-			if (firstIntersection && firstIntersection.node !== this.#node) {
-				// case other node was clicked, deselect then select
-				this.deactivateNode(event);
-				if (!this.#keyPressed.removal)
-					this.activateNode(firstIntersection, event, ray);
-			} else if (
-				firstIntersection &&
-				firstIntersection.node === this.#node
-			) {
-				// case same node was clicked, only deselect
-				this.deactivateNode(event);
-			} else if (
-				!filteredIntersections.some((i) => i !== null) &&
-				this.#deselectOnEmpty
-			) {
-				// case no node was clicked, only deselect when option is on
-				this.deactivateNode(event);
-			}
-		} else if (firstIntersection && !this.#keyPressed.removal) {
-			// easy case, no node select, just select this one
-			this.activateNode(firstIntersection, event, ray);
+		if (this.#selectOn === "down") {
+			const intersections = intersection.filter(
+				(i) =>
+					this.filter(INTERACTION_STATE.DOWN)(i.node) &&
+					i.type === "RayTracingIntersection",
+			) as IRayTracingIntersection[];
+			this.handleIntersection(event, ray, intersections);
 		}
 	}
 
@@ -153,6 +127,15 @@ export class SelectManager extends AbstractInteractionManager {
 			)
 		)
 			return;
+
+		if (this.#selectOn === "up") {
+			const intersections = intersection.filter(
+				(i) =>
+					this.filter(INTERACTION_STATE.UP)(i.node) &&
+					i.type === "RayTracingIntersection",
+			) as IRayTracingIntersection[];
+			this.handleIntersection(event, ray, intersections);
+		}
 	}
 
 	public onKeyDown(event: KeyboardEvent): void {
@@ -319,5 +302,50 @@ export class SelectManager extends AbstractInteractionManager {
 
 		this.#groupedNodes = undefined;
 		this.#groupInteractionEffectToken = undefined;
+	}
+
+	private handleIntersection(
+		event: PointerEvent,
+		ray: IRay,
+		intersections: IRayTracingIntersection[],
+	) {
+		// create a list that replaces all irrelevant intersections with null
+		const filteredIntersections = intersections.map((i) => {
+			return InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			)
+				? i
+				: null;
+		});
+
+		const firstIntersection =
+			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
+
+		if (this.#node) {
+			if (firstIntersection && firstIntersection.node !== this.#node) {
+				// case other node was clicked, deselect then select
+				this.deactivateNode(event);
+				if (!this.#keyPressed.removal)
+					this.activateNode(firstIntersection, event, ray);
+			} else if (
+				firstIntersection &&
+				firstIntersection.node === this.#node
+			) {
+				// case same node was clicked, only deselect
+				this.deactivateNode(event);
+			} else if (
+				!filteredIntersections.some((i) => i !== null) &&
+				this.#deselectOnEmpty
+			) {
+				// case no node was clicked, only deselect when option is on
+				this.deactivateNode(event);
+			}
+		} else if (firstIntersection && !this.#keyPressed.removal) {
+			// easy case, no node select, just select this one
+			this.activateNode(firstIntersection, event, ray);
+		}
 	}
 }

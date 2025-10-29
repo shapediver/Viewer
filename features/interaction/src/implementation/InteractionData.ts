@@ -1,15 +1,13 @@
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+
 import {vec3} from "gl-matrix";
+
 import {
 	IInteractionData,
 	IInteractionTypes,
 } from "../interfaces/IInteractionData";
 
-// #region Interfaces (1)
-
 export interface IDragAnchor {
-	// #region Properties (2)
-
 	/** The id of the anchor */
 	id?: string;
 	position: vec3;
@@ -17,30 +15,18 @@ export interface IDragAnchor {
 		axis: vec3;
 		angle: number;
 	};
-
-	// #endregion Properties (2)
 }
-
-// #endregion Interfaces (1)
-
-// #region Classes (1)
 
 export class InteractionData
 	extends AbstractTreeNodeData
 	implements IInteractionData
 {
-	// #region Properties (6)
-
 	#dragAnchors: IDragAnchor[] = [];
 	#dragOrigin?: vec3;
 	#groupId?: string;
 	#interactionStates: IInteractionTypes = {};
 	#interactionTypes: IInteractionTypes = {};
 	#restrictedManagers: string[] = [];
-
-	// #endregion Properties (6)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creates an interaction data item.
@@ -63,10 +49,6 @@ export class InteractionData
 		if (restrictedManagers !== undefined)
 			this.#restrictedManagers = restrictedManagers;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (12)
 
 	public get dragAnchors(): IDragAnchor[] {
 		return this.#dragAnchors;
@@ -116,10 +98,6 @@ export class InteractionData
 		this.#restrictedManagers = value;
 	}
 
-	// #endregion Public Getters And Setters (12)
-
-	// #region Public Methods (1)
-
 	/**
 	 * Clones the scene graph data.
 	 */
@@ -132,8 +110,4 @@ export class InteractionData
 			this.version,
 		);
 	}
-
-	// #endregion Public Methods (1)
 }
-
-// #endregion Classes (1)

@@ -13,6 +13,7 @@ import {
 	IRay,
 	ISceneEvent,
 } from "@shapediver/viewer.shared.types";
+
 import {
 	IInteractionEngine,
 	INTERACTION_STATE,
@@ -21,35 +22,25 @@ import {IInteractionManager} from "../interfaces/IInteractionManager";
 import {IntersectionManager} from "./IntersectionManager";
 import {MultiSelectManager} from "./managers/MultiSelectManager";
 
-// #region Interfaces (1)
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export interface IInteractionEngineProperties {
-	// #region Properties (3)
-
 	/**
 	 * The opacity from which the intersection is considered. (default: 0)
 	 */
 	intersectionOpacity: number;
+
 	/**
 	 * The percentage of the scene size for the intersection of lines. (default: 0.025 = 2.5%)
 	 */
 	lineIntersectionPercentage: number;
+
 	/**
 	 * The percentage of the scene size for the intersection of points. (default: 0.025 = 2.5%)
 	 */
 	pointIntersectionPercentage: number;
-
-	// #endregion Properties (3)
 }
 
-// #endregion Interfaces (1)
-
-// #region Classes (1)
-
 export class InteractionEngine implements IInteractionEngine {
-	// #region Properties (12)
-
 	readonly #canvasEventListenerToken: string;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #intersectionManager: IntersectionManager =
@@ -66,22 +57,19 @@ export class InteractionEngine implements IInteractionEngine {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
+	#boxSelectionActive: boolean = false;
+	#cameraFreezeFlag?: string;
 	#closed: boolean = false;
 	#intersectionOpacity: number = 0;
 	#lineIntersectionPercentage: number = 0.025;
 	#pointIntersectionPercentage: number = 0.025;
-	#sceneBoundingSphereRadius: number = 0;
 	#sceneBoundingBoxChangeToken: string = "";
-	#boxSelectionActive: boolean = false;
-	#cameraFreezeFlag?: string;
+	#sceneBoundingSphereRadius: number = 0;
+	#selectionBox?: HTMLDivElement;
 	#selectionBoxCoordinates?: {
 		start: {x: number; y: number};
 		end: {x: number; y: number};
 	};
-	#selectionBox?: HTMLDivElement;
-	// #endregion Properties (12)
-
-	// #region Constructors (1)
 
 	constructor(
 		viewport: IViewportApi,
@@ -128,10 +116,6 @@ export class InteractionEngine implements IInteractionEngine {
 		);
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (7)
-
 	public get closed(): boolean {
 		return this.#closed;
 	}
@@ -165,10 +149,6 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#pointIntersectionPercentage = value;
 		this.updateIntersectionThresholds();
 	}
-
-	// #endregion Public Getters And Setters (7)
-
-	// #region Public Methods (11)
 
 	public addInteractionManager(manager: IInteractionManager): string {
 		if (this.#closed)
@@ -246,10 +226,6 @@ export class InteractionEngine implements IInteractionEngine {
 		delete this.#managers[token];
 		return true;
 	}
-
-	// #endregion Public Methods (11)
-
-	// #region Private Methods (4)
 
 	/**
 	 * Apply all filters for the intersection of the scene.
@@ -470,8 +446,4 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#selectionBox.style.width = `${width}px`;
 		this.#selectionBox.style.height = `${height}px`;
 	}
-
-	// #endregion Private Methods (4)
 }
-
-// #endregion Classes (1)

@@ -117,12 +117,6 @@ export class HoverManager extends AbstractInteractionManager {
 
 	public onKeyUp(event: KeyboardEvent): void {}
 
-	private deactivateAllNodes() {
-		for (const node of this.#nodes) {
-			this.deactivateNode(node);
-		}
-	}
-
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
@@ -281,6 +275,12 @@ export class HoverManager extends AbstractInteractionManager {
 			manager: this,
 			groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
 		} as IHoverEvent);
+	}
+
+	private deactivateAllNodes() {
+		for (const node of this.#nodes) {
+			this.deactivateNode(node);
+		}
 	}
 
 	/**
