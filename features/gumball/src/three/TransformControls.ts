@@ -776,26 +776,6 @@ class TransformControls extends Object3D {
 			if (this._restrictionManager)
 				this._restrictionManager.showRestrictionVisualization = true;
 
-			const restrictedPoint = this._restrictionManager
-				? this._restrictionManager.rayTrace(
-						{
-							origin: [
-								_raycaster.ray.origin.x,
-								_raycaster.ray.origin.y,
-								_raycaster.ray.origin.z,
-							],
-							direction: [
-								_raycaster.ray.direction.x,
-								_raycaster.ray.direction.y,
-								_raycaster.ray.direction.z,
-							],
-						},
-						{
-							type: "gumball",
-						},
-					)
-				: null;
-
 			// Apply translate
 
 			this._offset.copy(this.pointEnd).sub(this.pointStart);
@@ -820,8 +800,47 @@ class TransformControls extends Object3D {
 
 			object.position.copy(this._offset).add(this._positionStart);
 
-			// Apply translation snap
+			// get the center of the gumball in world coordinates
+			const center = new Vector3().copy(object.position);
 
+			// use the camera to project the center into screen space
+			const screenPosition = center.clone().project(this._camera);
+
+			// store the raycaster origin and direction
+			const rayOrigin = _raycaster.ray.origin.clone();
+			const rayDirection = _raycaster.ray.direction.clone();
+
+			// create a ray from the camera through the screen position
+			_raycaster.setFromCamera(
+				new Vector2(screenPosition.x, screenPosition.y),
+				this._camera,
+			);
+
+			const restrictedPoint = this._restrictionManager
+				? this._restrictionManager.rayTrace(
+						{
+							origin: [
+								_raycaster.ray.origin.x,
+								_raycaster.ray.origin.y,
+								_raycaster.ray.origin.z,
+							],
+							direction: [
+								_raycaster.ray.direction.x,
+								_raycaster.ray.direction.y,
+								_raycaster.ray.direction.z,
+							],
+						},
+						{
+							type: "gumball",
+						},
+					)
+				: null;
+
+			// reset the raycaster to its original state
+			_raycaster.ray.origin.copy(rayOrigin);
+			_raycaster.ray.direction.copy(rayDirection);
+
+			// Apply translation snap
 			if (restrictedPoint && restrictedPoint.point) {
 				if (space === "local") {
 					object.position.x = restrictedPoint.point[0];
