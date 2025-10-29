@@ -3,8 +3,8 @@ import {ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
+	EVENTTYPE_INTERACTION,
 	Logger,
-	ShapeDiverViewerInteractionError,
 } from "@shapediver/viewer.shared.services";
 import {
 	IIntersectionDefinition,
@@ -281,28 +281,6 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		)
 			return;
 
-		if (this.#nodes.length >= this.#maximumNodes) {
-			this.#eventEngine.emitEvent(
-				EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: intersection.node,
-					nodes: this.#nodes,
-					intersectionPoint:
-						intersection.type === "RayTracingIntersection"
-							? (intersection as IRayTracingIntersection).point
-							: undefined,
-					ray,
-					event,
-					manager: this,
-					groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-				} as IMultiSelectEvent,
-			);
-			throw new ShapeDiverViewerInteractionError(
-				`The maximum number of nodes ${this.maximumNodes} has been reached.`,
-			);
-		}
-
 		this.#nodes.push(intersection.node);
 
 		// find the interaction data
@@ -338,8 +316,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 				? this.#groupedNodes[this.#nodes.length - 1]
 				: undefined,
 		);
-
-		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
+		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: intersection.node,
@@ -351,26 +328,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			event,
 			manager: this,
 			groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-		} as IMultiSelectEvent);
-
-		if (this.#nodes.length < this.#minimumNodes) {
-			this.#eventEngine.emitEvent(
-				EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: intersection.node,
-					nodes: this.#nodes,
-					intersectionPoint:
-						intersection.type === "RayTracingIntersection"
-							? (intersection as IRayTracingIntersection).point
-							: undefined,
-					ray,
-					event,
-					manager: this,
-					groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-				} as IMultiSelectEvent,
-			);
-		}
+		});
 	}
 
 	/**
@@ -422,7 +380,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		this.#groupedNodes.splice(index, 1);
 		this.#groupInteractionEffectToken.splice(index, 1);
 
-		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
+		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: node,
@@ -430,18 +388,25 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			manager: this,
 			groupedNodes: groupedNodes,
 		} as IMultiSelectEvent);
+	}
+
+	private emitSelectionEvents(
+		mainEvent: EVENTTYPE_INTERACTION,
+		eventData: IMultiSelectEvent,
+	) {
+		this.#eventEngine.emitEvent(mainEvent, eventData);
 
 		if (this.#nodes.length < this.#minimumNodes) {
 			this.#eventEngine.emitEvent(
 				EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: node,
-					nodes: this.#nodes,
-					event,
-					manager: this,
-					groupedNodes: groupedNodes,
-				} as IMultiSelectEvent,
+				eventData,
+			);
+		}
+
+		if (this.#nodes.length > this.#maximumNodes) {
+			this.#eventEngine.emitEvent(
+				EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES,
+				eventData,
 			);
 		}
 	}
