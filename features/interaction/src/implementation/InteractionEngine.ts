@@ -174,14 +174,16 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#closed = true;
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.#closed) return;
-		for (const m in this.#managers) this.#managers[m].onKeyDown(event);
+		for (const m in this.#managers)
+			this.#managers[m].onKeyDown(event, pointerInCanvas);
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.#closed) return;
-		for (const m in this.#managers) this.#managers[m].onKeyUp(event);
+		for (const m in this.#managers)
+			this.#managers[m].onKeyUp(event, pointerInCanvas);
 	}
 
 	public onMouseWheel(event: WheelEvent): void {

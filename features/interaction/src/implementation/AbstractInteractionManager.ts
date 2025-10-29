@@ -119,9 +119,15 @@ export abstract class AbstractInteractionManager
 		endState: INTERACTION_STATE,
 	): void;
 
-	public abstract onKeyDown(event: KeyboardEvent): void;
+	public abstract onKeyDown(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
 
-	public abstract onKeyUp(event: KeyboardEvent): void;
+	public abstract onKeyUp(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
 
 	public abstract onMove(
 		event: PointerEvent,

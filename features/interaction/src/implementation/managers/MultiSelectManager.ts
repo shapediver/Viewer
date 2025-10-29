@@ -214,14 +214,14 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		}
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#insertionKey) this.#keyPressed.insertion = true;
 		if (event.key === this.#removalKey) this.#keyPressed.removal = true;
 		if (event.key === this.#boxSelectionKey)
 			this.#keyPressed.boxSelection = true;
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#insertionKey)
 			this.#keyPressed.insertion = false;
 		if (event.key === this.#removalKey) this.#keyPressed.removal = false;
@@ -414,7 +414,13 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			this.#groupedNodes[index],
 		);
 
+		// Store the grouped nodes before removing from arrays for the event
+		const groupedNodes = this.#groupedNodes[index];
+
 		this.#nodes.splice(index, 1);
+		this.#interactionEffectTokens.splice(index, 1);
+		this.#groupedNodes.splice(index, 1);
+		this.#groupInteractionEffectToken.splice(index, 1);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
 			viewportId: this.viewport.id,
@@ -422,7 +428,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			node: node,
 			event,
 			manager: this,
-			groupedNodes: this.#groupedNodes[index],
+			groupedNodes: groupedNodes,
 		} as IMultiSelectEvent);
 
 		if (this.#nodes.length < this.#minimumNodes) {
@@ -434,13 +440,10 @@ export class MultiSelectManager extends AbstractInteractionManager {
 					nodes: this.#nodes,
 					event,
 					manager: this,
-					groupedNodes: this.#groupedNodes[index],
+					groupedNodes: groupedNodes,
 				} as IMultiSelectEvent,
 			);
 		}
-
-		this.#groupedNodes.splice(index, 1);
-		this.#groupInteractionEffectToken.splice(index, 1);
 	}
 
 	private manageIntersection(

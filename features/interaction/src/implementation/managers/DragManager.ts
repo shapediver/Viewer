@@ -286,9 +286,9 @@ export class DragManager extends AbstractInteractionManager {
 		this.removeNode(event, ray);
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {}
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
-	public onKeyUp(event: KeyboardEvent): void {}
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
 	public onMove(
 		event: PointerEvent,

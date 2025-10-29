@@ -436,8 +436,9 @@ export class Gumball implements IGumball {
 		}
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
+		if (!pointerInCanvas) return;
 		this.#keysPressed[event.key] = true;
 
 		if (
@@ -450,7 +451,7 @@ export class Gumball implements IGumball {
 		}
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
 		delete this.#keysPressed[event.key];
 

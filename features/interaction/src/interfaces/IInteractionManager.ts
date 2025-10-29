@@ -122,12 +122,12 @@ export interface IInteractionManager {
 	 * For onKeyDown events this method is called.
 	 * @param event
 	 */
-	onKeyDown(event: KeyboardEvent): void;
+	onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void;
 	/**
 	 * For onKeyUp events this method is called.
 	 * @param event
 	 */
-	onKeyUp(event: KeyboardEvent): void;
+	onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void;
 
 	/**
 	 * Called internally to remove the viewport from the manager and to clean up.

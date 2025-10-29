@@ -289,24 +289,21 @@ export class DomEventEngine {
 	}
 
 	private onKeyDown(event: KeyboardEvent): void {
-		if (
+		const pointerInCanvas =
 			this._canvas ===
 			document.elementFromPoint(
 				this._currentPointerPosition.x,
 				this._currentPointerPosition.y,
-			)
-		) {
-			Object.entries(this._domEventListeners).forEach(
-				([key, listener]) => {
-					if (
-						this._restrictedListenerTokens.length === 0 ||
-						this._restrictedListenerTokens.includes(key)
-					) {
-						listener.onKeyDown(event);
-					}
-				},
 			);
-		}
+
+		Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+			if (
+				this._restrictedListenerTokens.length === 0 ||
+				this._restrictedListenerTokens.includes(key)
+			) {
+				listener.onKeyDown(event, pointerInCanvas);
+			}
+		});
 	}
 
 	private onKeyDownPointerPositionHelper(event: PointerEvent): void {
@@ -314,24 +311,20 @@ export class DomEventEngine {
 	}
 
 	private onKeyUp(event: KeyboardEvent): void {
-		if (
+		const pointerInCanvas =
 			this._canvas ===
 			document.elementFromPoint(
 				this._currentPointerPosition.x,
 				this._currentPointerPosition.y,
-			)
-		) {
-			Object.entries(this._domEventListeners).forEach(
-				([key, listener]) => {
-					if (
-						this._restrictedListenerTokens.length === 0 ||
-						this._restrictedListenerTokens.includes(key)
-					) {
-						listener.onKeyUp(event);
-					}
-				},
 			);
-		}
+		Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+			if (
+				this._restrictedListenerTokens.length === 0 ||
+				this._restrictedListenerTokens.includes(key)
+			) {
+				listener.onKeyUp(event, pointerInCanvas);
+			}
+		});
 	}
 
 	private onMouseWheel(event: Event): void {

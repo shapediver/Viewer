@@ -35,6 +35,7 @@ export class HoverManager extends AbstractInteractionManager {
 	#filter: IInteractionFilterOptions =
 		InteractionManagerUtils.createInteractionFilter("hover", this.id, [
 			INTERACTION_STATE.MOVE,
+			INTERACTION_STATE.END,
 		]);
 	#groupInteractionEffectToken: string[][] = [];
 	#groupedNodes: ITreeNode[][] = [];
@@ -111,11 +112,22 @@ export class HoverManager extends AbstractInteractionManager {
 			)
 		)
 			return;
+
+		// Check if box selection was involved in this interaction
+		const hasBoxSelection = intersection.some(
+			(i) => i.type === "BoxSelectionIntersection",
+		);
+
+		// If box selection was active, clear all hover effects immediately
+		// since they should not persist after box selection ends
+		if (hasBoxSelection && this.#nodes.length > 0) {
+			this.deactivateAllNodes();
+		}
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {}
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
-	public onKeyUp(event: KeyboardEvent): void {}
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
 	public onMove(
 		event: PointerEvent,
@@ -278,9 +290,7 @@ export class HoverManager extends AbstractInteractionManager {
 	}
 
 	private deactivateAllNodes() {
-		for (const node of this.#nodes) {
-			this.deactivateNode(node);
-		}
+		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
 	}
 
 	/**
@@ -324,15 +334,20 @@ export class HoverManager extends AbstractInteractionManager {
 			this.#groupedNodes[index],
 		);
 
+		// Store the grouped nodes before removing from arrays for the event
+		const groupedNodes = this.#groupedNodes[index];
+
 		this.#nodes.splice(index, 1);
+		this.#interactionEffectTokens.splice(index, 1);
+		this.#groupedNodes.splice(index, 1);
+		this.#groupInteractionEffectToken.splice(index, 1);
+
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			event,
 			manager: this,
-			groupedNodes: this.#groupedNodes[index],
+			groupedNodes: groupedNodes,
 		} as IHoverEvent);
-		this.#groupedNodes.splice(index, 1);
-		this.#groupInteractionEffectToken.splice(index, 1);
 	}
 }

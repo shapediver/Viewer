@@ -138,11 +138,11 @@ export class SelectManager extends AbstractInteractionManager {
 		}
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#removalKey) this.#keyPressed.removal = true;
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#removalKey) this.#keyPressed.removal = false;
 	}
 

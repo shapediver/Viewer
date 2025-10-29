@@ -9,8 +9,8 @@ type Callbacks = {
 	onMove: (event: PointerEvent, ray: IRay) => void;
 	onUp: (event: PointerEvent, ray: IRay) => void;
 	onOut: (event: PointerEvent, ray: IRay) => void;
-	onKeyDown: (event: KeyboardEvent) => void;
-	onKeyUp: (event: KeyboardEvent) => void;
+	onKeyDown: (event: KeyboardEvent, pointerInCanvas: boolean) => void;
+	onKeyUp: (event: KeyboardEvent, pointerInCanvas: boolean) => void;
 };
 
 // #endregion Type aliases (1)
@@ -45,12 +45,12 @@ export class EventManager implements IDomEventListener {
 		);
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
-		this.#callbacks.onKeyDown(event);
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
+		this.#callbacks.onKeyDown(event, pointerInCanvas);
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
-		this.#callbacks.onKeyUp(event);
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
+		this.#callbacks.onKeyUp(event, pointerInCanvas);
 	}
 
 	public onMouseWheel(): void {}
