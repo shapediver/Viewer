@@ -2,9 +2,9 @@ import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
-	IIntersection,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {IIntersectionEngine} from "../interfaces/IIntersectionEngine";
@@ -56,9 +56,15 @@ export class IntersectionEngine implements IIntersectionEngine {
 		ray: IRay,
 		viewportId: string,
 		filterCriteria?: IIntersectionFilter[],
-		rayCasterParams?: THREE.RaycasterParameters,
-	): IIntersection[] {
-		let intersections: IIntersection[] = [];
+		options?: {
+			rayCasterParams?: THREE.RaycasterParameters;
+			selectionBoxCoordinates?: {
+				start: {x: number; y: number};
+				end: {x: number; y: number};
+			};
+		},
+	): IRayTracingIntersection[] {
+		let intersections: IRayTracingIntersection[] = [];
 		this._intersectNodes.forEach((i) => {
 			const currentIntersections = this.intersectNode(
 				ray,
@@ -66,7 +72,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 				i.geometryData,
 				viewportId,
 				filterCriteria,
-				rayCasterParams,
+				options?.rayCasterParams,
 			);
 			if (currentIntersections)
 				intersections = intersections.concat(currentIntersections);
@@ -116,7 +122,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		filterCriteria?: IIntersectionFilter[],
 		rayCasterParams?: THREE.RaycasterParameters,
-	): IIntersection[] | undefined {
+	): IRayTracingIntersection[] | undefined {
 		if (node.visible === false) return;
 
 		if (viewportId !== undefined) {
@@ -217,7 +223,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		rayCasterParams?: THREE.RaycasterParameters,
 		filterCriteria?: IIntersectionFilter[],
-	): IIntersection[] | undefined {
+	): IRayTracingIntersection[] | undefined {
 		if (rayCasterParams) this._raycaster.params = rayCasterParams;
 
 		this._raycaster.ray.direction.set(
@@ -240,7 +246,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 			if (intersectionThree.length === 0) return;
 
 			let intersections = intersectionThree.map((i) => {
-				const intersectionDefinition: IIntersection = {
+				const intersectionDefinition: IRayTracingIntersection = {
 					distance: i.distance,
 					point: [i.point.x, i.point.y, i.point.z],
 					node: node,
@@ -248,6 +254,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 						geometryData[
 							`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`
 						],
+					type: "RayTracingIntersection",
 				};
 				return intersectionDefinition;
 			});

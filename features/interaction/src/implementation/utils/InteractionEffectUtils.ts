@@ -2,6 +2,7 @@ import {IViewportApi} from "@shapediver/viewer";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import {GeometryData} from "@shapediver/viewer.shared.types";
+
 import {
 	IInteractionEffect,
 	IInteractionEffectUtils,
@@ -9,13 +10,9 @@ import {
 } from "../../interfaces/utils/IInteractionEffectUtils";
 
 export class InteractionEffectUtils implements IInteractionEffectUtils {
-	// #region Properties (2)
-
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	#viewport?: IViewportApi;
-
-	// #endregion Properties (2)
 
 	public get viewport(): IViewportApi | undefined {
 		return this.#viewport;
@@ -24,7 +21,6 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 	public set viewport(value: IViewportApi | undefined) {
 		this.#viewport = value;
 	}
-	// #region Public Methods (2)
 
 	/**
 	 * Apply the effect material to the node and all descendants.
@@ -109,6 +105,4 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
 		if (postProcessingEffect) postProcessingEffect.removeSelection(node);
 	}
-
-	// #endregion Public Methods (2)
 }

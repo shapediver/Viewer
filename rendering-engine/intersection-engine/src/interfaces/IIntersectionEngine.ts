@@ -1,5 +1,5 @@
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
 } from "@shapediver/viewer.shared.types";
@@ -12,8 +12,14 @@ export interface IIntersectionEngine {
 		ray: IRay,
 		viewportId: string,
 		filterCriteria?: IIntersectionFilter[],
-		rayCasterParams?: THREE.RaycasterParameters,
-	): IIntersection[];
+		options?: {
+			rayCasterParams?: THREE.RaycasterParameters;
+			selectionBoxCoordinates?: {
+				start: {x: number; y: number};
+				end: {x: number; y: number};
+			};
+		},
+	): IIntersectionDefinition[];
 
 	// #endregion Public Methods (1)
 }

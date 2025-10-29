@@ -148,13 +148,14 @@ export class CameraControlsEventDistribution
 		}
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this._controls.camera.active === false) return;
 		if (!this._activeEvents) return;
+		if (!pointerInCanvas) return;
 		this.onKey(event);
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {}
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
 	public onMouseWheel(event: WheelEvent): void {
 		if (this._controls.camera.active === false) return;

@@ -25,11 +25,13 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
-	IIntersectionFilter,
+	IIntersectionDefinition,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {mat4, vec3} from "gl-matrix";
+
 import {IDragEvent} from "../../interfaces/events/IDragEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
@@ -40,9 +42,10 @@ import {CameraPlaneConstraint} from "../dragConstraints/CameraPlaneConstraint";
 import {LineConstraint} from "../dragConstraints/LineConstraint";
 import {PlaneConstraint} from "../dragConstraints/PlaneConstraint";
 import {PointConstraint} from "../dragConstraints/PointConstraint";
-import {IDragAnchor, InteractionData} from "../InteractionData";
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import {IDragAnchor} from "../InteractionData";
+import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class DragManager extends AbstractInteractionManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
@@ -57,27 +60,20 @@ export class DragManager extends AbstractInteractionManager {
 		dragAnchors: IDragAnchor[];
 		dragOrigin: vec3;
 	};
-	#interactionEffectToken?: string;
-	#filter: IInteractionFilterOptions = (
-		interactionState: INTERACTION_STATE,
-	): IIntersectionFilter => {
-		if (interactionState === INTERACTION_STATE.DOWN) {
-			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node, false);
-			};
-		}
-
-		return (node: ITreeNode) => false;
-	};
+	#filter: IInteractionFilterOptions =
+		InteractionManagerUtils.createInteractionFilter("drag", this.id, [
+			INTERACTION_STATE.DOWN,
+		]);
 	#groupInteractionEffectToken?: string[];
 	#groupedNodes?: ITreeNode[];
-	#intersection: IIntersection | null = null;
+	#interactionEffectToken?: string;
+	#intersection: IRayTracingIntersection | null = null;
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
 		viewport: IViewportApi;
 		node: ITreeNode;
 		ray: IRay;
-		intersection: IIntersection;
+		intersection: IRayTracingIntersection;
 	} | null = null;
 	#tokenCameraFreeze!: string;
 	#tokenContinuousRendering!: string;
@@ -108,12 +104,14 @@ export class DragManager extends AbstractInteractionManager {
 	 * @returns
 	 */
 	public addDragConstraint(constraint: IDragConstraint): string | undefined {
-		if (!this.#restrictionManager) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateRestrictionManager(
+				this.#restrictionManager,
+				this.#logger,
+			)
+		)
 			return;
-		}
+
 		Logger.instance.warn(
 			"The method addDragConstraint is deprecated. Please use addRestriction instead.",
 		);
@@ -183,33 +181,44 @@ export class DragManager extends AbstractInteractionManager {
 	public addRestriction(
 		properties: RestrictionProperties,
 	): string | undefined {
-		if (!this.#restrictionManager) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateRestrictionManager(
+				this.#restrictionManager,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		return this.#restrictionManager.addRestriction(properties);
 	}
 
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
-		const intersections = intersection.filter((i) =>
-			this.filter(INTERACTION_STATE.DOWN)(i.node),
-		);
+		const intersections: IRayTracingIntersection[] = intersection.filter(
+			(i) =>
+				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
+				i.type === "RayTracingIntersection",
+		) as IRayTracingIntersection[];
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
-			return this.getInteractionData(i.node, true) ? i : null;
+			return InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"drag",
+			)
+				? i
+				: null;
 		});
 
 		const firstIntersection =
@@ -231,15 +240,16 @@ export class DragManager extends AbstractInteractionManager {
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 
 		this.#restrictionManager!.showRestrictionVisualization = false;
 		if (!this.#draggedNode) return;
@@ -276,24 +286,25 @@ export class DragManager extends AbstractInteractionManager {
 		this.removeNode(event, ray);
 	}
 
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {}
+
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {}
+
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		if (!this.#draggedNode) return;
 		this.#restrictionManager!.showRestrictionVisualization = true;
 
-		const interactionData = this.getInteractionData(
-			this.#draggedNode.node,
-			true,
-		);
 		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
 			type: "dragging",
 			dragAnchors: this.#draggedNode.dragAnchors,
@@ -349,12 +360,13 @@ export class DragManager extends AbstractInteractionManager {
 	 * @returns
 	 */
 	public removeDragConstraint(token: string): boolean {
-		if (!this.#restrictionManager) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateRestrictionManager(
+				this.#restrictionManager,
+				this.#logger,
+			)
+		)
 			return false;
-		}
 		return this.#restrictionManager.removeRestriction(token);
 	}
 
@@ -364,12 +376,13 @@ export class DragManager extends AbstractInteractionManager {
 	 * @returns
 	 */
 	public removeNode(event?: PointerEvent, ray?: IRay) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		if (!this.#draggedNode) return;
 
 		this.#restrictionManager!.showRestrictionVisualization = false;
@@ -379,10 +392,6 @@ export class DragManager extends AbstractInteractionManager {
 
 		// if we have everything we need (the ray) than we try one last time to calculate the transformation
 		if (ray) {
-			const interactionData = this.getInteractionData(
-				this.#draggedNode.node,
-				true,
-			);
 			transformationResult = this.#restrictionManager!.rayTrace(ray, {
 				type: "dragging",
 				dragAnchors: this.#draggedNode.dragAnchors,
@@ -455,12 +464,13 @@ export class DragManager extends AbstractInteractionManager {
 	 * @returns
 	 */
 	public removeRestriction(token: string): boolean {
-		if (!this.#restrictionManager) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateRestrictionManager(
+				this.#restrictionManager,
+				this.#logger,
+			)
+		)
 			return false;
-		}
 		return this.#restrictionManager.removeRestriction(token);
 	}
 
@@ -468,12 +478,13 @@ export class DragManager extends AbstractInteractionManager {
 	 * Removes all restrictions.
 	 */
 	public removeRestrictions() {
-		if (!this.#restrictionManager) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
-			return;
-		}
+		if (
+			!InteractionManagerUtils.validateRestrictionManager(
+				this.#restrictionManager,
+				this.#logger,
+			)
+		)
+			return false;
 		for (const token of Object.keys(
 			this.#restrictionManager.restrictions,
 		)) {
@@ -499,12 +510,13 @@ export class DragManager extends AbstractInteractionManager {
 		event?: PointerEvent,
 		ray: IRay = {origin: vec3.create(), direction: vec3.create()},
 	) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		if (this.#draggedNode) this.removeNode();
 
 		this.#restrictionManager!.showRestrictionVisualization = true;
@@ -514,6 +526,7 @@ export class DragManager extends AbstractInteractionManager {
 			distance,
 			point: intersectionPoint,
 			geometryData: geometryData,
+			type: "RayTracingIntersection",
 		});
 		if (!this.#draggedNode) return;
 		this.#setupOptions = {
@@ -581,20 +594,26 @@ export class DragManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	private activateNode(intersection: IIntersection) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+	private activateNode(intersection: IRayTracingIntersection) {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		this.#intersection = intersection;
 		const node = this.#intersection.node;
 		this.#groupedNodes = undefined;
 		this.#groupInteractionEffectToken = undefined;
 
 		// find the interaction data
-		const data = this.getInteractionData(node, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			node,
+			true,
+			this.id,
+			"drag",
+		);
 		if (data) data.interactionStates.drag = true;
 
 		// find and store all nodes that are within the group
@@ -620,31 +639,21 @@ export class DragManager extends AbstractInteractionManager {
 		if (!worldMatrixInverse) worldMatrixInverse = mat4.create();
 
 		// apply the effect material if there is something to apply
-		if (this.interactionEffect) {
-			this.#interactionEffectToken =
-				this.interactionEffectUtils.applyInteractionEffect(
-					node,
-					this.interactionEffect,
-				);
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n) =>
-					this.#groupInteractionEffectToken!.push(
-						this.interactionEffectUtils.applyInteractionEffect(
-							n,
-							this.interactionEffect!,
-						),
-					),
-				);
-		} else {
-			this.#interactionEffectToken = undefined;
-		}
+		const {token, groupTokens} =
+			InteractionManagerUtils.applyInteractionEffects(
+				node,
+				this.#groupedNodes,
+				this.interactionEffect,
+				this.interactionEffectUtils,
+			);
+		this.#interactionEffectToken = token;
+		this.#groupInteractionEffectToken = groupTokens;
 
-		// update the node
-		this.viewport.updateNode(node);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
-
-		this.viewport.render();
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			node,
+			this.#groupedNodes,
+		);
 
 		return {
 			node,
@@ -690,71 +699,45 @@ export class DragManager extends AbstractInteractionManager {
 	 * @param intersection
 	 */
 	private deactivateNode() {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		if (!this.#draggedNode) return;
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#draggedNode.node, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			this.#draggedNode.node,
+			true,
+			this.id,
+			"drag",
+		);
 		if (data) data.interactionStates.drag = false;
 
-		if (this.#interactionEffectToken) {
-			this.interactionEffectUtils.removeInteractionEffect(
-				this.#draggedNode.node,
-				this.#interactionEffectToken,
-			);
-			this.#interactionEffectToken = undefined;
+		InteractionManagerUtils.removeInteractionEffects(
+			this.#draggedNode.node,
+			this.#groupedNodes,
+			this.#interactionEffectToken,
+			this.#groupInteractionEffectToken || [],
+			this.interactionEffectUtils,
+		);
+		this.#interactionEffectToken = undefined;
+		this.#groupInteractionEffectToken = undefined;
 
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeInteractionEffect(
-						n,
-						this.#groupInteractionEffectToken![i],
-					),
-				);
-			this.#groupInteractionEffectToken = undefined;
-		}
-
-		this.viewport.updateNode(this.#draggedNode.node);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
-
-		this.viewport.render();
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			this.#draggedNode.node,
+			this.#groupedNodes,
+		);
 
 		this.#intersection = null;
 		this.#draggedNode = undefined;
 
 		this.#groupedNodes = undefined;
 		this.#groupInteractionEffectToken = undefined;
-	}
-
-	private getInteractionData(
-		node: ITreeNode,
-		restrictions: boolean,
-	): InteractionData | undefined {
-		for (let i = 0; i < node.data.length; i++) {
-			if (node.data[i] instanceof InteractionData) {
-				const data = node.data[i] as InteractionData;
-				if (data.interactionTypes.drag !== true) continue;
-
-				if (restrictions) {
-					if (
-						(<InteractionData>node.data[i]).restrictedManagers
-							.length === 0 ||
-						(<InteractionData>(
-							node.data[i]
-						)).restrictedManagers.includes(this.id)
-					)
-						return node.data[i] as InteractionData;
-				} else {
-					return node.data[i] as InteractionData;
-				}
-			}
-		}
 	}
 
 	private removeTransformation(node: ITreeNode): mat4 {

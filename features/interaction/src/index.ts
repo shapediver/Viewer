@@ -41,7 +41,7 @@ import {
 	SnapRestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
 	RestrictionDefinition,
@@ -136,7 +136,7 @@ export {
 	ISpotLightApi,
 	ILightApi,
 	IIntersectionFilter,
-	IIntersection,
+	IIntersectionDefinition,
 };
 export {
 	NodeNameFilterPattern,

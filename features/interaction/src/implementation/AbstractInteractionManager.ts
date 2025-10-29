@@ -9,7 +9,8 @@ import {
 	EVENTTYPE,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {IIntersection, IRay} from "@shapediver/viewer.shared.types";
+import {IIntersectionDefinition, IRay} from "@shapediver/viewer.shared.types";
+
 import {INTERACTION_STATE} from "../interfaces/IInteractionEngine";
 import {
 	IInteractionFilterOptions,
@@ -26,24 +27,18 @@ import {InteractionEffectUtils} from "./utils/InteractionEffectUtils";
 export abstract class AbstractInteractionManager
 	implements IInteractionManager
 {
-	// #region Properties (8)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #id: string;
 	readonly #tree: Tree = Tree.instance;
 
-	#interactionEffect?: IInteractionEffect;
 	#gatheredGroupedNodes: {
 		[key: string]: ITreeNode[];
 	} = {};
+	#interactionEffect?: IInteractionEffect;
 	#interactionEffectUtils: IInteractionEffectUtils;
 	#viewport?: IViewportApi;
 
 	public abstract filter: IInteractionFilterOptions;
-
-	// #endregion Properties (8)
-
-	// #region Constructors (1)
 
 	constructor(
 		id?: string,
@@ -63,10 +58,6 @@ export abstract class AbstractInteractionManager
 		);
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (8)
-
 	public get effectMaterial(): IMaterialAbstractData | undefined {
 		return this.#interactionEffect &&
 			isMaterialData(this.#interactionEffect)
@@ -78,14 +69,6 @@ export abstract class AbstractInteractionManager
 		this.#interactionEffect = value;
 	}
 
-	public get interactionEffect(): IInteractionEffect | undefined {
-		return this.#interactionEffect;
-	}
-
-	public set interactionEffect(value: IInteractionEffect | undefined) {
-		this.#interactionEffect = value;
-	}
-
 	public get gatheredGroupedNodes(): {
 		[key: string]: ITreeNode[];
 	} {
@@ -94,6 +77,14 @@ export abstract class AbstractInteractionManager
 
 	public get id(): string {
 		return this.#id;
+	}
+
+	public get interactionEffect(): IInteractionEffect | undefined {
+		return this.#interactionEffect;
+	}
+
+	public set interactionEffect(value: IInteractionEffect | undefined) {
+		this.#interactionEffect = value;
 	}
 
 	public get interactionEffectUtils(): IInteractionEffectUtils {
@@ -113,32 +104,38 @@ export abstract class AbstractInteractionManager
 		this.#interactionEffectUtils.viewport = value;
 	}
 
-	// #endregion Public Getters And Setters (8)
-
-	// #region Public Abstract Methods (5)
-
 	public abstract add(viewport: IViewportApi): void;
+
 	public abstract onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void;
+
 	public abstract onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void;
+
+	public abstract onKeyDown(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
+
+	public abstract onKeyUp(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
+
 	public abstract onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void;
+
 	public abstract remove(): void;
-
-	// #endregion Public Abstract Methods (5)
-
-	// #region Private Methods (1)
 
 	private gatherGroupNodes() {
 		this.#gatheredGroupedNodes = {};
@@ -176,6 +173,4 @@ export abstract class AbstractInteractionManager
 			}
 		});
 	}
-
-	// #endregion Private Methods (1)
 }

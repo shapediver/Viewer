@@ -1,8 +1,8 @@
 export interface IDomEventListener {
 	// #region Public Methods (8)
 
-	onKeyDown(event: KeyboardEvent): void;
-	onKeyUp(event: KeyboardEvent): void;
+	onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void;
+	onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void;
 	onMouseWheel(event: WheelEvent): void;
 	onPointerDown(event: PointerEvent): void;
 	onPointerEnd(event: PointerEvent): void;

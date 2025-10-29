@@ -8,46 +8,39 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
+	FLAG_TYPE,
 	IIntersectionFilter,
 	IRay,
 	ISceneEvent,
 } from "@shapediver/viewer.shared.types";
+
 import {
 	IInteractionEngine,
 	INTERACTION_STATE,
 } from "../interfaces/IInteractionEngine";
 import {IInteractionManager} from "../interfaces/IInteractionManager";
 import {IntersectionManager} from "./IntersectionManager";
-
-// #region Interfaces (1)
+import {MultiSelectManager} from "./managers/MultiSelectManager";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export interface IInteractionEngineProperties {
-	// #region Properties (3)
-
 	/**
 	 * The opacity from which the intersection is considered. (default: 0)
 	 */
 	intersectionOpacity: number;
+
 	/**
 	 * The percentage of the scene size for the intersection of lines. (default: 0.025 = 2.5%)
 	 */
 	lineIntersectionPercentage: number;
+
 	/**
 	 * The percentage of the scene size for the intersection of points. (default: 0.025 = 2.5%)
 	 */
 	pointIntersectionPercentage: number;
-
-	// #endregion Properties (3)
 }
 
-// #endregion Interfaces (1)
-
-// #region Classes (1)
-
 export class InteractionEngine implements IInteractionEngine {
-	// #region Properties (12)
-
 	readonly #canvasEventListenerToken: string;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #intersectionManager: IntersectionManager =
@@ -64,16 +57,19 @@ export class InteractionEngine implements IInteractionEngine {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
+	#boxSelectionActive: boolean = false;
+	#cameraFreezeFlag?: string;
 	#closed: boolean = false;
 	#intersectionOpacity: number = 0;
 	#lineIntersectionPercentage: number = 0.025;
 	#pointIntersectionPercentage: number = 0.025;
-	#sceneBoundingSphereRadius: number = 0;
 	#sceneBoundingBoxChangeToken: string = "";
-
-	// #endregion Properties (12)
-
-	// #region Constructors (1)
+	#sceneBoundingSphereRadius: number = 0;
+	#selectionBox?: HTMLDivElement;
+	#selectionBoxCoordinates?: {
+		start: {x: number; y: number};
+		end: {x: number; y: number};
+	};
 
 	constructor(
 		viewport: IViewportApi,
@@ -120,10 +116,6 @@ export class InteractionEngine implements IInteractionEngine {
 		);
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (7)
-
 	public get closed(): boolean {
 		return this.#closed;
 	}
@@ -158,10 +150,6 @@ export class InteractionEngine implements IInteractionEngine {
 		this.updateIntersectionThresholds();
 	}
 
-	// #endregion Public Getters And Setters (7)
-
-	// #region Public Methods (11)
-
 	public addInteractionManager(manager: IInteractionManager): string {
 		if (this.#closed)
 			throw new ShapeDiverViewerInteractionError(
@@ -186,12 +174,16 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#closed = true;
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.#closed) return;
+		for (const m in this.#managers)
+			this.#managers[m].onKeyDown(event, pointerInCanvas);
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.#closed) return;
+		for (const m in this.#managers)
+			this.#managers[m].onKeyUp(event, pointerInCanvas);
 	}
 
 	public onMouseWheel(event: WheelEvent): void {
@@ -237,10 +229,6 @@ export class InteractionEngine implements IInteractionEngine {
 		return true;
 	}
 
-	// #endregion Public Methods (11)
-
-	// #region Private Methods (4)
-
 	/**
 	 * Apply all filters for the intersection of the scene.
 	 * Call all according interaction managers with the results.
@@ -252,12 +240,43 @@ export class InteractionEngine implements IInteractionEngine {
 		for (const m in this.#managers)
 			filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
+		// here we need to check if the box selection is active in any manager
+		const boxSelectionActive = Object.values(this.#managers).some(
+			(m) => m.boxSelectionActive,
+		);
+		this.#boxSelectionActive = boxSelectionActive;
+
+		if (boxSelectionActive) {
+			// camera freeze
+			this.#cameraFreezeFlag = this.#viewport.addFlag(
+				FLAG_TYPE.CAMERA_FREEZE,
+			);
+			const rect = this.#viewport.canvas.getBoundingClientRect();
+			const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+			const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+			this.#selectionBoxCoordinates = {
+				start: {
+					x: x,
+					y: y,
+				},
+				end: {
+					x: x,
+					y: y,
+				},
+			};
+		}
+
 		const intersections =
 			this.#intersectionManager.intersect(
 				ray,
 				this.#viewport.id,
 				filters,
-				this.#rayCasterParams,
+				{
+					selectionBoxCoordinates: this.#boxSelectionActive
+						? this.#selectionBoxCoordinates
+						: undefined,
+					rayCasterParams: this.#rayCasterParams,
+				},
 			) || [];
 
 		for (const m in this.#managers)
@@ -282,16 +301,41 @@ export class InteractionEngine implements IInteractionEngine {
 		for (const m in this.#managers)
 			filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
 
+		if (this.#boxSelectionActive) {
+			const rect = this.#viewport.canvas.getBoundingClientRect();
+			const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+			const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+			this.#selectionBoxCoordinates!.end = {
+				x: x,
+				y: y,
+			};
+		}
+
 		const intersections =
 			this.#intersectionManager.intersect(
 				ray,
 				this.#viewport.id,
 				filters,
-				this.#rayCasterParams,
+				{
+					selectionBoxCoordinates: this.#boxSelectionActive
+						? this.#selectionBoxCoordinates
+						: undefined,
+					rayCasterParams: this.#rayCasterParams,
+				},
 			) || [];
 
 		for (const m in this.#managers)
 			this.#managers[m].onEnd(event, ray, intersections, endState);
+
+		if (this.#boxSelectionActive) {
+			this.#viewport.removeFlag(this.#cameraFreezeFlag!);
+			this.#cameraFreezeFlag = undefined;
+			this.#selectionBox?.remove();
+			this.#selectionBox = undefined;
+			this.#boxSelectionActive = false;
+			this.#selectionBoxCoordinates = undefined;
+		}
 	}
 
 	/**
@@ -305,12 +349,29 @@ export class InteractionEngine implements IInteractionEngine {
 		for (const m in this.#managers)
 			filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
+		if (this.#boxSelectionActive) {
+			// update box selection
+			const rect = this.#viewport.canvas.getBoundingClientRect();
+			const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+			const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+			this.#selectionBoxCoordinates!.end = {
+				x: x,
+				y: y,
+			};
+			this.updateSelectionBox();
+		}
+
 		const intersections =
 			this.#intersectionManager.intersect(
 				ray,
 				this.#viewport.id,
 				filters,
-				this.#rayCasterParams,
+				{
+					selectionBoxCoordinates: this.#boxSelectionActive
+						? this.#selectionBoxCoordinates
+						: undefined,
+					rayCasterParams: this.#rayCasterParams,
+				},
 			) || [];
 
 		for (const m in this.#managers)
@@ -326,7 +387,65 @@ export class InteractionEngine implements IInteractionEngine {
 			this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
 	}
 
-	// #endregion Private Methods (4)
-}
+	private updateSelectionBox(): void {
+		if (!this.#selectionBoxCoordinates) return;
 
-// #endregion Classes (1)
+		const insertionActive = Object.values(this.#managers).some(
+			(m) => m instanceof MultiSelectManager && m.insertionActive,
+		);
+		const removalActive = Object.values(this.#managers).some(
+			(m) => m instanceof MultiSelectManager && m.removalActive,
+		);
+
+		let color = "0, 0, 255"; // blue
+		if (insertionActive && !removalActive) {
+			color = "0, 255, 0"; // green
+		} else if (!insertionActive && removalActive) {
+			color = "255, 0, 0"; // red
+		}
+
+		if (!this.#selectionBox) {
+			// create selection box div
+			this.#selectionBox = document.createElement("div");
+			this.#selectionBox.style.position = "absolute";
+			this.#selectionBox.style.border = `1px solid rgba(${color}, 0.8)`;
+			this.#selectionBox.style.backgroundColor = `rgba(${color}, 0.1)`;
+			this.#selectionBox.style.pointerEvents = "none";
+			this.#viewport.canvas.parentElement?.appendChild(
+				this.#selectionBox,
+			);
+		} else {
+			// check if the color needs to be updated
+			const currentBorderColor = this.#selectionBox.style.border;
+			const desiredBorderColor = `1px solid rgba(${color}, 0.8)`;
+			if (currentBorderColor !== desiredBorderColor) {
+				this.#selectionBox.style.border = desiredBorderColor;
+				this.#selectionBox.style.backgroundColor = `rgba(${color}, 0.1)`;
+			}
+		}
+
+		const rect = this.#viewport.canvas.getBoundingClientRect();
+		const convertedStartX =
+			((this.#selectionBoxCoordinates.start.x + 1) / 2) * rect.width +
+			rect.left;
+		const convertedStartY =
+			((1 - this.#selectionBoxCoordinates.start.y) / 2) * rect.height +
+			rect.top;
+		const convertedEndX =
+			((this.#selectionBoxCoordinates.end.x + 1) / 2) * rect.width +
+			rect.left;
+		const convertedEndY =
+			((1 - this.#selectionBoxCoordinates.end.y) / 2) * rect.height +
+			rect.top;
+
+		const x = Math.min(convertedStartX, convertedEndX);
+		const y = Math.min(convertedStartY, convertedEndY);
+		const width = Math.abs(convertedEndX - convertedStartX);
+		const height = Math.abs(convertedEndY - convertedStartY);
+
+		this.#selectionBox.style.left = `${x}px`;
+		this.#selectionBox.style.top = `${y}px`;
+		this.#selectionBox.style.width = `${width}px`;
+		this.#selectionBox.style.height = `${height}px`;
+	}
+}

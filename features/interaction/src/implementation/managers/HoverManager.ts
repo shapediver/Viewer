@@ -11,48 +11,37 @@ import {
 	Logger,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
-	IIntersectionFilter,
+	IIntersectionDefinition,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {IHoverEvent} from "../../interfaces/events/IHoverEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
-import {InteractionData} from "../InteractionData";
+import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class HoverManager extends AbstractInteractionManager {
-	// #region Properties (8)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
 
-	#interactionEffectToken?: string;
-	#filter: IInteractionFilterOptions = (
-		interactionState: INTERACTION_STATE,
-	): IIntersectionFilter => {
-		if (interactionState === INTERACTION_STATE.MOVE) {
-			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node, false);
-			};
-		}
-
-		return (node: ITreeNode) => false;
-	};
-	#groupInteractionEffectToken?: string[];
-	#groupedNodes?: ITreeNode[];
-	#intersection: IIntersection | null = null;
-	#node: ITreeNode | null = null;
-	#dragEventTokenStart: string;
 	#currentlyDragging: boolean = false;
 	#dragEventTokenEnd: string;
-
-	// #endregion Properties (8)
-
-	// #region Constructors (1)
+	#dragEventTokenStart: string;
+	#filter: IInteractionFilterOptions =
+		InteractionManagerUtils.createInteractionFilter("hover", this.id, [
+			INTERACTION_STATE.MOVE,
+			INTERACTION_STATE.END,
+		]);
+	#groupInteractionEffectToken: string[][] = [];
+	#groupedNodes: ITreeNode[][] = [];
+	#interactionEffectTokens: (string | undefined)[] = [];
+	#intersections: IIntersectionDefinition[] = [];
+	#nodes: ITreeNode[] = [];
 
 	constructor(
 		id?: string,
@@ -74,17 +63,9 @@ export class HoverManager extends AbstractInteractionManager {
 		);
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (1)
-
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
 	}
-
-	// #endregion Public Getters And Setters (1)
-
-	// #region Public Methods (7)
 
 	public add(viewport: IViewportApi): void {
 		this.viewport = viewport;
@@ -93,52 +74,77 @@ export class HoverManager extends AbstractInteractionManager {
 	/**
 	 * Deselect the current node.
 	 */
-	public deselect() {
-		if (this.#node) this.deactivateNode();
+	public deselect(node: ITreeNode) {
+		if (this.#nodes.includes(node)) this.deactivateNode(node);
+	}
+
+	/**
+	 * Deselect all nodes.
+	 */
+	public deselectAll() {
+		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
 	}
 
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 	}
 
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
+
+		// Check if box selection was involved in this interaction
+		const hasBoxSelection = intersection.some(
+			(i) => i.type === "BoxSelectionIntersection",
+		);
+
+		// If box selection was active, clear all hover effects immediately
+		// since they should not persist after box selection ends
+		if (hasBoxSelection && this.#nodes.length > 0) {
+			this.deactivateAllNodes();
 		}
 	}
+
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {}
+
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {}
 
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 
 		// if a node is currently being dragged, do not hover any other nodes
 		if (this.#currentlyDragging) {
-			if (this.#node) this.deactivateNode(event);
+			if (this.#nodes.length > 0) this.deactivateAllNodes();
 			return;
 		}
 
@@ -148,30 +154,52 @@ export class HoverManager extends AbstractInteractionManager {
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
-			const data = this.getInteractionData(i.node, true);
+			const data = InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"hover",
+			);
 			return data && !data.interactionStates.drag ? i : null;
 		});
 
-		const firstIntersection =
-			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
+		// check if there are objects that were selected via box selection
+		const hasBoxSelection = filteredIntersections.some(
+			(fi) => fi?.type === "BoxSelectionIntersection",
+		);
 
-		if (this.#node) {
-			if (firstIntersection && firstIntersection.node === this.#node) {
-				// do nothing
-			} else if (firstIntersection) {
-				this.deactivateNode(event);
-				this.activateNode(firstIntersection, event, ray);
-			} else {
-				this.deactivateNode(event);
+		// if there are no box selection intersections, adjust the filteredIntersections to only contain the first ray tracing intersection
+		if (!hasBoxSelection) {
+			const firstIntersectionIndex = filteredIntersections.findIndex(
+				(fi) => fi?.type === "RayTracingIntersection",
+			);
+			for (let i = 0; i < filteredIntersections.length; i++) {
+				if (i !== firstIntersectionIndex) {
+					filteredIntersections[i] = null;
+				}
 			}
-		} else if (firstIntersection) {
-			// easy case, no node hover, just hover this one
-			this.activateNode(firstIntersection, event, ray);
+		}
+
+		// loop through all the new nodes
+		// then activate those that are not yet active
+		for (const fi of filteredIntersections) {
+			if (fi) {
+				if (!this.#nodes.includes(fi.node)) {
+					this.activateNode(fi, event, ray);
+				}
+			}
+		}
+
+		// deactivate those that are no longer hovered
+		for (const n of this.#nodes) {
+			if (!filteredIntersections.find((fi) => fi && fi.node === n)) {
+				this.deactivateNode(n, event);
+			}
 		}
 	}
 
 	public remove(): void {
-		if (this.#node) this.deactivateNode();
+		this.deactivateAllNodes();
 		this.viewport = undefined;
 
 		removeListener(this.#dragEventTokenStart);
@@ -184,14 +212,11 @@ export class HoverManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IIntersection) {
-		if (this.#node) this.deactivateNode();
+	public select(intersection: IIntersectionDefinition) {
+		if (this.#nodes.includes(intersection.node))
+			this.deactivateNode(intersection.node);
 		this.activateNode(intersection);
 	}
-
-	// #endregion Public Methods (7)
-
-	// #region Private Methods (2)
 
 	/**
 	 * Utility function to make the node the current active node.
@@ -202,67 +227,70 @@ export class HoverManager extends AbstractInteractionManager {
 	 * @param ray
 	 */
 	private activateNode(
-		intersection: IIntersection,
+		intersection: IIntersectionDefinition,
 		event?: PointerEvent,
 		ray?: IRay,
 	) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
-		this.#intersection = intersection;
-		this.#node = this.#intersection.node;
-
-		this.#groupedNodes = undefined;
-		this.#groupInteractionEffectToken = undefined;
+		this.#intersections.push(intersection);
+		this.#nodes.push(intersection.node);
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			intersection.node,
+			true,
+			this.id,
+			"hover",
+		);
 		if (data) data.interactionStates.hover = true;
 
 		// find and store all nodes that are within the group
-		if (data && data.groupId) {
-			this.#groupedNodes = this.gatheredGroupedNodes[data.groupId] || [];
-			this.#groupInteractionEffectToken = [];
-		}
+		this.#groupedNodes[this.#nodes.length - 1] = [];
+		this.#groupInteractionEffectToken[this.#nodes.length - 1] = [];
+		if (data && data.groupId)
+			this.#groupedNodes[this.#nodes.length - 1] =
+				this.gatheredGroupedNodes[data.groupId] || [];
 
-		// apply the effect material if there is something to apply
-		if (this.interactionEffect) {
-			this.#interactionEffectToken =
-				this.interactionEffectUtils.applyInteractionEffect(
-					this.#node,
-					this.interactionEffect,
-				);
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n) =>
-					this.#groupInteractionEffectToken!.push(
-						this.interactionEffectUtils.applyInteractionEffect(
-							n,
-							this.interactionEffect!,
-						),
-					),
-				);
-		} else {
-			this.#interactionEffectToken = undefined;
-		}
+		const {token, groupTokens} =
+			InteractionManagerUtils.applyInteractionEffects(
+				intersection.node,
+				this.#groupedNodes[this.#nodes.length - 1],
+				this.interactionEffect,
+				this.interactionEffectUtils,
+			);
+		this.#interactionEffectTokens.push(token);
+		this.#groupInteractionEffectToken[this.#nodes.length - 1] = groupTokens;
 
-		this.viewport.updateNode(this.#node);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
-
-		this.viewport.render();
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			intersection.node,
+			this.#groupedNodes
+				? this.#groupedNodes[this.#nodes.length - 1]
+				: undefined,
+		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, {
 			viewportId: this.viewport.id,
-			node: this.#node,
-			intersectionPoint: this.#intersection.point,
+			nodes: this.#nodes,
+			intersectionPoint:
+				intersection.type === "RayTracingIntersection"
+					? (intersection as IRayTracingIntersection).point
+					: undefined,
 			ray,
 			event,
 			manager: this,
-			groupedNodes: this.#groupedNodes,
+			groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
 		} as IHoverEvent);
+	}
+
+	private deactivateAllNodes() {
+		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
 	}
 
 	/**
@@ -271,80 +299,55 @@ export class HoverManager extends AbstractInteractionManager {
 	 *
 	 * @param event
 	 */
-	private deactivateNode(event?: PointerEvent) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+	private deactivateNode(node: ITreeNode, event?: PointerEvent) {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 
 		// find the interaction data
-		const data = this.getInteractionData(this.#node!, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			node,
+			true,
+			this.id,
+			"hover",
+		);
 		if (data) data.interactionStates.hover = false;
 
-		if (this.#interactionEffectToken) {
-			this.interactionEffectUtils.removeInteractionEffect(
-				this.#node!,
-				this.#interactionEffectToken,
-			);
-			this.#interactionEffectToken = undefined;
+		const index = this.#nodes.indexOf(node);
+		if (index === -1) return;
 
-			if (this.#groupedNodes)
-				this.#groupedNodes!.forEach((n, i) =>
-					this.interactionEffectUtils.removeInteractionEffect(
-						n,
-						this.#groupInteractionEffectToken![i],
-					),
-				);
-			this.#groupInteractionEffectToken = undefined;
-		}
+		InteractionManagerUtils.removeInteractionEffects(
+			node,
+			this.#groupedNodes[index],
+			this.#interactionEffectTokens[index],
+			this.#groupInteractionEffectToken[index] || [],
+			this.interactionEffectUtils,
+		);
 
-		this.viewport.updateNode(this.#node!);
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.viewport!.updateNode(n));
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			node,
+			this.#groupedNodes[index],
+		);
 
-		this.viewport.render();
+		// Store the grouped nodes before removing from arrays for the event
+		const groupedNodes = this.#groupedNodes[index];
+
+		this.#nodes.splice(index, 1);
+		this.#interactionEffectTokens.splice(index, 1);
+		this.#groupedNodes.splice(index, 1);
+		this.#groupInteractionEffectToken.splice(index, 1);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, {
 			viewportId: this.viewport.id,
-			node: this.#node,
+			nodes: this.#nodes,
 			event,
 			manager: this,
-			groupedNodes: this.#groupedNodes,
+			groupedNodes: groupedNodes,
 		} as IHoverEvent);
-
-		this.#intersection = null;
-		this.#node = null;
-
-		this.#groupedNodes = undefined;
-		this.#groupInteractionEffectToken = undefined;
 	}
-
-	private getInteractionData(
-		node: ITreeNode,
-		restrictions: boolean,
-	): InteractionData | undefined {
-		for (let i = 0; i < node.data.length; i++) {
-			if (node.data[i] instanceof InteractionData) {
-				const data = node.data[i] as InteractionData;
-				if (data.interactionTypes.hover !== true) continue;
-
-				if (restrictions) {
-					if (
-						(<InteractionData>node.data[i]).restrictedManagers
-							.length === 0 ||
-						(<InteractionData>(
-							node.data[i]
-						)).restrictedManagers.includes(this.id)
-					)
-						return node.data[i] as InteractionData;
-				} else {
-					return node.data[i] as InteractionData;
-				}
-			}
-		}
-	}
-
-	// #endregion Private Methods (2)
 }

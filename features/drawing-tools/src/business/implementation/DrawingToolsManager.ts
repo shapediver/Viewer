@@ -370,8 +370,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#interactionManager.onDown(event, ray);
 	}
 
-	public onKeyDown(event: KeyboardEvent): void {
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
+		if (!pointerInCanvas) return;
 
 		this.#keysPressed[event.key] = true;
 		const undoKeyPressed = this.keyPressed(this.#settings.controls.undo);
@@ -396,7 +397,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#interactionManager.onKeyDown();
 	}
 
-	public onKeyUp(event: KeyboardEvent): void {
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
 		this.#keysPressed[event.key] = false;
 	}

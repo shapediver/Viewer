@@ -443,8 +443,10 @@ export class RestrictionManager implements IRestrictionManager {
 		if (this.closed) return;
 	}
 
-	private onKeyDown(event: KeyboardEvent): void {
+	private onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
+		if (!pointerInCanvas) return;
+
 		this.#keysPressed[event.key] = true;
 
 		if (this.#keysToggled[event.key] === undefined)
@@ -452,7 +454,7 @@ export class RestrictionManager implements IRestrictionManager {
 		else this.#keysToggled[event.key] = !this.#keysToggled[event.key];
 	}
 
-	private onKeyUp(event: KeyboardEvent): void {
+	private onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed) return;
 		this.#keysPressed[event.key] = false;
 	}

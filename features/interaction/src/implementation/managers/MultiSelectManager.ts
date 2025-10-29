@@ -3,54 +3,52 @@ import {ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
+	EVENTTYPE_INTERACTION,
 	Logger,
-	ShapeDiverViewerInteractionError,
 } from "@shapediver/viewer.shared.services";
 import {
-	IIntersection,
-	IIntersectionFilter,
+	IIntersectionDefinition,
 	IRay,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
+
 import {IMultiSelectEvent} from "../../interfaces/events/IMultiSelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
-import {InteractionData} from "../InteractionData";
+import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class MultiSelectManager extends AbstractInteractionManager {
-	// #region Properties (13)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
 
+	#boxSelectionKey = "Alt";
 	#deselectOnEmpty: boolean = false;
-	#interactionEffectTokens: (string | undefined)[] = [];
-	#filter: IInteractionFilterOptions = (
-		interactionState: INTERACTION_STATE,
-	): IIntersectionFilter => {
-		if (interactionState === INTERACTION_STATE.DOWN) {
-			return (node: ITreeNode) => {
-				return !!this.getInteractionData(node, false);
-			};
-		}
-
-		return (node: ITreeNode) => false;
-	};
+	#filter: IInteractionFilterOptions =
+		InteractionManagerUtils.createInteractionFilter("select", this.id, [
+			INTERACTION_STATE.DOWN,
+			INTERACTION_STATE.END,
+		]);
 	#groupInteractionEffectToken: string[][] = [];
 	#groupedNodes: ITreeNode[][] = [];
 	#insertionKey = "Shift";
+	#interactionEffectTokens: (string | undefined)[] = [];
+	#keyPressed: {
+		insertion: boolean;
+		removal: boolean;
+		boxSelection: boolean;
+	} = {
+		insertion: false,
+		removal: false,
+		boxSelection: false,
+	};
 	#maximumNodes: number = Infinity;
 	#minimumNodes: number = 0;
 	#nodes: ITreeNode[] = [];
 	#removalKey = "Control";
-	#useModifierKeys: boolean = false;
-
-	// #endregion Properties (13)
-
-	// #region Constructors (1)
 
 	constructor(
 		id?: string,
@@ -63,9 +61,17 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		if (maximumNodes) this.#maximumNodes = maximumNodes;
 	}
 
-	// #endregion Constructors (1)
+	public get boxSelectionActive(): boolean {
+		return this.#keyPressed.boxSelection;
+	}
 
-	// #region Public Getters And Setters (13)
+	public get boxSelectionKey(): string {
+		return this.#boxSelectionKey;
+	}
+
+	public set boxSelectionKey(value: string) {
+		this.#boxSelectionKey = value;
+	}
 
 	public get deselectOnEmpty(): boolean {
 		return this.#deselectOnEmpty;
@@ -77,6 +83,10 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
+	}
+
+	public get insertionActive(): boolean {
+		return this.#keyPressed.insertion;
 	}
 
 	public get insertionKey(): string {
@@ -103,6 +113,10 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		this.#minimumNodes = value;
 	}
 
+	public get removalActive(): boolean {
+		return this.#keyPressed.removal;
+	}
+
 	public get removalKey(): string {
 		return this.#removalKey;
 	}
@@ -110,18 +124,6 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	public set removalKey(value: string) {
 		this.#removalKey = value;
 	}
-
-	public get useModifierKeys(): boolean {
-		return this.#useModifierKeys;
-	}
-
-	public set useModifierKeys(value: boolean) {
-		this.#useModifierKeys = value;
-	}
-
-	// #endregion Public Getters And Setters (13)
-
-	// #region Public Methods (8)
 
 	public add(viewport: IViewportApi): void {
 		this.viewport = viewport;
@@ -146,142 +148,99 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 		const intersections = intersection.filter((i) =>
 			this.filter(INTERACTION_STATE.DOWN)(i.node),
 		);
 
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
-			return this.getInteractionData(i.node, true) ? i : null;
+			return InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			) && i.type === "RayTracingIntersection"
+				? i
+				: null;
 		});
 
 		const firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
 
-		if (this.#useModifierKeys === false) {
-			if (this.#nodes.length > 0) {
-				let originalNode: ITreeNode | undefined;
-				this.#groupedNodes.forEach((array) => {
-					if (
-						firstIntersection &&
-						array.includes(firstIntersection.node)
-					)
-						originalNode = this.#nodes.find((n) =>
-							array.includes(n),
-						)!;
-				});
-
-				if (
-					firstIntersection &&
-					!this.#nodes.includes(firstIntersection.node) &&
-					!originalNode
-				) {
-					// case other node was clicked, deselect then select
-					this.activateNode(firstIntersection, event, ray);
-				} else if (
-					firstIntersection &&
-					this.#nodes.includes(firstIntersection.node)
-				) {
-					// case same node was clicked, only deselect
-					this.deactivateNode(firstIntersection.node, event);
-				} else if (originalNode) {
-					// case it is one of the grouped nodes
-					this.deactivateNode(originalNode!, event);
-				}
-			} else if (firstIntersection) {
-				// easy case, no node select, just select this one
-				this.activateNode(firstIntersection, event, ray);
-			}
-		} else {
-			const shiftPressed = event.shiftKey;
-			const controlPressed = event.ctrlKey;
-			if (this.#nodes.length > 0) {
-				let originalNode: ITreeNode | undefined;
-				this.#groupedNodes.forEach((array) => {
-					if (
-						firstIntersection &&
-						array.includes(firstIntersection.node)
-					)
-						originalNode = this.#nodes.find((n) =>
-							array.includes(n),
-						)!;
-				});
-
-				if (
-					shiftPressed &&
-					!controlPressed &&
-					firstIntersection &&
-					!this.#nodes.includes(firstIntersection.node) &&
-					!originalNode
-				) {
-					// case other node was clicked, deselect then select
-					this.activateNode(firstIntersection, event, ray);
-				} else if (
-					controlPressed &&
-					!shiftPressed &&
-					firstIntersection &&
-					this.#nodes.includes(firstIntersection.node)
-				) {
-					// case same node was clicked, only deselect
-					this.deactivateNode(firstIntersection.node, event);
-				} else if (controlPressed && !shiftPressed && originalNode) {
-					// case it is one of the grouped nodes
-					this.deactivateNode(originalNode!, event);
-				} else if (
-					!shiftPressed &&
-					!controlPressed &&
-					firstIntersection &&
-					!this.#nodes.includes(firstIntersection.node)
-				) {
-					// switch nodes
-					this.deselectAll();
-					this.activateNode(firstIntersection, event, ray);
-				} else if (
-					!filteredIntersections.some((i) => i !== null) &&
-					this.#deselectOnEmpty
-				) {
-					this.deselectAll();
-				}
-			} else if (!controlPressed && firstIntersection) {
-				// easy case, no node select, just select this one
-				this.activateNode(firstIntersection, event, ray);
-			}
-		}
+		this.manageIntersection(event, firstIntersection, ray);
 	}
 
 	public onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
+		const intersections = intersection.filter((i) =>
+			this.filter(INTERACTION_STATE.END)(i.node),
+		);
+
+		// create a list that replaces all irrelevant intersections with null
+		const filteredIntersections = intersections.map((i) => {
+			return InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			) && i.type === "BoxSelectionIntersection"
+				? i
+				: null;
+		});
+		for (let i = 0; i < filteredIntersections.length; i++) {
+			const intersection = filteredIntersections[i];
+
+			this.manageIntersection(event, intersection, ray);
 		}
+	}
+
+	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
+		if (event.key === this.#insertionKey) this.#keyPressed.insertion = true;
+		if (event.key === this.#removalKey) this.#keyPressed.removal = true;
+		if (event.key === this.#boxSelectionKey)
+			this.#keyPressed.boxSelection = true;
+	}
+
+	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
+		if (event.key === this.#insertionKey)
+			this.#keyPressed.insertion = false;
+		if (event.key === this.#removalKey) this.#keyPressed.removal = false;
+		if (event.key === this.#boxSelectionKey)
+			this.#keyPressed.boxSelection = false;
 	}
 
 	public onMove(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 	): void {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 	}
 
 	public remove(): void {
@@ -295,15 +254,11 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IIntersection) {
+	public select(intersection: IIntersectionDefinition) {
 		if (this.#nodes.includes(intersection.node))
 			this.deactivateNode(intersection.node);
 		this.activateNode(intersection);
 	}
-
-	// #endregion Public Methods (8)
-
-	// #region Private Methods (2)
 
 	/**
 	 * Utility function to make the node the current active node.
@@ -314,40 +269,27 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 * @param ray
 	 */
 	private activateNode(
-		intersection: IIntersection,
+		intersection: IIntersectionDefinition,
 		event?: PointerEvent,
 		ray?: IRay,
 	) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
-
-		if (this.#nodes.length >= this.#maximumNodes) {
-			this.#eventEngine.emitEvent(
-				EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: intersection.node,
-					nodes: this.#nodes,
-					intersectionPoint: intersection.point,
-					ray,
-					event,
-					manager: this,
-					groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-				} as IMultiSelectEvent,
-			);
-			throw new ShapeDiverViewerInteractionError(
-				`The maximum number of nodes ${this.maximumNodes} has been reached.`,
-			);
-		}
 
 		this.#nodes.push(intersection.node);
 
 		// find the interaction data
-		const data = this.getInteractionData(intersection.node, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			intersection.node,
+			true,
+			this.id,
+			"select",
+		);
 		if (data) data.interactionStates.select = true;
 
 		// find and store all nodes that are within the group
@@ -357,62 +299,36 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			this.#groupedNodes[this.#nodes.length - 1] =
 				this.gatheredGroupedNodes[data.groupId] || [];
 
-		if (this.interactionEffect) {
-			this.#interactionEffectTokens.push(
-				this.interactionEffectUtils.applyInteractionEffect(
-					intersection.node,
-					this.interactionEffect,
-				),
+		const {token, groupTokens} =
+			InteractionManagerUtils.applyInteractionEffects(
+				intersection.node,
+				this.#groupedNodes[this.#nodes.length - 1],
+				this.interactionEffect,
+				this.interactionEffectUtils,
 			);
-			if (this.#groupedNodes[this.#nodes.length - 1])
-				this.#groupedNodes[this.#nodes.length - 1]!.forEach((n) =>
-					this.#groupInteractionEffectToken[
-						this.#nodes.length - 1
-					]!.push(
-						this.interactionEffectUtils.applyInteractionEffect(
-							n,
-							this.interactionEffect!,
-						),
-					),
-				);
-		} else {
-			this.#interactionEffectTokens.push(undefined);
-		}
+		this.#interactionEffectTokens.push(token);
+		this.#groupInteractionEffectToken[this.#nodes.length - 1] = groupTokens;
 
-		this.viewport.updateNode(intersection.node);
-		if (this.#groupedNodes)
-			this.#groupedNodes[this.#nodes.length - 1]!.forEach((n) =>
-				this.viewport!.updateNode(n),
-			);
-
-		this.viewport.render();
-
-		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			intersection.node,
+			this.#groupedNodes
+				? this.#groupedNodes[this.#nodes.length - 1]
+				: undefined,
+		);
+		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: intersection.node,
-			intersectionPoint: intersection.point,
+			intersectionPoint:
+				intersection.type === "RayTracingIntersection"
+					? (intersection as IRayTracingIntersection).point
+					: undefined,
 			ray,
 			event,
 			manager: this,
 			groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-		} as IMultiSelectEvent);
-
-		if (this.#nodes.length < this.#minimumNodes) {
-			this.#eventEngine.emitEvent(
-				EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: intersection.node,
-					nodes: this.#nodes,
-					intersectionPoint: intersection.point,
-					ray,
-					event,
-					manager: this,
-					groupedNodes: this.#groupedNodes[this.#nodes.length - 1],
-				} as IMultiSelectEvent,
-			);
-		}
+		});
 	}
 
 	/**
@@ -422,95 +338,115 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 * @param event
 	 */
 	private deactivateNode(node: ITreeNode, event?: PointerEvent) {
-		if (!this.viewport) {
-			this.#logger.warn(
-				"The interaction manager does not belong to an interaction engine. Please add it to one first.",
-			);
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
 			return;
-		}
 
 		// find the interaction data
-		const data = this.getInteractionData(node, true);
+		const data = InteractionManagerUtils.getInteractionData(
+			node,
+			true,
+			this.id,
+			"select",
+		);
 		if (data) data.interactionStates.select = false;
 
 		const index = this.#nodes.indexOf(node);
 		if (index === -1) return;
 
-		const interactionEffectToken = this.#interactionEffectTokens[index];
-		this.#interactionEffectTokens.splice(index, 1);
-		if (interactionEffectToken) {
-			this.interactionEffectUtils.removeInteractionEffect(
-				node,
-				interactionEffectToken,
-			);
-			if (this.#groupedNodes[index])
-				this.#groupedNodes[index]!.forEach((n, i) =>
-					this.interactionEffectUtils.removeInteractionEffect(
-						n,
-						this.#groupInteractionEffectToken[index]![i],
-					),
-				);
-		}
+		InteractionManagerUtils.removeInteractionEffects(
+			node,
+			this.#groupedNodes[index],
+			this.#interactionEffectTokens[index],
+			this.#groupInteractionEffectToken[index] || [],
+			this.interactionEffectUtils,
+		);
 
-		this.viewport.updateNode(node);
-		if (this.#groupedNodes[index])
-			this.#groupedNodes[index]!.forEach((n) =>
-				this.viewport!.updateNode(n),
-			);
+		InteractionManagerUtils.updateViewport(
+			this.viewport,
+			node,
+			this.#groupedNodes[index],
+		);
 
-		this.viewport.render();
+		// Store the grouped nodes before removing from arrays for the event
+		const groupedNodes = this.#groupedNodes[index];
 
 		this.#nodes.splice(index, 1);
-		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
+		this.#interactionEffectTokens.splice(index, 1);
+		this.#groupedNodes.splice(index, 1);
+		this.#groupInteractionEffectToken.splice(index, 1);
+
+		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: node,
 			event,
 			manager: this,
-			groupedNodes: this.#groupedNodes[index],
+			groupedNodes: groupedNodes,
 		} as IMultiSelectEvent);
-		this.#groupedNodes.splice(index, 1);
-		this.#groupInteractionEffectToken.splice(index, 1);
+	}
+
+	private emitSelectionEvents(
+		mainEvent: EVENTTYPE_INTERACTION,
+		eventData: IMultiSelectEvent,
+	) {
+		this.#eventEngine.emitEvent(mainEvent, eventData);
 
 		if (this.#nodes.length < this.#minimumNodes) {
 			this.#eventEngine.emitEvent(
 				EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES,
-				{
-					viewportId: this.viewport.id,
-					node: node,
-					nodes: this.#nodes,
-					event,
-					manager: this,
-					groupedNodes: this.#groupedNodes[index],
-				} as IMultiSelectEvent,
+				eventData,
+			);
+		}
+
+		if (this.#nodes.length > this.#maximumNodes) {
+			this.#eventEngine.emitEvent(
+				EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES,
+				eventData,
 			);
 		}
 	}
 
-	private getInteractionData(
-		node: ITreeNode,
-		restrictions: boolean,
-	): InteractionData | undefined {
-		for (let i = 0; i < node.data.length; i++) {
-			if (node.data[i] instanceof InteractionData) {
-				const data = node.data[i] as InteractionData;
-				if (data.interactionTypes.select !== true) continue;
+	private manageIntersection(
+		event: PointerEvent,
+		intersection: IIntersectionDefinition | null,
+		ray: IRay,
+	) {
+		if (this.#nodes.length > 0) {
+			let originalNode: ITreeNode | undefined;
+			this.#groupedNodes.forEach((array) => {
+				if (intersection && array.includes(intersection.node))
+					originalNode = this.#nodes.find((n) => array.includes(n))!;
+			});
 
-				if (restrictions) {
-					if (
-						(<InteractionData>node.data[i]).restrictedManagers
-							.length === 0 ||
-						(<InteractionData>(
-							node.data[i]
-						)).restrictedManagers.includes(this.id)
-					)
-						return node.data[i] as InteractionData;
-				} else {
-					return node.data[i] as InteractionData;
-				}
+			if (
+				intersection &&
+				!this.#nodes.includes(intersection.node) &&
+				!originalNode
+			) {
+				// case other node was clicked, deselect then select (unless removal key is pressed)
+				if (!this.#keyPressed.removal)
+					this.activateNode(intersection, event, ray);
+			} else if (
+				intersection &&
+				this.#nodes.includes(intersection.node)
+			) {
+				// case same node was clicked, only deselect (unless insertion key is pressed)
+				if (!this.#keyPressed.insertion)
+					this.deactivateNode(intersection.node, event);
+			} else if (originalNode) {
+				// case it is one of the grouped nodes, deselect (unless insertion key is pressed)
+				if (!this.#keyPressed.insertion)
+					this.deactivateNode(originalNode!, event);
 			}
+		} else if (intersection) {
+			// easy case, no node select, just select this one (unless removal key is pressed)
+			if (!this.#keyPressed.removal)
+				this.activateNode(intersection, event, ray);
 		}
 	}
-
-	// #endregion Private Methods (2)
 }

@@ -1,6 +1,6 @@
 import {IViewportApi} from "@shapediver/viewer";
 import {
-	IIntersection,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IMaterialAbstractData,
 	IRay,
@@ -24,6 +24,12 @@ export type IInteractionFilterOptions = {
 export interface IInteractionManager {
 	// #region Properties (5)
 
+	/**
+	 * Indicates whether box selection is active for this interaction manager.
+	 * If box selection is active, the intersection engine will consider box selection during intersection tests.
+	 * This is mainly in use for the multi-selection interaction manager.
+	 */
+	readonly boxSelectionActive?: boolean;
 	/**
 	 * The effect that is applied to the node once the effect (selection, hovering or dragging) is active.
 	 * If no interaction effect is applied, the effect will not be changed.
@@ -74,7 +80,11 @@ export interface IInteractionManager {
 	 * @param ray
 	 * @param intersection
 	 */
-	onDown(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void;
+	onDown(
+		event: PointerEvent,
+		ray: IRay,
+		intersection: IIntersectionDefinition[],
+	): void;
 	/**
 	 * For onEnd events (pointerup, pointerout) this method is called.
 	 * The pointer event is already translated into a ray.
@@ -89,7 +99,7 @@ export interface IInteractionManager {
 	onEnd(
 		event: PointerEvent,
 		ray: IRay,
-		intersection: IIntersection[],
+		intersection: IIntersectionDefinition[],
 		endState: INTERACTION_STATE,
 	): void;
 	/**
@@ -102,7 +112,23 @@ export interface IInteractionManager {
 	 * @param ray
 	 * @param intersection
 	 */
-	onMove(event: PointerEvent, ray: IRay, intersection: IIntersection[]): void;
+	onMove(
+		event: PointerEvent,
+		ray: IRay,
+		intersection: IIntersectionDefinition[],
+	): void;
+
+	/**
+	 * For onKeyDown events this method is called.
+	 * @param event
+	 */
+	onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void;
+	/**
+	 * For onKeyUp events this method is called.
+	 * @param event
+	 */
+	onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void;
+
 	/**
 	 * Called internally to remove the viewport from the manager and to clean up.
 	 */
