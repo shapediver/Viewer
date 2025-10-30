@@ -29,7 +29,7 @@ export interface IMultiSelectEvent extends IViewportEvent {
 	/**
 	 * The node being selected.
 	 */
-	node: ITreeNode;
+	node?: ITreeNode;
 	/**
 	 * All currently selected nodes.
 	 */

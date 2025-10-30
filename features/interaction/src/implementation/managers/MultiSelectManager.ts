@@ -3,7 +3,6 @@ import {ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	EVENTTYPE_INTERACTION,
 	Logger,
 } from "@shapediver/viewer.shared.services";
 import {
@@ -136,6 +135,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 */
 	public deselect(node: ITreeNode) {
 		if (this.#nodes.includes(node)) this.deactivateNode(node);
+		this.emitSelectionEvents();
 	}
 
 	/**
@@ -143,6 +143,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 */
 	public deselectAll() {
 		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
+		this.emitSelectionEvents();
 	}
 
 	public onDown(
@@ -212,6 +213,8 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
 			this.manageIntersection(event, intersection, ray);
 		}
+
+		this.emitSelectionEvents();
 	}
 
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
@@ -264,6 +267,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			...intersection,
 			type: intersection.type ?? "RayTracingIntersection",
 		});
+		this.emitSelectionEvents();
 	}
 
 	/**
@@ -322,7 +326,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 				? this.#groupedNodes[this.#nodes.length - 1]
 				: undefined,
 		);
-		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
+		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_ON, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: intersection.node,
@@ -386,7 +390,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		this.#groupedNodes.splice(index, 1);
 		this.#groupInteractionEffectToken.splice(index, 1);
 
-		this.emitSelectionEvents(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
+		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
 			viewportId: this.viewport.id,
 			nodes: this.#nodes,
 			node: node,
@@ -396,23 +400,34 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		} as IMultiSelectEvent);
 	}
 
-	private emitSelectionEvents(
-		mainEvent: EVENTTYPE_INTERACTION,
-		eventData: IMultiSelectEvent,
-	) {
-		this.#eventEngine.emitEvent(mainEvent, eventData);
+	private emitSelectionEvents() {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
+			return;
 
 		if (this.#nodes.length < this.#minimumNodes) {
 			this.#eventEngine.emitEvent(
 				EVENTTYPE.INTERACTION.MULTI_SELECT_MINIMUM_NODES,
-				eventData,
+				{
+					viewportId: this.viewport.id,
+					nodes: this.#nodes,
+					manager: this,
+				} as IMultiSelectEvent,
 			);
 		}
 
 		if (this.#nodes.length > this.#maximumNodes) {
 			this.#eventEngine.emitEvent(
 				EVENTTYPE.INTERACTION.MULTI_SELECT_MAXIMUM_NODES,
-				eventData,
+				{
+					viewportId: this.viewport.id,
+					nodes: this.#nodes,
+					manager: this,
+				} as IMultiSelectEvent,
 			);
 		}
 	}
