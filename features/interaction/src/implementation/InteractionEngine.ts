@@ -411,9 +411,8 @@ export class InteractionEngine implements IInteractionEngine {
 			this.#selectionBox.style.border = `1px solid rgba(${color}, 0.8)`;
 			this.#selectionBox.style.backgroundColor = `rgba(${color}, 0.1)`;
 			this.#selectionBox.style.pointerEvents = "none";
-			this.#viewport.canvas.parentElement?.appendChild(
-				this.#selectionBox,
-			);
+			this.#selectionBox.style.zIndex = "9999"; // Ensure it's on top
+			document.body.appendChild(this.#selectionBox);
 		} else {
 			// check if the color needs to be updated
 			const currentBorderColor = this.#selectionBox.style.border;
@@ -425,6 +424,8 @@ export class InteractionEngine implements IInteractionEngine {
 		}
 
 		const rect = this.#viewport.canvas.getBoundingClientRect();
+
+		// Convert normalized coordinates back to document coordinates
 		const convertedStartX =
 			((this.#selectionBoxCoordinates.start.x + 1) / 2) * rect.width +
 			rect.left;
