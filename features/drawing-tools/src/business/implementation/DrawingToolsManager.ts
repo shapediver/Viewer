@@ -423,9 +423,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		}
 	}
 
-	public onUp(): void {
+	public onUp(event: PointerEvent): void {
 		if (this.closed) return;
-		this.#interactionManager.onUp();
+		this.#interactionManager.onUp(event);
 	}
 
 	public redo(): void {

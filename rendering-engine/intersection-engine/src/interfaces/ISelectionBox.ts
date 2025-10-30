@@ -16,6 +16,7 @@ export interface ISelectionBox {
 		nodes: ITreeNode[],
 		filterCriteria: IIntersectionFilter[],
 	): IBoxSelectionIntersection[];
+	intersectPoints(points: vec3[]): number[];
 	onDown(event: PointerEvent, project: (p: vec3) => vec2): void;
 	onEnd(event: PointerEvent): void;
 	onMove(

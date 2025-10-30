@@ -164,10 +164,10 @@ export class InteractionManager {
 	/**
 	 * On mouse up, check if a point is close to the ray and deselect it
 	 */
-	public onUp(): void {
+	public onUp(event: PointerEvent): void {
 		if (this.#drawingToolsManager.closed) return;
 
-		this.#strategy.onUp();
+		this.#strategy.onUp(event);
 	}
 
 	/**

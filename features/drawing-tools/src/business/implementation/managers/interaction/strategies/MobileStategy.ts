@@ -173,7 +173,7 @@ export class MobileStrategy implements IStrategy {
 		this.clearDownPress();
 	}
 
-	public onUp(): void {
+	public onUp(event: PointerEvent): void {
 		if (this.#downPressTimeout) {
 			// it's a short press!
 			// do short press stuff here

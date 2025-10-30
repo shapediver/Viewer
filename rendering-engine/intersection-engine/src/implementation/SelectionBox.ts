@@ -120,6 +120,49 @@ export class SelectionBox implements ISelectionBox {
 		return selectedObjects;
 	}
 
+	/**
+	 * Intersect drawing tool points with the selection box
+	 * @param points Array of 3D points to test
+	 * @returns Array of indices of points that are inside the selection box
+	 */
+	public intersectPoints(points: vec3[]): number[] {
+		if (!this.#coordinates || !this.#project) return [];
+
+		const minX = Math.min(
+			this.#coordinates.start.x,
+			this.#coordinates.end.x,
+		);
+		const maxX = Math.max(
+			this.#coordinates.start.x,
+			this.#coordinates.end.x,
+		);
+		const minY = Math.min(
+			this.#coordinates.start.y,
+			this.#coordinates.end.y,
+		);
+		const maxY = Math.max(
+			this.#coordinates.start.y,
+			this.#coordinates.end.y,
+		);
+
+		const selectedPointIndices: number[] = [];
+
+		points.forEach((point, index) => {
+			const projection = this.#project(point);
+
+			if (
+				projection[0] >= minX &&
+				projection[0] <= maxX &&
+				projection[1] >= minY &&
+				projection[1] <= maxY
+			) {
+				selectedPointIndices.push(index);
+			}
+		});
+
+		return selectedPointIndices;
+	}
+
 	public onDown(event: PointerEvent, project: (p: vec3) => vec2): void {
 		this.#project = project;
 		const rect = this.#canvas.getBoundingClientRect();

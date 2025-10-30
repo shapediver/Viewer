@@ -286,6 +286,24 @@ export class InteractionManagerHelper {
 		this.#draggedPointPosition = vec3.create();
 	}
 
+	public deselectPoint(index: number): void {
+		const selectedIndex = this.#selectedPointIndices.indexOf(index);
+		if (selectedIndex !== -1) {
+			this.#selectedPointIndices.splice(selectedIndex, 1);
+			this.#drawingToolsManager.updateMaterialIndex(
+				index,
+				this.#hoveredPoint === index
+					? MATERIAL_INDEX.HOVERED
+					: MATERIAL_INDEX.DEFAULT,
+			);
+			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DESELECTED, {
+				viewportId: this.#drawingToolsManager.viewport.id,
+				drawingToolsId: this.#drawingToolsManager.uuid,
+				index,
+			});
+		}
+	}
+
 	public moveSelectedPoints(ray: IRay): vec3 | undefined {
 		if (this.#selectedPointIndices.length > 0 && this.#dragging) {
 			this.#drawingToolsManager.restrictionManager.showRestrictionVisualization =
