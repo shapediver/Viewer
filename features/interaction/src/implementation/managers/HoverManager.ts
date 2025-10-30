@@ -212,10 +212,16 @@ export class HoverManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IIntersectionDefinition) {
+	public select(
+		intersection: Omit<IIntersectionDefinition, "type"> &
+			Partial<Pick<IIntersectionDefinition, "type">>,
+	) {
 		if (this.#nodes.includes(intersection.node))
 			this.deactivateNode(intersection.node);
-		this.activateNode(intersection);
+		this.activateNode({
+			...intersection,
+			type: intersection.type ?? "RayTracingIntersection",
+		});
 	}
 
 	/**

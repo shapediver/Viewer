@@ -171,9 +171,12 @@ export class SelectManager extends AbstractInteractionManager {
 	 *
 	 * @param intersection
 	 */
-	public select(intersection: IRayTracingIntersection) {
+	public select(intersection: Omit<IRayTracingIntersection, "type">) {
 		if (this.#node) this.deactivateNode(undefined, true);
-		this.activateNode(intersection);
+		this.activateNode({
+			...intersection,
+			type: "RayTracingIntersection",
+		});
 	}
 
 	/**
