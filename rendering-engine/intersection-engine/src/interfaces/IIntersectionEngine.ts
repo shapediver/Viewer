@@ -4,6 +4,7 @@ import {
 	IRay,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
+import {SelectionBox} from "../implementation/SelectionBox";
 
 export interface IIntersectionEngine {
 	// #region Public Methods (1)
@@ -14,10 +15,7 @@ export interface IIntersectionEngine {
 		filterCriteria?: IIntersectionFilter[],
 		options?: {
 			rayCasterParams?: THREE.RaycasterParameters;
-			selectionBoxCoordinates?: {
-				start: {x: number; y: number};
-				end: {x: number; y: number};
-			};
+			selectionBox?: SelectionBox;
 		},
 	): IIntersectionDefinition[];
 

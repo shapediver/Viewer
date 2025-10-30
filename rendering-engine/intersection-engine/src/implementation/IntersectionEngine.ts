@@ -2,12 +2,14 @@ import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
+	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,
 	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {IIntersectionEngine} from "../interfaces/IIntersectionEngine";
+import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
 	// #region Properties (5)
@@ -58,61 +60,72 @@ export class IntersectionEngine implements IIntersectionEngine {
 		filterCriteria?: IIntersectionFilter[],
 		options?: {
 			rayCasterParams?: THREE.RaycasterParameters;
-			selectionBoxCoordinates?: {
-				start: {x: number; y: number};
-				end: {x: number; y: number};
-			};
+			selectionBox?: SelectionBox;
 		},
-	): IRayTracingIntersection[] {
-		let intersections: IRayTracingIntersection[] = [];
-		this._intersectNodes.forEach((i) => {
-			const currentIntersections = this.intersectNode(
-				ray,
-				i.node,
-				i.geometryData,
-				viewportId,
-				filterCriteria,
-				options?.rayCasterParams,
+	): IIntersectionDefinition[] {
+		if (options?.selectionBox) {
+			const selectionBox = options.selectionBox;
+			return selectionBox.intersectObjects(
+				this._intersectNodes.map((n) => n.node),
+				filterCriteria || [],
 			);
-			if (currentIntersections)
-				intersections = intersections.concat(currentIntersections);
-		});
-		intersections.sort((a, b) => {
-			const distanceDiff = a.distance - b.distance;
-			if (distanceDiff !== 0) return distanceDiff;
+		} else {
+			let intersections: IRayTracingIntersection[] = [];
+			this._intersectNodes.forEach((i) => {
+				const currentIntersections = this.intersectNode(
+					ray,
+					i.node,
+					i.geometryData,
+					viewportId,
+					filterCriteria,
+					options?.rayCasterParams,
+				);
+				if (currentIntersections)
+					intersections = intersections.concat(currentIntersections);
+			});
+			intersections.sort((a, b) => {
+				const distanceDiff = a.distance - b.distance;
+				if (distanceDiff !== 0) return distanceDiff;
 
-			// if the distance is the same, sort by the closest InteractionData within the sceneTree
-			let depthA = Infinity;
-			let depthB = Infinity;
+				// if the distance is the same, sort by the closest InteractionData within the sceneTree
+				let depthA = Infinity;
+				let depthB = Infinity;
 
-			const computeDepth = (
-				targetNode: ITreeNode,
-				node: ITreeNode,
-				depth: number = 0,
-			): number => {
-				if (targetNode === node) return depth;
-				if (node.parent)
-					return computeDepth(targetNode, node.parent, depth + 1);
-				return Infinity;
-			};
+				const computeDepth = (
+					targetNode: ITreeNode,
+					node: ITreeNode,
+					depth: number = 0,
+				): number => {
+					if (targetNode === node) return depth;
+					if (node.parent)
+						return computeDepth(targetNode, node.parent, depth + 1);
+					return Infinity;
+				};
 
-			if (a.geometryData) {
-				a.node.traverse((node) => {
-					if (a.geometryData && node.data.includes(a.geometryData))
-						depthA = computeDepth(a.node, node);
-				});
-			}
+				if (a.geometryData) {
+					a.node.traverse((node) => {
+						if (
+							a.geometryData &&
+							node.data.includes(a.geometryData)
+						)
+							depthA = computeDepth(a.node, node);
+					});
+				}
 
-			if (b.geometryData) {
-				b.node.traverse((node) => {
-					if (b.geometryData && node.data.includes(b.geometryData))
-						depthB = computeDepth(b.node, node);
-				});
-			}
+				if (b.geometryData) {
+					b.node.traverse((node) => {
+						if (
+							b.geometryData &&
+							node.data.includes(b.geometryData)
+						)
+							depthB = computeDepth(b.node, node);
+					});
+				}
 
-			return depthA - depthB;
-		});
-		return intersections;
+				return depthA - depthB;
+			});
+			return intersections;
+		}
 	}
 
 	public intersectNode(
