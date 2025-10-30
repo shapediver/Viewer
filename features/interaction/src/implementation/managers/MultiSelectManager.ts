@@ -214,7 +214,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			this.manageIntersection(event, intersection, ray);
 		}
 
-		this.emitSelectionEvents();
+		this.emitSelectionEvents(event);
 	}
 
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
@@ -400,7 +400,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		} as IMultiSelectEvent);
 	}
 
-	private emitSelectionEvents() {
+	private emitSelectionEvents(event?: PointerEvent) {
 		if (
 			!InteractionManagerUtils.validateViewport(
 				this.viewport,
@@ -416,6 +416,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 					viewportId: this.viewport.id,
 					nodes: this.#nodes,
 					manager: this,
+					event,
 				} as IMultiSelectEvent,
 			);
 		}
@@ -427,6 +428,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 					viewportId: this.viewport.id,
 					nodes: this.#nodes,
 					manager: this,
+					event,
 				} as IMultiSelectEvent,
 			);
 		}
