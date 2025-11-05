@@ -1,8 +1,16 @@
-import { ChunkData, DraggingParameterValue, ISessionApi, ITreeNode, SessionApiData, SessionData, SessionOutputData } from "@shapediver/viewer";
+import {
+	ChunkData,
+	DraggingParameterValue,
+	ISessionApi,
+	ITreeNode,
+	SessionApiData,
+	SessionData,
+	SessionOutputData,
+} from "@shapediver/viewer";
 
-import { mat4, vec3 } from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 
-import { InteractionData } from "../InteractionData";
+import {InteractionData} from "../InteractionData";
 
 /**
  * Type declaration for a filter pattern used to hierarchically filter nodes of the scene tree by name.
@@ -91,8 +99,7 @@ const matchNodeWithPatterns = (
 	let nodeData = getNodeData(node, strictNaming);
 	if (!nodeData || !nodeData.nodeName) {
 		const instanceNodeData = getInstanceNodeData(node, strictNaming);
-		if (instanceNodeData && instanceNodeData.nodeName)
-			nodeData = instanceNodeData;
+		if (instanceNodeData && !nodeData) nodeData = instanceNodeData;
 	}
 	if (!nodeData) return;
 	const {outputId, outputName, nodeName} = nodeData;
@@ -551,8 +558,7 @@ export const gatherNodesForPattern = (
 					node,
 					strictNaming,
 				);
-				if (instanceNodeData && instanceNodeData.nodeName)
-					nodeData = instanceNodeData;
+				if (instanceNodeData && !nodeData) nodeData = instanceNodeData;
 			}
 
 			// we reached the end of the pattern, add the node to the result
