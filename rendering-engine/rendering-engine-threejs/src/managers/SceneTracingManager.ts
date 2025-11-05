@@ -15,6 +15,7 @@ import {ShapeDiverViewerViewportError} from "@shapediver/viewer.shared.services"
 import {
 	IGeometryData,
 	IIntersectionFilter,
+	IRayTracingIntersection,
 } from "@shapediver/viewer.shared.types";
 
 import {vec2, vec3} from "gl-matrix";
@@ -262,7 +263,7 @@ export class SceneTracingManager implements IManager {
 			{origin, direction},
 			this._renderingEngine.id,
 			filterCriteria,
-		);
+		) as IRayTracingIntersection[];
 		return intersect.map((i) => {
 			return {
 				distance: i.distance,
