@@ -99,7 +99,8 @@ const matchNodeWithPatterns = (
 	let nodeData = getNodeData(node, strictNaming);
 	if (!nodeData || !nodeData.nodeName) {
 		const instanceNodeData = getInstanceNodeData(node, strictNaming);
-		if (instanceNodeData && !nodeData) nodeData = instanceNodeData;
+		if (instanceNodeData && (!nodeData || instanceNodeData.nodeName))
+			nodeData = instanceNodeData;
 	}
 	if (!nodeData) return;
 	const {outputId, outputName, nodeName} = nodeData;
@@ -558,7 +559,11 @@ export const gatherNodesForPattern = (
 					node,
 					strictNaming,
 				);
-				if (instanceNodeData && !nodeData) nodeData = instanceNodeData;
+				if (
+					instanceNodeData &&
+					(!nodeData || instanceNodeData.nodeName)
+				)
+					nodeData = instanceNodeData;
 			}
 
 			// we reached the end of the pattern, add the node to the result
