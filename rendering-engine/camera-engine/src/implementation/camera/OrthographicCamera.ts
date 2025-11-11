@@ -1,6 +1,6 @@
 import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {IOrthographicCameraSettings} from "@shapediver/viewer.settings";
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+import {Box, IBox, Sphere} from "@shapediver/viewer.shared.math";
 import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
@@ -216,8 +216,10 @@ export class OrthographicCamera
 				this.position[0] === this.target[0] &&
 				this.position[1] === this.target[1] &&
 				this.position[2] === this.target[2]
-			)
+			) {
+				console.log("DEBUG C - auto adjusting camera");
 				await this.zoomTo(undefined, {duration: 0});
+			}
 		});
 	}
 
@@ -389,7 +391,7 @@ export class OrthographicCamera
 
 	// #region Protected Methods (1)
 
-	protected getProjectionMatrix(): mat4 | undefined {
+	protected getProjectionMatrix(sphere: Sphere): mat4 | undefined {
 		const distance = vec3.distance(this.position, this.target) / 2;
 		if (distance === 0) return;
 

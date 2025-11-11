@@ -100,6 +100,8 @@ export class PerspectiveCamera
 			this.defaultPosition = vec3.clone(position);
 			this.defaultTarget = vec3.clone(target);
 
+			console.log("APPLYING SETTINGS", position, target);
+
 			this.position = position;
 			this.target = target;
 			this.fov = cameraSetting.fov;
@@ -114,6 +116,7 @@ export class PerspectiveCamera
 				this._stateEngine.viewportEngines[
 					this._viewportId
 				]?.boundingBoxCreated.then(async () => {
+					console.log("DEBUG D - auto adjusting camera");
 					await this.zoomTo(undefined, {duration: 0});
 					this.defaultPosition = vec3.clone(this._controls.position);
 					this.defaultTarget = vec3.clone(this._controls.target);
@@ -154,8 +157,10 @@ export class PerspectiveCamera
 				this.position[0] === this.target[0] &&
 				this.position[1] === this.target[1] &&
 				this.position[2] === this.target[2]
-			)
+			) {
+				console.log("DEBUG E - auto adjusting camera");
 				await this.zoomTo(undefined, {duration: 0});
+			}
 		});
 	}
 

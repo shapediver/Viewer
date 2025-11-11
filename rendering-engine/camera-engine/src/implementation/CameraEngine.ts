@@ -81,6 +81,7 @@ export class CameraEngine implements ICameraEngine {
 								this._boundingBox.boundingSphere,
 							)
 						) {
+							console.log("DEBUG F - auto adjusting camera");
 							this.camera.zoomTo(this._boundingBox, {
 								duration: 0,
 							});
@@ -274,6 +275,7 @@ export class CameraEngine implements ICameraEngine {
 								this._boundingBox.boundingSphere,
 							)
 						) {
+							console.log("DEBUG G - auto adjusting camera");
 							this.camera.zoomTo(this._boundingBox, {
 								duration: 0,
 							});
@@ -335,6 +337,7 @@ export class CameraEngine implements ICameraEngine {
 		if (this._settingsApplied && this._renderingEngine.settingsEngine) {
 			camera.applySettings(this._renderingEngine.settingsEngine);
 		} else {
+			console.log("DEBUG H - auto adjusting camera");
 			camera.zoomTo(undefined, {duration: 0});
 		}
 
