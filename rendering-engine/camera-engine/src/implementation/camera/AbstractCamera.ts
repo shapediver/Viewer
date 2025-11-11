@@ -253,6 +253,17 @@ export abstract class AbstractCamera
 
 	// #endregion Protected Abstract Getters And Setters (1)
 
+	// #region Protected Getters (1)
+
+	protected getViewMatrix(): mat4 {
+		const viewMatrix = mat4.create();
+		const up = vec3.fromValues(0, 0, 1);
+		mat4.lookAt(viewMatrix, this._position, this._target, up);
+		return viewMatrix;
+	}
+
+	// #endregion Protected Getters (1)
+
 	// #region Public Methods (6)
 
 	public async animate(
@@ -280,7 +291,14 @@ export abstract class AbstractCamera
 		// if we cannot calculate the projection matrix, we assume the sphere is visible
 		if (!projectionMatrix) return true;
 
-		const planes = this.getFrustumPlanes(projectionMatrix);
+		// Calculate view matrix from camera position and target
+		const viewMatrix = this.getViewMatrix();
+
+		// Combine view and projection matrices to get view-projection matrix
+		const viewProjectionMatrix = mat4.create();
+		mat4.multiply(viewProjectionMatrix, projectionMatrix, viewMatrix);
+
+		const planes = this.getFrustumPlanes(viewProjectionMatrix);
 		for (let i = 0; i < 6; i++) {
 			const plane = planes[i];
 			const distance =
