@@ -82,6 +82,24 @@ export interface IDrawingParameterSettings {
 			snapToEdges?: boolean;
 			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
 			snapToFaces?: boolean;
+			/**
+			 * If the geometry restrictions should display a wireframe.
+			 *
+			 * This settings is only applied to geometry restrictions that
+			 * do not have this settings defined already.
+			 *
+			 * @default undefined
+			 */
+			wireframe?: boolean;
+			/**
+			 * The color of the wireframe.
+			 *
+			 * This settings is only applied to geometry restrictions that
+			 * do not have this settings defined already.
+			 *
+			 * @default undefined
+			 */
+			wireframeColor?: string;
 		};
 	};
 
@@ -129,6 +147,8 @@ export const IDrawingParameterJsonSchema = z.object({
 					snapToVertices: optionalBoolean,
 					snapToEdges: optionalBoolean,
 					snapToFaces: optionalBoolean,
+					wireframe: optionalBoolean,
+					wireframeColor: z.string().nullable().optional(),
 				})
 				.nullable()
 				.optional(),
