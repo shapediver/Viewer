@@ -8,6 +8,7 @@ import {
 	IGeometryData,
 	IRay,
 	ISceneEvent,
+	IVisualizationSettings,
 } from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
@@ -18,7 +19,6 @@ import {
 	RestrictionResult,
 } from "../../../interfaces/IRestriction";
 import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
-import {IVisualizationSettings} from "../../../interfaces/IVisualizationSettings";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 

@@ -1,7 +1,6 @@
 import {IViewportApi, SystemInfo} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {IVisualizationSettings} from "../interfaces/IVisualizationSettings";
 
 export class GeometryMathManager {
 	// #region Properties (2)

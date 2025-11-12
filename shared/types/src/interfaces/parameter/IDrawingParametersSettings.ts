@@ -1,4 +1,6 @@
 import {z} from "zod";
+import {IMaterialBasicLineDataProperties} from "../data/material/IMaterialBasicLineData";
+import {IMaterialMultiPointDataProperties} from "../data/material/IMaterialMultiPointData";
 import {RestrictionDefinition} from "./IRestrictionSettings";
 
 // #region Interfaces (2)
@@ -6,6 +8,60 @@ import {RestrictionDefinition} from "./IRestrictionSettings";
 export type DrawingParameterValue = {
 	points: number[][];
 };
+
+export interface IVisualizationSettings {
+	// #region Properties (5)
+
+	/**
+	 * If the distance labels are shown.
+	 * The distance labels display the distance between the points.
+	 *
+	 * @default true
+	 */
+	distanceLabels: boolean;
+	/**
+	 * The multiplication factor of the point size when interactions are performed.
+	 * If the factor is set to 2, the point size is doubled when interacting.
+	 *
+	 * @default 2
+	 */
+	distanceMultiplicationFactor: number;
+	/**
+	 * The material properties of the lines.
+	 */
+	lines: IMaterialBasicLineDataProperties;
+	/**
+	 * If the point labels are shown.
+	 * The point labels display the position of the points.
+	 *
+	 * @default false
+	 */
+	pointLabels: boolean;
+	/**
+	 * The material properties of the points.
+	 */
+	points: IMaterialMultiPointDataProperties;
+	/**
+	 * If the geometry restrictions should display a wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframe?: boolean;
+	/**
+	 * The color of the wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframeColor?: string;
+
+	// #endregion Properties (5)
+}
 
 /**
  * General properties of a drawing tools parameter.
@@ -82,25 +138,8 @@ export interface IDrawingParameterSettings {
 			snapToEdges?: boolean;
 			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
 			snapToFaces?: boolean;
-			/**
-			 * If the geometry restrictions should display a wireframe.
-			 *
-			 * This settings is only applied to geometry restrictions that
-			 * do not have this settings defined already.
-			 *
-			 * @default undefined
-			 */
-			wireframe?: boolean;
-			/**
-			 * The color of the wireframe.
-			 *
-			 * This settings is only applied to geometry restrictions that
-			 * do not have this settings defined already.
-			 *
-			 * @default undefined
-			 */
-			wireframeColor?: string;
 		};
+		visualization?: Partial<IVisualizationSettings>;
 	};
 
 	// #endregion Properties (2)
@@ -147,6 +186,18 @@ export const IDrawingParameterJsonSchema = z.object({
 					snapToVertices: optionalBoolean,
 					snapToEdges: optionalBoolean,
 					snapToFaces: optionalBoolean,
+				})
+				.nullable()
+				.optional(),
+			visualization: z
+				.object({
+					distanceLabels: optionalBoolean,
+					distanceMultiplicationFactor: z
+						.number()
+						.nullable()
+						.optional(),
+					lines: z.any().nullable().optional(),
+					points: z.any().nullable().optional(),
 					wireframe: optionalBoolean,
 					wireframeColor: z.string().nullable().optional(),
 				})

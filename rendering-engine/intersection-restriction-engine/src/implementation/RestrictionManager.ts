@@ -5,6 +5,7 @@ import {
 	IGeometryData,
 	IIntersectionFilter,
 	IRay,
+	IVisualizationSettings,
 } from "@shapediver/viewer.shared.types";
 import {
 	DraggingRestrictionMetaData,
@@ -18,7 +19,6 @@ import {
 	RESTRICTION_TYPE,
 } from "../interfaces/IRestriction";
 import {IRestrictionManager} from "../interfaces/IRestrictionManager";
-import {IVisualizationSettings} from "../interfaces/IVisualizationSettings";
 import {EventManager} from "./EventManager";
 import {GeometryMathManager} from "./GeometryMathManager";
 import {

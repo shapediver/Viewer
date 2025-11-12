@@ -140,6 +140,7 @@ import {
 	DrawingParameterValue,
 	IDrawingParameterJsonSchema,
 	IDrawingParameterSettings,
+	IVisualizationSettings,
 	validateDrawingParameterSettings,
 } from "./interfaces/parameter/IDrawingParametersSettings";
 import {
@@ -412,6 +413,7 @@ export {
 	validateDrawingParameterSettings,
 	IDraggableObject,
 	RestrictionDefinition,
+	IVisualizationSettings,
 	Rotation,
 };
 export {

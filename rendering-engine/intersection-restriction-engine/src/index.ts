@@ -1,3 +1,4 @@
+import {IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {CameraPlaneRestrictionApi} from "./api/implementation/camera_plane/CameraPlaneRestrictionApi";
 import {GeometryRestrictionApi} from "./api/implementation/geometry/GeometryRestrictionApi";
 import {LineRestrictionApi} from "./api/implementation/line/LineRestrictionApi";
@@ -50,7 +51,6 @@ import {
 	ISnapRestriction,
 	SnapRestrictionProperties,
 } from "./interfaces/ISnapRestriction";
-import {IVisualizationSettings} from "./interfaces/IVisualizationSettings";
 
 export {
 	IRestrictionManager,

@@ -1,6 +1,6 @@
 import {IViewportApi} from "@shapediver/viewer";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {
 	IRestriction,
@@ -10,7 +10,6 @@ import {
 	RESTRICTION_TYPE,
 } from "../../../interfaces/IRestriction";
 import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
-import {IVisualizationSettings} from "../../../interfaces/IVisualizationSettings";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 import {PointRestriction} from "../point/PointRestriction";
