@@ -35,6 +35,24 @@ export interface IVisualizationSettings {
 	 * The material properties of the points.
 	 */
 	points: IMaterialMultiPointDataProperties;
+	/**
+	 * If the geometry restrictions should display a wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframe?: boolean;
+	/**
+	 * The color of the wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframeColor?: string;
 
 	// #endregion Properties (5)
 }

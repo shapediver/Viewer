@@ -123,9 +123,11 @@ export class GeometryRestriction
 		this.#viewport = viewport;
 		this.#settings = settings;
 		this.#geometryMathManager = geometryMathManager;
-		this.#wireframe = properties.wireframe ?? true;
+		this.#wireframe =
+			properties.wireframe ?? this.#settings.wireframe ?? true;
 		this.#wireframeColor =
 			properties.wireframeColor ??
+			this.#settings.wireframeColor ??
 			(this.#settings.points.color_1 as string);
 		this.#snapToVertices = properties.snapToVertices ?? true;
 		this.#snapToEdges = properties.snapToEdges ?? true;

@@ -712,6 +712,16 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 							color: "#0d44f0",
 						}
 					: settingsOptional.visualization.lines,
+				wireframe: isUndefinedOrNull(
+					settingsOptional.visualization.wireframe,
+				)
+					? undefined
+					: settingsOptional.visualization.wireframe,
+				wireframeColor: isUndefinedOrNull(
+					settingsOptional.visualization.wireframeColor,
+				)
+					? undefined
+					: settingsOptional.visualization.wireframeColor,
 			};
 		}
 
