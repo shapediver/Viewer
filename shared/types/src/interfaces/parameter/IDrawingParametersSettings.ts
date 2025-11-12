@@ -139,8 +139,8 @@ export interface IDrawingParameterSettings {
 			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
 			snapToFaces?: boolean;
 		};
-		visualization?: Partial<IVisualizationSettings>;
 	};
+	visualization?: Partial<IVisualizationSettings>;
 
 	// #endregion Properties (2)
 }
@@ -189,20 +189,17 @@ export const IDrawingParameterJsonSchema = z.object({
 				})
 				.nullable()
 				.optional(),
-			visualization: z
-				.object({
-					distanceLabels: optionalBoolean,
-					distanceMultiplicationFactor: z
-						.number()
-						.nullable()
-						.optional(),
-					lines: z.any().nullable().optional(),
-					points: z.any().nullable().optional(),
-					wireframe: optionalBoolean,
-					wireframeColor: z.string().nullable().optional(),
-				})
-				.nullable()
-				.optional(),
+		})
+		.nullable()
+		.optional(),
+	visualization: z
+		.object({
+			distanceLabels: optionalBoolean,
+			distanceMultiplicationFactor: z.number().nullable().optional(),
+			lines: z.any().nullable().optional(),
+			points: z.any().nullable().optional(),
+			wireframe: optionalBoolean,
+			wireframeColor: z.string().nullable().optional(),
 		})
 		.nullable()
 		.optional(),
