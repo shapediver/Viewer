@@ -2503,15 +2503,18 @@ export class SessionEngine implements ISessionEngine {
 						? parameterValueSet[parameterId]
 						: undefined,
 				);
-				if (parameterValues) {
+				if (
+					parameterValues &&
+					parameterValues[parameterId] !== undefined
+				) {
+					// if a value was provided, we replace it with the returned id
 					parameterValues[parameterId] =
 						fileParameterValues[parameterId];
 
 					// if the parameter value of the file parameter was used, set the value to the parameter
 					if (
-						parameterValues[parameterId] === undefined &&
 						this.parameters[parameterId].value !==
-							fileParameterValues[parameterId]
+						fileParameterValues[parameterId]
 					)
 						this.parameters[parameterId].value =
 							fileParameterValues[parameterId];
