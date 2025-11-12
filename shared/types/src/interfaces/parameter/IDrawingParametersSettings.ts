@@ -9,7 +9,7 @@ export type DrawingParameterValue = {
 	points: number[][];
 };
 
-export interface IDisplaySettings {
+export interface IVisualizationSettings {
 	// #region Properties (5)
 
 	/**
@@ -140,7 +140,7 @@ export interface IDrawingParameterSettings {
 			snapToFaces?: boolean;
 		};
 	};
-	display?: Partial<IDisplaySettings>;
+	display?: Partial<IVisualizationSettings>;
 
 	// #endregion Properties (2)
 }
