@@ -9,7 +9,7 @@ export type DrawingParameterValue = {
 	points: number[][];
 };
 
-export interface IVisualizationSettings {
+export interface IDisplaySettings {
 	// #region Properties (5)
 
 	/**
@@ -140,7 +140,7 @@ export interface IDrawingParameterSettings {
 			snapToFaces?: boolean;
 		};
 	};
-	visualization?: Partial<IVisualizationSettings>;
+	display?: Partial<IDisplaySettings>;
 
 	// #endregion Properties (2)
 }
@@ -192,7 +192,7 @@ export const IDrawingParameterJsonSchema = z.object({
 		})
 		.nullable()
 		.optional(),
-	visualization: z
+	display: z
 		.object({
 			distanceLabels: optionalBoolean,
 			distanceMultiplicationFactor: z.number().nullable().optional(),
