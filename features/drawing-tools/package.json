@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.features.drawing-tools",
-	"version": "3.14.4-rc.0",
+	"version": "3.14.4-rc.1",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,15 +40,15 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.14.4-rc.0",
-		"@shapediver/viewer.features.interaction": "3.14.4-rc.0",
-		"@shapediver/viewer.rendering-engine.intersection-engine": "3.14.4-rc.0",
-		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.14.4-rc.0",
-		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.14.4-rc.0",
-		"@shapediver/viewer.shared.math": "3.14.4-rc.0",
-		"@shapediver/viewer.shared.node-tree": "3.14.4-rc.0",
-		"@shapediver/viewer.shared.services": "3.14.4-rc.0",
-		"@shapediver/viewer.shared.types": "3.14.4-rc.0",
+		"@shapediver/viewer": "3.14.4-rc.1",
+		"@shapediver/viewer.features.interaction": "3.14.4-rc.1",
+		"@shapediver/viewer.rendering-engine.intersection-engine": "3.14.4-rc.1",
+		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.14.4-rc.1",
+		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.14.4-rc.1",
+		"@shapediver/viewer.shared.math": "3.14.4-rc.1",
+		"@shapediver/viewer.shared.node-tree": "3.14.4-rc.1",
+		"@shapediver/viewer.shared.services": "3.14.4-rc.1",
+		"@shapediver/viewer.shared.types": "3.14.4-rc.1",
 		"@types/three": "0.162.0",
 		"three": "0.162.0"
 	},
