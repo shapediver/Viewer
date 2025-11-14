@@ -263,6 +263,13 @@ import {
 	VignetteTechnique,
 } from "postprocessing";
 import {
+	ATTRIBUTE_VISUALIZATION,
+	Gradient,
+	IGradient,
+	INumberGradient,
+	IStringGradient,
+} from "./interfaces/attribute-visualization";
+import {
 	CAMERA_TYPE,
 	ICameraOptions,
 	OrthographicCameraProperties,
@@ -499,4 +506,11 @@ export {
 	ICameraOptions,
 	OrthographicCameraProperties,
 	PerspectiveCameraProperties,
+};
+export {
+	ATTRIBUTE_VISUALIZATION,
+	IGradient,
+	INumberGradient,
+	IStringGradient,
+	Gradient,
 };

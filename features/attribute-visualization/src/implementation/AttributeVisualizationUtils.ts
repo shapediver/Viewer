@@ -1,21 +1,18 @@
 import {Converter} from "@shapediver/viewer.shared.services";
 import {
+	ATTRIBUTE_VISUALIZATION,
 	Color,
+	Gradient,
+	IGradient,
 	IMaterialAbstractData,
+	INumberGradient,
 	ISDTFAttributeVisualizationData,
+	IStringGradient,
 	MaterialStandardData,
 	MaterialUnlitData,
 } from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
-import {ATTRIBUTE_VISUALIZATION} from "../interfaces/IAttribute";
-import {
-	Gradient,
-	IGradient,
-	INumberGradient,
-	isNumberGradient,
-	isStringGradient,
-	IStringGradient,
-} from "../interfaces/IGradient";
+import {isNumberGradient, isStringGradient} from "../interfaces/IGradient";
 
 export const getColorSteps = (
 	gradient: ATTRIBUTE_VISUALIZATION,
