@@ -17,6 +17,7 @@ export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
 }
 
 type CameraProperties = {
+	readonly type: CAMERA_TYPE;
 	autoAdjust: boolean;
 	boundingBox: IBox;
 	cameraMovementDuration: number;
