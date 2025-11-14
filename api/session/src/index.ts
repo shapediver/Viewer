@@ -278,14 +278,6 @@ import {IParameterApi} from "./interfaces/parameter/IParameterApi";
 import {ISelectionParameterApi} from "./interfaces/parameter/ISelectionParameterApi";
 import {createSession, sessions} from "./main";
 
-import {
-	CAMERA_TYPE,
-	ICameraOptions,
-	OrthographicCameraProperties,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	PerspectiveCameraProperties,
-} from "@shapediver/viewer.shared.types";
-
 export {
 	IExportApi,
 	IFileParameterApi,
@@ -522,13 +514,6 @@ export {
 	SdtfPrimitiveTypeGuard,
 };
 export {ISessionData, SessionData, ISessionOutputData, SessionOutputData};
-export {
-	CAMERA_TYPE,
-	ICameraOptions,
-	OrthographicCameraProperties,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	PerspectiveCameraProperties,
-};
 export {
 	ShapeDiverViewerErrorType,
 	ShapeDiverViewerError,
