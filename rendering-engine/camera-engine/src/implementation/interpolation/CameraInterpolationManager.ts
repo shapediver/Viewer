@@ -1,6 +1,7 @@
+import {ICameraOptions} from "@shapediver/viewer.shared.types";
 import * as TWEEN from "@tweenjs/tween.js";
 import {vec3} from "gl-matrix";
-import {ICamera, ICameraOptions} from "../../interfaces/camera/ICamera";
+import {ICamera} from "../../interfaces/camera/ICamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
 import {ICameraInterpolation} from "../../interfaces/interpolation/ICameraInterpolation";
 import {CameraCylindricalInterpolation} from "./interpolationMethods/CameraCylindricalInterpolation";

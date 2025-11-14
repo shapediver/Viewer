@@ -1,3 +1,4 @@
+import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
 import {ICameraControls} from "../controls/ICameraControls";
 import {ICamera} from "./ICamera";
 
@@ -20,17 +21,3 @@ export interface IOrthographicCamera extends ICamera {
 }
 
 // #endregion Interfaces (1)
-
-// #region Enums (1)
-
-export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
-	TOP = "top",
-	BOTTOM = "bottom",
-	LEFT = "left",
-	RIGHT = "right",
-	FRONT = "front",
-	BACK = "back",
-	CUSTOM = "custom",
-}
-
-// #endregion Enums (1)

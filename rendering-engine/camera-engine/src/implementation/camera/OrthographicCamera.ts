@@ -9,13 +9,13 @@ import {
 	SettingsEngine,
 	ShapeDiverViewerCameraError,
 } from "@shapediver/viewer.shared.services";
-import {mat4, vec2, vec3} from "gl-matrix";
 import {
-	IOrthographicCamera,
+	CAMERA_TYPE,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
-} from "../../interfaces/camera/IOrthographicCamera";
+} from "@shapediver/viewer.shared.types";
+import {mat4, vec2, vec3} from "gl-matrix";
+import {IOrthographicCamera} from "../../interfaces/camera/IOrthographicCamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
-import {CAMERA_TYPE} from "../../interfaces/ICameraEngine";
 import {OrthographicCameraControls} from "../controls/OrthographicCameraControls";
 import {AbstractCamera} from "./AbstractCamera";
 

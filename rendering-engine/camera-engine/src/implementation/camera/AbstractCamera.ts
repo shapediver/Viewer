@@ -10,10 +10,10 @@ import {
 	SettingsEngine,
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
+import {CAMERA_TYPE, ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3, vec4} from "gl-matrix";
-import {ICamera, ICameraOptions} from "../../interfaces/camera/ICamera";
+import {ICamera} from "../../interfaces/camera/ICamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
-import {CAMERA_TYPE} from "../../interfaces/ICameraEngine";
 
 export abstract class AbstractCamera
 	extends AbstractTreeNodeData

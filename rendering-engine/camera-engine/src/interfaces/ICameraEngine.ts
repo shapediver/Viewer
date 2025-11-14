@@ -1,3 +1,4 @@
+import {CAMERA_TYPE} from "@shapediver/viewer.shared.types";
 import {ICamera} from "./camera/ICamera";
 
 // #region Interfaces (1)
@@ -24,12 +25,3 @@ export interface ICameraEngine {
 }
 
 // #endregion Interfaces (1)
-
-// #region Enums (1)
-
-export enum CAMERA_TYPE {
-	PERSPECTIVE = "perspective",
-	ORTHOGRAPHIC = "orthographic",
-}
-
-// #endregion Enums (1)

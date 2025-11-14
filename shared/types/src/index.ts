@@ -262,6 +262,13 @@ import {
 	VignetteEffect,
 	VignetteTechnique,
 } from "postprocessing";
+import {
+	CAMERA_TYPE,
+	ICameraOptions,
+	OrthographicCameraProperties,
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	PerspectiveCameraProperties,
+} from "./interfaces/renderingEngine/cameraTypes";
 
 export {
 	IMaterialStandardData,
@@ -485,4 +492,11 @@ export {
 	TiltShiftEffect,
 	VignetteEffect,
 	VignetteTechnique,
+};
+export {
+	CAMERA_TYPE,
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	ICameraOptions,
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
 };

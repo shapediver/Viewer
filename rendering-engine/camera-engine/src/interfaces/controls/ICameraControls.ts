@@ -1,5 +1,6 @@
+import {ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
-import {ICamera, ICameraOptions} from "../camera/ICamera";
+import {ICamera} from "../camera/ICamera";
 import {ICameraControlsEventDistribution} from "./ICameraControlsEventDistribution";
 
 // #region Type aliases (1)

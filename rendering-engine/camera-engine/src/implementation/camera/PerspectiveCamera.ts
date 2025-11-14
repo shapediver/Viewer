@@ -8,10 +8,10 @@ import {
 	SettingsEngine,
 	ShapeDiverViewerCameraError,
 } from "@shapediver/viewer.shared.services";
+import {CAMERA_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec2, vec3} from "gl-matrix";
 import {IPerspectiveCamera} from "../../interfaces/camera/IPerspectiveCamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
-import {CAMERA_TYPE} from "../../interfaces/ICameraEngine";
 import {PerspectiveCameraControls} from "../controls/PerspectiveCameraControls";
 import {AbstractCamera} from "./AbstractCamera";
 

@@ -1,9 +1,9 @@
 import {IBox, ISphere} from "@shapediver/viewer.shared.math";
 import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
+import {CAMERA_TYPE, ICameraOptions} from "@shapediver/viewer.shared.types";
 import {vec2, vec3} from "gl-matrix";
 import {ICameraControls} from "../controls/ICameraControls";
-import {CAMERA_TYPE} from "../ICameraEngine";
 
 // #region Interfaces (2)
 
@@ -62,62 +62,3 @@ export interface ICamera extends ITreeNodeData {
 
 	// #endregion Public Methods (8)
 }
-
-/* eslint-disable @typescript-eslint/ban-types */
-export interface ICameraOptions {
-	// #region Properties (4)
-
-	/**
-	 * The coordinate type of the camera interpolation. (default: 'cylindrical')
-	 */
-	coordinates?: "spherical" | "linear" | "cylindrical";
-	/**
-	 * The duration of the camera movement. (default: cameraMovementDuration set in the settings)
-	 * When set to 0, the camera is immediately updated to the specified position and target.
-	 */
-	duration?: number;
-	/**
-	 * The easing type of the camera interpolation. (default: 'Quadratic.InOut')
-	 */
-	easing?:
-		| "Linear.None"
-		| "Quadratic.In"
-		| "Quadratic.Out"
-		| "Quadratic.InOut"
-		| "Cubic.In"
-		| "Cubic.Out"
-		| "Cubic.InOut"
-		| "Quartic.In"
-		| "Quartic.Out"
-		| "Quartic.InOut"
-		| "Quintic.In"
-		| "Quintic.Out"
-		| "Quintic.InOut"
-		| "Sinusoidal.In"
-		| "Sinusoidal.Out"
-		| "Sinusoidal.InOut"
-		| "Exponential.In"
-		| "Exponential.Out"
-		| "Exponential.InOut"
-		| "Circular.In"
-		| "Circular.Out"
-		| "Circular.InOut"
-		| "Elastic.In"
-		| "Elastic.Out"
-		| "Elastic.InOut"
-		| "Back.In"
-		| "Back.Out"
-		| "Back.InOut"
-		| "Bounce.In"
-		| "Bounce.Out"
-		| "Bounce.InOut"
-		| Function;
-	/**
-	 * The interpolation type of the camera interpolation. (default: 'CatmullRom')
-	 */
-	interpolation?: "Linear" | "Bezier" | "CatmullRom" | Function;
-
-	// #endregion Properties (4)
-}
-
-// #endregion Interfaces (2)

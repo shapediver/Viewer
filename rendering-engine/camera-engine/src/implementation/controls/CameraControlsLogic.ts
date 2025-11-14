@@ -1,12 +1,14 @@
 import {Box, Sphere, Spherical} from "@shapediver/viewer.shared.math";
+import {
+	CAMERA_TYPE,
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec2, vec3} from "gl-matrix";
-import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "../../interfaces/camera/IOrthographicCamera";
 import {
 	Adjustments,
 	ICameraControls,
 } from "../../interfaces/controls/ICameraControls";
 import {ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
-import {CAMERA_TYPE} from "../../interfaces/ICameraEngine";
 import {OrthographicCamera} from "../camera/OrthographicCamera";
 import {PerspectiveCamera} from "../camera/PerspectiveCamera";
 

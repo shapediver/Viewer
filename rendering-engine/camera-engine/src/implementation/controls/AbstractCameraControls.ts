@@ -5,8 +5,9 @@ import {
 	EVENTTYPE,
 	SettingsEngine,
 } from "@shapediver/viewer.shared.services";
+import {ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
-import {ICamera, ICameraOptions} from "../../interfaces/camera/ICamera";
+import {ICamera} from "../../interfaces/camera/ICamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
 import {ICameraControlsEventDistribution} from "../../interfaces/controls/ICameraControlsEventDistribution";
 import {ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
