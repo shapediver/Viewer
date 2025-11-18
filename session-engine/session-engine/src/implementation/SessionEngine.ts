@@ -3115,19 +3115,21 @@ export class SessionEngine implements ISessionEngine {
 			};
 		} else {
 			// case where the image is a URL
-			const file = await new UtilsApi(this._sdkConfig).downloadImage(
+			const response = await new UtilsApi(this._sdkConfig).downloadImage(
 				this._sessionId!,
 				imageString,
 				{
 					responseType: "arraybuffer",
 				},
 			);
+
+			const arrayBuffer = response.data as unknown as ArrayBuffer;
 			return {
 				imageData: {
-					format: file.data.type,
-					size: file.data.size,
+					format: response.headers["content-type"],
+					size: arrayBuffer.byteLength,
 				},
-				arrayBuffer: await file.data.arrayBuffer(),
+				arrayBuffer,
 			};
 		}
 	}
