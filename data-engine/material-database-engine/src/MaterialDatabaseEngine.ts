@@ -49,8 +49,14 @@ export class MaterialDatabaseEngine {
 			for (let i = 0; i < n.data.length; i++) {
 				const data = n.data[i];
 				if (data instanceof GeometryData) {
-					const materialName = data.material?.name;
-					if (materialName) {
+					const name = data.material?.name;
+					if (name) {
+						// if the material is not found directly, try with original node name as prefix
+						// this is can be used for instances
+						const materialName = this._materialDatabase[name]
+							? name
+							: `${node.originalName}_${name}`;
+
 						if (this._materialDatabase[materialName]) {
 							if (
 								!this._materialDatabase[materialName].material
