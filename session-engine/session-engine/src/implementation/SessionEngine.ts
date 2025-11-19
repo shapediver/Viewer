@@ -3432,17 +3432,18 @@ export class SessionEngine implements ISessionEngine {
 			for (const data of node.data) {
 				if (data instanceof GeometryData) {
 					const materialName = data.material?.name;
-					if (
-						materialName &&
-						!allMaterialNames.includes(materialName)
-					)
+					if (materialName) {
 						allMaterialNames.push(materialName);
+					} else {
+						allMaterialNames.push("No name yet?");
+					}
 				}
 			}
 		});
 		console.log(
 			"VIEWER DEBUG, Applying material database...",
 			JSON.stringify(allMaterialNames),
+			newNode,
 		);
 		// now that all callbacks are done
 		// we apply the materialDatabase (if there is one)
