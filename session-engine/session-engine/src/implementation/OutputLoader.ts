@@ -332,20 +332,6 @@ export class OutputLoader {
 		// we assign materials if there are any in the output
 		this.assignMaterials(node);
 
-		const allMaterialNames: string[] = [];
-		node.traverse((node) => {
-			for (const data of node.data) {
-				if (data instanceof GeometryData) {
-					const materialName = data.material?.name;
-					if (materialName) {
-						allMaterialNames.push(materialName);
-					} else {
-						allMaterialNames.push("No name yet?");
-					}
-				}
-			}
-		});
-
 		// we apply the materialDatabase (if there is one)
 		if (this._globalAccessObjects.assignMaterialFromDatabase)
 			await this._globalAccessObjects.assignMaterialFromDatabase(node);
