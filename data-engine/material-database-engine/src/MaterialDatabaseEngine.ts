@@ -58,19 +58,10 @@ export class MaterialDatabaseEngine {
 								if (!materialsToCreate[materialName])
 									materialsToCreate[materialName] = [];
 								materialsToCreate[materialName].push(data);
-
-								console.log(
-									`VIEWER DEBUG: Queuing material '${materialName}' from material database for creation.`,
-								);
 							} else if (
 								data.material !==
 								this._materialDatabase[materialName].material
 							) {
-								console.log(
-									`VIEWER DEBUG: Assigning material '${materialName}' from material database to geometry data.`,
-									this._materialDatabase[materialName],
-								);
-
 								data.material =
 									this._materialDatabase[materialName]
 										.material || null;
@@ -90,10 +81,6 @@ export class MaterialDatabaseEngine {
 
 		const promises = [];
 		for (const materialName of materialNames) {
-			console.log(
-				`VIEWER DEBUG: Creating material '${materialName}' from material database definition.`,
-				JSON.stringify(this._materialDatabase[materialName].definition),
-			);
 			promises.push(
 				this._materialEngine.createMaterialDataFromDefinition(
 					this._materialDatabase[materialName].definition,
@@ -149,11 +136,6 @@ export class MaterialDatabaseEngine {
 				};
 			}
 		}
-
-		console.log(
-			"VIEWER DEBUG: Material database loaded.",
-			JSON.stringify(this._materialDatabase),
-		);
 
 		return materialDatabase;
 	}

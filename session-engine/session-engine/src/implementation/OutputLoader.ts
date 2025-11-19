@@ -345,11 +345,6 @@ export class OutputLoader {
 				}
 			}
 		});
-		console.log(
-			"VIEWER DEBUG, Applying material database...",
-			JSON.stringify(allMaterialNames),
-			node,
-		);
 
 		// we apply the materialDatabase (if there is one)
 		if (this._globalAccessObjects.assignMaterialFromDatabase)
