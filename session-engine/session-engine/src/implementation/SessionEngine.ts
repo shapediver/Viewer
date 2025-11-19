@@ -64,6 +64,7 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
+	GeometryData,
 	IInteractionParameterSettings,
 	IOutputEvent,
 	ISettingsSections,
@@ -3426,6 +3427,23 @@ export class SessionEngine implements ISessionEngine {
 		}
 		await Promise.all(promises);
 
+		const allMaterialNames: string[] = [];
+		newNode.traverse((node) => {
+			for (const data of node.data) {
+				if (data instanceof GeometryData) {
+					const materialName = data.material?.name;
+					if (
+						materialName &&
+						!allMaterialNames.includes(materialName)
+					)
+						allMaterialNames.push(materialName);
+				}
+			}
+		});
+		console.log(
+			"VIEWER DEBUG, Applying material database...",
+			JSON.stringify(allMaterialNames),
+		);
 		// now that all callbacks are done
 		// we apply the materialDatabase (if there is one)
 		if (this._globalAccessObjects.assignMaterialFromDatabase)
