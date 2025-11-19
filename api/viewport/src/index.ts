@@ -47,6 +47,7 @@ import {
 	IThreejsData,
 	ThreejsData,
 } from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
 	Box,
 	IBox,
@@ -640,6 +641,13 @@ export {
 	validateDrawingParameterSettings,
 };
 export {isValid, stringify};
+export {assignMaterialFromDatabase, combineTextures, loadContent};
+
+const globalAccessObjects = GlobalAccessObjects.instance;
+const assignMaterialFromDatabase =
+	globalAccessObjects.assignMaterialFromDatabase;
+const combineTextures = globalAccessObjects.combineTextures;
+const loadContent = globalAccessObjects.loadContent;
 
 export interface ShapeDiverResponseOutputContent
 	extends ShapeDiverResponseOutputContentBackend {

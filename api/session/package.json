@@ -54,6 +54,7 @@
 		"@shapediver/viewer.data-engine.gltf-converter": "3.14.9",
 		"@shapediver/viewer.data-engine.shared-types": "3.14.9",
 		"@shapediver/viewer.session-engine.session-engine": "3.14.9",
+		"@shapediver/viewer.shared.global-access-objects": "3.14.9",
 		"@shapediver/viewer.shared.math": "3.14.9",
 		"@shapediver/viewer.shared.node-tree": "3.14.9",
 		"@shapediver/viewer.shared.services": "3.14.9",

@@ -79,6 +79,7 @@ import {
 	SessionData,
 	SessionOutputData,
 } from "@shapediver/viewer.session-engine.session-engine";
+import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
 	Box,
 	IBox,
@@ -710,3 +711,10 @@ export {
 	PerspectiveCameraProperties,
 };
 export {isValid, stringify};
+export {assignMaterialFromDatabase, combineTextures, loadContent};
+
+const globalAccessObjects = GlobalAccessObjects.instance;
+const assignMaterialFromDatabase =
+	globalAccessObjects.assignMaterialFromDatabase;
+const combineTextures = globalAccessObjects.combineTextures;
+const loadContent = globalAccessObjects.loadContent;
