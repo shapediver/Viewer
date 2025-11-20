@@ -5,23 +5,29 @@ import {
 	ResAssetDefinition,
 	ResBase,
 	ResExport,
-	ResFileInfo,
 	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
-import {ISettingsSections} from "@shapediver/viewer.shared.types";
-import {OutputLoaderTaskEventInfo} from "../implementation/OutputLoader";
+import {
+	ISettingsSections,
+	ITaskEventDescription,
+} from "@shapediver/viewer.shared.types";
+
 import {IExport} from "./dto/IExport";
 import {IOutput} from "./dto/IOutput";
 import {IParameter} from "./dto/IParameter";
 
+/**
+ * Interface defining the Session Engine functionality.
+ *
+ * This interface is only used internally.
+ * For the session API definition, please refer to the {@link ISessionAPI}.
+ */
 export interface ISessionEngine {
-	// #region Properties (15)
-
-	readonly jwtToken?: string;
 	readonly hasStoredSettings: boolean;
+	readonly jwtToken?: string;
 
 	canUploadGLTF: boolean;
 	exports: {[key: string]: IExport};
@@ -38,13 +44,10 @@ export interface ISessionEngine {
 	ticket?: string;
 	updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null;
 
-	// #endregion Properties (15)
-
-	// #region Public Methods (26)
-
 	applySettings(response: ResBase, sections?: ISettingsSections): void;
 	canGoBack(): boolean;
 	canGoForward(): boolean;
+	cancelCustomization(): void;
 	close(): Promise<void>;
 	createModelState(
 		parameterValues?: {[key: string]: unknown},
@@ -65,33 +68,23 @@ export interface ISessionEngine {
 			| File,
 	): Promise<string>;
 	customize(
-		force: boolean,
+		force?: boolean,
 		waitForViewportUpdate?: boolean,
 	): Promise<ITreeNode | ResBase>;
 	customizeParallel(
-		parameterValues: {[key: string]: string},
-		loadOutputs: boolean,
+		parameterValues: {[key: string]: unknown},
+		loadOutputs?: boolean,
 	): Promise<ITreeNode | ResBase>;
 	customizeWithModelState(modelState: string | ResBase): Promise<ITreeNode>;
-	getFileInfo(parameterId: string, fileId: string): Promise<ResFileInfo>;
 	getModelState(modelStateId?: string): Promise<ResGetModelState>;
 	goBack(): Promise<ITreeNode>;
 	goForward(): Promise<ITreeNode>;
 	init(parameterValues?: {[key: string]: string}): Promise<void>;
 	loadCachedOutputsParallel(
 		outputMapping: {[key: string]: string},
-		taskEventInfo?: OutputLoaderTaskEventInfo,
+		taskEventInfo?: ITaskEventDescription,
 		retry?: boolean,
 	): Promise<{[key: string]: ITreeNode | undefined}>;
-	loadOutputs(
-		cancelRequest: () => boolean,
-		taskEventInfo: OutputLoaderTaskEventInfo,
-	): Promise<ITreeNode>;
-	loadOutputsParallel(
-		responseDto: ResBase,
-		cancelRequest: () => boolean,
-		taskEventInfo: OutputLoaderTaskEventInfo,
-	): Promise<ITreeNode>;
 	requestExport(
 		exportId: string,
 		parameters: ReqCustomization,
@@ -104,11 +97,11 @@ export interface ISessionEngine {
 	): Promise<ResBase>;
 	resetSettings(sections?: ISettingsSections): void;
 	saveDefaultParameterValues(): Promise<boolean>;
-	saveSettings(viewportId?: string): Promise<boolean>;
-	saveUiProperties(): Promise<boolean>;
+	saveSettings(json?: unknown): Promise<boolean>;
+	saveUiProperties(saveInSettings?: boolean): Promise<boolean>;
 	setJwtToken(token: string): Promise<void>;
 	updateOutputs(
-		taskEventInfo?: OutputLoaderTaskEventInfo,
+		taskEventInfo?: ITaskEventDescription,
 		waitForViewportUpdate?: boolean,
 	): Promise<ITreeNode>;
 	uploadFile(parameterId: string, data: File, type: string): Promise<string>;
@@ -117,6 +110,27 @@ export interface ISessionEngine {
 	}): Promise<{[key: string]: string}>;
 	uploadGLTF(blob: Blob, conversion?: QueryGltfConversion): Promise<ResBase>;
 	uploadSDTF(arrayBuffers: ArrayBuffer[]): Promise<ResAssetDefinition[]>;
-
-	// #endregion Public Methods (26)
 }
+
+/**
+ * Definition used to create a Session Engine.
+ *
+ * This is only used internally.
+ * For the definition of the session creation object, please refer to the {@link SessionCreationDefinition}.
+ */
+export type ISessionEngineCreationDefinition = {
+	allowOutputLoading: boolean;
+	buildDate: string;
+	buildVersion: string;
+	excludeViewports?: string[];
+	guid?: string;
+	id: string;
+	ignoreUnknownParams?: boolean;
+	jwtToken?: string;
+	loadSdtf: boolean;
+	modelStateId?: string;
+	modelStateValidationMode?: boolean;
+	modelViewUrl: string;
+	throwOnCustomizationError?: boolean;
+	ticket?: string;
+};

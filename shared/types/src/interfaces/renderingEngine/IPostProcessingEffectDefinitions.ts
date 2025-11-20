@@ -1,5 +1,4 @@
 import {vec2} from "gl-matrix";
-import {BlendFunction, KernelSize, VignetteTechnique} from "postprocessing";
 import {Color} from "../../types";
 
 export enum POST_PROCESSING_EFFECT_TYPE {
@@ -47,11 +46,11 @@ export interface IBloomEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.ADD) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The bloom intensity. (default: 1.0) */
 		intensity?: number;
 		/** The blur kernel size. (default: KernelSize.LARGE) */
-		kernelSize?: KernelSize;
+		kernelSize?: number;
 		/** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
 		luminanceSmoothing?: number;
 		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
@@ -70,7 +69,7 @@ export interface IChromaticAberrationEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The modulation offset. Only applies if `radialModulation` is enabled. (default: 0.15) */
 		modulationOffset?: number;
 		/** The color offset. (default: [0.001, 0.0005]) */
@@ -89,7 +88,7 @@ export interface IDepthOfFieldEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The scale of the bokeh blur. (default: 5.0) */
 		bokehScale?: number;
 		/** The normalized focus distance. Range is [0.0, 1.0]. (default: 0.0) */
@@ -110,7 +109,7 @@ export interface IDotScreenEffectDefinition
 		/** The angle of the dot pattern. (default: 1.57) */
 		angle?: number;
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The scale of the dot pattern. (default: 1.0) */
 		scale?: number;
 	};
@@ -125,7 +124,7 @@ export interface IGodRaysEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** Whether the god rays should be blurred to reduce artifacts. (default: true) */
 		blur?: boolean;
 		/** An upper bound for the saturation of the overall effect. (default: 1.0) */
@@ -137,7 +136,7 @@ export interface IGodRaysEffectDefinition
 		/** A constant attenuation coefficient. (default: 0.6) */
 		exposure?: number;
 		/** The blur kernel size. Has no effect if blur is disabled. (default: KernelSize.SMALL) */
-		kernelSize?: KernelSize;
+		kernelSize?: number;
 		/** A light ray weight factor. (default: 0.4) */
 		weight?: number;
 	};
@@ -151,7 +150,7 @@ export interface IGridEffectDefinition extends IPostProcessingEffectDefinition {
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.MULTIPLY) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The scale of the grid pattern. (default: 1.0) */
 		scale?: number;
 	};
@@ -208,7 +207,7 @@ export interface IHueSaturationEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The hue in radians. (default: 0.0) */
 		hue?: number;
 		/** The saturation factor, ranging from -1 to 1, where 0 means no change. (default: 0.0) */
@@ -225,7 +224,7 @@ export interface INoiseEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** Whether the noise should be multiplied with the input colors prior to blending. (default: false) */
 		premultiply?: boolean;
 	};
@@ -240,7 +239,7 @@ export interface IOutlineEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** Whether the outline should be blurred. (default: false) */
 		blur?: boolean;
 		/** The edge strength. (default: 1.0) */
@@ -248,7 +247,7 @@ export interface IOutlineEffectDefinition
 		/** The color of hidden edges. (default: #22090a) */
 		hiddenEdgeColor?: Color;
 		/** The blur kernel size. (default: KernelSize.VERY_SMALL) */
-		kernelSize?: KernelSize;
+		kernelSize?: number;
 		/** The number of samples used for multisample antialiasing. Requires WebGL 2. (default: 0) */
 		multisampling?: number;
 		/** The pulse speed. A value of zero disables the pulse effect. (default: 0.0) */
@@ -322,7 +321,7 @@ export interface IScanlineEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.OVERLAY) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The scanline density. (default: 1.25) */
 		density?: number;
 	};
@@ -337,11 +336,11 @@ export interface ISelectiveBloomEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.ADD) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The bloom intensity. (default: 1.0) */
 		intensity?: number;
 		/** The blur kernel size. (default: KernelSize.LARGE) */
-		kernelSize?: KernelSize;
+		kernelSize?: number;
 		/** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
 		luminanceSmoothing?: number;
 		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
@@ -362,7 +361,7 @@ export interface ISepiaEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 	};
 	type: POST_PROCESSING_EFFECT_TYPE.SEPIA;
 
@@ -375,13 +374,13 @@ export interface ITiltShiftEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The softness of the focus area edges. (default: 0.3) */
 		feather?: number;
 		/** The relative size of the focus area. (default: 0.4) */
 		focusArea?: number;
 		/** The blur kernel size. (default: KernelSize.MEDIUM) */
-		kernelSize?: KernelSize;
+		kernelSize?: number;
 		/** The relative offset of the focus area. (default: 0.0) */
 		offset?: number;
 		/** The rotation of the focus area in radians. (default: 0.0) */
@@ -398,13 +397,13 @@ export interface IVignetteEffectDefinition
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.NORMAL) */
-		blendFunction?: BlendFunction;
+		blendFunction?: number;
 		/** The Vignette darkness. (default: 0.5) */
 		darkness?: number;
 		/** The Vignette offset. (default: 0.5) */
 		offset?: number;
 		/** The Vignette technique. (default: VignetteTechnique.DEFAULT) */
-		technique?: VignetteTechnique;
+		technique?: number;
 	};
 	type: POST_PROCESSING_EFFECT_TYPE.VIGNETTE;
 

@@ -9,21 +9,22 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {ChunkData} from "@shapediver/viewer.shared.types";
+
 import {
 	IOutput,
 	ResOutputChunk,
 	ResOutputContent,
 } from "../../interfaces/dto/IOutput";
-import {SessionEngine} from "../SessionEngine";
+import {OutputManager} from "../managers/OutputManager";
+import {SessionEngineCore} from "../SessionEngineCore";
 
 export class Output implements IOutput {
-	// #region Properties (23)
-
 	readonly #id: string;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #name: string;
-	readonly #sessionEngine: SessionEngine;
+	readonly #outputManager: OutputManager;
+	readonly #sessionEngineCore: SessionEngineCore;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	#bbmax?: number[];
@@ -46,22 +47,19 @@ export class Output implements IOutput {
 		| null = null;
 	#version: string;
 
-	// #endregion Properties (23)
-
-	// #region Constructors (1)
-
-	constructor(outputDef: ResOutput, sessionEngine: SessionEngine) {
-		this.#sessionEngine = sessionEngine;
+	constructor(
+		outputDef: ResOutput,
+		sessionEngineCore: SessionEngineCore,
+		outputManager: OutputManager,
+	) {
+		this.#outputManager = outputManager;
+		this.#sessionEngineCore = sessionEngineCore;
 
 		this.#id = outputDef.id;
 		this.#name = outputDef.name;
 		this.#version = outputDef.version as string;
 		this.updateOutputDefinition(outputDef);
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (30)
 
 	public get bbmax(): number[] | undefined {
 		return this.#bbmax;
@@ -104,11 +102,11 @@ export class Output implements IOutput {
 	}
 
 	public get freeze(): boolean {
-		return this.#sessionEngine.outputsFreeze[this.#id];
+		return this.#outputManager.outputsFreeze[this.#id];
 	}
 
 	public set freeze(value: boolean) {
-		this.#sessionEngine.outputsFreeze[this.#id] = value;
+		this.#outputManager.outputsFreeze[this.#id] = value;
 	}
 
 	public get hidden(): boolean {
@@ -136,7 +134,7 @@ export class Output implements IOutput {
 	}
 
 	public get node(): ITreeNode {
-		return this.#sessionEngine.node.children.find(
+		return this.#sessionEngineCore.node.children.find(
 			(c) => c.name === this.id,
 		)!;
 	}
@@ -189,10 +187,6 @@ export class Output implements IOutput {
 		this.#version = value;
 	}
 
-	// #endregion Public Getters And Setters (30)
-
-	// #region Public Methods (4)
-
 	public async triggerUpdateCallback(newNode?: TreeNode, oldNode?: TreeNode) {
 		if (this.#updateCallback)
 			await Promise.resolve(this.#updateCallback(newNode, oldNode));
@@ -200,7 +194,7 @@ export class Output implements IOutput {
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public updateOutput(newNode?: TreeNode, oldNode?: TreeNode) {
-		const outputDef = this.#sessionEngine.outputs[this.id];
+		const outputDef = this.#outputManager.outputs[this.id];
 		this.updateOutputDefinition(outputDef);
 
 		// add chunk nodes
@@ -224,11 +218,11 @@ export class Output implements IOutput {
 		preventUpdate: boolean = false,
 		waitForViewportUpdate: boolean = false,
 	): Promise<ITreeNode | undefined> {
-		this.#sessionEngine.outputs[this.id].content = outputContent;
-		this.#sessionEngine.outputs[this.id].version =
+		this.#outputManager.outputs[this.id].content = outputContent;
+		this.#outputManager.outputs[this.id].version =
 			this.#uuidGenerator.create();
 		if (!preventUpdate)
-			await this.#sessionEngine.updateOutputs(
+			await this.#outputManager.updateOutputs(
 				undefined,
 				waitForViewportUpdate,
 			);
@@ -254,6 +248,4 @@ export class Output implements IOutput {
 		this.#order = outputDef.order;
 		this.#hidden = outputDef.hidden;
 	}
-
-	// #endregion Public Methods (4)
 }

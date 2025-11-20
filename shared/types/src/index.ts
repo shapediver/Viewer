@@ -129,7 +129,14 @@ import {IParameterEvent} from "./interfaces/events/IParameterEvent";
 import {IRenderingEvent} from "./interfaces/events/IRenderingEvent";
 import {ISceneEvent} from "./interfaces/events/ISceneEvent";
 import {ISessionEvent} from "./interfaces/events/ISessionEvent";
-import {ITaskEvent, TASK_TYPE} from "./interfaces/events/ITaskEvent";
+import {
+	ITaskEvent,
+	ITaskEventDescription,
+	TaskCategoryTypes,
+	TASK_CATEGORY,
+	TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
+	TASK_TYPE,
+} from "./interfaces/events/ITaskEvent";
 import {IViewportEvent} from "./interfaces/events/IViewportEvent";
 import {
 	DraggingParameterValue,
@@ -210,6 +217,20 @@ import {
 } from "./types";
 
 import {
+	ATTRIBUTE_VISUALIZATION,
+	Gradient,
+	IGradient,
+	INumberGradient,
+	IStringGradient,
+} from "./interfaces/attribute-visualization";
+import {
+	CAMERA_TYPE,
+	ICameraOptions,
+	OrthographicCameraProperties,
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	PerspectiveCameraProperties,
+} from "./interfaces/renderingEngine/cameraTypes";
+import {
 	ANTI_ALIASING_TECHNIQUE,
 	IBloomEffectDefinition,
 	IChromaticAberrationEffectDefinition,
@@ -232,50 +253,6 @@ import {
 	IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
 } from "./interfaces/renderingEngine/IPostProcessingEffectDefinitions";
-
-import {
-	BlendFunction,
-	BloomEffect,
-	ChromaticAberrationEffect,
-	DepthOfFieldEffect,
-	DotScreenEffect,
-	EdgeDetectionMode,
-	Effect,
-	EffectComposer,
-	FXAAEffect,
-	GodRaysEffect,
-	GridEffect,
-	HueSaturationEffect,
-	KernelSize,
-	NoiseEffect,
-	OutlineEffect,
-	PixelationEffect,
-	PredicationMode,
-	Resolution,
-	ScanlineEffect,
-	SelectiveBloomEffect,
-	SepiaEffect,
-	SMAAEffect,
-	SMAAPreset,
-	SSAOEffect,
-	TiltShiftEffect,
-	VignetteEffect,
-	VignetteTechnique,
-} from "postprocessing";
-import {
-	ATTRIBUTE_VISUALIZATION,
-	Gradient,
-	IGradient,
-	INumberGradient,
-	IStringGradient,
-} from "./interfaces/attribute-visualization";
-import {
-	CAMERA_TYPE,
-	ICameraOptions,
-	OrthographicCameraProperties,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	PerspectiveCameraProperties,
-} from "./interfaces/renderingEngine/cameraTypes";
 
 export {
 	IMaterialStandardData,
@@ -375,7 +352,11 @@ export {
 	IParameterEvent,
 	ISceneEvent,
 	ITaskEvent,
+	ITaskEventDescription,
 	TASK_TYPE,
+	TASK_CATEGORY,
+	TaskCategoryTypes,
+	TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
 };
 export {
 	ISDTFOverviewData,
@@ -470,35 +451,6 @@ export {
 	ITiltShiftEffectDefinition,
 	IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
-};
-export {
-	BlendFunction,
-	BloomEffect,
-	ChromaticAberrationEffect,
-	DepthOfFieldEffect,
-	DotScreenEffect,
-	EdgeDetectionMode,
-	Effect,
-	EffectComposer,
-	FXAAEffect,
-	GodRaysEffect,
-	GridEffect,
-	HueSaturationEffect,
-	KernelSize,
-	NoiseEffect,
-	OutlineEffect,
-	PixelationEffect,
-	PredicationMode,
-	Resolution,
-	ScanlineEffect,
-	SelectiveBloomEffect,
-	SepiaEffect,
-	SMAAEffect,
-	SMAAPreset,
-	SSAOEffect,
-	TiltShiftEffect,
-	VignetteEffect,
-	VignetteTechnique,
 };
 export {
 	CAMERA_TYPE,

@@ -1,8 +1,10 @@
+import {
+	Effect,
+	EffectComposer,
+} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	ANTI_ALIASING_TECHNIQUE,
-	Effect,
-	EffectComposer,
 	IBloomEffectDefinition,
 	IChromaticAberrationEffectDefinition,
 	IDepthOfFieldEffectDefinition,

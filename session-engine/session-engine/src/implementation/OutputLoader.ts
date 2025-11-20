@@ -12,33 +12,16 @@ import {
 	GeometryData,
 	IMaterialAbstractData,
 	ITaskEvent,
-	TASK_TYPE,
+	ITaskEventDescription,
 } from "@shapediver/viewer.shared.types";
-import {ISessionEngine} from "../interfaces/ISessionEngine";
+
 import {ISessionTreeNode} from "../interfaces/ISessionTreeNode";
+import {OutputManager} from "./managers/OutputManager";
 import {OutputDelayException} from "./OutputDelayException";
 import {SessionOutputData} from "./SessionOutputData";
 import {SessionTreeNode} from "./SessionTreeNode";
 
-// #region Type aliases (1)
-
-export type OutputLoaderTaskEventInfo = {
-	eventId: string;
-	type: TASK_TYPE;
-	progressRange: {
-		min: number;
-		max: number;
-	};
-	data: unknown;
-};
-
-// #endregion Type aliases (1)
-
-// #region Classes (1)
-
 export class OutputLoader {
-	// #region Properties (6)
-
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _globalAccessObjects: GlobalAccessObjects =
 		GlobalAccessObjects.instance;
@@ -57,28 +40,16 @@ export class OutputLoader {
 
 	private _reloadSdtf = false;
 
-	// #endregion Properties (6)
-
-	// #region Constructors (1)
-
 	/**
 	 * The output loader takes care of loading the outputs of a session, storing them and returning stored or newly loaded nodes.
 	 *
 	 * @param _session the session for this output loader
 	 */
-	constructor(private readonly _sessionEngine: ISessionEngine) {}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (1)
+	constructor(private readonly _outputManager: OutputManager) {}
 
 	public set reloadSdtf(value: boolean) {
 		this._reloadSdtf = value;
 	}
-
-	// #endregion Public Getters And Setters (1)
-
-	// #region Public Methods (2)
 
 	public getCurrentOutputVersions(): {[key: string]: string} {
 		const versions: {[key: string]: string} = {};
@@ -99,7 +70,7 @@ export class OutputLoader {
 		nodeName: string,
 		outputs: {[key: string]: ResOutput},
 		outputsFreeze: {[key: string]: boolean},
-		taskEventInfo: OutputLoaderTaskEventInfo,
+		taskEventInfo: ITaskEventDescription,
 		throwDelay = true,
 		cloneNodes = false,
 	): Promise<SessionTreeNode> {
@@ -142,10 +113,8 @@ export class OutputLoader {
 						(sum / outputIDs.length) +
 					taskEventInfo.progressRange.min;
 				const eventProgressUpdate: ITaskEvent = {
-					type: taskEventInfo.type,
-					id: taskEventInfo.eventId,
+					...taskEventInfo,
 					progress: outputLoadingProgress,
-					data: taskEventInfo.data,
 					status: "Output content loading progress.",
 				};
 				this._eventEngine.emitEvent(
@@ -217,7 +186,7 @@ export class OutputLoader {
 					) {
 						if (
 							outputs[outputID].content![i].format === "sdtf" &&
-							!this._sessionEngine.loadSdtf
+							!this._outputManager.loadSdtf
 						)
 							continue;
 						if (this._globalAccessObjects.loadContent)
@@ -231,7 +200,7 @@ export class OutputLoader {
 											outputs[outputID].displayname,
 										version: outputs[outputID].version,
 									},
-									this._sessionEngine.jwtToken,
+									this._outputManager.jwtToken,
 									outputID +
 										"_" +
 										outputInfo[outputID].version +
@@ -316,7 +285,7 @@ export class OutputLoader {
 				) {
 					if (
 						outputInfo[outputID].contentFormat[i] === "sdtf" &&
-						this._sessionEngine.loadSdtf === true
+						this._outputManager.loadSdtf === true
 					) {
 						this.mergeContentNodes(
 							currentNodes[outputID][
@@ -339,10 +308,6 @@ export class OutputLoader {
 		this._performanceEvaluator.endSection("outputLoading");
 		return node;
 	}
-
-	// #endregion Public Methods (2)
-
-	// #region Private Methods (2)
 
 	private assignMaterials(node: ITreeNode) {
 		const addMaterialToGeometry = (
@@ -516,8 +481,4 @@ export class OutputLoader {
 		for (let i = 0; i < children.length; i++)
 			mergeNodes(children[i], newChild);
 	}
-
-	// #endregion Private Methods (2)
 }
-
-// #endregion Classes (1)

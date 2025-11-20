@@ -14,18 +14,19 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
+
 import {IExport} from "../../interfaces/dto/IExport";
-import {SessionEngine} from "../SessionEngine";
+import {ExportManager} from "../managers/ExportManager";
+import {SessionEngineCore} from "../SessionEngineCore";
 
 export class Export implements IExport {
-	// #region Properties (24)
-
 	readonly #eventEngine: EventEngine = EventEngine.instance;
+	readonly #exportManager: ExportManager;
 	readonly #id: string;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #name: string;
-	readonly #sessionEngine: SessionEngine;
+	readonly #sessionEngineCore: SessionEngineCore;
 	readonly #type: ResExportDefinitionType;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
@@ -46,12 +47,13 @@ export class Export implements IExport {
 	#uid?: string;
 	#version: string;
 
-	// #endregion Properties (24)
-
-	// #region Constructors (1)
-
-	constructor(exportDef: ResExport, sessionEngine: SessionEngine) {
-		this.#sessionEngine = sessionEngine;
+	constructor(
+		exportDef: ResExport,
+		sessionEngineCore: SessionEngineCore,
+		exportManager: ExportManager,
+	) {
+		this.#sessionEngineCore = sessionEngineCore;
+		this.#exportManager = exportManager;
 		this.#id = exportDef.id;
 		this.#name = exportDef.name;
 		this.#type = exportDef.type;
@@ -59,10 +61,6 @@ export class Export implements IExport {
 
 		this.updateExportDefinition(exportDef);
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (24)
 
 	public get content(): ResExportContent[] | undefined {
 		return this.#content;
@@ -160,10 +158,6 @@ export class Export implements IExport {
 		return this.#version;
 	}
 
-	// #endregion Public Getters And Setters (24)
-
-	// #region Public Methods (3)
-
 	public async request(
 		parameterValues: {[key: string]: unknown} = {},
 	): Promise<ResExport> {
@@ -187,7 +181,7 @@ export class Export implements IExport {
 				);
 			}
 
-			const exportDef = await this.#sessionEngine.requestExport(
+			const exportDef = await this.#exportManager.requestExport(
 				this.id,
 				parameterValues,
 				this.#maxWaitTime,
@@ -217,7 +211,7 @@ export class Export implements IExport {
 	}
 
 	public updateExport(e?: ResExport) {
-		const exportDef = e || this.#sessionEngine.exports[this.id];
+		const exportDef = e || this.#exportManager.exports[this.id];
 		this.#dependency = exportDef.dependency;
 		this.#uid = exportDef.uid;
 		this.#displayname = exportDef.displayname;
@@ -252,6 +246,4 @@ export class Export implements IExport {
 		this.#status_collect = exportDef.status_collect;
 		this.#group = exportDef.group;
 	}
-
-	// #endregion Public Methods (3)
 }

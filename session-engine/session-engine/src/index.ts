@@ -7,7 +7,7 @@ import {SelectionParameter} from "./implementation/dto/interaction/SelectionPara
 import {Output} from "./implementation/dto/Output";
 import {Parameter} from "./implementation/dto/Parameter";
 import {SessionData} from "./implementation/SessionData";
-import {SessionEngine} from "./implementation/SessionEngine";
+import {SessionEngineFacade as SessionEngine} from "./implementation/SessionEngineFacade";
 import {SessionOutputData} from "./implementation/SessionOutputData";
 import {IDrawingParameter} from "./interfaces/dto/IDrawingParameter";
 import {IExport} from "./interfaces/dto/IExport";

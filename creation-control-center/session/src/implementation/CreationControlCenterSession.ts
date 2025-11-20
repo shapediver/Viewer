@@ -288,7 +288,7 @@ export class CreationControlCenterSession
 			if (properties.loadOutputs !== false) {
 				if (properties.waitForOutputs !== false) {
 					await sessionEngine.updateOutputs({
-						eventId,
+						id: eventId,
 						type: TASK_TYPE.SESSION_CREATION,
 						progressRange: {
 							min: 0.25,
@@ -306,7 +306,7 @@ export class CreationControlCenterSession
 				} else {
 					sessionEngine
 						.updateOutputs({
-							eventId,
+							id: eventId,
 							type: TASK_TYPE.SESSION_CREATION,
 							progressRange: {
 								min: 0.25,
