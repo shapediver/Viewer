@@ -679,7 +679,10 @@ export class SessionApi implements ISessionApi {
 			"boolean",
 			false,
 		);
-		return this.#sessionEngine.customize(force, waitForViewportUpdate);
+		return this.#sessionEngine.customize(
+			force,
+			waitForViewportUpdate,
+		) as Promise<ITreeNode>;
 	}
 
 	public customizeParallel(parameterValues: {
@@ -877,7 +880,10 @@ export class SessionApi implements ISessionApi {
 			"boolean",
 			false,
 		);
-		return this.#sessionEngine.customize(force, waitForViewportUpdate);
+		return this.#sessionEngine.customize(
+			force,
+			waitForViewportUpdate,
+		) as Promise<ITreeNode>;
 	}
 
 	public resetSettings(sections?: ISettingsSections): Promise<void> {

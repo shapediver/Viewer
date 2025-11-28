@@ -1,3 +1,5 @@
+import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type";
+
 import {
 	ResParameter,
 	ResParameterGroup,
@@ -17,13 +19,12 @@ import {
 	PARAMETER_TYPE,
 	PARAMETER_VISUALIZATION,
 } from "@shapediver/viewer.shared.types";
-import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type";
+
 import {IParameter} from "../../interfaces/dto/IParameter";
-import {SessionEngine} from "../SessionEngine";
+import {ParameterManager} from "../managers/ParameterManager";
+import {SessionEngineCore} from "../SessionEngineCore";
 
 export class Parameter<T> implements IParameter<T> {
-	// #region Properties (28)
-
 	readonly #choices?: string[];
 	readonly #converter: Converter = Converter.instance;
 	readonly #decimalplaces?: number;
@@ -40,7 +41,8 @@ export class Parameter<T> implements IParameter<T> {
 	readonly #min?: number;
 	readonly #name: string;
 	readonly #paramDef: ResParameter;
-	readonly #sessionEngine: SessionEngine;
+	readonly #parameterManager: ParameterManager;
+	readonly #sessionEngineCore: SessionEngineCore;
 	readonly #settings?: object;
 	readonly #structure?: ResStructureType;
 	readonly #type: PARAMETER_TYPE;
@@ -54,12 +56,14 @@ export class Parameter<T> implements IParameter<T> {
 	#tooltip?: string;
 	#value: T | string;
 
-	// #endregion Properties (28)
+	constructor(
+		paramDef: ResParameter,
+		sessionEngineCore: SessionEngineCore,
+		parameterManager: ParameterManager,
+	) {
+		this.#sessionEngineCore = sessionEngineCore;
+		this.#parameterManager = parameterManager;
 
-	// #region Constructors (1)
-
-	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
-		this.#sessionEngine = sessionEngine;
 		this.#paramDef = paramDef;
 
 		this.#id = paramDef.id;
@@ -117,10 +121,6 @@ export class Parameter<T> implements IParameter<T> {
 		this.#sessionValue = this.#value;
 		this.#lastValidatedValue = this.#value;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (27)
 
 	public get choices(): string[] | undefined {
 		return this.#choices;
@@ -201,7 +201,7 @@ export class Parameter<T> implements IParameter<T> {
 		this.#eventEngine.emitEvent(
 			EVENTTYPE_PARAMETER.PARAMETER_SESSION_VALUE_CHANGED,
 			<ISessionEvent>{
-				sessionId: this.#sessionEngine.id,
+				sessionId: this.#sessionEngineCore.id,
 				parameterId: this.#id,
 				value: value,
 			},
@@ -239,24 +239,23 @@ export class Parameter<T> implements IParameter<T> {
 		this.#eventEngine.emitEvent(
 			EVENTTYPE_PARAMETER.PARAMETER_VALUE_CHANGED,
 			<ISessionEvent>{
-				sessionId: this.#sessionEngine.id,
+				sessionId: this.#sessionEngineCore.id,
 				parameterId: this.#id,
 				value: value,
 			},
 		);
 
 		// if customizeOnParameterChange is true, customize the session
-		if (this.#sessionEngine.customizeOnParameterChange)
-			this.#sessionEngine.customize();
+		if (
+			this.#sessionEngineCore.customizationManager
+				.customizeOnParameterChange
+		)
+			this.#sessionEngineCore.customizationManager.customize();
 	}
 
 	public get visualization(): PARAMETER_VISUALIZATION | undefined {
 		return this.#visualization;
 	}
-
-	// #endregion Public Getters And Setters (27)
-
-	// #region Public Methods (4)
 
 	public isValid(value: unknown, throwError?: boolean): boolean {
 		return isValid(this.#paramDef, value, throwError);
@@ -274,6 +273,4 @@ export class Parameter<T> implements IParameter<T> {
 		const value = val !== undefined ? val : this.value;
 		return stringify(this.#paramDef, value);
 	}
-
-	// #endregion Public Methods (4)
 }

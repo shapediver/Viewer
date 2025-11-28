@@ -12,6 +12,36 @@ import {CSS2DObject, CSS2DRenderer} from "./three/CSS2DRenderer";
 import {IThreejsData} from "./types/IThreejsData";
 import {ThreejsData} from "./types/ThreejsData";
 
+import {
+	BlendFunction,
+	BloomEffect,
+	ChromaticAberrationEffect,
+	DepthOfFieldEffect,
+	DotScreenEffect,
+	EdgeDetectionMode,
+	Effect,
+	EffectComposer,
+	FXAAEffect,
+	GodRaysEffect,
+	GridEffect,
+	HueSaturationEffect,
+	KernelSize,
+	NoiseEffect,
+	OutlineEffect,
+	PixelationEffect,
+	PredicationMode,
+	Resolution,
+	ScanlineEffect,
+	SelectiveBloomEffect,
+	SepiaEffect,
+	SMAAEffect,
+	SMAAPreset,
+	SSAOEffect,
+	TiltShiftEffect,
+	VignetteEffect,
+	VignetteTechnique,
+} from "postprocessing";
+
 export {
 	RenderingEngine,
 	IThreejsData,
@@ -23,6 +53,35 @@ export {
 export {MultiPointsMaterial};
 export {PostProcessingManager};
 export {CSS2DObject, CSS2DRenderer};
+export {
+	BlendFunction,
+	BloomEffect,
+	ChromaticAberrationEffect,
+	DepthOfFieldEffect,
+	DotScreenEffect,
+	EdgeDetectionMode,
+	Effect,
+	EffectComposer,
+	FXAAEffect,
+	GodRaysEffect,
+	GridEffect,
+	HueSaturationEffect,
+	KernelSize,
+	NoiseEffect,
+	OutlineEffect,
+	PixelationEffect,
+	PredicationMode,
+	Resolution,
+	ScanlineEffect,
+	SelectiveBloomEffect,
+	SepiaEffect,
+	SMAAEffect,
+	SMAAPreset,
+	SSAOEffect,
+	TiltShiftEffect,
+	VignetteEffect,
+	VignetteTechnique,
+};
 
 const textureUnifierInjector = new TextureUnifierInjector();
 GlobalAccessObjects.instance.combineTextures =

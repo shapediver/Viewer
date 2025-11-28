@@ -29,8 +29,42 @@ export interface ITaskEvent extends IEvent {
 	 * The type of the task.
 	 */
 	type: TASK_TYPE;
+	/**
+	 * The category of the task (if available).
+	 */
+	category?: TaskCategoryTypes;
 
 	// #endregion Properties (5)
+}
+
+/**
+ * Description of a task event.
+ * Used to create new task events.
+ */
+export interface ITaskEventDescription {
+	/**
+	 * The id of the task.
+	 */
+	id: string;
+	/**
+	 * The type of the task.
+	 */
+	type: TASK_TYPE;
+	/**
+	 * The category of the task (if available).
+	 */
+	category?: TaskCategoryTypes;
+	/**
+	 * The progress range of the task.
+	 */
+	progressRange: {
+		min: number;
+		max: number;
+	};
+	/**
+	 * The data of the task.
+	 */
+	data?: unknown;
 }
 
 // #endregion Interfaces (1)
@@ -58,5 +92,28 @@ export enum TASK_TYPE {
 	VIEWPORT_CREATION = "viewer_creation",
 	EXPORT_REQUEST = "export_request",
 }
+
+/**
+ * Definition of the session customization categories.
+ * These categories are used to identify the category of a session customization task.
+ */
+export enum TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY {
+	CUSTOMIZE = "customize",
+	CUSTOMIZE_PARALLEL = "customize_parallel",
+	CUSTOMIZE_VIA_EXPORTS = "customize_via_exports",
+}
+
+/**
+ * Mapping of task categories.
+ */
+export const TASK_CATEGORY = {
+	SESSION_CUSTOMIZATION: TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
+} as const;
+
+/**
+ * Definition of the task category types.
+ */
+export type TaskCategoryTypes =
+	(typeof TASK_CATEGORY)[keyof typeof TASK_CATEGORY][keyof (typeof TASK_CATEGORY)[keyof typeof TASK_CATEGORY]];
 
 // #endregion Enums (1)

@@ -8,30 +8,28 @@ import {
 	RestrictionDefinition,
 	validateDraggingParameterSettings,
 } from "@shapediver/viewer.shared.types";
+
 import {IDraggingParameter} from "../../../interfaces/dto/interaction/IDraggingParameter";
-import {SessionEngine} from "../../SessionEngine";
+import {ParameterManager} from "../../managers/ParameterManager";
+import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";
 
 export class DraggingParameter
 	extends Parameter<string>
 	implements IDraggingParameter
 {
-	// #region Properties (1)
+	readonly #parameterManager: ParameterManager;
+	readonly #sessionEngineCore: SessionEngineCore;
 
-	readonly #sessionEngine: SessionEngine;
-
-	// #endregion Properties (1)
-
-	// #region Constructors (1)
-
-	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
-		super(paramDef, sessionEngine);
-		this.#sessionEngine = sessionEngine;
+	constructor(
+		paramDef: ResParameter,
+		sessionEngineCore: SessionEngineCore,
+		parameterManager: ParameterManager,
+	) {
+		super(paramDef, sessionEngineCore, parameterManager);
+		this.#sessionEngineCore = sessionEngineCore;
+		this.#parameterManager = parameterManager;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (6)
 
 	public get draggingColor(): InteractionEffect | undefined {
 		return this.getDraggingProperties()?.draggingColor;
@@ -57,10 +55,6 @@ export class DraggingParameter
 		return this.getDraggingProperties()?.restrictions;
 	}
 
-	// #endregion Public Getters And Setters (6)
-
-	// #region Private Methods (1)
-
 	private getDraggingProperties(): IDraggingParameterProps | undefined {
 		const result = validateDraggingParameterSettings(
 			this.settings as unknown as IInteractionParameterSettings,
@@ -70,6 +64,4 @@ export class DraggingParameter
 				.props;
 		}
 	}
-
-	// #endregion Private Methods (1)
 }

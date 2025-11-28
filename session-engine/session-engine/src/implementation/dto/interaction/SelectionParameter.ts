@@ -6,30 +6,28 @@ import {
 	ISelectionParameterProps,
 	validateSelectionParameterSettings,
 } from "@shapediver/viewer.shared.types";
+
 import {ISelectionParameter} from "../../../interfaces/dto/interaction/ISelectionParameter";
-import {SessionEngine} from "../../SessionEngine";
+import {ParameterManager} from "../../managers/ParameterManager";
+import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";
 
 export class SelectionParameter
 	extends Parameter<string>
 	implements ISelectionParameter
 {
-	// #region Properties (1)
+	readonly #parameterManager: ParameterManager;
+	readonly #sessionEngineCore: SessionEngineCore;
 
-	readonly #sessionEngine: SessionEngine;
-
-	// #endregion Properties (1)
-
-	// #region Constructors (1)
-
-	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
-		super(paramDef, sessionEngine);
-		this.#sessionEngine = sessionEngine;
+	constructor(
+		paramDef: ResParameter,
+		sessionEngineCore: SessionEngineCore,
+		parameterManager: ParameterManager,
+	) {
+		super(paramDef, sessionEngineCore, parameterManager);
+		this.#sessionEngineCore = sessionEngineCore;
+		this.#parameterManager = parameterManager;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (6)
 
 	public get hover(): boolean | undefined {
 		return this.getSelectionProperties()?.hover;
@@ -55,10 +53,6 @@ export class SelectionParameter
 		return this.getSelectionProperties()?.selectionColor;
 	}
 
-	// #endregion Public Getters And Setters (6)
-
-	// #region Private Methods (1)
-
 	private getSelectionProperties(): ISelectionParameterProps | undefined {
 		const result = validateSelectionParameterSettings(
 			this.settings as unknown as IInteractionParameterSettings,
@@ -68,6 +62,4 @@ export class SelectionParameter
 				.props;
 		}
 	}
-
-	// #endregion Private Methods (1)
 }

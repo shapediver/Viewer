@@ -1,36 +1,35 @@
+import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type";
+
 import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	Logger,
 	ShapeDiverViewerSessionError,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type";
+
 import {IFileParameter} from "../../interfaces/dto/IFileParameter";
-import {SessionEngine} from "../SessionEngine";
+import {ParameterManager} from "../managers/ParameterManager";
+import {SessionEngineCore} from "../SessionEngineCore";
 import {Parameter} from "./Parameter";
 
 export class FileParameter
 	extends Parameter<File | Blob | string>
 	implements IFileParameter
 {
-	// #region Properties (3)
-
 	readonly #logger: Logger = Logger.instance;
-	readonly #sessionEngine: SessionEngine;
+	readonly #parameterManager: ParameterManager;
+	readonly #sessionEngineCore: SessionEngineCore;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-	// #endregion Properties (3)
-
-	// #region Constructors (1)
-
-	constructor(paramDef: ResParameter, sessionEngine: SessionEngine) {
-		super(paramDef, sessionEngine);
-		this.#sessionEngine = sessionEngine;
+	constructor(
+		paramDef: ResParameter,
+		sessionEngineCore: SessionEngineCore,
+		parameterManager: ParameterManager,
+	) {
+		super(paramDef, sessionEngineCore, parameterManager);
+		this.#sessionEngineCore = sessionEngineCore;
+		this.#parameterManager = parameterManager;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Methods (2)
 
 	public async getFilename(fileId?: string): Promise<string | undefined> {
 		// if fileId is undefined and value is undefined, return undefined
@@ -44,14 +43,22 @@ export class FileParameter
 				this.#uuidGenerator.validate(this.value)) ||
 				this.value === "")
 		)
-			return (await this.#sessionEngine.getFileInfo(this.id, this.value))
-				.filename;
+			return (
+				await this.#sessionEngineCore.fileUploadManager.getFileInfo(
+					this.id,
+					this.value,
+				)
+			).filename;
 
 		// if fileId is undefined, return undefined
 		if (fileId === undefined) return;
 
-		return (await this.#sessionEngine.getFileInfo(this.id, fileId))
-			.filename;
+		return (
+			await this.#sessionEngineCore.fileUploadManager.getFileInfo(
+				this.id,
+				fileId,
+			)
+		).filename;
 	}
 
 	public async upload(v?: File | Blob | string): Promise<string> {
@@ -143,8 +150,10 @@ export class FileParameter
 			`Parameter(${this.id}).upload: Uploading FileParameter.`,
 		);
 
-		return await this.#sessionEngine.uploadFile(this.id, data, type!);
+		return await this.#sessionEngineCore.fileUploadManager.uploadFile(
+			this.id,
+			data,
+			type!,
+		);
 	}
-
-	// #endregion Public Methods (2)
 }
