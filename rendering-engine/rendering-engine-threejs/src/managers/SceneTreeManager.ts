@@ -522,12 +522,15 @@ export class SceneTreeManager implements IManager {
 		if (this._suspendSceneUpdates) return;
 
 		this._lastRootVersion = this._tree.root.version;
-		if (this._renderingEngine.type !== this._lastRendererType) {
+		const didRenderTypeChange =
+			this._renderingEngine.type !== this._lastRendererType;
+		if (didRenderTypeChange) {
 			root.traverseData((data) => {
 				if (data instanceof GeometryData) {
 					data.updateVersion();
 				}
 			});
+			this._lastRootVersion = this._tree.root.version;
 		}
 		this._lastRendererType = this._renderingEngine.type;
 
@@ -540,14 +543,6 @@ export class SceneTreeManager implements IManager {
 		const oldBB = this._boundingBox.clone();
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
-
-		// directional lights need to be updated every time
-		// as they are sensitive to the bounding box
-		root.traverseData((data) => {
-			if (data instanceof DirectionalLight) {
-				data.updateVersion();
-			}
-		});
 
 		if (!this._mainNode) {
 			this._mainNode = new SDObject(root.id, root.version);
