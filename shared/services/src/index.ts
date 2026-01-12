@@ -84,6 +84,7 @@ import {SystemInfo} from "./system-info/SystemInfo";
 import {TypeChecker} from "./type-check/TypeChecker";
 import {atobCustom, btoaCustom} from "./utilities/base64";
 import {numberCleaner} from "./utilities/numberCleaner";
+import {ObservableArray} from "./utilities/ObservableArray";
 import {UuidGenerator} from "./uuid-generator/UuidGenerator";
 
 export {
@@ -163,5 +164,5 @@ export {
 	isViewerGeometryBackendResponseError,
 };
 export {PerformanceEvaluator};
-export {atobCustom, btoaCustom, numberCleaner};
+export {atobCustom, btoaCustom, numberCleaner, ObservableArray};
 export {isValid, stringify};

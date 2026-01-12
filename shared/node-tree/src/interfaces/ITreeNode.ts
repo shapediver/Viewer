@@ -137,13 +137,13 @@ export interface ITreeNode {
 	 *
 	 * @param child the child to add
 	 */
-	addChild(child: ITreeNode): boolean;
+	addChild(child: ITreeNode | ITreeNode[]): boolean;
 	/**
 	 * Add a data item to node.
 	 *
 	 * @param data the data to add
 	 */
-	addData(data: ITreeNodeData): boolean;
+	addData(data: ITreeNodeData | ITreeNodeData[]): boolean;
 	/**
 	 * Add a transformation to this node.
 	 *
@@ -215,13 +215,13 @@ export interface ITreeNode {
 	 *
 	 * @param child the child to remove
 	 */
-	removeChild(child: ITreeNode): boolean;
+	removeChild(child: ITreeNode | ITreeNode[]): boolean;
 	/**
 	 * Remove a data item from this node.
 	 *
 	 * @param data the data to remove
 	 */
-	removeData(data: ITreeNodeData): boolean;
+	removeData(data: ITreeNodeData | ITreeNodeData[]): boolean;
 	/**
 	 * Remove a transformation from this node.
 	 *
