@@ -1,11 +1,13 @@
 import {IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
+	ICamera,
 	OrthographicCamera,
 	PerspectiveCamera,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
 	DirectionalLight,
+	ILight,
 	PointLight,
 	SpotLight,
 } from "@shapediver/viewer.rendering-engine.light-engine";
@@ -27,6 +29,7 @@ import {
 	Color,
 	CustomData,
 	IAnimationTrack,
+	InstanceData,
 	ITaskEvent,
 	TASK_TYPE,
 } from "@shapediver/viewer.shared.types";
@@ -428,27 +431,26 @@ export class GLTFLoader {
 		);
 	}
 
-	private loadCamera(cameraId: number): ITreeNode {
+	private loadCamera(cameraId: number): ICamera {
 		if (!this._content.cameras) throw new Error("Cameras not available.");
 		if (!this._content.cameras[cameraId])
 			throw new Error("Cameras not available.");
 		const cameraDef = this._content.cameras[cameraId];
-		const cameraNode = new TreeNode(cameraDef.name || "camera_" + cameraId);
-		cameraNode.originalName = cameraDef.name;
+		const id = cameraDef.name || "camera_" + cameraId;
 
 		let cameraData: PerspectiveCamera | OrthographicCamera;
 		if (cameraDef.type === "perspective") {
 			const perspectiveCameraDef = cameraDef.perspective!;
-			cameraData = new PerspectiveCamera(cameraNode.id);
-			cameraNode.data.push(cameraData);
+			cameraData = new PerspectiveCamera(id);
+			cameraData.name = id;
 			cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
 			cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
 			cameraData.near = perspectiveCameraDef.znear || 1;
 			cameraData.far = perspectiveCameraDef.zfar || 2e6;
 		} else {
 			const orthographicCameraDef = cameraDef.orthographic!;
-			cameraData = new OrthographicCamera(cameraNode.id);
-			cameraNode.data.push(cameraData);
+			cameraData = new OrthographicCamera(id);
+			cameraData.name = id;
 			cameraData.left = -orthographicCameraDef.xmag;
 			cameraData.right = orthographicCameraDef.xmag;
 			cameraData.top = -orthographicCameraDef.ymag;
@@ -458,12 +460,11 @@ export class GLTFLoader {
 		}
 
 		cameraData.useNodeData = true;
-		cameraData.node = cameraNode;
 
-		return cameraNode;
+		return cameraData;
 	}
 
-	private loadLights(lightId: number): ITreeNode {
+	private loadLights(lightId: number): ILight {
 		if (
 			!this._content.extensions ||
 			!this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL] ||
@@ -481,8 +482,7 @@ export class GLTFLoader {
 		const lightDef =
 			this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL]
 				.lights[lightId];
-		const lightNode = new TreeNode(lightDef.name || "light_" + lightId);
-		lightNode.originalName = lightDef.name;
+		const id = lightDef.name || "light_" + lightId;
 
 		let color: Color = "#ffffffff";
 		if (lightDef.color !== undefined)
@@ -497,7 +497,7 @@ export class GLTFLoader {
 		let lightData: AbstractLight;
 		if (lightDef.type === "directional") {
 			lightData = new DirectionalLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			const directionalLightData = <DirectionalLight>lightData;
 
@@ -505,7 +505,7 @@ export class GLTFLoader {
 				directionalLightData.intensity = lightDef.intensity;
 		} else if (lightDef.type === "point") {
 			lightData = new PointLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			const pointLightData = <PointLight>lightData;
 
@@ -517,7 +517,7 @@ export class GLTFLoader {
 			pointLightData.position = [0, 0, 0];
 		} else if (lightDef.type === "spot") {
 			lightData = new SpotLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			lightDef.spot = lightDef.spot || {};
 			lightDef.spot.innerConeAngle =
@@ -546,7 +546,7 @@ export class GLTFLoader {
 		}
 
 		lightData.useNodeData = true;
-		return lightNode;
+		return lightData;
 	}
 
 	private async loadNode(nodeId: number): Promise<ITreeNode> {
@@ -731,25 +731,27 @@ export class GLTFLoader {
 					}
 				}
 			}
+
+			if (instanceTransformations.length > 0)
+				nodeDef.addData(new InstanceData(instanceTransformations));
 		}
 
-		if (node.mesh !== undefined)
-			nodeDef.addChild(
-				this._geometryLoader.loadMesh(
-					node.mesh,
-					node.weights,
-					instanceTransformations,
-				),
+		if (node.mesh !== undefined) {
+			const geometryDataArray = this._geometryLoader.loadMesh(
+				node.mesh,
+				node.weights,
 			);
+			nodeDef.addData(geometryDataArray);
+		}
 
 		if (node.camera !== undefined)
-			nodeDef.addChild(this.loadCamera(node.camera));
+			nodeDef.addData(this.loadCamera(node.camera));
 
 		if (
 			node.extensions &&
 			node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL]
 		)
-			nodeDef.addChild(
+			nodeDef.addData(
 				this.loadLights(
 					node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].light,
 				),
