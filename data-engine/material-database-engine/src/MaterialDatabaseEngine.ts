@@ -73,7 +73,7 @@ export class MaterialDatabaseEngine {
 										.material || null;
 								// trigger an update of the geometry and the node
 								data.updateVersion();
-								node.updateVersion();
+								node.updateVersion(false, false);
 							}
 						}
 					}
@@ -106,7 +106,7 @@ export class MaterialDatabaseEngine {
 			for (const data of geometryData) {
 				data.material = material;
 				data.updateVersion();
-				node.updateVersion();
+				node.updateVersion(false, false);
 			}
 		}
 	}

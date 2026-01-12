@@ -1,6 +1,6 @@
 import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {ITreeNode, Tree, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -90,6 +90,7 @@ export class OutputLoader {
 		const promises: Promise<ITreeNode>[] = [];
 		const promisesNodes: ISessionTreeNode[] = [];
 		let maxDelay = 0;
+		let changeOfMaterialDatabase = false;
 
 		const progress: {
 			[key: string]: number;
@@ -189,6 +190,16 @@ export class OutputLoader {
 							!this._outputManager.loadSdtf
 						)
 							continue;
+
+						if (
+							outputs[outputID].content![i].format === "data" &&
+							(outputs[outputID].name?.toLowerCase() ===
+								"materialdatabase" ||
+								outputs[outputID].displayname?.toLowerCase() ===
+									"materialdatabase")
+						)
+							changeOfMaterialDatabase = true;
+
 						if (this._globalAccessObjects.loadContent)
 							promises.push(
 								this._globalAccessObjects.loadContent(
@@ -301,9 +312,20 @@ export class OutputLoader {
 		// we assign materials if there are any in the output
 		this.assignMaterials(node);
 
-		// we apply the materialDatabase (if there is one)
-		if (this._globalAccessObjects.assignMaterialFromDatabase)
-			await this._globalAccessObjects.assignMaterialFromDatabase(node);
+		// apply the material database if available
+		if (this._globalAccessObjects.assignMaterialFromDatabase) {
+			if (changeOfMaterialDatabase) {
+				// if the material database changed, we apply it to the scene
+				await this._globalAccessObjects.assignMaterialFromDatabase(
+					Tree.instance.root,
+				);
+			} else {
+				// otherwise, only to the newly loaded output node
+				await this._globalAccessObjects.assignMaterialFromDatabase(
+					node,
+				);
+			}
+		}
 
 		this._performanceEvaluator.endSection("outputLoading");
 		return node;
