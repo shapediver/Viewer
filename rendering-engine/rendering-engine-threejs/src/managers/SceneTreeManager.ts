@@ -31,8 +31,7 @@ import {
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDBone} from "../objects/SDBone";
-import {SDData, SD_DATA_TYPE} from "../objects/SDData";
-import {SDObject} from "../objects/SDObject";
+import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
 import {
@@ -133,18 +132,18 @@ export class SceneTreeManager implements IManager {
 		isVisibleInHierarchy: boolean,
 		skeleton?: THREE.Skeleton,
 	): void {
-		let dataChild = <SDData>(
+		let dataChild = <SDObject>(
 			obj.children.find(
 				(oc) =>
-					(<SDData>oc).SDid === data.id &&
-					(<SDData>oc).SDversion === data.version,
+					(<SDObject>oc).SDid === data.id &&
+					(<SDObject>oc).SDversion === data.version,
 			)
 		);
 		let newChild = false;
 
 		if (!dataChild) {
 			newChild = true;
-			dataChild = new SDData(data.id, data.version);
+			dataChild = new SDObject(data.id, data.version);
 			obj.add(dataChild);
 		}
 
@@ -186,7 +185,7 @@ export class SceneTreeManager implements IManager {
 			case data instanceof ThreejsData:
 				{
 					dataChild.SDtype = SD_DATA_TYPE.THREEJS;
-					dataChild.add(<SDData>(<ThreejsData>data).obj);
+					dataChild.add(<SDObject>(<ThreejsData>data).obj);
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
@@ -309,7 +308,10 @@ export class SceneTreeManager implements IManager {
 			// remove all data items that do not exist anymore
 			const dataIds = node.data.map((d) => d.id);
 			const dataToRemove = convertedObject.children.filter((oc) => {
-				if (oc instanceof SDData) {
+				if (
+					oc instanceof SDObject &&
+					oc.SDtype !== SD_DATA_TYPE.OBJECT
+				) {
 					if (dataIds.includes(oc.SDid)) {
 						const data = node.data.find((d) => d.id === oc.SDid);
 						if (data && data.version !== oc.SDversion) {
@@ -328,7 +330,7 @@ export class SceneTreeManager implements IManager {
 			});
 
 			dataToRemove.forEach((dTR) => {
-				removeData(this._renderingEngine, <SDData>dTR);
+				removeData(this._renderingEngine, <SDObject>dTR);
 				convertedObject.remove(dTR);
 			});
 
@@ -341,7 +343,10 @@ export class SceneTreeManager implements IManager {
 				)
 				.map((d) => d.id);
 			const childrenToRemove = convertedObject.children.filter((oc) => {
-				if (oc instanceof SDObject && !(oc instanceof SDData)) {
+				if (
+					oc instanceof SDObject &&
+					oc.SDtype === SD_DATA_TYPE.OBJECT
+				) {
 					if (nodeIds.includes(oc.SDid)) {
 						return false;
 					} else {
@@ -354,7 +359,10 @@ export class SceneTreeManager implements IManager {
 			});
 			childrenToRemove.forEach((cTR) => {
 				cTR.traverse((o) => {
-					if (o instanceof SDData)
+					if (
+						o instanceof SDObject &&
+						o.SDtype !== SD_DATA_TYPE.OBJECT
+					)
 						removeData(this._renderingEngine, o);
 				});
 				convertedObject.remove(cTR);
@@ -388,11 +396,11 @@ export class SceneTreeManager implements IManager {
 		// convert all data items of the current node
 		// old versions will be replaced by new ones
 		for (let i = 0, len = node.data.length; i < len; i++) {
-			const convertedObjectData = <SDData>(
+			const convertedObjectData = <SDObject>(
 				convertedObject.children.find(
 					(oc) =>
-						(<SDData>oc).SDid === node.data[i].id &&
-						(<SDData>oc).SDversion === node.data[i].version,
+						(<SDObject>oc).SDid === node.data[i].id &&
+						(<SDObject>oc).SDversion === node.data[i].version,
 				)
 			);
 			if (!convertedObjectData) {
@@ -559,7 +567,7 @@ export class SceneTreeManager implements IManager {
 				(<DirectionalLight>data).useNodeData === false
 			) {
 				// check if the data has stored converted object
-				const convertedObject = <SDData | undefined>(
+				const convertedObject = <SDObject | undefined>(
 					(<THREE.Object3D | undefined>(
 						data.convertedObject[this._renderingEngine.id]
 					))?.parent
