@@ -65,10 +65,6 @@ export class SceneTreeManager implements IManager {
 	private readonly _tree: ITree = Tree.instance;
 
 	private _boundingBox: IBox = new Box();
-	private _boundingBoxSensitiveData: {
-		data: AbstractLight;
-		dataChild: SDData;
-	}[] = [];
 	private _currentSDTFOverview!: ISDTFOverview;
 	private _hiddenCamera: THREE.PerspectiveCamera =
 		new THREE.PerspectiveCamera();
@@ -213,14 +209,6 @@ export class SceneTreeManager implements IManager {
 						<AbstractLight>data,
 						dataChild,
 					);
-				if (
-					data instanceof DirectionalLight &&
-					(<DirectionalLight>data).useNodeData === false
-				)
-					this._boundingBoxSensitiveData.push({
-						data: <AbstractLight>data,
-						dataChild,
-					});
 				break;
 			case data instanceof AbstractCamera:
 				dataChild.SDtype = SD_DATA_TYPE.CAMERA;
@@ -559,20 +547,32 @@ export class SceneTreeManager implements IManager {
 			this._scene.add(this._mainNode);
 		}
 
-		this._boundingBoxSensitiveData = [];
-
 		this._currentSDTFOverview = createSDTFOverview(root);
 		this.updateNode(root, this._mainNode);
 		this._boundingBox =
 			root.boundingBoxViewport[this._renderingEngine.id].clone();
 
-		for (let i = 0; i < this._boundingBoxSensitiveData.length; i++) {
-			this._renderingEngine.lightLoader.adjustToBoundingBox(
-				this._boundingBoxSensitiveData[i].data,
-				this._boundingBoxSensitiveData[i].dataChild,
-				this._boundingBox,
-			);
-		}
+		// directional lights need to be with the bounding box
+		root.traverseData((data) => {
+			if (
+				data instanceof DirectionalLight &&
+				(<DirectionalLight>data).useNodeData === false
+			) {
+				// check if the data has stored converted object
+				const convertedObject = <SDData | undefined>(
+					(<THREE.Object3D | undefined>(
+						data.convertedObject[this._renderingEngine.id]
+					))?.parent
+				);
+				if (!convertedObject) return;
+
+				this._renderingEngine.lightLoader.adjustToBoundingBox(
+					data,
+					convertedObject,
+					this._boundingBox,
+				);
+			}
+		});
 
 		if (
 			!(
