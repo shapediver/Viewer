@@ -44,6 +44,7 @@ export class MaterialDatabaseEngine {
 		// gather the materials that still need to be created
 		// and the corresponding geometry data to assign the created material to
 		const materialsToCreate: {[key: string]: GeometryData[]} = {};
+		let updateNode = false;
 		node.traverse((n) => {
 			// check if the name of the material is corresponding to a material in the material database output
 			for (let i = 0; i < n.data.length; i++) {
@@ -73,13 +74,15 @@ export class MaterialDatabaseEngine {
 										.material || null;
 								// trigger an update of the geometry and the node
 								data.updateVersion();
-								node.updateVersion(false, false);
+								updateNode = true;
 							}
 						}
 					}
 				}
 			}
 		});
+
+		if (updateNode) node.updateVersion();
 
 		// create the materials that are missing
 		const materialNames = Object.keys(materialsToCreate);
@@ -97,6 +100,8 @@ export class MaterialDatabaseEngine {
 		// create the materials
 		const materials = await Promise.all(promises);
 
+		updateNode = false;
+
 		// assign the created materials to the corresponding geometry data
 		for (let i = 0; i < materialNames.length; i++) {
 			const material = materials[i];
@@ -106,9 +111,11 @@ export class MaterialDatabaseEngine {
 			for (const data of geometryData) {
 				data.material = material;
 				data.updateVersion();
-				node.updateVersion(false, false);
+				updateNode = true;
 			}
 		}
+
+		if (updateNode) node.updateVersion();
 	}
 
 	/**

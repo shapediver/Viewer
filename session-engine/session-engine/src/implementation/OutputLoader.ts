@@ -319,6 +319,9 @@ export class OutputLoader {
 				await this._globalAccessObjects.assignMaterialFromDatabase(
 					Tree.instance.root,
 				);
+				await this._globalAccessObjects.assignMaterialFromDatabase(
+					node,
+				);
 			} else {
 				// otherwise, only to the newly loaded output node
 				await this._globalAccessObjects.assignMaterialFromDatabase(
