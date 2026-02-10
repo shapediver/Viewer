@@ -3,6 +3,7 @@ dist
 dist-dev
 dist-prod
 lerna-debug.log
+.env
 .npmrc
 .vscode/
 docs
