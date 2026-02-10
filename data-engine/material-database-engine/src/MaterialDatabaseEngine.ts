@@ -39,6 +39,11 @@ export class MaterialDatabaseEngine {
 	 * @param node the scene graph node
 	 */
 	public async assignMaterialFromDatabase(node: ITreeNode): Promise<void> {
+		console.log(
+			"DEBUG: Assigning materials from database to node",
+			node.name,
+			JSON.stringify(this._materialDatabase, null, 2),
+		);
 		if (Object.keys(this._materialDatabase).length === 0) return;
 
 		// gather the materials that still need to be created
@@ -59,6 +64,17 @@ export class MaterialDatabaseEngine {
 							: `${node.originalName}_${name}`;
 
 						if (this._materialDatabase[materialName]) {
+							console.log(
+								"DEBUG: Checking material",
+								name,
+								"with material database entry",
+								JSON.stringify(
+									this._materialDatabase[materialName],
+									null,
+									2,
+								),
+							);
+
 							if (
 								!this._materialDatabase[materialName].material
 							) {
@@ -81,6 +97,13 @@ export class MaterialDatabaseEngine {
 				}
 			}
 		});
+
+		if (!updateNode) {
+			console.log(
+				"DEBUG: No materials to assign from database, skipping node update",
+				node.name,
+			);
+		}
 
 		if (updateNode) node.updateVersion();
 
