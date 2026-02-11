@@ -320,9 +320,6 @@ export class OutputLoader {
 				await this._globalAccessObjects.assignMaterialFromDatabase(
 					Tree.instance.root,
 				);
-				await this._globalAccessObjects.assignMaterialFromDatabase(
-					node,
-				);
 			} else {
 				console.log(
 					"DEBUG: Applying material database to node",
