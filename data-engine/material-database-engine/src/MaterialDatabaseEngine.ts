@@ -132,7 +132,6 @@ export class MaterialDatabaseEngine {
 			this._materialDatabase[material.name].material = material;
 			const geometryData = materialsToCreate[material.name];
 			for (const data of geometryData) {
-				console.log("DEBUG: Assigning material", material.name, "to geometry data", data);
 				data.material = material;
 				data.updateVersion();
 				updateNode = true;
