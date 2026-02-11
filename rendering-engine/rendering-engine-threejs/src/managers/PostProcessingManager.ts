@@ -683,6 +683,11 @@ export class PostProcessingManager implements IManager {
 						}
 						outlineEffect.selection.layer = layer;
 
+						console.log(
+							"DEBUG: Outline effect layer set to",
+							layer,
+						);
+
 						this._effects.push({
 							token: this._effectDefinitions[i].token,
 							effect: outlineEffect,

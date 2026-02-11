@@ -47,6 +47,11 @@ export class OutlineManager {
 	public updateOutlineEffectObjects() {
 		this._outlineEffect.selection.clear();
 
+		console.log(
+			"DEBUG: Updating outline effect objects. Current selection count:",
+			this._outlineNodes.length,
+		);
+
 		const objects: THREE.Object3D[] = [];
 		for (let i = 0; i < this._outlineNodes.length; i++) {
 			const object = this._outlineNodes[i].convertedObject[
