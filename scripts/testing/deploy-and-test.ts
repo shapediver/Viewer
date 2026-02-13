@@ -1,15 +1,9 @@
 import axios from "axios";
-import * as fs from "fs";
+import * as dotenv from "dotenv";
 import {execPromise} from "../utils/utils";
 
-const npmrcContents = fs.readFileSync("./.npmrc", {
-	encoding: "utf8",
-	flag: "r",
-});
-const slackToken = npmrcContents
-	.split("\n")
-	.filter((s) => s.startsWith("slackbot_oauth_token"))[0]
-	.replace("slackbot_oauth_token=", "");
+dotenv.config();
+const slackToken = process.env.SLACKBOT_OAUTH_TOKEN;
 
 const sendSlackMessage = async (text: string) => {
 	const url = "https://slack.com/api/chat.postMessage";
