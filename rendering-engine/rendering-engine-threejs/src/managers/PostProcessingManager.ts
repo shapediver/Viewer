@@ -93,7 +93,7 @@ export class PostProcessingManager implements IManager {
 		token: string;
 		definition: IPostProcessingEffectDefinition;
 	}[] = [];
-	private _effectPass?: EffectPass;
+	private _effectPasses?: EffectPass[] = [];
 	private _effects: {
 		token: string;
 		effect: Effect;
@@ -924,11 +924,24 @@ export class PostProcessingManager implements IManager {
 			effectArray.unshift(this._smaaEffect!);
 		}
 
-		this._effectPass = new EffectPass(
-			this._renderingEngine.camera,
-			...this._effects.map((v) => v.effect),
-		);
-		this.addPassToEffectComposer(this._effectPass);
+		this._effectPasses = [];
+		/**
+		 * For every 3 effects we add another effects pass.
+		 * We split it like this to avoid issues with maximum number of textures in one pass.
+		 *
+		 * Note that this could be refined in the future to count the number of textures used by the effects
+		 * instead of just counting the number of effects and compare them to the maximum number of textures
+		 * supported by the device, but for now this is a good enough solution.
+		 **/
+		for (let i = 0; i < this._effects.length; i += 5) {
+			const effectsForPass = this._effects.slice(i, i + 5);
+			const effectPass = new EffectPass(
+				this._renderingEngine.camera,
+				...effectsForPass.map((v) => v.effect),
+			);
+			this._effectPasses?.push(effectPass);
+			this.addPassToEffectComposer(effectPass);
+		}
 
 		// for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
 		if (
@@ -1570,7 +1583,7 @@ export class PostProcessingManager implements IManager {
 
 		this._renderPass!.setSize(width, height);
 		this._ssaaRenderPass!.setSize(width, height);
-		this._effectPass?.setSize(width, height);
+		this._effectPasses?.forEach((pass) => pass.setSize(width, height));
 		this._composer.setSize(width, height);
 	}
 
