@@ -242,10 +242,15 @@ export class ParameterManager {
 						this.parameters[parameterId].type ===
 						PARAMETER_TYPE.BOOL
 					) {
-						// cast to boolean
-						this.parameters[parameterId].value = Boolean(
-							this.parameters[parameterId].value,
-						);
+						if (
+							typeof this.parameters[parameterId].value ===
+							"string"
+						) {
+							this.parameters[parameterId].value =
+								this.parameters[
+									parameterId
+								].value.toLowerCase() === "true";
+						}
 					} else if (
 						this.parameters[parameterId].type ===
 							PARAMETER_TYPE.INT ||
