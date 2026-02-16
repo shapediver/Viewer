@@ -247,9 +247,9 @@ export class ParameterManager {
 							"string"
 						) {
 							this.parameters[parameterId].value =
-								this.parameters[
-									parameterId
-								].value.toLowerCase() === "true";
+								(
+									this.parameters[parameterId].value as string
+								).toLowerCase() === "true";
 						}
 					} else if (
 						this.parameters[parameterId].type ===
