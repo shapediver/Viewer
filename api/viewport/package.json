@@ -67,10 +67,10 @@
 		"@shapediver/viewer.shared.node-tree": "3.15.6",
 		"@shapediver/viewer.shared.services": "3.15.6",
 		"@shapediver/viewer.shared.types": "3.15.6",
-		"@types/qrcode": "^1.5.0",
+		"@types/qrcode": "1.5.6",
 		"@types/three": "0.162.0",
 		"gl-matrix": "3.3.0",
-		"qrcode": "^1.5.0",
+		"qrcode": "1.5.4",
 		"three": "0.162.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
