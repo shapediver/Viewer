@@ -35,7 +35,6 @@
 		"recursive-readdir-sync": "1.0.6",
 		"selenium-webdriver": "4.8.1",
 		"source-map-loader": "5.0.0",
-		"start-server-and-test": "1.15.4",
 		"terser-webpack-plugin": "5.3.16",
 		"ts-jest": "27.1.5",
 		"ts-loader": "8.4.0",
