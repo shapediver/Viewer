@@ -312,14 +312,25 @@ export class OutputLoader {
 		// we assign materials if there are any in the output
 		this.assignMaterials(node);
 
+		console.log("VIEWER DEBUG: Output loaded", node);
 		// apply the material database if available
 		if (this._globalAccessObjects.assignMaterialFromDatabase) {
+			console.log(
+				"VIEWER DEBUG: Assigning material from database, change of material database:",
+				changeOfMaterialDatabase,
+			);
 			if (changeOfMaterialDatabase) {
+				console.log(
+					"VIEWER DEBUG: Material database changed, applying to whole scene.",
+				);
 				// if the material database changed, we apply it to the scene
 				await this._globalAccessObjects.assignMaterialFromDatabase(
 					Tree.instance.root,
 				);
 			} else {
+				console.log(
+					"VIEWER DEBUG: Material database did not change, applying only to newly loaded output node.",
+				);
 				// otherwise, only to the newly loaded output node
 				await this._globalAccessObjects.assignMaterialFromDatabase(
 					node,
