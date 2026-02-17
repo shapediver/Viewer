@@ -1,5 +1,5 @@
 import {
-	ResParameterGroup,
+	CommonsGroup,
 	ResStructureType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {IParameter} from "@shapediver/viewer.session-engine.session-engine";
@@ -67,7 +67,7 @@ export class ParameterApi<T> implements IParameterApi<T> {
 		return this.#parameter.format;
 	}
 
-	public get group(): ResParameterGroup | undefined {
+	public get group(): CommonsGroup | undefined {
 		return this.#parameter.group;
 	}
 

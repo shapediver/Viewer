@@ -1,8 +1,8 @@
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type";
 
 import {
+	CommonsGroup,
 	ResParameter,
-	ResParameterGroup,
 	ResStructureType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
@@ -33,7 +33,7 @@ export class Parameter<T> implements IParameter<T> {
 	readonly #eventEngine = EventEngine.instance;
 	readonly #expression?: string;
 	readonly #format?: string[];
-	readonly #group?: ResParameterGroup;
+	readonly #group?: CommonsGroup;
 	readonly #id: string;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
@@ -150,7 +150,7 @@ export class Parameter<T> implements IParameter<T> {
 		return this.#format;
 	}
 
-	public get group(): ResParameterGroup | undefined {
+	public get group(): CommonsGroup | undefined {
 		return this.#group;
 	}
 

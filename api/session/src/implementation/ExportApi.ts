@@ -1,10 +1,10 @@
 import {
+	CommonsGroup,
 	ResComputationStatus,
 	ResExport,
 	ResExportContent,
 	ResExportDefinitionType,
 	ResExportResult,
-	ResParameterGroup,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {IExport} from "@shapediver/viewer.session-engine.session-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
@@ -63,7 +63,7 @@ export class ExportApi implements IExportApi {
 		return this.#export.filename;
 	}
 
-	public get group(): ResParameterGroup | undefined {
+	public get group(): CommonsGroup | undefined {
 		return this.#export.group;
 	}
 

@@ -1,10 +1,10 @@
 import {
+	CommonsGroup,
 	ResComputationStatus,
 	ResExport,
 	ResExportContent,
 	ResExportDefinitionType,
 	ResExportResult,
-	ResParameterGroup,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	EventEngine,
@@ -35,7 +35,7 @@ export class Export implements IExport {
 	#dependency!: string[];
 	#displayname?: string;
 	#filename?: string;
-	#group?: ResParameterGroup;
+	#group?: CommonsGroup;
 	#hidden: boolean = false;
 	#maxWaitTime: number = 300000;
 	#msg?: string;
@@ -86,7 +86,7 @@ export class Export implements IExport {
 		return this.#filename;
 	}
 
-	public get group(): ResParameterGroup | undefined {
+	public get group(): CommonsGroup | undefined {
 		return this.#group;
 	}
 

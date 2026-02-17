@@ -1,7 +1,7 @@
 import {
+	ReqExportDefinitionGroup as ShapeDiverResponseExportDefinitionGroup,
 	ResExport as ShapeDiverResponseExport,
 	ResExportContent as ShapeDiverResponseExportContent,
-	ResExportDefinitionGroup as ShapeDiverResponseExportDefinitionGroup,
 	ResExportDefinitionType as EXPORT_TYPE,
 	ResExportResult as ShapeDiverResponseExportResult,
 	ResModelComputationStats as ShapeDiverResponseModelComputationStatus,
