@@ -74,7 +74,7 @@ export const createUi = (session: ISessionApi, parent: HTMLDivElement) => {
 
 		// create a label with the name of the parameter
 		const label = document.createElement("label");
-		label.innerHTML = parameterObject.name;
+		label.textContent = parameterObject.name;
 
 		if (
 			parameterObject.type === PARAMETER_TYPE.INT ||
@@ -291,7 +291,7 @@ export const createUi = (session: ISessionApi, parent: HTMLDivElement) => {
 				const option = document.createElement("option");
 				option.setAttribute("value", j + "");
 				option.setAttribute("name", parameterObject.choices![j]);
-				option.innerHTML = parameterObject.choices![j];
+				option.textContent = parameterObject.choices![j];
 				option.classList.value =
 					"block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-gray-300";
 				if (+(parameterObject.value as string) == j)

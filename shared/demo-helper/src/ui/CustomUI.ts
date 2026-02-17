@@ -50,7 +50,7 @@ export const createCustomUi = (
 
 		// create a label with the name of the element
 		const label = document.createElement("label");
-		label.innerHTML = menuElement.name;
+		label.textContent = menuElement.name;
 
 		if (menuElement.type === "slider") {
 			const sliderElement = menuElement as ISliderElement;
@@ -186,7 +186,7 @@ export const createCustomUi = (
 				let option = document.createElement("option");
 				option.setAttribute("value", j + "");
 				option.setAttribute("name", dropdownElement.choices[j]);
-				option.innerHTML = dropdownElement.choices[j];
+				option.textContent = dropdownElement.choices[j];
 				option.classList.value =
 					"block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-gray-300";
 				if (dropdownElement.value == j)

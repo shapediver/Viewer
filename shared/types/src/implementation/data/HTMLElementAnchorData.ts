@@ -251,7 +251,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
 		const span = document.createElement("span");
 		span.classList.add("sdv-anchor-text");
 		span.style.color = properties.anchor.data.color?.toString();
-		span.innerHTML = properties.anchor.data.text;
+		span.textContent = properties.anchor.data.text;
 		properties.parent.appendChild(span);
 
 		if (
