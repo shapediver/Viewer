@@ -232,7 +232,7 @@ export class UtilsManager {
 		if (!(err instanceof Error)) throw this._httpClient.convertError(err);
 
 		// Process the error
-		const e = processError(err);
+		const e = await processError(err);
 
 		if (e instanceof ResponseError) {
 			if (e.type === ResErrorType.SESSION_GONE_ERROR) {
