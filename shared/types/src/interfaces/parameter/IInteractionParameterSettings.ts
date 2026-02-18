@@ -38,7 +38,8 @@ export interface IInteractionParameterProps {
 		/** The text when the parameter is inactive. */
 		activeText?: string;
 	};
-
+	/** The mode to determine when the parameter is active. (default: 'default') */
+	activeMode?: "default" | "activeOnStart";
 	// #endregion Properties (2)
 }
 
@@ -84,6 +85,7 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		})
 		.nullable()
 		.optional(),
+	activeMode: z.enum(["default", "activeOnStart"]).optional(),
 });
 
 export const ISelectionParameterPropsJsonSchema = z

@@ -139,6 +139,8 @@ export interface IDrawingParameterSettings {
 			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
 			snapToFaces?: boolean;
 		};
+		/** The mode to determine when the parameter is active. (default: 'default') */
+		activeMode?: "default" | "activeOnStart";
 	};
 	display?: Partial<IVisualizationSettings>;
 
@@ -189,6 +191,7 @@ export const IDrawingParameterJsonSchema = z.object({
 				})
 				.nullable()
 				.optional(),
+			activeMode: z.enum(["default", "activeOnStart"]).optional(),
 		})
 		.nullable()
 		.optional(),
