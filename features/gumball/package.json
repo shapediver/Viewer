@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.features.gumball",
-	"version": "3.15.10",
+	"version": "3.15.11",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -40,11 +40,11 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.15.10",
-		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.15.10",
-		"@shapediver/viewer.shared.node-tree": "3.15.10",
-		"@shapediver/viewer.shared.services": "3.15.10",
-		"@shapediver/viewer.shared.types": "3.15.10",
+		"@shapediver/viewer": "3.15.11",
+		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.15.11",
+		"@shapediver/viewer.shared.node-tree": "3.15.11",
+		"@shapediver/viewer.shared.services": "3.15.11",
+		"@shapediver/viewer.shared.types": "3.15.11",
 		"@types/three": "0.162.0",
 		"three": "0.162.0"
 	},
