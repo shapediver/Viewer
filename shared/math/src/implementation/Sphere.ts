@@ -60,13 +60,18 @@ export class Sphere implements ISphere {
 	}
 
 	public containsPoint(point: vec3): boolean {
-		return (
-			vec3.squaredDistance(point, this.center) <=
-			this.radius * this.radius
-		);
+		const distanceSq = vec3.squaredDistance(this._center, point);
+		return distanceSq <= this._radius * this._radius;
 	}
 
 	public clampPoint(point: vec3): vec3 {
+		const direction = vec3.sub(vec3.create(), point, this.center);
+		const lengthSq = vec3.squaredLength(direction);
+		if (lengthSq > this.radius * this.radius) {
+			vec3.normalize(direction, direction);
+			vec3.scale(direction, direction, this.radius);
+			vec3.add(point, this.center, direction);
+		}
 		return point;
 	}
 
