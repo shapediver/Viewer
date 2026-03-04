@@ -1,1 +1,1 @@
-jest ./__tests__ -u --passWithNoTests --runInBand
+jest ./__tests__ --passWithNoTests --runInBand
