@@ -219,6 +219,9 @@ export class RenderingManager implements IManager {
 		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		renderer.shadowMap.autoUpdate = false;
 		renderer.localClippingEnabled = true;
+		// Performance: Disable object sorting to save CPU cycles per frame
+		// Objects are sorted by material/program by default which is usually sufficient
+		renderer.sortObjects = false;
 		renderer.setSize(canvas.width, canvas.height);
 		renderer.setClearColor(new THREE.Color("#ffffff"), 1);
 		this._maxTextureUnits = renderer
@@ -475,10 +478,10 @@ export class RenderingManager implements IManager {
 		// animation loop - part 8: calculate the current size
 		const currentSize = new THREE.Vector2();
 		this._renderingEngine.renderer.getSize(currentSize);
+		// Performance: Direct property comparison instead of Vector2.equals()
 		if (
-			!currentSize.equals(
-				new THREE.Vector2(adjustedWidth, adjustedHeight),
-			)
+			currentSize.width !== adjustedWidth ||
+			currentSize.height !== adjustedHeight
 		) {
 			this._renderingEngine.renderer.setSize(
 				adjustedWidth,

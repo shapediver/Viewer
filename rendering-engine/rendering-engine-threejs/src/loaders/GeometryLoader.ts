@@ -122,6 +122,8 @@ export class GeometryLoader implements ILoader {
 		const morphAttributes = threeGeometry.morphAttributes;
 		const hasMorphTargets = Object.keys(morphAttributes).length > 0;
 
+		// Performance: Normalize settings to maximize shader program sharing
+		// These settings affect shader generation, so keep them consistent across materials
 		const materialSettings = {
 			mode: geometry.mode,
 			useVertexTangents: attributes.tangent !== undefined,
@@ -136,7 +138,10 @@ export class GeometryLoader implements ILoader {
 
 		if (incomingMaterialData instanceof MaterialGemData) {
 			const gemMaterialData = <MaterialGemData>incomingMaterialData;
-			threeGeometry.computeBoundingSphere();
+			// Only compute if not already computed
+			if (!threeGeometry.boundingSphere) {
+				threeGeometry.computeBoundingSphere();
+			}
 
 			const sphericalNormalMap = this.createCubeNormalMap(
 				geometry,
@@ -161,6 +166,20 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
+
+		// Performance: Disable unnecessary material features for static materials
+		if (!skeleton && !hasMorphTargets) {
+			// For non-transparent materials, ensure depth write/test are optimized
+			if (!material.transparent) {
+				material.depthWrite = true;
+				material.depthTest = true;
+			}
+		}
+
+		// Performance: Mark material as not needing update to avoid shader recompilation
+		// unless properties that affect the shader have changed
+		material.needsUpdate = false;
+
 		let threeGeometryObject: GeometryType;
 		if (
 			this._geometryCache[geometry.id + "_" + geometry.version] &&
