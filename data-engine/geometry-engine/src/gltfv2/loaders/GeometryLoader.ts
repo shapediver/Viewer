@@ -2,19 +2,16 @@ import {
 	IGLTF_v2,
 	IGLTF_v2_Primitive,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {Logger} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
 	IMapData,
 	IMaterialAbstractData,
-	InstanceData,
 	MapData,
 	MaterialVariantsData,
 	PrimitiveData,
 } from "@shapediver/viewer.shared.types";
-import {mat4} from "gl-matrix";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
 import {BufferViewLoader} from "./BufferViewLoader";
@@ -54,34 +51,27 @@ export class GeometryLoader {
 
 	// #region Public Methods (1)
 
-	public loadMesh(
-		meshId: number,
-		weights?: number[],
-		instanceTransformations: mat4[] = [],
-	): ITreeNode {
+	public loadMesh(meshId: number, weights?: number[]): GeometryData[] {
 		if (!this._content.meshes)
 			throw new Error("GeometryLoader.loadMesh: Meshes not available.");
 		if (!this._content.meshes[meshId])
 			throw new Error("GeometryLoader.loadMesh: Mesh not available.");
 
 		const mesh = this._content.meshes[meshId];
-		const meshNode = new TreeNode(mesh.name || "mesh_" + meshId);
-		meshNode.originalName = mesh.name;
-		if (instanceTransformations.length > 0)
-			meshNode.addData(new InstanceData(instanceTransformations));
 
-		if (mesh.primitives)
-			for (let i = 0, len = mesh.primitives.length; i < len; i++)
-				meshNode.addChild(
-					this.loadPrimitive(
-						meshId,
-						mesh.primitives,
-						i,
-						mesh.weights || weights,
-					),
+		const geometryDataArray: GeometryData[] = [];
+		if (mesh.primitives) {
+			for (let i = 0, len = mesh.primitives.length; i < len; i++) {
+				const geometryData = this.loadPrimitive(
+					meshId,
+					mesh.primitives,
+					i,
+					mesh.weights || weights,
 				);
-
-		return meshNode;
+				if (geometryData) geometryDataArray.push(geometryData);
+			}
+		}
+		return geometryDataArray;
 	}
 
 	// #endregion Public Methods (1)
@@ -150,15 +140,11 @@ export class GeometryLoader {
 		primitives: IGLTF_v2_Primitive[],
 		index: number,
 		weights: number[] = [],
-	): ITreeNode {
+	): GeometryData | undefined {
 		const primitive = primitives[index];
-		const primitiveNode = new TreeNode("primitive_" + index);
 
 		if (this._loaded["mesh_" + meshId + "_primitive_" + index]) {
-			primitiveNode.data.push(
-				this._loaded["mesh_" + meshId + "_primitive_" + index].clone(),
-			);
-			return primitiveNode;
+			return this._loaded["mesh_" + meshId + "_primitive_" + index];
 		}
 
 		const attributes: {
@@ -352,7 +338,7 @@ export class GeometryLoader {
 			this._logger.warn(
 				"GeometryLoader.loadPrimitive: No attributes found. Primitive will be ignored.",
 			);
-			return primitiveNode;
+			return;
 		}
 
 		// check if the material has maps defined and if so, if there are texture coordinates available
@@ -389,8 +375,7 @@ export class GeometryLoader {
 		geometryData.morphWeights = weights;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
 
-		primitiveNode.data.push(geometryData);
-		return primitiveNode;
+		return geometryData;
 	}
 
 	// #endregion Private Methods (1)

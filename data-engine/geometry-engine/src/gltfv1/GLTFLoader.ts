@@ -424,17 +424,16 @@ export class GLTFLoader {
 		return materialData;
 	}
 
-	private async loadMesh(meshName: string): Promise<ITreeNode> {
+	private async loadMesh(meshName: string): Promise<GeometryData[]> {
 		if (!this._content.meshes![meshName])
 			throw new Error("Mesh not available.");
 		const mesh = this._content.meshes![meshName];
-		const meshNode = new TreeNode(meshName);
 
-		if (!mesh.primitives) return new TreeNode("primitive");
+		if (!mesh.primitives) return [];
+
+		const geometryDataArray: GeometryData[] = [];
+
 		for (let i = 0, len = mesh.primitives!.length; i < len; i++) {
-			const primitiveNode = new TreeNode("primitive_" + i);
-			meshNode.addChild(primitiveNode);
-
 			const primitive = mesh.primitives![i];
 			const attributes: {
 				[key: string]: AttributeData;
@@ -491,9 +490,9 @@ export class GLTFLoader {
 				PRIMITIVE_MODE.TRIANGLES,
 				material,
 			);
-			primitiveNode.data.push(geometry);
+			geometryDataArray.push(geometry);
 		}
-		return meshNode;
+		return geometryDataArray;
 	}
 
 	private async loadNode(nodeName: string): Promise<ITreeNode> {
@@ -569,8 +568,9 @@ export class GLTFLoader {
 
 		if (node.meshes) {
 			for (let i = 0, len = node.meshes!.length; i < len; i++) {
-				// we create a child node as we one want to have one mesh as in the GLTF2 def
-				nodeDef.addChild(await this.loadMesh(node.meshes![i]));
+				const geometryDataArray = await this.loadMesh(node.meshes![i]);
+				for (let j = 0; j < geometryDataArray.length; j++)
+					nodeDef.addData(geometryDataArray[j]);
 			}
 		}
 

@@ -151,7 +151,6 @@ export class Tag3dEngine {
 				}
 			});
 
-			const tag3dNode = new TreeNode("tag3dDictionary");
 			for (const key in textTagDictionary) {
 				const {characterNode, transformations, colors} =
 					textTagDictionary[key];
@@ -187,9 +186,8 @@ export class Tag3dEngine {
 					);
 					meshNode.addData(instanceData);
 				}
-				tag3dNode.addChild(meshNode);
+				node.addChild(meshNode);
 			}
-			node.addChild(tag3dNode);
 		} else {
 			throw new ShapeDiverViewerDataProcessingError(
 				"Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.",
