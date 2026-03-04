@@ -21,8 +21,6 @@ export class TreeNode implements ITreeNode {
 	readonly #id: string;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
-	#boneInverses: mat4[] = [];
-	#bones: ITreeNode[] = [];
 	#convertedObject: {[key: string]: unknown} = {};
 	#displayName: string | undefined;
 	#excludeViewports: string[] = [];
@@ -32,7 +30,6 @@ export class TreeNode implements ITreeNode {
 	#originalName?: string;
 	#parent?: ITreeNode;
 	#restrictViewports: string[] = [];
-	#skinNode: boolean = false;
 	#transformations: ITransformation[] = [];
 	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
 		null;
@@ -65,22 +62,6 @@ export class TreeNode implements ITreeNode {
 		this.#originalId = this.#id;
 		this.#version = this.#uuidGenerator.create();
 		this.#parent?.addChild(this);
-	}
-
-	public get boneInverses(): mat4[] {
-		return this.#boneInverses;
-	}
-
-	public set boneInverses(value: mat4[]) {
-		this.#boneInverses = value;
-	}
-
-	public get bones(): ITreeNode[] {
-		return this.#bones;
-	}
-
-	public set bones(value: ITreeNode[]) {
-		this.#bones = value;
 	}
 
 	public get boundingBox(): IBox {
@@ -187,14 +168,6 @@ export class TreeNode implements ITreeNode {
 
 	public set restrictViewports(value: string[]) {
 		this.#restrictViewports = value;
-	}
-
-	public get skinNode(): boolean {
-		return this.#skinNode;
-	}
-
-	public set skinNode(value: boolean) {
-		this.#skinNode = value;
 	}
 
 	public get transformations(): ITransformation[] {
@@ -312,9 +285,6 @@ export class TreeNode implements ITreeNode {
 		clone.displayName = this.displayName;
 		clone.excludeViewports = this.excludeViewports;
 		clone.restrictViewports = this.restrictViewports;
-		clone.skinNode = this.skinNode;
-		clone.boneInverses = this.boneInverses;
-		clone.bones = this.bones;
 		clone.intersectionTest = this.intersectionTest;
 		clone.visible = this.visible;
 
@@ -343,9 +313,6 @@ export class TreeNode implements ITreeNode {
 		clone.displayName = this.displayName;
 		clone.excludeViewports = this.excludeViewports;
 		clone.restrictViewports = this.restrictViewports;
-		clone.skinNode = this.skinNode;
-		clone.boneInverses = this.boneInverses;
-		clone.bones = this.bones;
 		clone.intersectionTest = this.intersectionTest;
 		clone.visible = this.visible;
 		for (const child of this.#children)

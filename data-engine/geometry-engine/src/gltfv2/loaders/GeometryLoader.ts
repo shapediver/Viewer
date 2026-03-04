@@ -300,7 +300,6 @@ export class GeometryLoader {
 				} else if (
 					attributeName === "TEXCOORD" ||
 					attributeName === "COLOR" ||
-					attributeName === "JOINTS" ||
 					attributeName === "WEIGHTS"
 				) {
 					attributeName += "_0";

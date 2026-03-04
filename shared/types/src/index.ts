@@ -1,7 +1,6 @@
 import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
 import {AnimationData} from "./implementation/data/AnimationData";
-import {BoneData} from "./implementation/data/BoneData";
 import {ChunkData} from "./implementation/data/ChunkData";
 import {CustomData} from "./implementation/data/CustomData";
 import {
@@ -39,7 +38,6 @@ import {
 	IAnimationData,
 	IAnimationTrack,
 } from "./interfaces/data/IAnimationData";
-import {IBoneData} from "./interfaces/data/IBoneData";
 import {IChunkData} from "./interfaces/data/IChunkData";
 import {ICustomData} from "./interfaces/data/ICustomData";
 import {
@@ -334,14 +332,7 @@ export {
 	HTMLElementAnchorImageData,
 	HTMLElementAnchorData,
 };
-export {
-	ICustomData,
-	CustomData,
-	IBoneData,
-	BoneData,
-	IInstanceData,
-	InstanceData,
-};
+export {ICustomData, CustomData, IInstanceData, InstanceData};
 export {
 	EventResponseMapping,
 	IViewportEvent,

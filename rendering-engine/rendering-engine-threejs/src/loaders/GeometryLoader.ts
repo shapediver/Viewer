@@ -88,7 +88,6 @@ export class GeometryLoader implements ILoader {
 	 */
 	public load(
 		geometry: GeometryData,
-		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
 	): GeometryType {
 		// Cache key to avoid repeated string concatenation
@@ -168,7 +167,7 @@ export class GeometryLoader implements ILoader {
 		);
 
 		// Performance: Disable unnecessary material features for static materials
-		if (!skeleton && !hasMorphTargets) {
+		if (!hasMorphTargets) {
 			// For non-transparent materials, ensure depth write/test are optimized
 			if (!material.transparent) {
 				material.depthWrite = true;
@@ -181,10 +180,7 @@ export class GeometryLoader implements ILoader {
 		material.needsUpdate = false;
 
 		let threeGeometryObject: GeometryType;
-		if (
-			this._geometryCache[geometry.id + "_" + geometry.version] &&
-			!skeleton
-		) {
+		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
 			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
 			threeGeometryObject =
 				this._geometryCache[geometry.id + "_" + geometry.version].obj;
@@ -195,7 +191,6 @@ export class GeometryLoader implements ILoader {
 				geometry,
 				threeGeometry,
 				material,
-				skeleton,
 				instanceData,
 			);
 			threeGeometryObject.userData.cacheKey =
@@ -579,7 +574,6 @@ export class GeometryLoader implements ILoader {
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
-		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
 	): GeometryType {
 		let threeGeometryObject: GeometryType;
@@ -614,59 +608,40 @@ export class GeometryLoader implements ILoader {
 			)
 				this.convertToTriangleMode(bufferGeometry, geometry.mode);
 
-			if (skeleton) {
-				const skinnedMesh = new THREE.SkinnedMesh(
+			if (instanceData && instanceData.instanceMatrices.length > 0) {
+				const instanceCount = instanceData.instanceMatrices.length;
+				const instancedMesh = new THREE.InstancedMesh(
 					bufferGeometry,
 					material,
+					instanceCount,
 				);
-				geometry.convertedObject[this._renderingEngine.id] =
-					skinnedMesh;
-				skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
-
-				if (
-					(<THREE.BufferAttribute>(
-						bufferGeometry.attributes.skinWeight
-					)).normalized
-				)
-					skinnedMesh.normalizeSkinWeights();
-
-				threeGeometryObject = skinnedMesh;
-			} else {
-				if (instanceData && instanceData.instanceMatrices.length > 0) {
-					const instanceCount = instanceData.instanceMatrices.length;
-					const instancedMesh = new THREE.InstancedMesh(
-						bufferGeometry,
-						material,
-						instanceCount,
+				// Reuse matrix object to reduce allocations
+				const tempMatrix = new THREE.Matrix4();
+				for (let i = 0; i < instanceCount; i++) {
+					tempMatrix.fromArray(instanceData.instanceMatrices[i]);
+					instancedMesh.setMatrixAt(i, tempMatrix);
+					instancedMesh.setColorAt(
+						i,
+						this._renderingEngine.createThreeJsColor(
+							instanceData.instanceColors[i],
+						),
 					);
-					// Reuse matrix object to reduce allocations
-					const tempMatrix = new THREE.Matrix4();
-					for (let i = 0; i < instanceCount; i++) {
-						tempMatrix.fromArray(instanceData.instanceMatrices[i]);
-						instancedMesh.setMatrixAt(i, tempMatrix);
-						instancedMesh.setColorAt(
-							i,
-							this._renderingEngine.createThreeJsColor(
-								instanceData.instanceColors[i],
-							),
-						);
-					}
-
-					if (instancedMesh.instanceColor)
-						instancedMesh.instanceColor.needsUpdate = true;
-					instancedMesh.instanceMatrix.needsUpdate = true;
-
-					// Enable frustum culling for instanced meshes
-					instancedMesh.frustumCulled = true;
-
-					geometry.convertedObject[this._renderingEngine.id] =
-						instancedMesh;
-					threeGeometryObject = instancedMesh;
-				} else {
-					const mesh = new THREE.Mesh(bufferGeometry, material);
-					geometry.convertedObject[this._renderingEngine.id] = mesh;
-					threeGeometryObject = mesh;
 				}
+
+				if (instancedMesh.instanceColor)
+					instancedMesh.instanceColor.needsUpdate = true;
+				instancedMesh.instanceMatrix.needsUpdate = true;
+
+				// Enable frustum culling for instanced meshes
+				instancedMesh.frustumCulled = true;
+
+				geometry.convertedObject[this._renderingEngine.id] =
+					instancedMesh;
+				threeGeometryObject = instancedMesh;
+			} else {
+				const mesh = new THREE.Mesh(bufferGeometry, material);
+				geometry.convertedObject[this._renderingEngine.id] = mesh;
+				threeGeometryObject = mesh;
 			}
 		} else {
 			throw new ShapeDiverViewerDataProcessingError(
@@ -705,7 +680,7 @@ export class GeometryLoader implements ILoader {
 
 		// Performance: Disable matrixAutoUpdate for static geometry (no animations/transforms)
 		// This prevents Three.js from recalculating matrices every frame
-		if (!skeleton && !instanceData) {
+		if (!instanceData) {
 			threeGeometryObject.matrixAutoUpdate = false;
 		}
 
@@ -747,12 +722,6 @@ export class GeometryLoader implements ILoader {
 			case "COLOR0":
 			case "COLOR":
 				return "color";
-			case "WEIGHT":
-			case "WEIGHTS_0":
-				return "skinWeight";
-			case "JOINT":
-			case "JOINTS_0":
-				return "skinIndex";
 			case "TANGENT":
 				return "tangent";
 			case "POSITION_INDEX":

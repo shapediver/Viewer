@@ -3,18 +3,9 @@ import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {GeometryData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {SDBone} from "../../objects/SDBone";
 import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
 import {ThreejsData} from "../../types/ThreejsData";
-
-export const getBone = (mainNode: SDObject, node: ITreeNode): SDBone => {
-	let bone: SDBone;
-	mainNode.traverse((o) => {
-		if ((<SDObject>o).SDid === node.id) bone = <SDBone>o;
-	});
-	return bone!;
-};
 
 export const removeData = (
 	renderingEngine: RenderingEngine,
@@ -143,30 +134,25 @@ export const assignBoundingBox = (
 	data: ITreeNodeData,
 	renderingEngineId: string,
 	convertedObjectData: THREE.Object3D,
-	skeleton?: boolean,
 ) => {
 	// assign the bb
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
 		let bb: IBox = new Box();
-		if (skeleton) {
-			bb = geometry.primitive.computeBoundingBox(node.worldMatrix);
-		} else {
-			const clone = convertedObjectData.clone();
+		const clone = convertedObjectData.clone();
 
-			clone.matrix.identity();
-			clone.matrixWorld.identity();
-			clone.position.set(0, 0, 0);
-			clone.scale.set(1, 1, 1);
-			clone.quaternion.set(0, 0, 0, 1);
-			clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
+		clone.matrix.identity();
+		clone.matrixWorld.identity();
+		clone.position.set(0, 0, 0);
+		clone.scale.set(1, 1, 1);
+		clone.quaternion.set(0, 0, 0, 1);
+		clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
 
-			const threeBox = new THREE.Box3().setFromObject(clone, true);
-			bb = new Box(
-				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
-				vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
-			);
-		}
+		const threeBox = new THREE.Box3().setFromObject(clone, true);
+		bb = new Box(
+			vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
+			vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
+		);
 
 		// adjust the general BB
 		node.boundingBox.union(bb);

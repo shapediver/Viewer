@@ -24,8 +24,6 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	AnimationData,
-	AttributeData,
-	BoneData,
 	Color,
 	CustomData,
 	IAnimationTrack,
@@ -228,58 +226,6 @@ export class GLTFLoader {
 				);
 			this._geometryLoader.materialVariantsData.variantIndex = 0;
 			node.data.push(this._geometryLoader.materialVariantsData);
-		}
-
-		if (
-			this._content.skins !== undefined &&
-			this._content.nodes !== undefined
-		) {
-			for (let i = 0; i < this._content.nodes?.length; i++) {
-				if (this._content.nodes[i].skin !== undefined) {
-					const skinDef = this.loadSkin(this._content.nodes[i].skin!);
-
-					const skinNode = this._nodes[i];
-
-					const bones: ITreeNode[] = [];
-					const boneInverses: mat4[] = [];
-
-					for (let j = 0; j < skinDef.joints.length; j++) {
-						this._nodes[skinDef.joints[j]].data.push(
-							new BoneData(),
-						);
-						bones.push(this._nodes[skinDef.joints[j]]);
-
-						let mat = mat4.create();
-						if (skinDef.inverseBindMatrices !== undefined) {
-							const matricesArray =
-								skinDef.inverseBindMatrices!.array;
-							mat = mat4.fromValues(
-								matricesArray[j * 16 + 0],
-								matricesArray[j * 16 + 1],
-								matricesArray[j * 16 + 2],
-								matricesArray[j * 16 + 3],
-								matricesArray[j * 16 + 4],
-								matricesArray[j * 16 + 5],
-								matricesArray[j * 16 + 6],
-								matricesArray[j * 16 + 7],
-								matricesArray[j * 16 + 8],
-								matricesArray[j * 16 + 9],
-								matricesArray[j * 16 + 10],
-								matricesArray[j * 16 + 11],
-								matricesArray[j * 16 + 12],
-								matricesArray[j * 16 + 13],
-								matricesArray[j * 16 + 14],
-								matricesArray[j * 16 + 15],
-							);
-						}
-						boneInverses.push(mat);
-					}
-
-					skinNode.skinNode = true;
-					skinNode.bones = bones;
-					skinNode.boneInverses = boneInverses;
-				}
-			}
 		}
 
 		if (this._content.animations)
@@ -851,33 +797,6 @@ export class GLTFLoader {
 			for (let i = 0, len = scene.nodes.length; i < len; i++)
 				sceneDef.addChild(await this.loadNode(scene.nodes[i]));
 		return sceneDef;
-	}
-
-	private loadSkin(skinId: number): {
-		joints: number[];
-		inverseBindMatrices: AttributeData | null;
-	} {
-		if (!this._content.skins) throw new Error("Skins not available.");
-		if (!this._content.skins[skinId])
-			throw new Error("Skin not available.");
-		const skinDef = this._content.skins![skinId];
-
-		const skinEntry: {
-			joints: number[];
-			inverseBindMatrices: AttributeData | null;
-		} = {
-			joints: skinDef.joints,
-			inverseBindMatrices: null,
-		};
-
-		if (skinDef.inverseBindMatrices === undefined) {
-			return skinEntry;
-		}
-
-		skinEntry.inverseBindMatrices = this._accessorLoader.getAccessor(
-			skinDef.inverseBindMatrices,
-		);
-		return skinEntry;
 	}
 
 	private validateVersionAndExtensions(): void {

@@ -1115,8 +1115,7 @@ export class GLTFConverter {
 			nodeDef.children === undefined &&
 			nodeDef.mesh === undefined &&
 			nodeDef.extensions === undefined &&
-			nodeDef.extras === undefined &&
-			nodeDef.skin === undefined
+			nodeDef.extras === undefined
 		)
 			return -1;
 

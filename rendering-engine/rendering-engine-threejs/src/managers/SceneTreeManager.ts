@@ -14,12 +14,10 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE,
-	InputValidator,
 	PerformanceEvaluator,
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
 import {
-	BoneData,
 	GeometryData,
 	HTMLElementAnchorData,
 	InstanceData,
@@ -28,15 +26,10 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {SDBone} from "../objects/SDBone";
 import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
-import {
-	assignBoundingBox,
-	getBone,
-	removeData,
-} from "./sceneTree/SceenTreeManagerUtils";
+import {assignBoundingBox, removeData} from "./sceneTree/SceenTreeManagerUtils";
 import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
 import {assignEnvironmentMapForThreeJsDataObject} from "./sceneTree/ThreeJsDataUtils";
 
@@ -55,7 +48,6 @@ export class SceneTreeManager implements IManager {
 	// #region Properties (12)
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
-	private readonly _inputValidator: InputValidator = InputValidator.instance;
 	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _scene: THREE.Scene = new THREE.Scene();
 	private readonly _stateEngine: StateEngine = StateEngine.instance;
@@ -158,7 +150,6 @@ export class SceneTreeManager implements IManager {
 					if (filter.transformationOnly === false) {
 						dataChild = this._renderingEngine.geometryLoader.load(
 							<GeometryData>data,
-							skeleton,
 							instanceTransformationData,
 						);
 
@@ -224,13 +215,7 @@ export class SceneTreeManager implements IManager {
 		}
 
 		if (dataChild)
-			assignBoundingBox(
-				node,
-				data,
-				this._renderingEngine.id,
-				dataChild,
-				skeleton !== undefined,
-			);
+			assignBoundingBox(node, data, this._renderingEngine.id, dataChild);
 	}
 
 	/**
@@ -245,7 +230,6 @@ export class SceneTreeManager implements IManager {
 		obj: THREE.Object3D | undefined,
 		filter: UpdateFilter = {transformationOnly: false},
 		visibleInHierarchy: boolean = true,
-		skeleton?: THREE.Skeleton,
 	) {
 		if (obj === undefined) {
 			// check if there is a converted object
@@ -266,7 +250,6 @@ export class SceneTreeManager implements IManager {
 							] as THREE.Object3D,
 							filter,
 							visibleInHierarchy,
-							skeleton,
 						);
 						return;
 					} else {
@@ -359,21 +342,6 @@ export class SceneTreeManager implements IManager {
 			});
 		}
 
-		// create the skeleton if the node is marked as the skin node (root node of the skeleton)
-		if (node.skinNode === true) {
-			const bones: THREE.Bone[] = [];
-			for (let i = 0; i < node.bones.length; i++)
-				bones.push(getBone(this._mainNode, node.bones[i]));
-
-			const boneInverses: THREE.Matrix4[] = [];
-			for (let i = 0; i < node.boneInverses.length; i++)
-				boneInverses.push(
-					new THREE.Matrix4().fromArray(node.boneInverses[i]),
-				);
-
-			skeleton = new THREE.Skeleton(bones, boneInverses);
-		}
-
 		const isVisible =
 			node.visible &&
 			!node.excludeViewports.includes(this._renderingEngine.id) &&
@@ -408,7 +376,6 @@ export class SceneTreeManager implements IManager {
 					dataItem,
 					filter,
 					isVisibleInHierarchy,
-					skeleton,
 				);
 			} else {
 				assignBoundingBox(
@@ -416,7 +383,6 @@ export class SceneTreeManager implements IManager {
 					dataItem,
 					this._renderingEngine.id,
 					convertedObjectData,
-					skeleton !== undefined,
 				);
 			}
 		}
@@ -427,9 +393,7 @@ export class SceneTreeManager implements IManager {
 			const objChild = convertedChildrenMap.get(nodeChild.id);
 
 			if (!objChild) {
-				const newChild = node.data.find((d) => d instanceof BoneData)
-					? new SDBone(nodeChild.id, nodeChild.version)
-					: new SDObject(nodeChild.id, nodeChild.version);
+				const newChild = new SDObject(nodeChild.id, nodeChild.version);
 				const oldChild = nodeChild.convertedObject[
 					this._renderingEngine.id
 				] as THREE.Object3D;
@@ -446,7 +410,6 @@ export class SceneTreeManager implements IManager {
 					newChild,
 					filter,
 					isVisibleInHierarchy,
-					skeleton,
 				);
 			} else if (objChild.SDversion !== nodeChild.version) {
 				// if the version is different, update the child
@@ -455,7 +418,6 @@ export class SceneTreeManager implements IManager {
 					objChild,
 					filter,
 					isVisibleInHierarchy,
-					skeleton,
 				);
 				objChild.SDversion = nodeChild.version;
 			} else {
@@ -464,7 +426,6 @@ export class SceneTreeManager implements IManager {
 					objChild,
 					filter,
 					isVisibleInHierarchy,
-					skeleton,
 				);
 			}
 
