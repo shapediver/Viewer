@@ -225,125 +225,26 @@ export class SceneTreeManager implements IManager {
 	) {
 		// Resolve the converted object if not provided
 		if (obj === undefined) {
-			// check if there is a converted object
-			if (treeNode.convertedObject[this._renderingEngine.id]) {
-				obj = treeNode.convertedObject[
-					this._renderingEngine.id
-				] as THREE.Object3D;
-			} else {
-				// the node has not been converted yet
-				// go up the hierarchy until a converted object is found
-				let parent = treeNode.parent;
-				while (parent) {
-					if (parent.convertedObject[this._renderingEngine.id]) {
-						this.updateNode(
-							parent,
-							parent.convertedObject[
-								this._renderingEngine.id
-							] as THREE.Object3D,
-							filter,
-							visibleInHierarchy,
-						);
-						return;
-					} else {
-						parent = parent.parent;
-					}
-				}
-
-				// no converted object found in the hierarchy
-				// update the whole scene tree
-				this.updateSceneTree(this._tree.root);
-				return;
-			}
+			obj = this.resolveConvertedObject(
+				treeNode,
+				filter,
+				visibleInHierarchy,
+			);
+			if (!obj) return;
 		}
 
 		const convertedObject = <SDObject>obj;
 
-		// reset the general bounding box of the current node
-		// it will be recomputed in the following steps
-		treeNode.boundingBox.reset();
+		// reset bounding boxes
+		this.resetBoundingBoxes(treeNode);
 
-		// create the specific BB if it doesn't exist yet
-		if (!treeNode.boundingBoxViewport[this._renderingEngine.id])
-			treeNode.boundingBoxViewport[this._renderingEngine.id] = new Box();
-
-		// reset the specific bounding box of the current node
-		// it will be recomputed in the following steps
-		treeNode.boundingBoxViewport[this._renderingEngine.id].reset();
-
+		// cleanup obsolete data and children
 		if (filter.transformationOnly === false) {
-			// remove all data items that do not exist anymore
-			const dataMap = new Map(
-				treeNode.data.map((d) => [d.id, d.version]),
-			);
-			const dataToRemove = convertedObject.children.filter((oc) => {
-				if (
-					oc instanceof SDObject &&
-					oc.SDtype !== SD_DATA_TYPE.OBJECT
-				) {
-					const version = dataMap.get(oc.SDid);
-					if (version !== undefined) {
-						if (version !== oc.SDversion) {
-							// version is different
-							return true;
-						} else {
-							return false;
-						}
-					} else {
-						// id not included anymore
-						return true;
-					}
-				} else {
-					return false;
-				}
-			});
-
-			dataToRemove.forEach((dTR) => {
-				removeData(this._renderingEngine, <SDObject>dTR);
-				convertedObject.remove(dTR);
-			});
-
-			// remove all child nodes in the transformed object that do not exist anymore
-			// the filter goes also through the data items as they were already added
-			const nodeIds = new Set(
-				treeNode.children
-					.filter(
-						(d) =>
-							!d.excludeViewports.includes(
-								this._renderingEngine.id,
-							),
-					)
-					.map((d) => d.id),
-			);
-			const childrenToRemove = convertedObject.children.filter((oc) => {
-				if (
-					oc instanceof SDObject &&
-					oc.SDtype === SD_DATA_TYPE.OBJECT
-				) {
-					return !nodeIds.has(oc.SDid);
-				} else {
-					return false;
-				}
-			});
-			childrenToRemove.forEach((cTR) => {
-				cTR.traverse((o) => {
-					if (
-						o instanceof SDObject &&
-						o.SDtype !== SD_DATA_TYPE.OBJECT
-					)
-						removeData(this._renderingEngine, o);
-				});
-				convertedObject.remove(cTR);
-			});
+			this.cleanupObsoleteData(treeNode, convertedObject);
+			this.cleanupObsoleteChildren(treeNode, convertedObject);
 		}
 
-		const isVisible =
-			treeNode.visible &&
-			!treeNode.excludeViewports.includes(this._renderingEngine.id) &&
-			!(
-				treeNode.restrictViewports.length > 0 &&
-				!treeNode.restrictViewports.includes(this._renderingEngine.id)
-			);
+		const isVisible = this.isNodeVisible(treeNode);
 		const isVisibleInHierarchy = visibleInHierarchy && isVisible;
 
 		// convert all data items of the current node
@@ -390,74 +291,15 @@ export class SceneTreeManager implements IManager {
 				treeNodeChild.id,
 			);
 
-			if (!childConvertedObject) {
-				const newChild = new SDObject(
-					treeNodeChild.id,
-					treeNodeChild.version,
-				);
-				const oldChild = treeNodeChild.convertedObject[
-					this._renderingEngine.id
-				] as THREE.Object3D;
-				treeNodeChild.convertedObject[this._renderingEngine.id] =
-					newChild;
-				if (treeNodeChild.updateCallbackConvertedObject)
-					treeNodeChild.updateCallbackConvertedObject(
-						newChild,
-						oldChild,
-						this._renderingEngine.id,
-					);
-				convertedObject.add(newChild);
-				this.updateNode(
-					treeNodeChild,
-					newChild,
-					filter,
-					isVisibleInHierarchy,
-				);
-			} else if (
-				childConvertedObject.SDversion !== treeNodeChild.version ||
-				this._newRendererType
-			) {
-				// if the version is different, update the child
-				this.updateNode(
-					treeNodeChild,
-					childConvertedObject,
-					filter,
-					isVisibleInHierarchy,
-				);
-				childConvertedObject.SDversion = treeNodeChild.version;
-			} else {
-				this.updateNode(
-					treeNodeChild,
-					childConvertedObject,
-					filter,
-					isVisibleInHierarchy,
-				);
-			}
+			this.processChildTreeNode(
+				treeNodeChild,
+				convertedObject,
+				childConvertedObject,
+				filter,
+				isVisibleInHierarchy,
+			);
 
-			// adjust the general BB
-			if (!treeNodeChild.boundingBox.isEmpty())
-				treeNode.boundingBox.union(treeNodeChild.boundingBox);
-
-			// adjust the specific BB
-			if (
-				treeNodeChild.boundingBoxViewport[this._renderingEngine.id] &&
-				!treeNodeChild.boundingBoxViewport[
-					this._renderingEngine.id
-				].isEmpty()
-			) {
-				// only do this if the node is
-				// 1. visible
-				// 2. no included in the "excludeViewports"
-				// 3. if there are "restrictViewports", it needs to be in them
-				if (isVisible)
-					treeNode.boundingBoxViewport[
-						this._renderingEngine.id
-					].union(
-						treeNodeChild.boundingBoxViewport[
-							this._renderingEngine.id
-						],
-					);
-			}
+			this.unionChildBoundingBoxes(treeNode, treeNodeChild, isVisible);
 		}
 
 		convertedObject.visible = isVisible;
@@ -615,6 +457,228 @@ export class SceneTreeManager implements IManager {
 		this._performanceEvaluator.endSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
 		);
+	}
+
+	/**
+	 * Remove obsolete child nodes from the converted object
+	 */
+	private cleanupObsoleteChildren(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+	): void {
+		// remove all child nodes in the transformed object that do not exist anymore
+		// the filter goes also through the data items as they were already added
+		const nodeIds = new Set(
+			treeNode.children
+				.filter(
+					(d) =>
+						!d.excludeViewports.includes(this._renderingEngine.id),
+				)
+				.map((d) => d.id),
+		);
+		const childrenToRemove = convertedObject.children.filter((oc) => {
+			if (oc instanceof SDObject && oc.SDtype === SD_DATA_TYPE.OBJECT) {
+				return !nodeIds.has(oc.SDid);
+			} else {
+				return false;
+			}
+		});
+		childrenToRemove.forEach((cTR) => {
+			cTR.traverse((o) => {
+				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT)
+					removeData(this._renderingEngine, o);
+			});
+			convertedObject.remove(cTR);
+		});
+	}
+
+	/**
+	 * Remove obsolete data items from the converted object
+	 */
+	private cleanupObsoleteData(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+	): void {
+		// remove all data items that do not exist anymore
+		const dataMap = new Map(treeNode.data.map((d) => [d.id, d.version]));
+		const dataToRemove = convertedObject.children.filter((oc) => {
+			if (oc instanceof SDObject && oc.SDtype !== SD_DATA_TYPE.OBJECT) {
+				const version = dataMap.get(oc.SDid);
+				if (version !== undefined) {
+					if (version !== oc.SDversion) {
+						// version is different
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					// id not included anymore
+					return true;
+				}
+			} else {
+				return false;
+			}
+		});
+
+		dataToRemove.forEach((dTR) => {
+			removeData(this._renderingEngine, <SDObject>dTR);
+			convertedObject.remove(dTR);
+		});
+	}
+
+	/**
+	 * Check if a node is visible in the current viewport
+	 */
+	private isNodeVisible(treeNode: ITreeNode): boolean {
+		return (
+			treeNode.visible &&
+			!treeNode.excludeViewports.includes(this._renderingEngine.id) &&
+			!(
+				treeNode.restrictViewports.length > 0 &&
+				!treeNode.restrictViewports.includes(this._renderingEngine.id)
+			)
+		);
+	}
+
+	/**
+	 * Process a child node by creating it if needed, updating it, and syncing bounding boxes
+	 */
+	private processChildTreeNode(
+		treeNodeChild: ITreeNode,
+		convertedObject: SDObject,
+		childConvertedObject: SDObject | undefined,
+		filter: UpdateFilter,
+		isVisibleInHierarchy: boolean,
+	): void {
+		if (!childConvertedObject) {
+			const newChild = new SDObject(
+				treeNodeChild.id,
+				treeNodeChild.version,
+			);
+			const oldChild = treeNodeChild.convertedObject[
+				this._renderingEngine.id
+			] as THREE.Object3D;
+			treeNodeChild.convertedObject[this._renderingEngine.id] = newChild;
+			if (treeNodeChild.updateCallbackConvertedObject)
+				treeNodeChild.updateCallbackConvertedObject(
+					newChild,
+					oldChild,
+					this._renderingEngine.id,
+				);
+			convertedObject.add(newChild);
+			this.updateNode(
+				treeNodeChild,
+				newChild,
+				filter,
+				isVisibleInHierarchy,
+			);
+		} else if (
+			childConvertedObject.SDversion !== treeNodeChild.version ||
+			this._newRendererType
+		) {
+			// if the version is different, update the child
+			this.updateNode(
+				treeNodeChild,
+				childConvertedObject,
+				filter,
+				isVisibleInHierarchy,
+			);
+			childConvertedObject.SDversion = treeNodeChild.version;
+		} else {
+			this.updateNode(
+				treeNodeChild,
+				childConvertedObject,
+				filter,
+				isVisibleInHierarchy,
+			);
+		}
+	}
+
+	/**
+	 * Reset and initialize bounding boxes for a node
+	 */
+	private resetBoundingBoxes(treeNode: ITreeNode): void {
+		// reset the general bounding box of the current node
+		// it will be recomputed in the following steps
+		treeNode.boundingBox.reset();
+
+		// create the specific BB if it doesn't exist yet
+		if (!treeNode.boundingBoxViewport[this._renderingEngine.id])
+			treeNode.boundingBoxViewport[this._renderingEngine.id] = new Box();
+
+		// reset the specific bounding box of the current node
+		// it will be recomputed in the following steps
+		treeNode.boundingBoxViewport[this._renderingEngine.id].reset();
+	}
+
+	/**
+	 * Resolves the converted object for a node, handling cases where it doesn't exist
+	 */
+	private resolveConvertedObject(
+		treeNode: ITreeNode,
+		filter: UpdateFilter,
+		visibleInHierarchy: boolean,
+	): THREE.Object3D | undefined {
+		// check if there is a converted object
+		if (treeNode.convertedObject[this._renderingEngine.id]) {
+			return treeNode.convertedObject[
+				this._renderingEngine.id
+			] as THREE.Object3D;
+		} else {
+			// the node has not been converted yet
+			// go up the hierarchy until a converted object is found
+			let parent = treeNode.parent;
+			while (parent) {
+				if (parent.convertedObject[this._renderingEngine.id]) {
+					this.updateNode(
+						parent,
+						parent.convertedObject[
+							this._renderingEngine.id
+						] as THREE.Object3D,
+						filter,
+						visibleInHierarchy,
+					);
+					return;
+				} else {
+					parent = parent.parent;
+				}
+			}
+
+			// no converted object found in the hierarchy
+			// update the whole scene tree
+			this.updateSceneTree(this._tree.root);
+			return;
+		}
+	}
+
+	/**
+	 * Union child bounding boxes with parent bounding boxes
+	 */
+	private unionChildBoundingBoxes(
+		treeNode: ITreeNode,
+		treeNodeChild: ITreeNode,
+		isVisible: boolean,
+	): void {
+		// adjust the general BB
+		if (!treeNodeChild.boundingBox.isEmpty())
+			treeNode.boundingBox.union(treeNodeChild.boundingBox);
+
+		// adjust the specific BB
+		if (
+			treeNodeChild.boundingBoxViewport[this._renderingEngine.id] &&
+			!treeNodeChild.boundingBoxViewport[
+				this._renderingEngine.id
+			].isEmpty()
+		) {
+			// only do this if the node is
+			// 1. visible
+			// 2. no included in the "excludeViewports"
+			// 3. if there are "restrictViewports", it needs to be in them
+			if (isVisible)
+				treeNode.boundingBoxViewport[this._renderingEngine.id].union(
+					treeNodeChild.boundingBoxViewport[this._renderingEngine.id],
+				);
+		}
 	}
 }
 
