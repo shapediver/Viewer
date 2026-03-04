@@ -19,8 +19,15 @@ import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {ILoader} from "../interfaces/ILoader";
 import {GemMaterial} from "../materials/GemMaterial";
-import {SDData} from "../objects/SDData";
+import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
+
+type GeometryType =
+	| THREE.Mesh
+	| THREE.Line
+	| THREE.Points
+	| THREE.LineSegments
+	| THREE.LineLoop;
 
 export class GeometryLoader implements ILoader {
 	// #region Properties (8)
@@ -38,9 +45,9 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryCache: {
 		[key: string]: {
-			obj: SDData;
+			obj: GeometryType;
 			primitiveCacheId: string;
-			clones: SDData[];
+			clones: GeometryType[];
 			counter: number;
 		};
 	} = {};
@@ -83,7 +90,7 @@ export class GeometryLoader implements ILoader {
 	 */
 	public load(
 		geometry: GeometryData,
-		parent: SDData,
+		parent: SDObject,
 		newChild: boolean,
 		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
@@ -164,29 +171,32 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
-		let obj: SDData;
+		let threeGeometryObject: GeometryType;
 		if (
 			this._geometryCache[geometry.id + "_" + geometry.version] &&
 			!skeleton
 		) {
 			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			obj = this._geometryCache[geometry.id + "_" + geometry.version].obj;
+			threeGeometryObject =
+				this._geometryCache[geometry.id + "_" + geometry.version].obj;
 
 			// case 1: in case the geometry data was cloned and this is a different object
 			// case 2: it is a new child
 			if (
-				(newChild === false && obj.parent !== parent) ||
+				(newChild === false && threeGeometryObject.parent !== parent) ||
 				newChild === true
 			) {
-				obj = obj.cloneObject() as SDData;
+				threeGeometryObject =
+					threeGeometryObject.clone() as GeometryType;
 				this._geometryCache[
 					geometry.id + "_" + geometry.version
-				].clones.push(obj);
-				obj.userData.cacheKey = geometry.id + "_" + geometry.version;
-				parent.add(obj);
+				].clones.push(threeGeometryObject);
+				threeGeometryObject.userData.cacheKey =
+					geometry.id + "_" + geometry.version;
+				parent.add(threeGeometryObject);
 			}
 
-			obj.traverse((o) => {
+			threeGeometryObject.traverse((o) => {
 				if (
 					o instanceof THREE.Points ||
 					o instanceof THREE.LineSegments ||
@@ -197,31 +207,34 @@ export class GeometryLoader implements ILoader {
 					o.material = material;
 			});
 		} else {
-			obj = new SDData(geometry.id, geometry.version);
-			this.createMesh(
-				obj,
+			threeGeometryObject = this.createMesh(
+				parent,
 				geometry,
 				threeGeometry,
 				material,
 				skeleton,
 				instanceData,
 			);
-			obj.userData.cacheKey = geometry.id + "_" + geometry.version;
+			threeGeometryObject.userData.cacheKey =
+				geometry.id + "_" + geometry.version;
 			this._geometryCache[geometry.id + "_" + geometry.version] = {
-				obj,
+				obj: threeGeometryObject,
 				counter: 1,
 				clones: [],
 				primitiveCacheId:
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
-			parent.add(obj);
 		}
 
-		obj.children.forEach((m) => (m.castShadow = true));
+		threeGeometryObject.children.forEach((m) => (m.castShadow = true));
 		if (material instanceof GemMaterial) {
-			obj.children.forEach((m) => (m.receiveShadow = false));
+			threeGeometryObject.children.forEach(
+				(m) => (m.receiveShadow = false),
+			);
 		} else {
-			obj.children.forEach((m) => (m.receiveShadow = true));
+			threeGeometryObject.children.forEach(
+				(m) => (m.receiveShadow = true),
+			);
 		}
 
 		return geometry.boundingBox.clone();
@@ -587,17 +600,19 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
-		obj: SDData,
+		obj: SDObject,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
 		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
 	) {
+		let threeGeometryObject: GeometryType;
 		if (geometry.mode === PRIMITIVE_MODE.POINTS) {
 			const points = new THREE.Points(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = points;
 			obj.add(points);
+			threeGeometryObject = points;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINES) {
 			const lineSegments = new THREE.LineSegments(
 				threeGeometry,
@@ -605,14 +620,17 @@ export class GeometryLoader implements ILoader {
 			);
 			geometry.convertedObject[this._renderingEngine.id] = lineSegments;
 			obj.add(lineSegments);
+			threeGeometryObject = lineSegments;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_LOOP) {
 			const lineLoop = new THREE.LineLoop(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = lineLoop;
 			obj.add(lineLoop);
+			threeGeometryObject = lineLoop;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
 			const line = new THREE.Line(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = line;
 			obj.add(line);
+			threeGeometryObject = line;
 		} else if (
 			geometry.mode === PRIMITIVE_MODE.TRIANGLES ||
 			geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP ||
@@ -642,6 +660,7 @@ export class GeometryLoader implements ILoader {
 					skinnedMesh.normalizeSkinWeights();
 
 				obj.add(skinnedMesh);
+				threeGeometryObject = skinnedMesh;
 			} else {
 				if (instanceData && instanceData.instanceMatrices.length > 0) {
 					const instancedMesh = new THREE.InstancedMesh(
@@ -674,10 +693,12 @@ export class GeometryLoader implements ILoader {
 					geometry.convertedObject[this._renderingEngine.id] =
 						instancedMesh;
 					obj.add(instancedMesh);
+					threeGeometryObject = instancedMesh;
 				} else {
 					const mesh = new THREE.Mesh(bufferGeometry, material);
 					geometry.convertedObject[this._renderingEngine.id] = mesh;
 					obj.add(mesh);
+					threeGeometryObject = mesh;
 				}
 			}
 		} else {
@@ -730,6 +751,8 @@ export class GeometryLoader implements ILoader {
 				(<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
 			}
 		});
+
+		return threeGeometryObject;
 	}
 
 	private getAttributeName(attributeId: string): string {

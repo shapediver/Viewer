@@ -9,7 +9,7 @@ import {
 import {IBox, ISphere} from "@shapediver/viewer.shared.math";
 import * as THREE from "three";
 import {ILoader} from "../interfaces/ILoader";
-import {SDData} from "../objects/SDData";
+import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 
 export class LightLoader implements ILoader {
@@ -50,7 +50,7 @@ export class LightLoader implements ILoader {
 
 	public adjustToBoundingBox(
 		light: AbstractLight,
-		dataChild: SDData,
+		dataChild: SDObject,
 		boundingBox: IBox,
 	) {
 		const threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
@@ -96,7 +96,7 @@ export class LightLoader implements ILoader {
 
 	public init(): void {}
 
-	public load(light: AbstractLight, dataChild: SDData) {
+	public load(light: AbstractLight, dataChild: SDObject) {
 		let threeLight: THREE.Light | null =
 			dataChild.children[0] instanceof THREE.Light
 				? <THREE.Light>dataChild.children[0]

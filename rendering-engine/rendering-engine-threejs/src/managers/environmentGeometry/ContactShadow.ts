@@ -2,7 +2,6 @@ import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {HorizontalBlurShader} from "three/examples/jsm/shaders/HorizontalBlurShader.js";
 import {VerticalBlurShader} from "three/examples/jsm/shaders/VerticalBlurShader.js";
-import {SDData} from "../../objects/SDData";
 import {SDObject} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
 import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
@@ -17,7 +16,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 		THREE.Object3DEventMap
 	>;
 	private _color: string = "#ffffff";
-	private _contactShadowObject: SDData;
+	private _contactShadowObject: SDObject;
 	private _darkness: number = 2.5;
 	private _fillPlane!: THREE.Mesh<
 		THREE.PlaneGeometry,
@@ -51,7 +50,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 		private readonly _renderingEngine: RenderingEngine,
 		private readonly _parent: SDObject,
 	) {
-		this._contactShadowObject = new SDData("contactShadow", "");
+		this._contactShadowObject = new SDObject("contactShadow", "");
 		this._contactShadowObject.visible = false;
 		this._contactShadowObject.userData.ambientOcclusion = false;
 		this._parent.add(this._contactShadowObject);

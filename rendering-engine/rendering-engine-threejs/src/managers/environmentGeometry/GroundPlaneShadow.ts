@@ -3,7 +3,6 @@ import {Color, MaterialShadowData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {RenderingEngine} from "../..";
-import {SDData} from "../../objects/SDData";
 import {SDObject} from "../../objects/SDObject";
 import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
@@ -14,7 +13,7 @@ export class GroundPlaneShadow implements IEnvironmentGeometry {
 
 	private _color: Color = "#d3d3d3ff";
 	private _groundPlaneShadow!: THREE.Mesh;
-	private _groundPlaneShadowObject!: SDData;
+	private _groundPlaneShadowObject!: SDObject;
 
 	// #endregion Properties (4)
 
@@ -24,7 +23,7 @@ export class GroundPlaneShadow implements IEnvironmentGeometry {
 		private readonly _renderingEngine: RenderingEngine,
 		private readonly _parent: SDObject,
 	) {
-		this._groundPlaneShadowObject = new SDData("groundPlaneShadow", "");
+		this._groundPlaneShadowObject = new SDObject("groundPlaneShadow", "");
 		const matShadow = new MaterialShadowData();
 		matShadow.color = this._color;
 		matShadow.opacity = this._converter.toAlpha(this._color);

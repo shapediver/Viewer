@@ -7,7 +7,7 @@ import {
 import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
-import {SDData} from "../objects/SDData";
+import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 
 export class CameraManager implements IManager {
@@ -219,7 +219,7 @@ export class CameraManager implements IManager {
 
 	public init(): void {}
 
-	public load(camera: AbstractCamera, dataChild?: SDData) {
+	public load(camera: AbstractCamera, dataChild?: SDObject) {
 		let threeCamera: THREE.Camera | null = this.#cameraCache[camera.id];
 
 		if (camera instanceof PerspectiveCamera) {

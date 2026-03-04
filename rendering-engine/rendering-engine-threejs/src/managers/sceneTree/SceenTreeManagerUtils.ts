@@ -4,8 +4,7 @@ import {GeometryData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDBone} from "../../objects/SDBone";
-import {SDData, SD_DATA_TYPE} from "../../objects/SDData";
-import {SDObject} from "../../objects/SDObject";
+import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
 import {ThreejsData} from "../../types/ThreejsData";
 
@@ -19,7 +18,7 @@ export const getBone = (mainNode: SDObject, node: ITreeNode): SDBone => {
 
 export const removeData = (
 	renderingEngine: RenderingEngine,
-	dataObject: SDData,
+	dataObject: SDObject,
 ) => {
 	if (dataObject.userData.removed === true) return;
 	dataObject.userData.removed = true;
@@ -108,11 +107,11 @@ export const updateMorphWeights = (node: ITreeNode, obj: SDObject) => {
 	for (let i = 0, len = node.data.length; i < len; i++) {
 		if (node.data[i] instanceof GeometryData) {
 			const data: GeometryData = <GeometryData>node.data[i];
-			const dataChild = <SDData>(
+			const dataChild = <SDObject>(
 				obj.children.find(
 					(oc) =>
-						(<SDData>oc).SDid === data.id &&
-						(<SDData>oc).SDversion === data.version,
+						(<SDObject>oc).SDid === data.id &&
+						(<SDObject>oc).SDversion === data.version,
 				)
 			);
 			if (dataChild)

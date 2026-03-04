@@ -7,7 +7,6 @@ import {
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {RenderingEngine} from "../..";
-import {SDData} from "../../objects/SDData";
 import {SDObject} from "../../objects/SDObject";
 import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
@@ -18,7 +17,7 @@ export class GroundPlane implements IEnvironmentGeometry {
 
 	private _color: Color = "#d3d3d3ff";
 	private _groundPlane!: THREE.Mesh;
-	private _groundPlaneObject!: SDData;
+	private _groundPlaneObject!: SDObject;
 
 	// #endregion Properties (4)
 
@@ -28,7 +27,7 @@ export class GroundPlane implements IEnvironmentGeometry {
 		private readonly _renderingEngine: RenderingEngine,
 		private readonly _parent: SDObject,
 	) {
-		this._groundPlaneObject = new SDData("groundPlane", "");
+		this._groundPlaneObject = new SDObject("groundPlane", "");
 		const mat = new MaterialStandardData();
 		mat.color = this._color;
 		mat.side = MATERIAL_SIDE.FRONT;
