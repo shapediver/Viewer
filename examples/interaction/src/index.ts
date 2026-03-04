@@ -125,11 +125,10 @@ const updateInteractions = (interactionTypes: {[key: string]: boolean}) => {
 
 			// remove old data
 			const old = node.data.filter((d) => d instanceof InteractionData);
-			old.forEach((dTR) => node.data.splice(node.data.indexOf(dTR), 1));
+			node.removeData(old);
 
 			// we add the data and make the node invisible for now
-			node.data.push(data);
-			node.updateVersion();
+			node.addData(data);
 		}
 	}
 };
@@ -244,8 +243,8 @@ const activateInteractions = () => {
 						def.output!.name + "_" + (def.counter - 1),
 					)[0]!;
 					node.visible = false;
-					node.updateVersion();
-					viewport.update();
+					node.updateVersion(false, false);
+					viewport.updateNode(node);
 
 					removeListener(activateInteractionsToken.end);
 					activateInteractions();
@@ -309,8 +308,7 @@ const addShelf = async (def: ShelfDefinition) => {
 	);
 
 	// we add the data and make the node invisible for now
-	newNode.data.push(data);
-	newNode.updateVersion();
+	newNode.addData(data);
 	newNode!.visible = false;
 	viewport.update();
 
@@ -328,7 +326,7 @@ const addShelf = async (def: ShelfDefinition) => {
 			} else {
 				// the viewer was entered, make it visible
 				newNode!.visible = true;
-				newNode.updateVersion();
+				newNode.updateVersion(false, false);
 				viewport.updateNode(newNode);
 			}
 			removeListener(tokenMove);
@@ -369,8 +367,8 @@ const addShelf = async (def: ShelfDefinition) => {
 			def.output!.name + "_" + (def.counter - 1),
 		)[0]!;
 		node.visible = false;
-		node.updateVersion();
-		viewport.update();
+		node.updateVersion(false, false);
+		viewport.updateNode(node);
 
 		removeListener(tokenEnd);
 		activateInteractions();
@@ -425,7 +423,7 @@ const addShelf = async (def: ShelfDefinition) => {
 			shelves[i].output!.name + "_0",
 		)[0]!;
 		node.visible = false;
-		node.updateVersion();
+		node.updateVersion(false, false);
 	}
 	viewport.update();
 
