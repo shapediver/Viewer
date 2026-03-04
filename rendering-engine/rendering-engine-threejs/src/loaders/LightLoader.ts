@@ -236,6 +236,8 @@ export class LightLoader implements ILoader {
 				light.target[2],
 			);
 		}
+
+		return threeLight;
 	}
 
 	// #endregion Public Methods (3)

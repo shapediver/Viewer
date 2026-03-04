@@ -1,4 +1,3 @@
-import {IBox} from "@shapediver/viewer.shared.math";
 import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
@@ -19,7 +18,6 @@ import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {ILoader} from "../interfaces/ILoader";
 import {GemMaterial} from "../materials/GemMaterial";
-import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 
 type GeometryType =
@@ -90,11 +88,9 @@ export class GeometryLoader implements ILoader {
 	 */
 	public load(
 		geometry: GeometryData,
-		parent: SDObject,
-		newChild: boolean,
 		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
-	): IBox {
+	): GeometryType {
 		const threeGeometry = (() => {
 			if (
 				!this._primitiveCache[
@@ -165,8 +161,6 @@ export class GeometryLoader implements ILoader {
 			(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
 		}
 
-		while (parent.children.length !== 0) parent.remove(parent.children[0]);
-
 		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
@@ -180,22 +174,6 @@ export class GeometryLoader implements ILoader {
 			threeGeometryObject =
 				this._geometryCache[geometry.id + "_" + geometry.version].obj;
 
-			// case 1: in case the geometry data was cloned and this is a different object
-			// case 2: it is a new child
-			if (
-				(newChild === false && threeGeometryObject.parent !== parent) ||
-				newChild === true
-			) {
-				threeGeometryObject =
-					threeGeometryObject.clone() as GeometryType;
-				this._geometryCache[
-					geometry.id + "_" + geometry.version
-				].clones.push(threeGeometryObject);
-				threeGeometryObject.userData.cacheKey =
-					geometry.id + "_" + geometry.version;
-				parent.add(threeGeometryObject);
-			}
-
 			threeGeometryObject.traverse((o) => {
 				if (
 					o instanceof THREE.Points ||
@@ -208,7 +186,6 @@ export class GeometryLoader implements ILoader {
 			});
 		} else {
 			threeGeometryObject = this.createMesh(
-				parent,
 				geometry,
 				threeGeometry,
 				material,
@@ -233,7 +210,7 @@ export class GeometryLoader implements ILoader {
 			threeGeometryObject.receiveShadow = true;
 		}
 
-		return geometry.boundingBox.clone();
+		return threeGeometryObject;
 	}
 
 	public loadPrimitive(primitive: IPrimitiveData): THREE.BufferGeometry {
@@ -596,7 +573,6 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
-		obj: SDObject,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
@@ -607,7 +583,6 @@ export class GeometryLoader implements ILoader {
 		if (geometry.mode === PRIMITIVE_MODE.POINTS) {
 			const points = new THREE.Points(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = points;
-			obj.add(points);
 			threeGeometryObject = points;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINES) {
 			const lineSegments = new THREE.LineSegments(
@@ -615,17 +590,14 @@ export class GeometryLoader implements ILoader {
 				material,
 			);
 			geometry.convertedObject[this._renderingEngine.id] = lineSegments;
-			obj.add(lineSegments);
 			threeGeometryObject = lineSegments;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_LOOP) {
 			const lineLoop = new THREE.LineLoop(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = lineLoop;
-			obj.add(lineLoop);
 			threeGeometryObject = lineLoop;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
 			const line = new THREE.Line(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = line;
-			obj.add(line);
 			threeGeometryObject = line;
 		} else if (
 			geometry.mode === PRIMITIVE_MODE.TRIANGLES ||
@@ -655,7 +627,6 @@ export class GeometryLoader implements ILoader {
 				)
 					skinnedMesh.normalizeSkinWeights();
 
-				obj.add(skinnedMesh);
 				threeGeometryObject = skinnedMesh;
 			} else {
 				if (instanceData && instanceData.instanceMatrices.length > 0) {
@@ -688,12 +659,10 @@ export class GeometryLoader implements ILoader {
 					instancedMesh.instanceMatrix.needsUpdate = true;
 					geometry.convertedObject[this._renderingEngine.id] =
 						instancedMesh;
-					obj.add(instancedMesh);
 					threeGeometryObject = instancedMesh;
 				} else {
 					const mesh = new THREE.Mesh(bufferGeometry, material);
 					geometry.convertedObject[this._renderingEngine.id] = mesh;
-					obj.add(mesh);
 					threeGeometryObject = mesh;
 				}
 			}
@@ -703,7 +672,7 @@ export class GeometryLoader implements ILoader {
 			);
 		}
 
-		obj.traverse((m) => {
+		threeGeometryObject.traverse((m) => {
 			if (
 				m instanceof THREE.Mesh ||
 				m instanceof THREE.Points ||

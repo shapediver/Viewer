@@ -142,7 +142,7 @@ export const assignBoundingBox = (
 	node: ITreeNode,
 	data: ITreeNodeData,
 	renderingEngineId: string,
-	convertedObjectData: SDObject,
+	convertedObjectData: THREE.Object3D,
 	skeleton?: boolean,
 ) => {
 	// assign the bb
@@ -153,7 +153,14 @@ export const assignBoundingBox = (
 			bb = geometry.primitive.computeBoundingBox(node.worldMatrix);
 		} else {
 			const clone = convertedObjectData.clone();
-			clone.applyTransformation(node.worldMatrix);
+
+			clone.matrix.identity();
+			clone.matrixWorld.identity();
+			clone.position.set(0, 0, 0);
+			clone.scale.set(1, 1, 1);
+			clone.quaternion.set(0, 0, 0, 1);
+			clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
+
 			const threeBox = new THREE.Box3().setFromObject(clone, true);
 			bb = new Box(
 				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),

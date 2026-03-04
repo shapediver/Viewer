@@ -126,26 +126,13 @@ export class SceneTreeManager implements IManager {
 	 */
 	public updateData(
 		node: ITreeNode,
-		obj: SDObject,
+		parent: SDObject,
 		data: ITreeNodeData,
 		filter: UpdateFilter,
 		isVisibleInHierarchy: boolean,
 		skeleton?: THREE.Skeleton,
 	): void {
-		let dataChild = <SDObject>(
-			obj.children.find(
-				(oc) =>
-					(<SDObject>oc).SDid === data.id &&
-					(<SDObject>oc).SDversion === data.version,
-			)
-		);
-		let newChild = false;
-
-		if (!dataChild) {
-			newChild = true;
-			dataChild = new SDObject(data.id, data.version);
-			obj.add(dataChild);
-		}
+		let dataChild: THREE.Object3D | undefined;
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 			injectAttributeData(
@@ -164,28 +151,30 @@ export class SceneTreeManager implements IManager {
 		switch (true) {
 			case data instanceof GeometryData:
 				{
-					dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
-
 					// We search for the instance matrices data in the parent of our current node
 					// We are currently at the primitive level and the instance matrices are stored at the mesh level
 					const instanceTransformationData: InstanceData | undefined =
 						node.parent?.data.find(
 							(d) => d instanceof InstanceData,
 						) as InstanceData | undefined;
-					if (filter.transformationOnly === false)
-						this._renderingEngine.geometryLoader.load(
+					if (filter.transformationOnly === false) {
+						dataChild = this._renderingEngine.geometryLoader.load(
 							<GeometryData>data,
-							dataChild,
-							newChild,
 							skeleton,
 							instanceTransformationData,
 						);
+
+						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
+						parent.add(dataChild);
+					}
 				}
 				break;
 			case data instanceof ThreejsData:
 				{
-					dataChild.SDtype = SD_DATA_TYPE.THREEJS;
-					dataChild.add(<SDObject>(<ThreejsData>data).obj);
+					dataChild = (<ThreejsData>data).obj;
+					(<ThreejsData>data).obj.userData.SDtype =
+						SD_DATA_TYPE.THREEJS;
+					parent.add(dataChild);
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
@@ -199,26 +188,34 @@ export class SceneTreeManager implements IManager {
 				}
 				break;
 			case data instanceof AbstractMaterialData:
-				dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
 				break;
 			case data instanceof AbstractLight:
-				dataChild.SDtype = SD_DATA_TYPE.LIGHT;
-				if (filter.transformationOnly === false)
-					this._renderingEngine.lightLoader.load(
+				if (filter.transformationOnly === false) {
+					const threeLight = this._renderingEngine.lightLoader.load(
 						<AbstractLight>data,
-						dataChild,
+						parent,
 					);
+
+					if (threeLight) {
+						dataChild = threeLight;
+						dataChild.userData.SDtype = SD_DATA_TYPE.LIGHT;
+					}
+				}
 				break;
 			case data instanceof AbstractCamera:
-				dataChild.SDtype = SD_DATA_TYPE.CAMERA;
-				if (filter.transformationOnly === false)
-					this._renderingEngine.cameraManager.load(
-						<AbstractCamera>data,
-						dataChild,
-					);
+				if (filter.transformationOnly === false) {
+					const threeCamera =
+						this._renderingEngine.cameraManager.load(
+							<AbstractCamera>data,
+							parent,
+						);
+					if (threeCamera) {
+						dataChild = threeCamera;
+						dataChild.userData.SDtype = SD_DATA_TYPE.CAMERA;
+					}
+				}
 				break;
 			case data instanceof HTMLElementAnchorData:
-				dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
 				if (filter.transformationOnly === false)
 					this._renderingEngine.htmlElementAnchorLoader.load(
 						node,
@@ -227,19 +224,20 @@ export class SceneTreeManager implements IManager {
 					);
 				break;
 			case data instanceof AnimationData:
-				dataChild.SDtype = SD_DATA_TYPE.ANIMATION;
 				break;
 			default:
 				// if there is no valid conversion here, call the convertData of the implementation
 				break;
 		}
-		assignBoundingBox(
-			node,
-			data,
-			this._renderingEngine.id,
-			dataChild,
-			skeleton !== undefined,
-		);
+
+		if (dataChild)
+			assignBoundingBox(
+				node,
+				data,
+				this._renderingEngine.id,
+				dataChild,
+				skeleton !== undefined,
+			);
 	}
 
 	/**

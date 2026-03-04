@@ -289,6 +289,8 @@ export class CameraManager implements IManager {
 				threeOrthographicCamera.updateProjectionMatrix();
 			}
 		}
+
+		return threeCamera;
 	}
 
 	public updateCamera(time: number, aspect: number): boolean {
