@@ -2,22 +2,19 @@ import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import {ITreeNodeData} from "../interfaces/ITreeNodeData";
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
-	// #region Properties (5)
-
 	readonly #id: string;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	#convertedObject: {[key: string]: unknown} = {};
+	#parentsUpdateVersions: {
+		[key: string]: () => void;
+	} = {};
+	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
+		null;
 	#updateCallbackConvertedObject:
 		| ((newObj: unknown, oldObj: unknown, viewport: string) => void)
 		| null = null;
 	#version: string;
-	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
-		null;
-
-	// #endregion Properties (5)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creates a tree node data object.
@@ -29,10 +26,6 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 		this.#version = version || this.#uuidGenerator.create();
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (6)
-
 	public get convertedObject(): {[key: string]: unknown} {
 		return this.#convertedObject;
 	}
@@ -43,6 +36,12 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 
 	public get id(): string {
 		return this.#id;
+	}
+
+	public get parentsUpdateVersions(): {
+		[key: string]: () => void;
+	} {
+		return this.#parentsUpdateVersions;
 	}
 
 	public get updateCallback():
@@ -75,10 +74,6 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 		return this.#version;
 	}
 
-	// #endregion Public Getters And Setters (6)
-
-	// #region Public Methods (2)
-
 	/**
 	 * Clones the tree node data.
 	 */
@@ -93,9 +88,10 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	public updateVersion(): void {
 		const oldVersion = this.#version;
 		this.#version = this.#uuidGenerator.create();
+
+		// notify all parents about the version change
+		Object.values(this.#parentsUpdateVersions).forEach((cb) => cb());
 		if (this.#updateCallback)
 			this.#updateCallback(this.#version, oldVersion);
 	}
-
-	// #endregion Public Methods (2)
 }

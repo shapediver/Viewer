@@ -1,22 +1,31 @@
 import {Box, IBox} from "@shapediver/viewer.shared.math";
-import {UuidGenerator} from "@shapediver/viewer.shared.services";
+import {
+	ObservableArray,
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
+
 import {mat4} from "gl-matrix";
+
 import {ITransformation, ITreeNode} from "../interfaces/ITreeNode";
 import {ITreeNodeData} from "../interfaces/ITreeNodeData";
 
 export class TreeNode implements ITreeNode {
-	// #region Properties (19)
-
 	readonly #boundingBox: IBox = new Box();
 	readonly #boundingBoxViewport: {[key: string]: IBox} = {};
 	readonly #children: ITreeNode[] = [];
 	readonly #data: ITreeNodeData[] = [];
+	readonly #dataProxy: ObservableArray<ITreeNodeData> =
+		new ObservableArray<ITreeNodeData>({
+			initialData: [],
+			onChanged: this.onDataChanged.bind(this),
+		});
 	readonly #id: string;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	#boneInverses: mat4[] = [];
 	#bones: ITreeNode[] = [];
 	#convertedObject: {[key: string]: unknown} = {};
+	#displayName: string | undefined;
 	#excludeViewports: string[] = [];
 	#intersectionTest: boolean = true;
 	#name: string = "";
@@ -26,18 +35,13 @@ export class TreeNode implements ITreeNode {
 	#restrictViewports: string[] = [];
 	#skinNode: boolean = false;
 	#transformations: ITransformation[] = [];
+	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
+		null;
 	#updateCallbackConvertedObject:
 		| ((newObj: unknown, oldObj: unknown, viewport: string) => void)
 		| null = null;
 	#version: string;
 	#visible: boolean = true;
-	#displayName: string | undefined;
-	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
-		null;
-
-	// #endregion Properties (19)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creation of a node that can be used in the node tree.
@@ -56,6 +60,7 @@ export class TreeNode implements ITreeNode {
 		this.#name = name;
 		this.#parent = parent;
 		this.#data = data;
+		this.#dataProxy.setData(this.#data);
 		this.#transformations = transformations;
 
 		this.#id = this.#uuidGenerator.create();
@@ -63,10 +68,6 @@ export class TreeNode implements ITreeNode {
 		this.#version = this.#uuidGenerator.create();
 		this.#parent?.addChild(this);
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (33)
 
 	public get boneInverses(): mat4[] {
 		return this.#boneInverses;
@@ -105,7 +106,7 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public get data(): ITreeNodeData[] {
-		return this.#data;
+		return this.#dataProxy.value;
 	}
 
 	public get displayName(): string | undefined {
@@ -124,16 +125,16 @@ export class TreeNode implements ITreeNode {
 		this.#excludeViewports = value;
 	}
 
+	public get id(): string {
+		return this.#id;
+	}
+
 	public get intersectionTest(): boolean {
 		return this.#intersectionTest;
 	}
 
 	public set intersectionTest(value: boolean) {
 		this.#intersectionTest = value;
-	}
-
-	public get id(): string {
-		return this.#id;
 	}
 
 	public get name(): string {
@@ -264,22 +265,32 @@ export class TreeNode implements ITreeNode {
 		return matrix;
 	}
 
-	// #endregion Public Getters And Setters (33)
+	public addChild(child: ITreeNode | ITreeNode[]): boolean {
+		if (Array.isArray(child)) {
+			let allAdded = true;
+			for (const c of child) {
+				const added = this.addChild(c);
+				if (!added) allAdded = false;
+			}
+			return allAdded;
+		} else {
+			if (this.hasChild(child)) return false;
 
-	// #region Public Methods (20)
+			this.#children.push(child);
+			if (child.parent) child.parent.removeChild(child);
+			(<ITreeNode>child.parent) = this;
 
-	public addChild(child: ITreeNode): boolean {
-		if (this.hasChild(child)) return false;
-
-		this.#children.push(child);
-		if (child.parent) child.parent.removeChild(child);
-		(<ITreeNode>child.parent) = this;
-
-		return true;
+			return true;
+		}
 	}
 
-	public addData(data: ITreeNodeData): boolean {
-		this.#data.push(data);
+	public addData(data: ITreeNodeData | ITreeNodeData[]): boolean {
+		if (Array.isArray(data)) {
+			this.#data.push(...data);
+		} else {
+			this.#data.push(data);
+		}
+		this.#dataProxy.setData(this.#data);
 		return true;
 	}
 
@@ -380,21 +391,21 @@ export class TreeNode implements ITreeNode {
 		return nodes;
 	}
 
-	public getPath(): string {
-		let path = this.name;
-		let node: ITreeNode | undefined = this.parent;
-		while (node) {
-			path = node.name + "." + path;
-			node = node.parent;
-		}
-		return path;
-	}
-
 	public getOriginalNamePath(): string {
 		let path = this.originalName || "";
 		let node: ITreeNode | undefined = this.parent;
 		while (node) {
 			path = (node.originalName || "") + "." + path;
+			node = node.parent;
+		}
+		return path;
+	}
+
+	public getPath(): string {
+		let path = this.name;
+		let node: ITreeNode | undefined = this.parent;
+		while (node) {
+			path = node.name + "." + path;
 			node = node.parent;
 		}
 		return path;
@@ -419,21 +430,44 @@ export class TreeNode implements ITreeNode {
 		return this.#transformations.includes(transformation);
 	}
 
-	public removeChild(child: ITreeNode): boolean {
-		const index = this.#children.indexOf(child);
-		if (index === -1) return false;
-		this.#children.splice(index, 1);
-		(<ITreeNode | undefined>child.parent) = undefined;
+	public removeChild(child: ITreeNode | ITreeNode[]): boolean {
+		if (Array.isArray(child)) {
+			let allRemoved = true;
+			for (const c of child) {
+				const removed = this.removeChild(c);
+				if (!removed) allRemoved = false;
+			}
 
-		return true;
+			return allRemoved;
+		} else {
+			const index = this.#children.indexOf(child);
+			if (index === -1) return false;
+			this.#children.splice(index, 1);
+			(<ITreeNode | undefined>child.parent) = undefined;
+			return true;
+		}
 	}
 
-	public removeData(data: ITreeNodeData): boolean {
-		const index = this.#data.indexOf(data);
-		if (index === -1) return false;
-		this.#data.splice(index, 1);
-
-		return true;
+	public removeData(data: ITreeNodeData | ITreeNodeData[]): boolean {
+		if (Array.isArray(data)) {
+			let allRemoved = true;
+			for (const d of data) {
+				const index = this.#data.indexOf(d);
+				if (index === -1) {
+					allRemoved = false;
+					continue;
+				}
+				this.#data.splice(index, 1);
+			}
+			this.#dataProxy.setData(this.#data);
+			return allRemoved;
+		} else {
+			const index = this.#data.indexOf(data);
+			if (index === -1) return false;
+			this.#data.splice(index, 1);
+			this.#dataProxy.setData(this.#data);
+			return true;
+		}
 	}
 
 	public removeTransformation(transformation: ITransformation): boolean {
@@ -452,8 +486,8 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public traverseData(callback: (node: ITreeNodeData) => void): void {
-		for (let j = 0; j < this.data.length; j++)
-			callback(<ITreeNodeData>this.data[j]);
+		for (let j = 0; j < this.#data.length; j++)
+			callback(<ITreeNodeData>this.#data[j]);
 
 		for (let i = 0; i < this.children.length; i++)
 			this.children[i].traverseData(
@@ -486,5 +520,14 @@ export class TreeNode implements ITreeNode {
 			this.#updateCallback(this.#version, oldVersion);
 	}
 
-	// #endregion Public Methods (20)
+	private onDataChanged(data: readonly ITreeNodeData[]) {
+		// ensure parent update versions are set
+		data.forEach((d) => {
+			if (d.parentsUpdateVersions[this.id] === undefined) {
+				d.parentsUpdateVersions[this.id] = () => {
+					this.updateVersion(true, false);
+				};
+			}
+		});
+	}
 }
