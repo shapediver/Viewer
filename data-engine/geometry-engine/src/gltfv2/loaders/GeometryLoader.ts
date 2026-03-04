@@ -21,6 +21,9 @@ export class GeometryLoader {
 	// #region Properties (1)
 
 	private readonly _logger: Logger = Logger.instance;
+	private readonly _attributeNameCache = new Map<string, string>();
+	private readonly _digitRegex = /\d/;
+	private _dracoDecoder: any = null;
 
 	private _materialVariantsData = new MaterialVariantsData();
 	private _loaded: {
@@ -61,7 +64,8 @@ export class GeometryLoader {
 
 		const geometryDataArray: GeometryData[] = [];
 		if (mesh.primitives) {
-			for (let i = 0, len = mesh.primitives.length; i < len; i++) {
+			const primitiveCount = mesh.primitives.length;
+			for (let i = 0; i < primitiveCount; i++) {
 				const geometryData = this.loadPrimitive(
 					meshId,
 					mesh.primitives,
@@ -90,21 +94,9 @@ export class GeometryLoader {
 		attributes: {[key: string]: AttributeData},
 		material: IMaterialAbstractData | null,
 	): IMaterialAbstractData | null {
-		// check if the material has maps defined
-		let hasMaps = false;
-		if (material) {
-			for (const key in material) {
-				if (
-					material[key as keyof IMaterialAbstractData] instanceof
-					MapData
-				) {
-					hasMaps = true;
-					break;
-				}
-			}
-		}
+		if (!material) return null;
 
-		// check if there are texture coordinates available
+		// Check for texture coordinates first (most common case)
 		let hasTexCoords = false;
 		for (const key in attributes) {
 			if (key.includes("TEXCOORD")) {
@@ -113,23 +105,29 @@ export class GeometryLoader {
 			}
 		}
 
-		// if there are maps but no texture coordinates, remove all maps from the material
-		let assignedMaterial = material;
-		if (material && hasMaps === true && hasTexCoords === false) {
-			this._logger.warn(
-				"GeometryLoader.loadPrimitive: Material has maps but no texture coordinates are defined. Removing all maps from material.",
-			);
-			assignedMaterial = material.clone();
-			for (const key in assignedMaterial) {
-				if (
-					assignedMaterial[
-						key as keyof IMaterialAbstractData
-					] instanceof MapData
-				)
-					(assignedMaterial[key as keyof IMaterialAbstractData] as
-						| IMapData
-						| undefined) = undefined;
+		if (hasTexCoords) return material; // Fast path - everything is fine
+
+		// Check if material has maps and remove them if needed (single iteration)
+		let hasMaps = false;
+		const mapsToRemove: (keyof IMaterialAbstractData)[] = [];
+		for (const key in material) {
+			if (
+				material[key as keyof IMaterialAbstractData] instanceof MapData
+			) {
+				hasMaps = true;
+				mapsToRemove.push(key as keyof IMaterialAbstractData);
 			}
+		}
+
+		if (!hasMaps) return material; // No maps to clean
+
+		// Only clone and remove maps if necessary
+		this._logger.warn(
+			"GeometryLoader.loadPrimitive: Material has maps but no texture coordinates are defined. Removing all maps from material.",
+		);
+		const assignedMaterial = material.clone();
+		for (const key of mapsToRemove) {
+			(assignedMaterial[key] as IMapData | undefined) = undefined;
 		}
 
 		return assignedMaterial;
@@ -143,8 +141,10 @@ export class GeometryLoader {
 	): GeometryData | undefined {
 		const primitive = primitives[index];
 
-		if (this._loaded["mesh_" + meshId + "_primitive_" + index]) {
-			return this._loaded["mesh_" + meshId + "_primitive_" + index];
+		// Check cache first - important for scenes with many instances of same mesh
+		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
+		if (this._loaded[cacheKey]) {
+			return this._loaded[cacheKey];
 		}
 
 		const attributes: {
@@ -166,7 +166,11 @@ export class GeometryLoader {
 				dracoDef.bufferView!,
 			);
 
-			const decoder = new this._dracoModule.Decoder();
+			// Reuse decoder to avoid overhead of creating new instance for each primitive
+			if (!this._dracoDecoder) {
+				this._dracoDecoder = new this._dracoModule.Decoder();
+			}
+			const decoder = this._dracoDecoder;
 			const array = new Int8Array(arrayBuffer);
 			const geometryType = decoder.GetEncodedGeometryType(array);
 
@@ -189,7 +193,6 @@ export class GeometryLoader {
 
 			if (dracoDef.attributes["POSITION"] === undefined) {
 				const errorMsg = "No position attribute found in the mesh.";
-				this._dracoModule.destroy(decoder);
 				this._dracoModule.destroy(dracoGeometry);
 				throw new Error(errorMsg);
 			}
@@ -270,7 +273,7 @@ export class GeometryLoader {
 				);
 			}
 
-			this._dracoModule.destroy(decoder);
+			// Keep decoder alive for reuse, only destroy geometry
 			this._dracoModule.destroy(dracoGeometry);
 		}
 
@@ -280,23 +283,31 @@ export class GeometryLoader {
 				continue;
 			}
 
-			let attributeName = attribute;
-			// attribute name conversion to be consistent with gltf
-			if (/\d/.test(attributeName) && !attributeName.includes("_")) {
-				const index = attributeName.search(/\d/);
-				attributeName =
-					attributeName.substring(0, index) +
-					"_" +
-					attributeName.substring(index, attributeName.length);
-			} else if (
-				attributeName === "TEXCOORD" ||
-				attributeName === "COLOR" ||
-				attributeName === "JOINTS" ||
-				attributeName === "WEIGHTS"
-			) {
-				attributeName += "_0";
-			} else if (attributeName === "UV") {
-				attributeName = "TEXCOORD_0";
+			// Check cache first for attribute name conversion
+			let attributeName = this._attributeNameCache.get(attribute);
+			if (!attributeName) {
+				attributeName = attribute;
+				// attribute name conversion to be consistent with gltf
+				if (
+					this._digitRegex.test(attributeName) &&
+					!attributeName.includes("_")
+				) {
+					const index = attributeName.search(this._digitRegex);
+					attributeName =
+						attributeName.substring(0, index) +
+						"_" +
+						attributeName.substring(index, attributeName.length);
+				} else if (
+					attributeName === "TEXCOORD" ||
+					attributeName === "COLOR" ||
+					attributeName === "JOINTS" ||
+					attributeName === "WEIGHTS"
+				) {
+					attributeName += "_0";
+				} else if (attributeName === "UV") {
+					attributeName = "TEXCOORD_0";
+				}
+				this._attributeNameCache.set(attribute, attributeName);
 			}
 
 			convertedNames[attribute] = attributeName;
@@ -376,6 +387,16 @@ export class GeometryLoader {
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
 
 		return geometryData;
+	}
+
+	/**
+	 * Clean up resources to free memory after loading is complete
+	 */
+	public cleanup(): void {
+		if (this._dracoDecoder) {
+			this._dracoModule.destroy(this._dracoDecoder);
+			this._dracoDecoder = null;
+		}
 	}
 
 	// #endregion Private Methods (1)

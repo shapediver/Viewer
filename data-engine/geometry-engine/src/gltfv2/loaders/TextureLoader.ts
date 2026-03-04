@@ -69,26 +69,38 @@ export class TextureLoader {
 				const blob = new Blob([new Uint8Array(array)], {
 					type: image.mimeType,
 				});
-				const dataUri = URL.createObjectURL(blob);
 
-				const img = new Image();
-
+				// Use createImageBitmap for better performance
 				promises.push(
 					new Promise<void>((resolve, reject) => {
-						img.onload = () => {
-							this._loaded[textureId] = {
-								image: img,
-								blob,
+						if (typeof createImageBitmap !== "undefined") {
+							createImageBitmap(blob)
+								.then((imageBitmap) => {
+									this._loaded[textureId] = {
+										image: imageBitmap as any,
+										blob,
+									};
+									resolve();
+								})
+								.catch(reject);
+						} else {
+							// Fallback to Image for older browsers
+							const dataUri = URL.createObjectURL(blob);
+							const img = new Image();
+							img.onload = () => {
+								this._loaded[textureId] = {
+									image: img,
+									blob,
+								};
+								URL.revokeObjectURL(dataUri);
+								resolve();
 							};
-							URL.revokeObjectURL(dataUri);
-							resolve();
-						};
-						img.onerror = reject;
+							img.onerror = reject;
+							img.crossOrigin = "anonymous";
+							img.src = dataUri;
+						}
 					}),
 				);
-
-				img.crossOrigin = "anonymous";
-				img.src = dataUri;
 			} else {
 				const url =
 					DATA_URI_REGEX.test(image.uri!) ||

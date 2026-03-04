@@ -9,6 +9,7 @@ export class BufferLoader {
 	// #region Properties (2)
 
 	private readonly _httpClient: HttpClient = HttpClient.instance;
+	private readonly _dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
 
 	private _loaded: {
 		[key: string]: ArrayBuffer;
@@ -61,8 +62,7 @@ export class BufferLoader {
 				return;
 			}
 
-			const dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
-			const dataUriRegexResult = buffer.uri!.match(dataUriRegex);
+			const dataUriRegexResult = buffer.uri!.match(this._dataUriRegex);
 
 			// Safari can not handle Data URIs through XMLHttpRequest so process manually
 			if (dataUriRegexResult) {

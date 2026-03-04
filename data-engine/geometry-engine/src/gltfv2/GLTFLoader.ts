@@ -61,9 +61,6 @@ export enum GLTF_EXTENSIONS {
 	EXT_MESH_GPU_INSTANCING = "EXT_mesh_gpu_instancing",
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const DRACO = require("./draco/draco_decoder.js");
-
 export class GLTFLoader {
 	// #region Properties (22)
 
@@ -92,6 +89,10 @@ export class GLTFLoader {
 	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _progressUpdateLimit = 500;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+	private readonly _matrixPool: mat4[] = [];
+	private readonly _nodeBatchSize = 100;
+	private readonly _vec3Pool: vec3[] = [];
+	private readonly _vec4Pool: vec4[] = [];
 
 	private _accessorLoader!: AccessorLoader;
 	private _baseUri: string | undefined;
@@ -152,14 +153,20 @@ export class GLTFLoader {
 
 		this.validateVersionAndExtensions();
 
-		const dracoModule = await new DRACO();
+		// Lazy load DRACO module and parallelize independent loaders
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const DRACO = require("./draco/draco_decoder.js");
+		const dracoModulePromise = new DRACO();
 
 		this._bufferLoader = new BufferLoader(
 			this._content,
 			this._body,
 			this._baseUri,
 		);
-		await this._bufferLoader.load();
+		const bufferLoadPromise = this._bufferLoader.load();
+
+		// Wait for buffers, then parallelize texture and material loading
+		await bufferLoadPromise;
 		this._bufferViewLoader = new BufferViewLoader(
 			this._content,
 			this._bufferLoader,
@@ -170,12 +177,18 @@ export class GLTFLoader {
 			this._bufferViewLoader,
 		);
 		this._accessorLoader.load();
+
+		// Parallelize texture loading and DRACO module initialization
 		this._textureLoader = new TextureLoader(
 			this._content,
 			this._bufferViewLoader,
 			this._baseUri,
 		);
-		await this._textureLoader.load();
+		const [dracoModule] = await Promise.all([
+			dracoModulePromise,
+			this._textureLoader.load(),
+		]);
+
 		this._materialLoader = new MaterialLoader(
 			this._content,
 			this._textureLoader,
@@ -280,6 +293,10 @@ export class GLTFLoader {
 			status: "GlTF loading complete.",
 		};
 		this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+		// Clean up resources that are no longer needed
+		this._geometryLoader.cleanup();
+
 		return node;
 	}
 
@@ -665,48 +682,61 @@ export class GLTFLoader {
 					scaleAttribute
 				) {
 					const translationMatrices: mat4[] = [];
+					const translationVectors: vec3[] = [];
 					for (
 						let i = 0;
 						i < translationAttribute.array.length;
 						i += 3
-					)
-						translationMatrices.push(
-							mat4.fromTranslation(
-								mat4.create(),
-								vec3.fromValues(
-									translationAttribute.array[i],
-									translationAttribute.array[i + 1],
-									translationAttribute.array[i + 2],
-								),
-							),
+					) {
+						const v = this.getPooledVec3();
+						vec3.set(
+							v,
+							translationAttribute.array[i],
+							translationAttribute.array[i + 1],
+							translationAttribute.array[i + 2],
 						);
+						translationVectors.push(v);
+						translationMatrices.push(
+							mat4.fromTranslation(this.getPooledMatrix(), v),
+						);
+					}
 
 					const rotationMatrices: mat4[] = [];
-					for (let i = 0; i < rotationAttribute.array.length; i += 4)
-						rotationMatrices.push(
-							mat4.fromQuat(
-								mat4.create(),
-								vec4.fromValues(
-									rotationAttribute.array[i],
-									rotationAttribute.array[i + 1],
-									rotationAttribute.array[i + 2],
-									rotationAttribute.array[i + 3],
-								),
-							),
+					const rotationVectors: vec4[] = [];
+					for (
+						let i = 0;
+						i < rotationAttribute.array.length;
+						i += 4
+					) {
+						const v = this.getPooledVec4();
+						vec4.set(
+							v,
+							rotationAttribute.array[i],
+							rotationAttribute.array[i + 1],
+							rotationAttribute.array[i + 2],
+							rotationAttribute.array[i + 3],
 						);
+						rotationVectors.push(v);
+						rotationMatrices.push(
+							mat4.fromQuat(this.getPooledMatrix(), v),
+						);
+					}
 
 					const scaleMatrices: mat4[] = [];
-					for (let i = 0; i < scaleAttribute.array.length; i += 3)
-						scaleMatrices.push(
-							mat4.fromScaling(
-								mat4.create(),
-								vec3.fromValues(
-									scaleAttribute.array[i],
-									scaleAttribute.array[i + 1],
-									scaleAttribute.array[i + 2],
-								),
-							),
+					const scaleVectors: vec3[] = [];
+					for (let i = 0; i < scaleAttribute.array.length; i += 3) {
+						const v = this.getPooledVec3();
+						vec3.set(
+							v,
+							scaleAttribute.array[i],
+							scaleAttribute.array[i + 1],
+							scaleAttribute.array[i + 2],
 						);
+						scaleVectors.push(v);
+						scaleMatrices.push(
+							mat4.fromScaling(this.getPooledMatrix(), v),
+						);
+					}
 
 					if (
 						translationMatrices.length ===
@@ -714,7 +744,7 @@ export class GLTFLoader {
 						translationMatrices.length === scaleMatrices.length
 					) {
 						for (let i = 0; i < translationMatrices.length; i++) {
-							const transformationMatrix = mat4.create();
+							const transformationMatrix = this.getPooledMatrix();
 							mat4.multiply(
 								transformationMatrix,
 								translationMatrices[i],
@@ -728,6 +758,19 @@ export class GLTFLoader {
 
 							instanceTransformations.push(transformationMatrix);
 						}
+
+						// Return temporary matrices and vectors to pool for reuse
+						for (const mat of translationMatrices)
+							this.returnMatrixToPool(mat);
+						for (const mat of rotationMatrices)
+							this.returnMatrixToPool(mat);
+						for (const mat of scaleMatrices)
+							this.returnMatrixToPool(mat);
+						for (const v of translationVectors)
+							this.returnVec3ToPool(v);
+						for (const v of rotationVectors)
+							this.returnVec4ToPool(v);
+						for (const v of scaleVectors) this.returnVec3ToPool(v);
 					}
 				}
 			}
@@ -787,7 +830,6 @@ export class GLTFLoader {
 				EVENTTYPE.TASK.TASK_PROCESS,
 				eventProgress,
 			);
-			await new Promise((resolve) => setTimeout(resolve, 0));
 		}
 
 		return nodeDef;
@@ -910,6 +952,46 @@ export class GLTFLoader {
 					" not supported, but required. Aborting glTF loading.";
 				throw new Error(message);
 			}
+		}
+	}
+
+	private getPooledMatrix(): mat4 {
+		return this._matrixPool.length > 0
+			? this._matrixPool.pop()!
+			: mat4.create();
+	}
+
+	private returnMatrixToPool(matrix: mat4): void {
+		if (this._matrixPool.length < 1000) {
+			// Limit pool size to prevent memory bloat
+			mat4.identity(matrix);
+			this._matrixPool.push(matrix);
+		}
+	}
+
+	private getPooledVec3(): vec3 {
+		return this._vec3Pool.length > 0
+			? this._vec3Pool.pop()!
+			: vec3.create();
+	}
+
+	private returnVec3ToPool(v: vec3): void {
+		if (this._vec3Pool.length < 1000) {
+			vec3.set(v, 0, 0, 0);
+			this._vec3Pool.push(v);
+		}
+	}
+
+	private getPooledVec4(): vec4 {
+		return this._vec4Pool.length > 0
+			? this._vec4Pool.pop()!
+			: vec4.create();
+	}
+
+	private returnVec4ToPool(v: vec4): void {
+		if (this._vec4Pool.length < 1000) {
+			vec4.set(v, 0, 0, 0, 0);
+			this._vec4Pool.push(v);
 		}
 	}
 
