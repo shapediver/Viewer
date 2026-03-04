@@ -19,8 +19,6 @@ import {
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
 import {
-	AbstractMaterialData,
-	AnimationData,
 	BoneData,
 	GeometryData,
 	HTMLElementAnchorData,
@@ -187,8 +185,6 @@ export class SceneTreeManager implements IManager {
 					);
 				}
 				break;
-			case data instanceof AbstractMaterialData:
-				break;
 			case data instanceof AbstractLight:
 				if (filter.transformationOnly === false) {
 					const threeLight = this._renderingEngine.lightLoader.load(
@@ -223,10 +219,7 @@ export class SceneTreeManager implements IManager {
 						isVisibleInHierarchy,
 					);
 				break;
-			case data instanceof AnimationData:
-				break;
 			default:
-				// if there is no valid conversion here, call the convertData of the implementation
 				break;
 		}
 
@@ -304,15 +297,15 @@ export class SceneTreeManager implements IManager {
 
 		if (filter.transformationOnly === false) {
 			// remove all data items that do not exist anymore
-			const dataIds = node.data.map((d) => d.id);
+			const dataMap = new Map(node.data.map((d) => [d.id, d.version]));
 			const dataToRemove = convertedObject.children.filter((oc) => {
 				if (
 					oc instanceof SDObject &&
 					oc.SDtype !== SD_DATA_TYPE.OBJECT
 				) {
-					if (dataIds.includes(oc.SDid)) {
-						const data = node.data.find((d) => d.id === oc.SDid);
-						if (data && data.version !== oc.SDversion) {
+					const version = dataMap.get(oc.SDid);
+					if (version !== undefined) {
+						if (version !== oc.SDversion) {
 							// version is different
 							return true;
 						} else {
@@ -334,23 +327,22 @@ export class SceneTreeManager implements IManager {
 
 			// remove all child nodes in the transformed object that do not exist anymore
 			// the filter goes also through the data items as they were already added
-			const nodeIds = node.children
-				.filter(
-					(d) =>
-						!d.excludeViewports.includes(this._renderingEngine.id),
-				)
-				.map((d) => d.id);
+			const nodeIds = new Set(
+				node.children
+					.filter(
+						(d) =>
+							!d.excludeViewports.includes(
+								this._renderingEngine.id,
+							),
+					)
+					.map((d) => d.id),
+			);
 			const childrenToRemove = convertedObject.children.filter((oc) => {
 				if (
 					oc instanceof SDObject &&
 					oc.SDtype === SD_DATA_TYPE.OBJECT
 				) {
-					if (nodeIds.includes(oc.SDid)) {
-						return false;
-					} else {
-						// id not included anymore
-						return true;
-					}
+					return !nodeIds.has(oc.SDid);
 				} else {
 					return false;
 				}
@@ -393,19 +385,27 @@ export class SceneTreeManager implements IManager {
 
 		// convert all data items of the current node
 		// old versions will be replaced by new ones
+
+		// Create a lookup map for efficient access to converted children
+		const convertedChildrenMap = new Map<string, SDObject>();
+		for (const child of convertedObject.children) {
+			if (child instanceof SDObject) {
+				convertedChildrenMap.set(child.SDid, child);
+			}
+		}
+
 		for (let i = 0, len = node.data.length; i < len; i++) {
-			const convertedObjectData = <SDObject>(
-				convertedObject.children.find(
-					(oc) =>
-						(<SDObject>oc).SDid === node.data[i].id &&
-						(<SDObject>oc).SDversion === node.data[i].version,
-				)
-			);
-			if (!convertedObjectData) {
+			const dataItem = node.data[i];
+			const convertedObjectData = convertedChildrenMap.get(dataItem.id);
+
+			if (
+				!convertedObjectData ||
+				convertedObjectData.SDversion !== dataItem.version
+			) {
 				this.updateData(
 					node,
 					convertedObject,
-					node.data[i],
+					dataItem,
 					filter,
 					isVisibleInHierarchy,
 					skeleton,
@@ -413,7 +413,7 @@ export class SceneTreeManager implements IManager {
 			} else {
 				assignBoundingBox(
 					node,
-					node.data[i],
+					dataItem,
 					this._renderingEngine.id,
 					convertedObjectData,
 					skeleton !== undefined,
@@ -424,11 +424,7 @@ export class SceneTreeManager implements IManager {
 		// add new children and update the ones that have a different version
 		for (let i = 0, len = node.children.length; i < len; i++) {
 			const nodeChild = node.children[i];
-			const objChild = <SDObject>(
-				convertedObject.children.find(
-					(oc) => (<SDObject>oc).SDid === nodeChild.id,
-				)
-			);
+			const objChild = convertedChildrenMap.get(nodeChild.id);
 
 			if (!objChild) {
 				const newChild = node.data.find((d) => d instanceof BoneData)
@@ -494,13 +490,7 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		convertedObject.visible =
-			node.visible &&
-			!node.excludeViewports.includes(this._renderingEngine.id) &&
-			!(
-				node.restrictViewports.length > 0 &&
-				!node.restrictViewports.includes(this._renderingEngine.id)
-			);
+		convertedObject.visible = isVisible;
 		convertedObject.applyTransformation(node.nodeMatrix);
 	}
 
@@ -580,16 +570,15 @@ export class SceneTreeManager implements IManager {
 			}
 		});
 
-		if (
-			!(
-				this._boundingBox.min[0] === oldBB.min[0] &&
-				this._boundingBox.min[1] === oldBB.min[1] &&
-				this._boundingBox.min[2] === oldBB.min[2] &&
-				this._boundingBox.max[0] === oldBB.max[0] &&
-				this._boundingBox.max[1] === oldBB.max[1] &&
-				this._boundingBox.max[2] === oldBB.max[2]
-			)
-		) {
+		const bbChanged =
+			this._boundingBox.min[0] !== oldBB.min[0] ||
+			this._boundingBox.min[1] !== oldBB.min[1] ||
+			this._boundingBox.min[2] !== oldBB.min[2] ||
+			this._boundingBox.max[0] !== oldBB.max[0] ||
+			this._boundingBox.max[1] !== oldBB.max[1] ||
+			this._boundingBox.max[2] !== oldBB.max[2];
+
+		if (bbChanged) {
 			if (
 				!this._stateEngine.viewportEngines[this._renderingEngine.id]
 					?.boundingBoxCreated.resolved &&
