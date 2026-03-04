@@ -226,15 +226,11 @@ export class GeometryLoader implements ILoader {
 			};
 		}
 
-		threeGeometryObject.children.forEach((m) => (m.castShadow = true));
+		threeGeometryObject.castShadow = true;
 		if (material instanceof GemMaterial) {
-			threeGeometryObject.children.forEach(
-				(m) => (m.receiveShadow = false),
-			);
+			threeGeometryObject.receiveShadow = false;
 		} else {
-			threeGeometryObject.children.forEach(
-				(m) => (m.receiveShadow = true),
-			);
+			threeGeometryObject.receiveShadow = true;
 		}
 
 		return geometry.boundingBox.clone();
