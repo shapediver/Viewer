@@ -620,8 +620,14 @@ export class GLTFConverter {
 	private convertImage(data: IMapData): number | undefined {
 		if (!this._content.images) this._content.images = [];
 		if (data.image instanceof ArrayBuffer) return;
-		if (this._imageCache[data.image.src] !== undefined)
-			return this._imageCache[data.image.src];
+
+		const cacheKey =
+			(data.image instanceof HTMLImageElement
+				? data.image.src
+				: data.image.id) || data.image.id;
+
+		if (this._imageCache[cacheKey] !== undefined)
+			return this._imageCache[cacheKey];
 		const imageDef: IGLTF_v2_Image = {};
 		const canvas = document.createElement("canvas");
 
@@ -650,7 +656,7 @@ export class GLTFConverter {
 					}
 				}),
 			);
-		} else {
+		} else if (data.image instanceof HTMLImageElement) {
 			let mimeType = "image/png";
 			if (
 				data.image.src.endsWith(".jpg") ||
@@ -709,10 +715,35 @@ export class GLTFConverter {
 					}),
 				);
 			}
+		} else {
+			// convert to blob
+			const bitmapCanvas = document.createElement("canvas");
+			bitmapCanvas.width = data.image.width;
+			bitmapCanvas.height = data.image.height;
+			const bitmapCtx = bitmapCanvas.getContext("2d")!;
+			bitmapCtx.drawImage(data.image, 0, 0);
+			this._promises.push(
+				new Promise<void>((resolve, reject) => {
+					try {
+						bitmapCanvas.toBlob(async (blob) => {
+							try {
+								const bufferViewIndex =
+									await this.convertBufferViewImage(blob!);
+								imageDef.bufferView = bufferViewIndex;
+								resolve();
+							} catch (e) {
+								reject(e);
+							}
+						}, "image/png");
+					} catch (e) {
+						reject(e);
+					}
+				}),
+			);
 		}
 
 		this._content.images.push(imageDef);
-		this._imageCache[data.image.src] = this._content.images.length - 1;
+		this._imageCache[cacheKey] = this._content.images.length - 1;
 		return this._content.images.length - 1;
 	}
 
@@ -831,11 +862,17 @@ export class GLTFConverter {
 								this._globalAccessObjects
 									.combineTextures(
 										undefined,
-										standardMaterialData.roughnessMap
+										standardMaterialData.roughnessMap &&
+											standardMaterialData.roughnessMap
+												.image instanceof
+												HTMLImageElement
 											? standardMaterialData.roughnessMap
 													.image
 											: undefined,
-										standardMaterialData.metalnessMap
+										standardMaterialData.metalnessMap &&
+											standardMaterialData.metalnessMap
+												.image instanceof
+												HTMLImageElement
 											? standardMaterialData.metalnessMap
 													.image
 											: undefined,
