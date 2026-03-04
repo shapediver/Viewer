@@ -2080,8 +2080,16 @@ export class MaterialLoader implements ILoader {
 	}
 
 	private createDataKeyFromMap(map: IMapData): string {
+		let id = "";
+		if (map.image instanceof HTMLImageElement) {
+			id = map.image.src;
+		} else if (map.image instanceof ImageBitmap) {
+			id = map.image.id;
+		} else {
+			id = String(map.data);
+		}
 		return btoaCustom(
-			`${(map.image as HTMLImageElement).src}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`,
+			`${id}_${map.center}_${map.color}_${map.flipY}_${map.magFilter}_${map.minFilter}_${map.offset}_${map.repeat}_${map.rotation}_${map.texCoord}_${map.wrapS}_${map.wrapT}`,
 		);
 	}
 

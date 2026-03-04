@@ -5,7 +5,7 @@ import {
 	TEXTURE_FILTERING,
 	TEXTURE_WRAPPING,
 } from "../../interfaces/data/material/IMapData";
-import {Color} from "../../types";
+import {Color, SDImageBitmap} from "../../types";
 
 export class MapData extends AbstractTreeNodeData implements IMapData {
 	// #region Properties (15)
@@ -16,7 +16,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 	#color?: Color;
 	#data?: number[];
 	#flipY: boolean = true;
-	#image: HTMLImageElement | ArrayBuffer;
+	#image: HTMLImageElement | SDImageBitmap | ArrayBuffer;
 	#magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
 	#minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
 	#offset: vec2 = vec2.fromValues(0, 0);
@@ -31,7 +31,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 	// #region Constructors (1)
 
 	constructor(
-		image: HTMLImageElement | ArrayBuffer,
+		image: HTMLImageElement | SDImageBitmap | ArrayBuffer,
 		properties?: {
 			asData?: boolean;
 			data?: number[];
@@ -151,11 +151,11 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 		this.#flipY = value;
 	}
 
-	public get image(): HTMLImageElement | ArrayBuffer {
+	public get image(): HTMLImageElement | SDImageBitmap | ArrayBuffer {
 		return this.#image;
 	}
 
-	public set image(value: HTMLImageElement | ArrayBuffer) {
+	public set image(value: HTMLImageElement | SDImageBitmap | ArrayBuffer) {
 		this.#image = value;
 	}
 
@@ -229,7 +229,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
 
 	public clone(): IMapData {
 		return new MapData(
-			<HTMLImageElement>this.image,
+			<HTMLImageElement | SDImageBitmap | ArrayBuffer>this.image,
 			{
 				asData: this.asData,
 				data: this.data,

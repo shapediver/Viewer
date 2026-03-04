@@ -83,6 +83,7 @@ import {StatePromise} from "./state-engine/StatePromise";
 import {SystemInfo} from "./system-info/SystemInfo";
 import {TypeChecker} from "./type-check/TypeChecker";
 import {atobCustom, btoaCustom} from "./utilities/base64";
+import {hashForArraySampled} from "./utilities/hashCreator";
 import {numberCleaner} from "./utilities/numberCleaner";
 import {ObservableArray} from "./utilities/ObservableArray";
 import {UuidGenerator} from "./uuid-generator/UuidGenerator";
@@ -164,5 +165,11 @@ export {
 	isViewerGeometryBackendResponseError,
 };
 export {PerformanceEvaluator};
-export {atobCustom, btoaCustom, numberCleaner, ObservableArray};
+export {
+	atobCustom,
+	btoaCustom,
+	numberCleaner,
+	hashForArraySampled,
+	ObservableArray,
+};
 export {isValid, stringify};

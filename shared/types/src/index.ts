@@ -210,6 +210,7 @@ import {
 	IViewportSettingsSections,
 	PARAMETER_TYPE,
 	PARAMETER_VISUALIZATION,
+	SDImageBitmap,
 	SessionCreationDefinition,
 	ViewportCreationDefinition,
 } from "./types";
@@ -365,6 +366,7 @@ export {
 };
 export {
 	Color,
+	SDImageBitmap,
 	PARAMETER_TYPE,
 	PARAMETER_VISUALIZATION,
 	ISettingsSections,
