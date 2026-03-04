@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 import {AbstractCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
@@ -24,8 +26,9 @@ import {
 	ISDTFOverview,
 	RENDERER_TYPE,
 } from "@shapediver/viewer.shared.types";
+
 import {vec3} from "gl-matrix";
-import * as THREE from "three";
+
 import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
@@ -33,20 +36,7 @@ import {assignBoundingBox, removeData} from "./sceneTree/SceenTreeManagerUtils";
 import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
 import {assignEnvironmentMapForThreeJsDataObject} from "./sceneTree/ThreeJsDataUtils";
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-// #region Type aliases (1)
-
-type UpdateFilter = {
-	transformationOnly: boolean;
-};
-
-// #endregion Type aliases (1)
-
-// #region Classes (1)
-
 export class SceneTreeManager implements IManager {
-	// #region Properties (12)
-
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _scene: THREE.Scene = new THREE.Scene();
@@ -55,24 +45,18 @@ export class SceneTreeManager implements IManager {
 
 	private _boundingBox: IBox = new Box();
 	private _currentSDTFOverview!: ISDTFOverview;
+	private _directionalLightData: DirectionalLight[] = [];
 	private _hiddenCamera: THREE.PerspectiveCamera =
 		new THREE.PerspectiveCamera();
 	private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 	private _lastRootVersion: string = "";
-	private _mainNode!: SDObject;
+	private _mainConvertedObject!: SDObject;
+	private _newRendererType: boolean = false;
 	private _suspendSceneUpdates: boolean = false;
-
-	// #endregion Properties (12)
-
-	// #region Constructors (1)
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (4)
 
 	public get boundingBox(): IBox {
 		return this._boundingBox;
@@ -87,7 +71,7 @@ export class SceneTreeManager implements IManager {
 	}
 
 	public get mainNode() {
-		return this._mainNode;
+		return this._mainConvertedObject;
 	}
 
 	public get scene() {
@@ -102,10 +86,6 @@ export class SceneTreeManager implements IManager {
 		this._suspendSceneUpdates = value;
 	}
 
-	// #endregion Public Getters And Setters (4)
-
-	// #region Public Methods (6)
-
 	public init(): void {}
 
 	/**
@@ -115,12 +95,11 @@ export class SceneTreeManager implements IManager {
 	 * @param obj the corresponding type node
 	 */
 	public updateData(
-		node: ITreeNode,
-		parent: SDObject,
-		data: ITreeNodeData,
-		filter: UpdateFilter,
-		isVisibleInHierarchy: boolean,
-		skeleton?: THREE.Skeleton,
+		treeNodeData: ITreeNodeData,
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		filter: UpdateFilter = {transformationOnly: false},
+		isVisibleInHierarchy: boolean = true,
 	): void {
 		let dataChild: THREE.Object3D | undefined;
 
@@ -128,46 +107,47 @@ export class SceneTreeManager implements IManager {
 			injectAttributeData(
 				this._renderingEngine,
 				this._currentSDTFOverview,
-				node,
-				data,
+				treeNode,
+				treeNodeData,
 			);
 		} else {
-			const sdtfTransform = node.getTransformation("sdtf");
-			if (sdtfTransform) node.removeTransformation(sdtfTransform);
+			const sdtfTransform = treeNode.getTransformation("sdtf");
+			if (sdtfTransform) treeNode.removeTransformation(sdtfTransform);
 
-			if (data instanceof GeometryData) data.attributeMaterial = null;
+			if (treeNodeData instanceof GeometryData)
+				treeNodeData.attributeMaterial = null;
 		}
 
 		switch (true) {
-			case data instanceof GeometryData:
+			case treeNodeData instanceof GeometryData:
 				{
 					// We search for the instance matrices data in the parent of our current node
 					// We are currently at the primitive level and the instance matrices are stored at the mesh level
 					const instanceTransformationData: InstanceData | undefined =
-						node.parent?.data.find(
+						treeNode.parent?.data.find(
 							(d) => d instanceof InstanceData,
 						) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
 						dataChild = this._renderingEngine.geometryLoader.load(
-							<GeometryData>data,
+							<GeometryData>treeNodeData,
 							instanceTransformationData,
 						);
 
 						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
-						parent.add(dataChild);
+						convertedObject.add(dataChild);
 					}
 				}
 				break;
-			case data instanceof ThreejsData:
+			case treeNodeData instanceof ThreejsData:
 				{
-					dataChild = (<ThreejsData>data).obj;
-					(<ThreejsData>data).obj.userData.SDtype =
+					dataChild = (<ThreejsData>treeNodeData).obj;
+					(<ThreejsData>treeNodeData).obj.userData.SDtype =
 						SD_DATA_TYPE.THREEJS;
-					parent.add(dataChild);
+					convertedObject.add(dataChild);
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
-						data as ThreejsData,
+						treeNodeData as ThreejsData,
 						this._renderingEngine.environmentMapLoader
 							.environmentMap,
 						this._renderingEngine.environmentMapLoader.type,
@@ -176,11 +156,11 @@ export class SceneTreeManager implements IManager {
 					);
 				}
 				break;
-			case data instanceof AbstractLight:
+			case treeNodeData instanceof AbstractLight:
 				if (filter.transformationOnly === false) {
 					const threeLight = this._renderingEngine.lightLoader.load(
-						<AbstractLight>data,
-						parent,
+						<AbstractLight>treeNodeData,
+						convertedObject,
 					);
 
 					if (threeLight) {
@@ -188,13 +168,20 @@ export class SceneTreeManager implements IManager {
 						dataChild.userData.SDtype = SD_DATA_TYPE.LIGHT;
 					}
 				}
+
+				if (
+					treeNodeData instanceof DirectionalLight &&
+					(<DirectionalLight>treeNodeData).useNodeData === false
+				)
+					this._directionalLightData.push(treeNodeData);
+
 				break;
-			case data instanceof AbstractCamera:
+			case treeNodeData instanceof AbstractCamera:
 				if (filter.transformationOnly === false) {
 					const threeCamera =
 						this._renderingEngine.cameraManager.load(
-							<AbstractCamera>data,
-							parent,
+							<AbstractCamera>treeNodeData,
+							convertedObject,
 						);
 					if (threeCamera) {
 						dataChild = threeCamera;
@@ -202,11 +189,11 @@ export class SceneTreeManager implements IManager {
 					}
 				}
 				break;
-			case data instanceof HTMLElementAnchorData:
+			case treeNodeData instanceof HTMLElementAnchorData:
 				if (filter.transformationOnly === false)
 					this._renderingEngine.htmlElementAnchorLoader.load(
-						node,
-						<HTMLElementAnchorData>data,
+						treeNode,
+						<HTMLElementAnchorData>treeNodeData,
 						isVisibleInHierarchy,
 					);
 				break;
@@ -215,32 +202,38 @@ export class SceneTreeManager implements IManager {
 		}
 
 		if (dataChild)
-			assignBoundingBox(node, data, this._renderingEngine.id, dataChild);
+			assignBoundingBox(
+				treeNode,
+				treeNodeData,
+				this._renderingEngine.id,
+				dataChild,
+			);
 	}
 
 	/**
 	 * Update the current node via the scene graph node.
 	 * Convert the data if needed.
 	 *
-	 * @param node the scene graph node
+	 * @param treeNode the scene graph node
 	 * @param obj the current type object
 	 */
 	public updateNode(
-		node: ITreeNode = this._tree.root,
-		obj: THREE.Object3D | undefined,
+		treeNode: ITreeNode = this._tree.root,
+		obj?: THREE.Object3D,
 		filter: UpdateFilter = {transformationOnly: false},
 		visibleInHierarchy: boolean = true,
 	) {
+		// Resolve the converted object if not provided
 		if (obj === undefined) {
 			// check if there is a converted object
-			if (node.convertedObject[this._renderingEngine.id]) {
-				obj = node.convertedObject[
+			if (treeNode.convertedObject[this._renderingEngine.id]) {
+				obj = treeNode.convertedObject[
 					this._renderingEngine.id
 				] as THREE.Object3D;
 			} else {
 				// the node has not been converted yet
 				// go up the hierarchy until a converted object is found
-				let parent = node.parent;
+				let parent = treeNode.parent;
 				while (parent) {
 					if (parent.convertedObject[this._renderingEngine.id]) {
 						this.updateNode(
@@ -268,19 +261,21 @@ export class SceneTreeManager implements IManager {
 
 		// reset the general bounding box of the current node
 		// it will be recomputed in the following steps
-		node.boundingBox.reset();
+		treeNode.boundingBox.reset();
 
 		// create the specific BB if it doesn't exist yet
-		if (!node.boundingBoxViewport[this._renderingEngine.id])
-			node.boundingBoxViewport[this._renderingEngine.id] = new Box();
+		if (!treeNode.boundingBoxViewport[this._renderingEngine.id])
+			treeNode.boundingBoxViewport[this._renderingEngine.id] = new Box();
 
 		// reset the specific bounding box of the current node
 		// it will be recomputed in the following steps
-		node.boundingBoxViewport[this._renderingEngine.id].reset();
+		treeNode.boundingBoxViewport[this._renderingEngine.id].reset();
 
 		if (filter.transformationOnly === false) {
 			// remove all data items that do not exist anymore
-			const dataMap = new Map(node.data.map((d) => [d.id, d.version]));
+			const dataMap = new Map(
+				treeNode.data.map((d) => [d.id, d.version]),
+			);
 			const dataToRemove = convertedObject.children.filter((oc) => {
 				if (
 					oc instanceof SDObject &&
@@ -311,7 +306,7 @@ export class SceneTreeManager implements IManager {
 			// remove all child nodes in the transformed object that do not exist anymore
 			// the filter goes also through the data items as they were already added
 			const nodeIds = new Set(
-				node.children
+				treeNode.children
 					.filter(
 						(d) =>
 							!d.excludeViewports.includes(
@@ -343,11 +338,11 @@ export class SceneTreeManager implements IManager {
 		}
 
 		const isVisible =
-			node.visible &&
-			!node.excludeViewports.includes(this._renderingEngine.id) &&
+			treeNode.visible &&
+			!treeNode.excludeViewports.includes(this._renderingEngine.id) &&
 			!(
-				node.restrictViewports.length > 0 &&
-				!node.restrictViewports.includes(this._renderingEngine.id)
+				treeNode.restrictViewports.length > 0 &&
+				!treeNode.restrictViewports.includes(this._renderingEngine.id)
 			);
 		const isVisibleInHierarchy = visibleInHierarchy && isVisible;
 
@@ -362,24 +357,25 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		for (let i = 0, len = node.data.length; i < len; i++) {
-			const dataItem = node.data[i];
+		for (let i = 0, len = treeNode.data.length; i < len; i++) {
+			const dataItem = treeNode.data[i];
 			const convertedObjectData = convertedChildrenMap.get(dataItem.id);
 
 			if (
 				!convertedObjectData ||
-				convertedObjectData.SDversion !== dataItem.version
+				convertedObjectData.SDversion !== dataItem.version ||
+				this._newRendererType
 			) {
 				this.updateData(
-					node,
-					convertedObject,
 					dataItem,
+					treeNode,
+					convertedObject,
 					filter,
 					isVisibleInHierarchy,
 				);
 			} else {
 				assignBoundingBox(
-					node,
+					treeNode,
 					dataItem,
 					this._renderingEngine.id,
 					convertedObjectData,
@@ -387,56 +383,65 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		// add new children and update the ones that have a different version
-		for (let i = 0, len = node.children.length; i < len; i++) {
-			const nodeChild = node.children[i];
-			const objChild = convertedChildrenMap.get(nodeChild.id);
+		// Update or create child nodes
+		for (let i = 0, len = treeNode.children.length; i < len; i++) {
+			const treeNodeChild = treeNode.children[i];
+			const childConvertedObject = convertedChildrenMap.get(
+				treeNodeChild.id,
+			);
 
-			if (!objChild) {
-				const newChild = new SDObject(nodeChild.id, nodeChild.version);
-				const oldChild = nodeChild.convertedObject[
+			if (!childConvertedObject) {
+				const newChild = new SDObject(
+					treeNodeChild.id,
+					treeNodeChild.version,
+				);
+				const oldChild = treeNodeChild.convertedObject[
 					this._renderingEngine.id
 				] as THREE.Object3D;
-				nodeChild.convertedObject[this._renderingEngine.id] = newChild;
-				if (nodeChild.updateCallbackConvertedObject)
-					nodeChild.updateCallbackConvertedObject(
+				treeNodeChild.convertedObject[this._renderingEngine.id] =
+					newChild;
+				if (treeNodeChild.updateCallbackConvertedObject)
+					treeNodeChild.updateCallbackConvertedObject(
 						newChild,
 						oldChild,
 						this._renderingEngine.id,
 					);
 				convertedObject.add(newChild);
 				this.updateNode(
-					nodeChild,
+					treeNodeChild,
 					newChild,
 					filter,
 					isVisibleInHierarchy,
 				);
-			} else if (objChild.SDversion !== nodeChild.version) {
+			} else if (
+				childConvertedObject.SDversion !== treeNodeChild.version ||
+				this._newRendererType
+			) {
 				// if the version is different, update the child
 				this.updateNode(
-					nodeChild,
-					objChild,
+					treeNodeChild,
+					childConvertedObject,
 					filter,
 					isVisibleInHierarchy,
 				);
-				objChild.SDversion = nodeChild.version;
+				childConvertedObject.SDversion = treeNodeChild.version;
 			} else {
 				this.updateNode(
-					nodeChild,
-					objChild,
+					treeNodeChild,
+					childConvertedObject,
 					filter,
 					isVisibleInHierarchy,
 				);
 			}
 
 			// adjust the general BB
-			if (!nodeChild.boundingBox.isEmpty())
-				node.boundingBox.union(nodeChild.boundingBox);
+			if (!treeNodeChild.boundingBox.isEmpty())
+				treeNode.boundingBox.union(treeNodeChild.boundingBox);
 
 			// adjust the specific BB
 			if (
-				nodeChild.boundingBoxViewport[this._renderingEngine.id] &&
-				!nodeChild.boundingBoxViewport[
+				treeNodeChild.boundingBoxViewport[this._renderingEngine.id] &&
+				!treeNodeChild.boundingBoxViewport[
 					this._renderingEngine.id
 				].isEmpty()
 			) {
@@ -445,17 +450,21 @@ export class SceneTreeManager implements IManager {
 				// 2. no included in the "excludeViewports"
 				// 3. if there are "restrictViewports", it needs to be in them
 				if (isVisible)
-					node.boundingBoxViewport[this._renderingEngine.id].union(
-						nodeChild.boundingBoxViewport[this._renderingEngine.id],
+					treeNode.boundingBoxViewport[
+						this._renderingEngine.id
+					].union(
+						treeNodeChild.boundingBoxViewport[
+							this._renderingEngine.id
+						],
 					);
 			}
 		}
 
 		convertedObject.visible = isVisible;
-		convertedObject.applyTransformation(node.nodeMatrix);
+		convertedObject.applyTransformation(treeNode.nodeMatrix);
 	}
 
-	public updateSceneTree(root: ITreeNode): void {
+	public updateSceneTree(rootTreeNode: ITreeNode): void {
 		// check if we currently have the same root version
 		if (
 			this._tree.root.version === this._lastRootVersion &&
@@ -467,16 +476,8 @@ export class SceneTreeManager implements IManager {
 		if (this._suspendSceneUpdates) return;
 
 		this._lastRootVersion = this._tree.root.version;
-		const didRenderTypeChange =
+		this._newRendererType =
 			this._renderingEngine.type !== this._lastRendererType;
-		if (didRenderTypeChange) {
-			root.traverseData((data) => {
-				if (data instanceof GeometryData) {
-					data.updateVersion();
-				}
-			});
-			this._lastRootVersion = this._tree.root.version;
-		}
 		this._lastRendererType = this._renderingEngine.type;
 
 		if (this._renderingEngine.closed) return;
@@ -489,47 +490,47 @@ export class SceneTreeManager implements IManager {
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
 
-		if (!this._mainNode) {
-			this._mainNode = new SDObject(root.id, root.version);
-			const oldObj = root.convertedObject[
+		if (!this._mainConvertedObject) {
+			this._mainConvertedObject = new SDObject(
+				rootTreeNode.id,
+				rootTreeNode.version,
+			);
+			const oldObj = rootTreeNode.convertedObject[
 				this._renderingEngine.id
 			] as THREE.Object3D;
-			root.convertedObject[this._renderingEngine.id] = this._mainNode;
-			if (root.updateCallbackConvertedObject)
-				root.updateCallbackConvertedObject!(
-					this._mainNode,
+			rootTreeNode.convertedObject[this._renderingEngine.id] =
+				this._mainConvertedObject;
+			if (rootTreeNode.updateCallbackConvertedObject)
+				rootTreeNode.updateCallbackConvertedObject!(
+					this._mainConvertedObject,
 					oldObj,
 					this._renderingEngine.id,
 				);
-			this._scene.add(this._mainNode);
+			this._scene.add(this._mainConvertedObject);
 		}
 
-		this._currentSDTFOverview = createSDTFOverview(root);
-		this.updateNode(root, this._mainNode);
+		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		this.updateNode(rootTreeNode, this._mainConvertedObject);
 		this._boundingBox =
-			root.boundingBoxViewport[this._renderingEngine.id].clone();
+			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 
 		// directional lights need to be with the bounding box
-		root.traverseData((data) => {
-			if (
-				data instanceof DirectionalLight &&
-				(<DirectionalLight>data).useNodeData === false
-			) {
-				// check if the data has stored converted object
-				const convertedObject = <SDObject | undefined>(
-					(<THREE.Object3D | undefined>(
-						data.convertedObject[this._renderingEngine.id]
-					))?.parent
-				);
-				if (!convertedObject) return;
+		this._directionalLightData.forEach((dl) => {
+			// check if the data has stored converted object
+			const convertedObject = <SDObject | undefined>(
+				(<THREE.Object3D | undefined>(
+					dl.convertedObject[this._renderingEngine.id]
+				))?.parent
+			);
+			if (!convertedObject) return;
 
-				this._renderingEngine.lightLoader.adjustToBoundingBox(
-					data,
-					convertedObject,
-					this._boundingBox,
-				);
-			}
+			this._renderingEngine.lightLoader.adjustToBoundingBox(
+				dl,
+				convertedObject,
+				this._boundingBox,
+			);
 		});
+		this._directionalLightData = [];
 
 		const bbChanged =
 			this._boundingBox.min[0] !== oldBB.min[0] ||
@@ -615,8 +616,9 @@ export class SceneTreeManager implements IManager {
 			"sceneTreeUpdate." + this._lastRootVersion,
 		);
 	}
-
-	// #endregion Public Methods (6)
 }
 
-// #endregion Classes (1)
+/* eslint-disable @typescript-eslint/no-empty-function */
+type UpdateFilter = {
+	transformationOnly: boolean;
+};
