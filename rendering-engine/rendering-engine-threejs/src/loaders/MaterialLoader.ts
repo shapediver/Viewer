@@ -127,6 +127,8 @@ export class MaterialLoader implements ILoader {
 			materialSettings?: MaterialSettings;
 		};
 	} = {};
+	private _shaderProgramCache: Map<string, ThreeJsMaterialTypes> = new Map();
+	private _compiledShaderSignatures: Set<string> = new Set();
 	private _maxMapCount: number = 0;
 	private _pointSize: number = 1.0;
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
@@ -849,11 +851,15 @@ export class MaterialLoader implements ILoader {
 					renderer: THREE.WebGLRenderer,
 				) => {
 					before(shader, renderer);
-					shader.uniforms.lightSizeUV = {value: this._lightSizeUV};
-					shader.uniforms.blending = {value: this._blending};
+					// Only add uniforms once per shader program to improve performance
+					if (!shader.uniforms.lightSizeUV) {
+						shader.uniforms.lightSizeUV = {
+							value: this._lightSizeUV,
+						};
+						shader.uniforms.blending = {value: this._blending};
+					}
 					material.userData.shader = shader;
 				};
-
 				if (
 					material instanceof SpecularGlossinessMaterial ||
 					material instanceof THREE.MeshPhysicalMaterial
@@ -947,6 +953,8 @@ export class MaterialLoader implements ILoader {
 
 	public emptyMaterialCache() {
 		this._materialCache = {};
+		this._shaderProgramCache.clear();
+		this._compiledShaderSignatures.clear();
 	}
 
 	public getMaterialProperties(
@@ -1897,6 +1905,53 @@ export class MaterialLoader implements ILoader {
 	public init(): void {}
 
 	/**
+	 * Get a shader signature based on properties that affect shader compilation.
+	 * Materials with the same signature can share compiled shader programs.
+	 */
+	private getShaderSignature(
+		type: GEOMETRY_MATERIAL_TYPE,
+		materialData: IMaterialAbstractData | null,
+		materialSettings?: MaterialSettings,
+	): string {
+		// Use a simple string concatenation for better performance than JSON.stringify
+		return `${type}_${materialData?.constructor.name || "default"}_${this._materialOverrideType || "none"}_${materialSettings?.useVertexColors ? "vc" : ""}_${materialSettings?.useFlatShading ? "fs" : ""}_${materialSettings?.useMorphTargets ? "mt" : ""}_${this._envMapType}`;
+	}
+
+	/**
+	 * Precompile shaders for a batch of materials to avoid runtime compilation costs.
+	 * This should be called during initialization or loading phases.
+	 */
+	public precompileShaders(
+		materials: THREE.Material[],
+		scene: THREE.Scene,
+		camera: THREE.Camera,
+	): void {
+		if (!this._renderingEngine.renderer) return;
+
+		const compiler = this._renderingEngine.renderer;
+		const dummyGeometry = new THREE.PlaneGeometry(1, 1);
+
+		for (const material of materials) {
+			// Skip if already compiled
+			const signature = material.userData.shaderSignature;
+			if (signature && this._compiledShaderSignatures.has(signature)) {
+				continue;
+			}
+
+			const dummyMesh = new THREE.Mesh(dummyGeometry, material);
+			scene.add(dummyMesh);
+			compiler.compile(scene, camera);
+			scene.remove(dummyMesh);
+
+			if (signature) {
+				this._compiledShaderSignatures.add(signature);
+			}
+		}
+
+		dummyGeometry.dispose();
+	}
+
+	/**
 	 * Create a material object with the provided material data.
 	 *
 	 * @param material the material data
@@ -1925,6 +1980,18 @@ export class MaterialLoader implements ILoader {
 			type = GEOMETRY_MATERIAL_TYPE.MESH;
 		}
 
+		const cacheKey = this.createDataKeyFromMaterial(
+			incomingData,
+			type,
+			materialSettings,
+		);
+
+		// Check material cache first
+		if (this._materialCache[cacheKey]) {
+			return this._materialCache[cacheKey].material;
+		}
+
+		// Create new material
 		const material = this.createMaterial(
 			type,
 			incomingData,
@@ -1932,17 +1999,18 @@ export class MaterialLoader implements ILoader {
 			materialSettings,
 		);
 
-		const cacheKey = this.createDataKeyFromMaterial(
-			incomingData,
+		// Track shader signature for potential future optimizations
+		const shaderSignature = this.getShaderSignature(
 			type,
+			materialData,
 			materialSettings,
 		);
-
 		material.userData.cacheKey = cacheKey;
+		material.userData.shaderSignature = shaderSignature;
 
-		if (this._materialCache[cacheKey]) {
-			this._materialCache[cacheKey].material.copy(material);
-			return this._materialCache[cacheKey].material;
+		// Store in shader program cache for precompilation tracking
+		if (!this._shaderProgramCache.has(shaderSignature)) {
+			this._shaderProgramCache.set(shaderSignature, material);
 		}
 
 		this._materialCache[cacheKey] = {
