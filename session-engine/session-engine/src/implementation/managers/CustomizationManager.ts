@@ -550,9 +550,13 @@ export class CustomizationManager {
 		loadOutputs = true,
 		retry = false,
 	): Promise<ISessionTreeNode> {
+		const performanceId = this._uuidGenerator.create();
+
 		this._sessionEngineCore.utilsManager.checkAvailability("customize");
 		try {
-			this._performanceEvaluator.startSection("sessionResponse");
+			this._performanceEvaluator.startSection(
+				"sessionResponse.customize." + performanceId,
+			);
 			const responseDto = await new UtilsApi(
 				this._sessionEngineCore.sdkConfig,
 			).submitAndWaitForOutput(
@@ -561,7 +565,9 @@ export class CustomizationManager {
 				undefined,
 				this._sessionEngineCore.parameterManager.ignoreUnknownParams,
 			);
-			this._performanceEvaluator.endSection("sessionResponse");
+			this._performanceEvaluator.endSection(
+				"sessionResponse.customize." + performanceId,
+			);
 			if (
 				loadOutputs === true &&
 				this._sessionEngineCore.outputManager.allowOutputLoading ===

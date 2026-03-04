@@ -74,7 +74,12 @@ export class OutputLoader {
 		throwDelay = true,
 		cloneNodes = false,
 	): Promise<SessionTreeNode> {
-		this._performanceEvaluator.startSection("outputLoading");
+		this._performanceEvaluator.startSection(
+			"outputLoading." +
+				JSON.stringify(
+					Object.values(outputs).map((o) => o.id + "_" + o.version),
+				),
+		);
 		const node = new SessionTreeNode(nodeName);
 		const currentNodes: {
 			[key: string]: {
@@ -327,7 +332,12 @@ export class OutputLoader {
 			}
 		}
 
-		this._performanceEvaluator.endSection("outputLoading");
+		this._performanceEvaluator.endSection(
+			"outputLoading." +
+				JSON.stringify(
+					Object.values(outputs).map((o) => o.id + "_" + o.version),
+				),
+		);
 		return node;
 	}
 

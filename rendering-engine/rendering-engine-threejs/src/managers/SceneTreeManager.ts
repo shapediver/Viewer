@@ -15,6 +15,7 @@ import {
 	EventEngine,
 	EVENTTYPE,
 	InputValidator,
+	PerformanceEvaluator,
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
 import {
@@ -58,6 +59,7 @@ export class SceneTreeManager implements IManager {
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _inputValidator: InputValidator = InputValidator.instance;
+	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _scene: THREE.Scene = new THREE.Scene();
 	private readonly _stateEngine: StateEngine = StateEngine.instance;
 	private readonly _tree: ITree = Tree.instance;
@@ -530,6 +532,11 @@ export class SceneTreeManager implements IManager {
 		this._lastRendererType = this._renderingEngine.type;
 
 		if (this._renderingEngine.closed) return;
+
+		this._performanceEvaluator.startSection(
+			"sceneTreeUpdate." + this._lastRootVersion,
+		);
+
 		const oldBB = this._boundingBox.clone();
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
@@ -651,6 +658,10 @@ export class SceneTreeManager implements IManager {
 		this._renderingEngine.renderer.compile(
 			this._renderingEngine.scene,
 			this._hiddenCamera,
+		);
+
+		this._performanceEvaluator.endSection(
+			"sceneTreeUpdate." + this._lastRootVersion,
 		);
 	}
 
