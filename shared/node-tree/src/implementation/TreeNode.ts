@@ -13,7 +13,6 @@ export class TreeNode implements ITreeNode {
 	readonly #boundingBox: IBox = new Box();
 	readonly #boundingBoxViewport: {[key: string]: IBox} = {};
 	readonly #children: ITreeNode[] = [];
-	readonly #data: ITreeNodeData[] = [];
 	readonly #dataProxy: ObservableArray<ITreeNodeData> =
 		new ObservableArray<ITreeNodeData>({
 			initialData: [],
@@ -59,8 +58,7 @@ export class TreeNode implements ITreeNode {
 	) {
 		this.#name = name;
 		this.#parent = parent;
-		this.#data = data;
-		this.#dataProxy.setData(this.#data);
+		this.#dataProxy.setData(data);
 		this.#transformations = transformations;
 
 		this.#id = this.#uuidGenerator.create();
@@ -285,12 +283,13 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public addData(data: ITreeNodeData | ITreeNodeData[]): boolean {
+		const currentData = [...this.#dataProxy.value];
 		if (Array.isArray(data)) {
-			this.#data.push(...data);
+			currentData.push(...data);
 		} else {
-			this.#data.push(data);
+			currentData.push(data);
 		}
-		this.#dataProxy.setData(this.#data);
+		this.#dataProxy.setData(currentData);
 		return true;
 	}
 
@@ -320,7 +319,7 @@ export class TreeNode implements ITreeNode {
 		clone.visible = this.visible;
 
 		for (const child of this.#children) clone.addChild(child.clone());
-		for (const data of this.#data) clone.data.push(data.clone());
+		for (const data of this.#dataProxy.value) clone.data.push(data.clone());
 		for (const transform of this.#transformations)
 			clone.addTransformation({
 				id: transform.id,
@@ -351,7 +350,7 @@ export class TreeNode implements ITreeNode {
 		clone.visible = this.visible;
 		for (const child of this.#children)
 			clone.addChild(child.cloneInstance());
-		for (const data of this.#data) clone.data.push(data);
+		for (const data of this.#dataProxy.value) clone.data.push(data);
 		for (const transform of this.#transformations)
 			clone.addTransformation({
 				id: transform.id,
@@ -368,8 +367,9 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public getData(id: string): ITreeNodeData | undefined {
-		for (let i = 0; i < this.#data.length; i++)
-			if (this.#data[i].id === id) return this.#data[i];
+		for (let i = 0; i < this.#dataProxy.value.length; i++)
+			if (this.#dataProxy.value[i].id === id)
+				return this.#dataProxy.value[i];
 		return;
 	}
 
@@ -423,7 +423,7 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public hasData(data: ITreeNodeData): boolean {
-		return this.#data.includes(data);
+		return this.#dataProxy.value.includes(data);
 	}
 
 	public hasTransformation(transformation: ITransformation): boolean {
@@ -449,23 +449,24 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public removeData(data: ITreeNodeData | ITreeNodeData[]): boolean {
+		const currentData = [...this.#dataProxy.value];
 		if (Array.isArray(data)) {
 			let allRemoved = true;
 			for (const d of data) {
-				const index = this.#data.indexOf(d);
+				const index = currentData.indexOf(d);
 				if (index === -1) {
 					allRemoved = false;
 					continue;
 				}
-				this.#data.splice(index, 1);
+				currentData.splice(index, 1);
 			}
-			this.#dataProxy.setData(this.#data);
+			this.#dataProxy.setData(currentData);
 			return allRemoved;
 		} else {
-			const index = this.#data.indexOf(data);
+			const index = currentData.indexOf(data);
 			if (index === -1) return false;
-			this.#data.splice(index, 1);
-			this.#dataProxy.setData(this.#data);
+			currentData.splice(index, 1);
+			this.#dataProxy.setData(currentData);
 			return true;
 		}
 	}
@@ -486,8 +487,8 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public traverseData(callback: (node: ITreeNodeData) => void): void {
-		for (let j = 0; j < this.#data.length; j++)
-			callback(<ITreeNodeData>this.#data[j]);
+		for (let j = 0; j < this.#dataProxy.value.length; j++)
+			callback(<ITreeNodeData>this.#dataProxy.value[j]);
 
 		for (let i = 0; i < this.children.length; i++)
 			this.children[i].traverseData(
