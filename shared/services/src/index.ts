@@ -19,6 +19,7 @@ import {
 	MainEventTypes,
 } from "./event-engine/EventTypes";
 import {IEvent} from "./event-engine/interfaces/IEvent";
+import {HashCreator} from "./hash-creator/HashCreator";
 import {HttpClient} from "./http-client/HttpClient";
 import {HttpResponse} from "./http-client/HttpResponse";
 import {InputValidator} from "./input-validator/InputValidator";
@@ -119,6 +120,7 @@ export {UuidGenerator};
 export {Converter};
 export {TypeChecker};
 export {InputValidator};
+export {HashCreator};
 export {
 	Logger,
 	LOGGING_LEVEL,

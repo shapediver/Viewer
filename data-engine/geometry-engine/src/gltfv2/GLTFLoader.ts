@@ -88,7 +88,6 @@ export class GLTFLoader {
 	private readonly _progressUpdateLimit = 500;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	private readonly _matrixPool: mat4[] = [];
-	private readonly _nodeBatchSize = 100;
 	private readonly _vec3Pool: vec3[] = [];
 	private readonly _vec4Pool: vec4[] = [];
 
@@ -108,6 +107,7 @@ export class GLTFLoader {
 	private _numberOfNodes = 0;
 	private _progressTimer = 0;
 	private _textureLoader!: TextureLoader;
+	private _urlHash?: number;
 
 	// #endregion Properties (22)
 
@@ -125,8 +125,10 @@ export class GLTFLoader {
 		},
 		baseUri?: string,
 		taskEventId?: string,
+		urlHash?: number,
 	): Promise<ITreeNode> {
 		this._eventId = taskEventId || this._uuidGenerator.create();
+		this._urlHash = urlHash;
 		const eventStart: ITaskEvent = {
 			type: TASK_TYPE.GLTF_CONTENT_LOADING,
 			id: this._eventId,
@@ -198,6 +200,7 @@ export class GLTFLoader {
 			this._bufferViewLoader,
 			this._materialLoader,
 			dracoModule,
+			this._urlHash,
 		);
 
 		const eventProgressInit: ITaskEvent = {

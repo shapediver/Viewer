@@ -129,6 +129,7 @@ export class SceneTreeManager implements IManager {
 						) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
 						dataChild = this._renderingEngine.geometryLoader.load(
+							treeNode,
 							<GeometryData>treeNodeData,
 							instanceTransformationData,
 						);

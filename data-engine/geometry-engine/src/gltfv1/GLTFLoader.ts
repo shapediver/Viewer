@@ -84,6 +84,7 @@ export class GLTFLoader {
 		},
 		baseUri?: string,
 		taskEventId?: string,
+		urlHash?: number,
 	): Promise<ITreeNode> {
 		this._eventId = taskEventId || this._uuidGenerator.create();
 		const eventStart: ITaskEvent = {

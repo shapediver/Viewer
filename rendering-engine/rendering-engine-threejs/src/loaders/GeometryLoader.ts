@@ -1,3 +1,4 @@
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
@@ -42,12 +43,20 @@ export class GeometryLoader implements ILoader {
 		};
 	} = {};
 	private _geometryCache: {
-		[key: string]: {
-			obj: GeometryType;
-			primitiveCacheId: string;
-			clones: GeometryType[];
-			counter: number;
-		};
+		[key: string]:
+			| {
+					obj: GeometryType;
+					primitiveCacheId: string;
+					clones: GeometryType[];
+					counter: number;
+					type: "standard";
+			  }
+			| {
+					obj: GeometryType;
+					primitiveCacheId: string;
+					instanceHash: string;
+					type: "instanced";
+			  };
 	} = {};
 	private _logger: Logger = Logger.instance;
 	private _primitiveCache: {
@@ -87,9 +96,90 @@ export class GeometryLoader implements ILoader {
 	 * @returns the geometry object
 	 */
 	public load(
+		parentNode: ITreeNode,
 		geometry: GeometryData,
 		instanceData?: InstanceData,
 	): GeometryType {
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
+
+		if (geometry.instantiable) {
+			// the data engine determined that the geometry can be instanced
+			// we check if the cache already contains the geometry, if not we create it and add it to the cache
+
+			const instancedObject = Object.values(this._geometryCache).find(
+				(g) =>
+					g.type === "instanced" &&
+					g.instanceHash === geometry.instanceHash,
+			);
+			if (instancedObject) {
+				const instancedMesh =
+					instancedObject.obj as THREE.InstancedMesh;
+
+				instancedMesh.visible = true;
+
+				if (
+					instancedMesh.userData.assignedInstances ===
+					instancedMesh.count
+				)
+					instancedMesh.count += 1;
+
+				// Grow instance buffers if count exceeds current capacity
+				const currentCapacity = instancedMesh.instanceMatrix.count;
+
+				if (instancedMesh.count > currentCapacity) {
+					console.log(
+						"Growing instanced mesh buffers from",
+						currentCapacity,
+						"to",
+						currentCapacity * 2,
+					);
+					const newCapacity = currentCapacity * 2;
+
+					const newMatrixArray = new Float32Array(newCapacity * 16);
+					newMatrixArray.set(
+						instancedMesh.instanceMatrix.array as Float32Array,
+					);
+					instancedMesh.instanceMatrix =
+						new THREE.InstancedBufferAttribute(newMatrixArray, 16);
+
+					if (instancedMesh.instanceColor) {
+						const newColorArray = new Float32Array(newCapacity * 3);
+						newColorArray.set(
+							instancedMesh.instanceColor.array as Float32Array,
+						);
+						instancedMesh.instanceColor =
+							new THREE.InstancedBufferAttribute(
+								newColorArray,
+								3,
+							);
+					}
+				}
+
+				// add the current instance matrix and color to the existing instanced mesh
+				instancedMesh.setMatrixAt(
+					instancedMesh.userData.assignedInstances,
+
+					new THREE.Matrix4().fromArray(parentNode.worldMatrix),
+				);
+				instancedMesh.userData.assignedInstances++;
+
+				if (instancedMesh.instanceColor)
+					instancedMesh.instanceColor.needsUpdate = true;
+				instancedMesh.instanceMatrix.needsUpdate = true;
+
+				return instancedMesh;
+			}
+		}
+
 		// Cache key to avoid repeated string concatenation
 		const primitiveCacheKey =
 			geometry.primitive.id + "_" + geometry.primitive.version;
@@ -105,17 +195,6 @@ export class GeometryLoader implements ILoader {
 				return clone;
 			}
 		})();
-
-		let incomingMaterialData: IMaterialAbstractData | null;
-		if (geometry.effectMaterials.length > 0) {
-			incomingMaterialData =
-				geometry.effectMaterials[geometry.effectMaterials.length - 1]
-					.material;
-		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			incomingMaterialData = geometry.attributeMaterial;
-		} else {
-			incomingMaterialData = geometry.material;
-		}
 
 		const attributes = threeGeometry.attributes;
 		const morphAttributes = threeGeometry.morphAttributes;
@@ -180,14 +259,19 @@ export class GeometryLoader implements ILoader {
 		material.needsUpdate = false;
 
 		let threeGeometryObject: GeometryType;
-		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
-			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			threeGeometryObject =
-				this._geometryCache[geometry.id + "_" + geometry.version].obj;
+		const cachedGeometry =
+			this._geometryCache[geometry.id + "_" + geometry.version];
+		if (cachedGeometry && cachedGeometry.type === "standard") {
+			cachedGeometry.counter++;
+			threeGeometryObject = cachedGeometry.obj;
 
 			threeGeometryObject.material = material;
+		} else if (cachedGeometry && cachedGeometry.type === "instanced") {
+			// TODO can this even happen?
+			threeGeometryObject = cachedGeometry.obj;
 		} else {
 			threeGeometryObject = this.createMesh(
+				parentNode,
 				geometry,
 				threeGeometry,
 				material,
@@ -195,13 +279,26 @@ export class GeometryLoader implements ILoader {
 			);
 			threeGeometryObject.userData.cacheKey =
 				geometry.id + "_" + geometry.version;
-			this._geometryCache[geometry.id + "_" + geometry.version] = {
-				obj: threeGeometryObject,
-				counter: 1,
-				clones: [],
-				primitiveCacheId:
-					geometry.primitive.id + "_" + geometry.primitive.version,
-			};
+
+			if (geometry.instantiable) {
+				this._geometryCache[geometry.id + "_" + geometry.version] = {
+					obj: threeGeometryObject,
+					primitiveCacheId: primitiveCacheKey,
+					instanceHash: geometry.instanceHash!,
+					type: "instanced",
+				};
+			} else {
+				this._geometryCache[geometry.id + "_" + geometry.version] = {
+					obj: threeGeometryObject,
+					counter: 1,
+					clones: [],
+					primitiveCacheId:
+						geometry.primitive.id +
+						"_" +
+						geometry.primitive.version,
+					type: "standard",
+				};
+			}
 		}
 
 		threeGeometryObject.castShadow = true;
@@ -301,20 +398,25 @@ export class GeometryLoader implements ILoader {
 	}
 
 	public removeFromGeometryCache(id: string) {
-		if (this._geometryCache[id]) {
-			if (this._geometryCache[id].counter === 1) {
-				this.removeFromPrimitiveCache(
-					this._geometryCache[id].primitiveCacheId,
-				);
-
-				this._geometryCache[id].clones.forEach((c) => {
+		const cachedGeometry = this._geometryCache[id];
+		if (cachedGeometry) {
+			if (cachedGeometry.type === "standard") {
+				if (cachedGeometry.counter === 1) {
 					this.removeFromPrimitiveCache(
-						this._geometryCache[id].primitiveCacheId,
+						cachedGeometry.primitiveCacheId,
 					);
-				});
-				delete this._geometryCache[id];
+
+					cachedGeometry.clones.forEach((c) => {
+						this.removeFromPrimitiveCache(
+							cachedGeometry.primitiveCacheId,
+						);
+					});
+					delete this._geometryCache[id];
+				} else {
+					cachedGeometry.counter--;
+				}
 			} else {
-				this._geometryCache[id].counter--;
+				// TODO remove instance matrix and color from instanced mesh
 			}
 		}
 	}
@@ -571,6 +673,7 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
+		parentNode: ITreeNode,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
@@ -638,6 +741,47 @@ export class GeometryLoader implements ILoader {
 				geometry.convertedObject[this._renderingEngine.id] =
 					instancedMesh;
 				threeGeometryObject = instancedMesh;
+			} else if (geometry.instantiable) {
+				(material as THREE.MeshBasicMaterial).color = new THREE.Color(
+					"white",
+				);
+				const instancedMesh = new THREE.InstancedMesh(
+					bufferGeometry,
+					material,
+					geometry.instanceColors.length || 1,
+				);
+				instancedMesh.userData.assignedInstances = 1;
+				console.log(
+					"new instanced mesh",
+					geometry.id,
+					geometry.instanceHash,
+					geometry.instanceColors.length,
+				);
+
+				instancedMesh.setMatrixAt(
+					0,
+					new THREE.Matrix4().fromArray(parentNode.worldMatrix),
+				);
+
+				for (let i = 0; i < geometry.instanceColors.length; i++) {
+					instancedMesh.setColorAt(
+						i,
+						this._renderingEngine.createThreeJsColor(
+							geometry.instanceColors[i],
+						),
+					);
+				}
+
+				if (instancedMesh.instanceColor)
+					instancedMesh.instanceColor.needsUpdate = true;
+				instancedMesh.instanceMatrix.needsUpdate = true;
+
+				// Enable frustum culling for instanced meshes
+				instancedMesh.frustumCulled = false;
+
+				geometry.convertedObject[this._renderingEngine.id] =
+					instancedMesh;
+				threeGeometryObject = instancedMesh;
 			} else {
 				const mesh = new THREE.Mesh(bufferGeometry, material);
 				geometry.convertedObject[this._renderingEngine.id] = mesh;
@@ -675,12 +819,12 @@ export class GeometryLoader implements ILoader {
 		const renderOrder = geometry.renderOrder;
 
 		const threeGeom = threeGeometryObject.geometry;
-		threeGeom.userData = userDataCache;
+		// threeGeom.userData = userDataCache;
 		threeGeometryObject.renderOrder = renderOrder;
 
 		// Performance: Disable matrixAutoUpdate for static geometry (no animations/transforms)
 		// This prevents Three.js from recalculating matrices every frame
-		if (!instanceData) {
+		if (!instanceData || geometry.instantiable) {
 			threeGeometryObject.matrixAutoUpdate = false;
 		}
 

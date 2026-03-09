@@ -1,6 +1,7 @@
 import {IBox} from "@shapediver/viewer.shared.math";
 import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {mat4} from "gl-matrix";
+import {Color} from "../..";
 import {IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
 export enum PRIMITIVE_MODE {
@@ -87,6 +88,9 @@ export interface IGeometryData extends ITreeNodeData {
 
 	attributeMaterial: IMaterialAbstractData | null;
 	boundingBox: IBox;
+	instantiable: boolean;
+	instanceHash?: string;
+	instanceColors: Color[];
 	effectMaterials: {material: IMaterialAbstractData; token: string}[];
 	material: IMaterialAbstractData | null;
 	materialVariants: {material: IMaterialAbstractData; variant: number}[];

@@ -1,6 +1,8 @@
 import {Box, IBox} from "@shapediver/viewer.shared.math";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+
 import {mat4, quat, vec3} from "gl-matrix";
+
 import {
 	IAttributeData,
 	IGeometryData,
@@ -8,15 +10,12 @@ import {
 	PRIMITIVE_MODE,
 } from "../../interfaces/data/IGeometryData";
 import {IMaterialAbstractData} from "../../interfaces/data/material/IMaterialAbstractData";
-
-// #region Classes (3)
+import {Color} from "../../types";
 
 export class AttributeData
 	extends AbstractTreeNodeData
 	implements IAttributeData
 {
-	// #region Properties (15)
-
 	readonly #array:
 		| Int8Array
 		| Uint8Array
@@ -50,10 +49,6 @@ export class AttributeData
 		| Uint32Array
 		| Float32Array;
 	readonly #target?: number;
-
-	// #endregion Properties (15)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creates an attribute data object.
@@ -119,10 +114,6 @@ export class AttributeData
 		this.#sparseValues = sparseValues;
 		this.#morphAttributeData = morphAttributeData;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (15)
 
 	public get array():
 		| Int8Array
@@ -204,10 +195,6 @@ export class AttributeData
 		return this.#target;
 	}
 
-	// #endregion Public Getters And Setters (15)
-
-	// #region Public Methods (1)
-
 	/**
 	 * Clones the attribute data.
 	 */
@@ -232,32 +219,27 @@ export class AttributeData
 			this.version,
 		);
 	}
-
-	// #endregion Public Methods (1)
 }
 
 export class GeometryData
 	extends AbstractTreeNodeData
 	implements IGeometryData
 {
-	// #region Properties (10)
-
 	readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
 	readonly #primitive: IPrimitiveData;
 
 	#attributeMaterial: IMaterialAbstractData | null = null;
 	#boundingBox: IBox = new Box();
 	#effectMaterials: {material: IMaterialAbstractData; token: string}[] = [];
+	#instanceColors: Color[] = [];
+	#instanceHash?: string;
+	#instantiable: boolean = false;
 	#material: IMaterialAbstractData | null = null;
 	#materialVariants: {material: IMaterialAbstractData; variant: number}[] =
 		[];
 	#morphWeights: number[] = [];
 	#renderOrder: number = 0;
 	#standardMaterial: IMaterialAbstractData | null = null;
-
-	// #endregion Properties (10)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creates a geometry data object.
@@ -285,10 +267,6 @@ export class GeometryData
 		this.#attributeMaterial = attributeMaterial;
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (15)
-
 	public get attributeMaterial(): IMaterialAbstractData | null {
 		return this.#attributeMaterial;
 	}
@@ -306,6 +284,30 @@ export class GeometryData
 		token: string;
 	}[] {
 		return this.#effectMaterials;
+	}
+
+	public get instanceColors(): Color[] {
+		return this.#instanceColors;
+	}
+
+	public set instanceColors(value: Color[]) {
+		this.#instanceColors = value;
+	}
+
+	public get instanceHash(): string | undefined {
+		return this.#instanceHash;
+	}
+
+	public set instanceHash(value: string | undefined) {
+		this.#instanceHash = value;
+	}
+
+	public get instantiable(): boolean {
+		return this.#instantiable;
+	}
+
+	public set instantiable(value: boolean) {
+		this.#instantiable = value;
 	}
 
 	public get material(): IMaterialAbstractData | null {
@@ -355,37 +357,33 @@ export class GeometryData
 		this.#standardMaterial = value;
 	}
 
-	// #endregion Public Getters And Setters (15)
-
-	// #region Public Methods (2)
-
 	/**
 	 * Clones the scene graph data.
 	 */
 	public clone(): IGeometryData {
-		return new GeometryData(
+		const geometryData = new GeometryData(
 			this.#primitive,
 			this.#mode,
 			this.#material,
 			this.#morphWeights,
 			this.#attributeMaterial,
 		);
+		geometryData.instantiable = this.#instantiable;
+		geometryData.instanceHash = this.#instanceHash;
+		geometryData.instanceColors = this.#instanceColors;
+		return geometryData;
 	}
 
 	public intersect(origin: vec3, direction: vec3): number | null {
 		if (this.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
 		return this.boundingBox.intersect(origin, direction);
 	}
-
-	// #endregion Public Methods (2)
 }
 
 export class PrimitiveData
 	extends AbstractTreeNodeData
 	implements IPrimitiveData
 {
-	// #region Properties (3)
-
 	readonly #attributes: {
 		[key: string]: IAttributeData;
 	} = {};
@@ -395,10 +393,6 @@ export class PrimitiveData
 		boundingBox: IBox;
 	}[] = [];
 	#indices: IAttributeData | null = null;
-
-	// #endregion Properties (3)
-
-	// #region Constructors (1)
 
 	/**
 	 * Creates a primitive data object.
@@ -419,10 +413,6 @@ export class PrimitiveData
 		this.#indices = indices;
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (4)
-
 	public get attributes(): {
 		[key: string]: IAttributeData;
 	} {
@@ -440,10 +430,6 @@ export class PrimitiveData
 	public set indices(value: IAttributeData | null) {
 		this.#indices = value;
 	}
-
-	// #endregion Public Getters And Setters (4)
-
-	// #region Public Methods (2)
 
 	/**
 	 * Clones the primitive data.
@@ -536,8 +522,4 @@ export class PrimitiveData
 		}
 		return new Box();
 	}
-
-	// #endregion Public Methods (2)
 }
-
-// #endregion Classes (3)

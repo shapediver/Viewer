@@ -2,10 +2,11 @@ import {
 	IGLTF_v2,
 	IGLTF_v2_Primitive,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {Logger} from "@shapediver/viewer.shared.services";
+import {HashCreator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
+	IAttributeData,
 	IMapData,
 	IMaterialAbstractData,
 	MapData,
@@ -20,6 +21,7 @@ import {MaterialLoader} from "./MaterialLoader";
 export class GeometryLoader {
 	// #region Properties (1)
 
+	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _logger: Logger = Logger.instance;
 	private readonly _attributeNameCache = new Map<string, string>();
 	private readonly _digitRegex = /\d/;
@@ -40,6 +42,7 @@ export class GeometryLoader {
 		private readonly _bufferViewLoader: BufferViewLoader,
 		private readonly _materialLoader: MaterialLoader,
 		private readonly _dracoModule: any,
+		private readonly _urlHash?: number,
 	) {}
 
 	// #endregion Constructors (1)
@@ -91,7 +94,7 @@ export class GeometryLoader {
 	 * @returns
 	 */
 	private cleanMaterial(
-		attributes: {[key: string]: AttributeData},
+		attributes: {[key: string]: IAttributeData},
 		material: IMaterialAbstractData | null,
 	): IMaterialAbstractData | null {
 		if (!material) return null;
@@ -133,6 +136,76 @@ export class GeometryLoader {
 		return assignedMaterial;
 	}
 
+	private canPrimitiveBeInstanced(primitive: IGLTF_v2_Primitive): {
+		instanceHash: string;
+		instance?: GeometryData;
+	} {
+		let materialContent = "";
+		if (
+			primitive.material !== undefined &&
+			this._content.materials &&
+			this._content.materials[primitive.material]
+		) {
+			const materialWithoutBaseColorFactor = {
+				...this._content.materials[primitive.material],
+			};
+			if (materialWithoutBaseColorFactor.pbrMetallicRoughness) {
+				materialWithoutBaseColorFactor.pbrMetallicRoughness = {
+					...materialWithoutBaseColorFactor.pbrMetallicRoughness,
+					// ignore base color factor for instance hashing
+					baseColorFactor: undefined,
+				};
+			}
+			materialContent = JSON.stringify(materialWithoutBaseColorFactor);
+		}
+
+		const instanceContent = JSON.stringify({
+			attributes: primitive.attributes,
+			indices: primitive.indices,
+			material: materialContent,
+			mode: primitive.mode,
+		});
+
+		const geometryHash =
+			this._hashCreator.createMurmurHash(instanceContent);
+		const instanceHash = this._urlHash
+			? this._urlHash + "_" + geometryHash
+			: geometryHash + "";
+
+		// check if within the loaded meshes there is a
+		// mesh with the same instance hash (same geometry and material) and if so, mark it as instantiable
+		let instance: GeometryData | undefined;
+		for (const key in this._loaded) {
+			if (this._loaded[key].instanceHash === instanceHash) {
+				instance = this._loaded[key];
+				break;
+			}
+		}
+
+		return {instanceHash, instance};
+	}
+
+	private addInstance(
+		geometryData: GeometryData,
+		cacheKey: string,
+		material: IMaterialAbstractData | null,
+	): GeometryData {
+		if (geometryData.instantiable === false) {
+			geometryData.instantiable = true;
+			geometryData.instanceColors.push(
+				geometryData.material && geometryData.material.color
+					? geometryData.material.color
+					: [1, 1, 1, 1],
+			);
+		}
+
+		geometryData.instanceColors.push(
+			material && material.color ? material.color : [1, 1, 1, 1],
+		);
+		this._loaded[cacheKey] = geometryData;
+		return geometryData;
+	}
+
 	private loadPrimitive(
 		meshId: number,
 		primitives: IGLTF_v2_Primitive[],
@@ -141,11 +214,21 @@ export class GeometryLoader {
 	): GeometryData | undefined {
 		const primitive = primitives[index];
 
+		const {instanceHash, instance} =
+			this.canPrimitiveBeInstanced(primitive);
+
+		let material = null;
+		if (primitive.material || primitive.material === 0)
+			material = this._materialLoader.getMaterial(primitive.material);
+
 		// Check cache first - important for scenes with many instances of same mesh
 		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
-		if (this._loaded[cacheKey]) {
-			return this._loaded[cacheKey];
-		}
+		if (this._loaded[cacheKey])
+			return this.addInstance(this._loaded[cacheKey], cacheKey, material);
+
+		// check if there is already an instance with the same geometry and material and if so
+		// mark it as instantiable and return it
+		if (instance) return this.addInstance(instance, cacheKey, material);
 
 		const attributes: {
 			[key: string]: AttributeData;
@@ -339,10 +422,6 @@ export class GeometryLoader {
 			}
 		}
 
-		let material = null;
-		if (primitive.material || primitive.material === 0)
-			material = this._materialLoader.getMaterial(primitive.material);
-
 		// if there are no attributes, return a primitive node without geometry data
 		if (Object.values(attributes).length === 0) {
 			this._logger.warn(
@@ -383,6 +462,7 @@ export class GeometryLoader {
 		}
 
 		geometryData.morphWeights = weights;
+		geometryData.instanceHash = instanceHash;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
 
 		return geometryData;
