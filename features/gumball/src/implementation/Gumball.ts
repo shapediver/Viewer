@@ -15,6 +15,7 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE_GUMBALL,
+	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
@@ -27,6 +28,7 @@ export class Gumball implements IGumball {
 	// #region Properties (38)
 
 	readonly #eventEngine: EventEngine = EventEngine.instance;
+	readonly #systemInfo: SystemInfo = SystemInfo.instance;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_gumball_matrix";
 	readonly #nodes: ITreeNode[] = [];
@@ -164,7 +166,10 @@ export class Gumball implements IGumball {
 			settings?.enableTranslationAxes?.xz === undefined
 				? this.enableTranslationX && this.enableTranslationZ
 				: settings?.enableTranslationAxes?.xz;
-		this.scale = settings?.scale ?? 0.15;
+
+		const isMobile = this.#systemInfo.isMobile;
+		const mobileFactor = isMobile ? 2 : 1;
+		this.scale = (settings?.scale ?? 0.15) * mobileFactor;
 		// we don't allow to change the space for now
 		this.#space = settings?.space ?? "local";
 		this.#transformControls.space = this.#space;
