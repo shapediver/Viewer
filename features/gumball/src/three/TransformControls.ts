@@ -1,4 +1,5 @@
 import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {SystemInfo} from "@shapediver/viewer.shared.services";
 import {
 	BoxGeometry,
 	BufferGeometry,
@@ -1189,6 +1190,10 @@ class TransformControlsGizmo extends Object3D {
 
 		this.type = "TransformControlsGizmo";
 
+		const isMobile = SystemInfo.instance.isMobile;
+		const mobileFactorSingleAxis = isMobile ? 2 : 1;
+		const mobileFactorMultiAxis = isMobile ? 1.5 : 1;
+
 		// shared materials
 
 		const gizmoMaterial = new MeshBasicMaterial({
@@ -1404,7 +1409,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(0.15, 0.15, 0.01),
 						translationMaterialBlueTransparent.clone(),
 					),
-					[0.25, 0.25, 0],
+					[
+						0.25 * mobileFactorMultiAxis,
+						0.25 * mobileFactorMultiAxis,
+						0,
+					],
 				],
 			],
 			YZ: [
@@ -1413,7 +1422,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(0.15, 0.15, 0.01),
 						translationMaterialRedTransparent.clone(),
 					),
-					[0, 0.25, 0.25],
+					[
+						0,
+						0.25 * mobileFactorMultiAxis,
+						0.25 * mobileFactorMultiAxis,
+					],
 					[0, Math.PI / 2, 0],
 				],
 			],
@@ -1423,7 +1436,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(0.15, 0.15, 0.01),
 						translationMaterialGreenTransparent.clone(),
 					),
-					[0.25, 0, 0.25],
+					[
+						0.25 * mobileFactorMultiAxis,
+						0,
+						0.25 * mobileFactorMultiAxis,
+					],
 					[-Math.PI / 2, 0, 0],
 				],
 			],
@@ -1433,7 +1450,12 @@ class TransformControlsGizmo extends Object3D {
 			X: [
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						translationMaterialInvisible,
 					),
 					[0.3, 0, 0],
@@ -1444,7 +1466,12 @@ class TransformControlsGizmo extends Object3D {
 			Y: [
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						translationMaterialInvisible,
 					),
 					[0, 0.3, 0],
@@ -1454,7 +1481,12 @@ class TransformControlsGizmo extends Object3D {
 			Z: [
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						translationMaterialInvisible,
 					),
 					[0, 0, 0.3],
@@ -1473,29 +1505,53 @@ class TransformControlsGizmo extends Object3D {
 			XY: [
 				[
 					new Mesh(
-						new BoxGeometry(0.2, 0.2, 0.01),
+						new BoxGeometry(
+							0.2 * mobileFactorMultiAxis,
+							0.2 * mobileFactorMultiAxis,
+							0.01 * mobileFactorMultiAxis,
+						),
 						translationMaterialInvisible,
 					),
-					[0.25, 0.25, 0],
+					[
+						0.25 * mobileFactorMultiAxis,
+						0.25 * mobileFactorMultiAxis,
+						0,
+					],
 				],
 			],
 			YZ: [
 				[
 					new Mesh(
-						new BoxGeometry(0.2, 0.2, 0.01),
+						new BoxGeometry(
+							0.2 * mobileFactorMultiAxis,
+							0.2 * mobileFactorMultiAxis,
+							0.01 * mobileFactorMultiAxis,
+						),
 						translationMaterialInvisible,
 					),
-					[0, 0.25, 0.25],
+					[
+						0,
+						0.25 * mobileFactorMultiAxis,
+						0.25 * mobileFactorMultiAxis,
+					],
 					[0, Math.PI / 2, 0],
 				],
 			],
 			XZ: [
 				[
 					new Mesh(
-						new BoxGeometry(0.2, 0.2, 0.01),
+						new BoxGeometry(
+							0.2 * mobileFactorMultiAxis,
+							0.2 * mobileFactorMultiAxis,
+							0.01 * mobileFactorMultiAxis,
+						),
 						translationMaterialInvisible,
 					),
-					[0.25, 0, 0.25],
+					[
+						0.25 * mobileFactorMultiAxis,
+						0,
+						0.25 * mobileFactorMultiAxis,
+					],
 					[-Math.PI / 2, 0, 0],
 				],
 			],
@@ -1644,7 +1700,12 @@ class TransformControlsGizmo extends Object3D {
 			X: [
 				[
 					new Mesh(
-						new TorusGeometry(0.5 * rotationScale, 0.1, 4, 24),
+						new TorusGeometry(
+							0.5 * rotationScale,
+							0.1 * mobileFactorSingleAxis,
+							4,
+							24,
+						),
 						rotationMaterialInvisible,
 					),
 					[0, 0, 0],
@@ -1654,7 +1715,12 @@ class TransformControlsGizmo extends Object3D {
 			Y: [
 				[
 					new Mesh(
-						new TorusGeometry(0.5 * rotationScale, 0.1, 4, 24),
+						new TorusGeometry(
+							0.5 * rotationScale,
+							0.1 * mobileFactorSingleAxis,
+							4,
+							24,
+						),
 						rotationMaterialInvisible,
 					),
 					[0, 0, 0],
@@ -1664,7 +1730,12 @@ class TransformControlsGizmo extends Object3D {
 			Z: [
 				[
 					new Mesh(
-						new TorusGeometry(0.5 * rotationScale, 0.1, 4, 24),
+						new TorusGeometry(
+							0.5 * rotationScale,
+							0.1 * mobileFactorSingleAxis,
+							4,
+							24,
+						),
 						rotationMaterialInvisible,
 					),
 					[0, 0, 0],
@@ -1715,7 +1786,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(-0.15, -0.15, 0.01),
 						scaleMaterialBlueTransparent,
 					),
-					[-0.15, -0.15, 0],
+					[
+						-0.25 * mobileFactorMultiAxis,
+						-0.25 * mobileFactorMultiAxis,
+						0,
+					],
 				],
 			],
 			YZ: [
@@ -1724,7 +1799,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(-0.15, -0.15, 0.01),
 						scaleMaterialRedTransparent,
 					),
-					[0, -0.15, -0.15],
+					[
+						0,
+						-0.25 * mobileFactorMultiAxis,
+						-0.25 * mobileFactorMultiAxis,
+					],
 					[0, Math.PI / 2, 0],
 				],
 			],
@@ -1734,7 +1813,11 @@ class TransformControlsGizmo extends Object3D {
 						new BoxGeometry(-0.15, -0.15, 0.01),
 						scaleMaterialGreenTransparent,
 					),
-					[-0.15, 0, -0.15],
+					[
+						-0.25 * mobileFactorMultiAxis,
+						0,
+						-0.25 * mobileFactorMultiAxis,
+					],
 					[-Math.PI / 2, 0, 0],
 				],
 			],
@@ -1748,7 +1831,12 @@ class TransformControlsGizmo extends Object3D {
 				// [new Mesh(new CylinderGeometry(0.2, 0, 0.6, 4), scaleMaterialInvisible), [0.3, 0, 0], [0, 0, - Math.PI / 2]],
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						scaleMaterialInvisible,
 					),
 					[-0.3, 0, 0],
@@ -1759,7 +1847,12 @@ class TransformControlsGizmo extends Object3D {
 				// [new Mesh(new CylinderGeometry(0.2, 0, 0.6, 4), scaleMaterialInvisible), [0, 0.3, 0]],
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						scaleMaterialInvisible,
 					),
 					[0, -0.3, 0],
@@ -1770,7 +1863,12 @@ class TransformControlsGizmo extends Object3D {
 				// [new Mesh(new CylinderGeometry(0.2, 0, 0.6, 4), scaleMaterialInvisible), [0, 0, 0.3], [Math.PI / 2, 0, 0]],
 				[
 					new Mesh(
-						new CylinderGeometry(0.2, 0, 0.6, 4),
+						new CylinderGeometry(
+							0.15 * mobileFactorSingleAxis,
+							0.15 * mobileFactorSingleAxis,
+							0.6,
+							4,
+						),
 						scaleMaterialInvisible,
 					),
 					[0, 0, -0.3],
@@ -1780,29 +1878,53 @@ class TransformControlsGizmo extends Object3D {
 			XY: [
 				[
 					new Mesh(
-						new BoxGeometry(-0.2, -0.2, 0.01),
+						new BoxGeometry(
+							-0.2 * mobileFactorMultiAxis,
+							-0.2 * mobileFactorMultiAxis,
+							0.01,
+						),
 						scaleMaterialInvisible,
 					),
-					[-0.15, -0.15, 0],
+					[
+						-0.25 * mobileFactorMultiAxis,
+						-0.25 * mobileFactorMultiAxis,
+						0,
+					],
 				],
 			],
 			YZ: [
 				[
 					new Mesh(
-						new BoxGeometry(-0.2, -0.2, 0.01),
+						new BoxGeometry(
+							-0.2 * mobileFactorMultiAxis,
+							-0.2 * mobileFactorMultiAxis,
+							0.01,
+						),
 						scaleMaterialInvisible,
 					),
-					[0, -0.15, -0.15],
+					[
+						0,
+						-0.25 * mobileFactorMultiAxis,
+						-0.25 * mobileFactorMultiAxis,
+					],
 					[0, Math.PI / 2, 0],
 				],
 			],
 			XZ: [
 				[
 					new Mesh(
-						new BoxGeometry(-0.2, -0.2, 0.01),
+						new BoxGeometry(
+							-0.2 * mobileFactorMultiAxis,
+							-0.2 * mobileFactorMultiAxis,
+							0.01,
+						),
 						scaleMaterialInvisible,
 					),
-					[-0.15, 0, -0.15],
+					[
+						-0.25 * mobileFactorMultiAxis,
+						0,
+						-0.25 * mobileFactorMultiAxis,
+					],
 					[-Math.PI / 2, 0, 0],
 				],
 			],
