@@ -74,15 +74,6 @@ export interface ITreeNode {
 	 * This includes also the transformations of all parents.
 	 */
 	readonly worldMatrix: mat4;
-
-	/**
-	 * The inverse matrices for the bones, if specified.
-	 */
-	boneInverses: mat4[];
-	/**
-	 * The optional bones that build a skeleton for animations.
-	 */
-	bones: ITreeNode[];
 	/**
 	 * The converted object of the tree node.
 	 */
@@ -104,10 +95,6 @@ export interface ITreeNode {
 	 * The viewports to restrict this tree node to.
 	 */
 	restrictViewports: string[];
-	/**
-	 * Property to mark this node as a skin node. (default: false)
-	 */
-	skinNode: boolean;
 	/**
 	 * The transformation to be applied to this tree node.
 	 */
@@ -137,13 +124,13 @@ export interface ITreeNode {
 	 *
 	 * @param child the child to add
 	 */
-	addChild(child: ITreeNode): boolean;
+	addChild(child: ITreeNode | ITreeNode[]): boolean;
 	/**
 	 * Add a data item to node.
 	 *
 	 * @param data the data to add
 	 */
-	addData(data: ITreeNodeData): boolean;
+	addData(data: ITreeNodeData | ITreeNodeData[]): boolean;
 	/**
 	 * Add a transformation to this node.
 	 *
@@ -215,13 +202,13 @@ export interface ITreeNode {
 	 *
 	 * @param child the child to remove
 	 */
-	removeChild(child: ITreeNode): boolean;
+	removeChild(child: ITreeNode | ITreeNode[]): boolean;
 	/**
 	 * Remove a data item from this node.
 	 *
 	 * @param data the data to remove
 	 */
-	removeData(data: ITreeNodeData): boolean;
+	removeData(data: ITreeNodeData | ITreeNodeData[]): boolean;
 	/**
 	 * Remove a transformation from this node.
 	 *

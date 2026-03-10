@@ -13,6 +13,10 @@ import {
 
 export type Color = string | number | number[] | vec3 | vec4;
 
+export type SDImageBitmap = ImageBitmap & {
+	id: string;
+};
+
 /**
  * The type of the parameter.
  */

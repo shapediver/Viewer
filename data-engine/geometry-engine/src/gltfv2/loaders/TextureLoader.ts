@@ -1,6 +1,11 @@
 import {IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
-import {Converter, HttpClient} from "@shapediver/viewer.shared.services";
+import {
+	Converter,
+	hashForArraySampled,
+	HttpClient,
+} from "@shapediver/viewer.shared.services";
 
+import {SDImageBitmap} from "@shapediver/viewer.shared.types/dist/types";
 import {BufferViewLoader} from "./BufferViewLoader";
 
 export class TextureLoader {
@@ -11,7 +16,7 @@ export class TextureLoader {
 
 	private _loaded: {
 		[key: string]: {
-			image: HTMLImageElement | ArrayBuffer;
+			image: HTMLImageElement | SDImageBitmap | ArrayBuffer;
 			blob: Blob;
 		};
 	} = {};
@@ -31,7 +36,7 @@ export class TextureLoader {
 	// #region Public Methods (2)
 
 	public getTexture(textureId: number): {
-		image: HTMLImageElement | ArrayBuffer;
+		image: HTMLImageElement | SDImageBitmap | ArrayBuffer;
 		blob: Blob;
 	} {
 		if (!this._content.textures)
@@ -66,29 +71,51 @@ export class TextureLoader {
 				for (let i = 0; i < dataView.byteLength; i += 1)
 					array[i] = dataView.getUint8(i);
 
-				const blob = new Blob([new Uint8Array(array)], {
+				const uint8Array = new Uint8Array(array);
+				const blob = new Blob([uint8Array], {
 					type: image.mimeType,
 				});
-				const dataUri = URL.createObjectURL(blob);
 
-				const img = new Image();
-
+				// Use createImageBitmap for better performance
 				promises.push(
 					new Promise<void>((resolve, reject) => {
-						img.onload = () => {
-							this._loaded[textureId] = {
-								image: img,
-								blob,
+						if (typeof createImageBitmap !== "undefined") {
+							createImageBitmap(blob, {
+								premultiplyAlpha: "none",
+							})
+								.then((imageBitmap) => {
+									const sdImageBitmap: SDImageBitmap =
+										imageBitmap as SDImageBitmap;
+
+									// create a unique id for the image bitmap depending on its content
+									sdImageBitmap.id =
+										hashForArraySampled(uint8Array);
+
+									this._loaded[textureId] = {
+										image: sdImageBitmap,
+										blob,
+									};
+									resolve();
+								})
+								.catch(reject);
+						} else {
+							// Fallback to Image for older browsers
+							const dataUri = URL.createObjectURL(blob);
+							const img = new Image();
+							img.onload = () => {
+								this._loaded[textureId] = {
+									image: img,
+									blob,
+								};
+								URL.revokeObjectURL(dataUri);
+								resolve();
 							};
-							URL.revokeObjectURL(dataUri);
-							resolve();
-						};
-						img.onerror = reject;
+							img.onerror = reject;
+							img.crossOrigin = "anonymous";
+							img.src = dataUri;
+						}
 					}),
 				);
-
-				img.crossOrigin = "anonymous";
-				img.src = dataUri;
 			} else {
 				const url =
 					DATA_URI_REGEX.test(image.uri!) ||

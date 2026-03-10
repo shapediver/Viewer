@@ -314,7 +314,7 @@ export class SessionEngineCore {
 			);
 
 		try {
-			this._performanceEvaluator.startSection("sessionResponse");
+			this._performanceEvaluator.startSection("sessionResponse.init");
 
 			const parameterSet: {[key: string]: string} = {};
 			// the slice here is done as a way for deep copying the string values
@@ -349,7 +349,7 @@ export class SessionEngineCore {
 					"Session.init: Initialization of session failed. Neither a ticket nor a guid are available.",
 				);
 			}
-			this._performanceEvaluator.endSection("sessionResponse");
+			this._performanceEvaluator.endSection("sessionResponse.init");
 			this._settingsManager.viewerSettings =
 				this._responseDto.viewer?.config;
 			this._settingsManager.viewerSettingsVersionBackend =

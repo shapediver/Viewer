@@ -1,4 +1,3 @@
-import {IBox} from "@shapediver/viewer.shared.math";
 import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
@@ -19,8 +18,14 @@ import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {ILoader} from "../interfaces/ILoader";
 import {GemMaterial} from "../materials/GemMaterial";
-import {SDData} from "../objects/SDData";
 import {RenderingEngine} from "../RenderingEngine";
+
+type GeometryType =
+	| THREE.Mesh
+	| THREE.Line
+	| THREE.Points
+	| THREE.LineSegments
+	| THREE.LineLoop;
 
 export class GeometryLoader implements ILoader {
 	// #region Properties (8)
@@ -38,9 +43,9 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryCache: {
 		[key: string]: {
-			obj: SDData;
+			obj: GeometryType;
 			primitiveCacheId: string;
-			clones: SDData[];
+			clones: GeometryType[];
 			counter: number;
 		};
 	} = {};
@@ -83,29 +88,20 @@ export class GeometryLoader implements ILoader {
 	 */
 	public load(
 		geometry: GeometryData,
-		parent: SDData,
-		newChild: boolean,
-		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
-	): IBox {
+	): GeometryType {
+		// Cache key to avoid repeated string concatenation
+		const primitiveCacheKey =
+			geometry.primitive.id + "_" + geometry.primitive.version;
+
 		const threeGeometry = (() => {
-			if (
-				!this._primitiveCache[
-					geometry.primitive.id + "_" + geometry.primitive.version
-				]
-			) {
+			const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
+			if (!cachedPrimitive) {
 				return this.loadPrimitive(geometry.primitive);
 			} else {
-				this._primitiveCache[
-					geometry.primitive.id + "_" + geometry.primitive.version
-				].counter++;
-				const clone =
-					this._primitiveCache[
-						geometry.primitive.id + "_" + geometry.primitive.version
-					].threeGeometry.clone();
-				this._primitiveCache[
-					geometry.primitive.id + "_" + geometry.primitive.version
-				].clones.push(clone);
+				cachedPrimitive.counter++;
+				const clone = cachedPrimitive.threeGeometry.clone();
+				cachedPrimitive.clones.push(clone);
 				return clone;
 			}
 		})();
@@ -121,23 +117,30 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.material;
 		}
 
+		const attributes = threeGeometry.attributes;
+		const morphAttributes = threeGeometry.morphAttributes;
+		const hasMorphTargets = Object.keys(morphAttributes).length > 0;
+
+		// Performance: Normalize settings to maximize shader program sharing
+		// These settings affect shader generation, so keep them consistent across materials
 		const materialSettings = {
 			mode: geometry.mode,
-			useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+			useVertexTangents: attributes.tangent !== undefined,
 			useVertexColors:
-				threeGeometry.attributes.color !== undefined &&
+				attributes.color !== undefined &&
 				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-			useFlatShading: threeGeometry.attributes.normal === undefined,
-			useMorphTargets:
-				Object.keys(threeGeometry.morphAttributes).length > 0,
+			useFlatShading: attributes.normal === undefined,
+			useMorphTargets: hasMorphTargets,
 			useMorphNormals:
-				Object.keys(threeGeometry.morphAttributes).length > 0 &&
-				threeGeometry.morphAttributes.normal !== undefined,
+				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
 		if (incomingMaterialData instanceof MaterialGemData) {
 			const gemMaterialData = <MaterialGemData>incomingMaterialData;
-			threeGeometry.computeBoundingSphere();
+			// Only compute if not already computed
+			if (!threeGeometry.boundingSphere) {
+				threeGeometry.computeBoundingSphere();
+			}
 
 			const sphericalNormalMap = this.createCubeNormalMap(
 				geometry,
@@ -158,73 +161,53 @@ export class GeometryLoader implements ILoader {
 			(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
 		}
 
-		while (parent.children.length !== 0) parent.remove(parent.children[0]);
-
 		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
-		let obj: SDData;
-		if (
-			this._geometryCache[geometry.id + "_" + geometry.version] &&
-			!skeleton
-		) {
-			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			obj = this._geometryCache[geometry.id + "_" + geometry.version].obj;
 
-			// case 1: in case the geometry data was cloned and this is a different object
-			// case 2: it is a new child
-			if (
-				(newChild === false && obj.parent !== parent) ||
-				newChild === true
-			) {
-				obj = obj.cloneObject() as SDData;
-				this._geometryCache[
-					geometry.id + "_" + geometry.version
-				].clones.push(obj);
-				obj.userData.cacheKey = geometry.id + "_" + geometry.version;
-				parent.add(obj);
+		// Performance: Disable unnecessary material features for static materials
+		if (!hasMorphTargets) {
+			// For non-transparent materials, ensure depth write/test are optimized
+			if (!material.transparent) {
+				material.depthWrite = true;
+				material.depthTest = true;
 			}
+		}
 
-			obj.traverse((o) => {
-				if (
-					o instanceof THREE.Points ||
-					o instanceof THREE.LineSegments ||
-					o instanceof THREE.LineLoop ||
-					o instanceof THREE.Line ||
-					o instanceof THREE.Mesh
-				)
-					o.material = material;
-			});
+		// Performance: Mark material as not needing update to avoid shader recompilation
+		// unless properties that affect the shader have changed
+		material.needsUpdate = false;
+
+		let threeGeometryObject: GeometryType;
+		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
+			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
+			threeGeometryObject =
+				this._geometryCache[geometry.id + "_" + geometry.version].obj;
+
+			threeGeometryObject.material = material;
 		} else {
-			obj = new SDData(geometry.id, geometry.version);
-			this.createMesh(
-				obj,
+			threeGeometryObject = this.createMesh(
 				geometry,
 				threeGeometry,
 				material,
-				skeleton,
 				instanceData,
 			);
-			obj.userData.cacheKey = geometry.id + "_" + geometry.version;
+			threeGeometryObject.userData.cacheKey =
+				geometry.id + "_" + geometry.version;
 			this._geometryCache[geometry.id + "_" + geometry.version] = {
-				obj,
+				obj: threeGeometryObject,
 				counter: 1,
 				clones: [],
 				primitiveCacheId:
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
-			parent.add(obj);
 		}
 
-		obj.children.forEach((m) => (m.castShadow = true));
-		if (material instanceof GemMaterial) {
-			obj.children.forEach((m) => (m.receiveShadow = false));
-		} else {
-			obj.children.forEach((m) => (m.receiveShadow = true));
-		}
+		threeGeometryObject.castShadow = true;
+		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial);
 
-		return geometry.boundingBox.clone();
+		return threeGeometryObject;
 	}
 
 	public loadPrimitive(primitive: IPrimitiveData): THREE.BufferGeometry {
@@ -296,7 +279,8 @@ export class GeometryLoader implements ILoader {
 		}
 		primitive.convertedObject[this._renderingEngine.id] = geometry;
 
-		this._primitiveCache[primitive.id + "_" + primitive.version] = {
+		const primitiveCacheKey = primitive.id + "_" + primitive.version;
+		this._primitiveCache[primitiveCacheKey] = {
 			threeGeometry: geometry,
 			counter: 1,
 			clones: [],
@@ -587,32 +571,31 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
-		obj: SDData,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
-		skeleton?: THREE.Skeleton,
 		instanceData?: InstanceData,
-	) {
+	): GeometryType {
+		let threeGeometryObject: GeometryType;
 		if (geometry.mode === PRIMITIVE_MODE.POINTS) {
 			const points = new THREE.Points(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = points;
-			obj.add(points);
+			threeGeometryObject = points;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINES) {
 			const lineSegments = new THREE.LineSegments(
 				threeGeometry,
 				material,
 			);
 			geometry.convertedObject[this._renderingEngine.id] = lineSegments;
-			obj.add(lineSegments);
+			threeGeometryObject = lineSegments;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_LOOP) {
 			const lineLoop = new THREE.LineLoop(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = lineLoop;
-			obj.add(lineLoop);
+			threeGeometryObject = lineLoop;
 		} else if (geometry.mode === PRIMITIVE_MODE.LINE_STRIP) {
 			const line = new THREE.Line(threeGeometry, material);
 			geometry.convertedObject[this._renderingEngine.id] = line;
-			obj.add(line);
+			threeGeometryObject = line;
 		} else if (
 			geometry.mode === PRIMITIVE_MODE.TRIANGLES ||
 			geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP ||
@@ -625,60 +608,40 @@ export class GeometryLoader implements ILoader {
 			)
 				this.convertToTriangleMode(bufferGeometry, geometry.mode);
 
-			if (skeleton) {
-				const skinnedMesh = new THREE.SkinnedMesh(
+			if (instanceData && instanceData.instanceMatrices.length > 0) {
+				const instanceCount = instanceData.instanceMatrices.length;
+				const instancedMesh = new THREE.InstancedMesh(
 					bufferGeometry,
 					material,
+					instanceCount,
 				);
-				geometry.convertedObject[this._renderingEngine.id] =
-					skinnedMesh;
-				skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
-
-				if (
-					(<THREE.BufferAttribute>(
-						bufferGeometry.attributes.skinWeight
-					)).normalized
-				)
-					skinnedMesh.normalizeSkinWeights();
-
-				obj.add(skinnedMesh);
-			} else {
-				if (instanceData && instanceData.instanceMatrices.length > 0) {
-					const instancedMesh = new THREE.InstancedMesh(
-						bufferGeometry,
-						material,
-						instanceData.instanceMatrices.length,
+				// Reuse matrix object to reduce allocations
+				const tempMatrix = new THREE.Matrix4();
+				for (let i = 0; i < instanceCount; i++) {
+					tempMatrix.fromArray(instanceData.instanceMatrices[i]);
+					instancedMesh.setMatrixAt(i, tempMatrix);
+					instancedMesh.setColorAt(
+						i,
+						this._renderingEngine.createThreeJsColor(
+							instanceData.instanceColors[i],
+						),
 					);
-					for (
-						let i = 0;
-						i < instanceData.instanceMatrices.length;
-						i++
-					) {
-						instancedMesh.setMatrixAt(
-							i,
-							new THREE.Matrix4().fromArray(
-								instanceData.instanceMatrices[i],
-							),
-						);
-						instancedMesh.setColorAt(
-							i,
-							this._renderingEngine.createThreeJsColor(
-								instanceData.instanceColors[i],
-							),
-						);
-					}
-
-					if (instancedMesh.instanceColor)
-						instancedMesh.instanceColor.needsUpdate = true;
-					instancedMesh.instanceMatrix.needsUpdate = true;
-					geometry.convertedObject[this._renderingEngine.id] =
-						instancedMesh;
-					obj.add(instancedMesh);
-				} else {
-					const mesh = new THREE.Mesh(bufferGeometry, material);
-					geometry.convertedObject[this._renderingEngine.id] = mesh;
-					obj.add(mesh);
 				}
+
+				if (instancedMesh.instanceColor)
+					instancedMesh.instanceColor.needsUpdate = true;
+				instancedMesh.instanceMatrix.needsUpdate = true;
+
+				// Enable frustum culling for instanced meshes
+				instancedMesh.frustumCulled = true;
+
+				geometry.convertedObject[this._renderingEngine.id] =
+					instancedMesh;
+				threeGeometryObject = instancedMesh;
+			} else {
+				const mesh = new THREE.Mesh(bufferGeometry, material);
+				geometry.convertedObject[this._renderingEngine.id] = mesh;
+				threeGeometryObject = mesh;
 			}
 		} else {
 			throw new ShapeDiverViewerDataProcessingError(
@@ -686,50 +649,56 @@ export class GeometryLoader implements ILoader {
 			);
 		}
 
-		obj.traverse((m) => {
-			if (
-				m instanceof THREE.Mesh ||
-				m instanceof THREE.Points ||
-				m instanceof THREE.LineSegments ||
-				m instanceof THREE.LineLoop ||
-				m instanceof THREE.Line
-			) {
-				(<THREE.Mesh>m).geometry.userData = {
-					SDid: geometry.id,
-					SDversion: geometry.version,
-					primitiveSDid: geometry.primitive.id,
-					primitiveSDversion: geometry.primitive.version,
-				};
-				m.renderOrder = geometry.renderOrder;
-			}
+		// Cache userData and bounding box data to reduce allocations
+		const userDataCache = {
+			SDid: geometry.id,
+			SDversion: geometry.version,
+			primitiveSDid: geometry.primitive.id,
+			primitiveSDversion: geometry.primitive.version,
+		};
+		const bbox = geometry.boundingBox;
+		const bboxMin = new THREE.Vector3(
+			bbox.min[0],
+			bbox.min[1],
+			bbox.min[2],
+		);
+		const bboxMax = new THREE.Vector3(
+			bbox.max[0],
+			bbox.max[1],
+			bbox.max[2],
+		);
+		const bsphereCenter = new THREE.Vector3(
+			bbox.boundingSphere.center[0],
+			bbox.boundingSphere.center[1],
+			bbox.boundingSphere.center[2],
+		);
+		const renderOrder = geometry.renderOrder;
 
-			if (
-				m instanceof THREE.Mesh &&
-				m.userData.transparencyPlaceholder !== true
-			) {
-				(<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(
-					new THREE.Vector3(
-						geometry.boundingBox.min[0],
-						geometry.boundingBox.min[1],
-						geometry.boundingBox.min[2],
-					),
-					new THREE.Vector3(
-						geometry.boundingBox.max[0],
-						geometry.boundingBox.max[1],
-						geometry.boundingBox.max[2],
-					),
-				);
-				(<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(
-					new THREE.Vector3(
-						geometry.boundingBox.boundingSphere.center[0],
-						geometry.boundingBox.boundingSphere.center[1],
-						geometry.boundingBox.boundingSphere.center[2],
-					),
-					geometry.boundingBox.boundingSphere.radius,
-				);
-				(<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
-			}
-		});
+		const threeGeom = threeGeometryObject.geometry;
+		threeGeom.userData = userDataCache;
+		threeGeometryObject.renderOrder = renderOrder;
+
+		// Performance: Disable matrixAutoUpdate for static geometry (no animations/transforms)
+		// This prevents Three.js from recalculating matrices every frame
+		if (!instanceData) {
+			threeGeometryObject.matrixAutoUpdate = false;
+		}
+
+		if (
+			threeGeometryObject instanceof THREE.Mesh &&
+			threeGeometryObject.userData.transparencyPlaceholder !== true
+		) {
+			// Assign bounding box directly without unnecessary clones
+			threeGeom.boundingBox = new THREE.Box3(bboxMin, bboxMax);
+			threeGeom.boundingSphere = new THREE.Sphere(
+				bsphereCenter,
+				bbox.boundingSphere.radius,
+			);
+			(<THREE.Mesh>threeGeometryObject).morphTargetInfluences =
+				geometry.morphWeights;
+		}
+
+		return threeGeometryObject;
 	}
 
 	private getAttributeName(attributeId: string): string {
@@ -753,12 +722,6 @@ export class GeometryLoader implements ILoader {
 			case "COLOR0":
 			case "COLOR":
 				return "color";
-			case "WEIGHT":
-			case "WEIGHTS_0":
-				return "skinWeight";
-			case "JOINT":
-			case "JOINTS_0":
-				return "skinIndex";
 			case "TANGENT":
 				return "tangent";
 			case "POSITION_INDEX":

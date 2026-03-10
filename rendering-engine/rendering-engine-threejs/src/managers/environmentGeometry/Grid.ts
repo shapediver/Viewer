@@ -3,7 +3,6 @@ import {Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {RenderingEngine} from "../..";
-import {SDData} from "../../objects/SDData";
 import {SDObject} from "../../objects/SDObject";
 import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
@@ -14,7 +13,7 @@ export class Grid implements IEnvironmentGeometry {
 
 	private _grid!: THREE.GridHelper;
 	private _color: Color = "#44444426";
-	private _gridObject!: SDData;
+	private _gridObject!: SDObject;
 
 	// #endregion Properties (5)
 
@@ -24,7 +23,7 @@ export class Grid implements IEnvironmentGeometry {
 		private readonly _renderingEngine: RenderingEngine,
 		private readonly _parent: SDObject,
 	) {
-		this._gridObject = new SDData("grid", "");
+		this._gridObject = new SDObject("grid", "");
 		this._grid = new THREE.GridHelper();
 		(<THREE.LineBasicMaterial>this._grid.material).opacity =
 			typeof this._color == "string" && this._color.length <= 8

@@ -1,5 +1,5 @@
 import {IBox} from "@shapediver/viewer.shared.math";
-import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {mat4} from "gl-matrix";
 import {IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
@@ -92,7 +92,6 @@ export interface IGeometryData extends ITreeNodeData {
 	materialVariants: {material: IMaterialAbstractData; variant: number}[];
 	morphWeights: number[];
 	renderOrder: number;
-	skinNode?: ITreeNode;
 	standardMaterial: IMaterialAbstractData | null;
 
 	// #endregion Properties (11)

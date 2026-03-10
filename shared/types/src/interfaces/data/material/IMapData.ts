@@ -1,15 +1,17 @@
 import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {vec2} from "gl-matrix";
-import {Color} from "../../../types";
+import {Color, SDImageBitmap} from "../../../types";
 
 // #region Type aliases (2)
 
 export type IMapDataProperties = IMapDataPropertiesGeneric<
-	HTMLImageElement | ArrayBuffer
+	HTMLImageElement | SDImageBitmap | ArrayBuffer
 >;
 export type IMapDataPropertiesDefinition =
 	| Partial<
-			IMapDataPropertiesGeneric<HTMLImageElement | ArrayBuffer | string>
+			IMapDataPropertiesGeneric<
+				HTMLImageElement | SDImageBitmap | ArrayBuffer | string
+			>
 	  >
 	| string;
 

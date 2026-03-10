@@ -14,7 +14,8 @@
 		"url": "git+https://github.com/shapediver/Viewer.git"
 	},
 	"scripts": {
-		"test": "bash ../../scripts/other/test.sh"
+		"test": "bash ../../scripts/other/test.sh",
+		"test-sample": "bash ../../scripts/other/test.sh"
 	},
 	"bugs": {
 		"url": "https://github.com/shapediver/Viewer/issues"
@@ -28,10 +29,6 @@
 		"testEnvironment": "jsdom"
 	},
 	"devDependencies": {
-		"@shapediver/viewer": "*",
-		"chromedriver": "145.0.1",
-		"gl-matrix": "3.3.0",
-		"jest-image-snapshot": "4.5.1",
-		"selenium-webdriver": "4.8.1"
+		"chromedriver": "145.0.1"
 	}
 }

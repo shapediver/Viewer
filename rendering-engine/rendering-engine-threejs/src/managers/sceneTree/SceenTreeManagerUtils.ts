@@ -3,23 +3,13 @@ import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {GeometryData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {SDBone} from "../../objects/SDBone";
-import {SDData, SD_DATA_TYPE} from "../../objects/SDData";
-import {SDObject} from "../../objects/SDObject";
+import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
 import {ThreejsData} from "../../types/ThreejsData";
 
-export const getBone = (mainNode: SDObject, node: ITreeNode): SDBone => {
-	let bone: SDBone;
-	mainNode.traverse((o) => {
-		if ((<SDObject>o).SDid === node.id) bone = <SDBone>o;
-	});
-	return bone!;
-};
-
 export const removeData = (
 	renderingEngine: RenderingEngine,
-	dataObject: SDData,
+	dataObject: SDObject,
 ) => {
 	if (dataObject.userData.removed === true) return;
 	dataObject.userData.removed = true;
@@ -108,11 +98,11 @@ export const updateMorphWeights = (node: ITreeNode, obj: SDObject) => {
 	for (let i = 0, len = node.data.length; i < len; i++) {
 		if (node.data[i] instanceof GeometryData) {
 			const data: GeometryData = <GeometryData>node.data[i];
-			const dataChild = <SDData>(
+			const dataChild = <SDObject>(
 				obj.children.find(
 					(oc) =>
-						(<SDData>oc).SDid === data.id &&
-						(<SDData>oc).SDversion === data.version,
+						(<SDObject>oc).SDid === data.id &&
+						(<SDObject>oc).SDversion === data.version,
 				)
 			);
 			if (dataChild)
@@ -143,24 +133,26 @@ export const assignBoundingBox = (
 	node: ITreeNode,
 	data: ITreeNodeData,
 	renderingEngineId: string,
-	convertedObjectData: SDObject,
-	skeleton?: boolean,
+	convertedObjectData: THREE.Object3D,
 ) => {
 	// assign the bb
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
 		let bb: IBox = new Box();
-		if (skeleton) {
-			bb = geometry.primitive.computeBoundingBox(node.worldMatrix);
-		} else {
-			const clone = convertedObjectData.clone();
-			clone.applyTransformation(node.worldMatrix);
-			const threeBox = new THREE.Box3().setFromObject(clone, true);
-			bb = new Box(
-				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
-				vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
-			);
-		}
+		const clone = convertedObjectData.clone();
+
+		clone.matrix.identity();
+		clone.matrixWorld.identity();
+		clone.position.set(0, 0, 0);
+		clone.scale.set(1, 1, 1);
+		clone.quaternion.set(0, 0, 0, 1);
+		clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
+
+		const threeBox = new THREE.Box3().setFromObject(clone, true);
+		bb = new Box(
+			vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
+			vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
+		);
 
 		// adjust the general BB
 		node.boundingBox.union(bb);

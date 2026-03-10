@@ -1,11 +1,13 @@
 import {IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
+	ICamera,
 	OrthographicCamera,
 	PerspectiveCamera,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
 	DirectionalLight,
+	ILight,
 	PointLight,
 	SpotLight,
 } from "@shapediver/viewer.rendering-engine.light-engine";
@@ -22,11 +24,10 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	AnimationData,
-	AttributeData,
-	BoneData,
 	Color,
 	CustomData,
 	IAnimationTrack,
+	InstanceData,
 	ITaskEvent,
 	TASK_TYPE,
 } from "@shapediver/viewer.shared.types";
@@ -58,9 +59,6 @@ export enum GLTF_EXTENSIONS {
 	EXT_MESH_GPU_INSTANCING = "EXT_mesh_gpu_instancing",
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const DRACO = require("./draco/draco_decoder.js");
-
 export class GLTFLoader {
 	// #region Properties (22)
 
@@ -89,6 +87,10 @@ export class GLTFLoader {
 	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _progressUpdateLimit = 500;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
+	private readonly _matrixPool: mat4[] = [];
+	private readonly _nodeBatchSize = 100;
+	private readonly _vec3Pool: vec3[] = [];
+	private readonly _vec4Pool: vec4[] = [];
 
 	private _accessorLoader!: AccessorLoader;
 	private _baseUri: string | undefined;
@@ -149,14 +151,20 @@ export class GLTFLoader {
 
 		this.validateVersionAndExtensions();
 
-		const dracoModule = await new DRACO();
+		// Lazy load DRACO module and parallelize independent loaders
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const DRACO = require("./draco/draco_decoder.js");
+		const dracoModulePromise = new DRACO();
 
 		this._bufferLoader = new BufferLoader(
 			this._content,
 			this._body,
 			this._baseUri,
 		);
-		await this._bufferLoader.load();
+		const bufferLoadPromise = this._bufferLoader.load();
+
+		// Wait for buffers, then parallelize texture and material loading
+		await bufferLoadPromise;
 		this._bufferViewLoader = new BufferViewLoader(
 			this._content,
 			this._bufferLoader,
@@ -167,12 +175,18 @@ export class GLTFLoader {
 			this._bufferViewLoader,
 		);
 		this._accessorLoader.load();
+
+		// Parallelize texture loading and DRACO module initialization
 		this._textureLoader = new TextureLoader(
 			this._content,
 			this._bufferViewLoader,
 			this._baseUri,
 		);
-		await this._textureLoader.load();
+		const [dracoModule] = await Promise.all([
+			dracoModulePromise,
+			this._textureLoader.load(),
+		]);
+
 		this._materialLoader = new MaterialLoader(
 			this._content,
 			this._textureLoader,
@@ -214,58 +228,6 @@ export class GLTFLoader {
 			node.data.push(this._geometryLoader.materialVariantsData);
 		}
 
-		if (
-			this._content.skins !== undefined &&
-			this._content.nodes !== undefined
-		) {
-			for (let i = 0; i < this._content.nodes?.length; i++) {
-				if (this._content.nodes[i].skin !== undefined) {
-					const skinDef = this.loadSkin(this._content.nodes[i].skin!);
-
-					const skinNode = this._nodes[i];
-
-					const bones: ITreeNode[] = [];
-					const boneInverses: mat4[] = [];
-
-					for (let j = 0; j < skinDef.joints.length; j++) {
-						this._nodes[skinDef.joints[j]].data.push(
-							new BoneData(),
-						);
-						bones.push(this._nodes[skinDef.joints[j]]);
-
-						let mat = mat4.create();
-						if (skinDef.inverseBindMatrices !== undefined) {
-							const matricesArray =
-								skinDef.inverseBindMatrices!.array;
-							mat = mat4.fromValues(
-								matricesArray[j * 16 + 0],
-								matricesArray[j * 16 + 1],
-								matricesArray[j * 16 + 2],
-								matricesArray[j * 16 + 3],
-								matricesArray[j * 16 + 4],
-								matricesArray[j * 16 + 5],
-								matricesArray[j * 16 + 6],
-								matricesArray[j * 16 + 7],
-								matricesArray[j * 16 + 8],
-								matricesArray[j * 16 + 9],
-								matricesArray[j * 16 + 10],
-								matricesArray[j * 16 + 11],
-								matricesArray[j * 16 + 12],
-								matricesArray[j * 16 + 13],
-								matricesArray[j * 16 + 14],
-								matricesArray[j * 16 + 15],
-							);
-						}
-						boneInverses.push(mat);
-					}
-
-					skinNode.skinNode = true;
-					skinNode.bones = bones;
-					skinNode.boneInverses = boneInverses;
-				}
-			}
-		}
-
 		if (this._content.animations)
 			for (let i = 0; i < this._content.animations?.length; i++)
 				node.data.push(this.loadAnimation(i));
@@ -277,6 +239,10 @@ export class GLTFLoader {
 			status: "GlTF loading complete.",
 		};
 		this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
+		// Clean up resources that are no longer needed
+		this._geometryLoader.cleanup();
+
 		return node;
 	}
 
@@ -428,27 +394,26 @@ export class GLTFLoader {
 		);
 	}
 
-	private loadCamera(cameraId: number): ITreeNode {
+	private loadCamera(cameraId: number): ICamera {
 		if (!this._content.cameras) throw new Error("Cameras not available.");
 		if (!this._content.cameras[cameraId])
 			throw new Error("Cameras not available.");
 		const cameraDef = this._content.cameras[cameraId];
-		const cameraNode = new TreeNode(cameraDef.name || "camera_" + cameraId);
-		cameraNode.originalName = cameraDef.name;
+		const id = cameraDef.name || "camera_" + cameraId;
 
 		let cameraData: PerspectiveCamera | OrthographicCamera;
 		if (cameraDef.type === "perspective") {
 			const perspectiveCameraDef = cameraDef.perspective!;
-			cameraData = new PerspectiveCamera(cameraNode.id);
-			cameraNode.data.push(cameraData);
+			cameraData = new PerspectiveCamera(id);
+			cameraData.name = id;
 			cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
 			cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
 			cameraData.near = perspectiveCameraDef.znear || 1;
 			cameraData.far = perspectiveCameraDef.zfar || 2e6;
 		} else {
 			const orthographicCameraDef = cameraDef.orthographic!;
-			cameraData = new OrthographicCamera(cameraNode.id);
-			cameraNode.data.push(cameraData);
+			cameraData = new OrthographicCamera(id);
+			cameraData.name = id;
 			cameraData.left = -orthographicCameraDef.xmag;
 			cameraData.right = orthographicCameraDef.xmag;
 			cameraData.top = -orthographicCameraDef.ymag;
@@ -458,12 +423,11 @@ export class GLTFLoader {
 		}
 
 		cameraData.useNodeData = true;
-		cameraData.node = cameraNode;
 
-		return cameraNode;
+		return cameraData;
 	}
 
-	private loadLights(lightId: number): ITreeNode {
+	private loadLights(lightId: number): ILight {
 		if (
 			!this._content.extensions ||
 			!this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL] ||
@@ -481,8 +445,7 @@ export class GLTFLoader {
 		const lightDef =
 			this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL]
 				.lights[lightId];
-		const lightNode = new TreeNode(lightDef.name || "light_" + lightId);
-		lightNode.originalName = lightDef.name;
+		const id = lightDef.name || "light_" + lightId;
 
 		let color: Color = "#ffffffff";
 		if (lightDef.color !== undefined)
@@ -497,7 +460,7 @@ export class GLTFLoader {
 		let lightData: AbstractLight;
 		if (lightDef.type === "directional") {
 			lightData = new DirectionalLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			const directionalLightData = <DirectionalLight>lightData;
 
@@ -505,7 +468,7 @@ export class GLTFLoader {
 				directionalLightData.intensity = lightDef.intensity;
 		} else if (lightDef.type === "point") {
 			lightData = new PointLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			const pointLightData = <PointLight>lightData;
 
@@ -517,7 +480,7 @@ export class GLTFLoader {
 			pointLightData.position = [0, 0, 0];
 		} else if (lightDef.type === "spot") {
 			lightData = new SpotLight({color});
-			lightNode.data.push(lightData);
+			lightData.name = id;
 
 			lightDef.spot = lightDef.spot || {};
 			lightDef.spot.innerConeAngle =
@@ -546,7 +509,7 @@ export class GLTFLoader {
 		}
 
 		lightData.useNodeData = true;
-		return lightNode;
+		return lightData;
 	}
 
 	private async loadNode(nodeId: number): Promise<ITreeNode> {
@@ -665,48 +628,61 @@ export class GLTFLoader {
 					scaleAttribute
 				) {
 					const translationMatrices: mat4[] = [];
+					const translationVectors: vec3[] = [];
 					for (
 						let i = 0;
 						i < translationAttribute.array.length;
 						i += 3
-					)
-						translationMatrices.push(
-							mat4.fromTranslation(
-								mat4.create(),
-								vec3.fromValues(
-									translationAttribute.array[i],
-									translationAttribute.array[i + 1],
-									translationAttribute.array[i + 2],
-								),
-							),
+					) {
+						const v = this.getPooledVec3();
+						vec3.set(
+							v,
+							translationAttribute.array[i],
+							translationAttribute.array[i + 1],
+							translationAttribute.array[i + 2],
 						);
+						translationVectors.push(v);
+						translationMatrices.push(
+							mat4.fromTranslation(this.getPooledMatrix(), v),
+						);
+					}
 
 					const rotationMatrices: mat4[] = [];
-					for (let i = 0; i < rotationAttribute.array.length; i += 4)
-						rotationMatrices.push(
-							mat4.fromQuat(
-								mat4.create(),
-								vec4.fromValues(
-									rotationAttribute.array[i],
-									rotationAttribute.array[i + 1],
-									rotationAttribute.array[i + 2],
-									rotationAttribute.array[i + 3],
-								),
-							),
+					const rotationVectors: vec4[] = [];
+					for (
+						let i = 0;
+						i < rotationAttribute.array.length;
+						i += 4
+					) {
+						const v = this.getPooledVec4();
+						vec4.set(
+							v,
+							rotationAttribute.array[i],
+							rotationAttribute.array[i + 1],
+							rotationAttribute.array[i + 2],
+							rotationAttribute.array[i + 3],
 						);
+						rotationVectors.push(v);
+						rotationMatrices.push(
+							mat4.fromQuat(this.getPooledMatrix(), v),
+						);
+					}
 
 					const scaleMatrices: mat4[] = [];
-					for (let i = 0; i < scaleAttribute.array.length; i += 3)
-						scaleMatrices.push(
-							mat4.fromScaling(
-								mat4.create(),
-								vec3.fromValues(
-									scaleAttribute.array[i],
-									scaleAttribute.array[i + 1],
-									scaleAttribute.array[i + 2],
-								),
-							),
+					const scaleVectors: vec3[] = [];
+					for (let i = 0; i < scaleAttribute.array.length; i += 3) {
+						const v = this.getPooledVec3();
+						vec3.set(
+							v,
+							scaleAttribute.array[i],
+							scaleAttribute.array[i + 1],
+							scaleAttribute.array[i + 2],
 						);
+						scaleVectors.push(v);
+						scaleMatrices.push(
+							mat4.fromScaling(this.getPooledMatrix(), v),
+						);
+					}
 
 					if (
 						translationMatrices.length ===
@@ -714,7 +690,7 @@ export class GLTFLoader {
 						translationMatrices.length === scaleMatrices.length
 					) {
 						for (let i = 0; i < translationMatrices.length; i++) {
-							const transformationMatrix = mat4.create();
+							const transformationMatrix = this.getPooledMatrix();
 							mat4.multiply(
 								transformationMatrix,
 								translationMatrices[i],
@@ -728,28 +704,43 @@ export class GLTFLoader {
 
 							instanceTransformations.push(transformationMatrix);
 						}
+
+						// Return temporary matrices and vectors to pool for reuse
+						for (const mat of translationMatrices)
+							this.returnMatrixToPool(mat);
+						for (const mat of rotationMatrices)
+							this.returnMatrixToPool(mat);
+						for (const mat of scaleMatrices)
+							this.returnMatrixToPool(mat);
+						for (const v of translationVectors)
+							this.returnVec3ToPool(v);
+						for (const v of rotationVectors)
+							this.returnVec4ToPool(v);
+						for (const v of scaleVectors) this.returnVec3ToPool(v);
 					}
 				}
 			}
+
+			if (instanceTransformations.length > 0)
+				nodeDef.addData(new InstanceData(instanceTransformations));
 		}
 
-		if (node.mesh !== undefined)
-			nodeDef.addChild(
-				this._geometryLoader.loadMesh(
-					node.mesh,
-					node.weights,
-					instanceTransformations,
-				),
+		if (node.mesh !== undefined) {
+			const geometryDataArray = this._geometryLoader.loadMesh(
+				node.mesh,
+				node.weights,
 			);
+			nodeDef.addData(geometryDataArray);
+		}
 
 		if (node.camera !== undefined)
-			nodeDef.addChild(this.loadCamera(node.camera));
+			nodeDef.addData(this.loadCamera(node.camera));
 
 		if (
 			node.extensions &&
 			node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL]
 		)
-			nodeDef.addChild(
+			nodeDef.addData(
 				this.loadLights(
 					node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].light,
 				),
@@ -785,7 +776,6 @@ export class GLTFLoader {
 				EVENTTYPE.TASK.TASK_PROCESS,
 				eventProgress,
 			);
-			await new Promise((resolve) => setTimeout(resolve, 0));
 		}
 
 		return nodeDef;
@@ -807,33 +797,6 @@ export class GLTFLoader {
 			for (let i = 0, len = scene.nodes.length; i < len; i++)
 				sceneDef.addChild(await this.loadNode(scene.nodes[i]));
 		return sceneDef;
-	}
-
-	private loadSkin(skinId: number): {
-		joints: number[];
-		inverseBindMatrices: AttributeData | null;
-	} {
-		if (!this._content.skins) throw new Error("Skins not available.");
-		if (!this._content.skins[skinId])
-			throw new Error("Skin not available.");
-		const skinDef = this._content.skins![skinId];
-
-		const skinEntry: {
-			joints: number[];
-			inverseBindMatrices: AttributeData | null;
-		} = {
-			joints: skinDef.joints,
-			inverseBindMatrices: null,
-		};
-
-		if (skinDef.inverseBindMatrices === undefined) {
-			return skinEntry;
-		}
-
-		skinEntry.inverseBindMatrices = this._accessorLoader.getAccessor(
-			skinDef.inverseBindMatrices,
-		);
-		return skinEntry;
 	}
 
 	private validateVersionAndExtensions(): void {
@@ -908,6 +871,46 @@ export class GLTFLoader {
 					" not supported, but required. Aborting glTF loading.";
 				throw new Error(message);
 			}
+		}
+	}
+
+	private getPooledMatrix(): mat4 {
+		return this._matrixPool.length > 0
+			? this._matrixPool.pop()!
+			: mat4.create();
+	}
+
+	private returnMatrixToPool(matrix: mat4): void {
+		if (this._matrixPool.length < 1000) {
+			// Limit pool size to prevent memory bloat
+			mat4.identity(matrix);
+			this._matrixPool.push(matrix);
+		}
+	}
+
+	private getPooledVec3(): vec3 {
+		return this._vec3Pool.length > 0
+			? this._vec3Pool.pop()!
+			: vec3.create();
+	}
+
+	private returnVec3ToPool(v: vec3): void {
+		if (this._vec3Pool.length < 1000) {
+			vec3.set(v, 0, 0, 0);
+			this._vec3Pool.push(v);
+		}
+	}
+
+	private getPooledVec4(): vec4 {
+		return this._vec4Pool.length > 0
+			? this._vec4Pool.pop()!
+			: vec4.create();
+	}
+
+	private returnVec4ToPool(v: vec4): void {
+		if (this._vec4Pool.length < 1000) {
+			vec4.set(v, 0, 0, 0, 0);
+			this._vec4Pool.push(v);
 		}
 	}
 
