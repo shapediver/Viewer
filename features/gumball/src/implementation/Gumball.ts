@@ -193,7 +193,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotation(value: boolean) {
 		this.#enableRotation = value;
-		this.#transformControls.enableRotation = value;
+		this.#transformControls.gizmo.enableRotation = value;
 	}
 
 	public get enableRotationX(): boolean {
@@ -202,7 +202,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationX(value: boolean) {
 		this.#enableRotationX = value;
-		this.#transformControls.enableRotationX = value;
+		this.#transformControls.gizmo.enableRotationX = value;
 	}
 
 	public get enableRotationY(): boolean {
@@ -211,7 +211,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationY(value: boolean) {
 		this.#enableRotationY = value;
-		this.#transformControls.enableRotationY = value;
+		this.#transformControls.gizmo.enableRotationY = value;
 	}
 
 	public get enableRotationZ(): boolean {
@@ -220,7 +220,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationZ(value: boolean) {
 		this.#enableRotationZ = value;
-		this.#transformControls.enableRotationZ = value;
+		this.#transformControls.gizmo.enableRotationZ = value;
 	}
 
 	public get enableRotationXY(): boolean {
@@ -229,7 +229,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationXY(value: boolean) {
 		this.#enableRotationXY = value;
-		this.#transformControls.enableRotationXY = value;
+		this.#transformControls.gizmo.enableRotationXY = value;
 	}
 
 	public get enableRotationYZ(): boolean {
@@ -238,7 +238,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationYZ(value: boolean) {
 		this.#enableRotationYZ = value;
-		this.#transformControls.enableRotationYZ = value;
+		this.#transformControls.gizmo.enableRotationYZ = value;
 	}
 
 	public get enableRotationXZ(): boolean {
@@ -247,7 +247,7 @@ export class Gumball implements IGumball {
 
 	public set enableRotationXZ(value: boolean) {
 		this.#enableRotationXZ = value;
-		this.#transformControls.enableRotationXZ = value;
+		this.#transformControls.gizmo.enableRotationXZ = value;
 	}
 
 	public get enableScaling(): boolean {
@@ -256,7 +256,7 @@ export class Gumball implements IGumball {
 
 	public set enableScaling(value: boolean) {
 		this.#enableScaling = value;
-		this.#transformControls.enableScaling = value;
+		this.#transformControls.gizmo.enableScaling = value;
 	}
 
 	public get enableScalingX(): boolean {
@@ -265,7 +265,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingX(value: boolean) {
 		this.#enableScalingX = value;
-		this.#transformControls.enableScalingX = value;
+		this.#transformControls.gizmo.enableScalingX = value;
 	}
 
 	public get enableScalingY(): boolean {
@@ -274,7 +274,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingY(value: boolean) {
 		this.#enableScalingY = value;
-		this.#transformControls.enableScalingY = value;
+		this.#transformControls.gizmo.enableScalingY = value;
 	}
 
 	public get enableScalingZ(): boolean {
@@ -283,7 +283,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingZ(value: boolean) {
 		this.#enableScalingZ = value;
-		this.#transformControls.enableScalingZ = value;
+		this.#transformControls.gizmo.enableScalingZ = value;
 	}
 
 	public get enableScalingXY(): boolean {
@@ -292,7 +292,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingXY(value: boolean) {
 		this.#enableScalingXY = value;
-		this.#transformControls.enableScalingXY = value;
+		this.#transformControls.gizmo.enableScalingXY = value;
 	}
 
 	public get enableScalingYZ(): boolean {
@@ -301,7 +301,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingYZ(value: boolean) {
 		this.#enableScalingYZ = value;
-		this.#transformControls.enableScalingYZ = value;
+		this.#transformControls.gizmo.enableScalingYZ = value;
 	}
 
 	public get enableScalingXZ(): boolean {
@@ -310,7 +310,7 @@ export class Gumball implements IGumball {
 
 	public set enableScalingXZ(value: boolean) {
 		this.#enableScalingXZ = value;
-		this.#transformControls.enableScalingXZ = value;
+		this.#transformControls.gizmo.enableScalingXZ = value;
 	}
 
 	public get enableTranslation(): boolean {
@@ -319,7 +319,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslation(value: boolean) {
 		this.#enableTranslation = value;
-		this.#transformControls.enableTranslation = value;
+		this.#transformControls.gizmo.enableTranslation = value;
 	}
 
 	public get enableTranslationX(): boolean {
@@ -328,7 +328,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationX(value: boolean) {
 		this.#enableTranslationX = value;
-		this.#transformControls.enableTranslationX = value;
+		this.#transformControls.gizmo.enableTranslationX = value;
 	}
 
 	public get enableTranslationY(): boolean {
@@ -337,7 +337,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationY(value: boolean) {
 		this.#enableTranslationY = value;
-		this.#transformControls.enableTranslationY = value;
+		this.#transformControls.gizmo.enableTranslationY = value;
 	}
 
 	public get enableTranslationZ(): boolean {
@@ -346,7 +346,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationZ(value: boolean) {
 		this.#enableTranslationZ = value;
-		this.#transformControls.enableTranslationZ = value;
+		this.#transformControls.gizmo.enableTranslationZ = value;
 	}
 
 	public get enableTranslationXY(): boolean {
@@ -355,7 +355,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationXY(value: boolean) {
 		this.#enableTranslationXY = value;
-		this.#transformControls.enableTranslationXY = value;
+		this.#transformControls.gizmo.enableTranslationXY = value;
 	}
 
 	public get enableTranslationYZ(): boolean {
@@ -364,7 +364,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationYZ(value: boolean) {
 		this.#enableTranslationYZ = value;
-		this.#transformControls.enableTranslationYZ = value;
+		this.#transformControls.gizmo.enableTranslationYZ = value;
 	}
 
 	public get enableTranslationXZ(): boolean {
@@ -373,7 +373,7 @@ export class Gumball implements IGumball {
 
 	public set enableTranslationXZ(value: boolean) {
 		this.#enableTranslationXZ = value;
-		this.#transformControls.enableTranslationXZ = value;
+		this.#transformControls.gizmo.enableTranslationXZ = value;
 	}
 
 	public get matrix(): mat4 {
@@ -565,9 +565,9 @@ export class Gumball implements IGumball {
 		this.#pivotDragging = true;
 
 		this.#transformControls.pivotDragged = true;
-		this.#transformControls.enableTranslation = true;
-		this.#transformControls.enableRotation = false;
-		this.#transformControls.enableScaling = false;
+		this.#transformControls.gizmo.enableTranslation = true;
+		this.#transformControls.gizmo.enableRotation = false;
+		this.#transformControls.gizmo.enableScaling = false;
 
 		if (this.#singleNode === true && this.reuseTransformation === true) {
 			const index = this.#nodes[0].transformations.findIndex(
@@ -593,9 +593,10 @@ export class Gumball implements IGumball {
 		this.#pivotDragging = false;
 
 		this.#transformControls.pivotDragged = false;
-		this.#transformControls.enableTranslation = this.#enableTranslation;
-		this.#transformControls.enableRotation = this.#enableRotation;
-		this.#transformControls.enableScaling = this.#enableScaling;
+		this.#transformControls.gizmo.enableTranslation =
+			this.#enableTranslation;
+		this.#transformControls.gizmo.enableRotation = this.#enableRotation;
+		this.#transformControls.gizmo.enableScaling = this.#enableScaling;
 	}
 
 	private getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {

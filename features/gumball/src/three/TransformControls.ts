@@ -192,6 +192,10 @@ export class TransformControls extends Object3D {
 		return this._eye;
 	}
 
+	public get gizmo(): TransformControlsGizmo {
+		return this._gizmo;
+	}
+
 	public get hovering(): boolean {
 		return this._hovering;
 	}
