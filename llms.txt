@@ -2,8 +2,8 @@
 
 The ShapeDiver Viewer is a comprehensive 3D visualization library built with TypeScript and WebGL. This is the main repository for the ShapeDiver Viewer, which produces the `@shapediver/viewer` npm package and its feature extensions.
 
-**Current Version**: 3.15.10
-**Generated**: 2026-02-27
+**Current Version**: 3.15.11
+**Generated**: 2026-03-12
 
 ## Project Overview
 
@@ -18,31 +18,31 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
 ## Published NPM Packages
 
 ### Core Package
-- `@shapediver/viewer` (v3.15.10) - Complete API combining both viewport and session functionality
+- `@shapediver/viewer` (v3.15.11) - Complete API combining both viewport and session functionality
   - **Combined Package** - Includes both IViewportApi and ISessionApi in one package
   - **Full Integration** - Use createViewport() and createSession() together
   - **Recommended** - Best choice for most applications requiring 3D visualization with ShapeDiver backend
 
 ### Specialized Core Packages
-- `@shapediver/viewer.session` (v3.15.10) - Session-only API for headless usage (server-side, Node.js applications)
+- `@shapediver/viewer.session` (v3.15.11) - Session-only API for headless usage (server-side, Node.js applications)
   - **Server-Side Operations** - Run without browser/DOM dependencies
   - **Batch Processing** - Process multiple models programmatically
   - **API Integration** - Integrate ShapeDiver models into web services
   - **Export Automation** - Automated model generation and export workflows
-- `@shapediver/viewer.viewport` (v3.15.10) - Viewport-only API for hydra usage (rendering without ShapeDiver backend)
+- `@shapediver/viewer.viewport` (v3.15.11) - Viewport-only API for hydra usage (rendering without ShapeDiver backend)
   - **External 3D Content** - Render GLTF and other formats
   - **Custom Rendering** - Use Three.js viewport without ShapeDiver backend
   - **Lightweight Integration** - Minimal dependencies for pure rendering
   - **Local Content** - Display locally stored or generated 3D models
 
 ### Feature Packages (Optional Add-ons)
-- `@shapediver/viewer.features.attribute-visualization` (v3.15.10) - attribute visualization features
+- `@shapediver/viewer.features.attribute-visualization` (v3.15.11) - attribute visualization features
   - [Help Documentation](https://help.shapediver.com/doc/attribute-visualization)
-- `@shapediver/viewer.features.drawing-tools` (v3.15.10) - Drawing Tools feature
+- `@shapediver/viewer.features.drawing-tools` (v3.15.11) - Drawing Tools feature
   - [Help Documentation](https://help.shapediver.com/doc/drawing-tools)
-- `@shapediver/viewer.features.gumball` (v3.15.10) - Gumball feature
+- `@shapediver/viewer.features.gumball` (v3.15.11) - Gumball feature
   - [Help Documentation](https://help.shapediver.com/doc/gumball)
-- `@shapediver/viewer.features.interaction` (v3.15.10) - interaction features
+- `@shapediver/viewer.features.interaction` (v3.15.11) - interaction features
   - [Help Documentation](https://help.shapediver.com/doc/interactions-part-1)
 
 ## Documentation Links
@@ -329,4 +329,4 @@ For complete API documentation and interactive examples, visit:
 
 ---
 
-*This file was auto-generated on 2026-02-27 from repository analysis.*
+*This file was auto-generated on 2026-03-12 from repository analysis.*
