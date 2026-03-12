@@ -1,5 +1,5 @@
 {
-	"name": "@shapediver/viewer.examples.gumball",
+	"name": "@shapediver/viewer.examples.transform-controls",
 	"version": "0.0.0",
 	"private": true,
 	"description": "",
@@ -39,7 +39,7 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "*",
-		"@shapediver/viewer.features.gumball": "*",
+		"@shapediver/viewer.features.transform-controls": "*",
 		"gl-matrix": "3.3.0"
 	}
 }

@@ -10,13 +10,13 @@ import {
 import {
 	DraggingRestrictionMetaData,
 	DrawingRestrictionMetaData,
-	GumballRestrictionMetaData,
 	IRestriction,
 	isDraggingRestriction,
 	RayTraceResult,
 	RestrictionProperties,
 	RestrictionResult,
 	RESTRICTION_TYPE,
+	TransformControlsRestrictionMetaData,
 } from "../interfaces/IRestriction";
 import {IRestrictionManager} from "../interfaces/IRestrictionManager";
 import {EventManager} from "./EventManager";
@@ -244,7 +244,7 @@ export class RestrictionManager implements IRestrictionManager {
 		metaData:
 			| DrawingRestrictionMetaData
 			| DraggingRestrictionMetaData
-			| GumballRestrictionMetaData,
+			| TransformControlsRestrictionMetaData,
 	): RayTraceResult | undefined {
 		const restrictionResults: RestrictionResult[] = [];
 

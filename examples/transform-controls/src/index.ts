@@ -1,9 +1,9 @@
 import * as SDV from "@shapediver/viewer";
-import {addListener, EVENTTYPE_GUMBALL} from "@shapediver/viewer";
+import {addListener, EVENTTYPE_TRANSFORM_CONTROLS} from "@shapediver/viewer";
 import {
+	EventResponseMapping,
 	Gumball,
-	GumballEventResponseMapping,
-} from "@shapediver/viewer.features.gumball";
+} from "@shapediver/viewer.features.transform-controls";
 
 (<any>window).SDV = SDV;
 
@@ -42,10 +42,10 @@ const sendNotification = (title: string, message: string) => {
 
 	// create an event listener for the gumball
 	const eventListenerToken = addListener(
-		EVENTTYPE_GUMBALL.MATRIX_CHANGED,
+		EVENTTYPE_TRANSFORM_CONTROLS.MATRIX_CHANGED,
 		(e) => {
 			const gumballEvent =
-				e as GumballEventResponseMapping[SDV.EVENTTYPE_GUMBALL.MATRIX_CHANGED];
+				e as EventResponseMapping[SDV.EVENTTYPE_TRANSFORM_CONTROLS.MATRIX_CHANGED];
 
 			// show the notification
 			sendNotification(

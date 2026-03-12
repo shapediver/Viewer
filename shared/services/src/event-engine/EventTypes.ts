@@ -9,7 +9,7 @@ export type MainEventTypes =
 	| typeof EVENTTYPE_PARAMETER
 	| typeof EVENTTYPE_VIEWPORT
 	| typeof EVENTTYPE_INTERACTION
-	| typeof EVENTTYPE_GUMBALL
+	| typeof EVENTTYPE_TRANSFORM_CONTROLS
 	| typeof EVENTTYPE_DRAWING_TOOLS
 	| typeof EVENTTYPE_TASK;
 
@@ -108,15 +108,15 @@ export enum EVENTTYPE_DRAWING_TOOLS {
 }
 
 /**
- * Event types for all gumball events
- * The gumball events are used to notify about gumball changes, like matrix changes.
- * The events that are sent with the gumball events are of type {@link IGumballEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ * Event types for all transform controls events
+ * The transform controls events are used to notify about transform controls changes, like matrix changes.
+ * The events that are sent with the transform controls events are of type {@link ITransformControlsEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
  */
-export enum EVENTTYPE_GUMBALL {
+export enum EVENTTYPE_TRANSFORM_CONTROLS {
 	/**
-	 * The MATRIX_CHANGED-event is sent when the matrix of the gumball has changed
+	 * The MATRIX_CHANGED-event is sent when the matrix of the transform controls has changed
 	 */
-	MATRIX_CHANGED = "gumball.matrixChanged",
+	MATRIX_CHANGED = "transform_controls.matrixChanged",
 }
 
 /**
@@ -337,7 +337,7 @@ export const EVENTTYPE = {
 	PARAMETER: EVENTTYPE_PARAMETER,
 	VIEWPORT: EVENTTYPE_VIEWPORT,
 	INTERACTION: EVENTTYPE_INTERACTION,
-	GUMBALL: EVENTTYPE_GUMBALL,
+	TRANSFORM_CONTROLS: EVENTTYPE_TRANSFORM_CONTROLS,
 	TASK: EVENTTYPE_TASK,
 	DRAWING_TOOLS: EVENTTYPE_DRAWING_TOOLS,
 };

@@ -1,4 +1,5 @@
 import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+
 import {
 	Camera,
 	Intersection,
@@ -9,20 +10,9 @@ import {
 	Vector2,
 	Vector3,
 } from "three";
+
 import {GumballGizmo} from "./GumballGizmo";
 import {GumballPlane} from "./GumballPlane";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-const _raycaster = new Raycaster();
-
-const _tempVector = new Vector3();
-const _tempVector2 = new Vector3();
-const _tempQuaternion = new Quaternion();
-const _unit = {
-	X: new Vector3(1, 0, 0),
-	Y: new Vector3(0, 1, 0),
-	Z: new Vector3(0, 0, 1),
-};
 
 export enum TransformationType {
 	TRANSLATION = "translation",
@@ -31,8 +21,6 @@ export enum TransformationType {
 }
 
 export class GumballControls extends Object3D {
-	// #region Properties (59)
-
 	private _axis: string | null = null;
 	private _camera: Camera;
 	private _cameraPosition: Vector3 = new Vector3();
@@ -82,10 +70,6 @@ export class GumballControls extends Object3D {
 
 	public domElement: HTMLElement;
 	public isGumballControls: boolean;
-
-	// #endregion Properties (59)
-
-	// #region Constructors (1)
 
 	constructor(
 		camera: Camera,
@@ -146,10 +130,6 @@ export class GumballControls extends Object3D {
 		this._quaternionStart = new Quaternion();
 		this._scaleStart = new Vector3();
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (66)
 
 	public get axis(): string | null {
 		return this._axis;
@@ -323,10 +303,6 @@ export class GumballControls extends Object3D {
 	public get worldQuaternionStart(): Quaternion {
 		return this._worldQuaternionStart;
 	}
-
-	// #endregion Public Getters And Setters (66)
-
-	// #region Public Methods (21)
 
 	// Set current object
 	public attach(object: Object3D) {
@@ -633,7 +609,7 @@ export class GumballControls extends Object3D {
 							],
 						},
 						{
-							type: "gumball",
+							type: "transform-controls",
 						},
 					)
 				: null;
@@ -927,6 +903,15 @@ export class GumballControls extends Object3D {
 
 		super.updateMatrixWorld(force);
 	}
-
-	// #endregion Public Methods (21)
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const _raycaster = new Raycaster();
+const _tempQuaternion = new Quaternion();
+const _tempVector = new Vector3();
+const _tempVector2 = new Vector3();
+const _unit = {
+	X: new Vector3(1, 0, 0),
+	Y: new Vector3(0, 1, 0),
+	Z: new Vector3(0, 0, 1),
+};

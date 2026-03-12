@@ -9,25 +9,25 @@ import {
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
-	EVENTTYPE_GUMBALL,
+	EVENTTYPE_TRANSFORM_CONTROLS,
 	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
-import {IGumballEvent} from "../interfaces/events/IGumballEvent";
+import {ITransformControlsEvent} from "../interfaces/events/ITransformControlsEvent";
 import {
-	ITransformControlManager,
+	ITransformControlsManager,
 	SettingsOptional,
-} from "../interfaces/ITransformControlManager";
+} from "../interfaces/ITransformControlsManager";
 
 export abstract class TransformControlsManager
-	implements ITransformControlManager
+	implements ITransformControlsManager
 {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #keysPressed: {[key: string]: boolean} = {};
-	readonly #matrixId: string = "SD_gumball_matrix";
+	readonly #matrixId: string = "SD_transform_controls_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
@@ -43,15 +43,14 @@ export abstract class TransformControlsManager
 	#initialOffset: vec3 = vec3.create();
 	#initialTransform: mat4[] = [];
 	#instanceTransform: mat4[] = [];
-	#matrix: mat4 = mat4.create();
 	#pivotOffset: mat4 = mat4.create();
-	#previousGumballMatrix: mat4[] = [];
+	#previousTransformControlsMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
 	#scale: number = 0.15;
 	#show: boolean = true;
 	#space: "local" | "world" = "local";
 
-	protected abstract transformationControlsPlaceholderMatrix: mat4;
+	protected abstract transformcontrolsPlaceholderMatrix: mat4;
 
 	constructor(
 		viewport: IViewportApi,
@@ -132,8 +131,8 @@ export abstract class TransformControlsManager
 		return this.#pivotOffset;
 	}
 
-	protected get previousGumballMatrix(): mat4[] {
-		return this.#previousGumballMatrix;
+	protected get previousTransformControlsMatrix(): mat4[] {
+		return this.#previousTransformControlsMatrix;
 	}
 
 	protected get restrictionManager(): IRestrictionManager | undefined {
@@ -258,7 +257,7 @@ export abstract class TransformControlsManager
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(
 			mat4.create(),
-			this.transformationControlsPlaceholderMatrix,
+			this.transformcontrolsPlaceholderMatrix,
 		);
 		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
 			mat4.create(),
@@ -316,14 +315,14 @@ export abstract class TransformControlsManager
 		// assign the position to the transformation controls objects
 		if (this.#singleNode) {
 			const index = this.#nodes[0].transformations.findIndex(
-				(t) => t.id === "SD_gumball_matrix",
+				(t) => t.id === "SD_transform_controls_matrix",
 			);
 			if (index !== -1) {
-				this.#previousGumballMatrix[0] = mat4.clone(
+				this.#previousTransformControlsMatrix[0] = mat4.clone(
 					this.#nodes[0].transformations[index].matrix,
 				);
 			} else {
-				this.#previousGumballMatrix[0] = mat4.create();
+				this.#previousTransformControlsMatrix[0] = mat4.create();
 			}
 
 			if (this.reuseTransformation === true) {
@@ -419,20 +418,20 @@ export abstract class TransformControlsManager
 			}
 		} else {
 			const boundingBox = new Box();
-			this.#previousGumballMatrix = [];
+			this.#previousTransformControlsMatrix = [];
 			for (let i = 0; i < this.#nodes.length; i++) {
 				const node = this.#nodes[i];
 				boundingBox.union(node.boundingBox);
 
 				const index = node.transformations.findIndex(
-					(t) => t.id === "SD_gumball_matrix",
+					(t) => t.id === "SD_transform_controls_matrix",
 				);
 				if (index !== -1) {
-					this.#previousGumballMatrix.push(
+					this.#previousTransformControlsMatrix.push(
 						mat4.clone(node.transformations[index].matrix),
 					);
 				} else {
-					this.#previousGumballMatrix.push(mat4.create());
+					this.#previousTransformControlsMatrix.push(mat4.create());
 				}
 				{
 					const transformations: {[key: string]: mat4} = {};
@@ -534,7 +533,7 @@ export abstract class TransformControlsManager
 	}
 
 	protected updateObjectMatrices(): void {
-		const eventData: IGumballEvent = {
+		const eventData: ITransformControlsEvent = {
 			viewportId: this.viewport.id,
 			transformations: [],
 			localTransformations: [],
@@ -543,7 +542,7 @@ export abstract class TransformControlsManager
 
 		this.nodes.forEach((node, i) => {
 			const matrix = this.getMatrix(
-				this.previousGumballMatrix[i],
+				this.previousTransformControlsMatrix[i],
 				this.instanceTransform[i],
 			);
 
@@ -598,7 +597,7 @@ export abstract class TransformControlsManager
 
 		// emit the event
 		this.#eventEngine.emitEvent(
-			EVENTTYPE_GUMBALL.MATRIX_CHANGED,
+			EVENTTYPE_TRANSFORM_CONTROLS.MATRIX_CHANGED,
 			eventData,
 		);
 	}
@@ -609,7 +608,7 @@ export abstract class TransformControlsManager
 				.convertedObject[this.viewport.id] as THREE.Object3D;
 			if (threeJsObject) {
 				const matrix = this.getMatrix(
-					this.previousGumballMatrix![i] as mat4,
+					this.previousTransformControlsMatrix![i] as mat4,
 					this.instanceTransform[i],
 				);
 

@@ -68,6 +68,6 @@ There are many options that you can already provide on initialization, please ha
 
     To create and edit point and line data.
 
-- **Gumball**: [`@shapediver/viewer.features.gumball`](./features/gumball/index.html)
+- **Transform Controls**: [`@shapediver/viewer.features.transform-controls`](./features/transform-controls/index.html)
 
     Translate, rotate and scale objects.

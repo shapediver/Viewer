@@ -7,31 +7,12 @@ import {
 	Quaternion,
 	Vector3,
 } from "three";
+
 import {GumballControls, TransformationType} from "./GumballControls";
 
-const _alignVector = new Vector3(0, 1, 0);
-const _tempVector = new Vector3();
-const _identityQuaternion = new Quaternion();
-const _dirVector = new Vector3();
-const _tempMatrix = new Matrix4();
-
-const _unitX = new Vector3(1, 0, 0);
-const _unitY = new Vector3(0, 1, 0);
-const _unitZ = new Vector3(0, 0, 1);
-
-const _v1 = new Vector3();
-const _v2 = new Vector3();
-const _v3 = new Vector3();
-
 export class GumballPlane extends Mesh {
-	// #region Properties (2)
-
 	public isGumballPlane: true;
 	public type: "GumballPlane";
-
-	// #endregion Properties (2)
-
-	// #region Constructors (1)
 
 	constructor(readonly _gumballControls: GumballControls) {
 		super(
@@ -50,10 +31,6 @@ export class GumballPlane extends Mesh {
 
 		this.type = "GumballPlane";
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Methods (1)
 
 	public updateMatrixWorld(force: boolean) {
 		const space = this._gumballControls.space;
@@ -135,6 +112,16 @@ export class GumballPlane extends Mesh {
 
 		super.updateMatrixWorld(force);
 	}
-
-	// #endregion Public Methods (1)
 }
+
+const _alignVector = new Vector3(0, 1, 0);
+const _dirVector = new Vector3();
+const _identityQuaternion = new Quaternion();
+const _tempMatrix = new Matrix4();
+const _tempVector = new Vector3();
+const _unitX = new Vector3(1, 0, 0);
+const _unitY = new Vector3(0, 1, 0);
+const _unitZ = new Vector3(0, 0, 1);
+const _v1 = new Vector3();
+const _v2 = new Vector3();
+const _v3 = new Vector3();

@@ -1,8 +1,8 @@
 module.exports = {
 	entryPoints: ["./src/index.ts"],
-	out: "../../docs/features/gumball",
+	out: "../../docs/features/transform-controls",
 	exclude: ["**/__tests__/**/*", "**/tests/**/*"],
-	name: "Viewer - Gumball",
+	name: "Viewer - Transform Controls",
 	hideGenerator: true,
 	disableSources: true,
 	theme: "default",

@@ -1,7 +1,7 @@
 import {IDomEventListener} from "@shapediver/viewer";
 import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
-export interface ITransformControlManager extends IDomEventListener {
+export interface ITransformControlsManager extends IDomEventListener {
 	/**
 	 * Check if the Transformations Controls are currently active.
 	 */
@@ -50,6 +50,7 @@ export type Settings = {
 	 * The scale of the Transformation Controls compared to the screen size. (default: 0.15)
 	 */
 	scale: number;
+
 	/**
 	 * The space in which the Transformation Controls operates. (default: 'local')
 	 */

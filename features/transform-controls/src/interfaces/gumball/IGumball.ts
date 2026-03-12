@@ -1,6 +1,9 @@
-import {ITransformControlManager, Settings} from "../ITransformControlManager";
+import {
+	ITransformControlsManager,
+	Settings,
+} from "../ITransformControlsManager";
 
-export interface IGumball extends ITransformControlManager {
+export interface IGumball extends ITransformControlsManager {
 	/**
 	 * Enable or disable rotation.
 	 */
