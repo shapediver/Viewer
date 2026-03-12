@@ -10,7 +10,7 @@ import {mat4} from "gl-matrix";
  * @param node The node to update the gumball transformation of.
  * @param transformation The transformation to apply to the gumball.
  */
-export const updateGumballTransformation = (
+export const updateTransformation = (
 	node: ITreeNode,
 	transformation?: mat4,
 ) => {

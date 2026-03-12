@@ -1,6 +1,4 @@
-import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-
-import {ITransformControlManager} from "./ITransformControlManager";
+import {ITransformControlManager, Settings} from "../ITransformControlManager";
 
 export interface IGumball extends ITransformControlManager {
 	/**
@@ -109,12 +107,7 @@ export interface IGumball extends ITransformControlManager {
 	enableTranslationZ: boolean;
 }
 
-export type Settings = {
-	/**
-	 * Enable or disable rotation. (default: true)
-	 */
-	enableRotation: boolean;
-
+export type GumballSettings = {
 	/**
 	 * Enable or disable the rotation per axis.
 	 */
@@ -126,11 +119,6 @@ export type Settings = {
 		yz?: boolean;
 		xz?: boolean;
 	};
-
-	/**
-	 * Enable or disable scaling. (default: true)
-	 */
-	enableScaling: boolean;
 
 	/**
 	 * Enable or disable the scaling per axis.
@@ -145,11 +133,6 @@ export type Settings = {
 	};
 
 	/**
-	 * Enable or disable translation. (default: true)
-	 */
-	enableTranslation: boolean;
-
-	/**
 	 * Enable or disable the translation per axis.
 	 */
 	enableTranslationAxes: {
@@ -160,28 +143,6 @@ export type Settings = {
 		yz?: boolean;
 		xz?: boolean;
 	};
+} & Settings;
 
-	/**
-	 * Restrictions that are applied to the transformation. (default: {})
-	 * The key of the restriction is used to identify the restriction and can be used to update or remove the restriction later on.
-	 * The value is the properties of the restriction. The type of the restriction is determined by the "type" property of the restriction properties.
-	 */
-	restrictions: Partial<{[key: string]: RestrictionProperties}>;
-
-	/**
-	 * Reuse the transformation that are already applied to the nodes. (default: true)
-	 */
-	reuseTransformation: boolean;
-
-	/**
-	 * The scale of the Gumball compared to the screen size. (default: 0.15)
-	 */
-	scale: number;
-
-	/**
-	 * The space in which the Gumball operates. (default: 'local')
-	 */
-	space: "local" | "world";
-};
-
-export type SettingsOptional = Partial<Settings>;
+export type GumballSettingsOptional = Partial<GumballSettings>;

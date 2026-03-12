@@ -9,8 +9,8 @@ import {
 	Vector2,
 	Vector3,
 } from "three";
-import {TransformControlsGizmo} from "./TransformControlsGizmo";
-import {TransformControlsPlane} from "./TransformControlsPlane";
+import {GumballGizmo} from "./GumballGizmo";
+import {GumballPlane} from "./GumballPlane";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const _raycaster = new Raycaster();
@@ -30,7 +30,7 @@ export enum TransformationType {
 	SCALE = "scale",
 }
 
-export class TransformControls extends Object3D {
+export class GumballControls extends Object3D {
 	// #region Properties (59)
 
 	private _axis: string | null = null;
@@ -42,7 +42,7 @@ export class TransformControls extends Object3D {
 	private _enabled: boolean = true;
 	private _endNorm: Vector3;
 	private _eye: Vector3 = new Vector3();
-	private _gizmo: TransformControlsGizmo;
+	private _gizmo: GumballGizmo;
 	private _hovering: boolean = false;
 	private _mode?: TransformationType;
 	private _object: Object3D | undefined = undefined;
@@ -52,7 +52,7 @@ export class TransformControls extends Object3D {
 	private _parentQuaternionInv: Quaternion = new Quaternion();
 	private _parentScale: Vector3;
 	private _pivotDragged: boolean = false;
-	private _plane: TransformControlsPlane;
+	private _plane: GumballPlane;
 	private _pointEnd: Vector3 = new Vector3();
 	private _pointStart: Vector3 = new Vector3();
 	private _positionStart: Vector3;
@@ -81,7 +81,7 @@ export class TransformControls extends Object3D {
 	private _worldScaleStart: Vector3;
 
 	public domElement: HTMLElement;
-	public isTransformControls: boolean;
+	public isGumballControls: boolean;
 
 	// #endregion Properties (59)
 
@@ -105,22 +105,22 @@ export class TransformControls extends Object3D {
 
 		if (domElement === undefined) {
 			console.warn(
-				'THREE.TransformControls: The second parameter "domElement" is now mandatory.',
+				'THREE.GumballControls: The second parameter "domElement" is now mandatory.',
 			);
 			domElement = document as unknown as HTMLElement;
 		}
 
-		this.isTransformControls = true;
+		this.isGumballControls = true;
 
 		this.visible = false;
 		this.domElement = domElement;
 		this.domElement.style.touchAction = "none"; // disable touch scroll
 
-		const _gizmo = new TransformControlsGizmo(this);
+		const _gizmo = new GumballGizmo(this);
 		this._gizmo = _gizmo;
 		this.add(_gizmo);
 
-		const _plane = new TransformControlsPlane(this);
+		const _plane = new GumballPlane(this);
 		this._plane = _plane;
 		this.add(_plane);
 
@@ -192,7 +192,7 @@ export class TransformControls extends Object3D {
 		return this._eye;
 	}
 
-	public get gizmo(): TransformControlsGizmo {
+	public get gizmo(): GumballGizmo {
 		return this._gizmo;
 	}
 
@@ -889,7 +889,7 @@ export class TransformControls extends Object3D {
 
 			if (this.object.parent === null) {
 				console.error(
-					"TransformControls: The attached 3D object must be a part of the scene graph.",
+					"GumballControls: The attached 3D object must be a part of the scene graph.",
 				);
 			} else {
 				this.object.parent.matrixWorld.decompose(

@@ -17,15 +17,17 @@ import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 
 import {IGumballEvent} from "../interfaces/events/IGumballEvent";
-import {SettingsOptional} from "../interfaces/IGumball";
-import {ITransformControlManager} from "../interfaces/ITransformControlManager";
+import {
+	ITransformControlManager,
+	SettingsOptional,
+} from "../interfaces/ITransformControlManager";
 
 export abstract class TransformControlsManager
 	implements ITransformControlManager
 {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
-	readonly #matrixId: string = "SD_gumball_matrix";
 	readonly #keysPressed: {[key: string]: boolean} = {};
+	readonly #matrixId: string = "SD_gumball_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
@@ -42,13 +44,14 @@ export abstract class TransformControlsManager
 	#initialTransform: mat4[] = [];
 	#instanceTransform: mat4[] = [];
 	#matrix: mat4 = mat4.create();
+	#pivotOffset: mat4 = mat4.create();
 	#previousGumballMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
 	#scale: number = 0.15;
 	#show: boolean = true;
 	#space: "local" | "world" = "local";
 
-	#pivotOffset: mat4 = mat4.create();
+	protected abstract transformationControlsPlaceholderMatrix: mat4;
 
 	constructor(
 		viewport: IViewportApi,
@@ -125,7 +128,7 @@ export abstract class TransformControlsManager
 		return this.#parentObject;
 	}
 
-	public get pivotOffset(): mat4 {
+	protected get pivotOffset(): mat4 {
 		return this.#pivotOffset;
 	}
 
@@ -228,76 +231,6 @@ export abstract class TransformControlsManager
 		this.onPointerMoveLogic(event);
 	}
 
-	protected updateObjectMatrices(): void {
-		const eventData: IGumballEvent = {
-			viewportId: this.viewport.id,
-			transformations: [],
-			localTransformations: [],
-			nodes: [],
-		};
-
-		this.nodes.forEach((node, i) => {
-			const matrix = this.getMatrix(
-				this.previousGumballMatrix[i],
-				this.instanceTransform[i],
-			);
-
-			eventData.nodes.push(node);
-			if (this.singleNode) {
-				mat4.multiply(
-					matrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
-					matrix,
-				);
-				eventData.transformations.push(mat4.clone(matrix));
-				mat4.multiply(
-					matrix,
-					matrix,
-					mat4.invert(mat4.create(), this.initialTransform[i]),
-				);
-			} else {
-				const eventDataMatrix = mat4.clone(matrix);
-				mat4.multiply(
-					eventDataMatrix,
-					eventDataMatrix,
-					this.initialTransform[i],
-				);
-				mat4.multiply(
-					eventDataMatrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
-					eventDataMatrix,
-				);
-				eventData.transformations.push(eventDataMatrix);
-
-				mat4.multiply(
-					matrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
-					matrix,
-				);
-			}
-
-			const transformation = node.transformations.find(
-				(t) => t.id === this.#matrixId,
-			);
-			eventData.localTransformations.push(mat4.clone(matrix));
-			if (transformation) {
-				transformation.matrix = matrix;
-			} else {
-				node.transformations.push({
-					id: this.#matrixId,
-					matrix,
-				});
-			}
-			node.updateVersion();
-		});
-
-		// emit the event
-		this.#eventEngine.emitEvent(
-			EVENTTYPE_GUMBALL.MATRIX_CHANGED,
-			eventData,
-		);
-	}
-
 	public onPointerOut(event: PointerEvent): void {
 		if (this.closed) return;
 
@@ -322,8 +255,63 @@ export abstract class TransformControlsManager
 
 	protected abstract closeLogic(): void;
 
-	protected initialize(): THREE.Matrix4 {
-		const transformationPlaceholderMatrix = new THREE.Matrix4();
+	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
+		const placeholderMatrix = mat4.copy(
+			mat4.create(),
+			this.transformationControlsPlaceholderMatrix,
+		);
+		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
+			mat4.create(),
+			vec3.negate(vec3.create(), this.initialOffset),
+		);
+
+		const placeholderMatrixWithoutInitialOffset = mat4.multiply(
+			mat4.create(),
+			placeholderMatrix,
+			initialOffsetCorrectionMatrix,
+		);
+
+		const matrix = mat4.clone(placeholderMatrixWithoutInitialOffset);
+		if (this.singleNode === true) {
+			if (this.reuseTransformation === true) {
+				const finalMatrix = mat4.create();
+				mat4.multiply(
+					finalMatrix,
+					placeholderMatrixWithoutInitialOffset,
+					mat4.invert(mat4.create(), this.#pivotOffset),
+				);
+				return finalMatrix;
+			} else {
+				const finalMatrix = mat4.create();
+				mat4.multiply(
+					finalMatrix,
+					placeholderMatrixWithoutInitialOffset,
+					mat4.invert(mat4.create(), this.#pivotOffset),
+				);
+				mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
+				return finalMatrix;
+			}
+		} else {
+			const finalMatrix = mat4.create();
+
+			mat4.multiply(
+				placeholderMatrixWithoutInitialOffset,
+				placeholderMatrixWithoutInitialOffset,
+				instanceMatrix,
+			);
+
+			mat4.multiply(
+				finalMatrix,
+				placeholderMatrixWithoutInitialOffset,
+				mat4.invert(mat4.create(), this.#pivotOffset),
+			);
+			mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
+			return finalMatrix;
+		}
+	}
+
+	protected initialize(): mat4 {
+		const transformationPlaceholderMatrix = mat4.create();
 
 		// assign the position to the transformation controls objects
 		if (this.#singleNode) {
@@ -347,8 +335,9 @@ export abstract class TransformControlsManager
 				});
 
 				vec3.copy(this.#initialOffset, trueBB.boundingSphere.center);
-				transformationPlaceholderMatrix.makeTranslation(
-					new THREE.Vector3().fromArray(this.#initialOffset),
+				mat4.fromTranslation(
+					transformationPlaceholderMatrix,
+					this.#initialOffset,
 				);
 				{
 					const transformations: {[key: string]: mat4} = {};
@@ -371,17 +360,17 @@ export abstract class TransformControlsManager
 							this.#nodes[0].worldMatrix,
 							this.#initialTransform[0],
 						);
-						transformationPlaceholderMatrix.multiply(
-							new THREE.Matrix4().fromArray(
-								initialWorldTransform,
-							),
+						mat4.multiply(
+							transformationPlaceholderMatrix,
+							transformationPlaceholderMatrix,
+							initialWorldTransform,
 						);
 					} else {
 						this.#initialTransform[0] = mat4.create();
-						transformationPlaceholderMatrix.multiply(
-							new THREE.Matrix4().fromArray(
-								this.#nodes[0].worldMatrix,
-							),
+						mat4.multiply(
+							transformationPlaceholderMatrix,
+							transformationPlaceholderMatrix,
+							this.#nodes[0].worldMatrix,
 						);
 					}
 				}
@@ -422,10 +411,10 @@ export abstract class TransformControlsManager
 					this.#initialOffset,
 					this.#nodes[0].boundingBox.boundingSphere.center,
 				);
-				transformationPlaceholderMatrix.multiply(
-					new THREE.Matrix4().makeTranslation(
-						new THREE.Vector3().fromArray(this.#initialOffset),
-					),
+				mat4.multiply(
+					transformationPlaceholderMatrix,
+					transformationPlaceholderMatrix,
+					mat4.fromTranslation(mat4.create(), this.#initialOffset),
 				);
 			}
 		} else {
@@ -499,14 +488,119 @@ export abstract class TransformControlsManager
 				}
 			}
 			vec3.copy(this.#initialOffset, boundingBox.boundingSphere.center);
-			transformationPlaceholderMatrix.multiply(
-				new THREE.Matrix4().makeTranslation(
-					new THREE.Vector3().fromArray(this.#initialOffset),
-				),
+
+			mat4.multiply(
+				transformationPlaceholderMatrix,
+				transformationPlaceholderMatrix,
+				mat4.fromTranslation(mat4.create(), this.#initialOffset),
 			);
 		}
 
 		return transformationPlaceholderMatrix;
+	}
+
+	protected abstract onKeyDownLogic(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
+
+	protected abstract onKeyUpLogic(
+		event: KeyboardEvent,
+		pointerInCanvas: boolean,
+	): void;
+
+	protected abstract onPointerDownLogic(event: PointerEvent): void;
+
+	protected abstract onPointerEndLogic(event: PointerEvent): void;
+
+	protected abstract onPointerMoveLogic(event: PointerEvent): void;
+
+	protected abstract onPointerOutLogic(event: PointerEvent): void;
+
+	protected abstract onPointerUpLogic(event: PointerEvent): void;
+
+	protected toggleCameraFreeze(freeze: boolean): void {
+		if (freeze) {
+			if (!this.#cameraFreezeFlag)
+				this.#cameraFreezeFlag = this.#viewport.addFlag(
+					FLAG_TYPE.CAMERA_FREEZE,
+				);
+		} else {
+			if (this.#cameraFreezeFlag) {
+				this.#viewport.removeFlag(this.#cameraFreezeFlag);
+				this.#cameraFreezeFlag = undefined;
+			}
+		}
+	}
+
+	protected updateObjectMatrices(): void {
+		const eventData: IGumballEvent = {
+			viewportId: this.viewport.id,
+			transformations: [],
+			localTransformations: [],
+			nodes: [],
+		};
+
+		this.nodes.forEach((node, i) => {
+			const matrix = this.getMatrix(
+				this.previousGumballMatrix[i],
+				this.instanceTransform[i],
+			);
+
+			eventData.nodes.push(node);
+			if (this.singleNode) {
+				mat4.multiply(
+					matrix,
+					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					matrix,
+				);
+				eventData.transformations.push(mat4.clone(matrix));
+				mat4.multiply(
+					matrix,
+					matrix,
+					mat4.invert(mat4.create(), this.initialTransform[i]),
+				);
+			} else {
+				const eventDataMatrix = mat4.clone(matrix);
+				mat4.multiply(
+					eventDataMatrix,
+					eventDataMatrix,
+					this.initialTransform[i],
+				);
+				mat4.multiply(
+					eventDataMatrix,
+					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					eventDataMatrix,
+				);
+				eventData.transformations.push(eventDataMatrix);
+
+				mat4.multiply(
+					matrix,
+					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					matrix,
+				);
+			}
+
+			const transformation = node.transformations.find(
+				(t) => t.id === this.#matrixId,
+			);
+			eventData.localTransformations.push(mat4.clone(matrix));
+			if (transformation) {
+				transformation.matrix = matrix;
+			} else {
+				node.transformations.push({
+					id: this.#matrixId,
+					matrix,
+				});
+			}
+			node.updateVersion();
+		});
+
+		// emit the event
+		this.#eventEngine.emitEvent(
+			EVENTTYPE_GUMBALL.MATRIX_CHANGED,
+			eventData,
+		);
 	}
 
 	protected updateObjects() {
@@ -545,98 +639,6 @@ export abstract class TransformControlsManager
 				threeJsObject.matrixWorldNeedsUpdate = true;
 			}
 		});
-	}
-
-	protected abstract transformationControlsPlaceholderMatrix: THREE.Matrix4;
-
-	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
-		const m = new THREE.Matrix4().copy(
-			this.transformationControlsPlaceholderMatrix,
-		);
-
-		const placeholderMatrix = mat4.fromValues(...m.toArray());
-		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
-			mat4.create(),
-			vec3.negate(vec3.create(), this.initialOffset),
-		);
-
-		const placeholderMatrixWithoutInitialOffset = mat4.multiply(
-			mat4.create(),
-			placeholderMatrix,
-			initialOffsetCorrectionMatrix,
-		);
-
-		this.#matrix = mat4.clone(placeholderMatrixWithoutInitialOffset);
-		if (this.singleNode === true) {
-			if (this.reuseTransformation === true) {
-				const finalMatrix = mat4.create();
-				mat4.multiply(
-					finalMatrix,
-					placeholderMatrixWithoutInitialOffset,
-					mat4.invert(mat4.create(), this.#pivotOffset),
-				);
-				return finalMatrix;
-			} else {
-				const finalMatrix = mat4.create();
-				mat4.multiply(
-					finalMatrix,
-					placeholderMatrixWithoutInitialOffset,
-					mat4.invert(mat4.create(), this.#pivotOffset),
-				);
-				mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
-				return finalMatrix;
-			}
-		} else {
-			const finalMatrix = mat4.create();
-
-			mat4.multiply(
-				placeholderMatrixWithoutInitialOffset,
-				placeholderMatrixWithoutInitialOffset,
-				instanceMatrix,
-			);
-
-			mat4.multiply(
-				finalMatrix,
-				placeholderMatrixWithoutInitialOffset,
-				mat4.invert(mat4.create(), this.#pivotOffset),
-			);
-			mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
-			return finalMatrix;
-		}
-	}
-
-	protected abstract onKeyDownLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
-
-	protected abstract onKeyUpLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
-
-	protected abstract onPointerDownLogic(event: PointerEvent): void;
-
-	protected abstract onPointerEndLogic(event: PointerEvent): void;
-
-	protected abstract onPointerMoveLogic(event: PointerEvent): void;
-
-	protected abstract onPointerOutLogic(event: PointerEvent): void;
-
-	protected abstract onPointerUpLogic(event: PointerEvent): void;
-
-	protected toggleCameraFreeze(freeze: boolean): void {
-		if (freeze) {
-			if (!this.#cameraFreezeFlag)
-				this.#cameraFreezeFlag = this.#viewport.addFlag(
-					FLAG_TYPE.CAMERA_FREEZE,
-				);
-		} else {
-			if (this.#cameraFreezeFlag) {
-				this.#viewport.removeFlag(this.#cameraFreezeFlag);
-				this.#cameraFreezeFlag = undefined;
-			}
-		}
 	}
 
 	private keyPressCheck(key: string): boolean {

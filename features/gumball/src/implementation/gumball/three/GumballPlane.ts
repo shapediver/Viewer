@@ -7,7 +7,7 @@ import {
 	Quaternion,
 	Vector3,
 } from "three";
-import {TransformationType, TransformControls} from "./TransformControls";
+import {GumballControls, TransformationType} from "./GumballControls";
 
 const _alignVector = new Vector3(0, 1, 0);
 const _tempVector = new Vector3();
@@ -23,17 +23,17 @@ const _v1 = new Vector3();
 const _v2 = new Vector3();
 const _v3 = new Vector3();
 
-export class TransformControlsPlane extends Mesh {
+export class GumballPlane extends Mesh {
 	// #region Properties (2)
 
-	public isTransformControlsPlane: true;
-	public type: "TransformControlsPlane";
+	public isGumballPlane: true;
+	public type: "GumballPlane";
 
 	// #endregion Properties (2)
 
 	// #region Constructors (1)
 
-	constructor(readonly _transformControls: TransformControls) {
+	constructor(readonly _gumballControls: GumballControls) {
 		super(
 			new PlaneGeometry(100000, 100000, 2, 2),
 			new MeshBasicMaterial({
@@ -46,9 +46,9 @@ export class TransformControlsPlane extends Mesh {
 			}),
 		);
 
-		this.isTransformControlsPlane = true;
+		this.isGumballPlane = true;
 
-		this.type = "TransformControlsPlane";
+		this.type = "GumballPlane";
 	}
 
 	// #endregion Constructors (1)
@@ -56,23 +56,23 @@ export class TransformControlsPlane extends Mesh {
 	// #region Public Methods (1)
 
 	public updateMatrixWorld(force: boolean) {
-		const space = this._transformControls.space;
+		const space = this._gumballControls.space;
 
-		this.position.copy(this._transformControls.worldPosition);
+		this.position.copy(this._gumballControls.worldPosition);
 
 		_v1.copy(_unitX).applyQuaternion(
 			space === "local"
-				? this._transformControls.worldQuaternion
+				? this._gumballControls.worldQuaternion
 				: _identityQuaternion,
 		);
 		_v2.copy(_unitY).applyQuaternion(
 			space === "local"
-				? this._transformControls.worldQuaternion
+				? this._gumballControls.worldQuaternion
 				: _identityQuaternion,
 		);
 		_v3.copy(_unitZ).applyQuaternion(
 			space === "local"
-				? this._transformControls.worldQuaternion
+				? this._gumballControls.worldQuaternion
 				: _identityQuaternion,
 		);
 
@@ -81,20 +81,20 @@ export class TransformControlsPlane extends Mesh {
 		_alignVector.copy(_v2);
 
 		if (
-			this._transformControls.mode === TransformationType.TRANSLATION ||
-			this._transformControls.mode === TransformationType.SCALE
+			this._gumballControls.mode === TransformationType.TRANSLATION ||
+			this._gumballControls.mode === TransformationType.SCALE
 		) {
-			switch (this._transformControls.axis) {
+			switch (this._gumballControls.axis) {
 				case "X":
-					_alignVector.copy(this._transformControls.eye).cross(_v1);
+					_alignVector.copy(this._gumballControls.eye).cross(_v1);
 					_dirVector.copy(_v1).cross(_alignVector);
 					break;
 				case "Y":
-					_alignVector.copy(this._transformControls.eye).cross(_v2);
+					_alignVector.copy(this._gumballControls.eye).cross(_v2);
 					_dirVector.copy(_v2).cross(_alignVector);
 					break;
 				case "Z":
-					_alignVector.copy(this._transformControls.eye).cross(_v3);
+					_alignVector.copy(this._gumballControls.eye).cross(_v3);
 					_dirVector.copy(_v3).cross(_alignVector);
 					break;
 				case "XY":
@@ -115,14 +115,14 @@ export class TransformControlsPlane extends Mesh {
 			}
 		}
 
-		if (this._transformControls.mode === TransformationType.ROTATION) {
+		if (this._gumballControls.mode === TransformationType.ROTATION) {
 			// special case for rotate
 			_dirVector.set(0, 0, 0);
 		}
 
 		if (_dirVector.length() === 0) {
 			// If in rotate mode, make the plane parallel to camera
-			this.quaternion.copy(this._transformControls.cameraQuaternion);
+			this.quaternion.copy(this._gumballControls.cameraQuaternion);
 		} else {
 			_tempMatrix.lookAt(
 				_tempVector.set(0, 0, 0),

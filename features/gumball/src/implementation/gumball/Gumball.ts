@@ -1,55 +1,53 @@
-import {ITreeNode, IViewportApi} from "@shapediver/viewer";
-import {mat4} from "gl-matrix";
 import * as THREE from "three";
-import {IGumball, SettingsOptional} from "../interfaces/IGumball";
-import {TransformControls} from "../three/TransformControls";
-import {TransformControlsManager} from "./TransformControlsManager";
+
+import {ITreeNode, IViewportApi} from "@shapediver/viewer";
+
+import {mat4} from "gl-matrix";
+
+import {IGumball} from "../..";
+import {GumballSettingsOptional} from "../../interfaces/gumball/IGumball";
+import {TransformControlsManager} from "../TransformControlsManager";
+import {GumballControls} from "./three/GumballControls";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class Gumball extends TransformControlsManager implements IGumball {
-	// #region Properties (38)
-
-	readonly #transformControls: TransformControls;
+	readonly #gumballControls: GumballControls;
 	readonly #transformationControlsPlaceholder: THREE.Object3D =
 		new THREE.Object3D();
 
 	#currentMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	#enableRotation: boolean = true;
 	#enableRotationX: boolean = true;
-	#enableRotationY: boolean = true;
-	#enableRotationZ: boolean = true;
 	#enableRotationXY: boolean = true;
-	#enableRotationYZ: boolean = true;
 	#enableRotationXZ: boolean = true;
+	#enableRotationY: boolean = true;
+	#enableRotationYZ: boolean = true;
+	#enableRotationZ: boolean = true;
 	#enableScaling: boolean = true;
 	#enableScalingX: boolean = true;
-	#enableScalingY: boolean = true;
-	#enableScalingZ: boolean = true;
 	#enableScalingXY: boolean = true;
-	#enableScalingYZ: boolean = true;
 	#enableScalingXZ: boolean = true;
+	#enableScalingY: boolean = true;
+	#enableScalingYZ: boolean = true;
+	#enableScalingZ: boolean = true;
 	#enableTranslation: boolean = true;
 	#enableTranslationX: boolean = true;
-	#enableTranslationY: boolean = true;
-	#enableTranslationZ: boolean = true;
 	#enableTranslationXY: boolean = true;
-	#enableTranslationYZ: boolean = true;
 	#enableTranslationXZ: boolean = true;
+	#enableTranslationY: boolean = true;
+	#enableTranslationYZ: boolean = true;
+	#enableTranslationZ: boolean = true;
 	#moving: boolean = false;
 	#pivotDragging: boolean = false;
-
-	// #endregion Properties (38)
-
-	// #region Constructors (1)
 
 	constructor(
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
-		settings?: SettingsOptional,
+		settings?: GumballSettingsOptional,
 	) {
 		super(viewport, nodes, settings);
 
-		this.#transformControls = new TransformControls(
+		this.#gumballControls = new GumballControls(
 			viewport.threeJsCoreObjects.camera,
 			viewport.threeJsCoreObjects.renderer.domElement,
 			this.restrictionManager,
@@ -57,7 +55,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 			this.updateObjectMatricesInternal.bind(this),
 		);
 
-		this.#transformControls.space = this.space;
+		this.#gumballControls.space = this.space;
 
 		this.enableRotation = settings?.enableRotation ?? true;
 		this.enableRotationX = settings?.enableRotationAxes?.x ?? true;
@@ -111,17 +109,13 @@ export class Gumball extends TransformControlsManager implements IGumball {
 		this.setup();
 	}
 
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (32)
-
 	public get enableRotation(): boolean {
 		return this.#enableRotation;
 	}
 
 	public set enableRotation(value: boolean) {
 		this.#enableRotation = value;
-		this.#transformControls.gizmo.enableRotation = value;
+		this.#gumballControls.gizmo.enableRotation = value;
 	}
 
 	public get enableRotationX(): boolean {
@@ -130,25 +124,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableRotationX(value: boolean) {
 		this.#enableRotationX = value;
-		this.#transformControls.gizmo.enableRotationX = value;
-	}
-
-	public get enableRotationY(): boolean {
-		return this.#enableRotationY;
-	}
-
-	public set enableRotationY(value: boolean) {
-		this.#enableRotationY = value;
-		this.#transformControls.gizmo.enableRotationY = value;
-	}
-
-	public get enableRotationZ(): boolean {
-		return this.#enableRotationZ;
-	}
-
-	public set enableRotationZ(value: boolean) {
-		this.#enableRotationZ = value;
-		this.#transformControls.gizmo.enableRotationZ = value;
+		this.#gumballControls.gizmo.enableRotationX = value;
 	}
 
 	public get enableRotationXY(): boolean {
@@ -157,16 +133,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableRotationXY(value: boolean) {
 		this.#enableRotationXY = value;
-		this.#transformControls.gizmo.enableRotationXY = value;
-	}
-
-	public get enableRotationYZ(): boolean {
-		return this.#enableRotationYZ;
-	}
-
-	public set enableRotationYZ(value: boolean) {
-		this.#enableRotationYZ = value;
-		this.#transformControls.gizmo.enableRotationYZ = value;
+		this.#gumballControls.gizmo.enableRotationXY = value;
 	}
 
 	public get enableRotationXZ(): boolean {
@@ -175,7 +142,34 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableRotationXZ(value: boolean) {
 		this.#enableRotationXZ = value;
-		this.#transformControls.gizmo.enableRotationXZ = value;
+		this.#gumballControls.gizmo.enableRotationXZ = value;
+	}
+
+	public get enableRotationY(): boolean {
+		return this.#enableRotationY;
+	}
+
+	public set enableRotationY(value: boolean) {
+		this.#enableRotationY = value;
+		this.#gumballControls.gizmo.enableRotationY = value;
+	}
+
+	public get enableRotationYZ(): boolean {
+		return this.#enableRotationYZ;
+	}
+
+	public set enableRotationYZ(value: boolean) {
+		this.#enableRotationYZ = value;
+		this.#gumballControls.gizmo.enableRotationYZ = value;
+	}
+
+	public get enableRotationZ(): boolean {
+		return this.#enableRotationZ;
+	}
+
+	public set enableRotationZ(value: boolean) {
+		this.#enableRotationZ = value;
+		this.#gumballControls.gizmo.enableRotationZ = value;
 	}
 
 	public get enableScaling(): boolean {
@@ -184,7 +178,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableScaling(value: boolean) {
 		this.#enableScaling = value;
-		this.#transformControls.gizmo.enableScaling = value;
+		this.#gumballControls.gizmo.enableScaling = value;
 	}
 
 	public get enableScalingX(): boolean {
@@ -193,25 +187,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableScalingX(value: boolean) {
 		this.#enableScalingX = value;
-		this.#transformControls.gizmo.enableScalingX = value;
-	}
-
-	public get enableScalingY(): boolean {
-		return this.#enableScalingY;
-	}
-
-	public set enableScalingY(value: boolean) {
-		this.#enableScalingY = value;
-		this.#transformControls.gizmo.enableScalingY = value;
-	}
-
-	public get enableScalingZ(): boolean {
-		return this.#enableScalingZ;
-	}
-
-	public set enableScalingZ(value: boolean) {
-		this.#enableScalingZ = value;
-		this.#transformControls.gizmo.enableScalingZ = value;
+		this.#gumballControls.gizmo.enableScalingX = value;
 	}
 
 	public get enableScalingXY(): boolean {
@@ -220,16 +196,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableScalingXY(value: boolean) {
 		this.#enableScalingXY = value;
-		this.#transformControls.gizmo.enableScalingXY = value;
-	}
-
-	public get enableScalingYZ(): boolean {
-		return this.#enableScalingYZ;
-	}
-
-	public set enableScalingYZ(value: boolean) {
-		this.#enableScalingYZ = value;
-		this.#transformControls.gizmo.enableScalingYZ = value;
+		this.#gumballControls.gizmo.enableScalingXY = value;
 	}
 
 	public get enableScalingXZ(): boolean {
@@ -238,7 +205,34 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableScalingXZ(value: boolean) {
 		this.#enableScalingXZ = value;
-		this.#transformControls.gizmo.enableScalingXZ = value;
+		this.#gumballControls.gizmo.enableScalingXZ = value;
+	}
+
+	public get enableScalingY(): boolean {
+		return this.#enableScalingY;
+	}
+
+	public set enableScalingY(value: boolean) {
+		this.#enableScalingY = value;
+		this.#gumballControls.gizmo.enableScalingY = value;
+	}
+
+	public get enableScalingYZ(): boolean {
+		return this.#enableScalingYZ;
+	}
+
+	public set enableScalingYZ(value: boolean) {
+		this.#enableScalingYZ = value;
+		this.#gumballControls.gizmo.enableScalingYZ = value;
+	}
+
+	public get enableScalingZ(): boolean {
+		return this.#enableScalingZ;
+	}
+
+	public set enableScalingZ(value: boolean) {
+		this.#enableScalingZ = value;
+		this.#gumballControls.gizmo.enableScalingZ = value;
 	}
 
 	public get enableTranslation(): boolean {
@@ -247,7 +241,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableTranslation(value: boolean) {
 		this.#enableTranslation = value;
-		this.#transformControls.gizmo.enableTranslation = value;
+		this.#gumballControls.gizmo.enableTranslation = value;
 	}
 
 	public get enableTranslationX(): boolean {
@@ -256,25 +250,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableTranslationX(value: boolean) {
 		this.#enableTranslationX = value;
-		this.#transformControls.gizmo.enableTranslationX = value;
-	}
-
-	public get enableTranslationY(): boolean {
-		return this.#enableTranslationY;
-	}
-
-	public set enableTranslationY(value: boolean) {
-		this.#enableTranslationY = value;
-		this.#transformControls.gizmo.enableTranslationY = value;
-	}
-
-	public get enableTranslationZ(): boolean {
-		return this.#enableTranslationZ;
-	}
-
-	public set enableTranslationZ(value: boolean) {
-		this.#enableTranslationZ = value;
-		this.#transformControls.gizmo.enableTranslationZ = value;
+		this.#gumballControls.gizmo.enableTranslationX = value;
 	}
 
 	public get enableTranslationXY(): boolean {
@@ -283,16 +259,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableTranslationXY(value: boolean) {
 		this.#enableTranslationXY = value;
-		this.#transformControls.gizmo.enableTranslationXY = value;
-	}
-
-	public get enableTranslationYZ(): boolean {
-		return this.#enableTranslationYZ;
-	}
-
-	public set enableTranslationYZ(value: boolean) {
-		this.#enableTranslationYZ = value;
-		this.#transformControls.gizmo.enableTranslationYZ = value;
+		this.#gumballControls.gizmo.enableTranslationXY = value;
 	}
 
 	public get enableTranslationXZ(): boolean {
@@ -301,18 +268,47 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	public set enableTranslationXZ(value: boolean) {
 		this.#enableTranslationXZ = value;
-		this.#transformControls.gizmo.enableTranslationXZ = value;
+		this.#gumballControls.gizmo.enableTranslationXZ = value;
 	}
 
-	// #endregion Public Getters And Setters (32)
+	public get enableTranslationY(): boolean {
+		return this.#enableTranslationY;
+	}
 
-	// #region Public Methods (10)
+	public set enableTranslationY(value: boolean) {
+		this.#enableTranslationY = value;
+		this.#gumballControls.gizmo.enableTranslationY = value;
+	}
+
+	public get enableTranslationYZ(): boolean {
+		return this.#enableTranslationYZ;
+	}
+
+	public set enableTranslationYZ(value: boolean) {
+		this.#enableTranslationYZ = value;
+		this.#gumballControls.gizmo.enableTranslationYZ = value;
+	}
+
+	public get enableTranslationZ(): boolean {
+		return this.#enableTranslationZ;
+	}
+
+	public set enableTranslationZ(value: boolean) {
+		this.#enableTranslationZ = value;
+		this.#gumballControls.gizmo.enableTranslationZ = value;
+	}
+
+	public get transformationControlsPlaceholderMatrix(): mat4 {
+		return mat4.fromValues(
+			...this.#transformationControlsPlaceholder.matrix.toArray(),
+		);
+	}
 
 	public closeLogic(): void {
-		this.parentObject.remove(this.#transformControls);
+		this.parentObject.remove(this.#gumballControls);
 		this.parentObject.remove(this.#transformationControlsPlaceholder);
-		this.#transformControls.detach();
-		this.#transformControls.dispose();
+		this.#gumballControls.detach();
+		this.#gumballControls.dispose();
 		this.viewport.threeJsCoreObjects.scene.remove(this.parentObject);
 	}
 
@@ -346,13 +342,10 @@ export class Gumball extends TransformControlsManager implements IGumball {
 	public onMouseWheel(event: WheelEvent): void {}
 
 	public onPointerDownLogic(event: PointerEvent): void {
-		this.#transformControls.onPointerDown(event);
+		this.#gumballControls.onPointerDown(event);
 
-		this.#moving = this.#transformControls.dragging;
-		if (
-			this.#transformControls.dragging ||
-			this.#transformControls.hovering
-		)
+		this.#moving = this.#gumballControls.dragging;
+		if (this.#gumballControls.dragging || this.#gumballControls.hovering)
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -364,7 +357,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 			this.canvasEventListenerToken,
 		);
 
-		this.#transformControls.onPointerUp(event);
+		this.#gumballControls.onPointerUp(event);
 	}
 
 	public onPointerMoveLogic(event: PointerEvent): void {
@@ -381,13 +374,10 @@ export class Gumball extends TransformControlsManager implements IGumball {
 			this.deactivatePivotDragging();
 		}
 
-		this.#transformControls.onPointerHover(event);
-		if (this.#moving) this.#transformControls.onPointerMove(event);
+		this.#gumballControls.onPointerHover(event);
+		if (this.#moving) this.#gumballControls.onPointerMove(event);
 
-		if (
-			this.#transformControls.dragging ||
-			this.#transformControls.hovering
-		) {
+		if (this.#gumballControls.dragging || this.#gumballControls.hovering) {
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -406,17 +396,13 @@ export class Gumball extends TransformControlsManager implements IGumball {
 		this.#moving = false;
 	}
 
-	// #endregion Public Methods (10)
-
-	// #region Private Methods (7)
-
 	private activatePivotDragging() {
 		this.#pivotDragging = true;
 
-		this.#transformControls.pivotDragged = true;
-		this.#transformControls.gizmo.enableTranslation = true;
-		this.#transformControls.gizmo.enableRotation = false;
-		this.#transformControls.gizmo.enableScaling = false;
+		this.#gumballControls.pivotDragged = true;
+		this.#gumballControls.gizmo.enableTranslation = true;
+		this.#gumballControls.gizmo.enableRotation = false;
+		this.#gumballControls.gizmo.enableScaling = false;
 
 		if (this.singleNode === true && this.reuseTransformation === true) {
 			const index = this.nodes[0].transformations.findIndex(
@@ -439,25 +425,26 @@ export class Gumball extends TransformControlsManager implements IGumball {
 	private deactivatePivotDragging() {
 		this.#pivotDragging = false;
 
-		this.#transformControls.pivotDragged = false;
-		this.#transformControls.gizmo.enableTranslation =
-			this.#enableTranslation;
-		this.#transformControls.gizmo.enableRotation = this.#enableRotation;
-		this.#transformControls.gizmo.enableScaling = this.#enableScaling;
+		this.#gumballControls.pivotDragged = false;
+		this.#gumballControls.gizmo.enableTranslation = this.#enableTranslation;
+		this.#gumballControls.gizmo.enableRotation = this.#enableRotation;
+		this.#gumballControls.gizmo.enableScaling = this.#enableScaling;
 	}
 
 	private setup() {
 		const matrix = this.initialize();
-		this.#transformationControlsPlaceholder.applyMatrix4(matrix);
+		this.#transformationControlsPlaceholder.applyMatrix4(
+			new THREE.Matrix4().fromArray(matrix),
+		);
 
-		this.#transformControls.attach(this.#transformationControlsPlaceholder);
-		this.#transformControls.setSize(this.scale);
-		this.parentObject.add(this.#transformControls);
+		this.#gumballControls.attach(this.#transformationControlsPlaceholder);
+		this.#gumballControls.setSize(this.scale);
+		this.parentObject.add(this.#gumballControls);
 		this.parentObject.add(this.#transformationControlsPlaceholder);
 		this.viewport.threeJsCoreObjects.scene.add(this.parentObject);
 
 		// we register the CAMERA_FREEZE whenever the dragging happens
-		this.#transformControls.addEventListener(
+		this.#gumballControls.addEventListener(
 			"dragging-changed",
 			(event: unknown) =>
 				this.toggleCameraFreeze(!(event as {value: boolean}).value),
@@ -492,10 +479,4 @@ export class Gumball extends TransformControlsManager implements IGumball {
 		if (this.#pivotDragging === true) return;
 		this.updateObjects();
 	}
-
-	public get transformationControlsPlaceholderMatrix(): THREE.Matrix4 {
-		return this.#transformationControlsPlaceholder.matrix;
-	}
-
-	// #endregion Private Methods (7)
 }
