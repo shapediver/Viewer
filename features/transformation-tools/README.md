@@ -1,0 +1,63 @@
+# `@shapediver/viewer.features.transformation-tools`
+
+This is the npm package for the ShapeDiver Viewer TransformationTools features. Please have a look at our [help desk section](https://help.shapediver.com/doc/transformation-tools) for this feature.
+
+For more information on ShapeDiver, please visit our [homepage](https://shapediver.com/). If you need help, have a look at our [help desk](https://help.shapediver.com/doc/Viewer.1836580882.html).
+
+The Gumball has already been integrated with [App Builder](https://help.shapediver.com/doc/shapediver-app-builder). This allows you to use a [component in Grasshopper](https://help.shapediver.com/doc/gumball-input) to initialize the Gumball. With this approach, no coding is needed.
+
+## Installation
+
+```
+npm install --save @shapediver/viewer.features.transformation-tools
+```
+
+## Usage
+
+As this is an additional package to the `@shapediver/viewer` package, we omit the initial setup. Please have a look [here](https://viewer.shapediver.com/v3/latest/api/index.html).
+
+### Gumball
+
+The gumball is initialized with the viewport in which it should be created and the nodes with which the Gumball should be initialized.
+
+Once the Gumball has been created, you can listen to the `EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED` event which is emitted whenever the movement of the Gumball ends. In this event you get the current nodes and the matrices that are applied to it.
+
+```typescript
+import {
+	Gumball,
+	EventResponseMapping,
+} from "@shapediver/viewer.features.transformation-tools";
+import {addListener, EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
+
+// create the Gumball with a viewport and the nodes
+const gumball = new Gumball(viewport, nodes);
+
+// listen to the event to be notified of changes
+const eventListenerToken = addListener(
+	EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED,
+	(e) => {
+		const event =
+			e as EventResponseMapping[EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED];
+
+		console.log(
+			`Gumball has changed: 
+        - viewportId: ${event.viewportId}
+        - nodes: ${event.nodes}
+        - transformations: ${event.transformations}`,
+		);
+	},
+);
+```
+
+## Settings
+
+There are different settings that can be used to tailor the Transformation Tools to your needs. You can find them in the table below.
+
+| Name                | Description                                                        | Default |
+| ------------------- | ------------------------------------------------------------------ | ------- |
+| enableRotation      | Enable or disable rotation.                                        | `true`  |
+| enableScaling       | Enable or disable scaling.                                         | `true`  |
+| enableTranslation   | Enable or disable translation.                                     | `true`  |
+| scale               | The scale of the Transformation Tools compared to the screen size. | `0.15`  |
+| space               | The space in which the Transformation Tools operates.              | `local` |
+| reuseTransformation | Reuse the transformation that are already applied to the nodes.    | `true`  |

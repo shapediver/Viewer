@@ -16,7 +16,7 @@ import {
 	RestrictionProperties,
 	RestrictionResult,
 	RESTRICTION_TYPE,
-	TransformControlsRestrictionMetaData,
+	TransformationToolsRestrictionMetaData,
 } from "../interfaces/IRestriction";
 import {IRestrictionManager} from "../interfaces/IRestrictionManager";
 import {EventManager} from "./EventManager";
@@ -244,7 +244,7 @@ export class RestrictionManager implements IRestrictionManager {
 		metaData:
 			| DrawingRestrictionMetaData
 			| DraggingRestrictionMetaData
-			| TransformControlsRestrictionMetaData,
+			| TransformationToolsRestrictionMetaData,
 	): RayTraceResult | undefined {
 		const restrictionResults: RestrictionResult[] = [];
 

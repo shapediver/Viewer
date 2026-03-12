@@ -5,7 +5,7 @@ import {
 	IRestriction,
 	RayTraceResult,
 	RestrictionProperties,
-	TransformControlsRestrictionMetaData,
+	TransformationToolsRestrictionMetaData,
 } from "./IRestriction";
 
 export interface IRestrictionManager {
@@ -27,7 +27,7 @@ export interface IRestrictionManager {
 		metaData?:
 			| DrawingRestrictionMetaData
 			| DraggingRestrictionMetaData
-			| TransformControlsRestrictionMetaData,
+			| TransformationToolsRestrictionMetaData,
 	): RayTraceResult | undefined;
 	removeRestriction(token: string): boolean;
 

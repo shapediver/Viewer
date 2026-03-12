@@ -1,5 +1,5 @@
 {
-	"name": "@shapediver/viewer.features.transform-controls",
+	"name": "@shapediver/viewer.features.transformation-tools",
 	"version": "3.16.0-rc.1",
 	"description": "",
 	"keywords": [],
@@ -41,6 +41,7 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "3.16.0-rc.1",
+		"@shapediver/viewer.features.drawing-tools": "3.16.0-rc.1",
 		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.16.0-rc.1",
 		"@shapediver/viewer.shared.node-tree": "3.16.0-rc.1",
 		"@shapediver/viewer.shared.services": "3.16.0-rc.1",

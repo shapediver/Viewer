@@ -68,6 +68,6 @@ There are many options that you can already provide on initialization, please ha
 
     To create and edit point and line data.
 
-- **Transform Controls**: [`@shapediver/viewer.features.transform-controls`](./features/transform-controls/index.html)
+- **Transformation Tools**: [`@shapediver/viewer.features.transformation-tools`](./features/transformation-tools/index.html)
 
     Translate, rotate and scale objects.

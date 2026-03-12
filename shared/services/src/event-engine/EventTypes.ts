@@ -9,7 +9,7 @@ export type MainEventTypes =
 	| typeof EVENTTYPE_PARAMETER
 	| typeof EVENTTYPE_VIEWPORT
 	| typeof EVENTTYPE_INTERACTION
-	| typeof EVENTTYPE_TRANSFORM_CONTROLS
+	| typeof EVENTTYPE_TRANSFORMATION_TOOLS
 	| typeof EVENTTYPE_DRAWING_TOOLS
 	| typeof EVENTTYPE_TASK;
 
@@ -108,15 +108,15 @@ export enum EVENTTYPE_DRAWING_TOOLS {
 }
 
 /**
- * Event types for all transform controls events
- * The transform controls events are used to notify about transform controls changes, like matrix changes.
- * The events that are sent with the transform controls events are of type {@link ITransformControlsEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ * Event types for all transformation tools events
+ * The transformation tools events are used to notify about transformation tools changes, like matrix changes.
+ * The events that are sent with the transformation tools events are of type {@link ITransformationToolsEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
  */
-export enum EVENTTYPE_TRANSFORM_CONTROLS {
+export enum EVENTTYPE_TRANSFORMATION_TOOLS {
 	/**
-	 * The MATRIX_CHANGED-event is sent when the matrix of the transform controls has changed
+	 * The MATRIX_CHANGED-event is sent when the matrix of the transformation tools has changed
 	 */
-	MATRIX_CHANGED = "transform_controls.matrixChanged",
+	MATRIX_CHANGED = "transformation_tools.matrixChanged",
 }
 
 /**
@@ -337,7 +337,7 @@ export const EVENTTYPE = {
 	PARAMETER: EVENTTYPE_PARAMETER,
 	VIEWPORT: EVENTTYPE_VIEWPORT,
 	INTERACTION: EVENTTYPE_INTERACTION,
-	TRANSFORM_CONTROLS: EVENTTYPE_TRANSFORM_CONTROLS,
+	TRANSFORMATION_TOOLS: EVENTTYPE_TRANSFORMATION_TOOLS,
 	TASK: EVENTTYPE_TASK,
 	DRAWING_TOOLS: EVENTTYPE_DRAWING_TOOLS,
 };

@@ -1,8 +1,8 @@
 module.exports = {
 	entryPoints: ["./src/index.ts"],
-	out: "../../docs/features/transform-controls",
+	out: "../../docs/features/transformation-tools",
 	exclude: ["**/__tests__/**/*", "**/tests/**/*"],
-	name: "Viewer - Transform Controls",
+	name: "Viewer - Transformation Tools",
 	hideGenerator: true,
 	disableSources: true,
 	theme: "default",

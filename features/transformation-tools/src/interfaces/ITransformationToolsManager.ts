@@ -1,19 +1,19 @@
 import {IDomEventListener} from "@shapediver/viewer";
 import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
-export interface ITransformControlsManager extends IDomEventListener {
+export interface ITransformationToolsManager extends IDomEventListener {
 	/**
-	 * Check if the Transformations Controls are currently active.
+	 * Check if the Transformations Tools are currently active.
 	 */
 	readonly closed: boolean;
 
 	/**
-	 * Show or hide the Transformation Controls.
+	 * Show or hide the Transformation Tools.
 	 */
 	show: boolean;
 
 	/**
-	 * Close the transform controls and remove it from the viewport.
+	 * Close the transformation tools and remove it from the viewport.
 	 */
 	close(): void;
 }
@@ -47,12 +47,12 @@ export type Settings = {
 	reuseTransformation: boolean;
 
 	/**
-	 * The scale of the Transformation Controls compared to the screen size. (default: 0.15)
+	 * The scale of the Transformation Tools compared to the screen size. (default: 0.15)
 	 */
 	scale: number;
 
 	/**
-	 * The space in which the Transformation Controls operates. (default: 'local')
+	 * The space in which the Transformation Tools operates. (default: 'local')
 	 */
 	space: "local" | "world";
 };

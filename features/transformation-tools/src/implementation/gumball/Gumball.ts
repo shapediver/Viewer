@@ -6,13 +6,13 @@ import {mat4} from "gl-matrix";
 
 import {IGumball} from "../..";
 import {GumballSettingsOptional} from "../../interfaces/gumball/IGumball";
-import {TransformControlsManager} from "../TransformControlsManager";
+import {TransformationToolsManager} from "../TransformationToolsManager";
 import {GumballControls} from "./three/GumballControls";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export class Gumball extends TransformControlsManager implements IGumball {
+export class Gumball extends TransformationToolsManager implements IGumball {
 	readonly #gumballControls: GumballControls;
-	readonly #transformcontrolsPlaceholder: THREE.Object3D =
+	readonly #transformationToolsPlaceholder: THREE.Object3D =
 		new THREE.Object3D();
 
 	#currentMatrix: THREE.Matrix4 = new THREE.Matrix4();
@@ -298,15 +298,15 @@ export class Gumball extends TransformControlsManager implements IGumball {
 		this.#gumballControls.gizmo.enableTranslationZ = value;
 	}
 
-	public get transformcontrolsPlaceholderMatrix(): mat4 {
+	public get transformationToolsPlaceholderMatrix(): mat4 {
 		return mat4.fromValues(
-			...this.#transformcontrolsPlaceholder.matrix.toArray(),
+			...this.#transformationToolsPlaceholder.matrix.toArray(),
 		);
 	}
 
 	public closeLogic(): void {
 		this.parentObject.remove(this.#gumballControls);
-		this.parentObject.remove(this.#transformcontrolsPlaceholder);
+		this.parentObject.remove(this.#transformationToolsPlaceholder);
 		this.#gumballControls.detach();
 		this.#gumballControls.dispose();
 		this.viewport.threeJsCoreObjects.scene.remove(this.parentObject);
@@ -406,18 +406,18 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 		if (this.singleNode === true && this.reuseTransformation === true) {
 			const index = this.nodes[0].transformations.findIndex(
-				(t) => t.id === "SD_transform_controls_matrix",
+				(t) => t.id === "SD_transformation_tools_matrix",
 			);
 			if (index !== -1) {
-				this.previousTransformControlsMatrix[0] = mat4.clone(
+				this.previousTransformationToolsMatrix[0] = mat4.clone(
 					this.nodes[0].transformations[index].matrix,
 				);
 			} else {
-				this.previousTransformControlsMatrix[0] = mat4.create();
+				this.previousTransformationToolsMatrix[0] = mat4.create();
 			}
 		}
 
-		this.#currentMatrix = this.#transformcontrolsPlaceholder.matrix
+		this.#currentMatrix = this.#transformationToolsPlaceholder.matrix
 			.clone()
 			.multiply(new THREE.Matrix4().fromArray(this.pivotOffset).invert());
 	}
@@ -433,14 +433,14 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	private setup() {
 		const matrix = this.initialize();
-		this.#transformcontrolsPlaceholder.applyMatrix4(
+		this.#transformationToolsPlaceholder.applyMatrix4(
 			new THREE.Matrix4().fromArray(matrix),
 		);
 
-		this.#gumballControls.attach(this.#transformcontrolsPlaceholder);
+		this.#gumballControls.attach(this.#transformationToolsPlaceholder);
 		this.#gumballControls.setSize(this.scale);
 		this.parentObject.add(this.#gumballControls);
-		this.parentObject.add(this.#transformcontrolsPlaceholder);
+		this.parentObject.add(this.#transformationToolsPlaceholder);
 		this.viewport.threeJsCoreObjects.scene.add(this.parentObject);
 
 		// we register the CAMERA_FREEZE whenever the dragging happens
@@ -453,7 +453,7 @@ export class Gumball extends TransformControlsManager implements IGumball {
 
 	private updateObjectMatricesInternal() {
 		if (this.#pivotDragging === true) {
-			const currentMatrix = this.#transformcontrolsPlaceholder.matrix
+			const currentMatrix = this.#transformationToolsPlaceholder.matrix
 				.clone()
 				.multiply(
 					new THREE.Matrix4().fromArray(this.pivotOffset).invert(),

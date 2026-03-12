@@ -609,7 +609,7 @@ export class GumballControls extends Object3D {
 							],
 						},
 						{
-							type: "transform-controls",
+							type: "transformation-tools",
 						},
 					)
 				: null;

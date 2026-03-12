@@ -17,21 +17,21 @@ export const updateTransformation = (
 ) => {
 	if (transformation) {
 		const transformIndex = node.transformations.findIndex(
-			(t) => t.id === "SD_transform_controls_matrix",
+			(t) => t.id === "SD_transformation_tools_matrix",
 		);
 		if (transformIndex !== -1) {
 			node.transformations[transformIndex].matrix = transformation;
 			node.updateVersion();
 		} else {
 			node.transformations.push({
-				id: "SD_transform_controls_matrix",
+				id: "SD_transformation_tools_matrix",
 				matrix: transformation,
 			});
 			node.updateVersion();
 		}
 	} else {
 		const transformIndex = node.transformations.findIndex(
-			(t) => t.id === "SD_transform_controls_matrix",
+			(t) => t.id === "SD_transformation_tools_matrix",
 		);
 		if (transformIndex !== -1) {
 			node.transformations.splice(transformIndex, 1);

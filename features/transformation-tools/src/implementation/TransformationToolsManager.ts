@@ -9,25 +9,25 @@ import {
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
-	EVENTTYPE_TRANSFORM_CONTROLS,
+	EVENTTYPE_TRANSFORMATION_TOOLS,
 	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
-import {ITransformControlsEvent} from "../interfaces/events/ITransformControlsEvent";
+import {ITransformationToolsEvent} from "../interfaces/events/ITransformationToolsEvent";
 import {
-	ITransformControlsManager,
+	ITransformationToolsManager,
 	SettingsOptional,
-} from "../interfaces/ITransformControlsManager";
+} from "../interfaces/ITransformationToolsManager";
 
-export abstract class TransformControlsManager
-	implements ITransformControlsManager
+export abstract class TransformationToolsManager
+	implements ITransformationToolsManager
 {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #keysPressed: {[key: string]: boolean} = {};
-	readonly #matrixId: string = "SD_transform_controls_matrix";
+	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
@@ -44,13 +44,13 @@ export abstract class TransformControlsManager
 	#initialTransform: mat4[] = [];
 	#instanceTransform: mat4[] = [];
 	#pivotOffset: mat4 = mat4.create();
-	#previousTransformControlsMatrix: mat4[] = [];
+	#previousTransformationToolsMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
 	#scale: number = 0.15;
 	#show: boolean = true;
 	#space: "local" | "world" = "local";
 
-	protected abstract transformcontrolsPlaceholderMatrix: mat4;
+	protected abstract transformationToolsPlaceholderMatrix: mat4;
 
 	constructor(
 		viewport: IViewportApi,
@@ -131,8 +131,8 @@ export abstract class TransformControlsManager
 		return this.#pivotOffset;
 	}
 
-	protected get previousTransformControlsMatrix(): mat4[] {
-		return this.#previousTransformControlsMatrix;
+	protected get previousTransformationToolsMatrix(): mat4[] {
+		return this.#previousTransformationToolsMatrix;
 	}
 
 	protected get restrictionManager(): IRestrictionManager | undefined {
@@ -257,7 +257,7 @@ export abstract class TransformControlsManager
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(
 			mat4.create(),
-			this.transformcontrolsPlaceholderMatrix,
+			this.transformationToolsPlaceholderMatrix,
 		);
 		const initialOffsetCorrectionMatrix = mat4.fromTranslation(
 			mat4.create(),
@@ -312,17 +312,17 @@ export abstract class TransformControlsManager
 	protected initialize(): mat4 {
 		const transformationPlaceholderMatrix = mat4.create();
 
-		// assign the position to the transformation controls objects
+		// assign the position to the transformation tools objects
 		if (this.#singleNode) {
 			const index = this.#nodes[0].transformations.findIndex(
-				(t) => t.id === "SD_transform_controls_matrix",
+				(t) => t.id === "SD_transformation_tools_matrix",
 			);
 			if (index !== -1) {
-				this.#previousTransformControlsMatrix[0] = mat4.clone(
+				this.#previousTransformationToolsMatrix[0] = mat4.clone(
 					this.#nodes[0].transformations[index].matrix,
 				);
 			} else {
-				this.#previousTransformControlsMatrix[0] = mat4.create();
+				this.#previousTransformationToolsMatrix[0] = mat4.create();
 			}
 
 			if (this.reuseTransformation === true) {
@@ -418,20 +418,20 @@ export abstract class TransformControlsManager
 			}
 		} else {
 			const boundingBox = new Box();
-			this.#previousTransformControlsMatrix = [];
+			this.#previousTransformationToolsMatrix = [];
 			for (let i = 0; i < this.#nodes.length; i++) {
 				const node = this.#nodes[i];
 				boundingBox.union(node.boundingBox);
 
 				const index = node.transformations.findIndex(
-					(t) => t.id === "SD_transform_controls_matrix",
+					(t) => t.id === "SD_transformation_tools_matrix",
 				);
 				if (index !== -1) {
-					this.#previousTransformControlsMatrix.push(
+					this.#previousTransformationToolsMatrix.push(
 						mat4.clone(node.transformations[index].matrix),
 					);
 				} else {
-					this.#previousTransformControlsMatrix.push(mat4.create());
+					this.#previousTransformationToolsMatrix.push(mat4.create());
 				}
 				{
 					const transformations: {[key: string]: mat4} = {};
@@ -533,7 +533,7 @@ export abstract class TransformControlsManager
 	}
 
 	protected updateObjectMatrices(): void {
-		const eventData: ITransformControlsEvent = {
+		const eventData: ITransformationToolsEvent = {
 			viewportId: this.viewport.id,
 			transformations: [],
 			localTransformations: [],
@@ -542,7 +542,7 @@ export abstract class TransformControlsManager
 
 		this.nodes.forEach((node, i) => {
 			const matrix = this.getMatrix(
-				this.previousTransformControlsMatrix[i],
+				this.previousTransformationToolsMatrix[i],
 				this.instanceTransform[i],
 			);
 
@@ -597,7 +597,7 @@ export abstract class TransformControlsManager
 
 		// emit the event
 		this.#eventEngine.emitEvent(
-			EVENTTYPE_TRANSFORM_CONTROLS.MATRIX_CHANGED,
+			EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED,
 			eventData,
 		);
 	}
@@ -608,7 +608,7 @@ export abstract class TransformControlsManager
 				.convertedObject[this.viewport.id] as THREE.Object3D;
 			if (threeJsObject) {
 				const matrix = this.getMatrix(
-					this.previousTransformControlsMatrix![i] as mat4,
+					this.previousTransformationToolsMatrix![i] as mat4,
 					this.instanceTransform[i],
 				);
 

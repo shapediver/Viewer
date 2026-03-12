@@ -31,9 +31,9 @@ export interface DrawingRestrictionMetaData extends RestrictionMetaData {
 	type: "drawing";
 }
 
-export interface TransformControlsRestrictionMetaData
+export interface TransformationToolsRestrictionMetaData
 	extends RestrictionMetaData {
-	type: "transform-controls";
+	type: "transformation-tools";
 }
 
 export interface IRestriction {
@@ -74,7 +74,7 @@ export interface RestrictionMetaData {
 	pressedKeys?: string[];
 	toggledKeys?: string[];
 	startPoint?: vec3;
-	type: "drawing" | "dragging" | "transform-controls";
+	type: "drawing" | "dragging" | "transformation-tools";
 }
 
 export interface RestrictionPropertiesBase {
@@ -145,8 +145,8 @@ export const isDrawingRestriction = (
 ): metaData is DrawingRestrictionMetaData => {
 	return metaData?.type === "drawing";
 };
-export const isTransformControlsRestriction = (
+export const isTransformationToolsRestriction = (
 	metaData?: RestrictionMetaData,
-): metaData is TransformControlsRestrictionMetaData => {
-	return metaData?.type === "transform-controls";
+): metaData is TransformationToolsRestrictionMetaData => {
+	return metaData?.type === "transformation-tools";
 };
