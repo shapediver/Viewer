@@ -155,6 +155,8 @@ export abstract class TransformationToolsManager
 		return this.#space;
 	}
 
+	protected abstract get type(): "gumball" | "fireball";
+
 	protected get viewport(): IViewportApi {
 		return this.#viewport;
 	}
@@ -538,6 +540,7 @@ export abstract class TransformationToolsManager
 			transformations: [],
 			localTransformations: [],
 			nodes: [],
+			type: this.type,
 		};
 
 		this.nodes.forEach((node, i) => {

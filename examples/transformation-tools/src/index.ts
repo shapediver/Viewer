@@ -2,8 +2,9 @@ import * as SDV from "@shapediver/viewer";
 import {addListener, EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
 import {
 	EventResponseMapping,
-	Gumball,
+	Fireball,
 } from "@shapediver/viewer.features.transformation-tools";
+import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
 
 (<any>window).SDV = SDV;
 
@@ -34,10 +35,16 @@ const sendNotification = (title: string, message: string) => {
 	});
 
 	// create the gumball
-	const gumball = new Gumball(viewport, [session.node], {
+	const gumball = new Fireball(viewport, [session.node], {
 		enableScaling: true,
 		enableRotation: false,
 		enableTranslation: true,
+		plane: {
+			origin: [0, 0, 0],
+			vector_u: [1, 0, 0],
+			vector_v: [0, 1, 0],
+			type: RESTRICTION_TYPE.PLANE,
+		},
 	});
 
 	// create an event listener for the gumball

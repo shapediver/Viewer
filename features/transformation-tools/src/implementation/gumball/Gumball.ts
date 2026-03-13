@@ -304,6 +304,10 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 		);
 	}
 
+	public get type(): "gumball" {
+		return "gumball";
+	}
+
 	public closeLogic(): void {
 		this.parentObject.remove(this.#gumballControls);
 		this.parentObject.remove(this.#transformationToolsPlaceholder);

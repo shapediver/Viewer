@@ -19,4 +19,9 @@ export interface ITransformationToolsEvent extends IViewportEvent {
 	 * The currently used matrix.
 	 */
 	transformations: mat4[];
+
+	/**
+	 * The type of transformation tools that was used.
+	 */
+	type: "gumball" | "fireball";
 }

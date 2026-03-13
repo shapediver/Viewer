@@ -43,6 +43,7 @@
 		"@shapediver/viewer": "3.16.0-rc.2",
 		"@shapediver/viewer.features.drawing-tools": "3.16.0-rc.2",
 		"@shapediver/viewer.rendering-engine.intersection-restriction-engine": "3.16.0-rc.2",
+		"@shapediver/viewer.shared.math": "3.16.0-rc.2",
 		"@shapediver/viewer.shared.node-tree": "3.16.0-rc.2",
 		"@shapediver/viewer.shared.services": "3.16.0-rc.2",
 		"@shapediver/viewer.shared.types": "3.16.0-rc.2",
