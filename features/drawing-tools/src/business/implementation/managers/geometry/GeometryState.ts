@@ -401,7 +401,6 @@ export class GeometryState {
 				this.#geometryDataPoints.material as MaterialMultiPointData
 			).updateVersion();
 			this.#geometryDataPoints.updateVersion();
-			this.updateParentNode();
 		};
 
 		const variation_0 = [
@@ -563,7 +562,6 @@ export class GeometryState {
 			this.geometryDataLines.updateVersion();
 			this.geometryDataLines.primitive.updateVersion();
 		}
-		this.updateParentNode();
 
 		if (temporary === false) {
 			// check if the number of points is within the minimum and maximum range
@@ -612,11 +610,6 @@ export class GeometryState {
 			data: this.#materialIndexArray,
 		})),
 			this.#geometryDataPoints.material!.updateVersion();
-	}
-
-	public updateParentNode(): void {
-		this.#parentNode.updateVersion(false, true);
-		this.#viewport.updateNode(this.#parentNode);
 	}
 
 	// #endregion Public Methods (17)
