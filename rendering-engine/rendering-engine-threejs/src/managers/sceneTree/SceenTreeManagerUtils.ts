@@ -9,13 +9,13 @@ import {ThreejsData} from "../../types/ThreejsData";
 
 export const removeData = (
 	renderingEngine: RenderingEngine,
-	dataObject: SDObject,
+	dataObject: THREE.Object3D,
 ) => {
 	if (dataObject.userData.removed === true) return;
 	dataObject.userData.removed = true;
 
 	switch (true) {
-		case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
 			dataObject.traverse((o) => {
 				if (dataObject.id !== o.id && o.userData.removed === true)
 					return;
@@ -69,22 +69,22 @@ export const removeData = (
 				}
 			});
 			break;
-		case dataObject.SDtype === SD_DATA_TYPE.THREEJS:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.THREEJS:
 			break;
-		case dataObject.SDtype === SD_DATA_TYPE.MATERIAL:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.MATERIAL:
 			break;
-		case dataObject.SDtype === SD_DATA_TYPE.LIGHT:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.LIGHT:
 			dataObject.traverse((o) => {
 				if (o instanceof THREE.Light) o.dispose();
 			});
 			break;
-		case dataObject.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
 			renderingEngine.htmlElementAnchorLoader.removeData(
-				dataObject.SDid,
-				dataObject.SDversion,
+				dataObject.userData.SDid,
+				dataObject.userData.SDversion,
 			);
 			break;
-		case dataObject.SDtype === SD_DATA_TYPE.ANIMATION:
+		case dataObject.userData.SDtype === SD_DATA_TYPE.ANIMATION:
 			break;
 		default:
 			// if there is no valid conversion here, call the convertData of the implementation

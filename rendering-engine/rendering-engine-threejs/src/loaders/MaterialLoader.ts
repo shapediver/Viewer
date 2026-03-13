@@ -1161,35 +1161,35 @@ export class MaterialLoader implements ILoader {
 
 				multiPointMaterialProperties.size_0 =
 					materialData.size_0 !== undefined
-						? materialData.size_0
+						? this._pointSize * materialData.size_0
 						: this._pointSize;
 				multiPointMaterialProperties.size_1 =
 					materialData.size_1 !== undefined
-						? materialData.size_1
+						? this._pointSize * materialData.size_1
 						: this._pointSize;
 				multiPointMaterialProperties.size_2 =
 					materialData.size_2 !== undefined
-						? materialData.size_2
+						? this._pointSize * materialData.size_2
 						: this._pointSize;
 				multiPointMaterialProperties.size_3 =
 					materialData.size_3 !== undefined
-						? materialData.size_3
+						? this._pointSize * materialData.size_3
 						: this._pointSize;
 				multiPointMaterialProperties.size_4 =
 					materialData.size_4 !== undefined
-						? materialData.size_4
+						? this._pointSize * materialData.size_4
 						: this._pointSize;
 				multiPointMaterialProperties.size_5 =
 					materialData.size_5 !== undefined
-						? materialData.size_5
+						? this._pointSize * materialData.size_5
 						: this._pointSize;
 				multiPointMaterialProperties.size_6 =
 					materialData.size_6 !== undefined
-						? materialData.size_6
+						? this._pointSize * materialData.size_6
 						: this._pointSize;
 				multiPointMaterialProperties.size_7 =
 					materialData.size_7 !== undefined
-						? materialData.size_7
+						? this._pointSize * materialData.size_7
 						: this._pointSize;
 
 				multiPointMaterialProperties.userData = {

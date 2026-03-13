@@ -134,6 +134,8 @@ export class SceneTreeManager implements IManager {
 						);
 
 						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
+						dataChild.userData.SDid = treeNodeData.id;
+						dataChild.userData.SDversion = treeNodeData.version;
 						convertedObject.add(dataChild);
 					}
 				}
@@ -143,6 +145,10 @@ export class SceneTreeManager implements IManager {
 					dataChild = (<ThreejsData>treeNodeData).obj;
 					(<ThreejsData>treeNodeData).obj.userData.SDtype =
 						SD_DATA_TYPE.THREEJS;
+					(<ThreejsData>treeNodeData).obj.userData.SDid =
+						treeNodeData.id;
+					(<ThreejsData>treeNodeData).obj.userData.SDversion =
+						treeNodeData.version;
 					convertedObject.add(dataChild);
 
 					// set the currently used environment map
@@ -166,6 +172,8 @@ export class SceneTreeManager implements IManager {
 					if (threeLight) {
 						dataChild = threeLight;
 						dataChild.userData.SDtype = SD_DATA_TYPE.LIGHT;
+						dataChild.userData.SDid = treeNodeData.id;
+						dataChild.userData.SDversion = treeNodeData.version;
 					}
 				}
 
@@ -186,16 +194,25 @@ export class SceneTreeManager implements IManager {
 					if (threeCamera) {
 						dataChild = threeCamera;
 						dataChild.userData.SDtype = SD_DATA_TYPE.CAMERA;
+						dataChild.userData.SDid = treeNodeData.id;
+						dataChild.userData.SDversion = treeNodeData.version;
 					}
 				}
 				break;
 			case treeNodeData instanceof HTMLElementAnchorData:
-				if (filter.transformationOnly === false)
+				if (filter.transformationOnly === false) {
 					this._renderingEngine.htmlElementAnchorLoader.load(
 						treeNode,
 						<HTMLElementAnchorData>treeNodeData,
 						isVisibleInHierarchy,
 					);
+					const dataChild = new THREE.Object3D();
+					dataChild.userData.SDtype =
+						SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
+					dataChild.userData.SDid = treeNodeData.id;
+					dataChild.userData.SDversion = treeNodeData.version;
+					convertedObject.add(dataChild);
+				}
 				break;
 			default:
 				break;
@@ -502,10 +519,10 @@ export class SceneTreeManager implements IManager {
 		// remove all data items that do not exist anymore
 		const dataMap = new Map(treeNode.data.map((d) => [d.id, d.version]));
 		const dataToRemove = convertedObject.children.filter((oc) => {
-			if (oc instanceof SDObject && oc.SDtype !== SD_DATA_TYPE.OBJECT) {
-				const version = dataMap.get(oc.SDid);
+			if (!(oc instanceof SDObject)) {
+				const version = dataMap.get(oc.userData.SDid);
 				if (version !== undefined) {
-					if (version !== oc.SDversion) {
+					if (version !== oc.userData.SDversion) {
 						// version is different
 						return true;
 					} else {
@@ -521,7 +538,7 @@ export class SceneTreeManager implements IManager {
 		});
 
 		dataToRemove.forEach((dTR) => {
-			removeData(this._renderingEngine, <SDObject>dTR);
+			removeData(this._renderingEngine, dTR);
 			convertedObject.remove(dTR);
 		});
 	}
