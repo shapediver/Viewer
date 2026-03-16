@@ -5,7 +5,7 @@ import {PointsData} from "../IDrawingToolsManager";
 export interface IDrawingToolsEvent extends IViewportEvent {
 	// #region Properties (7)
 
-	drawingToolId: string;
+	drawingToolsId: string;
 	fromHistory?: boolean;
 	index?: number;
 	indices?: number[];

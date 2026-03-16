@@ -76,6 +76,11 @@ export class DesktopStrategy implements IStrategy {
 	private static readonly CLICK_THRESHOLD_SQUARED = 25; // 5px threshold squared
 	private static readonly COORDINATE_STEP = 3; // Number of coordinates per point (x, y, z)
 
+	// Priority-based cursor tracking across all DesktopStrategy instances:
+	// only reset to "default" when no instance is hovering or dragging.
+	static readonly #hoveringInstances: Set<string> = new Set();
+	static readonly #draggingInstances: Set<string> = new Set();
+
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #geometryMathManager: GeometryMathManager;
 	readonly #insertionInteractionHandler: InsertionInteractionHandler;
@@ -346,6 +351,7 @@ export class DesktopStrategy implements IStrategy {
 		this.#restrictionManager.showRestrictionVisualization = false;
 		this.#insertionInteractionHandler.pauseInsertion();
 		this.#interactionManagerHelper.onOut();
+		this.#clearCursorState();
 		this.reset();
 	}
 
@@ -859,12 +865,39 @@ export class DesktopStrategy implements IStrategy {
 	}
 
 	/**
-	 * Update cursor based on current interaction state
+	 * Remove this instance from the global cursor-priority tracking sets.
+	 * Called when the pointer leaves the canvas so this instance no longer
+	 * blocks the cursor from resetting to "default".
+	 */
+	#clearCursorState(): void {
+		const uuid = this.#drawingToolsManager.uuid;
+		DesktopStrategy.#draggingInstances.delete(uuid);
+		DesktopStrategy.#hoveringInstances.delete(uuid);
+	}
+
+	/**
+	 * Update cursor based on current interaction state across all active instances.
+	 * Uses a priority of: grabbing > pointer > default, so that having two
+	 * drawing-tool instances active at once (e.g. rectangle + rotation handle in
+	 * Fireball) does not cause the second instance to override a valid "pointer"
+	 * cursor set by the first.
 	 */
 	private updateCursor(): void {
+		const uuid = this.#drawingToolsManager.uuid;
 		if (this.#interactionManagerHelper.dragging) {
-			document.body.style.cursor = "grabbing";
+			DesktopStrategy.#draggingInstances.add(uuid);
+			DesktopStrategy.#hoveringInstances.delete(uuid);
 		} else if (this.#interactionManagerHelper.hoveredPoint !== undefined) {
+			DesktopStrategy.#hoveringInstances.add(uuid);
+			DesktopStrategy.#draggingInstances.delete(uuid);
+		} else {
+			DesktopStrategy.#draggingInstances.delete(uuid);
+			DesktopStrategy.#hoveringInstances.delete(uuid);
+		}
+
+		if (DesktopStrategy.#draggingInstances.size > 0) {
+			document.body.style.cursor = "grabbing";
+		} else if (DesktopStrategy.#hoveringInstances.size > 0) {
 			document.body.style.cursor = "pointer";
 		} else {
 			document.body.style.cursor = "default";

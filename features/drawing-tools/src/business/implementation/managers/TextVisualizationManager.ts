@@ -13,6 +13,7 @@ import {
 import {numberCleaner} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
+import {DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
 import {Settings} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
 
@@ -140,12 +141,18 @@ export class TextVisualizationManager {
 		this.createPointLabels();
 		this.createDistanceLabels();
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.createPointLabels();
 			this.createDistanceLabels();
 		});
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.createPointLabels();
 			this.createDistanceLabels();
 		});

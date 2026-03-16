@@ -253,10 +253,10 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	private dispatchDrag(ev: IDrawingToolsEvent, commit: boolean): void {
 		if (
 			this.#enableRotation &&
-			ev.drawingToolId === this.#rotationDrawingTools?.uuid
+			ev.drawingToolsId === this.#rotationDrawingTools?.uuid
 		) {
 			this.handleRotationDrag(ev, commit);
-		} else if (ev.drawingToolId === this.#drawingTools.uuid) {
+		} else if (ev.drawingToolsId === this.#drawingTools.uuid) {
 			this.handleRectDrag(ev, commit);
 		}
 	}

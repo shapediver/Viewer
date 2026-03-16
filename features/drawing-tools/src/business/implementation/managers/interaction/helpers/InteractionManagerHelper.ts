@@ -51,7 +51,7 @@ export class InteractionManagerHelper {
 		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-			if (event.drawingToolId !== this.#drawingToolsManager.uuid) return;
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.removeAllSelectedPoints();
 		});
 	}
@@ -398,7 +398,7 @@ export class InteractionManagerHelper {
 
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
-					drawingToolId: this.#drawingToolsManager.uuid,
+					drawingToolsId: this.#drawingToolsManager.uuid,
 					points: this.#geometryState.getPointsData(),
 					index:
 						this.#selectedPointIndices.length === 1
@@ -494,7 +494,7 @@ export class InteractionManagerHelper {
 				EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 				{
 					viewportId: this.#drawingToolsManager.viewport.id,
-					drawingToolId: this.#drawingToolsManager.uuid,
+					drawingToolsId: this.#drawingToolsManager.uuid,
 					points: this.#geometryState.getPointsData(),
 					metaData: this.#geometryState.metadataArray,
 					temporary: false,
@@ -504,7 +504,7 @@ export class InteractionManagerHelper {
 
 			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, {
 				viewportId: this.#drawingToolsManager.viewport.id,
-				drawingToolId: this.#drawingToolsManager.uuid,
+				drawingToolsId: this.#drawingToolsManager.uuid,
 				points: this.#geometryState.getPointsData(),
 				index:
 					selectedPointIndices.length === 1
@@ -533,7 +533,7 @@ export class InteractionManagerHelper {
 					EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 					{
 						viewportId: this.#drawingToolsManager.viewport.id,
-						drawingToolId: this.#drawingToolsManager.uuid,
+						drawingToolsId: this.#drawingToolsManager.uuid,
 						points: this.#geometryState.getPointsData(),
 						metaData: this.#geometryState.metadataArray,
 						temporary: false,

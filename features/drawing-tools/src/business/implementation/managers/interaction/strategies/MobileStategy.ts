@@ -214,7 +214,7 @@ export class MobileStrategy implements IStrategy {
 						EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 						{
 							viewportId: this.#drawingToolsManager.viewport.id,
-							drawingToolId: this.#drawingToolsManager.uuid,
+							drawingToolsId: this.#drawingToolsManager.uuid,
 							points: this.#drawingToolsManager.geometryState.getPointsData(),
 							metaData:
 								this.#drawingToolsManager.geometryState

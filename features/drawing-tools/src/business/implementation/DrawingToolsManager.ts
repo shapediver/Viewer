@@ -113,7 +113,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			(e: IEvent) => {
 				const event =
 					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-				if (event.drawingToolId !== this.#uuid) return;
+				if (event.drawingToolsId !== this.#uuid) return;
 				if (
 					event.temporary === false &&
 					event.points !== undefined &&

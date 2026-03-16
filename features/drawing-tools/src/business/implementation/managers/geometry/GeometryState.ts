@@ -72,7 +72,7 @@ export class GeometryState {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (event.drawingToolId !== this.#parentNode.id) return;
+			if (event.drawingToolsId !== this.#parentNode.id) return;
 			if (event.temporary === false) {
 				if (event.index !== undefined) {
 					// shift the temporary indices
@@ -100,7 +100,7 @@ export class GeometryState {
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (event.drawingToolId !== this.#parentNode.id) return;
+			if (event.drawingToolsId !== this.#parentNode.id) return;
 			if (event.temporary === false) {
 				if (event.index !== undefined) {
 					// shift the temporary indices
@@ -487,7 +487,7 @@ export class GeometryState {
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
 			viewportId: this.#viewport.id,
-			drawingToolId: this.#drawingToolsId,
+			drawingToolsId: this.#drawingToolsId,
 			points: this.getPointsData(),
 			metaData: this.#metadataArray,
 			temporary: false,
@@ -603,7 +603,7 @@ export class GeometryState {
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
 			viewportId: this.#viewport.id,
-			drawingToolId: this.#drawingToolsId,
+			drawingToolsId: this.#drawingToolsId,
 			points: this.getPointsData(),
 			metaData: this.#metadataArray,
 			temporary,

@@ -81,7 +81,9 @@ export class InteractionManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (event.drawingToolId !== this.#drawingToolsManager.parentNode.id)
+			if (
+				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
+			)
 				return;
 			if (event.index !== undefined) {
 				this.addPoint(event.index);
@@ -93,7 +95,9 @@ export class InteractionManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (event.drawingToolId !== this.#drawingToolsManager.parentNode.id)
+			if (
+				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
+			)
 				return;
 
 			if (event.index !== undefined) {
@@ -144,7 +148,11 @@ export class InteractionManager {
 		if (this.#strategy.cameraFreezeFlag)
 			this.#viewport.removeFlag(this.#strategy.cameraFreezeFlag);
 
-		document.body.style.cursor = "default";
+		// Use onOut() instead of hard-setting "default" so the static
+		// cursor-priority sets in DesktopStrategy are cleaned up. This prevents
+		// closing one drawing-tools instance from resetting the cursor while
+		// another instance still has a point hovered or is dragging.
+		this.#strategy.onOut();
 
 		this.#interactionManagerHelper.close();
 		this.#restrictionManager.close();
