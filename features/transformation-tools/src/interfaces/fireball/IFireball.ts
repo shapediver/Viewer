@@ -8,6 +8,10 @@ export interface IFireball extends ITransformationToolsManager {}
 
 export type FireballSettings = {
 	plane: PlaneRestrictionProperties;
+	enableUniformScaling: boolean;
+	enableRotation: boolean;
+	showMidpointsX: boolean;
+	showMidpointsY: boolean;
 } & Settings;
 
 export type FireballSettingsOptional = Partial<FireballSettings>;
