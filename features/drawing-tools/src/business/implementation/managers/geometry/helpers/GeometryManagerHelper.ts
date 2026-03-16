@@ -170,9 +170,9 @@ export class GeometryManagerHelper {
 
 		// update the metadata at that index (even if temporary)
 		this.#geometryState.metadataArray[index] = metaData;
-		const metadataArray = this.#geometryState.metadataArray.slice();
 
 		if (temporary === false) {
+			const metadataArray = this.#geometryState.metadataArray.slice();
 			// adjust position array
 			const positionArray = new Float32Array(
 				this.#geometryState.positionArray,

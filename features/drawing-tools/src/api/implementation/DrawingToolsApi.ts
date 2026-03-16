@@ -109,6 +109,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		return this.#drawingToolsManager.getPointsData();
 	}
 
+	public get uuid(): string {
+		return this.#drawingToolsManager.uuid;
+	}
+
 	public get restrictions(): {[key: string]: IRestrictionApi} {
 		return this.#restrictions;
 	}
@@ -210,6 +214,15 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
 	public close(): void {
 		this.#drawingToolsManager.close();
+	}
+
+	public movePoint(index: number, position: vec3, temporary?: boolean): void {
+		this.#drawingToolsManager.movePoint(
+			index,
+			position,
+			undefined,
+			temporary,
+		);
 	}
 
 	public redo(): void {

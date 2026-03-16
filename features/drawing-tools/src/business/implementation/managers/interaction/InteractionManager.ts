@@ -81,13 +81,26 @@ export class InteractionManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			this.addPoint(event.index!);
+			if (event.drawingToolId !== this.#drawingToolsManager.parentNode.id)
+				return;
+			if (event.index !== undefined) {
+				this.addPoint(event.index);
+			} else if (event.indices !== undefined) {
+				event.indices.forEach((index) => this.addPoint(index));
+			}
 		});
 
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			this.removePoint(event.index!);
+			if (event.drawingToolId !== this.#drawingToolsManager.parentNode.id)
+				return;
+
+			if (event.index !== undefined) {
+				this.addPoint(event.index);
+			} else if (event.indices !== undefined) {
+				event.indices.forEach((index) => this.addPoint(index));
+			}
 		});
 
 		this.#strategy = SystemInfo.instance.isMobile

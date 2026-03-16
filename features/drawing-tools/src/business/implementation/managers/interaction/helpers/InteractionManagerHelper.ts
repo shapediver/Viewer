@@ -15,6 +15,7 @@ import {
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
+import {DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
 
 export class InteractionManagerHelper {
 	readonly #drawingToolsManager: DrawingToolsManager;
@@ -47,7 +48,10 @@ export class InteractionManagerHelper {
 			this.#drawingToolsManager.geometryMathManager;
 		this.#settings = this.#drawingToolsManager.settings;
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+			if (event.drawingToolId !== this.#drawingToolsManager.uuid) return;
 			this.removeAllSelectedPoints();
 		});
 	}
@@ -394,7 +398,17 @@ export class InteractionManagerHelper {
 
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
-					drawingToolsId: this.#drawingToolsManager.uuid,
+					drawingToolId: this.#drawingToolsManager.uuid,
+					points: this.#geometryState.getPointsData(),
+					index:
+						this.#selectedPointIndices.length === 1
+							? this.#selectedPointIndices[0]
+							: undefined,
+					indices:
+						this.#selectedPointIndices.length > 1
+							? this.#selectedPointIndices
+							: undefined,
+					metaData: this.#geometryState.metadataArray,
 				});
 			}
 
@@ -490,7 +504,17 @@ export class InteractionManagerHelper {
 
 			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, {
 				viewportId: this.#drawingToolsManager.viewport.id,
-				drawingToolsId: this.#drawingToolsManager.uuid,
+				drawingToolId: this.#drawingToolsManager.uuid,
+				points: this.#geometryState.getPointsData(),
+				index:
+					selectedPointIndices.length === 1
+						? selectedPointIndices[0]
+						: undefined,
+				indices:
+					selectedPointIndices.length > 1
+						? selectedPointIndices
+						: undefined,
+				metaData: this.#geometryState.metadataArray,
 			});
 		} else if (
 			this.#hoveredPoint !== undefined &&

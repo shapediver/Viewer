@@ -239,9 +239,11 @@ export interface IDrawingToolsManager {
 
 	readonly closed: boolean;
 	readonly restrictions: {[key: string]: IRestriction};
+	readonly uuid: string;
 
 	showDistanceLabels: boolean;
 	showPointLabels: boolean;
+	showPointerPosition: boolean;
 
 	// #endregion Properties (4)
 

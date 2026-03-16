@@ -8,6 +8,7 @@ export interface IDrawingToolsEvent extends IViewportEvent {
 	drawingToolId: string;
 	fromHistory?: boolean;
 	index?: number;
+	indices?: number[];
 	message?: string;
 	points?: PointsData;
 	metaData?: RayTraceResult[];

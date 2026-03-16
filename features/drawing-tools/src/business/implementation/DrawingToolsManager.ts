@@ -113,6 +113,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			(e: IEvent) => {
 				const event =
 					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+				if (event.drawingToolId !== this.#uuid) return;
 				if (
 					event.temporary === false &&
 					event.points !== undefined &&
@@ -214,6 +215,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public set showPointLabels(value: boolean) {
 		this.#textVisualizationManager.showPointLabels = value;
+	}
+
+	public get showPointerPosition(): boolean {
+		return this.#textVisualizationManager.showPointerPosition;
+	}
+
+	public set showPointerPosition(value: boolean) {
+		this.#textVisualizationManager.showPointerPosition = value;
 	}
 
 	public get textVisualizationManager(): TextVisualizationManager {
@@ -608,6 +617,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			visualization: {
 				distanceMultiplicationFactor: 2,
 				pointLabels: false,
+				pointerPosition: true,
 				distanceLabels: true,
 				points: {
 					size_0: 15,
@@ -686,6 +696,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				)
 					? false
 					: settingsOptional.visualization.pointLabels,
+				pointerPosition: isUndefinedOrNull(
+					settingsOptional.visualization.pointerPosition,
+				)
+					? true
+					: settingsOptional.visualization.pointerPosition,
 				distanceLabels: isUndefinedOrNull(
 					settingsOptional.visualization.distanceLabels,
 				)

@@ -38,6 +38,13 @@ export interface IVisualizationSettings {
 	 */
 	pointLabels: boolean;
 	/**
+	 * If the pointer position is shown.
+	 * The pointer position displays the position of the pointer.
+	 *
+	 * @default true
+	 */
+	pointerPosition: boolean;
+	/**
 	 * The material properties of the points.
 	 */
 	points: IMaterialMultiPointDataProperties;
@@ -132,6 +139,8 @@ export interface IDrawingParameterSettings {
 			showDistanceLabels?: boolean;
 			/** If true, the point labels are shown. (default: false) */
 			showPointLabels?: boolean;
+			/** If true, the pointer position is shown. (default: true) */
+			showPointerPosition?: boolean;
 			/** If true, the snapping to vertices is enabled, if there is a geometry restriction. (default: true) */
 			snapToVertices?: boolean;
 			/** If true, the snapping to edges is enabled, if there is a geometry restriction. (default: true) */
@@ -185,6 +194,7 @@ export const IDrawingParameterJsonSchema = z.object({
 				.object({
 					showDistanceLabels: optionalBoolean,
 					showPointLabels: optionalBoolean,
+					showPointerPosition: optionalBoolean,
 					snapToVertices: optionalBoolean,
 					snapToEdges: optionalBoolean,
 					snapToFaces: optionalBoolean,
@@ -198,6 +208,8 @@ export const IDrawingParameterJsonSchema = z.object({
 	display: z
 		.object({
 			distanceLabels: optionalBoolean,
+			pointLabels: optionalBoolean,
+			pointerPosition: optionalBoolean,
 			distanceMultiplicationFactor: z.number().nullable().optional(),
 			lines: z.any().nullable().optional(),
 			points: z.any().nullable().optional(),

@@ -72,28 +72,60 @@ export class GeometryState {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (event.temporary === false && event.index !== undefined) {
-				// shift the temporary indices
-				this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-					i > event.index! ? i + 1 : i,
-				);
-			} else if (event.temporary === true && event.index !== undefined) {
-				this.#temporaryIndices.push(event.index!);
+			if (event.drawingToolId !== this.#parentNode.id) return;
+			if (event.temporary === false) {
+				if (event.index !== undefined) {
+					// shift the temporary indices
+					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
+						i > event.index! ? i + 1 : i,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
+						let shift = 0;
+						for (const index of event.indices!) {
+							if (i > index) shift++;
+						}
+						return i + shift;
+					});
+				}
+			} else if (event.temporary === true) {
+				if (event.index !== undefined) {
+					this.#temporaryIndices.push(event.index!);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices.push(...event.indices!);
+				}
 			}
 		});
 
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (event.temporary === false && event.index !== undefined) {
-				// shift the temporary indices
-				this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-					i > event.index! ? i - 1 : i,
-				);
-			} else if (event.temporary === true && event.index !== undefined) {
-				this.#temporaryIndices = this.#temporaryIndices.filter(
-					(i) => i !== event.index,
-				);
+			if (event.drawingToolId !== this.#parentNode.id) return;
+			if (event.temporary === false) {
+				if (event.index !== undefined) {
+					// shift the temporary indices
+					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
+						i > event.index! ? i - 1 : i,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
+						let shift = 0;
+						for (const index of event.indices!) {
+							if (i > index) shift++;
+						}
+						return i - shift;
+					});
+				}
+			} else if (event.temporary === true) {
+				if (event.index !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.filter(
+						(i) => i !== event.index!,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.filter(
+						(i) => !event.indices!.includes(i),
+					);
+				}
 			}
 		});
 	}
