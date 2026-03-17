@@ -80,7 +80,53 @@ export class FireballScalingHandler {
 			},
 		);
 
-		// --- 2. Interactive handles DT: enabled active points only, mode "points" ---
+		// --- 2. Locked corners DT: disabled corners, grey style, non-interactive ---
+		// Created BEFORE the interactive DT so its onMove fires first and the
+		// #blockingHoverInstances set is populated before the interactive DT
+		// processes hover, preventing nearby interactive handles from lighting up
+		// while the cursor is over a locked corner.
+		const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
+		if (lockedCIs.length > 0) {
+			const lockedWorldPoints = lockedCIs.map((ci) => {
+				const wp = plane.convertFromLSToWS(localPoints[ci]);
+				return [wp[0], wp[1], wp[2]];
+			});
+			this.#lockedDT = createDrawingTools(
+				viewport,
+				{onUpdate: () => {}, onCancel: () => {}},
+				{
+					general: {
+						enableTranslation: false,
+						enableInsertion: false,
+						enableDeletion: false,
+						enableSelection: false,
+					},
+					geometry: {
+						mode: "points",
+						points: lockedWorldPoints,
+						minPoints: lockedWorldPoints.length,
+						maxPoints: lockedWorldPoints.length,
+					},
+					restrictions: {plane: planeRestriction},
+					visualization: {
+						distanceLabels: false,
+						pointerPosition: false,
+						points: {
+							size_0: 20,
+							size_1: 20,
+							size_2: 20,
+							size_3: 20,
+							color_0: "#888888",
+							color_1: "#888888",
+							color_2: "#888888",
+							color_3: "#888888",
+						},
+					},
+				},
+			);
+		}
+
+		// --- 3. Interactive handles DT: enabled active points only, mode "points" ---
 		const dtWorldPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
 			const wp = plane.convertFromLSToWS(localPoints[ci]);
 			return [wp[0], wp[1], wp[2]];
@@ -125,48 +171,6 @@ export class FireballScalingHandler {
 				},
 			},
 		);
-
-		// --- 3. Locked corners DT: disabled corners, grey style, events ignored ---
-		const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
-		if (lockedCIs.length > 0) {
-			const lockedWorldPoints = lockedCIs.map((ci) => {
-				const wp = plane.convertFromLSToWS(localPoints[ci]);
-				return [wp[0], wp[1], wp[2]];
-			});
-			this.#lockedDT = createDrawingTools(
-				viewport,
-				{onUpdate: () => {}, onCancel: () => {}},
-				{
-					general: {
-						enableTranslation: false,
-						enableInsertion: false,
-						enableDeletion: false,
-						enableSelection: false,
-					},
-					geometry: {
-						mode: "points",
-						points: lockedWorldPoints,
-						minPoints: lockedWorldPoints.length,
-						maxPoints: lockedWorldPoints.length,
-					},
-					restrictions: {plane: planeRestriction},
-					visualization: {
-						distanceLabels: false,
-						pointerPosition: false,
-						points: {
-							size_0: 20,
-							size_1: 20,
-							size_2: 20,
-							size_3: 20,
-							color_0: "#888888",
-							color_1: "#888888",
-							color_2: "#888888",
-							color_3: "#888888",
-						},
-					},
-				},
-			);
-		}
 	}
 
 	public get drawingTools(): IDrawingToolsApi {

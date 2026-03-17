@@ -80,6 +80,10 @@ export class DesktopStrategy implements IStrategy {
 	// only reset to "default" when no instance is hovering or dragging.
 	static readonly #hoveringInstances: Set<string> = new Set();
 	static readonly #draggingInstances: Set<string> = new Set();
+	// Non-interactive DTs (enableTranslation=false && enableSelection=false) that
+	// currently have a point near the cursor. While this set is non-empty, interactive
+	// DTs suppress hover so the non-interactive handle "wins" the hit-test.
+	static readonly #blockingHoverInstances: Set<string> = new Set();
 
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #geometryMathManager: GeometryMathManager;
@@ -309,12 +313,36 @@ export class DesktopStrategy implements IStrategy {
 					currentRestrictedPoint;
 		}
 
+		const {enableTranslation, enableSelection} =
+			this.#drawingToolsManager.settings.general;
+		const uuid = this.#drawingToolsManager.uuid;
+
 		// Check point distances and hover state
 		const distances = this.#geometryMathManager.checkPointDistances(
 			ray,
 			this.#drawingToolsManager.positionArray,
 		);
-		this.#interactionManagerHelper.checkHover(distances, ray);
+
+		if (!enableTranslation && !enableSelection) {
+			// Non-interactive DT: update blocking-hover priority set so that
+			// interactive DTs registered later suppress their hover while this
+			// DT's point is nearest to the cursor.
+			if (distances) {
+				DesktopStrategy.#blockingHoverInstances.add(uuid);
+			} else {
+				DesktopStrategy.#blockingHoverInstances.delete(uuid);
+			}
+			this.updateCursor();
+			return;
+		}
+
+		// If a non-interactive DT has a point closer to the cursor, suppress hover
+		// so the locked handle visually "wins" the hit-test.
+		const blocked = DesktopStrategy.#blockingHoverInstances.size > 0;
+		this.#interactionManagerHelper.checkHover(
+			blocked ? undefined : distances,
+			ray,
+		);
 
 		if (pointerMoved) {
 			// Handle insertion movement
@@ -749,6 +777,9 @@ export class DesktopStrategy implements IStrategy {
 			this.#viewport.removeFlag(this.#cameraFreezeFlag);
 			this.#cameraFreezeFlag = "";
 		}
+		DesktopStrategy.#blockingHoverInstances.delete(
+			this.#drawingToolsManager.uuid,
+		);
 		this.#interactionManagerHelper.reset();
 	}
 
