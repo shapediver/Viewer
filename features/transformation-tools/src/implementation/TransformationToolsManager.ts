@@ -47,6 +47,7 @@ export abstract class TransformationToolsManager
 	#previousTransformationToolsMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
 	#scale: number = 0.15;
+	#settings?: SettingsOptional;
 	#show: boolean = true;
 	#space: "local" | "world" = "local";
 
@@ -62,6 +63,7 @@ export abstract class TransformationToolsManager
 			this.#viewport.addCanvasEventListener(this);
 		this.#nodes = nodes;
 		this.#singleNode = nodes.length === 1;
+		this.#settings = settings;
 
 		if (this.#singleNode && settings?.restrictions !== undefined) {
 			const restrictionsArray: RestrictionProperties[] = [];
@@ -145,6 +147,10 @@ export abstract class TransformationToolsManager
 
 	protected get scale(): number {
 		return this.#scale;
+	}
+
+	public get settings(): SettingsOptional | undefined {
+		return this.#settings;
 	}
 
 	protected get singleNode(): boolean {
@@ -500,25 +506,25 @@ export abstract class TransformationToolsManager
 		return transformationPlaceholderMatrix;
 	}
 
-	protected abstract onKeyDownLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
+	protected onKeyDownLogic(
+		_event: KeyboardEvent,
+		_pointerInCanvas: boolean,
+	): void {}
 
-	protected abstract onKeyUpLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
+	protected onKeyUpLogic(
+		_event: KeyboardEvent,
+		_pointerInCanvas: boolean,
+	): void {}
 
-	protected abstract onPointerDownLogic(event: PointerEvent): void;
+	protected onPointerDownLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerEndLogic(event: PointerEvent): void;
+	protected onPointerEndLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerMoveLogic(event: PointerEvent): void;
+	protected onPointerMoveLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerOutLogic(event: PointerEvent): void;
+	protected onPointerOutLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerUpLogic(event: PointerEvent): void;
+	protected onPointerUpLogic(_event: PointerEvent): void {}
 
 	protected toggleCameraFreeze(freeze: boolean): void {
 		if (freeze) {
