@@ -188,19 +188,7 @@ export class FireballScalingHandler {
 		// Mids on U edges (M1,M5) control V scaling, mids on V edges (M3,M7) control U scaling.
 		const isUEdge = n % 2 === 0;
 
-		// Get the moved point's new UV coordinates in the rectangle's frame.
 		const movedUV = toRectFrame(movedPointLS, basis);
-
-		if (this.#enableUniformScaling) {
-			const controlsU = !isUEdge;
-			const controlsV = isUEdge;
-			const prevUV = toRectFrame(localPoints[index], basis);
-			const signU = controlsU ? (n === 1 ? -1 : 1) : 0;
-			const signV = controlsV ? (n === 0 ? -1 : 1) : 0;
-			const adjusted = this.scaleUniformly(prevUV, movedUV, signU, signV);
-			movedUV.u = adjusted.u;
-			movedUV.v = adjusted.v;
-		}
 
 		// Get the current UV coordinates of the 4 corners.
 		// C0=BL, C2=BR, C4=TR, C6=TL
@@ -209,6 +197,7 @@ export class FireballScalingHandler {
 		let c4uv = toRectFrame(localPoints[4], basis);
 		let c6uv = toRectFrame(localPoints[6], basis);
 
+		// Apply primary edge movement.
 		if (isUEdge) {
 			if (index === 1) {
 				c0uv = {u: c0uv.u, v: movedUV.v};
@@ -224,6 +213,31 @@ export class FireballScalingHandler {
 			} else {
 				c0uv = {u: movedUV.u, v: c0uv.v};
 				c6uv = {u: movedUV.u, v: c6uv.v};
+			}
+		}
+
+		// For uniform scaling, expand the perpendicular edges symmetrically by
+		// 50% of the primary delta so the rectangle grows from its center.
+		if (this.#enableUniformScaling) {
+			const prevUV = toRectFrame(localPoints[index], basis);
+			if (isUEdge) {
+				const dV = movedUV.v - prevUV.v;
+				// M1 pulled down (dV<0) increases height; M5 pulled up (dV>0) increases height.
+				const heightIncrease = index === 1 ? -dV : dV;
+				const perp = heightIncrease / 2;
+				c0uv = {u: c0uv.u - perp, v: c0uv.v};
+				c2uv = {u: c2uv.u + perp, v: c2uv.v};
+				c4uv = {u: c4uv.u + perp, v: c4uv.v};
+				c6uv = {u: c6uv.u - perp, v: c6uv.v};
+			} else {
+				const dU = movedUV.u - prevUV.u;
+				// M3 pulled right (dU>0) increases width; M7 pulled left (dU<0) increases width.
+				const widthIncrease = index === 3 ? dU : -dU;
+				const perp = widthIncrease / 2;
+				c0uv = {u: c0uv.u, v: c0uv.v - perp};
+				c2uv = {u: c2uv.u, v: c2uv.v - perp};
+				c4uv = {u: c4uv.u, v: c4uv.v + perp};
+				c6uv = {u: c6uv.u, v: c6uv.v + perp};
 			}
 		}
 

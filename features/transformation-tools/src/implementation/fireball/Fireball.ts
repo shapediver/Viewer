@@ -37,8 +37,14 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	#localPoints: vec3[] = [];
 	#rotationHandler: FireballRotationHandler | undefined;
 	#scalingHandler: FireballScalingHandler | undefined;
-	#showMidpointsX: boolean;
-	#showMidpointsY: boolean;
+	#enableCornerXNegativeYNegative: boolean;
+	#enableCornerXPositiveYNegative: boolean;
+	#enableCornerXPositiveYPositive: boolean;
+	#enableCornerXNegativeYPositive: boolean;
+	#enableMidpointXPositive: boolean;
+	#enableMidpointXNegative: boolean;
+	#enableMidpointYPositive: boolean;
+	#enableMidpointYNegative: boolean;
 
 	constructor(
 		viewport: IViewportApi,
@@ -78,8 +84,22 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		this.#enableRotation = settings!.enableRotation ?? true;
 		this.#enableScaling = settings!.enableScaling ?? true;
 		this.#enableTranslation = settings!.enableTranslation ?? true;
-		this.#showMidpointsX = settings!.showMidpointsX ?? true;
-		this.#showMidpointsY = settings!.showMidpointsY ?? true;
+		this.#enableCornerXNegativeYNegative =
+			settings!.enableCornerXNegativeYNegative ?? true;
+		this.#enableCornerXPositiveYNegative =
+			settings!.enableCornerXPositiveYNegative ?? true;
+		this.#enableCornerXPositiveYPositive =
+			settings!.enableCornerXPositiveYPositive ?? true;
+		this.#enableCornerXNegativeYPositive =
+			settings!.enableCornerXNegativeYPositive ?? true;
+		this.#enableMidpointXPositive =
+			settings!.enableMidpointXPositive ?? true;
+		this.#enableMidpointXNegative =
+			settings!.enableMidpointXNegative ?? true;
+		this.#enableMidpointYPositive =
+			settings!.enableMidpointYPositive ?? true;
+		this.#enableMidpointYNegative =
+			settings!.enableMidpointYNegative ?? true;
 		this.#enableUniformScaling = settings!.enableUniformScaling ?? true;
 
 		this.init();
@@ -331,8 +351,18 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				this.#plane,
 				this.#localPoints,
 				{
-					showMidpointsX: this.#showMidpointsX ?? true,
-					showMidpointsY: this.#showMidpointsY ?? true,
+					enableCornerXNegativeYNegative:
+						this.#enableCornerXNegativeYNegative,
+					enableCornerXPositiveYNegative:
+						this.#enableCornerXPositiveYNegative,
+					enableCornerXPositiveYPositive:
+						this.#enableCornerXPositiveYPositive,
+					enableCornerXNegativeYPositive:
+						this.#enableCornerXNegativeYPositive,
+					enableMidpointXPositive: this.#enableMidpointXPositive,
+					enableMidpointXNegative: this.#enableMidpointXNegative,
+					enableMidpointYPositive: this.#enableMidpointYPositive,
+					enableMidpointYNegative: this.#enableMidpointYNegative,
 				},
 				this.#enableUniformScaling ?? true,
 			);

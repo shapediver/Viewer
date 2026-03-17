@@ -10,8 +10,14 @@ export type FireballSettings = {
 	plane: PlaneRestrictionProperties;
 	enableUniformScaling: boolean;
 	enableRotation: boolean;
-	showMidpointsX: boolean;
-	showMidpointsY: boolean;
+	enableCornerXNegativeYNegative: boolean; // C0: BL
+	enableCornerXPositiveYNegative: boolean; // C2: BR
+	enableCornerXPositiveYPositive: boolean; // C4: TR
+	enableCornerXNegativeYPositive: boolean; // C6: TL
+	enableMidpointXPositive: boolean;
+	enableMidpointXNegative: boolean;
+	enableMidpointYPositive: boolean;
+	enableMidpointYNegative: boolean;
 } & Settings;
 
 export type FireballSettingsOptional = Partial<FireballSettings>;

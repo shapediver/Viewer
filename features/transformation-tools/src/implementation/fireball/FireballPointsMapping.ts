@@ -8,26 +8,38 @@ import {vec3} from "gl-matrix";
  * drawing-tools active point indices, based on which points are visible.
  *
  * Conceptual layout: [C0, M1, C2, M3, C4, M5, C6, M7]
- *   Corners (even): C0=BL, C2=BR, C4=TR, C6=TL
- *   Mids X (horiz): M1=bottom, M5=top  (showMidpointsX)
- *   Mids Y (vert):  M3=right,  M7=left (showMidpointsY)
+ *   C0=BL (X-,Y-), C2=BR (X+,Y-), C4=TR (X+,Y+), C6=TL (X-,Y+)
+ *   M1=bottom (Y-), M3=right (X+), M5=top (Y+), M7=left (X-)
  */
 export class FireballPointsMapping {
 	public readonly conceptualToDT: number[];
 	public readonly dtToConceptual: number[];
 
 	constructor(config: PointVisibilityConfig = {}) {
-		const showMidpointsX = config.showMidpointsX ?? true;
-		const showMidpointsY = config.showMidpointsY ?? true;
+		const showC0 = config.enableCornerXNegativeYNegative ?? true; // BL
+		const showC2 = config.enableCornerXPositiveYNegative ?? true; // BR
+		const showC4 = config.enableCornerXPositiveYPositive ?? true; // TR
+		const showC6 = config.enableCornerXNegativeYPositive ?? true; // TL
+		const showM1 = config.enableMidpointYNegative ?? true; // bottom
+		const showM3 = config.enableMidpointXPositive ?? true; // right
+		const showM5 = config.enableMidpointYPositive ?? true; // top
+		const showM7 = config.enableMidpointXNegative ?? true; // left
 
 		const dtToConceptual: number[] = [];
 		const conceptualToDT: number[] = new Array(8).fill(-1);
 
+		const visible: Record<number, boolean> = {
+			0: showC0,
+			1: showM1,
+			2: showC2,
+			3: showM3,
+			4: showC4,
+			5: showM5,
+			6: showC6,
+			7: showM7,
+		};
 		for (let ci = 0; ci < 8; ci++) {
-			const isMidX = ci === 1 || ci === 5;
-			const isMidY = ci === 3 || ci === 7;
-			if (isMidX && !showMidpointsX) continue;
-			if (isMidY && !showMidpointsY) continue;
+			if (!visible[ci]) continue;
 			conceptualToDT[ci] = dtToConceptual.length;
 			dtToConceptual.push(ci);
 		}
@@ -53,15 +65,15 @@ export class FireballPointsMapping {
 }
 
 /**
- * Configuration for which midpoints of the rectangle should be visible/active.
- * Corners (C0,C2,C4,C6) are always visible.
- * Mids on X edges: M1 (bottom), M5 (top)
- * Mids on Y edges: M3 (right), M7 (left)
+ * Configuration for which points of the rectangle should be visible/active.
  */
 export type PointVisibilityConfig = {
-	// Horizontal mid-points: M1 (bottom edge) and M5 (top edge)
-	showMidpointsX?: boolean;
-
-	// Vertical mid-points: M3 (right edge) and M7 (left edge)
-	showMidpointsY?: boolean;
+	enableCornerXNegativeYNegative?: boolean; // C0: BL
+	enableCornerXPositiveYNegative?: boolean; // C2: BR
+	enableCornerXPositiveYPositive?: boolean; // C4: TR
+	enableCornerXNegativeYPositive?: boolean; // C6: TL
+	enableMidpointXPositive?: boolean; // M3: right edge
+	enableMidpointXNegative?: boolean; // M7: left edge
+	enableMidpointYPositive?: boolean; // M5: top edge
+	enableMidpointYNegative?: boolean; // M1: bottom edge
 };
