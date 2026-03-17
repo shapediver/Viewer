@@ -20,6 +20,7 @@ import {
 import {TransformationToolsManager} from "../TransformationToolsManager";
 import {FireballRotationHandler} from "./FireballRotationHandler";
 import {FireballScalingHandler} from "./FireballScalingHandler";
+import {FireballTranslationHandler} from "./FireballTranslationHandler";
 
 export class Fireball extends TransformationToolsManager implements IFireball {
 	readonly #currentTransformationMatrix: mat4 = mat4.create();
@@ -37,6 +38,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	#localPoints: vec3[] = [];
 	#rotationHandler: FireballRotationHandler | undefined;
 	#scalingHandler: FireballScalingHandler | undefined;
+	#translationHandler: FireballTranslationHandler | undefined;
 	#enableCornerXNegativeYNegative: boolean;
 	#enableCornerXPositiveYNegative: boolean;
 	#enableCornerXPositiveYPositive: boolean;
@@ -62,7 +64,13 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				vector_v: vec3.fromValues(0, 1, 0),
 			};
 		} else {
-			this.#planeRestriction = planeDefinition;
+			// Clone vec3 values to prevent in-place mutation by internal drawing-tools processing
+			this.#planeRestriction = {
+				...planeDefinition,
+				origin: vec3.clone(planeDefinition.origin!),
+				vector_u: vec3.clone(planeDefinition.vector_u!),
+				vector_v: vec3.clone(planeDefinition.vector_v!),
+			};
 		}
 
 		const plane = new Plane(
@@ -132,6 +140,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 
 		this.#rotationHandler?.drawingTools.close();
 		this.#scalingHandler?.close();
+		this.#translationHandler?.close();
 	}
 
 	private calculateTransformationMatrix(
@@ -267,7 +276,10 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		if (this.#rotationHandler)
 			this.#rotationHandler.recompute(adjusted, !commit);
 
-		if (commit) this.#localPoints = adjusted;
+		if (commit) {
+			this.#localPoints = adjusted;
+			this.#translationHandler?.updatePlane(adjusted);
+		}
 
 		this.calculateTransformationMatrix(adjusted, commit);
 	}
@@ -287,6 +299,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		// Rotation always updates #localPoints incrementally so subsequent
 		// events see the correct current angle
 		this.#localPoints = rotated;
+		if (commit) this.#translationHandler?.updatePlane(rotated);
 
 		this.calculateTransformationMatrix(rotated, commit);
 	}
@@ -375,6 +388,27 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				this.#plane,
 				this.#localPoints,
 				0.25,
+			);
+		}
+
+		if (this.#enableTranslation) {
+			this.#translationHandler = new FireballTranslationHandler(
+				this.viewport,
+				this.#planeRestriction,
+				this.#plane,
+				() => this.#localPoints,
+				(newPoints) => {
+					this.#scalingHandler?.flushRectPoints(newPoints, true);
+					this.#rotationHandler?.recompute(newPoints, true);
+					this.calculateTransformationMatrix(newPoints, false);
+				},
+				(newPoints) => {
+					this.#scalingHandler?.flushRectPoints(newPoints, false);
+					this.#rotationHandler?.recompute(newPoints, false);
+					this.#localPoints = newPoints;
+					this.#translationHandler?.updatePlane(newPoints);
+					this.calculateTransformationMatrix(newPoints, true);
+				},
 			);
 		}
 	}
