@@ -228,12 +228,14 @@ export class DesktopStrategy implements IStrategy {
 
 		// Handle insert key
 		if (keys.insert) {
-			this.startInsertion();
+			if (this.#drawingToolsManager.settings.general.enableInsertion)
+				this.startInsertion();
 		}
 
 		// Handle delete key
 		if (keys.delete) {
-			this.#interactionManager.deleteSelection();
+			if (this.#drawingToolsManager.settings.general.enableDeletion)
+				this.#interactionManager.deleteSelection();
 		}
 	}
 
@@ -301,9 +303,10 @@ export class DesktopStrategy implements IStrategy {
 			this.#lastEvent = event;
 
 			// Handle point dragging
-			currentRestrictedPoint =
-				this.#interactionManagerHelper.moveSelectedPoints(ray) ||
-				currentRestrictedPoint;
+			if (this.#drawingToolsManager.settings.general.enableTranslation)
+				currentRestrictedPoint =
+					this.#interactionManagerHelper.moveSelectedPoints(ray) ||
+					currentRestrictedPoint;
 		}
 
 		// Check point distances and hover state
@@ -465,6 +468,7 @@ export class DesktopStrategy implements IStrategy {
 	 */
 	private handleAutoStart(event: PointerEvent): vec3 | undefined {
 		if (
+			this.#drawingToolsManager.settings.general.enableInsertion &&
 			this.#drawingToolsManager.settings.general.autoStart &&
 			this.#insertionInteractionHandler.insertionActive === false &&
 			this.#drawingToolsManager.getPointsData().length === 0
@@ -545,6 +549,8 @@ export class DesktopStrategy implements IStrategy {
 	 */
 	private handleBoxSelectionStart(event: PointerEvent): boolean {
 		if (!event.altKey) return false;
+		if (!this.#drawingToolsManager.settings.general.enableSelection)
+			return false;
 
 		this.#isBoxSelecting = true;
 		if (this.#viewport.camera) {
@@ -584,6 +590,10 @@ export class DesktopStrategy implements IStrategy {
 		ray: IRay,
 	): boolean {
 		if (!this.#insertionInteractionHandler.insertionActive) return false;
+		if (!this.#drawingToolsManager.settings.general.enableInsertion) {
+			this.stopInsertion();
+			return false;
+		}
 
 		const result = this.#insertionInteractionHandler.finalizeInsertion();
 		const distances = this.#geometryMathManager.checkPointDistances(
@@ -626,7 +636,10 @@ export class DesktopStrategy implements IStrategy {
 	 * Handle resuming paused insertion
 	 */
 	private handleInsertionResume(event: PointerEvent): vec3 | undefined {
-		if (this.#insertionInteractionHandler.insertionPaused) {
+		if (
+			this.#drawingToolsManager.settings.general.enableInsertion &&
+			this.#insertionInteractionHandler.insertionPaused
+		) {
 			this.#lastEvent = event;
 			return this.startInsertion();
 		}
@@ -672,8 +685,11 @@ export class DesktopStrategy implements IStrategy {
 	): void {
 		if (!distances) return;
 
-		this.#interactionManagerHelper.selectPoint(distances);
+		if (this.#drawingToolsManager.settings.general.enableSelection)
+			this.#interactionManagerHelper.selectPoint(distances);
 
+		if (!this.#drawingToolsManager.settings.general.enableTranslation)
+			return;
 		const draggingStarted = this.#interactionManagerHelper.startDragging();
 		if (draggingStarted && !this.#cameraFreezeFlag) {
 			this.#cameraFreezeFlag = this.#viewport.addFlag(
@@ -884,10 +900,15 @@ export class DesktopStrategy implements IStrategy {
 	 */
 	private updateCursor(): void {
 		const uuid = this.#drawingToolsManager.uuid;
-		if (this.#interactionManagerHelper.dragging) {
+		const {enableTranslation, enableSelection} =
+			this.#drawingToolsManager.settings.general;
+		if (this.#interactionManagerHelper.dragging && enableTranslation) {
 			DesktopStrategy.#draggingInstances.add(uuid);
 			DesktopStrategy.#hoveringInstances.delete(uuid);
-		} else if (this.#interactionManagerHelper.hoveredPoint !== undefined) {
+		} else if (
+			this.#interactionManagerHelper.hoveredPoint !== undefined &&
+			(enableTranslation || enableSelection)
+		) {
 			DesktopStrategy.#hoveringInstances.add(uuid);
 			DesktopStrategy.#draggingInstances.delete(uuid);
 		} else {

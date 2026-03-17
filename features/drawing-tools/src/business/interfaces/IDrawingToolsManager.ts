@@ -220,6 +220,42 @@ export type Settings = {
 		 * @default ''
 		 */
 		displayUnit: string;
+
+		/**
+		 * If points can be translated by dragging them.
+		 * If this setting is set to false, the user cannot move existing points by dragging them.
+		 *
+		 * The pointer is also not changed to a move pointer when hovering over points, since they cannot be moved.
+		 *
+		 * In this mode, the drawing tools are used for display purposes.
+		 *
+		 * @default true
+		 */
+		enableTranslation: boolean;
+
+		/**
+		 * If points can be added in general.
+		 * If this setting is set to false, the user cannot add new points by clicking or using the insert key.
+		 *
+		 * @default true
+		 */
+		enableInsertion: boolean;
+
+		/**
+		 * If points can be deleted in general.
+		 * If this setting is set to false, the user cannot delete points by using the delete key.
+		 *
+		 * @default true
+		 */
+		enableDeletion: boolean;
+
+		/**
+		 * If points can be selected in general.
+		 * If this setting is set to false, the user cannot select points by clicking or using the select key.
+		 *
+		 * @default true
+		 */
+		enableSelection: boolean;
 	};
 };
 export type SettingsOptional = {

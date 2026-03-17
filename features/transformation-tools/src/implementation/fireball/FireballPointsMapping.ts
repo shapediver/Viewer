@@ -14,6 +14,7 @@ import {vec3} from "gl-matrix";
 export class FireballPointsMapping {
 	public readonly conceptualToDT: number[];
 	public readonly dtToConceptual: number[];
+	public readonly lockedCornerConceptualIndices: number[];
 
 	constructor(config: PointVisibilityConfig = {}) {
 		const showC0 = config.enableCornerXNegativeYNegative ?? true; // BL
@@ -25,10 +26,20 @@ export class FireballPointsMapping {
 		const showM5 = config.enableMidpointYPositive ?? true; // top
 		const showM7 = config.enableMidpointXNegative ?? true; // left
 
+		// Disabled corners are still shown visually (locked handles) but not interactive.
+		const lockedCorners: number[] = [];
+		if (!showC0) lockedCorners.push(0);
+		if (!showC2) lockedCorners.push(2);
+		if (!showC4) lockedCorners.push(4);
+		if (!showC6) lockedCorners.push(6);
+		this.lockedCornerConceptualIndices = lockedCorners;
+
 		const dtToConceptual: number[] = [];
 		const conceptualToDT: number[] = new Array(8).fill(-1);
 
-		const visible: Record<number, boolean> = {
+		// Corners that are "disabled" are excluded from the interactive handles DT
+		// but are still included in the outline DT and the locked handles DT.
+		const interactive: Record<number, boolean> = {
 			0: showC0,
 			1: showM1,
 			2: showC2,
@@ -39,7 +50,7 @@ export class FireballPointsMapping {
 			7: showM7,
 		};
 		for (let ci = 0; ci < 8; ci++) {
-			if (!visible[ci]) continue;
+			if (!interactive[ci]) continue;
 			conceptualToDT[ci] = dtToConceptual.length;
 			dtToConceptual.push(ci);
 		}

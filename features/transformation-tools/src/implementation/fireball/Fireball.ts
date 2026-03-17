@@ -131,7 +131,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		this.#eventEngine.removeListener(this.#dragEndListener);
 
 		this.#rotationHandler?.drawingTools.close();
-		this.#scalingHandler?.drawingTools.close();
+		this.#scalingHandler?.close();
 	}
 
 	private calculateTransformationMatrix(

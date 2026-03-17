@@ -34,6 +34,7 @@ export class DeletionInteractionHandler {
 	// #region Public Methods (2)
 
 	public deletePoint(ray: IRay): void {
+		if (!this.#drawingToolsManager.settings.general.enableDeletion) return;
 		// check if there is a point close to the ray
 		const distances = this.#geometryMathManager.checkPointDistances(
 			ray,
@@ -51,6 +52,7 @@ export class DeletionInteractionHandler {
 	}
 
 	public deleteSelection(indices: number[]): void {
+		if (!this.#drawingToolsManager.settings.general.enableDeletion) return;
 		if (indices.length === 0) return;
 		this.#drawingToolsManager.removePoints(indices);
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {

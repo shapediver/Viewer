@@ -650,6 +650,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				autoUpdate: false,
 				closeOnUpdate: false,
 				displayUnit: "",
+				enableTranslation: true,
+				enableInsertion: true,
+				enableDeletion: true,
+				enableSelection: true,
 			},
 		};
 
@@ -783,6 +787,26 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				)
 					? ""
 					: settingsOptional.general.displayUnit,
+				enableTranslation: isUndefinedOrNull(
+					settingsOptional.general.enableTranslation,
+				)
+					? true
+					: settingsOptional.general.enableTranslation,
+				enableInsertion: isUndefinedOrNull(
+					settingsOptional.general.enableInsertion,
+				)
+					? true
+					: settingsOptional.general.enableInsertion,
+				enableDeletion: isUndefinedOrNull(
+					settingsOptional.general.enableDeletion,
+				)
+					? true
+					: settingsOptional.general.enableDeletion,
+				enableSelection: isUndefinedOrNull(
+					settingsOptional.general.enableSelection,
+				)
+					? true
+					: settingsOptional.general.enableSelection,
 			};
 		}
 

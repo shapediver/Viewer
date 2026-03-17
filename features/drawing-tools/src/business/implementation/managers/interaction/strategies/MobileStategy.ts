@@ -71,16 +71,18 @@ export class MobileStrategy implements IStrategy {
 
 		if (this.#distances && this.#distances.length > 0) {
 			// select the point
-			this.#interactionManagerHelper.toggleSelection(
-				this.#distances[0].index,
-			);
+			if (this.#drawingToolsManager.settings.general.enableSelection)
+				this.#interactionManagerHelper.toggleSelection(
+					this.#distances[0].index,
+				);
 
 			this.#interactionManagerHelper.hoveredPoint =
 				this.#distances[0].index;
 
 			const draggingStarted =
+				this.#drawingToolsManager.settings.general.enableTranslation &&
 				this.#interactionManagerHelper.startDragging();
-			this.#interactionManagerHelper.moving = draggingStarted;
+			this.#interactionManagerHelper.moving = !!draggingStarted;
 
 			// we remove this here, because on mobile there is actually no hovering
 			this.#interactionManagerHelper.hoveredPoint = undefined;
@@ -97,10 +99,15 @@ export class MobileStrategy implements IStrategy {
 			// do long press stuff here
 			if (this.#distances && this.#distances.length > 0) {
 				// remove the point
-				this.#deletionInteractionHandler.deletePoint(ray);
+				if (this.#drawingToolsManager.settings.general.enableDeletion)
+					this.#deletionInteractionHandler.deletePoint(ray);
 			} else {
 				// check if there is a midpoint close to the ray
-				if (this.#drawingToolsManager.geometryState.canAddPoint()) {
+				if (
+					this.#drawingToolsManager.settings.general
+						.enableInsertion &&
+					this.#drawingToolsManager.geometryState.canAddPoint()
+				) {
 					// check if there is a line close to the ray and add a mid point to it
 					const lineDistances =
 						this.#geometryMathManager.checkLineDistances(
@@ -152,6 +159,7 @@ export class MobileStrategy implements IStrategy {
 
 		// if we have selected points, move them
 		if (
+			this.#drawingToolsManager.settings.general.enableTranslation &&
 			this.#interactionManagerHelper.selectedPointIndices.length > 0 &&
 			pointerMoved === true
 		) {
@@ -225,6 +233,8 @@ export class MobileStrategy implements IStrategy {
 					);
 				}
 			} else {
+				if (!this.#drawingToolsManager.settings.general.enableInsertion)
+					return;
 				// get current ray
 				const ray = this.#viewport.pointerEventToRay(
 					this.#downPress!.event,

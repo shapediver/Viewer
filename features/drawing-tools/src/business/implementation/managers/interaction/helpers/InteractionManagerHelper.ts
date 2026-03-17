@@ -610,39 +610,51 @@ export class InteractionManagerHelper {
 	}
 
 	public startDragging(): boolean {
-		if (
+		const selectedAndHovered =
 			this.#selectedPointIndices.length > 0 &&
 			this.#hoveredPoint !== undefined &&
-			this.#selectedPointIndices.includes(this.#hoveredPoint)
-		) {
-			// store selected point positions
-			this.#selectedPointIndices.forEach((element) =>
-				this.#selectedPointPositions.push(
-					this.#geometryState.getPosition(element),
-				),
-			);
+			this.#selectedPointIndices.includes(this.#hoveredPoint);
 
-			// copy values into selected moved point positions
-			this.#selectedMovedPointPositions =
-				this.#selectedPointPositions.map((element) =>
-					vec3.clone(element),
-				);
+		// Fallback: when no points are selected but a point is hovered, drag it
+		// directly. This supports translation without requiring selection.
+		const hoverOnlyDrag =
+			!selectedAndHovered &&
+			this.#selectedPointIndices.length === 0 &&
+			this.#hoveredPoint !== undefined;
 
-			this.#draggedPointPosition = this.#geometryState.getPosition(
-				this.#hoveredPoint,
-			);
+		if (!selectedAndHovered && !hoverOnlyDrag) return false;
 
-			this.#draggedPoint = this.#hoveredPoint;
-
-			this.#dragging = true;
-			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
-				viewportId: this.#drawingToolsManager.viewport.id,
-				drawingToolsId: this.#drawingToolsManager.uuid,
-			});
-
-			return true;
+		if (hoverOnlyDrag) {
+			// Temporarily track the hovered point so moveSelectedPoints works.
+			// It is cleaned up by removeAllSelectedPoints() in onUp().
+			this.#selectedPointIndices.push(this.#hoveredPoint!);
 		}
-		return false;
+
+		// store selected point positions
+		this.#selectedPointIndices.forEach((element) =>
+			this.#selectedPointPositions.push(
+				this.#geometryState.getPosition(element),
+			),
+		);
+
+		// copy values into selected moved point positions
+		this.#selectedMovedPointPositions = this.#selectedPointPositions.map(
+			(element) => vec3.clone(element),
+		);
+
+		this.#draggedPointPosition = this.#geometryState.getPosition(
+			this.#hoveredPoint!,
+		);
+
+		this.#draggedPoint = this.#hoveredPoint;
+
+		this.#dragging = true;
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
+			viewportId: this.#drawingToolsManager.viewport.id,
+			drawingToolsId: this.#drawingToolsManager.uuid,
+		});
+
+		return true;
 	}
 
 	/**

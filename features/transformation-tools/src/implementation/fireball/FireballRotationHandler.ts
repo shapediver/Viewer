@@ -51,7 +51,11 @@ export class FireballRotationHandler {
 			viewport,
 			{onUpdate: () => {}, onCancel: () => {}},
 			{
-				general: {},
+				general: {
+					enableInsertion: false,
+					enableDeletion: false,
+					enableSelection: false,
+				},
 				geometry: {
 					mode: "points",
 					points: [[ws[0], ws[1], ws[2]]],

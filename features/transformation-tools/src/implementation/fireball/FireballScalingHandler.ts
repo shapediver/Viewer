@@ -20,8 +20,13 @@ import {
 } from "./FireballPointsMapping";
 
 export class FireballScalingHandler {
+	// Interactive handles DT — only enabled/active points, mode "points".
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #enableUniformScaling: boolean;
+	// Locked corners DT — disabled corners shown as grey non-interactive dots.
+	readonly #lockedDT: IDrawingToolsApi | undefined;
+	// Outline DT — all 8 conceptual points in order, mode "lines", invisible handles.
+	readonly #outlineDT: IDrawingToolsApi;
 	readonly #plane: Plane;
 	readonly #pointsMapping: FireballPointsMapping;
 
@@ -37,11 +42,49 @@ export class FireballScalingHandler {
 		this.#plane = plane;
 		this.#pointsMapping = new FireballPointsMapping(visibilityConfig);
 
+		// --- 1. Outline DT: all 8 conceptual points, lines only, invisible handles ---
+		const allWorldPoints = localPoints.map((p) => {
+			const wp = plane.convertFromLSToWS(p);
+			return [wp[0], wp[1], wp[2]];
+		});
+		this.#outlineDT = createDrawingTools(
+			viewport,
+			{onUpdate: () => {}, onCancel: () => {}},
+			{
+				general: {
+					enableTranslation: false,
+					enableInsertion: false,
+					enableDeletion: false,
+					enableSelection: false,
+				},
+				geometry: {
+					mode: "lines",
+					points: allWorldPoints,
+					close: true,
+					minPoints: allWorldPoints.length,
+					maxPoints: allWorldPoints.length,
+				},
+				restrictions: {plane: planeRestriction},
+				visualization: {
+					distanceLabels: false,
+					pointerPosition: false,
+					points: {
+						// Zero size makes handles invisible and effectively non-clickable.
+						size_0: 0,
+						size_1: 0,
+						size_2: 0,
+						size_3: 0,
+					},
+					lines: {color: "#0d44f0"},
+				},
+			},
+		);
+
+		// --- 2. Interactive handles DT: enabled active points only, mode "points" ---
 		const dtWorldPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
 			const wp = plane.convertFromLSToWS(localPoints[ci]);
 			return [wp[0], wp[1], wp[2]];
 		});
-
 		this.#drawingTools = createDrawingTools(
 			viewport,
 			{
@@ -54,17 +97,18 @@ export class FireballScalingHandler {
 				},
 			},
 			{
-				general: {},
+				general: {
+					enableInsertion: false,
+					enableDeletion: false,
+					enableSelection: false,
+				},
 				geometry: {
-					mode: "lines",
+					mode: "points",
 					points: dtWorldPoints,
-					close: true,
 					minPoints: dtWorldPoints.length,
 					maxPoints: dtWorldPoints.length,
 				},
-				restrictions: {
-					plane: planeRestriction,
-				},
+				restrictions: {plane: planeRestriction},
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
@@ -78,12 +122,51 @@ export class FireballScalingHandler {
 						color_2: "#0d44f0",
 						color_3: "#0d44f0",
 					},
-					lines: {
-						color: "#0d44f0",
-					},
 				},
 			},
 		);
+
+		// --- 3. Locked corners DT: disabled corners, grey style, events ignored ---
+		const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
+		if (lockedCIs.length > 0) {
+			const lockedWorldPoints = lockedCIs.map((ci) => {
+				const wp = plane.convertFromLSToWS(localPoints[ci]);
+				return [wp[0], wp[1], wp[2]];
+			});
+			this.#lockedDT = createDrawingTools(
+				viewport,
+				{onUpdate: () => {}, onCancel: () => {}},
+				{
+					general: {
+						enableTranslation: false,
+						enableInsertion: false,
+						enableDeletion: false,
+						enableSelection: false,
+					},
+					geometry: {
+						mode: "points",
+						points: lockedWorldPoints,
+						minPoints: lockedWorldPoints.length,
+						maxPoints: lockedWorldPoints.length,
+					},
+					restrictions: {plane: planeRestriction},
+					visualization: {
+						distanceLabels: false,
+						pointerPosition: false,
+						points: {
+							size_0: 20,
+							size_1: 20,
+							size_2: 20,
+							size_3: 20,
+							color_0: "#888888",
+							color_1: "#888888",
+							color_2: "#888888",
+							color_3: "#888888",
+						},
+					},
+				},
+			);
+		}
 	}
 
 	public get drawingTools(): IDrawingToolsApi {
@@ -92,6 +175,12 @@ export class FireballScalingHandler {
 
 	public get pointsMapping(): FireballPointsMapping {
 		return this.#pointsMapping;
+	}
+
+	public close(): void {
+		this.#outlineDT.close();
+		this.#drawingTools.close();
+		this.#lockedDT?.close();
 	}
 
 	/**
@@ -161,12 +250,30 @@ export class FireballScalingHandler {
 	 * @param temporary
 	 */
 	public flushRectPoints(localPoints: vec3[], temporary: boolean): void {
+		// Update the outline DT (all 8 points; DT index === conceptual index).
+		for (let i = 0; i < 8; i++) {
+			const wp = this.#plane.convertFromLSToWS(localPoints[i]);
+			this.#outlineDT.movePoint(i, [wp[0], wp[1], wp[2]], temporary);
+		}
+
+		// Update the interactive handles DT.
 		this.#pointsMapping.flushRectPoints(
 			localPoints,
 			this.#drawingTools,
 			this.#plane,
 			temporary,
 		);
+
+		// Update the locked corners DT.
+		if (this.#lockedDT) {
+			const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
+			for (let i = 0; i < lockedCIs.length; i++) {
+				const wp = this.#plane.convertFromLSToWS(
+					localPoints[lockedCIs[i]],
+				);
+				this.#lockedDT.movePoint(i, [wp[0], wp[1], wp[2]], temporary);
+			}
+		}
 	}
 
 	/**
