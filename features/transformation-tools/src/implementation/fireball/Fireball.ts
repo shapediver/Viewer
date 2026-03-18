@@ -108,7 +108,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 			settings!.enableMidpointYPositive ?? true;
 		this.#enableMidpointYNegative =
 			settings!.enableMidpointYNegative ?? true;
-		this.#enableUniformScaling = settings!.enableUniformScaling ?? true;
+		this.#enableUniformScaling = settings!.enableUniformScaling ?? false;
 
 		this.init();
 

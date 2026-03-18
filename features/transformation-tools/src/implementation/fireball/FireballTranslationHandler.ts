@@ -159,10 +159,26 @@ export class FireballTranslationHandler {
 		);
 		const positionArray = new Float32Array(12); // 4 vertices × 3 coords
 		const cornerIndices = [0, 2, 4, 6];
+
+		// Compute centroid of the 4 corner local points
+		const centroid = vec3.create();
+		for (const ci of cornerIndices)
+			vec3.add(centroid, centroid, localPoints[ci]);
+		vec3.scale(centroid, centroid, 1 / 4);
+
+		const PLANE_SCALE = 0.925;
 		for (let i = 0; i < 4; i++) {
+			// Scale each corner toward the centroid so the plane is slightly
+			// smaller than the bounding rectangle formed by the points
+			const scaled = vec3.lerp(
+				vec3.create(),
+				centroid,
+				localPoints[cornerIndices[i]],
+				PLANE_SCALE,
+			);
 			const ws = vec3.add(
 				vec3.create(),
-				this.#plane.convertFromLSToWS(localPoints[cornerIndices[i]]),
+				this.#plane.convertFromLSToWS(scaled),
 				normalOffset,
 			);
 			positionArray[i * 3] = ws[0];
