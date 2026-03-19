@@ -1,4 +1,4 @@
-import {z} from "zod";
+﻿import {z} from "zod";
 import {IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
 import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
 
@@ -6,7 +6,7 @@ import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffect
 
 export type InteractionParameterSettingsType =
 	| "selection"
-	| "gumball"
+	| "gumballTransform"
 	| "dragging";
 
 export type InteractionEffect =
@@ -104,7 +104,7 @@ export const ISelectionParameterJsonSchema = z.object({
 	props: ISelectionParameterPropsJsonSchema,
 });
 
-export const IGumballParameterPropsJsonSchema = z
+export const IGumballTransformParameterPropsJsonSchema = z
 	.object({
 		enableRotation: optionalBoolean,
 		enableRotationAxes: z
@@ -180,9 +180,9 @@ export const IGumballParameterPropsJsonSchema = z
 	})
 	.merge(IGeneralInteractionParameterJsonSchema);
 
-export const IGumballParameterJsonSchema = z.object({
-	type: z.literal("gumball"),
-	props: IGumballParameterPropsJsonSchema,
+export const IGumballTransformParameterJsonSchema = z.object({
+	type: z.literal("gumballTransform"),
+	props: IGumballTransformParameterPropsJsonSchema,
 });
 
 export const IDraggingParameterPropsJsonSchema = z
@@ -242,7 +242,7 @@ export const IDraggingParameterJsonSchema = z.object({
 });
 
 export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(
-	IGumballParameterJsonSchema,
+	IGumballTransformParameterJsonSchema,
 ).or(IDraggingParameterJsonSchema);
 
 export const validateInteractionParameterSettings = (param: unknown) => {
@@ -251,8 +251,8 @@ export const validateInteractionParameterSettings = (param: unknown) => {
 export const validateSelectionParameterSettings = (param: unknown) => {
 	return ISelectionParameterJsonSchema.safeParse(param);
 };
-export const validateGumballParameterSettings = (param: unknown) => {
-	return IGumballParameterJsonSchema.safeParse(param);
+export const validateGumballTransformParameterSettings = (param: unknown) => {
+	return IGumballTransformParameterJsonSchema.safeParse(param);
 };
 export const validateDraggingParameterSettings = (param: unknown) => {
 	return IDraggingParameterJsonSchema.safeParse(param);

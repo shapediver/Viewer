@@ -1,4 +1,4 @@
-import * as THREE from "three";
+﻿import * as THREE from "three";
 
 import {Box, IViewportApi, SessionApiData} from "@shapediver/viewer";
 import {
@@ -145,7 +145,7 @@ export abstract class TransformationToolsManager
 		return this.#singleNode;
 	}
 
-	protected abstract get type(): "gumball" | "fireball";
+	protected abstract get type(): "gumballTransform" | "rectangleTransform";
 
 	protected get viewport(): IViewportApi {
 		return this.#viewport;

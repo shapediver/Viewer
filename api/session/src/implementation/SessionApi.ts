@@ -1,4 +1,4 @@
-import {
+﻿import {
 	ReqExport,
 	ResAssetDefinition,
 	ResBase,
@@ -14,7 +14,7 @@ import {
 	DraggingParameter,
 	DrawingParameter,
 	FileParameter,
-	GumballParameter,
+	GumballTransformParameter,
 	SelectionParameter,
 	SessionEngine,
 } from "@shapediver/viewer.session-engine.session-engine";
@@ -36,7 +36,7 @@ import {OutputApi} from "./OutputApi";
 import {DraggingParameterApi} from "./parameter/DraggingParameterApi";
 import {DrawingParameterApi} from "./parameter/DrawingParameterApi";
 import {FileParameterApi} from "./parameter/FileParameterApi";
-import {GumballParameterApi} from "./parameter/GumballParameterApi";
+import {GumballTransformParameterApi} from "./parameter/GumballTransformParameterApi";
 import {ParameterApi} from "./parameter/ParameterApi";
 import {SelectionParameterApi} from "./parameter/SelectionParameterApi";
 
@@ -94,10 +94,10 @@ export class SessionApi implements ISessionApi {
 					<SelectionParameter>this.#sessionEngine.parameters[p],
 				);
 			} else if (
-				this.#sessionEngine.parameters[p] instanceof GumballParameter
+				this.#sessionEngine.parameters[p] instanceof GumballTransformParameter
 			) {
-				this.#parameters[p] = new GumballParameterApi(
-					<GumballParameter>this.#sessionEngine.parameters[p],
+				this.#parameters[p] = new GumballTransformParameterApi(
+					<GumballTransformParameter>this.#sessionEngine.parameters[p],
 				);
 			} else if (
 				this.#sessionEngine.parameters[p] instanceof DrawingParameter

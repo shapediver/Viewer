@@ -926,7 +926,7 @@ export class DesktopStrategy implements IStrategy {
 	 * Update cursor based on current interaction state across all active instances.
 	 * Uses a priority of: grabbing > pointer > default, so that having two
 	 * drawing-tool instances active at once (e.g. rectangle + rotation handle in
-	 * Fireball) does not cause the second instance to override a valid "pointer"
+	 * RectangleTransform) does not cause the second instance to override a valid "pointer"
 	 * cursor set by the first.
 	 */
 	private updateCursor(): void {

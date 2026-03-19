@@ -27,7 +27,7 @@ import {mat4, vec3} from "gl-matrix";
 
 const PLANE_Z_OFFSET = 0.1;
 
-export class FireballTranslationHandler {
+export class RectangleTransformTranslationHandler {
 	readonly #dragManager: DragManager;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #hoverManager: HoverManager;
@@ -224,7 +224,7 @@ export class FireballTranslationHandler {
 		});
 		geometryData.material = material;
 
-		const node = new TreeNode("FireballTranslationPlane");
+		const node = new TreeNode("RectangleTransformTranslationPlane");
 		node.addData(geometryData);
 		const interactionData = new InteractionData({drag: true, hover: true});
 		node.addData(interactionData);

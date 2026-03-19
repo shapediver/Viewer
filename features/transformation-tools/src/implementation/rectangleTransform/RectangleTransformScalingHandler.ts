@@ -14,11 +14,11 @@ import {
 	cornersToFullPoints,
 	getRectBasis,
 	toRectFrame,
-} from "./FireballGeometry";
+} from "./RectangleTransformGeometry";
 import {
-	FireballPointsMapping,
+	RectangleTransformPointsMapping,
 	PointVisibilityConfig,
-} from "./FireballPointsMapping";
+} from "./RectangleTransformPointsMapping";
 
 function snapValue(value: number, step: number, threshold: number): number {
 	const nearest = Math.round(value / step) * step;
@@ -39,7 +39,7 @@ export type ScalingConfig = {
 	disabledVisualization: Partial<IVisualizationSettings> | undefined;
 };
 
-export class FireballScalingHandler {
+export class RectangleTransformScalingHandler {
 	// Interactive handles DT — only enabled/active points, mode "points".
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #scalingConfig: ScalingConfig;
@@ -48,7 +48,7 @@ export class FireballScalingHandler {
 	// Outline DT — all 8 conceptual points in order, mode "lines", invisible handles.
 	readonly #outlineDT: IDrawingToolsApi;
 	readonly #plane: Plane;
-	readonly #pointsMapping: FireballPointsMapping;
+	readonly #pointsMapping: RectangleTransformPointsMapping;
 
 	constructor(
 		viewport: IViewportApi,
@@ -60,7 +60,7 @@ export class FireballScalingHandler {
 	) {
 		this.#scalingConfig = scalingConfig;
 		this.#plane = plane;
-		this.#pointsMapping = new FireballPointsMapping(visibilityConfig);
+		this.#pointsMapping = new RectangleTransformPointsMapping(visibilityConfig);
 
 		const vis = scalingConfig.visualization;
 
@@ -206,7 +206,7 @@ export class FireballScalingHandler {
 		return this.#drawingTools;
 	}
 
-	public get pointsMapping(): FireballPointsMapping {
+	public get pointsMapping(): RectangleTransformPointsMapping {
 		return this.#pointsMapping;
 	}
 

@@ -7,12 +7,12 @@ import {
 	Settings,
 } from "../ITransformationToolsManager";
 
-export interface IFireball extends ITransformationToolsManager {}
+export interface IRectangleTransform extends ITransformationToolsManager {}
 
-export type FireballSettings = {
+export type RectangleTransformSettings = {
 	/**
-	 * The plane restriction for the Fireball.
-	 * This is required for the Fireball to work, as it determines the plane on which the Fireball will be displayed and interacted with.
+	 * The plane restriction for the RectangleTransform.
+	 * This is required for the RectangleTransform to work, as it determines the plane on which the RectangleTransform will be displayed and interacted with.
 	 */
 	plane: PlaneRestrictionProperties;
 	/**
@@ -38,23 +38,23 @@ export type FireballSettings = {
 		right?: boolean;
 	};
 	/**
-	 * Scaling options for the Fireball.
+	 * Scaling options for the RectangleTransform.
 	 */
 	scaling?: {
 		/**
-		 * If true, the Fireball will maintain a uniform scale, meaning it will scale equally in all directions based on the average of the local x and y scales.
-		 * If false or undefined, the Fireball will scale independently in the local x and y directions.
+		 * If true, the RectangleTransform will maintain a uniform scale, meaning it will scale equally in all directions based on the average of the local x and y scales.
+		 * If false or undefined, the RectangleTransform will scale independently in the local x and y directions.
 		 * Default is false (non-uniform scaling).
 		 */
 		uniform?: boolean;
 		/**
-		 * If false, the Fireball cannot be scaled in the local x and y directions.
+		 * If false, the RectangleTransform cannot be scaled in the local x and y directions.
 		 * If true or undefined, scaling in the local x and y directions is allowed.
 		 * Default is true (scaling enabled).
 		 */
 		x?: boolean;
 		/**
-		 * If false, the Fireball cannot be scaled in the local x and y directions.
+		 * If false, the RectangleTransform cannot be scaled in the local x and y directions.
 		 * If true or undefined, scaling in the local x and y directions is allowed.
 		 * Default is true (scaling enabled).
 		 */
@@ -146,4 +146,4 @@ export type FireballSettings = {
 	};
 } & Settings;
 
-export type FireballSettingsOptional = Partial<FireballSettings>;
+export type RectangleTransformSettingsOptional = Partial<RectangleTransformSettings>;

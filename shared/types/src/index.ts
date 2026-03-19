@@ -1,4 +1,4 @@
-import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
+﻿import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
 import {AnimationData} from "./implementation/data/AnimationData";
 import {ChunkData} from "./implementation/data/ChunkData";
@@ -149,14 +149,14 @@ import {
 	validateDrawingParameterSettings,
 } from "./interfaces/parameter/IDrawingParametersSettings";
 import {
-	GumballParameterValue,
-	IGumballParameterProps,
-} from "./interfaces/parameter/IGumballParameterSettings";
+	GumballTransformParameterValue,
+	IGumballTransformParameterProps,
+} from "./interfaces/parameter/IGumballTransformParameterSettings";
 import {
 	IDraggingParameterJsonSchema,
 	IDraggingParameterPropsJsonSchema,
-	IGumballParameterJsonSchema,
-	IGumballParameterPropsJsonSchema,
+	IGumballTransformParameterJsonSchema,
+	IGumballTransformParameterPropsJsonSchema,
 	IInteractionParameterJsonSchema,
 	IInteractionParameterProps,
 	IInteractionParameterSettings,
@@ -165,7 +165,7 @@ import {
 	ISelectionParameterJsonSchema,
 	ISelectionParameterPropsJsonSchema,
 	validateDraggingParameterSettings,
-	validateGumballParameterSettings,
+	validateGumballTransformParameterSettings,
 	validateInteractionParameterSettings,
 	validateSelectionParameterSettings,
 } from "./interfaces/parameter/IInteractionParameterSettings";
@@ -385,11 +385,11 @@ export {
 	ISelectionParameterJsonSchema,
 	ISelectionParameterPropsJsonSchema,
 	validateSelectionParameterSettings,
-	IGumballParameterProps,
-	GumballParameterValue,
-	IGumballParameterJsonSchema,
-	IGumballParameterPropsJsonSchema,
-	validateGumballParameterSettings,
+	IGumballTransformParameterProps,
+	GumballTransformParameterValue,
+	IGumballTransformParameterJsonSchema,
+	IGumballTransformParameterPropsJsonSchema,
+	validateGumballTransformParameterSettings,
 	IDraggingParameterProps,
 	DraggingParameterValue,
 	IDraggingParameterJsonSchema,

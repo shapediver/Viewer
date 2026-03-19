@@ -1,8 +1,8 @@
-import * as SDV from "@shapediver/viewer";
+﻿import * as SDV from "@shapediver/viewer";
 import {addListener, EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
 import {
 	EventResponseMapping,
-	Fireball,
+	RectangleTransform,
 } from "@shapediver/viewer.features.transformation-tools";
 import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
 import {
@@ -11,7 +11,7 @@ import {
 	IDropdownElement,
 	ISliderElement,
 } from "@shapediver/viewer.shared.demo-helper";
-import {FireballSettingsOptional} from "@shapediver/viewer.features.transformation-tools/dist/interfaces/fireball/IFireball";
+import {RectangleTransformSettingsOptional} from "@shapediver/viewer.features.transformation-tools/dist/interfaces/rectangleTransform/IRectangleTransform";
 import {vec3} from "gl-matrix";
 
 (<any>window).SDV = SDV;
@@ -45,7 +45,7 @@ const sendNotification = (title: string, message: string) => {
 	const imageOutput = session.getOutputByName("Image Plane")![0];
 	console.log(imageOutput.node?.boundingBox.boundingSphere.center);
 
-	const settings: FireballSettingsOptional = {
+	const settings: RectangleTransformSettingsOptional = {
 		enableScaling: true,
 		enableRotation: true,
 		enableTranslation: true,
@@ -59,8 +59,8 @@ const sendNotification = (title: string, message: string) => {
 		},
 	};
 
-	// create the gumball
-	let gumball = new Fireball(viewport, [imageOutput.node!], settings);
+	// create the gumballTransform
+	let gumballTransform = new RectangleTransform(viewport, [imageOutput.node!], settings);
 
 	console.log(imageOutput.node!);
 
@@ -78,29 +78,29 @@ const sendNotification = (title: string, message: string) => {
 		}
 	};
 	/**
-	 * Close the current fireball, reset the node transformation, and create a
-	 * fresh fireball with the current settings.
+	 * Close the current rectangleTransform, reset the node transformation, and create a
+	 * fresh rectangleTransform with the current settings.
 	 */
-	const recreateFireball = async () => {
-		gumball.close();
+	const recreateRectangleTransform = async () => {
+		gumballTransform.close();
 		resetTransformation();
-		await new Promise((resolve) => setTimeout(resolve, 100)); // ensure the old fireball is fully closed before creating a new one
-		gumball = new Fireball(viewport, [imageOutput.node!], settings);
+		await new Promise((resolve) => setTimeout(resolve, 100)); // ensure the old rectangleTransform is fully closed before creating a new one
+		gumballTransform = new RectangleTransform(viewport, [imageOutput.node!], settings);
 	};
 
-	// create an event listener for the gumball
+	// create an event listener for the gumballTransform
 	const eventListenerToken = addListener(
 		EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED,
 		(e) => {
-			const gumballEvent =
+			const gumballTransformEvent =
 				e as EventResponseMapping[SDV.EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED];
 
 			// // show the notification
 			// sendNotification(
-			// 	"Gumball has changed",
-			// 	`- viewportId: ${gumballEvent.viewportId}
-			// - nodes: ${gumballEvent.nodes}
-			// - transformations: ${gumballEvent.transformations}`,
+			// 	"GumballTransform has changed",
+			// 	`- viewportId: ${gumballTransformEvent.viewportId}
+			// - nodes: ${gumballTransformEvent.nodes}
+			// - transformations: ${gumballTransformEvent.transformations}`,
 			// );
 		},
 	);
@@ -120,7 +120,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.enableTranslation ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.enableTranslation = value;
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -129,7 +129,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.enableScaling ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.enableScaling = value;
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -138,7 +138,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.enableRotation ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.enableRotation = value;
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 
@@ -149,7 +149,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.corners?.bottomLeft ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.corners = {...settings.corners, bottomLeft: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -161,7 +161,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.corners,
 						bottomRight: value,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -170,7 +170,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.corners?.topRight ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.corners = {...settings.corners, topRight: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -179,7 +179,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.corners?.topLeft ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.corners = {...settings.corners, topLeft: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 
@@ -190,7 +190,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.midpoints?.top ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.midpoints = {...settings.midpoints, top: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -199,7 +199,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.midpoints?.bottom ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.midpoints = {...settings.midpoints, bottom: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -208,7 +208,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.midpoints?.left ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.midpoints = {...settings.midpoints, left: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -217,7 +217,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.midpoints?.right ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.midpoints = {...settings.midpoints, right: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 
@@ -228,7 +228,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.scaling?.uniform ?? false,
 				onChangeCallback: (value: boolean) => {
 					settings.scaling = {...settings.scaling, uniform: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -237,7 +237,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.scaling?.x ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.scaling = {...settings.scaling, x: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
@@ -246,7 +246,7 @@ const sendNotification = (title: string, message: string) => {
 				value: settings.scaling?.y ?? true,
 				onChangeCallback: (value: boolean) => {
 					settings.scaling = {...settings.scaling, y: value};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -261,7 +261,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						xMin: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -276,7 +276,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						xMax: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -291,7 +291,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						yMin: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -306,7 +306,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						yMax: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -321,7 +321,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						step: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -336,7 +336,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.scaling,
 						stepThreshold: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 
@@ -353,7 +353,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.rotation,
 						step: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -368,7 +368,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.rotation,
 						stepThreshold: value || undefined,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -383,7 +383,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.rotation,
 						min: value <= -360 ? undefined : value,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -398,7 +398,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.rotation,
 						max: value >= 360 ? undefined : value,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 			<ISliderElement>{
@@ -413,7 +413,7 @@ const sendNotification = (title: string, message: string) => {
 						...settings.rotation,
 						handleDistance: value,
 					};
-					recreateFireball();
+					recreateRectangleTransform();
 				},
 			},
 		],

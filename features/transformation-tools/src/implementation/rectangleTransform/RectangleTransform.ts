@@ -1,4 +1,4 @@
-﻿import {Box, IViewportApi} from "@shapediver/viewer";
+import {Box, IViewportApi} from "@shapediver/viewer";
 import {
 	IDrawingToolsEvent,
 	PlaneRestrictionProperties,
@@ -15,18 +15,18 @@ import {
 import {mat4, vec3} from "gl-matrix";
 
 import {
-	FireballSettingsOptional,
-	IFireball,
-} from "../../interfaces/fireball/IFireball";
+	RectangleTransformSettingsOptional,
+	IRectangleTransform,
+} from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
 import {
-	FireballRotationHandler,
+	RectangleTransformRotationHandler,
 	RotationConfig,
-} from "./FireballRotationHandler";
-import {FireballScalingHandler, ScalingConfig} from "./FireballScalingHandler";
-import {FireballTranslationHandler} from "./FireballTranslationHandler";
+} from "./RectangleTransformRotationHandler";
+import {RectangleTransformScalingHandler, ScalingConfig} from "./RectangleTransformScalingHandler";
+import {RectangleTransformTranslationHandler} from "./RectangleTransformTranslationHandler";
 
-export class Fireball extends TransformationToolsManager implements IFireball {
+export class RectangleTransform extends TransformationToolsManager implements IRectangleTransform {
 	readonly #currentTransformationMatrix: mat4 = mat4.create();
 	readonly #enableRotation: boolean;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
@@ -40,9 +40,9 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	#hasPendingTemporaryTransform: boolean = false;
 	#initialLocalPoints: vec3[] = [];
 	#localPoints: vec3[] = [];
-	#rotationHandler: FireballRotationHandler | undefined;
-	#scalingHandler: FireballScalingHandler | undefined;
-	#translationHandler: FireballTranslationHandler | undefined;
+	#rotationHandler: RectangleTransformRotationHandler | undefined;
+	#scalingHandler: RectangleTransformScalingHandler | undefined;
+	#translationHandler: RectangleTransformTranslationHandler | undefined;
 	#corners: {
 		bottomLeft: boolean;
 		bottomRight: boolean;
@@ -65,7 +65,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	constructor(
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
-		settings?: FireballSettingsOptional,
+		settings?: RectangleTransformSettingsOptional,
 	) {
 		super(viewport, nodes, settings);
 
@@ -158,12 +158,12 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		);
 	}
 
-	public get settings(): FireballSettingsOptional | undefined {
+	public get settings(): RectangleTransformSettingsOptional | undefined {
 		return super.settings;
 	}
 
-	public get type(): "fireball" {
-		return "fireball";
+	public get type(): "rectangleTransform" {
+		return "rectangleTransform";
 	}
 
 	protected get transformationToolsPlaceholderMatrix(): mat4 {
@@ -217,7 +217,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		const txLS = newC0[0] - aU * initC0[0] - bU * initC0[1];
 		const tyLS = newC0[1] - aV * initC0[0] - bV * initC0[1];
 
-		// Column-major 4Ã—4 affine (scale + rotation + translation in LS)
+		// Column-major 4×4 affine (scale + rotation + translation in LS)
 		const mAffineLS = mat4.fromValues(
 			aU,
 			aV,
@@ -237,7 +237,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 			1,
 		);
 
-		// Plane LS â†” WS matrices
+		// Plane LS ↔ WS matrices
 		const planeOrigin = vec3.scale(
 			vec3.create(),
 			this.#plane.normal,
@@ -263,14 +263,14 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		);
 		const mWStoLS = mat4.invert(mat4.create(), mLStoWS);
 
-		// M_ws_relative = M_ls_to_ws Ã— M_affine Ã— M_ws_to_ls
+		// M_ws_relative = M_ls_to_ws × M_affine × M_ws_to_ls
 		const mWSRelative = mat4.multiply(
 			mat4.create(),
 			mLStoWS,
 			mat4.multiply(mat4.create(), mAffineLS, mWStoLS),
 		);
 
-		// placeholderMatrix = M_ws_relative Ã— translation(initialOffset)
+		// placeholderMatrix = M_ws_relative × translation(initialOffset)
 		mat4.multiply(
 			this.#currentTransformationMatrix,
 			mWSRelative,
@@ -463,7 +463,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		this.#localPoints = initPoints.map((p) => vec3.clone(p));
 
 		if (this.#enableScaling) {
-			this.#scalingHandler = new FireballScalingHandler(
+			this.#scalingHandler = new RectangleTransformScalingHandler(
 				this.viewport,
 				this.#planeRestriction,
 				this.#plane,
@@ -487,7 +487,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		}
 
 		if (this.#enableRotation) {
-			this.#rotationHandler = new FireballRotationHandler(
+			this.#rotationHandler = new RectangleTransformRotationHandler(
 				this.viewport,
 				this.#planeRestriction,
 				this.#plane,
@@ -505,7 +505,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				translationRestrictions.push(restriction);
 			}
 
-			this.#translationHandler = new FireballTranslationHandler(
+			this.#translationHandler = new RectangleTransformTranslationHandler(
 				this.viewport,
 				translationRestrictions.length
 					? translationRestrictions

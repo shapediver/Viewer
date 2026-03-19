@@ -1,4 +1,4 @@
-import {SystemInfo} from "@shapediver/viewer.shared.services";
+﻿import {SystemInfo} from "@shapediver/viewer.shared.services";
 
 import {
 	BoxGeometry,
@@ -20,9 +20,9 @@ import {
 	Vector3,
 } from "three";
 
-import {GumballControls, TransformationType} from "./GumballControls";
+import {GumballTransformControls, TransformationType} from "./GumballTransformControls";
 
-export class GumballGizmo extends Object3D {
+export class GumballTransformGizmo extends Object3D {
 	private _availablePicker: {
 		translate: Object3D;
 		rotate: Object3D;
@@ -60,20 +60,20 @@ export class GumballGizmo extends Object3D {
 		rotate: Object3D;
 		scale: Object3D;
 	};
-	public isGumballGizmo: true;
+	public isGumballTransformGizmo: true;
 	public picker: {
 		translate: Object3D;
 		rotate: Object3D;
 		scale: Object3D;
 	};
-	public type: "GumballGizmo";
+	public type: "GumballTransformGizmo";
 
-	constructor(readonly _gumballControls: GumballControls) {
+	constructor(readonly _gumballTransformControls: GumballTransformControls) {
 		super();
 
-		this.isGumballGizmo = true;
+		this.isGumballTransformGizmo = true;
 
-		this.type = "GumballGizmo";
+		this.type = "GumballTransformGizmo";
 
 		const isMobile = SystemInfo.instance.isMobile;
 		const mobileFactorSingleAxis = isMobile ? 2 : 1;
@@ -1111,11 +1111,11 @@ export class GumballGizmo extends Object3D {
 
 	// updateMatrixWorld will update transformations and appearance of individual handles
 	public updateMatrixWorld(force: boolean) {
-		const space = this._gumballControls.space;
+		const space = this._gumballTransformControls.space;
 
 		let quaternion = new Quaternion();
 		if (space === "local") {
-			this._gumballControls.object?.getWorldQuaternion(quaternion);
+			this._gumballTransformControls.object?.getWorldQuaternion(quaternion);
 		} else {
 			quaternion = _identityQuaternion;
 		}
@@ -1125,12 +1125,12 @@ export class GumballGizmo extends Object3D {
 		this.gizmo["translate"].visible = this.enableTranslation;
 		this.gizmo["rotate"].visible = this.enableRotation;
 		this.gizmo["scale"].visible =
-			this.enableScaling && this._gumballControls.space === "local";
+			this.enableScaling && this._gumballTransformControls.space === "local";
 
 		this.helper["translate"].visible = this.enableTranslation;
 		this.helper["rotate"].visible = this.enableRotation;
 		this.helper["scale"].visible =
-			this.enableScaling && this._gumballControls.space === "local";
+			this.enableScaling && this._gumballTransformControls.space === "local";
 
 		this.picker = this._availablePicker;
 
@@ -1322,7 +1322,7 @@ export class GumballGizmo extends Object3D {
 			);
 		}
 
-		if (this.enableScaling && this._gumballControls.space === "local") {
+		if (this.enableScaling && this._gumballTransformControls.space === "local") {
 			let pickers = this._availablePicker.scale.children;
 			let gizmos = this.gizmo.scale.children;
 			let helpers = this.helper.scale.children;
@@ -1413,35 +1413,35 @@ export class GumballGizmo extends Object3D {
 
 			handle.object.visible = true;
 			handle.object.rotation.set(0, 0, 0);
-			handle.object.position.copy(this._gumballControls.worldPosition);
+			handle.object.position.copy(this._gumballTransformControls.worldPosition);
 
 			let factor;
 
 			if (
-				(this._gumballControls.camera as OrthographicCamera)
+				(this._gumballTransformControls.camera as OrthographicCamera)
 					.isOrthographicCamera
 			) {
 				factor =
-					((this._gumballControls.camera as OrthographicCamera).top -
-						(this._gumballControls.camera as OrthographicCamera)
+					((this._gumballTransformControls.camera as OrthographicCamera).top -
+						(this._gumballTransformControls.camera as OrthographicCamera)
 							.bottom) /
-					(this._gumballControls.camera as OrthographicCamera).zoom;
+					(this._gumballTransformControls.camera as OrthographicCamera).zoom;
 			} else {
 				factor =
-					this._gumballControls.worldPosition.distanceTo(
-						this._gumballControls.cameraPosition,
+					this._gumballTransformControls.worldPosition.distanceTo(
+						this._gumballTransformControls.cameraPosition,
 					) *
 					Math.min(
 						(1.9 *
 							Math.tan(
 								(Math.PI *
 									(
-										this._gumballControls
+										this._gumballTransformControls
 											.camera as PerspectiveCamera
 									).fov) /
 									360,
 							)) /
-							(this._gumballControls.camera as PerspectiveCamera)
+							(this._gumballTransformControls.camera as PerspectiveCamera)
 								.zoom,
 						7,
 					);
@@ -1449,7 +1449,7 @@ export class GumballGizmo extends Object3D {
 
 			handle.object.scale
 				.set(1, 1, 1)
-				.multiplyScalar(factor * this._gumballControls.size);
+				.multiplyScalar(factor * this._gumballTransformControls.size);
 
 			// TODO: simplify helpers and consider decoupling from gizmo
 
@@ -1457,9 +1457,9 @@ export class GumballGizmo extends Object3D {
 				handle.object.visible = false;
 
 				if (handle.object.name === "AXIS") {
-					handle.object.visible = !!this._gumballControls.axis;
+					handle.object.visible = !!this._gumballTransformControls.axis;
 
-					if (this._gumballControls.axis === "X") {
+					if (this._gumballTransformControls.axis === "X") {
 						_tempQuaternion.setFromEuler(_tempEuler.set(0, 0, 0));
 						handle.object.quaternion
 							.copy(quaternion)
@@ -1470,14 +1470,14 @@ export class GumballGizmo extends Object3D {
 								_alignVector
 									.copy(_unitX)
 									.applyQuaternion(quaternion)
-									.dot(this._gumballControls.eye),
+									.dot(this._gumballTransformControls.eye),
 							) > 0.9
 						) {
 							handle.object.visible = false;
 						}
 					}
 
-					if (this._gumballControls.axis === "Y") {
+					if (this._gumballTransformControls.axis === "Y") {
 						_tempQuaternion.setFromEuler(
 							_tempEuler.set(0, 0, Math.PI / 2),
 						);
@@ -1490,14 +1490,14 @@ export class GumballGizmo extends Object3D {
 								_alignVector
 									.copy(_unitY)
 									.applyQuaternion(quaternion)
-									.dot(this._gumballControls.eye),
+									.dot(this._gumballTransformControls.eye),
 							) > 0.9
 						) {
 							handle.object.visible = false;
 						}
 					}
 
-					if (this._gumballControls.axis === "Z") {
+					if (this._gumballTransformControls.axis === "Z") {
 						_tempQuaternion.setFromEuler(
 							_tempEuler.set(0, Math.PI / 2, 0),
 						);
@@ -1510,18 +1510,18 @@ export class GumballGizmo extends Object3D {
 								_alignVector
 									.copy(_unitZ)
 									.applyQuaternion(quaternion)
-									.dot(this._gumballControls.eye),
+									.dot(this._gumballTransformControls.eye),
 							) > 0.9
 						) {
 							handle.object.visible = false;
 						}
 					}
 
-					if (this._gumballControls.axis === "XYZE") {
+					if (this._gumballTransformControls.axis === "XYZE") {
 						_tempQuaternion.setFromEuler(
 							_tempEuler.set(0, Math.PI / 2, 0),
 						);
-						_alignVector.copy(this._gumballControls.rotationAxis);
+						_alignVector.copy(this._gumballTransformControls.rotationAxis);
 						handle.object.quaternion.setFromRotationMatrix(
 							_lookAtMatrix.lookAt(
 								_zeroVector,
@@ -1530,57 +1530,57 @@ export class GumballGizmo extends Object3D {
 							),
 						);
 						handle.object.quaternion.multiply(_tempQuaternion);
-						handle.object.visible = this._gumballControls.dragging;
+						handle.object.visible = this._gumballTransformControls.dragging;
 					}
 
-					if (this._gumballControls.axis === "E") {
+					if (this._gumballTransformControls.axis === "E") {
 						handle.object.visible = false;
 					}
 				} else if (handle.object.name === "START") {
 					handle.object.position.copy(
-						this._gumballControls.worldPositionStart,
+						this._gumballTransformControls.worldPositionStart,
 					);
-					handle.object.visible = this._gumballControls.dragging;
+					handle.object.visible = this._gumballTransformControls.dragging;
 				} else if (handle.object.name === "END") {
 					handle.object.position.copy(
-						this._gumballControls.worldPosition,
+						this._gumballTransformControls.worldPosition,
 					);
-					handle.object.visible = this._gumballControls.dragging;
+					handle.object.visible = this._gumballTransformControls.dragging;
 				} else if (handle.object.name === "DELTA") {
 					handle.object.position.copy(
-						this._gumballControls.worldPositionStart,
+						this._gumballTransformControls.worldPositionStart,
 					);
 					handle.object.quaternion.copy(
-						this._gumballControls.worldQuaternionStart,
+						this._gumballTransformControls.worldQuaternionStart,
 					);
 					_tempVector
 						.set(1e-10, 1e-10, 1e-10)
-						.add(this._gumballControls.worldPositionStart)
-						.sub(this._gumballControls.worldPosition)
+						.add(this._gumballTransformControls.worldPositionStart)
+						.sub(this._gumballTransformControls.worldPosition)
 						.multiplyScalar(-1);
 					_tempVector.applyQuaternion(
-						this._gumballControls.worldQuaternionStart
+						this._gumballTransformControls.worldQuaternionStart
 							.clone()
 							.invert(),
 					);
 					handle.object.scale.copy(_tempVector);
-					handle.object.visible = this._gumballControls.dragging;
+					handle.object.visible = this._gumballTransformControls.dragging;
 				} else {
 					handle.object.quaternion.copy(quaternion);
 
-					if (this._gumballControls.dragging) {
+					if (this._gumballTransformControls.dragging) {
 						handle.object.position.copy(
-							this._gumballControls.worldPositionStart,
+							this._gumballTransformControls.worldPositionStart,
 						);
 					} else {
 						handle.object.position.copy(
-							this._gumballControls.worldPosition,
+							this._gumballTransformControls.worldPosition,
 						);
 					}
 
-					if (this._gumballControls.axis) {
+					if (this._gumballTransformControls.axis) {
 						handle.object.visible =
-							this._gumballControls.axis.search(
+							this._gumballTransformControls.axis.search(
 								handle.object.name,
 							) !== -1;
 					}
@@ -1610,7 +1610,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitX)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) > AXIS_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1624,7 +1624,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitY)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) > AXIS_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1638,7 +1638,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitZ)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) > AXIS_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1652,7 +1652,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitZ)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) < PLANE_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1666,7 +1666,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitX)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) < PLANE_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1680,7 +1680,7 @@ export class GumballGizmo extends Object3D {
 							_alignVector
 								.copy(_unitY)
 								.applyQuaternion(quaternion)
-								.dot(this._gumballControls.eye),
+								.dot(this._gumballTransformControls.eye),
 						) < PLANE_HIDE_THRESHOLD
 					) {
 						handle.object.scale.set(1e-10, 1e-10, 1e-10);
@@ -1694,13 +1694,13 @@ export class GumballGizmo extends Object3D {
 
 				_tempQuaternion2.copy(quaternion);
 				_alignVector
-					.copy(this._gumballControls.eye)
+					.copy(this._gumballTransformControls.eye)
 					.applyQuaternion(_tempQuaternion.copy(quaternion).invert());
 
 				if (handle.object.name.search("E") !== -1) {
 					handle.object.quaternion.setFromRotationMatrix(
 						_lookAtMatrix.lookAt(
-							this._gumballControls.eye,
+							this._gumballTransformControls.eye,
 							_zeroVector,
 							_unitY,
 						),
@@ -1748,21 +1748,21 @@ export class GumballGizmo extends Object3D {
 			handle.object.visible =
 				handle.object.visible &&
 				(handle.object.name.indexOf("X") === -1 ||
-					this._gumballControls.showX);
+					this._gumballTransformControls.showX);
 			handle.object.visible =
 				handle.object.visible &&
 				(handle.object.name.indexOf("Y") === -1 ||
-					this._gumballControls.showY);
+					this._gumballTransformControls.showY);
 			handle.object.visible =
 				handle.object.visible &&
 				(handle.object.name.indexOf("Z") === -1 ||
-					this._gumballControls.showZ);
+					this._gumballTransformControls.showZ);
 			handle.object.visible =
 				handle.object.visible &&
 				(handle.object.name.indexOf("E") === -1 ||
-					(this._gumballControls.showX &&
-						this._gumballControls.showY &&
-						this._gumballControls.showZ));
+					(this._gumballTransformControls.showX &&
+						this._gumballTransformControls.showY &&
+						this._gumballTransformControls.showZ));
 
 			// highlight selected axis
 			if (
@@ -1784,15 +1784,15 @@ export class GumballGizmo extends Object3D {
 				)._opacity;
 
 				if (
-					this._gumballControls.enabled &&
-					this._gumballControls.axis &&
-					handle.mode === this._gumballControls.mode
+					this._gumballTransformControls.enabled &&
+					this._gumballTransformControls.axis &&
+					handle.mode === this._gumballTransformControls.mode
 				) {
-					if (handle.object.name === this._gumballControls.axis) {
+					if (handle.object.name === this._gumballTransformControls.axis) {
 						handle.object.material.color.setHex(0xffff00);
 						handle.object.material.opacity = 1.0;
 					} else if (
-						this._gumballControls.axis.split("").some(function (a) {
+						this._gumballTransformControls.axis.split("").some(function (a) {
 							return handle.object.name === a;
 						})
 					) {
@@ -1800,8 +1800,8 @@ export class GumballGizmo extends Object3D {
 						handle.object.material.opacity = 1.0;
 					}
 				} else if (
-					this._gumballControls.enabled &&
-					this._gumballControls.pivotDragged
+					this._gumballTransformControls.enabled &&
+					this._gumballTransformControls.pivotDragged
 				) {
 					handle.object.material.color.setHex(0xffff00);
 					handle.object.material.opacity = 1.0;

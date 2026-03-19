@@ -1,24 +1,24 @@
-import {IGumballParameter} from "@shapediver/viewer.session-engine.session-engine";
+﻿import {IGumballTransformParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {
 	InteractionEffect,
 	InteractionParameterSettingsType,
 } from "@shapediver/viewer.shared.types";
-import {IGumballParameterApi} from "../../interfaces/parameter/IGumballParameterApi";
+import {IGumballTransformParameterApi} from "../../interfaces/parameter/IGumballTransformParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
-export class GumballParameterApi
+export class GumballTransformParameterApi
 	extends ParameterApi<string>
-	implements IGumballParameterApi
+	implements IGumballTransformParameterApi
 {
 	// #region Properties (1)
 
-	readonly #parameter: IGumballParameter;
+	readonly #parameter: IGumballTransformParameter;
 
 	// #endregion Properties (1)
 
 	// #region Constructors (1)
 
-	constructor(parameter: IGumballParameter) {
+	constructor(parameter: IGumballTransformParameter) {
 		super(parameter);
 		this.#parameter = parameter;
 	}
@@ -70,6 +70,6 @@ export class GumballParameterApi
 	// #endregion Public Getters And Setters (9)
 }
 
-export const isGumballParameterApi = (
+export const isGumballTransformParameterApi = (
 	obj: unknown,
-): obj is IGumballParameterApi => obj instanceof GumballParameterApi;
+): obj is IGumballTransformParameterApi => obj instanceof GumballTransformParameterApi;

@@ -1,11 +1,11 @@
-import {
+﻿import {
 	ITransformationToolsManager,
 	Settings,
 } from "../ITransformationToolsManager";
 
-export interface IGumball extends ITransformationToolsManager {}
+export interface IGumballTransform extends ITransformationToolsManager {}
 
-export type GumballSettings = {
+export type GumballTransformSettings = {
 	/**
 	 * Enable or disable the rotation per axis.
 	 */
@@ -53,4 +53,4 @@ export type GumballSettings = {
 	scale: number;
 } & Settings;
 
-export type GumballSettingsOptional = Partial<GumballSettings>;
+export type GumballTransformSettingsOptional = Partial<GumballTransformSettings>;

@@ -1,14 +1,14 @@
-import {Fireball} from "./implementation/fireball/Fireball";
-import {Gumball} from "./implementation/gumball/Gumball";
+﻿import {RectangleTransform} from "./implementation/rectangleTransform/RectangleTransform";
+import {GumballTransform} from "./implementation/gumballTransform/GumballTransform";
 import {EventResponseMapping} from "./interfaces/events/EventResponseMapping";
 import {ITransformationToolsEvent} from "./interfaces/events/ITransformationToolsEvent";
-import {IFireball} from "./interfaces/fireball/IFireball";
-import {IFireballEvent} from "./interfaces/fireball/IFireballEvents";
-import {IGumball} from "./interfaces/gumball/IGumball";
-import {IGumballEvent} from "./interfaces/gumball/IGumballEvent";
+import {IRectangleTransform} from "./interfaces/rectangleTransform/IRectangleTransform";
+import {IRectangleTransformEvent} from "./interfaces/rectangleTransform/IRectangleTransformEvents";
+import {IGumballTransform} from "./interfaces/gumballTransform/IGumballTransform";
+import {IGumballTransformEvent} from "./interfaces/gumballTransform/IGumballTransformEvent";
 import {updateTransformation} from "./updateTransformation";
 
-export {IGumball, Gumball, IGumballEvent};
-export {IFireball, Fireball, IFireballEvent};
+export {IGumballTransform, GumballTransform, IGumballTransformEvent};
+export {IRectangleTransform, RectangleTransform, IRectangleTransformEvent};
 export {EventResponseMapping, ITransformationToolsEvent};
 export {updateTransformation};

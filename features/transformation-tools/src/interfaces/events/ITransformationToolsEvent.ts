@@ -1,4 +1,4 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+﻿import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {IViewportEvent} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
@@ -23,5 +23,5 @@ export interface ITransformationToolsEvent extends IViewportEvent {
 	/**
 	 * The type of transformation tools that was used.
 	 */
-	type: "gumball" | "fireball";
+	type: "gumballTransform" | "rectangleTransform";
 }

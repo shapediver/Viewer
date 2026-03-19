@@ -1,9 +1,9 @@
-import {RestrictionDefinition} from "../..";
+﻿import {RestrictionDefinition} from "../..";
 import {ISelectionParameterProps} from "./ISelectionParameterSettings";
 
 // #region Type aliases (1)
 
-export type GumballParameterValue = {
+export type GumballTransformParameterValue = {
 	names: string[];
 	transformations: number[][];
 };
@@ -29,7 +29,7 @@ export interface IDraggableObject {
 /**
  * Properties of a selection parameter.
  */
-export interface IGumballParameterProps extends ISelectionParameterProps {
+export interface IGumballTransformParameterProps extends ISelectionParameterProps {
 	// #region Properties (5)
 
 	/** If the rotation is enabled. (default: true) */

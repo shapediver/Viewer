@@ -1,4 +1,4 @@
-import {
+﻿import {
 	processError,
 	ReqFileDefinition,
 	ResComputationStatus,
@@ -31,7 +31,7 @@ import {
 
 import {IParameter} from "../../interfaces/dto/IParameter";
 import {DraggingParameter} from "../dto/interaction/DraggingParameter";
-import {GumballParameter} from "../dto/interaction/GumballParameter";
+import {GumballTransformParameter} from "../dto/interaction/GumballTransformParameter";
 import {SelectionParameter} from "../dto/interaction/SelectionParameter";
 import {Parameter} from "../dto/Parameter";
 import {SessionEngineCore} from "../SessionEngineCore";
@@ -193,8 +193,8 @@ export class UtilsManager {
 						this._sessionEngineCore,
 						this._sessionEngineCore.parameterManager,
 					);
-				case "gumball":
-					return new GumballParameter(
+				case "gumballTransform":
+					return new GumballTransformParameter(
 						parameter,
 						this._sessionEngineCore,
 						this._sessionEngineCore.parameterManager,

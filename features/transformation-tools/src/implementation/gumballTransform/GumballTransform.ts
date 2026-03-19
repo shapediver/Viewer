@@ -1,17 +1,17 @@
-import * as THREE from "three";
+﻿import * as THREE from "three";
 
 import {ITreeNode, IViewportApi, SystemInfo} from "@shapediver/viewer";
 
 import {mat4} from "gl-matrix";
 
-import {IGumball} from "../..";
-import {GumballSettingsOptional} from "../../interfaces/gumball/IGumball";
+import {IGumballTransform} from "../..";
+import {GumballTransformSettingsOptional} from "../../interfaces/gumballTransform/IGumballTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
-import {GumballControls} from "./three/GumballControls";
+import {GumballTransformControls} from "./three/GumballTransformControls";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export class Gumball extends TransformationToolsManager implements IGumball {
-	readonly #gumballControls: GumballControls;
+export class GumballTransform extends TransformationToolsManager implements IGumballTransform {
+	readonly #gumballTransformControls: GumballTransformControls;
 	readonly #systemInfo: SystemInfo = SystemInfo.instance;
 	readonly #transformationToolsPlaceholder: THREE.Object3D =
 		new THREE.Object3D();
@@ -28,11 +28,11 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 	constructor(
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
-		settings?: GumballSettingsOptional,
+		settings?: GumballTransformSettingsOptional,
 	) {
 		super(viewport, nodes, settings);
 
-		this.#gumballControls = new GumballControls(
+		this.#gumballTransformControls = new GumballTransformControls(
 			viewport.threeJsCoreObjects.camera,
 			viewport.threeJsCoreObjects.renderer.domElement,
 			this.restrictionManager,
@@ -47,70 +47,70 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 		this.#space = settings?.space ?? "local";
 
 		this.enableRotation = settings?.enableRotation ?? true;
-		this.#gumballControls.gizmo.enableRotationX =
+		this.#gumballTransformControls.gizmo.enableRotationX =
 			settings?.enableRotationAxes?.x ?? true;
-		this.#gumballControls.gizmo.enableRotationY =
+		this.#gumballTransformControls.gizmo.enableRotationY =
 			settings?.enableRotationAxes?.y ?? true;
-		this.#gumballControls.gizmo.enableRotationZ =
+		this.#gumballTransformControls.gizmo.enableRotationZ =
 			settings?.enableRotationAxes?.z ?? true;
-		this.#gumballControls.gizmo.enableRotationXY =
+		this.#gumballTransformControls.gizmo.enableRotationXY =
 			settings?.enableRotationAxes?.xy === undefined
-				? this.#gumballControls.gizmo.enableRotationX &&
-					this.#gumballControls.gizmo.enableRotationY
+				? this.#gumballTransformControls.gizmo.enableRotationX &&
+					this.#gumballTransformControls.gizmo.enableRotationY
 				: settings?.enableRotationAxes?.xy;
-		this.#gumballControls.gizmo.enableRotationYZ =
+		this.#gumballTransformControls.gizmo.enableRotationYZ =
 			settings?.enableRotationAxes?.yz === undefined
-				? this.#gumballControls.gizmo.enableRotationY &&
-					this.#gumballControls.gizmo.enableRotationZ
+				? this.#gumballTransformControls.gizmo.enableRotationY &&
+					this.#gumballTransformControls.gizmo.enableRotationZ
 				: settings?.enableRotationAxes?.yz;
-		this.#gumballControls.gizmo.enableRotationXZ =
+		this.#gumballTransformControls.gizmo.enableRotationXZ =
 			settings?.enableRotationAxes?.xz === undefined
-				? this.#gumballControls.gizmo.enableRotationX &&
-					this.#gumballControls.gizmo.enableRotationZ
+				? this.#gumballTransformControls.gizmo.enableRotationX &&
+					this.#gumballTransformControls.gizmo.enableRotationZ
 				: settings?.enableRotationAxes?.xz;
 		this.enableScaling = settings?.enableScaling ?? false;
-		this.#gumballControls.gizmo.enableScalingX =
+		this.#gumballTransformControls.gizmo.enableScalingX =
 			settings?.enableScalingAxes?.x ?? true;
-		this.#gumballControls.gizmo.enableScalingY =
+		this.#gumballTransformControls.gizmo.enableScalingY =
 			settings?.enableScalingAxes?.y ?? true;
-		this.#gumballControls.gizmo.enableScalingZ =
+		this.#gumballTransformControls.gizmo.enableScalingZ =
 			settings?.enableScalingAxes?.z ?? true;
-		this.#gumballControls.gizmo.enableScalingXY =
+		this.#gumballTransformControls.gizmo.enableScalingXY =
 			settings?.enableScalingAxes?.xy === undefined
-				? this.#gumballControls.gizmo.enableScalingX &&
-					this.#gumballControls.gizmo.enableScalingY
+				? this.#gumballTransformControls.gizmo.enableScalingX &&
+					this.#gumballTransformControls.gizmo.enableScalingY
 				: settings?.enableScalingAxes?.xy;
-		this.#gumballControls.gizmo.enableScalingYZ =
+		this.#gumballTransformControls.gizmo.enableScalingYZ =
 			settings?.enableScalingAxes?.yz === undefined
-				? this.#gumballControls.gizmo.enableScalingY &&
-					this.#gumballControls.gizmo.enableScalingZ
+				? this.#gumballTransformControls.gizmo.enableScalingY &&
+					this.#gumballTransformControls.gizmo.enableScalingZ
 				: settings?.enableScalingAxes?.yz;
-		this.#gumballControls.gizmo.enableScalingXZ =
+		this.#gumballTransformControls.gizmo.enableScalingXZ =
 			settings?.enableScalingAxes?.xz === undefined
-				? this.#gumballControls.gizmo.enableScalingX &&
-					this.#gumballControls.gizmo.enableScalingZ
+				? this.#gumballTransformControls.gizmo.enableScalingX &&
+					this.#gumballTransformControls.gizmo.enableScalingZ
 				: settings?.enableScalingAxes?.xz;
 		this.enableTranslation = settings?.enableTranslation ?? true;
-		this.#gumballControls.gizmo.enableTranslationX =
+		this.#gumballTransformControls.gizmo.enableTranslationX =
 			settings?.enableTranslationAxes?.x ?? true;
-		this.#gumballControls.gizmo.enableTranslationY =
+		this.#gumballTransformControls.gizmo.enableTranslationY =
 			settings?.enableTranslationAxes?.y ?? true;
-		this.#gumballControls.gizmo.enableTranslationZ =
+		this.#gumballTransformControls.gizmo.enableTranslationZ =
 			settings?.enableTranslationAxes?.z ?? true;
-		this.#gumballControls.gizmo.enableTranslationXY =
+		this.#gumballTransformControls.gizmo.enableTranslationXY =
 			settings?.enableTranslationAxes?.xy === undefined
-				? this.#gumballControls.gizmo.enableTranslationX &&
-					this.#gumballControls.gizmo.enableTranslationY
+				? this.#gumballTransformControls.gizmo.enableTranslationX &&
+					this.#gumballTransformControls.gizmo.enableTranslationY
 				: settings?.enableTranslationAxes?.xy;
-		this.#gumballControls.gizmo.enableTranslationYZ =
+		this.#gumballTransformControls.gizmo.enableTranslationYZ =
 			settings?.enableTranslationAxes?.yz === undefined
-				? this.#gumballControls.gizmo.enableTranslationY &&
-					this.#gumballControls.gizmo.enableTranslationZ
+				? this.#gumballTransformControls.gizmo.enableTranslationY &&
+					this.#gumballTransformControls.gizmo.enableTranslationZ
 				: settings?.enableTranslationAxes?.yz;
-		this.#gumballControls.gizmo.enableTranslationXZ =
+		this.#gumballTransformControls.gizmo.enableTranslationXZ =
 			settings?.enableTranslationAxes?.xz === undefined
-				? this.#gumballControls.gizmo.enableTranslationX &&
-					this.#gumballControls.gizmo.enableTranslationZ
+				? this.#gumballTransformControls.gizmo.enableTranslationX &&
+					this.#gumballTransformControls.gizmo.enableTranslationZ
 				: settings?.enableTranslationAxes?.xz;
 
 		this.setup();
@@ -122,7 +122,7 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 
 	public set enableRotation(value: boolean) {
 		this.#enableRotation = value;
-		this.#gumballControls.gizmo.enableRotation = value;
+		this.#gumballTransformControls.gizmo.enableRotation = value;
 	}
 
 	public get enableScaling(): boolean {
@@ -131,7 +131,7 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 
 	public set enableScaling(value: boolean) {
 		this.#enableScaling = value;
-		this.#gumballControls.gizmo.enableScaling = value;
+		this.#gumballTransformControls.gizmo.enableScaling = value;
 	}
 
 	public get enableTranslation(): boolean {
@@ -140,7 +140,7 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 
 	public set enableTranslation(value: boolean) {
 		this.#enableTranslation = value;
-		this.#gumballControls.gizmo.enableTranslation = value;
+		this.#gumballTransformControls.gizmo.enableTranslation = value;
 	}
 
 	public get scale(): number {
@@ -157,15 +157,15 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 		);
 	}
 
-	public get type(): "gumball" {
-		return "gumball";
+	public get type(): "gumballTransform" {
+		return "gumballTransform";
 	}
 
 	public closeLogic(): void {
-		this.parentObject.remove(this.#gumballControls);
+		this.parentObject.remove(this.#gumballTransformControls);
 		this.parentObject.remove(this.#transformationToolsPlaceholder);
-		this.#gumballControls.detach();
-		this.#gumballControls.dispose();
+		this.#gumballTransformControls.detach();
+		this.#gumballTransformControls.dispose();
 		this.viewport.threeJsCoreObjects.scene.remove(this.parentObject);
 	}
 
@@ -199,10 +199,10 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 	public onMouseWheel(event: WheelEvent): void {}
 
 	public onPointerDownLogic(event: PointerEvent): void {
-		this.#gumballControls.onPointerDown(event);
+		this.#gumballTransformControls.onPointerDown(event);
 
-		this.#moving = this.#gumballControls.dragging;
-		if (this.#gumballControls.dragging || this.#gumballControls.hovering)
+		this.#moving = this.#gumballTransformControls.dragging;
+		if (this.#gumballTransformControls.dragging || this.#gumballTransformControls.hovering)
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -214,7 +214,7 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 			this.canvasEventListenerToken,
 		);
 
-		this.#gumballControls.onPointerUp(event);
+		this.#gumballTransformControls.onPointerUp(event);
 	}
 
 	public onPointerMoveLogic(event: PointerEvent): void {
@@ -231,10 +231,10 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 			this.deactivatePivotDragging();
 		}
 
-		this.#gumballControls.onPointerHover(event);
-		if (this.#moving) this.#gumballControls.onPointerMove(event);
+		this.#gumballTransformControls.onPointerHover(event);
+		if (this.#moving) this.#gumballTransformControls.onPointerMove(event);
 
-		if (this.#gumballControls.dragging || this.#gumballControls.hovering) {
+		if (this.#gumballTransformControls.dragging || this.#gumballTransformControls.hovering) {
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -256,10 +256,10 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 	private activatePivotDragging() {
 		this.#pivotDragging = true;
 
-		this.#gumballControls.pivotDragged = true;
-		this.#gumballControls.gizmo.enableTranslation = true;
-		this.#gumballControls.gizmo.enableRotation = false;
-		this.#gumballControls.gizmo.enableScaling = false;
+		this.#gumballTransformControls.pivotDragged = true;
+		this.#gumballTransformControls.gizmo.enableTranslation = true;
+		this.#gumballTransformControls.gizmo.enableRotation = false;
+		this.#gumballTransformControls.gizmo.enableScaling = false;
 
 		if (this.singleNode === true && this.reuseTransformation === true) {
 			const index = this.nodes[0].transformations.findIndex(
@@ -282,10 +282,10 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 	private deactivatePivotDragging() {
 		this.#pivotDragging = false;
 
-		this.#gumballControls.pivotDragged = false;
-		this.#gumballControls.gizmo.enableTranslation = this.#enableTranslation;
-		this.#gumballControls.gizmo.enableRotation = this.#enableRotation;
-		this.#gumballControls.gizmo.enableScaling = this.#enableScaling;
+		this.#gumballTransformControls.pivotDragged = false;
+		this.#gumballTransformControls.gizmo.enableTranslation = this.#enableTranslation;
+		this.#gumballTransformControls.gizmo.enableRotation = this.#enableRotation;
+		this.#gumballTransformControls.gizmo.enableScaling = this.#enableScaling;
 	}
 
 	private setup() {
@@ -294,14 +294,14 @@ export class Gumball extends TransformationToolsManager implements IGumball {
 			new THREE.Matrix4().fromArray(matrix),
 		);
 
-		this.#gumballControls.attach(this.#transformationToolsPlaceholder);
-		this.#gumballControls.setSize(this.scale);
-		this.parentObject.add(this.#gumballControls);
+		this.#gumballTransformControls.attach(this.#transformationToolsPlaceholder);
+		this.#gumballTransformControls.setSize(this.scale);
+		this.parentObject.add(this.#gumballTransformControls);
 		this.parentObject.add(this.#transformationToolsPlaceholder);
 		this.viewport.threeJsCoreObjects.scene.add(this.parentObject);
 
 		// we register the CAMERA_FREEZE whenever the dragging happens
-		this.#gumballControls.addEventListener(
+		this.#gumballTransformControls.addEventListener(
 			"dragging-changed",
 			(event: unknown) =>
 				this.toggleCameraFreeze(!(event as {value: boolean}).value),

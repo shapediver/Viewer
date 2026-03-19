@@ -52,7 +52,7 @@ function normalizeSignedAngle(angle: number): number {
 	return normalized;
 }
 
-export class FireballRotationHandler {
+export class RectangleTransformRotationHandler {
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #handleDistance: number;
 	readonly #plane: Plane;
@@ -202,7 +202,7 @@ export class FireballRotationHandler {
 
 	/**
 	 * Rotate localPoints by an explicit angle (radians) around their center.
-	 * Used by Fireball to apply the clamped delta after min/max enforcement.
+	 * Used by RectangleTransform to apply the clamped delta after min/max enforcement.
 	 */
 	public computeDragByAngle(
 		localPoints: vec3[],

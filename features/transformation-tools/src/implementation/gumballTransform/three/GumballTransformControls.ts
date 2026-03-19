@@ -1,4 +1,4 @@
-import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+﻿import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
 import {
 	Camera,
@@ -11,8 +11,8 @@ import {
 	Vector3,
 } from "three";
 
-import {GumballGizmo} from "./GumballGizmo";
-import {GumballPlane} from "./GumballPlane";
+import {GumballTransformGizmo} from "./GumballTransformGizmo";
+import {GumballTransformPlane} from "./GumballTransformPlane";
 
 export enum TransformationType {
 	TRANSLATION = "translation",
@@ -20,7 +20,7 @@ export enum TransformationType {
 	SCALE = "scale",
 }
 
-export class GumballControls extends Object3D {
+export class GumballTransformControls extends Object3D {
 	private _axis: string | null = null;
 	private _camera: Camera;
 	private _cameraPosition: Vector3 = new Vector3();
@@ -30,7 +30,7 @@ export class GumballControls extends Object3D {
 	private _enabled: boolean = true;
 	private _endNorm: Vector3;
 	private _eye: Vector3 = new Vector3();
-	private _gizmo: GumballGizmo;
+	private _gizmo: GumballTransformGizmo;
 	private _hovering: boolean = false;
 	private _mode?: TransformationType;
 	private _object: Object3D | undefined = undefined;
@@ -40,7 +40,7 @@ export class GumballControls extends Object3D {
 	private _parentQuaternionInv: Quaternion = new Quaternion();
 	private _parentScale: Vector3;
 	private _pivotDragged: boolean = false;
-	private _plane: GumballPlane;
+	private _plane: GumballTransformPlane;
 	private _pointEnd: Vector3 = new Vector3();
 	private _pointStart: Vector3 = new Vector3();
 	private _positionStart: Vector3;
@@ -69,7 +69,7 @@ export class GumballControls extends Object3D {
 	private _worldScaleStart: Vector3;
 
 	public domElement: HTMLElement;
-	public isGumballControls: boolean;
+	public isGumballTransformControls: boolean;
 
 	constructor(
 		camera: Camera,
@@ -89,22 +89,22 @@ export class GumballControls extends Object3D {
 
 		if (domElement === undefined) {
 			console.warn(
-				'THREE.GumballControls: The second parameter "domElement" is now mandatory.',
+				'THREE.GumballTransformControls: The second parameter "domElement" is now mandatory.',
 			);
 			domElement = document as unknown as HTMLElement;
 		}
 
-		this.isGumballControls = true;
+		this.isGumballTransformControls = true;
 
 		this.visible = false;
 		this.domElement = domElement;
 		this.domElement.style.touchAction = "none"; // disable touch scroll
 
-		const _gizmo = new GumballGizmo(this);
+		const _gizmo = new GumballTransformGizmo(this);
 		this._gizmo = _gizmo;
 		this.add(_gizmo);
 
-		const _plane = new GumballPlane(this);
+		const _plane = new GumballTransformPlane(this);
 		this._plane = _plane;
 		this.add(_plane);
 
@@ -172,7 +172,7 @@ export class GumballControls extends Object3D {
 		return this._eye;
 	}
 
-	public get gizmo(): GumballGizmo {
+	public get gizmo(): GumballTransformGizmo {
 		return this._gizmo;
 	}
 
@@ -578,7 +578,7 @@ export class GumballControls extends Object3D {
 
 			object.position.copy(this._offset).add(this._positionStart);
 
-			// get the center of the gumball in world coordinates
+			// get the center of the gumballTransform in world coordinates
 			const center = new Vector3().copy(object.position);
 
 			// use the camera to project the center into screen space
@@ -865,7 +865,7 @@ export class GumballControls extends Object3D {
 
 			if (this.object.parent === null) {
 				console.error(
-					"GumballControls: The attached 3D object must be a part of the scene graph.",
+					"GumballTransformControls: The attached 3D object must be a part of the scene graph.",
 				);
 			} else {
 				this.object.parent.matrixWorld.decompose(

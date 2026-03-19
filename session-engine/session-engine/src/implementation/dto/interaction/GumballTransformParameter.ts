@@ -1,20 +1,20 @@
-import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
+﻿import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	IGumballParameterProps,
+	IGumballTransformParameterProps,
 	IInteractionParameterSettings,
 	InteractionEffect,
 	InteractionParameterSettingsType,
-	validateGumballParameterSettings,
+	validateGumballTransformParameterSettings,
 } from "@shapediver/viewer.shared.types";
 
-import {IGumballParameter} from "../../../interfaces/dto/interaction/IGumballParameter";
+import {IGumballTransformParameter} from "../../../interfaces/dto/interaction/IGumballTransformParameter";
 import {ParameterManager} from "../../managers/ParameterManager";
 import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";
 
-export class GumballParameter
+export class GumballTransformParameter
 	extends Parameter<string>
-	implements IGumballParameter
+	implements IGumballTransformParameter
 {
 	readonly #parameterManager: ParameterManager;
 	readonly #sessionEngineCore: SessionEngineCore;
@@ -30,61 +30,61 @@ export class GumballParameter
 	}
 
 	public get enableRotation(): boolean | undefined {
-		return this.getGumballProperties()?.enableRotation;
+		return this.getGumballTransformProperties()?.enableRotation;
 	}
 
 	public get enableRotationAxes():
 		| {x?: boolean; y?: boolean; z?: boolean}
 		| undefined {
-		return this.getGumballProperties()?.enableRotationAxes;
+		return this.getGumballTransformProperties()?.enableRotationAxes;
 	}
 
 	public get enableScaling(): boolean | undefined {
-		return this.getGumballProperties()?.enableScaling;
+		return this.getGumballTransformProperties()?.enableScaling;
 	}
 
 	public get enableScalingAxes():
 		| {x?: boolean; y?: boolean; z?: boolean}
 		| undefined {
-		return this.getGumballProperties()?.enableScalingAxes;
+		return this.getGumballTransformProperties()?.enableScalingAxes;
 	}
 
 	public get enableTranslation(): boolean | undefined {
-		return this.getGumballProperties()?.enableTranslation;
+		return this.getGumballTransformProperties()?.enableTranslation;
 	}
 
 	public get enableTranslationAxes():
 		| {x?: boolean; y?: boolean; z?: boolean}
 		| undefined {
-		return this.getGumballProperties()?.enableTranslationAxes;
+		return this.getGumballTransformProperties()?.enableTranslationAxes;
 	}
 
 	public get hover(): boolean | undefined {
-		return this.getGumballProperties()?.hover;
+		return this.getGumballTransformProperties()?.hover;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
-		return "gumball";
+		return "gumballTransform";
 	}
 
 	public get nameFilter(): string[] | undefined {
-		return this.getGumballProperties()?.nameFilter;
+		return this.getGumballTransformProperties()?.nameFilter;
 	}
 
 	public get scale(): number | undefined {
-		return this.getGumballProperties()?.scale;
+		return this.getGumballTransformProperties()?.scale;
 	}
 
 	public get selectionColor(): InteractionEffect | undefined {
-		return this.getGumballProperties()?.selectionColor;
+		return this.getGumballTransformProperties()?.selectionColor;
 	}
 
 	public get space(): "local" | "world" | undefined {
-		return this.getGumballProperties()?.space;
+		return this.getGumballTransformProperties()?.space;
 	}
 
-	private getGumballProperties(): IGumballParameterProps | undefined {
-		const result = validateGumballParameterSettings(
+	private getGumballTransformProperties(): IGumballTransformParameterProps | undefined {
+		const result = validateGumballTransformParameterSettings(
 			this.settings as unknown as IInteractionParameterSettings,
 		);
 		if (result.success) {

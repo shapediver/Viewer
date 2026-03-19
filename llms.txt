@@ -1,4 +1,4 @@
-# ShapeDiver Viewer
+﻿# ShapeDiver Viewer
 
 The ShapeDiver Viewer is a comprehensive 3D visualization library built with TypeScript and WebGL. This is the main repository for the ShapeDiver Viewer, which produces the `@shapediver/viewer` npm package and its feature extensions.
 
@@ -40,8 +40,8 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
   - [Help Documentation](https://help.shapediver.com/doc/attribute-visualization)
 - `@shapediver/viewer.features.drawing-tools` (v3.15.10) - Drawing Tools feature
   - [Help Documentation](https://help.shapediver.com/doc/drawing-tools)
-- `@shapediver/viewer.features.gumball` (v3.15.10) - Gumball feature
-  - [Help Documentation](https://help.shapediver.com/doc/gumball)
+- `@shapediver/viewer.features.gumballTransform` (v3.15.10) - GumballTransform feature
+  - [Help Documentation](https://help.shapediver.com/doc/gumballTransform)
 - `@shapediver/viewer.features.interaction` (v3.15.10) - interaction features
   - [Help Documentation](https://help.shapediver.com/doc/interactions-part-1)
 
@@ -82,7 +82,7 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
 - **ISelectionParameterApi** - Manage selection-based parameters with multiple choice options
 - **IDraggingParameterApi** - Support drag-and-drop interactions for 3D parameter control
 - **IDrawingParameterApi** - Enable drawing-based parameter input (lines, shapes, annotations)
-- **IGumballParameterApi** - 3D transformation gizmo for object manipulation
+- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation
 - **IInteractionParameterApi** - General interaction-based parameter handling
 
 #### Sub-APIs for Advanced Control
@@ -119,7 +119,7 @@ import { isViewerError, isViewerSessionError, isViewerViewportError } from "@sha
 import { createDrawingTools } from "@shapediver/viewer.features.drawing-tools";
 import { InteractionEngine, SelectManager, DragManager } from "@shapediver/viewer.features.interaction";
 import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
-import { Gumball } from "@shapediver/viewer.features.gumball";
+import { GumballTransform } from "@shapediver/viewer.features.gumballTransform";
 ```
 
 ### 3D Rendering
@@ -253,7 +253,7 @@ npm install @shapediver/viewer.viewport
 # Install only the features you need
 npm install @shapediver/viewer.features.attribute-visualization
 npm install @shapediver/viewer.features.drawing-tools
-npm install @shapediver/viewer.features.gumball
+npm install @shapediver/viewer.features.gumballTransform
 npm install @shapediver/viewer.features.interaction
 ```
 
@@ -263,7 +263,7 @@ npm install @shapediver/viewer.features.interaction
 npm install @shapediver/viewer \
             @shapediver/viewer.features.attribute-visualization \
             @shapediver/viewer.features.drawing-tools \
-            @shapediver/viewer.features.gumball \
+            @shapediver/viewer.features.gumballTransform \
             @shapediver/viewer.features.interaction
 ```
 
@@ -284,7 +284,7 @@ Based on the current examples in the repository:
 
 ### cdn
 - **Setup**: Basic example
-- **Features Used**: attribute-visualization, drawing-tools, gumball, interaction
+- **Features Used**: attribute-visualization, drawing-tools, gumballTransform, interaction
 
 ### doc-version
 - **Setup**: Basic example
@@ -317,7 +317,7 @@ The viewer integrates seamlessly with the ShapeDiver platform:
 - **Ticket System**: Uses tickets for secure model access
 - **Model View URLs**: Points to ShapeDiver backend servers (e.g., `https://sdr8euc1.eu-central-1.shapediver.com`)
 - **Grasshopper Integration**: Direct connection to Grasshopper definitions
-- **App Builder**: Some features like Gumball are integrated with ShapeDiver App Builder
+- **App Builder**: Some features like GumballTransform are integrated with ShapeDiver App Builder
 - **Platform Features**: Attribute visualization is already implemented on [shapediver.com/app](https://shapediver.com/app)
 
 ## Getting Started

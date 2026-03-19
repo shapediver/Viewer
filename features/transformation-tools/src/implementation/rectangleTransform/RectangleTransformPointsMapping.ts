@@ -11,7 +11,7 @@ import {vec3} from "gl-matrix";
  *   C0=BL (X-,Y-), C2=BR (X+,Y-), C4=TR (X+,Y+), C6=TL (X-,Y+)
  *   M1=bottom (Y-), M3=right (X+), M5=top (Y+), M7=left (X-)
  */
-export class FireballPointsMapping {
+export class RectangleTransformPointsMapping {
 	public readonly conceptualToDT: number[];
 	public readonly dtToConceptual: number[];
 	public readonly lockedCornerConceptualIndices: number[];

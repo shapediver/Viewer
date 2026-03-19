@@ -1,8 +1,8 @@
-import {DrawingParameter} from "./implementation/dto/DrawingParameter";
+﻿import {DrawingParameter} from "./implementation/dto/DrawingParameter";
 import {Export} from "./implementation/dto/Export";
 import {FileParameter} from "./implementation/dto/FileParameter";
 import {DraggingParameter} from "./implementation/dto/interaction/DraggingParameter";
-import {GumballParameter} from "./implementation/dto/interaction/GumballParameter";
+import {GumballTransformParameter} from "./implementation/dto/interaction/GumballTransformParameter";
 import {SelectionParameter} from "./implementation/dto/interaction/SelectionParameter";
 import {Output} from "./implementation/dto/Output";
 import {Parameter} from "./implementation/dto/Parameter";
@@ -13,7 +13,7 @@ import {IDrawingParameter} from "./interfaces/dto/IDrawingParameter";
 import {IExport} from "./interfaces/dto/IExport";
 import {IFileParameter} from "./interfaces/dto/IFileParameter";
 import {IDraggingParameter} from "./interfaces/dto/interaction/IDraggingParameter";
-import {IGumballParameter} from "./interfaces/dto/interaction/IGumballParameter";
+import {IGumballTransformParameter} from "./interfaces/dto/interaction/IGumballTransformParameter";
 import {IInteractionParameter} from "./interfaces/dto/interaction/IInteractionParameter";
 import {ISelectionParameter} from "./interfaces/dto/interaction/ISelectionParameter";
 import {
@@ -41,8 +41,8 @@ export {
 	DraggingParameter,
 	ISelectionParameter,
 	SelectionParameter,
-	IGumballParameter,
-	GumballParameter,
+	IGumballTransformParameter,
+	GumballTransformParameter,
 	IDrawingParameter,
 	DrawingParameter,
 	IExport,
