@@ -40,6 +40,7 @@
 	"dependencies": {
 		"@shapediver/viewer": "*",
 		"@shapediver/viewer.features.transformation-tools": "*",
+		"@shapediver/viewer.shared.demo-helper": "*",
 		"gl-matrix": "3.3.0"
 	}
 }
