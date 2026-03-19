@@ -4,7 +4,10 @@ import {
 	IDrawingToolsEvent,
 	createDrawingTools,
 } from "@shapediver/viewer.features.drawing-tools";
-import {PlaneRestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	PlaneRestrictionProperties,
+	IVisualizationSettings,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 
 import {vec3} from "gl-matrix";
@@ -19,10 +22,41 @@ rotationDefaultTextures["variation_0"] = MaterialEngine.instance
 		return mapData!;
 	});
 
+export type RotationConfig = {
+	/** Step size in radians. */
+	step: number | undefined;
+	/** Snap threshold in radians. */
+	stepThreshold: number | undefined;
+	/** Minimum cumulative angle in radians (enforced externally). */
+	min: number | undefined;
+	/** Maximum cumulative angle in radians (enforced externally). */
+	max: number | undefined;
+	/**
+	 * Distance of the rotation handle above the top edge, as a fraction of the rectangle's height.
+	 * Default is 0.25.
+	 */
+	handleDistance: number;
+	/** Visualization settings for the rotation handle. */
+	visualization: Partial<IVisualizationSettings> | undefined;
+};
+
+function snapAngle(angle: number, step: number, threshold: number): number {
+	const nearest = Math.round(angle / step) * step;
+	return Math.abs(angle - nearest) <= threshold ? nearest : angle;
+}
+
+function normalizeSignedAngle(angle: number): number {
+	let normalized = angle;
+	while (normalized > Math.PI) normalized -= 2 * Math.PI;
+	while (normalized < -Math.PI) normalized += 2 * Math.PI;
+	return normalized;
+}
+
 export class FireballRotationHandler {
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #handleDistance: number;
 	readonly #plane: Plane;
+	readonly #rotationConfig: RotationConfig;
 
 	#handleLocalPoint: vec3;
 
@@ -31,15 +65,23 @@ export class FireballRotationHandler {
 		planeDefinition: PlaneRestrictionProperties,
 		plane: Plane,
 		localPoints: vec3[],
-		handleDistance: number,
+		rotationConfig: RotationConfig = {
+			step: undefined,
+			stepThreshold: undefined,
+			min: undefined,
+			max: undefined,
+			handleDistance: 0.25,
+			visualization: undefined,
+		},
 	) {
 		this.#plane = plane;
-		this.#handleDistance = handleDistance;
+		this.#handleDistance = rotationConfig.handleDistance;
+		this.#rotationConfig = rotationConfig;
 
 		// Place the handle above the top edge (M5) by handleDistance * height
 		const min = localPoints[0]; // C0 in local space (bottom-left)
 		const max = localPoints[4]; // C4 in local space (top-right)
-		const rotHandleDist = (max[1] - min[1]) * handleDistance;
+		const rotHandleDist = (max[1] - min[1]) * this.#handleDistance;
 		this.#handleLocalPoint = vec3.fromValues(
 			(min[0] + max[0]) / 2,
 			max[1] + rotHandleDist,
@@ -47,6 +89,7 @@ export class FireballRotationHandler {
 		);
 
 		const ws = plane.convertFromLSToWS(this.#handleLocalPoint);
+		const rotVis = rotationConfig.visualization;
 		this.#drawingTools = createDrawingTools(
 			viewport,
 			{onUpdate: () => {}, onCancel: () => {}},
@@ -66,6 +109,7 @@ export class FireballRotationHandler {
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
+					...rotVis,
 					points: {
 						size_0: 50,
 						size_1: 50,
@@ -75,6 +119,7 @@ export class FireballRotationHandler {
 						color_1: "#000",
 						color_2: "#000",
 						color_3: "#000",
+						...rotVis?.points,
 					},
 				},
 			},
@@ -103,14 +148,12 @@ export class FireballRotationHandler {
 
 	/**
 	 * Process a drag event on the rotation handle, computing the new rectangle points and handle position.
-	 * @param ev
-	 * @param localPoints
-	 * @returns
+	 * Returns the deltaAngle (in radians, after snapping) so the caller can track cumulative rotation.
 	 */
 	public computeDrag(
 		ev: IDrawingToolsEvent,
 		localPoints: vec3[],
-	): {rotated: vec3[]; newHandle: vec3} {
+	): {rotated: vec3[]; newHandle: vec3; deltaAngle: number} {
 		const newHandleLS = this.#plane.convertFromWSToLS(
 			vec3.fromValues(
 				ev.points![0][0],
@@ -133,9 +176,51 @@ export class FireballRotationHandler {
 			vec3.fromValues(cx, cy, 0),
 		);
 
-		const deltaAngle =
+		const deltaAngle = normalizeSignedAngle(
 			Math.atan2(newVec[1], newVec[0]) -
-			Math.atan2(currVec[1], currVec[0]);
+				Math.atan2(currVec[1], currVec[0]),
+		);
+
+		const {rotated, newHandle} = this.rotatePoints(
+			localPoints,
+			cx,
+			cy,
+			deltaAngle,
+		);
+		return {rotated, newHandle, deltaAngle};
+	}
+
+	/**
+	 * Snap a cumulative angle to the nearest configured step increment.
+	 * If no step is configured, returns the angle unchanged.
+	 */
+	public snapCumulative(cumulative: number): number {
+		const {step, stepThreshold} = this.#rotationConfig;
+		if (step === undefined) return cumulative;
+		return snapAngle(cumulative, step, stepThreshold ?? step / 2);
+	}
+
+	/**
+	 * Rotate localPoints by an explicit angle (radians) around their center.
+	 * Used by Fireball to apply the clamped delta after min/max enforcement.
+	 */
+	public computeDragByAngle(
+		localPoints: vec3[],
+		deltaAngle: number,
+		startHandle?: vec3,
+	): {rotated: vec3[]; newHandle: vec3} {
+		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
+		const cy = (localPoints[0][1] + localPoints[4][1]) / 2;
+		return this.rotatePoints(localPoints, cx, cy, deltaAngle, startHandle);
+	}
+
+	private rotatePoints(
+		localPoints: vec3[],
+		cx: number,
+		cy: number,
+		deltaAngle: number,
+		startHandle?: vec3,
+	): {rotated: vec3[]; newHandle: vec3} {
 		const cos = Math.cos(deltaAngle);
 		const sin = Math.sin(deltaAngle);
 
@@ -149,8 +234,9 @@ export class FireballRotationHandler {
 			);
 		});
 
-		const dhU = this.#handleLocalPoint[0] - cx;
-		const dhV = this.#handleLocalPoint[1] - cy;
+		const h = startHandle ?? this.#handleLocalPoint;
+		const dhU = h[0] - cx;
+		const dhV = h[1] - cy;
 		const newHandle = vec3.fromValues(
 			cx + dhU * cos - dhV * sin,
 			cy + dhU * sin + dhV * cos,

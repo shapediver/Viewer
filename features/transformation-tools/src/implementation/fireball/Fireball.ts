@@ -18,8 +18,11 @@ import {
 	IFireball,
 } from "../../interfaces/fireball/IFireball";
 import {TransformationToolsManager} from "../TransformationToolsManager";
-import {FireballRotationHandler} from "./FireballRotationHandler";
-import {FireballScalingHandler} from "./FireballScalingHandler";
+import {
+	FireballRotationHandler,
+	RotationConfig,
+} from "./FireballRotationHandler";
+import {FireballScalingHandler, ScalingConfig} from "./FireballScalingHandler";
 import {FireballTranslationHandler} from "./FireballTranslationHandler";
 
 export class Fireball extends TransformationToolsManager implements IFireball {
@@ -33,20 +36,30 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	#dragMoveListener: string;
 	#enableScaling: boolean;
 	#enableTranslation: boolean;
-	#enableUniformScaling: boolean;
+	#hasPendingTemporaryTransform: boolean = false;
 	#initialLocalPoints: vec3[] = [];
 	#localPoints: vec3[] = [];
 	#rotationHandler: FireballRotationHandler | undefined;
 	#scalingHandler: FireballScalingHandler | undefined;
 	#translationHandler: FireballTranslationHandler | undefined;
-	#enableCornerXNegativeYNegative: boolean;
-	#enableCornerXPositiveYNegative: boolean;
-	#enableCornerXPositiveYPositive: boolean;
-	#enableCornerXNegativeYPositive: boolean;
-	#enableMidpointXPositive: boolean;
-	#enableMidpointXNegative: boolean;
-	#enableMidpointYPositive: boolean;
-	#enableMidpointYNegative: boolean;
+	#corners: {
+		bottomLeft: boolean;
+		bottomRight: boolean;
+		topRight: boolean;
+		topLeft: boolean;
+	};
+	#midpoints: {top: boolean; bottom: boolean; left: boolean; right: boolean};
+	#scalingConfig: ScalingConfig;
+	#rotationConfig: RotationConfig;
+	// Accumulated rotation angle in radians, used to enforce rotation.min/max.
+	#cumulativeRotation: number = 0;
+
+	// Drag-start state: captured at the first DRAG_MOVE of each gesture so that
+	// every frame rotates by a single clean matrix from the start position,
+	// preventing floating-point drift from many incremental multiplications.
+	#dragStartLocalPoints: vec3[] | undefined = undefined;
+	#dragStartHandle: vec3 | undefined = undefined;
+	#dragStartCumulative: number = 0;
 
 	constructor(
 		viewport: IViewportApi,
@@ -92,23 +105,45 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		this.#enableRotation = settings!.enableRotation ?? true;
 		this.#enableScaling = settings!.enableScaling ?? true;
 		this.#enableTranslation = settings!.enableTranslation ?? true;
-		this.#enableCornerXNegativeYNegative =
-			settings!.enableCornerXNegativeYNegative ?? true;
-		this.#enableCornerXPositiveYNegative =
-			settings!.enableCornerXPositiveYNegative ?? true;
-		this.#enableCornerXPositiveYPositive =
-			settings!.enableCornerXPositiveYPositive ?? true;
-		this.#enableCornerXNegativeYPositive =
-			settings!.enableCornerXNegativeYPositive ?? true;
-		this.#enableMidpointXPositive =
-			settings!.enableMidpointXPositive ?? true;
-		this.#enableMidpointXNegative =
-			settings!.enableMidpointXNegative ?? true;
-		this.#enableMidpointYPositive =
-			settings!.enableMidpointYPositive ?? true;
-		this.#enableMidpointYNegative =
-			settings!.enableMidpointYNegative ?? true;
-		this.#enableUniformScaling = settings!.enableUniformScaling ?? false;
+		this.#corners = {
+			bottomLeft: settings!.corners?.bottomLeft ?? true,
+			bottomRight: settings!.corners?.bottomRight ?? true,
+			topRight: settings!.corners?.topRight ?? true,
+			topLeft: settings!.corners?.topLeft ?? true,
+		};
+		this.#midpoints = {
+			top: settings!.midpoints?.top ?? true,
+			bottom: settings!.midpoints?.bottom ?? true,
+			left: settings!.midpoints?.left ?? true,
+			right: settings!.midpoints?.right ?? true,
+		};
+		const sc = settings!.scaling;
+		this.#scalingConfig = {
+			uniform: sc?.uniform ?? false,
+			x: sc?.x ?? true,
+			y: sc?.y ?? true,
+			xMin: sc?.xMin,
+			xMax: sc?.xMax,
+			yMin: sc?.yMin,
+			yMax: sc?.yMax,
+			step: sc?.step,
+			stepThreshold: sc?.stepThreshold,
+			visualization: sc?.visualization,
+			disabledVisualization: sc?.disabledVisualization,
+		};
+		const rc = settings!.rotation;
+		this.#rotationConfig = {
+			step:
+				rc?.step !== undefined ? rc.step * (Math.PI / 180) : undefined,
+			stepThreshold:
+				rc?.stepThreshold !== undefined
+					? rc.stepThreshold * (Math.PI / 180)
+					: undefined,
+			min: rc?.min !== undefined ? rc.min * (Math.PI / 180) : undefined,
+			max: rc?.max !== undefined ? rc.max * (Math.PI / 180) : undefined,
+			handleDistance: rc?.handleDistance ?? 0.25,
+			visualization: rc?.visualization,
+		};
 
 		this.init();
 
@@ -141,6 +176,19 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		this.#rotationHandler?.drawingTools.close();
 		this.#scalingHandler?.close();
 		this.#translationHandler?.close();
+	}
+
+	protected onPointerOutLogic(_event: PointerEvent): void {
+		this.#dragStartLocalPoints = undefined;
+		this.#dragStartHandle = undefined;
+
+		if (!this.#hasPendingTemporaryTransform) return;
+
+		this.#scalingHandler?.flushRectPoints(this.#localPoints, false);
+		this.#rotationHandler?.recompute(this.#localPoints, false);
+		this.#translationHandler?.updatePlane(this.#localPoints);
+		this.calculateTransformationMatrix(this.#localPoints, true);
+		this.#hasPendingTemporaryTransform = false;
 	}
 
 	private calculateTransformationMatrix(
@@ -276,9 +324,15 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		if (this.#rotationHandler)
 			this.#rotationHandler.recompute(adjusted, !commit);
 
+		// Keep the latest valid points even during drag-move. This prevents
+		// pointer-out cancellations from reverting to stale pre-drag points.
+		this.#localPoints = adjusted;
+
 		if (commit) {
-			this.#localPoints = adjusted;
 			this.#translationHandler?.updatePlane(adjusted);
+			this.#hasPendingTemporaryTransform = false;
+		} else {
+			this.#hasPendingTemporaryTransform = true;
 		}
 
 		this.calculateTransformationMatrix(adjusted, commit);
@@ -287,19 +341,69 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 	private handleRotationDrag(ev: IDrawingToolsEvent, commit: boolean): void {
 		if (!this.#rotationHandler) return;
 
-		const {rotated, newHandle} = this.#rotationHandler.computeDrag(
+		if (this.#dragStartLocalPoints === undefined) {
+			this.#dragStartLocalPoints = this.#localPoints.map((p) =>
+				vec3.clone(p),
+			);
+			this.#dragStartHandle = vec3.clone(
+				this.#rotationHandler.handleLocalPoint,
+			);
+			this.#dragStartCumulative = this.#cumulativeRotation;
+		}
+
+		const {deltaAngle: rawDelta} = this.#rotationHandler.computeDrag(
 			ev,
 			this.#localPoints,
 		);
 
+		const rawNext = this.#cumulativeRotation + rawDelta;
+		const snappedNext = this.#rotationHandler.snapCumulative(rawNext);
+		const {min, max} = this.#rotationConfig;
+		const finalNext =
+			min !== undefined && max !== undefined
+				? Math.min(max, Math.max(min, snappedNext))
+				: min !== undefined
+					? Math.max(min, snappedNext)
+					: max !== undefined
+						? Math.min(max, snappedNext)
+						: snappedNext;
+
+		if (finalNext === this.#cumulativeRotation) {
+			this.#rotationHandler.applyDrag(
+				this.#rotationHandler.handleLocalPoint,
+				!commit,
+			);
+			if (commit) {
+				this.calculateTransformationMatrix(this.#localPoints, true);
+				this.#translationHandler?.updatePlane(this.#localPoints);
+				this.#hasPendingTemporaryTransform = false;
+				this.#dragStartLocalPoints = undefined;
+				this.#dragStartHandle = undefined;
+			}
+			return;
+		}
+
+		const absoluteDelta = finalNext - this.#dragStartCumulative;
+		const {rotated, newHandle} = this.#rotationHandler.computeDragByAngle(
+			this.#dragStartLocalPoints!,
+			absoluteDelta,
+			this.#dragStartHandle,
+		);
+
+		this.#cumulativeRotation = finalNext;
 		if (this.#scalingHandler)
 			this.#scalingHandler.flushRectPoints(rotated, !commit);
 		this.#rotationHandler.applyDrag(newHandle, !commit);
 
-		// Rotation always updates #localPoints incrementally so subsequent
-		// events see the correct current angle
 		this.#localPoints = rotated;
-		if (commit) this.#translationHandler?.updatePlane(rotated);
+		if (commit) {
+			this.#translationHandler?.updatePlane(rotated);
+			this.#hasPendingTemporaryTransform = false;
+			this.#dragStartLocalPoints = undefined;
+			this.#dragStartHandle = undefined;
+		} else {
+			this.#hasPendingTemporaryTransform = true;
+		}
 
 		this.calculateTransformationMatrix(rotated, commit);
 	}
@@ -364,21 +468,21 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				this.#plane,
 				this.#localPoints,
 				{
-					enableCornerXNegativeYNegative:
-						this.#enableCornerXNegativeYNegative,
-					enableCornerXPositiveYNegative:
-						this.#enableCornerXPositiveYNegative,
-					enableCornerXPositiveYPositive:
-						this.#enableCornerXPositiveYPositive,
-					enableCornerXNegativeYPositive:
-						this.#enableCornerXNegativeYPositive,
-					enableMidpointXPositive: this.#enableMidpointXPositive,
-					enableMidpointXNegative: this.#enableMidpointXNegative,
-					enableMidpointYPositive: this.#enableMidpointYPositive,
-					enableMidpointYNegative: this.#enableMidpointYNegative,
+					corners: this.#corners,
+					midpoints: this.#midpoints,
 				},
-				this.#enableUniformScaling ?? true,
+				this.#scalingConfig,
 			);
+
+			const constrained = this.#scalingHandler.applyInitialConstraints(
+				this.#localPoints,
+			);
+			this.#localPoints = constrained;
+			this.#scalingHandler.flushRectPoints(this.#localPoints, false);
+
+			// Keep the initial frame as the original geometry and commit the constrained
+			// state immediately so min/max/step restrictions are active from creation.
+			this.calculateTransformationMatrix(this.#localPoints, true);
 		}
 
 		if (this.#enableRotation) {
@@ -387,7 +491,7 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 				this.#planeRestriction,
 				this.#plane,
 				this.#localPoints,
-				0.25,
+				this.#rotationConfig,
 			);
 		}
 

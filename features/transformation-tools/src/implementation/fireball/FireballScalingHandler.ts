@@ -4,6 +4,7 @@ import {
 	PlaneRestrictionProperties,
 	createDrawingTools,
 } from "@shapediver/viewer.features.drawing-tools";
+import {IVisualizationSettings} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 
 import {vec3} from "gl-matrix";
@@ -19,10 +20,29 @@ import {
 	PointVisibilityConfig,
 } from "./FireballPointsMapping";
 
+function snapValue(value: number, step: number, threshold: number): number {
+	const nearest = Math.round(value / step) * step;
+	return Math.abs(value - nearest) <= threshold ? nearest : value;
+}
+
+export type ScalingConfig = {
+	uniform: boolean;
+	x: boolean;
+	y: boolean;
+	xMin: number | undefined;
+	xMax: number | undefined;
+	yMin: number | undefined;
+	yMax: number | undefined;
+	step: number | undefined;
+	stepThreshold: number | undefined;
+	visualization: Partial<IVisualizationSettings> | undefined;
+	disabledVisualization: Partial<IVisualizationSettings> | undefined;
+};
+
 export class FireballScalingHandler {
 	// Interactive handles DT — only enabled/active points, mode "points".
 	readonly #drawingTools: IDrawingToolsApi;
-	readonly #enableUniformScaling: boolean;
+	readonly #scalingConfig: ScalingConfig;
 	// Locked corners DT — disabled corners shown as grey non-interactive dots.
 	readonly #lockedDT: IDrawingToolsApi | undefined;
 	// Outline DT — all 8 conceptual points in order, mode "lines", invisible handles.
@@ -36,11 +56,13 @@ export class FireballScalingHandler {
 		plane: Plane,
 		localPoints: vec3[],
 		visibilityConfig: PointVisibilityConfig,
-		enableUniformScaling: boolean,
+		scalingConfig: ScalingConfig,
 	) {
-		this.#enableUniformScaling = enableUniformScaling;
+		this.#scalingConfig = scalingConfig;
 		this.#plane = plane;
 		this.#pointsMapping = new FireballPointsMapping(visibilityConfig);
+
+		const vis = scalingConfig.visualization;
 
 		// --- 1. Outline DT: all 8 conceptual points, lines only, invisible handles ---
 		const allWorldPoints = localPoints.map((p) => {
@@ -68,18 +90,21 @@ export class FireballScalingHandler {
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
+					...vis,
 					points: {
 						// Zero size makes handles invisible and effectively non-clickable.
 						size_0: 0,
 						size_1: 0,
 						size_2: 0,
 						size_3: 0,
+						...vis?.points,
 					},
-					lines: {color: "#0d44f0"},
+					lines: {color: "#0d44f0", ...vis?.lines},
 				},
 			},
 		);
 
+		const disabledVis = scalingConfig.disabledVisualization;
 		// --- 2. Locked corners DT: disabled corners, grey style, non-interactive ---
 		// Created BEFORE the interactive DT so its onMove fires first and the
 		// #blockingHoverInstances set is populated before the interactive DT
@@ -111,6 +136,7 @@ export class FireballScalingHandler {
 					visualization: {
 						distanceLabels: false,
 						pointerPosition: false,
+						...disabledVis,
 						points: {
 							size_0: 20,
 							size_1: 20,
@@ -120,6 +146,7 @@ export class FireballScalingHandler {
 							color_1: "#888888",
 							color_2: "#888888",
 							color_3: "#888888",
+							...disabledVis?.points,
 						},
 					},
 				},
@@ -158,6 +185,7 @@ export class FireballScalingHandler {
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
+					...vis,
 					points: {
 						size_0: 30,
 						size_1: 35,
@@ -167,6 +195,7 @@ export class FireballScalingHandler {
 						color_1: "#0d44f0",
 						color_2: "#0d44f0",
 						color_3: "#0d44f0",
+						...vis?.points,
 					},
 				},
 			},
@@ -181,6 +210,14 @@ export class FireballScalingHandler {
 		return this.#pointsMapping;
 	}
 
+	/**
+	 * Apply configured clamp/snap constraints to an initial rectangle.
+	 * Uses center anchoring so initialization does not drift.
+	 */
+	public applyInitialConstraints(localPoints: vec3[]): vec3[] {
+		return this.clampAndSnap(localPoints, localPoints, "center", "center");
+	}
+
 	public close(): void {
 		this.#outlineDT.close();
 		this.#drawingTools.close();
@@ -193,16 +230,13 @@ export class FireballScalingHandler {
 	 * n=1->C2: controls right U and bottom V
 	 * n=2->C4: controls right U and top V
 	 * n=3->C6: controls left U and top V
-	 * @param index
-	 * @param movedPointLS
-	 * @param localPoints
-	 * @returns
 	 */
 	public cornerPointMoved(
 		index: number,
 		movedPointLS: vec3,
 		localPoints: vec3[],
 	): vec3[] {
+		const cfg = this.#scalingConfig;
 		const basis = getRectBasis(localPoints);
 		const movedUV = toRectFrame(movedPointLS, basis);
 
@@ -221,13 +255,21 @@ export class FireballScalingHandler {
 		let dv = movedUV.v;
 
 		// If uniform scaling is enabled, adjust the moved corner's UV to maintain the aspect ratio.
-		if (this.#enableUniformScaling) {
+		if (cfg.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
 			const signU = controlsLeft ? -1 : 1;
 			const signV = controlsBottom ? -1 : 1;
 			const adjusted = this.scaleUniformly(prevUV, movedUV, signU, signV);
 			du = adjusted.u;
 			dv = adjusted.v;
+		}
+
+		// Apply axis locks: if x is disabled, don't change U; if y is disabled, don't change V.
+		if (!cfg.x) {
+			du = controlsLeft ? c0uv.u : c2uv.u;
+		}
+		if (!cfg.y) {
+			dv = controlsBottom ? c0uv.v : c4uv.v;
 		}
 
 		if (controlsLeft) {
@@ -245,7 +287,13 @@ export class FireballScalingHandler {
 			c6uv = {u: c6uv.u, v: dv};
 		}
 
-		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		return this.clampAndSnap(
+			result,
+			localPoints,
+			controlsLeft ? "right" : "left",
+			controlsBottom ? "top" : "bottom",
+		);
 	}
 
 	/**
@@ -284,20 +332,21 @@ export class FireballScalingHandler {
 	 * Handle a mid-point drag.
 	 * M1,M5 lie on U-axis edges -> only V coordinate changes (scale in V).
 	 * M3,M7 lie on V-axis edges -> only U coordinate changes (scale in U).
-	 * @param index
-	 * @param movedPointLS
-	 * @param localPoints
-	 * @returns
 	 */
 	public midPointMoved(
 		index: number,
 		movedPointLS: vec3,
 		localPoints: vec3[],
 	): vec3[] {
+		const cfg = this.#scalingConfig;
 		const basis = getRectBasis(localPoints);
 		const n = (index - 1) / 2;
 		// Mids on U edges (M1,M5) control V scaling, mids on V edges (M3,M7) control U scaling.
 		const isUEdge = n % 2 === 0;
+
+		// Axis lock: mid on a U-edge controls Y; mid on a V-edge controls X.
+		if (isUEdge && !cfg.y) return localPoints.map((p) => vec3.clone(p));
+		if (!isUEdge && !cfg.x) return localPoints.map((p) => vec3.clone(p));
 
 		const movedUV = toRectFrame(movedPointLS, basis);
 
@@ -329,7 +378,7 @@ export class FireballScalingHandler {
 
 		// For uniform scaling, expand the perpendicular edges symmetrically by
 		// 50% of the primary delta so the rectangle grows from its center.
-		if (this.#enableUniformScaling) {
+		if (cfg.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
 			if (isUEdge) {
 				const dV = movedUV.v - prevUV.v;
@@ -352,16 +401,118 @@ export class FireballScalingHandler {
 			}
 		}
 
-		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		// Anchor the non-moving edge: U-edge mids only change V, V-edge mids only change U.
+		const anchorU: "left" | "right" | "center" = isUEdge
+			? "center"
+			: index === 3
+				? "left"
+				: "right";
+		const anchorV: "bottom" | "top" | "center" = isUEdge
+			? index === 1
+				? "top"
+				: "bottom"
+			: "center";
+		return this.clampAndSnap(result, localPoints, anchorU, anchorV);
+	}
+
+	/**
+	 * Clamp rectangle dimensions to [xMin,xMax] x [yMin,yMax] (in world space) and snap to
+	 * step increments (also in world space). The rectangle is resized from the specified anchor
+	 * so the non-moving side stays in place.
+	 */
+	private clampAndSnap(
+		points: vec3[],
+		prevPoints: vec3[],
+		anchorU: "left" | "right" | "center",
+		anchorV: "bottom" | "top" | "center",
+	): vec3[] {
+		const cfg = this.#scalingConfig;
+		const hasClamp =
+			cfg.xMin !== undefined ||
+			cfg.xMax !== undefined ||
+			cfg.yMin !== undefined ||
+			cfg.yMax !== undefined;
+		const hasSnap = cfg.step !== undefined;
+		if (!hasClamp && !hasSnap) return points;
+
+		const basis = getRectBasis(prevPoints);
+		const c0 = toRectFrame(points[0], basis);
+		const c2 = toRectFrame(points[2], basis);
+		const c4 = toRectFrame(points[4], basis);
+
+		const lsWidth = c2.u - c0.u;
+		const lsHeight = c4.v - c0.v;
+
+		// Measure world-space dimensions (xMin/xMax/yMin/yMax/step are all in world units).
+		// p0=BL, p2=BR, p6=TL — bottom edge gives X width, left edge gives Y height.
+		const p0ws = this.#plane.convertFromLSToWS(points[0]);
+		const p2ws = this.#plane.convertFromLSToWS(points[2]);
+		const p6ws = this.#plane.convertFromLSToWS(points[6]);
+		const origWsWidth = vec3.distance(p0ws, p2ws);
+		const origWsHeight = vec3.distance(p0ws, p6ws);
+
+		let wsWidth = origWsWidth;
+		let wsHeight = origWsHeight;
+
+		if (hasSnap) {
+			const step = cfg.step!;
+			const threshold = cfg.stepThreshold ?? step / 2;
+			wsWidth = snapValue(wsWidth, step, threshold);
+			wsHeight = snapValue(wsHeight, step, threshold);
+		}
+
+		if (cfg.xMin !== undefined) wsWidth = Math.max(cfg.xMin, wsWidth);
+		if (cfg.xMax !== undefined) wsWidth = Math.min(cfg.xMax, wsWidth);
+		if (cfg.yMin !== undefined) wsHeight = Math.max(cfg.yMin, wsHeight);
+		if (cfg.yMax !== undefined) wsHeight = Math.min(cfg.yMax, wsHeight);
+
+		// Convert target world-space dimensions back to local space via the WS/LS ratio.
+		const width =
+			origWsWidth > 0 ? lsWidth * (wsWidth / origWsWidth) : lsWidth;
+		const height =
+			origWsHeight > 0 ? lsHeight * (wsHeight / origWsHeight) : lsHeight;
+
+		// Place the clamped rectangle while keeping the non-moving side anchored.
+		let leftU: number, rightU: number;
+		if (anchorU === "left") {
+			leftU = c0.u;
+			rightU = leftU + width;
+		} else if (anchorU === "right") {
+			rightU = c2.u;
+			leftU = rightU - width;
+		} else {
+			const cu = (c0.u + c2.u) / 2;
+			leftU = cu - width / 2;
+			rightU = cu + width / 2;
+		}
+
+		let bottomV: number, topV: number;
+		if (anchorV === "bottom") {
+			bottomV = c0.v;
+			topV = bottomV + height;
+		} else if (anchorV === "top") {
+			topV = c4.v;
+			bottomV = topV - height;
+		} else {
+			const cv = (c0.v + c4.v) / 2;
+			bottomV = cv - height / 2;
+			topV = cv + height / 2;
+		}
+
+		return cornersToFullPoints(
+			[
+				{u: leftU, v: bottomV},
+				{u: rightU, v: bottomV},
+				{u: rightU, v: topV},
+				{u: leftU, v: topV},
+			],
+			basis,
+		);
 	}
 
 	/**
 	 * Scale the rectangle uniformly by adjusting the moved corner's UV coordinates to maintain the aspect ratio.
-	 * @param prevUV
-	 * @param movedUV
-	 * @param signU
-	 * @param signV
-	 * @returns
 	 */
 	private scaleUniformly(
 		prevUV: RectFrameCoord,

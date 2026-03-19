@@ -32,7 +32,6 @@ export abstract class TransformationToolsManager
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
 	readonly #singleNode: boolean;
-	readonly #systemInfo: SystemInfo = SystemInfo.instance;
 	readonly #viewport: IViewportApi;
 
 	#cameraFreezeFlag?: string;
@@ -46,10 +45,8 @@ export abstract class TransformationToolsManager
 	#pivotOffset: mat4 = mat4.create();
 	#previousTransformationToolsMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
-	#scale: number = 0.15;
 	#settings?: SettingsOptional;
 	#show: boolean = true;
-	#space: "local" | "world" = "local";
 
 	protected abstract transformationToolsPlaceholderMatrix: mat4;
 
@@ -80,11 +77,6 @@ export abstract class TransformationToolsManager
 			);
 		}
 
-		const isMobile = this.#systemInfo.isMobile;
-		const mobileFactor = isMobile ? 2 : 1;
-		this.#scale = (settings?.scale ?? 0.15) * mobileFactor;
-		// we don't allow to change the space for now
-		this.#space = settings?.space ?? "local";
 		// we don't allow to change the reuseTransformation for now
 		this.#reuseTransformation = settings?.reuseTransformation ?? true;
 	}
@@ -145,20 +137,12 @@ export abstract class TransformationToolsManager
 		return this.#reuseTransformation;
 	}
 
-	protected get scale(): number {
-		return this.#scale;
-	}
-
 	public get settings(): SettingsOptional | undefined {
 		return this.#settings;
 	}
 
 	protected get singleNode(): boolean {
 		return this.#singleNode;
-	}
-
-	protected get space(): "local" | "world" {
-		return this.#space;
 	}
 
 	protected abstract get type(): "gumball" | "fireball";
@@ -169,6 +153,7 @@ export abstract class TransformationToolsManager
 
 	public close(): void {
 		this.#closed = true;
+		this.closeLogic();
 
 		this.#viewport.removeCanvasEventListener(
 			this.#canvasEventListenerToken,

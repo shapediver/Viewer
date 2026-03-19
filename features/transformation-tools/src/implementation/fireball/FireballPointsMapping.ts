@@ -17,14 +17,14 @@ export class FireballPointsMapping {
 	public readonly lockedCornerConceptualIndices: number[];
 
 	constructor(config: PointVisibilityConfig = {}) {
-		const showC0 = config.enableCornerXNegativeYNegative ?? true; // BL
-		const showC2 = config.enableCornerXPositiveYNegative ?? true; // BR
-		const showC4 = config.enableCornerXPositiveYPositive ?? true; // TR
-		const showC6 = config.enableCornerXNegativeYPositive ?? true; // TL
-		const showM1 = config.enableMidpointYNegative ?? true; // bottom
-		const showM3 = config.enableMidpointXPositive ?? true; // right
-		const showM5 = config.enableMidpointYPositive ?? true; // top
-		const showM7 = config.enableMidpointXNegative ?? true; // left
+		const showC0 = config.corners?.bottomLeft ?? true; // BL
+		const showC2 = config.corners?.bottomRight ?? true; // BR
+		const showC4 = config.corners?.topRight ?? true; // TR
+		const showC6 = config.corners?.topLeft ?? true; // TL
+		const showM1 = config.midpoints?.bottom ?? true; // bottom
+		const showM3 = config.midpoints?.right ?? true; // right
+		const showM5 = config.midpoints?.top ?? true; // top
+		const showM7 = config.midpoints?.left ?? true; // left
 
 		// Disabled corners are still shown visually (locked handles) but not interactive.
 		const lockedCorners: number[] = [];
@@ -79,12 +79,16 @@ export class FireballPointsMapping {
  * Configuration for which points of the rectangle should be visible/active.
  */
 export type PointVisibilityConfig = {
-	enableCornerXNegativeYNegative?: boolean; // C0: BL
-	enableCornerXPositiveYNegative?: boolean; // C2: BR
-	enableCornerXPositiveYPositive?: boolean; // C4: TR
-	enableCornerXNegativeYPositive?: boolean; // C6: TL
-	enableMidpointXPositive?: boolean; // M3: right edge
-	enableMidpointXNegative?: boolean; // M7: left edge
-	enableMidpointYPositive?: boolean; // M5: top edge
-	enableMidpointYNegative?: boolean; // M1: bottom edge
+	corners?: {
+		bottomLeft?: boolean; // C0: BL
+		bottomRight?: boolean; // C2: BR
+		topRight?: boolean; // C4: TR
+		topLeft?: boolean; // C6: TL
+	};
+	midpoints?: {
+		top?: boolean; // M5: top edge
+		bottom?: boolean; // M1: bottom edge
+		left?: boolean; // M7: left edge
+		right?: boolean; // M3: right edge
+	};
 };
