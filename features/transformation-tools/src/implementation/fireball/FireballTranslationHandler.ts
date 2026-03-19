@@ -8,7 +8,7 @@ import {
 	InteractionEngine,
 } from "@shapediver/viewer.features.interaction";
 import {
-	PlaneRestrictionProperties,
+	RestrictionProperties,
 	RESTRICTION_TYPE,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
@@ -46,7 +46,7 @@ export class FireballTranslationHandler {
 
 	constructor(
 		viewport: IViewportApi,
-		planeRestriction: PlaneRestrictionProperties,
+		restrictions: RestrictionProperties[] | undefined,
 		plane: Plane,
 		getLocalPoints: () => vec3[],
 		onMove: (points: vec3[]) => void,
@@ -67,12 +67,22 @@ export class FireballTranslationHandler {
 		this.#dragManager = new DragManager();
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
+
+		const origin = vec3.scale(vec3.create(), plane.normal, -plane.constant);
+		// first add the plane restriction
 		this.#dragManager.addRestriction({
 			type: RESTRICTION_TYPE.PLANE,
-			origin: planeRestriction.origin,
-			vector_u: planeRestriction.vector_u,
-			vector_v: planeRestriction.vector_v,
+			origin,
+			vector_u: plane.vector_u,
+			vector_v: plane.vector_v,
 		});
+
+		// add all other restrictions (e.g. snapping) configured for this handler
+		if (restrictions && restrictions.length > 0) {
+			restrictions.forEach((restriction) => {
+				this.#dragManager.addRestriction(restriction);
+			});
+		}
 
 		// Snapshot local points at drag start so all DRAG_MOVE deltas are
 		// computed relative to the committed state at the beginning of the drag

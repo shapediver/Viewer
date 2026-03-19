@@ -4,6 +4,7 @@ import {
 	PlaneRestrictionProperties,
 	RESTRICTION_TYPE,
 } from "@shapediver/viewer.features.drawing-tools";
+import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -496,9 +497,19 @@ export class Fireball extends TransformationToolsManager implements IFireball {
 		}
 
 		if (this.#enableTranslation) {
+			const translationRestrictions: RestrictionProperties[] = [];
+			for (const restrictionId in this.settings?.restrictions) {
+				const restriction = this.settings?.restrictions[restrictionId];
+				if (!restriction) continue;
+				if (!restriction.id) restriction.id = restrictionId;
+				translationRestrictions.push(restriction);
+			}
+
 			this.#translationHandler = new FireballTranslationHandler(
 				this.viewport,
-				this.#planeRestriction,
+				translationRestrictions.length
+					? translationRestrictions
+					: undefined,
 				this.#plane,
 				() => this.#localPoints,
 				(newPoints) => {
