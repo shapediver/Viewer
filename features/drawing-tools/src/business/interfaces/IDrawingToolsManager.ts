@@ -6,6 +6,7 @@ import {
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {IMapData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
+import {IControl} from "./controls/IControl";
 
 // #region Type aliases (5)
 
@@ -145,7 +146,22 @@ export type Settings = {
 		 * Processing order follows the array declaration order.
 		 */
 		weightedAdjacency?: AdjacencyEntry[][];
+
+		/**
+		 * The indices of points that are disabled. Disabled points cannot be moved, selected or deleted, but they can be inserted next to.
+		 * This is useful for points that should be fixed in place, such as the endpoints of a line.
+		 * The pointer is also not changed to a move pointer when hovering over disabled points, since they cannot be moved.
+		 */
+		disabledPoints?: number[];
 	};
+
+	/**
+	 * The controls of the drawing tool.
+	 *
+	 * Here you can define the controls that are used when interacting with the drawing tool.
+	 * Controls are used to manipulate the points of the drawing tool in specific ways, such as moving a point along an edge or within a plane defined by other points.
+	 */
+	controls?: IControl[];
 
 	/**
 	 * The restrictions of the drawing tool.
@@ -283,6 +299,7 @@ export type Settings = {
 };
 export type SettingsOptional = {
 	geometry?: Partial<Settings["geometry"]>;
+	controls?: Partial<Settings["controls"]>;
 	restrictions?: Partial<Settings["restrictions"]>;
 	visualization?: Partial<Settings["visualization"]>;
 	keyBindings?: Partial<Settings["keyBindings"]>;
@@ -353,6 +370,7 @@ export enum MATERIAL_INDEX {
 	SELECTED_HOVERED = 3,
 	INSERTION = 4,
 	INSERTION_HOVERED = 5,
+	DISABLED = 6,
 }
 
 // #endregion Enums (1)

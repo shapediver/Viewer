@@ -46,10 +46,7 @@ function snapAngle(angle: number, step: number, threshold: number): number {
 }
 
 function normalizeSignedAngle(angle: number): number {
-	let normalized = angle;
-	while (normalized > Math.PI) normalized -= 2 * Math.PI;
-	while (normalized < -Math.PI) normalized += 2 * Math.PI;
-	return normalized;
+	return (((angle % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
 }
 
 export class RectangleTransformRotationHandler {

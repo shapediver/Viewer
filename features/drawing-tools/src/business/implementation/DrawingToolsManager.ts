@@ -24,6 +24,7 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {mat4, vec3} from "gl-matrix";
+import {IEdgeControl} from "../interfaces/controls/IEdgeControl";
 import {DrawingToolsEventResponseMapping} from "../interfaces/events/EventResponseMapping";
 import {
 	Callbacks,
@@ -510,6 +511,12 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public resetMaterialIndices(): void {
 		this.#geometryManager.resetMaterialIndices();
+		const disabledPoints = this.#settings.geometry.disabledPoints;
+		if (disabledPoints) {
+			for (const idx of disabledPoints) {
+				this.updateMaterialIndex(idx, MATERIAL_INDEX.DISABLED);
+			}
+		}
 	}
 
 	public undo(): void {
@@ -622,6 +629,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				close: true,
 				autoClose: false,
 			},
+			controls: [],
 			restrictions: {},
 			visualization: {
 				distanceMultiplicationFactor: 2,
@@ -635,12 +643,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					size_3: 20,
 					size_4: 15,
 					size_5: 20,
+					size_6: 10,
 					color_0: "#0d44f0",
 					color_1: "#197aeb",
 					color_2: "#9e27d8",
 					color_3: "#bc47fd",
 					color_4: "#00ff78",
 					color_5: "#00ff78",
+					color_6: "#888888",
 				},
 				lines: {
 					color: "#0d44f0",
@@ -694,7 +704,30 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					? true
 					: settingsOptional.geometry.autoClose,
 				weightedAdjacency: settingsOptional.geometry.weightedAdjacency,
+				disabledPoints: settingsOptional.geometry.disabledPoints,
 			};
+		}
+
+		if (!isUndefinedOrNull(settingsOptional.controls)) {
+			settings.controls = [];
+			for (const control of settingsOptional.controls) {
+				if (!control) continue;
+				if (control.type === "edge") {
+					const edgeControl = control as IEdgeControl;
+					if (
+						edgeControl.direction === undefined ||
+						edgeControl.point1 === undefined ||
+						edgeControl.point2 === undefined
+					) {
+						continue;
+					}
+					edgeControl.direction = vec3.normalize(
+						vec3.create(),
+						edgeControl.direction,
+					);
+					settings.controls.push(edgeControl);
+				}
+			}
 		}
 
 		if (!isUndefinedOrNull(settingsOptional.visualization)) {
@@ -728,12 +761,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 							size_3: 20,
 							size_4: 15,
 							size_5: 20,
+							size_6: 10,
 							color_0: "#0d44f0",
 							color_1: "#197aeb",
 							color_2: "#9e27d8",
 							color_3: "#bc47fd",
 							color_4: "#00ff78",
 							color_5: "#00ff78",
+							color_6: "#888888",
 						}
 					: settingsOptional.visualization.points,
 				lines: isUndefinedOrNull(settingsOptional.visualization.lines)

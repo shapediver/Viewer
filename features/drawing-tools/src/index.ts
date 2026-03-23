@@ -37,6 +37,8 @@ import {
 import {RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
 import {IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
+import {IControl} from "./business/interfaces/controls/IControl";
+import {IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
 import {DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
 import {IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
 import {
@@ -55,6 +57,8 @@ export {
 	IDrawingToolsApi,
 	DrawingToolsApi,
 	PointsData,
+	IControl,
+	IEdgeControl,
 };
 export {IRestriction, ISnapRestriction};
 export {

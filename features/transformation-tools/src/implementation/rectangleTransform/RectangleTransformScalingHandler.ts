@@ -2,6 +2,7 @@
 import {
 	AdjacencyEntry,
 	createDrawingTools,
+	IControl,
 	IDrawingToolsApi,
 	PlaneRestrictionProperties,
 } from "@shapediver/viewer.features.drawing-tools";
@@ -45,13 +46,8 @@ export type ScalingConfig = {
 };
 
 export class RectangleTransformScalingHandler {
-	// Interactive handles DT — only enabled/active points, mode "points".
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #scalingConfig: ScalingConfig;
-	// Locked corners DT — disabled corners shown as grey non-interactive dots.
-	readonly #lockedDT: IDrawingToolsApi | undefined;
-	// Outline DT — all 8 conceptual points in order, mode "lines", invisible handles.
-	readonly #outlineDT: IDrawingToolsApi;
 	readonly #plane: Plane;
 	readonly #pointsMapping: RectangleTransformPointsMapping;
 
@@ -70,6 +66,7 @@ export class RectangleTransformScalingHandler {
 		);
 
 		const vis = scalingConfig.visualization;
+		const disabledVis = scalingConfig.disabledVisualization;
 
 		// XY-plane restriction in parent-local space (the parent node carries the
 		// plane-to-world transform, so the DT operates entirely in plane-LS).
@@ -80,146 +77,99 @@ export class RectangleTransformScalingHandler {
 			vector_v: vec3.fromValues(0, 1, 0),
 		};
 
-		// --- 1. Outline DT: all 8 conceptual points, lines only, invisible handles ---
-		const allLSPoints = localPoints.map(
-			(p) => [p[0], p[1], p[2]] as [number, number, number],
+		// All four corners in order: C0(DT0), C2(DT1), C4(DT2), C6(DT3).
+		const dtLSPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
+			const p = localPoints[ci];
+			return [p[0], p[1], p[2]] as [number, number, number];
+		});
+
+		// Midpoint controls: each controls the midpoint of an edge and has a fixed direction.
+		const controls: IControl[] = this.#pointsMapping.midpointEdges.map(
+			({conceptualMidIndex, corner1CI, corner2CI}) => {
+				const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
+				const di2 = this.#pointsMapping.conceptualToDT[corner2CI];
+				// Direction perpendicular to the edge in plane-LS:
+				//   U-edges (M1, M5, horizontal) → V-axis (0,1,0)
+				//   V-edges (M3, M7, vertical)   → U-axis (1,0,0)
+				const isUEdge = conceptualMidIndex % 4 === 1;
+				const direction = isUEdge
+					? vec3.fromValues(0, 1, 0)
+					: vec3.fromValues(1, 0, 0);
+				return {
+					type: "edge" as const,
+					point1: di1,
+					point2: di2,
+					direction,
+				};
+			},
+		) as unknown as IControl[];
+
+		// Build weightedAdjacency: locked corners are excluded as both sources and
+		// targets so that adjacency propagation never moves a locked corner.
+		// C0(BL)→C6(TL):[1,0,0], C0→C2(BR):[0,1,0]
+		// C2(BR)→C4(TR):[1,0,0], C2→C0(BL):[0,1,0]
+		// C4(TR)→C2(BR):[1,0,0], C4→C6(TL):[0,1,0]
+		// C6(TL)→C0(BL):[1,0,0], C6→C4(TR):[0,1,0]
+		const cornerAdjDefs: Array<{ci: number; sameU: number; sameV: number}> =
+			[
+				{ci: 0, sameU: 6, sameV: 2},
+				{ci: 2, sameU: 4, sameV: 0},
+				{ci: 4, sameU: 2, sameV: 6},
+				{ci: 6, sameU: 0, sameV: 4},
+			];
+		const lockedSet = new Set(
+			this.#pointsMapping.lockedCornerConceptualIndices,
 		);
-		this.#outlineDT = createDrawingTools(
+		const weightedAdjacency: AdjacencyEntry[][] = dtLSPoints.map(() => []);
+		for (const {ci, sameU, sameV} of cornerAdjDefs) {
+			if (lockedSet.has(ci)) continue;
+			const di = this.#pointsMapping.conceptualToDT[ci];
+			const diU = this.#pointsMapping.conceptualToDT[sameU];
+			const diV = this.#pointsMapping.conceptualToDT[sameV];
+			if (!lockedSet.has(sameU))
+				weightedAdjacency[di].push({to: diU, weights: [1, 0, 0]});
+			if (!lockedSet.has(sameV))
+				weightedAdjacency[di].push({to: diV, weights: [0, 1, 0]});
+		}
+
+		// Merge disabled-vis into state-6 (DISABLED material index).
+		// Accept either the new size_6/color_6 keys directly, or fall back to
+		// the legacy state-0 keys that callers may have used with the old
+		// separate locked-corners DT.
+		const disabledSize =
+			disabledVis?.points?.size_6 ??
+			disabledVis?.points?.size_0 ??
+			20;
+		const disabledColor =
+			disabledVis?.points?.color_6 ??
+			disabledVis?.points?.color_0 ??
+			"#888888";
+
+		this.#drawingTools = createDrawingTools(
 			viewport,
-			{onUpdate: () => {}, onCancel: () => {}},
+			{
+				onUpdate: () => {},
+				onCancel: () => {},
+			},
 			{
 				general: {
-					enableTranslation: false,
 					enableInsertion: false,
 					enableDeletion: false,
 					enableSelection: false,
 				},
 				geometry: {
 					mode: "lines",
-					points: allLSPoints,
-					close: true,
-					minPoints: allLSPoints.length,
-					maxPoints: allLSPoints.length,
-				},
-				restrictions: {plane: lsRestriction},
-				visualization: {
-					distanceLabels: false,
-					pointerPosition: false,
-					...vis,
-					points: {
-						// Zero size makes handles invisible and effectively non-clickable.
-						size_0: 0,
-						size_1: 0,
-						size_2: 0,
-						size_3: 0,
-						...vis?.points,
-					},
-					lines: {color: "#0d44f0", ...vis?.lines},
-				},
-			},
-			undefined,
-			parentNode,
-		);
-
-		const disabledVis = scalingConfig.disabledVisualization;
-		// --- 2. Locked corners DT: disabled corners, grey style, non-interactive ---
-		// Created BEFORE the interactive DT so its onMove fires first and the
-		// #blockingHoverInstances set is populated before the interactive DT
-		// processes hover, preventing nearby interactive handles from lighting up
-		// while the cursor is over a locked corner.
-		const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
-		if (lockedCIs.length > 0) {
-			const lockedLSPoints = lockedCIs.map((ci) => {
-				const p = localPoints[ci];
-				return [p[0], p[1], p[2]] as [number, number, number];
-			});
-			this.#lockedDT = createDrawingTools(
-				viewport,
-				{onUpdate: () => {}, onCancel: () => {}},
-				{
-					general: {
-						enableTranslation: false,
-						enableInsertion: false,
-						enableDeletion: false,
-						enableSelection: false,
-					},
-					geometry: {
-						mode: "points",
-						points: lockedLSPoints,
-						minPoints: lockedLSPoints.length,
-						maxPoints: lockedLSPoints.length,
-					},
-					restrictions: {plane: lsRestriction},
-					visualization: {
-						distanceLabels: false,
-						pointerPosition: false,
-						...disabledVis,
-						points: {
-							size_0: 20,
-							size_1: 20,
-							size_2: 20,
-							size_3: 20,
-							color_0: "#888888",
-							color_1: "#888888",
-							color_2: "#888888",
-							color_3: "#888888",
-							...disabledVis?.points,
-						},
-					},
-				},
-				undefined,
-				parentNode,
-			);
-		}
-
-		// --- 3. Interactive handles DT: enabled active points only, mode "points" ---
-		const dtLSPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
-			const p = localPoints[ci];
-			return [p[0], p[1], p[2]] as [number, number, number];
-		});
-
-		// Build weightedAdjacency: each corner DT point propagates half its drag
-		// delta to the two adjacent midpoint DT points (one on each incident edge).
-		const weightedAdjacency: AdjacencyEntry[][] =
-			this.#pointsMapping.dtToConceptual.map((ci) => {
-				if (ci % 2 !== 0) return []; // midpoints don't propagate
-				const entries: AdjacencyEntry[] = [];
-				for (const midCI of [(ci + 7) % 8, (ci + 1) % 8]) {
-					const midDI = this.#pointsMapping.conceptualToDT[midCI];
-					if (midDI >= 0)
-						entries.push({
-							to: midDI,
-							weights: [0.5, 0.5, 0.5],
-							space: "world",
-						});
-				}
-				return entries;
-			});
-
-		this.#drawingTools = createDrawingTools(
-			viewport,
-			{
-				onUpdate: (pointsData, metaData) => {
-					console.log("Points data:", pointsData);
-					console.log("Meta data:", metaData);
-				},
-				onCancel: () => {
-					console.log("Drawing tool cancelled");
-				},
-			},
-			{
-				general: {
-					enableInsertion: false,
-					enableDeletion: false,
-					enableSelection: false,
-				},
-				geometry: {
-					mode: "points",
 					points: dtLSPoints,
+					close: true,
 					minPoints: dtLSPoints.length,
 					maxPoints: dtLSPoints.length,
 					weightedAdjacency,
+					disabledPoints:
+						this.#pointsMapping.disabledDTIndices.length > 0
+							? this.#pointsMapping.disabledDTIndices
+							: undefined,
 				},
+				controls,
 				restrictions: {plane: lsRestriction},
 				visualization: {
 					distanceLabels: false,
@@ -234,8 +184,11 @@ export class RectangleTransformScalingHandler {
 						color_1: "#0d44f0",
 						color_2: "#0d44f0",
 						color_3: "#0d44f0",
+						size_6: disabledSize,
+						color_6: disabledColor,
 						...vis?.points,
 					},
+					lines: {color: "#0d44f0", ...vis?.lines},
 				},
 			},
 			undefined,
@@ -260,72 +213,87 @@ export class RectangleTransformScalingHandler {
 	}
 
 	public close(): void {
-		this.#outlineDT.close();
 		this.#drawingTools.close();
-		this.#lockedDT?.close();
 	}
 
 	/**
 	 * Handle a corner drag.
-	 * n=0->C0: controls left U and bottom V
-	 * n=1->C2: controls right U and bottom V
-	 * n=2->C4: controls right U and top V
-	 * n=3->C6: controls left U and top V
+	 * The DT has already propagated the drag delta to the two adjacent corners
+	 * via weightedAdjacency ([1,0,0] for the shared-U neighbor, [0,1,0] for the
+	 * shared-V neighbor). This method reads those DT-updated positions and applies
+	 * uniform scaling, axis locks, and clamp/snap on top.
 	 */
 	public cornerPointMoved(
 		index: number,
-		movedPointLS: vec3,
+		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
 		const cfg = this.#scalingConfig;
 		const basis = getRectBasis(localPoints);
-		const movedUV = toRectFrame(movedPointLS, basis);
-
-		// Get the current UV coordinates of the 4 corners.
-		let c0uv = toRectFrame(localPoints[0], basis);
-		let c2uv = toRectFrame(localPoints[2], basis);
-		let c4uv = toRectFrame(localPoints[4], basis);
-		let c6uv = toRectFrame(localPoints[6], basis);
-
-		// Determine which corner is being moved and which edges it controls.
 		const n = index / 2;
 		const controlsLeft = n === 0 || n === 3;
 		const controlsBottom = n < 2;
 
-		let du = movedUV.u;
-		let dv = movedUV.v;
+		// Read corner position from DT (already propagated) or fall back to localPoints
+		// for locked corners that have no DT slot.
+		const readCorner = (ci: number): RectFrameCoord => {
+			const di = this.#pointsMapping.conceptualToDT[ci];
+			if (di >= 0) {
+				const p = updatedDtPoints[di];
+				return toRectFrame(vec3.fromValues(p[0], p[1], p[2]), basis);
+			}
+			return toRectFrame(localPoints[ci], basis);
+		};
 
-		// If uniform scaling is enabled, adjust the moved corner's UV to maintain the aspect ratio.
+		let c0uv = readCorner(0);
+		let c2uv = readCorner(2);
+		let c4uv = readCorner(4);
+		let c6uv = readCorner(6);
+
 		if (cfg.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
+			const movedUV =
+				index === 0
+					? c0uv
+					: index === 2
+						? c2uv
+						: index === 4
+							? c4uv
+							: c6uv;
 			const signU = controlsLeft ? -1 : 1;
 			const signV = controlsBottom ? -1 : 1;
 			const adjusted = this.scaleUniformly(prevUV, movedUV, signU, signV);
-			du = adjusted.u;
-			dv = adjusted.v;
+			if (controlsLeft) {
+				c0uv = {u: adjusted.u, v: c0uv.v};
+				c6uv = {u: adjusted.u, v: c6uv.v};
+			} else {
+				c2uv = {u: adjusted.u, v: c2uv.v};
+				c4uv = {u: adjusted.u, v: c4uv.v};
+			}
+			if (controlsBottom) {
+				c0uv = {u: c0uv.u, v: adjusted.v};
+				c2uv = {u: c2uv.u, v: adjusted.v};
+			} else {
+				c4uv = {u: c4uv.u, v: adjusted.v};
+				c6uv = {u: c6uv.u, v: adjusted.v};
+			}
 		}
 
-		// Apply axis locks: if x is disabled, don't change U; if y is disabled, don't change V.
 		if (!cfg.x) {
-			du = controlsLeft ? c0uv.u : c2uv.u;
+			const leftU = toRectFrame(localPoints[0], basis).u;
+			const rightU = toRectFrame(localPoints[2], basis).u;
+			c0uv = {u: leftU, v: c0uv.v};
+			c6uv = {u: leftU, v: c6uv.v};
+			c2uv = {u: rightU, v: c2uv.v};
+			c4uv = {u: rightU, v: c4uv.v};
 		}
 		if (!cfg.y) {
-			dv = controlsBottom ? c0uv.v : c4uv.v;
-		}
-
-		if (controlsLeft) {
-			c0uv = {u: du, v: c0uv.v};
-			c6uv = {u: du, v: c6uv.v};
-		} else {
-			c2uv = {u: du, v: c2uv.v};
-			c4uv = {u: du, v: c4uv.v};
-		}
-		if (controlsBottom) {
-			c0uv = {u: c0uv.u, v: dv};
-			c2uv = {u: c2uv.u, v: dv};
-		} else {
-			c4uv = {u: c4uv.u, v: dv};
-			c6uv = {u: c6uv.u, v: dv};
+			const bottomV = toRectFrame(localPoints[0], basis).v;
+			const topV = toRectFrame(localPoints[4], basis).v;
+			c0uv = {u: c0uv.u, v: bottomV};
+			c2uv = {u: c2uv.u, v: bottomV};
+			c4uv = {u: c4uv.u, v: topV};
+			c6uv = {u: c6uv.u, v: topV};
 		}
 
 		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
@@ -338,66 +306,60 @@ export class RectangleTransformScalingHandler {
 	}
 
 	/**
-	 * Flush all visible conceptual local-space points to the drawing tools.
-	 * @param localPoints
-	 * @param temporary
+	 * Flush all four corner points to the single drawing tool.
+	 * EdgeControl handles (midpoints) are automatically repositioned by the DT.
 	 */
 	public flushRectPoints(localPoints: vec3[], temporary: boolean): void {
-		// Update the outline DT (all 8 points; DT index === conceptual index).
-		for (let i = 0; i < 8; i++) {
-			const p = localPoints[i];
-			this.#outlineDT.movePoint(i, [p[0], p[1], p[2]], temporary);
-		}
-
-		// Update the interactive handles DT.
 		this.#pointsMapping.flushRectPoints(
 			localPoints,
 			this.#drawingTools,
 			temporary,
 		);
-
-		// Update the locked corners DT.
-		if (this.#lockedDT) {
-			const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
-			for (let i = 0; i < lockedCIs.length; i++) {
-				const p = localPoints[lockedCIs[i]];
-				this.#lockedDT.movePoint(i, [p[0], p[1], p[2]], temporary);
-			}
-		}
 	}
 
 	/**
-	 * Handle a mid-point drag.
-	 * M1,M5 lie on U-axis edges -> only V coordinate changes (scale in V).
-	 * M3,M7 lie on V-axis edges -> only U coordinate changes (scale in U).
+	 * Handle an EdgeControl (midpoint) drag.
+	 * The drawing tools have already moved the two corner points for the dragged
+	 * edge; this method reads their new positions from the updated DT points
+	 * array, reconstructs the rectangle, and applies axis-lock and clamp/snap.
 	 */
-	public midPointMoved(
-		index: number,
-		movedPointLS: vec3,
+	public controlMoved(
+		controlIndex: number,
+		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
 		const cfg = this.#scalingConfig;
-		const basis = getRectBasis(localPoints);
-		const n = (index - 1) / 2;
-		// Mids on U edges (M1,M5) control V scaling, mids on V edges (M3,M7) control U scaling.
-		const isUEdge = n % 2 === 0;
+		const {conceptualMidIndex, corner1CI, corner2CI} =
+			this.#pointsMapping.midpointEdges[controlIndex];
+		// M1,M5 are on U-axis edges (horizontal) → only V changes.
+		// M3,M7 are on V-axis edges (vertical)   → only U changes.
+		const isUEdge = conceptualMidIndex % 4 === 1;
 
-		// Axis lock: mid on a U-edge controls Y; mid on a V-edge controls X.
+		// Axis lock
 		if (isUEdge && !cfg.y) return localPoints.map((p) => vec3.clone(p));
 		if (!isUEdge && !cfg.x) return localPoints.map((p) => vec3.clone(p));
 
-		const movedUV = toRectFrame(movedPointLS, basis);
+		const basis = getRectBasis(localPoints);
+		const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
+		const di2 = this.#pointsMapping.conceptualToDT[corner2CI];
 
-		// Get the current UV coordinates of the 4 corners.
-		// C0=BL, C2=BR, C4=TR, C6=TL
+		// Use the midpoint of the two moved corners as the effective dragged position.
+		const rp1 = updatedDtPoints[di1];
+		const rp2 = updatedDtPoints[di2];
+		const midLS = vec3.fromValues(
+			(rp1[0] + rp2[0]) / 2,
+			(rp1[1] + rp2[1]) / 2,
+			(rp1[2] + rp2[2]) / 2,
+		);
+		const movedUV = toRectFrame(midLS, basis);
+
 		let c0uv = toRectFrame(localPoints[0], basis);
 		let c2uv = toRectFrame(localPoints[2], basis);
 		let c4uv = toRectFrame(localPoints[4], basis);
 		let c6uv = toRectFrame(localPoints[6], basis);
 
-		// Apply primary edge movement.
 		if (isUEdge) {
-			if (index === 1) {
+			if (conceptualMidIndex === 1) {
 				c0uv = {u: c0uv.u, v: movedUV.v};
 				c2uv = {u: c2uv.u, v: movedUV.v};
 			} else {
@@ -405,7 +367,7 @@ export class RectangleTransformScalingHandler {
 				c6uv = {u: c6uv.u, v: movedUV.v};
 			}
 		} else {
-			if (index === 3) {
+			if (conceptualMidIndex === 3) {
 				c2uv = {u: movedUV.u, v: c2uv.v};
 				c4uv = {u: movedUV.u, v: c4uv.v};
 			} else {
@@ -414,40 +376,14 @@ export class RectangleTransformScalingHandler {
 			}
 		}
 
-		// For uniform scaling, expand the perpendicular edges symmetrically by
-		// 50% of the primary delta so the rectangle grows from its center.
-		if (cfg.uniform) {
-			const prevUV = toRectFrame(localPoints[index], basis);
-			if (isUEdge) {
-				const dV = movedUV.v - prevUV.v;
-				// M1 pulled down (dV<0) increases height; M5 pulled up (dV>0) increases height.
-				const heightIncrease = index === 1 ? -dV : dV;
-				const perp = heightIncrease / 2;
-				c0uv = {u: c0uv.u - perp, v: c0uv.v};
-				c2uv = {u: c2uv.u + perp, v: c2uv.v};
-				c4uv = {u: c4uv.u + perp, v: c4uv.v};
-				c6uv = {u: c6uv.u - perp, v: c6uv.v};
-			} else {
-				const dU = movedUV.u - prevUV.u;
-				// M3 pulled right (dU>0) increases width; M7 pulled left (dU<0) increases width.
-				const widthIncrease = index === 3 ? dU : -dU;
-				const perp = widthIncrease / 2;
-				c0uv = {u: c0uv.u, v: c0uv.v - perp};
-				c2uv = {u: c2uv.u, v: c2uv.v - perp};
-				c4uv = {u: c4uv.u, v: c4uv.v + perp};
-				c6uv = {u: c6uv.u, v: c6uv.v + perp};
-			}
-		}
-
 		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
-		// Anchor the non-moving edge: U-edge mids only change V, V-edge mids only change U.
 		const anchorU: "left" | "right" | "center" = isUEdge
 			? "center"
-			: index === 3
+			: conceptualMidIndex === 3
 				? "left"
 				: "right";
 		const anchorV: "bottom" | "top" | "center" = isUEdge
-			? index === 1
+			? conceptualMidIndex === 1
 				? "top"
 				: "bottom"
 			: "center";

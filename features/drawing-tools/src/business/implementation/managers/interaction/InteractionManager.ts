@@ -13,6 +13,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
+import {ControlsManager} from "../controls/ControlsManager";
 import {DeletionInteractionHandler} from "./handlers/DeletionInteractionHandler";
 import {InsertionInteractionHandler} from "./handlers/InsertionInteractionHandler";
 import {MidPointInteractionHandler} from "./handlers/MidPointInteractionHandler";
@@ -22,7 +23,7 @@ import {DesktopStrategy} from "./strategies/DesktopStrategy";
 import {MobileStrategy} from "./strategies/MobileStategy";
 
 export class InteractionManager {
-	// #region Properties (11)
+	// #region Properties (12)
 
 	readonly #deletionInteractionHandler: DeletionInteractionHandler;
 	readonly #drawingToolsManager: DrawingToolsManager;
@@ -33,9 +34,10 @@ export class InteractionManager {
 	readonly #restrictionManager: IRestrictionManager;
 	readonly #viewport: IViewportApi;
 
+	#controlsManager?: ControlsManager;
 	#strategy: IStrategy;
 
-	// #endregion Properties (11)
+	// #endregion Properties (12)
 
 	// #region Constructors (1)
 
@@ -110,6 +112,15 @@ export class InteractionManager {
 		this.#strategy = SystemInfo.instance.isMobile
 			? new MobileStrategy(this.#drawingToolsManager, this)
 			: new DesktopStrategy(this.#drawingToolsManager, this);
+
+		if (
+			this.#drawingToolsManager.settings.controls &&
+			this.#drawingToolsManager.settings.controls.length > 0
+		) {
+			this.#controlsManager = new ControlsManager(
+				this.#drawingToolsManager,
+			);
+		}
 	}
 
 	// #endregion Constructors (1)
@@ -136,6 +147,10 @@ export class InteractionManager {
 		return this.#interactionManagerHelper;
 	}
 
+	public get controlsManager(): ControlsManager | undefined {
+		return this.#controlsManager;
+	}
+
 	// #endregion Public Getters And Setters (4)
 
 	// #region Public Methods (10)
@@ -156,6 +171,7 @@ export class InteractionManager {
 
 		this.#interactionManagerHelper.close();
 		this.#restrictionManager.close();
+		this.#controlsManager?.close();
 	}
 
 	public deleteSelection(): void {

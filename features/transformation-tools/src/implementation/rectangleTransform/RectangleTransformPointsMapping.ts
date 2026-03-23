@@ -9,11 +9,28 @@ import {vec3} from "gl-matrix";
  * Conceptual layout: [C0, M1, C2, M3, C4, M5, C6, M7]
  *   C0=BL (X-,Y-), C2=BR (X+,Y-), C4=TR (X+,Y+), C6=TL (X-,Y+)
  *   M1=bottom (Y-), M3=right (X+), M5=top (Y+), M7=left (X-)
+ *
+ * All four corners are always present in the single drawing-tools instance at
+ * fixed DT indices: C0→0, C2→1, C4→2, C6→3.  Locked corners are listed in
+ * `disabledDTIndices` so the DT renders them as non-interactive disabled
+ * handles.  Midpoints are NOT assigned DT point indices — they are realized as
+ * EdgeControls instead.
  */
 export class RectangleTransformPointsMapping {
 	public readonly conceptualToDT: number[];
 	public readonly dtToConceptual: number[];
 	public readonly lockedCornerConceptualIndices: number[];
+	public readonly disabledDTIndices: number[];
+	/**
+	 * Midpoint edges that should be created as EdgeControls.
+	 * Each entry contains the conceptual index of the midpoint and the
+	 * conceptual indices of its two adjacent corners.
+	 */
+	public readonly midpointEdges: Array<{
+		conceptualMidIndex: number;
+		corner1CI: number;
+		corner2CI: number;
+	}>;
 
 	constructor(config: PointVisibilityConfig = {}) {
 		const showC0 = config.corners?.bottomLeft ?? true; // BL
@@ -25,7 +42,7 @@ export class RectangleTransformPointsMapping {
 		const showM5 = config.midpoints?.top ?? true; // top
 		const showM7 = config.midpoints?.left ?? true; // left
 
-		// Disabled corners are still shown visually (locked handles) but not interactive.
+		// Disabled corners are shown visually as locked (non-interactive) handles.
 		const lockedCorners: number[] = [];
 		if (!showC0) lockedCorners.push(0);
 		if (!showC2) lockedCorners.push(2);
@@ -33,40 +50,55 @@ export class RectangleTransformPointsMapping {
 		if (!showC6) lockedCorners.push(6);
 		this.lockedCornerConceptualIndices = lockedCorners;
 
-		const dtToConceptual: number[] = [];
-		const conceptualToDT: number[] = new Array(8).fill(-1);
+		// All four corners always occupy fixed DT slots: C0→0, C2→1, C4→2, C6→3.
+		// Midpoints (odd conceptual indices) remain -1 — they are EdgeControls.
+		this.dtToConceptual = [0, 2, 4, 6];
+		this.conceptualToDT = [0, -1, 1, -1, 2, -1, 3, -1];
 
-		// Corners that are "disabled" are excluded from the interactive handles DT
-		// but are still included in the outline DT and the locked handles DT.
-		const interactive: Record<number, boolean> = {
-			0: showC0,
-			1: showM1,
-			2: showC2,
-			3: showM3,
-			4: showC4,
-			5: showM5,
-			6: showC6,
-			7: showM7,
-		};
-		for (let ci = 0; ci < 8; ci++) {
-			if (!interactive[ci]) continue;
-			conceptualToDT[ci] = dtToConceptual.length;
-			dtToConceptual.push(ci);
+		const lockedSet = new Set(lockedCorners);
+		this.disabledDTIndices = lockedCorners.map(
+			(ci) => this.conceptualToDT[ci],
+		);
+
+		// Build the list of midpoint edges that should become EdgeControls.
+		// A control is only created when the midpoint is enabled AND neither
+		// adjacent corner is locked.
+		const midpointEdges: {
+			conceptualMidIndex: number;
+			corner1CI: number;
+			corner2CI: number;
+		}[] = [];
+		const midDefs: Array<{
+			mi: number;
+			c1: number;
+			c2: number;
+			show: boolean;
+		}> = [
+			{mi: 1, c1: 0, c2: 2, show: showM1},
+			{mi: 3, c1: 2, c2: 4, show: showM3},
+			{mi: 5, c1: 4, c2: 6, show: showM5},
+			{mi: 7, c1: 6, c2: 0, show: showM7},
+		];
+		for (const {mi, c1, c2, show} of midDefs) {
+			if (show && !lockedSet.has(c1) && !lockedSet.has(c2)) {
+				midpointEdges.push({
+					conceptualMidIndex: mi,
+					corner1CI: c1,
+					corner2CI: c2,
+				});
+			}
 		}
-
-		this.dtToConceptual = dtToConceptual;
-		this.conceptualToDT = conceptualToDT;
+		this.midpointEdges = midpointEdges;
 	}
 
-	// Push all visible conceptual local-space points to the drawing tools.
+	// Push all four corner local-space points to the drawing tools.
 	public flushRectPoints(
 		localPoints: vec3[],
 		drawingTools: IDrawingToolsApi,
 		temporary: boolean,
 	): void {
-		for (let ci = 0; ci < 8; ci++) {
-			const di = this.conceptualToDT[ci];
-			if (di < 0) continue;
+		for (let di = 0; di < this.dtToConceptual.length; di++) {
+			const ci = this.dtToConceptual[di];
 			const p = localPoints[ci];
 			drawingTools.movePoint(di, [p[0], p[1], p[2]], temporary);
 		}

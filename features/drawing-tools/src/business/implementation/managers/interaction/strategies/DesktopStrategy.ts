@@ -153,6 +153,11 @@ export class DesktopStrategy implements IStrategy {
 				return;
 			}
 
+			// Handle control drag initiation (controls take priority over points)
+			if (this.handleControlDragStart()) {
+				return;
+			}
+
 			// Handle insertion finalization and restart
 			if (this.handleInsertionFinalization(event, ray)) {
 				return;
@@ -292,6 +297,13 @@ export class DesktopStrategy implements IStrategy {
 			return;
 		}
 
+		// Handle control drag (short-circuit all other logic while dragging)
+		if (this.#interactionManager.controlsManager?.isDraggingControl) {
+			this.#interactionManager.controlsManager.moveDraggedControl(ray);
+			this.updateCursor();
+			return;
+		}
+
 		let currentRestrictedPoint: vec3 | undefined;
 
 		// Handle automatic start and insertion resume
@@ -339,8 +351,12 @@ export class DesktopStrategy implements IStrategy {
 		// If a non-interactive DT has a point closer to the cursor, suppress hover
 		// so the locked handle visually "wins" the hit-test.
 		const blocked = DesktopStrategy.#blockingHoverInstances.size > 0;
+
+		// Controls take priority: if a control is hovered, suppress regular hover.
+		const controlHovered =
+			this.#interactionManager.controlsManager?.checkHover(ray) ?? false;
 		this.#interactionManagerHelper.checkHover(
-			blocked ? undefined : distances,
+			controlHovered || blocked ? undefined : distances,
 			ray,
 		);
 
@@ -349,8 +365,11 @@ export class DesktopStrategy implements IStrategy {
 			currentRestrictedPoint =
 				this.handleInsertionMove(ray) || currentRestrictedPoint;
 
-			// Handle mid-point insertion
-			this.handleMidPointMove(ray);
+			// Handle mid-point insertion.
+			// Suppressed when a control is hovered: with hoveredPoint=undefined
+			// the mid-point handler would otherwise detect the edge under the
+			// control as a valid insertion target and add a temporary point there.
+			if (!controlHovered) this.handleMidPointMove(ray);
 		}
 
 		// Update cursor and handle insertion pause
@@ -379,10 +398,11 @@ export class DesktopStrategy implements IStrategy {
 	 * This ensures the UI returns to a clean state when interaction is interrupted.
 	 */
 	public onOut(): void {
+		this.#interactionManager.controlsManager?.onOut();
 		this.#restrictionManager.showRestrictionVisualization = false;
 		this.#insertionInteractionHandler.pauseInsertion();
 		this.#interactionManagerHelper.onOut();
-		this.#clearCursorState();
+		this.clearCursorState();
 		this.reset();
 	}
 
@@ -419,12 +439,15 @@ export class DesktopStrategy implements IStrategy {
 
 			// Clear box hovered points, last move event, and update material indices for all points
 			this.#boxHoveredPoints = [];
-			this.#updateAllPointMaterials();
+			this.updateAllPointMaterials();
 			this.#lastMoveEvent = undefined;
 
 			this.#isBoxSelecting = false;
 			this.#selectionBox.reset();
 		}
+
+		// Finalize control drag (no-op when not dragging)
+		this.#interactionManager.controlsManager?.endDragging();
 
 		this.#interactionManagerHelper.onUp();
 		this.reset();
@@ -829,7 +852,7 @@ export class DesktopStrategy implements IStrategy {
 	/**
 	 * Update material indices for all points to ensure correct display after selection changes
 	 */
-	#updateAllPointMaterials(): void {
+	private updateAllPointMaterials(): void {
 		if (
 			!this.#drawingToolsManager.positionArray ||
 			this.#drawingToolsManager.positionArray.length === 0
@@ -916,7 +939,7 @@ export class DesktopStrategy implements IStrategy {
 	 * Called when the pointer leaves the canvas so this instance no longer
 	 * blocks the cursor from resetting to "default".
 	 */
-	#clearCursorState(): void {
+	private clearCursorState(): void {
 		const uuid = this.#drawingToolsManager.uuid;
 		DesktopStrategy.#draggingInstances.delete(uuid);
 		DesktopStrategy.#hoveringInstances.delete(uuid);
@@ -933,12 +956,27 @@ export class DesktopStrategy implements IStrategy {
 		const uuid = this.#drawingToolsManager.uuid;
 		const {enableTranslation, enableSelection} =
 			this.#drawingToolsManager.settings.general;
-		if (this.#interactionManagerHelper.dragging && enableTranslation) {
+		const isDraggingControl =
+			this.#interactionManager.controlsManager?.isDraggingControl ??
+			false;
+		const isHoveringControl =
+			this.#interactionManager.controlsManager !== undefined &&
+			this.#interactionManager.controlsManager.hoveredControlIndex !==
+				undefined;
+
+		if (
+			(this.#interactionManagerHelper.dragging && enableTranslation) ||
+			isDraggingControl
+		) {
 			DesktopStrategy.#draggingInstances.add(uuid);
 			DesktopStrategy.#hoveringInstances.delete(uuid);
 		} else if (
-			this.#interactionManagerHelper.hoveredPoint !== undefined &&
-			(enableTranslation || enableSelection)
+			(this.#interactionManagerHelper.hoveredPoint !== undefined &&
+				(enableTranslation || enableSelection) &&
+				!this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					this.#interactionManagerHelper.hoveredPoint,
+				)) ||
+			isHoveringControl
 		) {
 			DesktopStrategy.#hoveringInstances.add(uuid);
 			DesktopStrategy.#draggingInstances.delete(uuid);
@@ -957,6 +995,29 @@ export class DesktopStrategy implements IStrategy {
 	}
 
 	/**
+	 * Initiates control dragging if a control is currently hovered.
+	 * Returns true if control dragging was started.
+	 */
+	private handleControlDragStart(): boolean {
+		if (
+			!this.#interactionManager.controlsManager ||
+			this.#interactionManager.controlsManager.hoveredControlIndex ===
+				undefined
+		)
+			return false;
+
+		if (this.#interactionManager.controlsManager.startDragging()) {
+			if (!this.#cameraFreezeFlag) {
+				this.#cameraFreezeFlag = this.#viewport.addFlag(
+					FLAG_TYPE.CAMERA_FREEZE,
+				);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Update material index for a single point based on its state
 	 */
 	private updatePointMaterial(
@@ -964,6 +1025,18 @@ export class DesktopStrategy implements IStrategy {
 		isSelected: boolean,
 		isHovered: boolean,
 	): void {
+		if (
+			this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+				index,
+			)
+		) {
+			this.#drawingToolsManager.updateMaterialIndex(
+				index,
+				MATERIAL_INDEX.DISABLED,
+			);
+			return;
+		}
+
 		let materialIndex: MATERIAL_INDEX;
 		if (isSelected && isHovered) {
 			materialIndex = MATERIAL_INDEX.SELECTED_HOVERED;

@@ -25,6 +25,7 @@ import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/Event
 import {IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
 import {
 	DefaultTextures,
+	MATERIAL_INDEX,
 	PointsData,
 	Settings,
 } from "../../../interfaces/IDrawingToolsManager";
@@ -401,6 +402,14 @@ export class GeometryState {
 
 		// create material index array
 		this.#materialIndexArray = new Array(1024).fill(0);
+
+		// Apply DISABLED material for any disabled points
+		const disabledPoints = this.#settings.geometry.disabledPoints;
+		if (disabledPoints) {
+			for (const idx of disabledPoints) {
+				this.#materialIndexArray[idx] = MATERIAL_INDEX.DISABLED;
+			}
+		}
 
 		this.#geometryDataPoints.material = new MaterialMultiPointData(
 			Object.assign(

@@ -182,7 +182,14 @@ export class InteractionManagerHelper {
 			)
 				return;
 			if (this.#hoveredPoint !== undefined) {
-				if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+				if (this.isPointDisabled(this.#hoveredPoint)) {
+					this.#drawingToolsManager.updateMaterialIndex(
+						this.#hoveredPoint,
+						MATERIAL_INDEX.DISABLED,
+					);
+				} else if (
+					this.#selectedPointIndices.includes(this.#hoveredPoint)
+				) {
 					this.#drawingToolsManager.updateMaterialIndex(
 						this.#hoveredPoint,
 						MATERIAL_INDEX.SELECTED,
@@ -215,7 +222,12 @@ export class InteractionManagerHelper {
 				}
 			}
 
-			if (this.#selectedPointIndices.includes(index)) {
+			if (this.isPointDisabled(index)) {
+				this.#drawingToolsManager.updateMaterialIndex(
+					index,
+					MATERIAL_INDEX.DISABLED,
+				);
+			} else if (this.#selectedPointIndices.includes(index)) {
 				this.#drawingToolsManager.updateMaterialIndex(
 					index,
 					MATERIAL_INDEX.SELECTED_HOVERED,
@@ -250,7 +262,14 @@ export class InteractionManagerHelper {
 		} else {
 			// remove the hovered point if there is no point close to the ray
 			if (this.#hoveredPoint !== undefined) {
-				if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+				if (this.isPointDisabled(this.#hoveredPoint)) {
+					this.#drawingToolsManager.updateMaterialIndex(
+						this.#hoveredPoint,
+						MATERIAL_INDEX.DISABLED,
+					);
+				} else if (
+					this.#selectedPointIndices.includes(this.#hoveredPoint)
+				) {
 					this.#drawingToolsManager.updateMaterialIndex(
 						this.#hoveredPoint,
 						MATERIAL_INDEX.SELECTED,
@@ -403,7 +422,7 @@ export class InteractionManagerHelper {
 					}
 				}
 
-				this.#applyAdjacencyPropagation(differenceToIntersected);
+				this.applyAdjacencyPropagation(differenceToIntersected);
 
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
@@ -621,6 +640,7 @@ export class InteractionManagerHelper {
 		if (distances) {
 			// add the id if it is not already in the array
 			// remove it if it is in the array
+			if (this.isPointDisabled(distances[0].index)) return;
 			if (!this.#selectedPointIndices.includes(distances[0].index)) {
 				this.toggleSelection(distances[0].index);
 				this.#justSelected = true;
@@ -642,6 +662,13 @@ export class InteractionManagerHelper {
 			this.#hoveredPoint !== undefined;
 
 		if (!selectedAndHovered && !hoverOnlyDrag) return false;
+
+		// Disabled points cannot be dragged
+		if (
+			this.#hoveredPoint !== undefined &&
+			this.isPointDisabled(this.#hoveredPoint)
+		)
+			return false;
 
 		if (hoverOnlyDrag) {
 			// Temporarily track the hovered point so moveSelectedPoints works.
@@ -668,7 +695,7 @@ export class InteractionManagerHelper {
 		this.#draggedPoint = this.#hoveredPoint;
 
 		this.#dragging = true;
-		this.#collectPropagatedBasePositions();
+		this.collectPropagatedBasePositions();
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
 			viewportId: this.#drawingToolsManager.viewport.id,
 			drawingToolsId: this.#drawingToolsManager.uuid,
@@ -682,7 +709,7 @@ export class InteractionManagerHelper {
 	 * pre-drag world-space position of every reachable non-selected point so that
 	 * delta propagation can work from a stable baseline across multiple move frames.
 	 */
-	#collectPropagatedBasePositions(): void {
+	private collectPropagatedBasePositions(): void {
 		const adjacency = this.#settings.geometry.weightedAdjacency;
 		if (!adjacency) return;
 
@@ -718,7 +745,7 @@ export class InteractionManagerHelper {
 	 *          apply per-axis weights, then recompose.  Falls back to "world" when no
 	 *          enabled plane restriction is present.
 	 */
-	#computeWeightedDelta(
+	private computeWeightedDelta(
 		sourceDelta: vec3,
 		weights: AdjacencyEntry["weights"],
 		space: AdjacencyEntry["space"],
@@ -765,7 +792,7 @@ export class InteractionManagerHelper {
 	 * - A node is expanded as a source at most once (cycle-safe).
 	 * - Processing order follows adjacency array declaration order (BFS).
 	 */
-	#applyAdjacencyPropagation(differenceToIntersected: vec3): void {
+	private applyAdjacencyPropagation(differenceToIntersected: vec3): void {
 		const adjacency = this.#settings.geometry.weightedAdjacency;
 		if (!adjacency || this.#propagatedBasePositions.size === 0) return;
 
@@ -784,7 +811,7 @@ export class InteractionManagerHelper {
 				const {to: targetIdx, weights, space} = entry;
 				if (this.#selectedPointIndices.includes(targetIdx)) continue;
 
-				const weightedDelta = this.#computeWeightedDelta(
+				const weightedDelta = this.computeWeightedDelta(
 					sourceDelta,
 					weights,
 					space,
@@ -831,6 +858,8 @@ export class InteractionManagerHelper {
 	 * @param index
 	 */
 	public toggleSelection(index: number): void {
+		// Disabled points cannot be selected
+		if (this.isPointDisabled(index)) return;
 		// add the id if it is not already in the array
 		// remove it if it is in the array
 		const indexInArray = this.#selectedPointIndices.indexOf(index);
@@ -861,5 +890,9 @@ export class InteractionManagerHelper {
 				index,
 			});
 		}
+	}
+
+	private isPointDisabled(index: number): boolean {
+		return this.#settings.geometry.disabledPoints?.includes(index) ?? false;
 	}
 }

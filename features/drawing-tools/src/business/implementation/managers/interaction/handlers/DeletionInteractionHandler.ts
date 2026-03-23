@@ -41,9 +41,14 @@ export class DeletionInteractionHandler {
 			this.#drawingToolsManager.positionArray,
 		);
 		if (distances) {
-			// add the id if it is not already in the array
-			// remove it if it is in the array
-			this.#drawingToolsManager.removePoint(distances[0].index);
+			const idx = distances[0].index;
+			if (
+				this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					idx,
+				)
+			)
+				return;
+			this.#drawingToolsManager.removePoint(idx);
 			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 				viewportId: this.#viewport.id,
 				drawingToolsId: this.#drawingToolsManager.uuid,
@@ -53,8 +58,14 @@ export class DeletionInteractionHandler {
 
 	public deleteSelection(indices: number[]): void {
 		if (!this.#drawingToolsManager.settings.general.enableDeletion) return;
-		if (indices.length === 0) return;
-		this.#drawingToolsManager.removePoints(indices);
+		const toDelete = indices.filter(
+			(i) =>
+				!this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					i,
+				),
+		);
+		if (toDelete.length === 0) return;
+		this.#drawingToolsManager.removePoints(toDelete);
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 			viewportId: this.#viewport.id,
 			drawingToolsId: this.#drawingToolsManager.uuid,
