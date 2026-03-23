@@ -1,6 +1,10 @@
 import {addListener} from "@shapediver/viewer";
 import {IRay} from "@shapediver/viewer.features.interaction";
-import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	GeometryMathManager,
+	PlaneRestriction,
+	RESTRICTION_TYPE,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
@@ -8,14 +12,15 @@ import {
 
 import {vec3} from "gl-matrix";
 
+import {DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
 import {
+	AdjacencyEntry,
 	MATERIAL_INDEX,
 	Settings,
 } from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
-import {DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
 
 export class InteractionManagerHelper {
 	readonly #drawingToolsManager: DrawingToolsManager;
@@ -33,6 +38,7 @@ export class InteractionManagerHelper {
 	#lastRay: IRay | undefined;
 	#midPointInserted: boolean = false;
 	#moving: boolean = false;
+	#propagatedBasePositions: Map<number, vec3> = new Map();
 	#selectedMovedPointPositions: vec3[] = [];
 	#selectedPointIndices: number[] = [];
 	#selectedPointPositions: vec3[] = [];
@@ -288,6 +294,7 @@ export class InteractionManagerHelper {
 		this.#selectedPointPositions = [];
 		this.#selectedMovedPointPositions = [];
 		this.#draggedPointPosition = vec3.create();
+		this.#propagatedBasePositions.clear();
 	}
 
 	public deselectPoint(index: number): void {
@@ -317,7 +324,7 @@ export class InteractionManagerHelper {
 				this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
 					type: "drawing",
 					index: this.#draggedPoint!,
-					startPoint: this.#draggedPointPosition,
+					startPoint: vec3.clone(this.#draggedPointPosition),
 					positionArray: this.#drawingToolsManager.positionArray,
 				});
 			const intersectionPoint = rayTraceResult?.point;
@@ -396,6 +403,8 @@ export class InteractionManagerHelper {
 					}
 				}
 
+				this.#applyAdjacencyPropagation(differenceToIntersected);
+
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
 					drawingToolsId: this.#drawingToolsManager.uuid,
@@ -433,6 +442,15 @@ export class InteractionManagerHelper {
 				this.#draggedPointPosition,
 				this.#geometryState.metadataArray[this.#draggedPoint!],
 			);
+
+			// reset any propagated points to their pre-drag positions
+			this.#propagatedBasePositions.forEach((basePos, idx) => {
+				this.#drawingToolsManager.movePointTemporary(
+					idx,
+					basePos,
+					this.#geometryState.metadataArray[idx],
+				);
+			});
 		}
 
 		// remove the hovered point and the selected points
@@ -589,6 +607,7 @@ export class InteractionManagerHelper {
 		this.#dragging = false;
 		this.#selectedPointPositions = [];
 		this.#selectedMovedPointPositions = [];
+		this.#propagatedBasePositions.clear();
 	}
 
 	public selectPoint(
@@ -649,12 +668,161 @@ export class InteractionManagerHelper {
 		this.#draggedPoint = this.#hoveredPoint;
 
 		this.#dragging = true;
+		this.#collectPropagatedBasePositions();
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
 			viewportId: this.#drawingToolsManager.viewport.id,
 			drawingToolsId: this.#drawingToolsManager.uuid,
 		});
 
 		return true;
+	}
+
+	/**
+	 * Traverse the adjacency graph from all currently selected points and store the
+	 * pre-drag world-space position of every reachable non-selected point so that
+	 * delta propagation can work from a stable baseline across multiple move frames.
+	 */
+	#collectPropagatedBasePositions(): void {
+		const adjacency = this.#settings.geometry.weightedAdjacency;
+		if (!adjacency) return;
+
+		const queue: number[] = [...this.#selectedPointIndices];
+		const expanded = new Set<number>(this.#selectedPointIndices);
+
+		while (queue.length > 0) {
+			const sourceIdx = queue.shift()!;
+			const adjList = adjacency[sourceIdx];
+			if (!adjList) continue;
+
+			for (const {to: targetIdx} of adjList) {
+				if (this.#selectedPointIndices.includes(targetIdx)) continue;
+				if (!this.#propagatedBasePositions.has(targetIdx)) {
+					this.#propagatedBasePositions.set(
+						targetIdx,
+						this.#geometryState.getPosition(targetIdx),
+					);
+				}
+				if (!expanded.has(targetIdx)) {
+					expanded.add(targetIdx);
+					queue.push(targetIdx);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Convert a world-space source delta into a weighted propagation delta.
+	 *
+	 * "world" (default): multiply XYZ components directly by weights.
+	 * "local": decompose the delta along the active plane restriction's U/V/N axes,
+	 *          apply per-axis weights, then recompose.  Falls back to "world" when no
+	 *          enabled plane restriction is present.
+	 */
+	#computeWeightedDelta(
+		sourceDelta: vec3,
+		weights: AdjacencyEntry["weights"],
+		space: AdjacencyEntry["space"],
+	): vec3 {
+		if (space === "local") {
+			const planeRestriction = Object.values(
+				this.#drawingToolsManager.restrictionManager.restrictions,
+			).find((r) => r.type === RESTRICTION_TYPE.PLANE && r.enabled) as
+				| PlaneRestriction
+				| undefined;
+
+			if (planeRestriction) {
+				const u = planeRestriction.vectorU;
+				const v = planeRestriction.vectorV;
+				const n = planeRestriction.normal;
+				const du = vec3.dot(sourceDelta, u);
+				const dv = vec3.dot(sourceDelta, v);
+				const dn = vec3.dot(sourceDelta, n);
+				return vec3.add(
+					vec3.create(),
+					vec3.add(
+						vec3.create(),
+						vec3.scale(vec3.create(), u, du * weights[0]),
+						vec3.scale(vec3.create(), v, dv * weights[1]),
+					),
+					vec3.scale(vec3.create(), n, dn * weights[2]),
+				);
+			}
+		}
+
+		return vec3.fromValues(
+			sourceDelta[0] * weights[0],
+			sourceDelta[1] * weights[1],
+			sourceDelta[2] * weights[2],
+		);
+	}
+
+	/**
+	 * BFS propagation of a drag delta through the weightedAdjacency graph.
+	 *
+	 * - Selected points are the BFS roots; each receives `differenceToIntersected`.
+	 * - Non-selected reachable points accumulate weighted contributions from all
+	 *   paths leading to them, then are moved via movePointTemporary.
+	 * - A node is expanded as a source at most once (cycle-safe).
+	 * - Processing order follows adjacency array declaration order (BFS).
+	 */
+	#applyAdjacencyPropagation(differenceToIntersected: vec3): void {
+		const adjacency = this.#settings.geometry.weightedAdjacency;
+		if (!adjacency || this.#propagatedBasePositions.size === 0) return;
+
+		// Seed BFS from all selected points.
+		const queue: [number, vec3][] = this.#selectedPointIndices.map(
+			(idx) => [idx, differenceToIntersected],
+		);
+		const expanded = new Set<number>(this.#selectedPointIndices);
+		const accumulatedDeltas = new Map<number, vec3>();
+
+		const processSource = (sourceIdx: number, sourceDelta: vec3): void => {
+			const adjList = adjacency[sourceIdx];
+			if (!adjList) return;
+
+			for (const entry of adjList) {
+				const {to: targetIdx, weights, space} = entry;
+				if (this.#selectedPointIndices.includes(targetIdx)) continue;
+
+				const weightedDelta = this.#computeWeightedDelta(
+					sourceDelta,
+					weights,
+					space,
+				);
+
+				if (accumulatedDeltas.has(targetIdx)) {
+					vec3.add(
+						accumulatedDeltas.get(targetIdx)!,
+						accumulatedDeltas.get(targetIdx)!,
+						weightedDelta,
+					);
+				} else {
+					accumulatedDeltas.set(targetIdx, vec3.clone(weightedDelta));
+				}
+
+				// Queue target for chain propagation (using its received delta).
+				if (!expanded.has(targetIdx)) {
+					expanded.add(targetIdx);
+					queue.push([targetIdx, weightedDelta]);
+				}
+			}
+		};
+
+		while (queue.length > 0) {
+			const [sourceIdx, sourceDelta] = queue.shift()!;
+			processSource(sourceIdx, sourceDelta);
+		}
+
+		// Apply all accumulated deltas using the stored pre-drag base positions.
+		for (const [targetIdx, delta] of accumulatedDeltas) {
+			const base = this.#propagatedBasePositions.get(targetIdx);
+			if (!base) continue;
+			this.#drawingToolsManager.movePointTemporary(
+				targetIdx,
+				vec3.add(vec3.create(), base, delta),
+				this.#geometryState.metadataArray[targetIdx],
+			);
+		}
 	}
 
 	/**

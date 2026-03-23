@@ -1,4 +1,9 @@
-import {IMapData, IViewportApi, MaterialEngine} from "@shapediver/viewer";
+import {
+	IMapData,
+	ITreeNode,
+	IViewportApi,
+	MaterialEngine,
+} from "@shapediver/viewer";
 import {
 	AngularRestrictionApi,
 	AngularRestrictionProperties,
@@ -35,6 +40,7 @@ import {IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
 import {DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
 import {IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
 import {
+	AdjacencyEntry,
 	Callbacks,
 	PointsData,
 	SettingsOptional,
@@ -42,6 +48,7 @@ import {
 
 export {
 	SettingsOptional as Settings,
+	AdjacencyEntry,
 	Callbacks,
 	DrawingToolsEventResponseMapping,
 	IDrawingToolsEvent,
@@ -110,12 +117,14 @@ export const createDrawingTools = (
 	callbacks: Callbacks,
 	settings: SettingsOptional,
 	customDefaultTextures?: {[key: string]: Promise<IMapData> | IMapData},
+	parentNode?: ITreeNode,
 ): IDrawingToolsApi => {
 	drawingTools = new DrawingToolsApi(
 		viewport,
 		callbacks,
 		settings,
 		customDefaultTextures || defaultTextures,
+		parentNode,
 	);
 	return drawingTools;
 };

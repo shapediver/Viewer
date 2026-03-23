@@ -1,5 +1,4 @@
 import {IDrawingToolsApi} from "@shapediver/viewer.features.drawing-tools";
-import {Plane} from "@shapediver/viewer.shared.math";
 
 import {vec3} from "gl-matrix";
 
@@ -63,14 +62,13 @@ export class RectangleTransformPointsMapping {
 	public flushRectPoints(
 		localPoints: vec3[],
 		drawingTools: IDrawingToolsApi,
-		plane: Plane,
 		temporary: boolean,
 	): void {
 		for (let ci = 0; ci < 8; ci++) {
 			const di = this.conceptualToDT[ci];
 			if (di < 0) continue;
-			const wp = plane.convertFromLSToWS(localPoints[ci]);
-			drawingTools.movePoint(di, [wp[0], wp[1], wp[2]], temporary);
+			const p = localPoints[ci];
+			drawingTools.movePoint(di, [p[0], p[1], p[2]], temporary);
 		}
 	}
 }

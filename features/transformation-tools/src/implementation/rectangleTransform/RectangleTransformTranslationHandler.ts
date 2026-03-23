@@ -1,4 +1,4 @@
-import {IViewportApi, TreeNode, sceneTree} from "@shapediver/viewer";
+import {IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
 import {
 	DragManager,
 	HoverManager,
@@ -11,16 +11,15 @@ import {
 	RestrictionProperties,
 	RESTRICTION_TYPE,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {Plane} from "@shapediver/viewer.shared.math";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {EVENTTYPE, EventEngine} from "@shapediver/viewer.shared.services";
+import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
-	MATERIAL_ALPHA,
 	MaterialStandardData,
-	PRIMITIVE_MODE,
+	MATERIAL_ALPHA,
 	PrimitiveData,
+	PRIMITIVE_MODE,
 } from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
@@ -32,7 +31,8 @@ export class RectangleTransformTranslationHandler {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #hoverManager: HoverManager;
 	readonly #interactionEngine: InteractionEngine;
-	readonly #plane: Plane;
+	readonly #M_planeToWS: mat4;
+	readonly #parentNode: ITreeNode;
 	readonly #viewport: IViewportApi;
 
 	#dragEndToken: string = "";
@@ -43,16 +43,19 @@ export class RectangleTransformTranslationHandler {
 	#isDragging: boolean = false;
 	#localPointsAtDragStart: vec3[] = [];
 	#node!: ITreeNode;
+	#planeRestrictionToken: string | undefined;
 
 	constructor(
 		viewport: IViewportApi,
 		restrictions: RestrictionProperties[] | undefined,
-		plane: Plane,
+		parentNode: ITreeNode,
+		planeToWS: mat4,
 		getLocalPoints: () => vec3[],
 		onMove: (points: vec3[]) => void,
 		onCommit: (points: vec3[]) => void,
 	) {
-		this.#plane = plane;
+		this.#M_planeToWS = planeToWS;
+		this.#parentNode = parentNode;
 		this.#viewport = viewport;
 		this.#getLocalPoints = getLocalPoints;
 		this.#onMove = onMove;
@@ -68,14 +71,10 @@ export class RectangleTransformTranslationHandler {
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
 
-		const origin = vec3.scale(vec3.create(), plane.normal, -plane.constant);
-		// first add the plane restriction
-		this.#dragManager.addRestriction({
-			type: RESTRICTION_TYPE.PLANE,
-			origin,
-			vector_u: plane.vector_u,
-			vector_v: plane.vector_v,
-		});
+		// Add the initial plane restriction from the parentNode's current world matrix.
+		this.#planeRestrictionToken = this.#dragManager.addRestriction(
+			this.currentPlaneRestriction(getLocalPoints()),
+		);
 
 		// add all other restrictions (e.g. snapping) configured for this handler
 		if (restrictions && restrictions.length > 0) {
@@ -152,19 +151,54 @@ export class RectangleTransformTranslationHandler {
 
 	/**
 	 * Delete the existing plane node and create a new one based on the new local points;
+	 * also refreshes the drag-manager plane restriction to match the current
+	 * parentNode world matrix (i.e. after rotation).
 	 */
 	public updatePlane(localPoints: vec3[]): void {
+		// Update the drag restriction to the current world-space plane.
+		if (this.#planeRestrictionToken !== undefined) {
+			this.#dragManager.removeRestriction(this.#planeRestrictionToken);
+		}
+		this.#planeRestrictionToken = this.#dragManager.addRestriction(
+			this.currentPlaneRestriction(localPoints),
+		);
 		sceneTree.root.removeChild(this.#node);
 		this.createPlaneNode(localPoints);
 	}
 
+	/** Build a plane restriction from the parentNode's current world matrix. */
+	private currentPlaneRestriction(
+		localPoints: vec3[],
+	): RestrictionProperties {
+		const M = this.#parentNode.worldMatrix;
+		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
+		const cy = (localPoints[0][1] + localPoints[4][1]) / 2;
+		const origin = vec3.fromValues(
+			M[0] * cx + M[4] * cy + M[12],
+			M[1] * cx + M[5] * cy + M[13],
+			M[2] * cx + M[6] * cy + M[14],
+		);
+		const vector_u = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[0], M[1], M[2]),
+		);
+		const vector_v = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[4], M[5], M[6]),
+		);
+		return {type: RESTRICTION_TYPE.PLANE, origin, vector_u, vector_v};
+	}
+
 	private createPlaneNode(localPoints: vec3[]) {
-		// 4 world-space corner positions: C0 (BL), C2 (BR), C4 (TR), C6 (TL)
-		// Offset slightly along the plane normal so the mesh doesn't
-		// intersect the surface it sits on.
+		const M = this.#parentNode.worldMatrix;
+		// Normal direction = column 2 of the world matrix.
+		const normalWS = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[8], M[9], M[10]),
+		);
 		const normalOffset = vec3.scale(
 			vec3.create(),
-			this.#plane.normal,
+			normalWS,
 			PLANE_Z_OFFSET,
 		);
 		const positionArray = new Float32Array(12); // 4 vertices × 3 coords
@@ -186,9 +220,14 @@ export class RectangleTransformTranslationHandler {
 				localPoints[cornerIndices[i]],
 				PLANE_SCALE,
 			);
+			// Transform LS corner to world space via parentNode matrix.
 			const ws = vec3.add(
 				vec3.create(),
-				this.#plane.convertFromLSToWS(scaled),
+				vec3.fromValues(
+					M[0] * scaled[0] + M[4] * scaled[1] + M[12],
+					M[1] * scaled[0] + M[5] * scaled[1] + M[13],
+					M[2] * scaled[0] + M[6] * scaled[1] + M[14],
+				),
 				normalOffset,
 			);
 			positionArray[i * 3] = ws[0];
@@ -243,10 +282,22 @@ export class RectangleTransformTranslationHandler {
 		// The drag matrix is a pure translation in world space
 		// (plane restriction + identity world transform of the mesh node).
 		const deltaWS = mat4.getTranslation(vec3.create(), ev.matrix);
-		// Project the world-space delta onto the plane's local axes
+		// Project the WS delta onto the INITIAL (unrotated) plane axes from
+		// M_planeToWS so that the result is in the initial plane-LS frame.
+		// Using parentNode.worldMatrix (rotated axes) would give wrong directions
+		// once an accumulated rotation has been applied.
+		const M = this.#M_planeToWS;
+		const uWS = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[0], M[1], M[2]),
+		);
+		const vWS = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[4], M[5], M[6]),
+		);
 		const deltaLS = vec3.fromValues(
-			vec3.dot(deltaWS, this.#plane.vector_u),
-			vec3.dot(deltaWS, this.#plane.vector_v),
+			vec3.dot(deltaWS, uWS),
+			vec3.dot(deltaWS, vWS),
 			0,
 		);
 		const newPoints = this.#localPointsAtDragStart.map((p) =>

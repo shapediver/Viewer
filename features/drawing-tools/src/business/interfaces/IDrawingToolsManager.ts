@@ -42,6 +42,21 @@ export type DefaultTextures = {[key: string]: Promise<IMapData> | IMapData};
  */
 export type PointsData = number[][];
 /**
+ * Per-axis propagation weight from one point to another in local space.
+ * When a point is dragged, its delta is multiplied component-wise by these
+ * weights before being added to the target point's position.
+ */
+export type AdjacencyEntry = {
+	to: number;
+	weights: [number, number, number];
+	/**
+	 * Whether the weights are applied in the DT's plane local space (U/V/N axes)
+	 * or directly to world-space delta XYZ components.
+	 * Default is "world".
+	 */
+	space?: "local" | "world";
+};
+/**
  * The initial settings of the drawing tool.
  * Here you can define the initial settings of the drawing tool.
  *
@@ -122,6 +137,14 @@ export type Settings = {
 		 * @default true
 		 */
 		autoClose: boolean;
+
+		/**
+		 * Per-point adjacency graph. When a real point is dragged, its corrected
+		 * delta is propagated to each listed target via component-wise weight
+		 * multiplication. Entries with all-zero weights are no-ops and can be omitted.
+		 * Processing order follows the array declaration order.
+		 */
+		weightedAdjacency?: AdjacencyEntry[][];
 	};
 
 	/**

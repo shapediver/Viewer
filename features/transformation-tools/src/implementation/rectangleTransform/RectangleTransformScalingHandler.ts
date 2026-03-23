@@ -1,23 +1,28 @@
-import {IViewportApi} from "@shapediver/viewer";
+﻿import {IViewportApi} from "@shapediver/viewer";
 import {
+	AdjacencyEntry,
+	createDrawingTools,
 	IDrawingToolsApi,
 	PlaneRestrictionProperties,
-	createDrawingTools,
 } from "@shapediver/viewer.features.drawing-tools";
-import {IVisualizationSettings} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	IVisualizationSettings,
+	RESTRICTION_TYPE,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
 
 import {
-	RectFrameCoord,
 	cornersToFullPoints,
 	getRectBasis,
+	RectFrameCoord,
 	toRectFrame,
 } from "./RectangleTransformGeometry";
 import {
-	RectangleTransformPointsMapping,
 	PointVisibilityConfig,
+	RectangleTransformPointsMapping,
 } from "./RectangleTransformPointsMapping";
 
 function snapValue(value: number, step: number, threshold: number): number {
@@ -52,7 +57,7 @@ export class RectangleTransformScalingHandler {
 
 	constructor(
 		viewport: IViewportApi,
-		planeRestriction: PlaneRestrictionProperties,
+		parentNode: ITreeNode,
 		plane: Plane,
 		localPoints: vec3[],
 		visibilityConfig: PointVisibilityConfig,
@@ -60,15 +65,25 @@ export class RectangleTransformScalingHandler {
 	) {
 		this.#scalingConfig = scalingConfig;
 		this.#plane = plane;
-		this.#pointsMapping = new RectangleTransformPointsMapping(visibilityConfig);
+		this.#pointsMapping = new RectangleTransformPointsMapping(
+			visibilityConfig,
+		);
 
 		const vis = scalingConfig.visualization;
 
+		// XY-plane restriction in parent-local space (the parent node carries the
+		// plane-to-world transform, so the DT operates entirely in plane-LS).
+		const lsRestriction: PlaneRestrictionProperties = {
+			type: RESTRICTION_TYPE.PLANE,
+			origin: vec3.create(),
+			vector_u: vec3.fromValues(1, 0, 0),
+			vector_v: vec3.fromValues(0, 1, 0),
+		};
+
 		// --- 1. Outline DT: all 8 conceptual points, lines only, invisible handles ---
-		const allWorldPoints = localPoints.map((p) => {
-			const wp = plane.convertFromLSToWS(p);
-			return [wp[0], wp[1], wp[2]];
-		});
+		const allLSPoints = localPoints.map(
+			(p) => [p[0], p[1], p[2]] as [number, number, number],
+		);
 		this.#outlineDT = createDrawingTools(
 			viewport,
 			{onUpdate: () => {}, onCancel: () => {}},
@@ -81,12 +96,12 @@ export class RectangleTransformScalingHandler {
 				},
 				geometry: {
 					mode: "lines",
-					points: allWorldPoints,
+					points: allLSPoints,
 					close: true,
-					minPoints: allWorldPoints.length,
-					maxPoints: allWorldPoints.length,
+					minPoints: allLSPoints.length,
+					maxPoints: allLSPoints.length,
 				},
-				restrictions: {plane: planeRestriction},
+				restrictions: {plane: lsRestriction},
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
@@ -102,6 +117,8 @@ export class RectangleTransformScalingHandler {
 					lines: {color: "#0d44f0", ...vis?.lines},
 				},
 			},
+			undefined,
+			parentNode,
 		);
 
 		const disabledVis = scalingConfig.disabledVisualization;
@@ -112,9 +129,9 @@ export class RectangleTransformScalingHandler {
 		// while the cursor is over a locked corner.
 		const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
 		if (lockedCIs.length > 0) {
-			const lockedWorldPoints = lockedCIs.map((ci) => {
-				const wp = plane.convertFromLSToWS(localPoints[ci]);
-				return [wp[0], wp[1], wp[2]];
+			const lockedLSPoints = lockedCIs.map((ci) => {
+				const p = localPoints[ci];
+				return [p[0], p[1], p[2]] as [number, number, number];
 			});
 			this.#lockedDT = createDrawingTools(
 				viewport,
@@ -128,11 +145,11 @@ export class RectangleTransformScalingHandler {
 					},
 					geometry: {
 						mode: "points",
-						points: lockedWorldPoints,
-						minPoints: lockedWorldPoints.length,
-						maxPoints: lockedWorldPoints.length,
+						points: lockedLSPoints,
+						minPoints: lockedLSPoints.length,
+						maxPoints: lockedLSPoints.length,
 					},
-					restrictions: {plane: planeRestriction},
+					restrictions: {plane: lsRestriction},
 					visualization: {
 						distanceLabels: false,
 						pointerPosition: false,
@@ -150,14 +167,35 @@ export class RectangleTransformScalingHandler {
 						},
 					},
 				},
+				undefined,
+				parentNode,
 			);
 		}
 
 		// --- 3. Interactive handles DT: enabled active points only, mode "points" ---
-		const dtWorldPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
-			const wp = plane.convertFromLSToWS(localPoints[ci]);
-			return [wp[0], wp[1], wp[2]];
+		const dtLSPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
+			const p = localPoints[ci];
+			return [p[0], p[1], p[2]] as [number, number, number];
 		});
+
+		// Build weightedAdjacency: each corner DT point propagates half its drag
+		// delta to the two adjacent midpoint DT points (one on each incident edge).
+		const weightedAdjacency: AdjacencyEntry[][] =
+			this.#pointsMapping.dtToConceptual.map((ci) => {
+				if (ci % 2 !== 0) return []; // midpoints don't propagate
+				const entries: AdjacencyEntry[] = [];
+				for (const midCI of [(ci + 7) % 8, (ci + 1) % 8]) {
+					const midDI = this.#pointsMapping.conceptualToDT[midCI];
+					if (midDI >= 0)
+						entries.push({
+							to: midDI,
+							weights: [0.5, 0.5, 0.5],
+							space: "world",
+						});
+				}
+				return entries;
+			});
+
 		this.#drawingTools = createDrawingTools(
 			viewport,
 			{
@@ -177,11 +215,12 @@ export class RectangleTransformScalingHandler {
 				},
 				geometry: {
 					mode: "points",
-					points: dtWorldPoints,
-					minPoints: dtWorldPoints.length,
-					maxPoints: dtWorldPoints.length,
+					points: dtLSPoints,
+					minPoints: dtLSPoints.length,
+					maxPoints: dtLSPoints.length,
+					weightedAdjacency,
 				},
-				restrictions: {plane: planeRestriction},
+				restrictions: {plane: lsRestriction},
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
@@ -199,6 +238,8 @@ export class RectangleTransformScalingHandler {
 					},
 				},
 			},
+			undefined,
+			parentNode,
 		);
 	}
 
@@ -304,15 +345,14 @@ export class RectangleTransformScalingHandler {
 	public flushRectPoints(localPoints: vec3[], temporary: boolean): void {
 		// Update the outline DT (all 8 points; DT index === conceptual index).
 		for (let i = 0; i < 8; i++) {
-			const wp = this.#plane.convertFromLSToWS(localPoints[i]);
-			this.#outlineDT.movePoint(i, [wp[0], wp[1], wp[2]], temporary);
+			const p = localPoints[i];
+			this.#outlineDT.movePoint(i, [p[0], p[1], p[2]], temporary);
 		}
 
 		// Update the interactive handles DT.
 		this.#pointsMapping.flushRectPoints(
 			localPoints,
 			this.#drawingTools,
-			this.#plane,
 			temporary,
 		);
 
@@ -320,10 +360,8 @@ export class RectangleTransformScalingHandler {
 		if (this.#lockedDT) {
 			const lockedCIs = this.#pointsMapping.lockedCornerConceptualIndices;
 			for (let i = 0; i < lockedCIs.length; i++) {
-				const wp = this.#plane.convertFromLSToWS(
-					localPoints[lockedCIs[i]],
-				);
-				this.#lockedDT.movePoint(i, [wp[0], wp[1], wp[2]], temporary);
+				const p = localPoints[lockedCIs[i]];
+				this.#lockedDT.movePoint(i, [p[0], p[1], p[2]], temporary);
 			}
 		}
 	}

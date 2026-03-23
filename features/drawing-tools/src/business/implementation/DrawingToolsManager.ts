@@ -23,7 +23,7 @@ import {
 	SystemInfo,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {vec3} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 import {DrawingToolsEventResponseMapping} from "../interfaces/events/EventResponseMapping";
 import {
 	Callbacks,
@@ -41,7 +41,7 @@ import {InteractionManager} from "./managers/interaction/InteractionManager";
 import {TextVisualizationManager} from "./managers/TextVisualizationManager";
 
 export class DrawingToolsManager implements IDrawingToolsManager {
-	// #region Properties (17)
+	// #region Properties (18)
 
 	readonly #callbacks: Callbacks;
 	readonly #defaultTextures: DefaultTextures;
@@ -53,6 +53,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	readonly #interactionManager: InteractionManager;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #parentNode: ITreeNode;
+	readonly #sceneParent: ITreeNode;
 	readonly #settings: Settings;
 	readonly #textVisualizationManager: TextVisualizationManager;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
@@ -71,15 +72,17 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		callbacks: Callbacks,
 		settings: SettingsOptional,
 		defaultTextures?: DefaultTextures,
+		parentNode?: ITreeNode,
 	) {
 		this.#viewport = viewport;
 		this.#callbacks = callbacks;
 		this.#settings = this.cleanSettings(settings);
 		this.#defaultTextures = defaultTextures!;
+		this.#sceneParent = parentNode ?? sceneTree.root;
 
 		this.#parentNode = new TreeNode(`DrawingToolsManager_${this.#uuid}`);
 		this.#parentNode.intersectionTest = false;
-		sceneTree.root.addChild(this.#parentNode);
+		this.#sceneParent.addChild(this.#parentNode);
 		sceneTree.root.updateVersion(false, false);
 
 		this.#geometryMathManager = new GeometryMathManager(
@@ -335,7 +338,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#interactionManager.close();
 		this.#textVisualizationManager.close();
 
-		sceneTree.root.removeChild(this.#parentNode);
+		this.#sceneParent.removeChild(this.#parentNode);
 		sceneTree.root.updateVersion(false, false);
 		this.#closed = true;
 	}
@@ -376,7 +379,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public onDown(event: PointerEvent, ray: IRay): void {
 		if (this.closed) return;
-		this.#interactionManager.onDown(event, ray);
+		this.#interactionManager.onDown(
+			event,
+			this.transformRayToLocalSpace(ray),
+		);
 	}
 
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
@@ -417,7 +423,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			this.#continuousRenderingFlag = this.#viewport.addFlag(
 				FLAG_TYPE.CONTINUOUS_RENDERING,
 			);
-		this.#interactionManager.onMove(event, ray);
+		this.#interactionManager.onMove(
+			event,
+			this.transformRayToLocalSpace(ray),
+		);
 	}
 
 	public onOut(): void {
@@ -684,6 +693,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				)
 					? true
 					: settingsOptional.geometry.autoClose,
+				weightedAdjacency: settingsOptional.geometry.weightedAdjacency,
 			};
 		}
 
@@ -860,6 +870,56 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 			return this.#keysPressed[key] || false;
 		}
+	}
+
+	/**
+	 * Transform a point from the parent node's local space back to world space.
+	 * Used to convert local-space positions (stored in positionArray) to world
+	 * space when they need to be passed to world-space APIs (e.g. restriction
+	 * startPoint metadata that expects world-space coordinates).
+	 * When no custom parent is set (sceneTree.root), returns the point unchanged.
+	 */
+	public localToWorldPoint(p: vec3): vec3 {
+		if (this.#sceneParent === sceneTree.root) return p;
+		return vec3.transformMat4(
+			vec3.create(),
+			p,
+			this.#sceneParent.worldMatrix,
+		);
+	}
+
+	/**
+	 * If the DT is attached to a parent node with a non-identity world matrix,
+	 * transform the incoming world-space ray into the parent's local space so
+	 * that restrictions, drag deltas, and weightedAdjacency all operate in the
+	 * same coordinate frame as the stored point positions.
+	 * When no custom parent is set (sceneTree.root), worldMatrix is identity and
+	 * the ray is returned unchanged.
+	 */
+	private transformRayToLocalSpace(ray: IRay): IRay {
+		if (this.#sceneParent === sceneTree.root) return ray;
+		const invMatrix = mat4.invert(
+			mat4.create(),
+			this.#sceneParent.worldMatrix,
+		);
+		if (!invMatrix) return ray;
+		const localOrigin = vec3.transformMat4(
+			vec3.create(),
+			ray.origin,
+			invMatrix,
+		);
+		// Direction is a free vector — apply only the rotation/scale part (w=0).
+		const m = invMatrix;
+		const d = ray.direction;
+		const localDirection = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(
+				m[0] * d[0] + m[4] * d[1] + m[8] * d[2],
+				m[1] * d[0] + m[5] * d[1] + m[9] * d[2],
+				m[2] * d[0] + m[6] * d[1] + m[10] * d[2],
+			),
+		);
+		return {origin: localOrigin, direction: localDirection};
 	}
 
 	// #endregion Private Methods (2)

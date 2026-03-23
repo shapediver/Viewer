@@ -1,14 +1,14 @@
 import {IMapData, IViewportApi, MaterialEngine} from "@shapediver/viewer";
 import {
+	createDrawingTools,
 	IDrawingToolsApi,
 	IDrawingToolsEvent,
-	createDrawingTools,
 } from "@shapediver/viewer.features.drawing-tools";
 import {
-	PlaneRestrictionProperties,
 	IVisualizationSettings,
+	RESTRICTION_TYPE,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {Plane} from "@shapediver/viewer.shared.math";
+import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
 
@@ -55,15 +55,13 @@ function normalizeSignedAngle(angle: number): number {
 export class RectangleTransformRotationHandler {
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #handleDistance: number;
-	readonly #plane: Plane;
 	readonly #rotationConfig: RotationConfig;
 
 	#handleLocalPoint: vec3;
 
 	constructor(
 		viewport: IViewportApi,
-		planeDefinition: PlaneRestrictionProperties,
-		plane: Plane,
+		parentNode: ITreeNode,
 		localPoints: vec3[],
 		rotationConfig: RotationConfig = {
 			step: undefined,
@@ -74,7 +72,6 @@ export class RectangleTransformRotationHandler {
 			visualization: undefined,
 		},
 	) {
-		this.#plane = plane;
 		this.#handleDistance = rotationConfig.handleDistance;
 		this.#rotationConfig = rotationConfig;
 
@@ -88,7 +85,7 @@ export class RectangleTransformRotationHandler {
 			0,
 		);
 
-		const ws = plane.convertFromLSToWS(this.#handleLocalPoint);
+		// XY-plane restriction in parent-local space.
 		const rotVis = rotationConfig.visualization;
 		this.#drawingTools = createDrawingTools(
 			viewport,
@@ -101,11 +98,24 @@ export class RectangleTransformRotationHandler {
 				},
 				geometry: {
 					mode: "points",
-					points: [[ws[0], ws[1], ws[2]]],
+					points: [
+						[
+							this.#handleLocalPoint[0],
+							this.#handleLocalPoint[1],
+							this.#handleLocalPoint[2],
+						],
+					],
 					minPoints: 1,
 					maxPoints: 1,
 				},
-				restrictions: {plane: planeDefinition},
+				restrictions: {
+					plane: {
+						type: RESTRICTION_TYPE.PLANE,
+						origin: vec3.create(),
+						vector_u: vec3.fromValues(1, 0, 0),
+						vector_v: vec3.fromValues(0, 1, 0),
+					},
+				},
 				visualization: {
 					distanceLabels: false,
 					pointerPosition: false,
@@ -124,6 +134,7 @@ export class RectangleTransformRotationHandler {
 				},
 			},
 			rotationDefaultTextures,
+			parentNode,
 		);
 	}
 
@@ -142,8 +153,11 @@ export class RectangleTransformRotationHandler {
 	 */
 	public applyDrag(newHandle: vec3, temporary: boolean): void {
 		this.#handleLocalPoint = newHandle;
-		const hwp = this.#plane.convertFromLSToWS(newHandle);
-		this.#drawingTools.movePoint(0, [hwp[0], hwp[1], hwp[2]], temporary);
+		this.#drawingTools.movePoint(
+			0,
+			[newHandle[0], newHandle[1], newHandle[2]],
+			temporary,
+		);
 	}
 
 	/**
@@ -154,12 +168,10 @@ export class RectangleTransformRotationHandler {
 		ev: IDrawingToolsEvent,
 		localPoints: vec3[],
 	): {rotated: vec3[]; newHandle: vec3; deltaAngle: number} {
-		const newHandleLS = this.#plane.convertFromWSToLS(
-			vec3.fromValues(
-				ev.points![0][0],
-				ev.points![0][1],
-				ev.points![0][2],
-			),
+		const newHandleLS = vec3.fromValues(
+			ev.points![0][0],
+			ev.points![0][1],
+			ev.points![0][2],
 		);
 
 		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
@@ -265,7 +277,10 @@ export class RectangleTransformRotationHandler {
 			0,
 		);
 		this.#handleLocalPoint = newHandle;
-		const hwp = this.#plane.convertFromLSToWS(newHandle);
-		this.#drawingTools.movePoint(0, [hwp[0], hwp[1], hwp[2]], temporary);
+		this.#drawingTools.movePoint(
+			0,
+			[newHandle[0], newHandle[1], newHandle[2]],
+			temporary,
+		);
 	}
 }

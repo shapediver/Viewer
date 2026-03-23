@@ -1,4 +1,4 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {ITreeNode, IViewportApi} from "@shapediver/viewer";
 import {
 	CameraPlaneRestriction,
 	CameraPlaneRestrictionApi,
@@ -40,12 +40,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		callbacks: Callbacks,
 		settings: SettingsOptional,
 		defaultTextures?: DefaultTextures,
+		parentNode?: ITreeNode,
 	) {
 		this.#drawingToolsManager = new DrawingToolsManager(
 			viewport,
 			callbacks,
 			settings,
 			defaultTextures,
+			parentNode,
 		);
 
 		for (const token in this.#drawingToolsManager.restrictions) {
