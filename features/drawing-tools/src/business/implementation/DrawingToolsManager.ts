@@ -390,8 +390,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		if (!pointerInCanvas) return;
 
 		this.#keysPressed[event.key] = true;
-		const undoKeyPressed = this.keyPressed(this.#settings.controls.undo);
-		const redoKeyPressed = this.keyPressed(this.#settings.controls.redo);
+		const undoKeyPressed = this.keyPressed(this.#settings.keyBindings.undo);
+		const redoKeyPressed = this.keyPressed(this.#settings.keyBindings.redo);
 
 		/**
 		 * IF UNDO KEY IS PRESSED
@@ -646,7 +646,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					color: "#0d44f0",
 				},
 			},
-			controls: {
+			keyBindings: {
 				insert: ["Insert", "+"],
 				delete: ["Delete", "-"],
 				confirm: "Enter",
@@ -754,26 +754,26 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			};
 		}
 
-		if (!isUndefinedOrNull(settingsOptional.controls)) {
-			settings.controls = {
-				insert: isUndefinedOrNull(settingsOptional.controls.insert)
+		if (!isUndefinedOrNull(settingsOptional.keyBindings)) {
+			settings.keyBindings = {
+				insert: isUndefinedOrNull(settingsOptional.keyBindings.insert)
 					? ["Insert", "+"]
-					: settingsOptional.controls.insert,
-				delete: isUndefinedOrNull(settingsOptional.controls.delete)
+					: settingsOptional.keyBindings.insert,
+				delete: isUndefinedOrNull(settingsOptional.keyBindings.delete)
 					? ["Delete", "-"]
-					: settingsOptional.controls.delete,
-				confirm: isUndefinedOrNull(settingsOptional.controls.confirm)
+					: settingsOptional.keyBindings.delete,
+				confirm: isUndefinedOrNull(settingsOptional.keyBindings.confirm)
 					? "Enter"
-					: settingsOptional.controls.confirm,
-				cancel: isUndefinedOrNull(settingsOptional.controls.cancel)
+					: settingsOptional.keyBindings.confirm,
+				cancel: isUndefinedOrNull(settingsOptional.keyBindings.cancel)
 					? "Escape"
-					: settingsOptional.controls.cancel,
-				undo: isUndefinedOrNull(settingsOptional.controls.undo)
+					: settingsOptional.keyBindings.cancel,
+				undo: isUndefinedOrNull(settingsOptional.keyBindings.undo)
 					? "Control+z"
-					: settingsOptional.controls.undo,
-				redo: isUndefinedOrNull(settingsOptional.controls.redo)
+					: settingsOptional.keyBindings.undo,
+				redo: isUndefinedOrNull(settingsOptional.keyBindings.redo)
 					? "Control+y"
-					: settingsOptional.controls.redo,
+					: settingsOptional.keyBindings.redo,
 			};
 		}
 

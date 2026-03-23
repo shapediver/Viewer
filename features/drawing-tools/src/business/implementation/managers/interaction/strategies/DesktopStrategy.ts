@@ -179,7 +179,7 @@ export class DesktopStrategy implements IStrategy {
 	}
 
 	/**
-	 * Handles keyboard input for drawing tool controls
+	 * Handles keyboard input for drawing tool key bindings
 	 *
 	 * ## Supported Operations:
 	 *
@@ -464,16 +464,16 @@ export class DesktopStrategy implements IStrategy {
 	private getKeyStates() {
 		return {
 			insert: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.insert,
+				this.#drawingToolsManager.settings.keyBindings.insert,
 			),
 			cancel: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.cancel,
+				this.#drawingToolsManager.settings.keyBindings.cancel,
 			),
 			confirm: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.confirm,
+				this.#drawingToolsManager.settings.keyBindings.confirm,
 			),
 			delete: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.delete,
+				this.#drawingToolsManager.settings.keyBindings.delete,
 			),
 		};
 	}

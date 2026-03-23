@@ -163,11 +163,11 @@ export type Settings = {
 	visualization: IVisualizationSettings;
 
 	/**
-	 * The control settings of the drawing tool.
+	 * The key binding settings of the drawing tool.
 	 *
 	 * Here you can define which keys are used for the different actions of the drawing tool.
 	 */
-	controls: {
+	keyBindings: {
 		/**
 		 * The key that is used to insert a point.
 		 *
@@ -285,7 +285,7 @@ export type SettingsOptional = {
 	geometry?: Partial<Settings["geometry"]>;
 	restrictions?: Partial<Settings["restrictions"]>;
 	visualization?: Partial<Settings["visualization"]>;
-	controls?: Partial<Settings["controls"]>;
+	keyBindings?: Partial<Settings["keyBindings"]>;
 	general?: Partial<Settings["general"]>;
 };
 
