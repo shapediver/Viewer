@@ -4,13 +4,11 @@ import {
 	IDrawingToolsApi,
 	IDrawingToolsEvent,
 } from "@shapediver/viewer.features.drawing-tools";
-import {
-	IVisualizationSettings,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
+import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
 
 const rotationDefaultTextures: {[key: string]: Promise<IMapData> | IMapData} =
 	{};
@@ -21,24 +19,6 @@ rotationDefaultTextures["variation_0"] = MaterialEngine.instance
 		rotationDefaultTextures["variation_0"] = mapData!;
 		return mapData!;
 	});
-
-export type RotationConfig = {
-	/** Step size in radians. */
-	step: number | undefined;
-	/** Snap threshold in radians. */
-	stepThreshold: number | undefined;
-	/** Minimum cumulative angle in radians (enforced externally). */
-	min: number | undefined;
-	/** Maximum cumulative angle in radians (enforced externally). */
-	max: number | undefined;
-	/**
-	 * Distance of the rotation handle above the top edge, as a fraction of the rectangle's height.
-	 * Default is 0.25.
-	 */
-	handleDistance: number;
-	/** Visualization settings for the rotation handle. */
-	visualization: Partial<IVisualizationSettings> | undefined;
-};
 
 function snapAngle(angle: number, step: number, threshold: number): number {
 	const nearest = Math.round(angle / step) * step;
@@ -52,7 +32,7 @@ function normalizeSignedAngle(angle: number): number {
 export class RectangleTransformRotationHandler {
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #handleDistance: number;
-	readonly #rotationConfig: RotationConfig;
+	readonly #rotationConfig: RectangleTransformSettings["rotation"];
 
 	#handleLocalPoint: vec3;
 
@@ -60,7 +40,7 @@ export class RectangleTransformRotationHandler {
 		viewport: IViewportApi,
 		parentNode: ITreeNode,
 		localPoints: vec3[],
-		rotationConfig: RotationConfig = {
+		rotationConfig: RectangleTransformSettings["rotation"] = {
 			step: undefined,
 			stepThreshold: undefined,
 			min: undefined,
@@ -69,7 +49,7 @@ export class RectangleTransformRotationHandler {
 			visualization: undefined,
 		},
 	) {
-		this.#handleDistance = rotationConfig.handleDistance;
+		this.#handleDistance = rotationConfig.handleDistance ?? 0.25;
 		this.#rotationConfig = rotationConfig;
 
 		// Place the handle above the top edge (M5) by handleDistance * height
@@ -204,7 +184,7 @@ export class RectangleTransformRotationHandler {
 	 * If no step is configured, returns the angle unchanged.
 	 */
 	public snapCumulative(cumulative: number): number {
-		const {step, stepThreshold} = this.#rotationConfig;
+		const {step, stepThreshold} = this.#rotationConfig!;
 		if (step === undefined) return cumulative;
 		return snapAngle(cumulative, step, stepThreshold ?? step / 2);
 	}

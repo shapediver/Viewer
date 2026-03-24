@@ -16,17 +16,12 @@ import {mat4, vec3} from "gl-matrix";
 
 import {
 	IRectangleTransform,
+	RectangleTransformSettings,
 	RectangleTransformSettingsOptional,
 } from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
-import {
-	RectangleTransformRotationHandler,
-	RotationConfig,
-} from "./RectangleTransformRotationHandler";
-import {
-	RectangleTransformScalingHandler,
-	ScalingConfig,
-} from "./RectangleTransformScalingHandler";
+import {RectangleTransformRotationHandler} from "./RectangleTransformRotationHandler";
+import {RectangleTransformScalingHandler} from "./RectangleTransformScalingHandler";
 import {RectangleTransformTranslationHandler} from "./RectangleTransformTranslationHandler";
 
 export class RectangleTransform
@@ -67,8 +62,8 @@ export class RectangleTransform
 	#rotationHandler: RectangleTransformRotationHandler | undefined;
 	#scalingHandler: RectangleTransformScalingHandler | undefined;
 	#translationHandler: RectangleTransformTranslationHandler | undefined;
-	#scalingConfig: ScalingConfig;
-	#rotationConfig: RotationConfig;
+	#scalingConfig: RectangleTransformSettings["scaling"];
+	#rotationConfig: RectangleTransformSettings["rotation"];
 	// Accumulated rotation angle in radians, used to enforce rotation.min/max.
 	#cumulativeRotation: number = 0;
 
@@ -120,16 +115,11 @@ export class RectangleTransform
 		const sc = settings!.scaling;
 		this.#scalingConfig = {
 			uniform: sc?.uniform ?? false,
-			x: sc?.x ?? true,
-			y: sc?.y ?? true,
 			xMin: sc?.xMin,
 			xMax: sc?.xMax,
 			yMin: sc?.yMin,
 			yMax: sc?.yMax,
-			step: sc?.step,
-			stepThreshold: sc?.stepThreshold,
 			visualization: sc?.visualization,
-			disabledVisualization: sc?.disabledVisualization,
 		};
 		const rc = settings!.rotation;
 		this.#rotationConfig = {
@@ -372,7 +362,7 @@ export class RectangleTransform
 
 		const rawNext = this.#cumulativeRotation + rawDelta;
 		const snappedNext = this.#rotationHandler.snapCumulative(rawNext);
-		const {min, max} = this.#rotationConfig;
+		const {min, max} = this.#rotationConfig!;
 		const finalNext =
 			min !== undefined && max !== undefined
 				? Math.min(max, Math.max(min, snappedNext))

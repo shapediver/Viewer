@@ -48,18 +48,6 @@ export type RectangleTransformSettings = {
 		 */
 		uniform?: boolean;
 		/**
-		 * If false, the RectangleTransform cannot be scaled in the local x and y directions.
-		 * If true or undefined, scaling in the local x and y directions is allowed.
-		 * Default is true (scaling enabled).
-		 */
-		x?: boolean;
-		/**
-		 * If false, the RectangleTransform cannot be scaled in the local x and y directions.
-		 * If true or undefined, scaling in the local x and y directions is allowed.
-		 * Default is true (scaling enabled).
-		 */
-		y?: boolean;
-		/**
 		 * The minimum allowed length of the rectangle's sides during scaling.
 		 * With this settings, it's possible to restrict the scaling to a certain range.
 		 * Default is undefined (no minimum length).
@@ -84,29 +72,11 @@ export type RectangleTransformSettings = {
 		 */
 		yMax?: number;
 		/**
-		 * The step size for scaling in the local x and y directions.
-		 * With this setting, it's possible to snap the scaling to specific increments.
-		 * Default is undefined (no snapping).
-		 */
-		step?: number;
-		/**
-		 * The threshold for snapping during scaling in the local x and y directions.
-		 * With this setting, it's possible to define how close the scaling needs to be to a snap point for it to snap.
-		 * Default is undefined (no snapping threshold).
-		 */
-		stepThreshold?: number;
-		/**
 		 * The visualization settings for the main scaling handles and the outline.
 		 * This allows customizing the appearance of the scaling handles and the outline, such as their color, size, and shape.
 		 * Default is undefined (uses default visualization settings).
 		 */
 		visualization?: IVisualizationSettings;
-		/**
-		 * The visualization settings for the disabled scaling handles.
-		 * This allows customizing the appearance of the disabled scaling handles, such as their color, size, and shape.
-		 * Default is undefined (uses default visualization settings).
-		 */
-		disabledVisualization?: IVisualizationSettings;
 	};
 	rotation?: {
 		/**
@@ -146,4 +116,5 @@ export type RectangleTransformSettings = {
 	};
 } & Settings;
 
-export type RectangleTransformSettingsOptional = Partial<RectangleTransformSettings>;
+export type RectangleTransformSettingsOptional =
+	Partial<RectangleTransformSettings>;

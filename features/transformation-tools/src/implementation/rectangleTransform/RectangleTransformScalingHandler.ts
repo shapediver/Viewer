@@ -6,15 +6,13 @@ import {
 	IDrawingToolsApi,
 	PlaneRestrictionProperties,
 } from "@shapediver/viewer.features.drawing-tools";
-import {
-	IVisualizationSettings,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
 
+import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {
 	cornersToFullPoints,
 	getRectBasis,
@@ -26,28 +24,9 @@ import {
 	RectangleTransformPointsMapping,
 } from "./RectangleTransformPointsMapping";
 
-function snapValue(value: number, step: number, threshold: number): number {
-	const nearest = Math.round(value / step) * step;
-	return Math.abs(value - nearest) <= threshold ? nearest : value;
-}
-
-export type ScalingConfig = {
-	uniform: boolean;
-	x: boolean;
-	y: boolean;
-	xMin: number | undefined;
-	xMax: number | undefined;
-	yMin: number | undefined;
-	yMax: number | undefined;
-	step: number | undefined;
-	stepThreshold: number | undefined;
-	visualization: Partial<IVisualizationSettings> | undefined;
-	disabledVisualization: Partial<IVisualizationSettings> | undefined;
-};
-
 export class RectangleTransformScalingHandler {
 	readonly #drawingTools: IDrawingToolsApi;
-	readonly #scalingConfig: ScalingConfig;
+	readonly #scalingConfig: RectangleTransformSettings["scaling"];
 	readonly #plane: Plane;
 	readonly #pointsMapping: RectangleTransformPointsMapping;
 
@@ -57,16 +36,15 @@ export class RectangleTransformScalingHandler {
 		plane: Plane,
 		localPoints: vec3[],
 		visibilityConfig: PointVisibilityConfig,
-		scalingConfig: ScalingConfig,
+		scalingConfig: RectangleTransformSettings["scaling"],
 	) {
-		this.#scalingConfig = scalingConfig;
+		this.#scalingConfig = scalingConfig!;
 		this.#plane = plane;
 		this.#pointsMapping = new RectangleTransformPointsMapping(
 			visibilityConfig,
 		);
 
-		const vis = scalingConfig.visualization;
-		const disabledVis = scalingConfig.disabledVisualization;
+		const vis = scalingConfig?.visualization;
 
 		// XY-plane restriction in parent-local space (the parent node carries the
 		// plane-to-world transform, so the DT operates entirely in plane-LS).
@@ -132,19 +110,6 @@ export class RectangleTransformScalingHandler {
 				weightedAdjacency[di].push({to: diV, weights: [0, 1, 0]});
 		}
 
-		// Merge disabled-vis into state-6 (DISABLED material index).
-		// Accept either the new size_6/color_6 keys directly, or fall back to
-		// the legacy state-0 keys that callers may have used with the old
-		// separate locked-corners DT.
-		const disabledSize =
-			disabledVis?.points?.size_6 ??
-			disabledVis?.points?.size_0 ??
-			20;
-		const disabledColor =
-			disabledVis?.points?.color_6 ??
-			disabledVis?.points?.color_0 ??
-			"#888888";
-
 		this.#drawingTools = createDrawingTools(
 			viewport,
 			{
@@ -184,8 +149,8 @@ export class RectangleTransformScalingHandler {
 						color_1: "#0d44f0",
 						color_2: "#0d44f0",
 						color_3: "#0d44f0",
-						size_6: disabledSize,
-						color_6: disabledColor,
+						size_6: 20,
+						color_6: "#888888",
 						...vis?.points,
 					},
 					lines: {color: "#0d44f0", ...vis?.lines},
@@ -228,7 +193,6 @@ export class RectangleTransformScalingHandler {
 		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
-		const cfg = this.#scalingConfig;
 		const basis = getRectBasis(localPoints);
 		const n = index / 2;
 		const controlsLeft = n === 0 || n === 3;
@@ -250,7 +214,7 @@ export class RectangleTransformScalingHandler {
 		let c4uv = readCorner(4);
 		let c6uv = readCorner(6);
 
-		if (cfg.uniform) {
+		if (this.#scalingConfig!.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
 			const movedUV =
 				index === 0
@@ -277,23 +241,6 @@ export class RectangleTransformScalingHandler {
 				c4uv = {u: c4uv.u, v: adjusted.v};
 				c6uv = {u: c6uv.u, v: adjusted.v};
 			}
-		}
-
-		if (!cfg.x) {
-			const leftU = toRectFrame(localPoints[0], basis).u;
-			const rightU = toRectFrame(localPoints[2], basis).u;
-			c0uv = {u: leftU, v: c0uv.v};
-			c6uv = {u: leftU, v: c6uv.v};
-			c2uv = {u: rightU, v: c2uv.v};
-			c4uv = {u: rightU, v: c4uv.v};
-		}
-		if (!cfg.y) {
-			const bottomV = toRectFrame(localPoints[0], basis).v;
-			const topV = toRectFrame(localPoints[4], basis).v;
-			c0uv = {u: c0uv.u, v: bottomV};
-			c2uv = {u: c2uv.u, v: bottomV};
-			c4uv = {u: c4uv.u, v: topV};
-			c6uv = {u: c6uv.u, v: topV};
 		}
 
 		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
@@ -328,16 +275,11 @@ export class RectangleTransformScalingHandler {
 		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
-		const cfg = this.#scalingConfig;
 		const {conceptualMidIndex, corner1CI, corner2CI} =
 			this.#pointsMapping.midpointEdges[controlIndex];
 		// M1,M5 are on U-axis edges (horizontal) → only V changes.
 		// M3,M7 are on V-axis edges (vertical)   → only U changes.
 		const isUEdge = conceptualMidIndex % 4 === 1;
-
-		// Axis lock
-		if (isUEdge && !cfg.y) return localPoints.map((p) => vec3.clone(p));
-		if (!isUEdge && !cfg.x) return localPoints.map((p) => vec3.clone(p));
 
 		const basis = getRectBasis(localPoints);
 		const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
@@ -401,14 +343,13 @@ export class RectangleTransformScalingHandler {
 		anchorU: "left" | "right" | "center",
 		anchorV: "bottom" | "top" | "center",
 	): vec3[] {
-		const cfg = this.#scalingConfig;
+		const cfg = this.#scalingConfig!;
 		const hasClamp =
 			cfg.xMin !== undefined ||
 			cfg.xMax !== undefined ||
 			cfg.yMin !== undefined ||
 			cfg.yMax !== undefined;
-		const hasSnap = cfg.step !== undefined;
-		if (!hasClamp && !hasSnap) return points;
+		if (!hasClamp) return points;
 
 		const basis = getRectBasis(prevPoints);
 		const c0 = toRectFrame(points[0], basis);
@@ -428,13 +369,6 @@ export class RectangleTransformScalingHandler {
 
 		let wsWidth = origWsWidth;
 		let wsHeight = origWsHeight;
-
-		if (hasSnap) {
-			const step = cfg.step!;
-			const threshold = cfg.stepThreshold ?? step / 2;
-			wsWidth = snapValue(wsWidth, step, threshold);
-			wsHeight = snapValue(wsHeight, step, threshold);
-		}
 
 		if (cfg.xMin !== undefined) wsWidth = Math.max(cfg.xMin, wsWidth);
 		if (cfg.xMax !== undefined) wsWidth = Math.min(cfg.xMax, wsWidth);
