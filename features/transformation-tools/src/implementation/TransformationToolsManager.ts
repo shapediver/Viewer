@@ -345,13 +345,13 @@ export abstract class TransformationToolsManager
 							);
 						}
 
-						if (
-							c.data.find(
-								(d) =>
-									(d as GeometryData).primitive !== undefined,
-							)
-						) {
-							console.log("found geometry node:", c);
+						if (c.data.find((d) => d instanceof GeometryData)) {
+							console.log(
+								"found geometry node:",
+								c,
+								mat4.clone(c.worldMatrix),
+								mat4.clone(c.nodeMatrix),
+							);
 							transformations[c.name] = mat4.clone(c.worldMatrix);
 						}
 					});
