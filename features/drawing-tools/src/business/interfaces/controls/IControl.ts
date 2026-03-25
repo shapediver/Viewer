@@ -3,6 +3,12 @@ import {vec3} from "gl-matrix";
 
 export type GetPositionFn = (index: number) => vec3;
 export type MoveTemporaryFn = (index: number, pos: vec3) => void;
+export type ApplyConstraintsFn = (
+	pos: vec3,
+	index: number,
+	overrides?: Map<number, vec3>,
+	originalPositionOverride?: vec3,
+) => vec3;
 
 export interface IControl {
 	type: string;
@@ -17,8 +23,20 @@ export interface IControl {
 	/**
 	 * Move the control during drag. Returns the updated visual position of the
 	 * control, or undefined if no movement was possible (e.g. degenerate geometry).
+	 *
+	 * @param restrictedPosition Optional pre-computed restriction-constrained position.
+	 * When provided the control should derive its movement from this world-space point
+	 * rather than from a raw line-line closest-point computation on the ray.
+	 * @param applyConstraints Optional constraint evaluator. When provided, edge
+	 * controls use it to find the tightest valid scalar t before moving both
+	 * endpoints, guaranteeing they always translate rigidly together.
 	 */
-	move(ray: IRay, moveTemporary: MoveTemporaryFn): vec3 | undefined;
+	move(
+		ray: IRay,
+		moveTemporary: MoveTemporaryFn,
+		restrictedPosition?: vec3,
+		applyConstraints?: ApplyConstraintsFn,
+	): vec3 | undefined;
 
 	/**
 	 * Commit the drag and refresh any derived state from the committed geometry.

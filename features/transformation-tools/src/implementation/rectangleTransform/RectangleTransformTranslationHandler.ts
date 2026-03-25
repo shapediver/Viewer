@@ -24,9 +24,13 @@ import {
 
 import {mat4, vec3} from "gl-matrix";
 
+import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
+
 const PLANE_Z_OFFSET = 0.1;
 
-export class RectangleTransformTranslationHandler {
+export class RectangleTransformTranslationHandler
+	implements IRectangleTransformHandler
+{
 	readonly #dragManager: DragManager;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #hoverManager: HoverManager;
@@ -35,12 +39,16 @@ export class RectangleTransformTranslationHandler {
 	readonly #parentNode: ITreeNode;
 	readonly #viewport: IViewportApi;
 
+	#committedTranslation: vec3 = vec3.create();
 	#dragEndToken: string = "";
 	#dragMoveToken: string = "";
 	#dragStartToken: string = "";
 	#hoverOffToken: string = "";
 	#hoverOnToken: string = "";
 	#isDragging: boolean = false;
+	#isHovering: boolean = false;
+	#isInteractionBlocked: () => boolean;
+	#onTranslationStart: () => void;
 	#localPointsAtDragStart: vec3[] = [];
 	#node!: ITreeNode;
 	#planeRestrictionToken: string | undefined;
@@ -51,13 +59,17 @@ export class RectangleTransformTranslationHandler {
 		parentNode: ITreeNode,
 		planeToWS: mat4,
 		getLocalPoints: () => vec3[],
-		onMove: (points: vec3[]) => void,
-		onCommit: (points: vec3[]) => void,
+		isInteractionBlocked: () => boolean = () => false,
+		onTranslationStart: () => void = () => {},
+		onMove: (runningTrans: vec3) => void,
+		onCommit: (committedTrans: vec3) => void,
 	) {
 		this.#M_planeToWS = planeToWS;
 		this.#parentNode = parentNode;
 		this.#viewport = viewport;
 		this.#getLocalPoints = getLocalPoints;
+		this.#isInteractionBlocked = isInteractionBlocked;
+		this.#onTranslationStart = onTranslationStart;
 		this.#onMove = onMove;
 		this.#onCommit = onCommit;
 
@@ -90,11 +102,16 @@ export class RectangleTransformTranslationHandler {
 			(e) => {
 				const ev = e as IDragEvent;
 				if (ev.manager !== this.#dragManager) return;
+				// Guard: do not start translation while a DT drag (scaling/rotation) is active.
+				if (this.#isInteractionBlocked()) return;
+				// Cancel any active DT hover/drag (e.g. a hovered edge control) so
+				// that only translation runs for this gesture.
+				this.#onTranslationStart();
 				this.#localPointsAtDragStart = this.#getLocalPoints().map((p) =>
 					vec3.clone(p),
 				);
 				this.#isDragging = true;
-				this.#viewport.canvas.style.cursor = "move";
+				this.refreshCursor(false);
 			},
 		);
 
@@ -109,7 +126,7 @@ export class RectangleTransformTranslationHandler {
 				this.handleDrag(e as IDragEvent, true);
 				if ((e as IDragEvent).manager === this.#dragManager) {
 					this.#isDragging = false;
-					this.#viewport.canvas.style.cursor = "";
+					this.refreshCursor(this.#isInteractionBlocked());
 				}
 			},
 		);
@@ -119,10 +136,9 @@ export class RectangleTransformTranslationHandler {
 			(e) => {
 				const ev = e as IHoverEvent;
 				if (ev.manager !== this.#hoverManager) return;
-				// ev.nodes contains the node being activated (added to the list)
-				// at this point the node is already in the list
 				if (!ev.nodes.includes(this.#node)) return;
-				this.#viewport.canvas.style.cursor = "move";
+				this.#isHovering = true;
+				this.refreshCursor(this.#isInteractionBlocked());
 			},
 		);
 
@@ -131,10 +147,35 @@ export class RectangleTransformTranslationHandler {
 			(e) => {
 				const ev = e as IHoverEvent;
 				if (ev.manager !== this.#hoverManager) return;
-				if (this.#isDragging) return;
-				this.#viewport.canvas.style.cursor = "";
+				this.#isHovering = false;
+				if (!this.#isDragging) this.#viewport.canvas.style.cursor = "";
 			},
 		);
+	}
+
+	public get committedTranslation(): vec3 {
+		return this.#committedTranslation;
+	}
+
+	public get isDragging(): boolean {
+		return this.#isDragging;
+	}
+
+	/**
+	 * Refresh the canvas cursor based on current hover/drag state.
+	 * Called from HOVER_ON/OFF events and from RectangleTransform on every pointer move
+	 * to ensure the cursor stays correct even when DT interaction state changes between
+	 * HOVER_ON/OFF edge events.
+	 * @param blocked true if any DT point/control is currently hovered or being dragged
+	 */
+	public refreshCursor(blocked: boolean): void {
+		if (this.#isDragging) {
+			this.#viewport.canvas.style.cursor = "move";
+		} else if (this.#isHovering && !blocked) {
+			this.#viewport.canvas.style.cursor = "move";
+		} else if (!this.#isDragging) {
+			this.#viewport.canvas.style.cursor = "";
+		}
 	}
 
 	public close(): void {
@@ -150,11 +191,10 @@ export class RectangleTransformTranslationHandler {
 	}
 
 	/**
-	 * Delete the existing plane node and create a new one based on the new local points;
-	 * also refreshes the drag-manager plane restriction to match the current
-	 * parentNode world matrix (i.e. after rotation).
+	 * Rebuild the drag plane and restriction to match the current rectangle
+	 * and parent-node world matrix (e.g. after a rotation commit).
 	 */
-	public updatePlane(localPoints: vec3[]): void {
+	public recompute(localPoints: vec3[], _temporary: boolean): void {
 		// Update the drag restriction to the current world-space plane.
 		if (this.#planeRestrictionToken !== undefined) {
 			this.#dragManager.removeRestriction(this.#planeRestrictionToken);
@@ -278,6 +318,8 @@ export class RectangleTransformTranslationHandler {
 
 	private handleDrag(ev: IDragEvent, commit: boolean): void {
 		if (ev.manager !== this.#dragManager) return;
+		// Guard: skip if DT drag (scaling/rotation) is active, or if drag-start was suppressed.
+		if (this.#isInteractionBlocked() || !this.#isDragging) return;
 		if (!ev.matrix || this.#localPointsAtDragStart.length === 0) return;
 		// The drag matrix is a pure translation in world space
 		// (plane restriction + identity world transform of the mesh node).
@@ -300,17 +342,30 @@ export class RectangleTransformTranslationHandler {
 			vec3.dot(deltaWS, vWS),
 			0,
 		);
-		const newPoints = this.#localPointsAtDragStart.map((p) =>
-			vec3.add(vec3.create(), p, deltaLS),
-		);
 		if (commit) {
-			this.#onCommit(newPoints);
+			vec3.add(
+				this.#committedTranslation,
+				this.#committedTranslation,
+				deltaLS,
+			);
+			this.recompute(this.#getLocalPoints(), false);
+			this.#onCommit(this.#committedTranslation);
 		} else {
-			this.#onMove(newPoints);
+			const runningTrans = vec3.add(
+				vec3.create(),
+				this.#committedTranslation,
+				deltaLS,
+			);
+			// onMove updates the parent transformation matrix first, then sync
+			// the parent ThreeJS matrix so the DT handles (whose buffer positions
+			// are in parent-LS) appear at correct WS positions without triggering
+			// a full scene-tree rebuild.
+			this.#onMove(runningTrans);
+			this.#viewport.updateNodeTransformation(this.#parentNode);
 		}
 	}
 
-	readonly #onCommit: (points: vec3[]) => void;
+	readonly #onCommit: (committedTrans: vec3) => void;
 
-	readonly #onMove: (points: vec3[]) => void;
+	readonly #onMove: (runningTrans: vec3) => void;
 }

@@ -78,6 +78,8 @@ export class GridRestriction
 		this.#activationKey = properties?.activationKey || "g";
 		this.enabled = properties?.enabled ?? false;
 		this._enabledEditable = properties?.enabledEditable ?? true;
+		this._enableVisualization = properties?.enableVisualization ?? true;
+
 		// if a grid unit is provided, we toggle it on by default
 		if (properties?.gridUnit !== undefined && properties?.gridUnit !== 0) {
 			this.#toggleInversion = true;

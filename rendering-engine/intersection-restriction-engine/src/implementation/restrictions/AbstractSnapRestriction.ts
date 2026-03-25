@@ -25,6 +25,7 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 	protected _active: boolean = false;
 	protected _enabled: boolean = true;
 	protected _enabledEditable: boolean = true;
+	protected _enableVisualization: boolean = true;
 	protected _object3D!: THREE.Object3D;
 	protected _priority: number = 0;
 
@@ -70,6 +71,15 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 		this._enabledEditable = value;
 	}
 
+	public get enableVisualization(): boolean {
+		return this._enableVisualization;
+	}
+
+	public set enableVisualization(value: boolean) {
+		this._enableVisualization = value;
+		this.showVisualization = value;
+	}
+
 	public get id(): string {
 		return this.#id;
 	}
@@ -87,6 +97,12 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 	}
 
 	public set showVisualization(value: boolean) {
+		if (this._enableVisualization === false) {
+			this._object3D.visible = false;
+			this.visibilityChanged(false);
+			return;
+		}
+
 		this.#showVisualization = value;
 		this._object3D.visible = value;
 		this.visibilityChanged(this._object3D.visible);

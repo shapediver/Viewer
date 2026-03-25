@@ -153,6 +153,27 @@ export type Settings = {
 		 * The pointer is also not changed to a move pointer when hovering over disabled points, since they cannot be moved.
 		 */
 		disabledPoints?: number[];
+
+		/**
+		 * Constraints on the geometry. This can be used to restrict the movement of points to a specific area.
+		 * The constraints are separated into position and size constraints, which can be defined per axis.
+		 * Each constraint is defined as a tuple of two numbers, where the first number is the minimum value and the second number is the maximum value.
+		 * If a number is number is not defined, there is no constraint on that axis.
+		 *
+		 * For the size constraints, the constraint is applied to the size of the geometry, which is defined as the distance between the furthest points in each axis.
+		 */
+		constraints?: {
+			position?: {
+				x?: [number, number];
+				y?: [number, number];
+				z?: [number, number];
+			};
+			size?: {
+				x?: [number, number];
+				y?: [number, number];
+				z?: [number, number];
+			};
+		};
 	};
 
 	/**
@@ -338,7 +359,9 @@ export interface IDrawingToolsManager {
 	canRedo(): boolean;
 	canUndo(): boolean;
 	cancel(): void;
+	cancelDrag(): void;
 	close(): void;
+	isInteractionActive(): boolean;
 	getPointsData(): PointsData;
 	movePoint(
 		index: number,

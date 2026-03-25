@@ -172,6 +172,15 @@ export class DesktopStrategy implements IStrategy {
 			// Handle mid-point insertion
 			this.handleMidPointInsertion(distances);
 
+			// If another DT's control drag has already started (or its control is
+			// hovered), skip point hover and drag to avoid both executing together.
+			const blockedByOther =
+				DesktopStrategy.#blockingHoverInstances.size > 0 &&
+				!DesktopStrategy.#blockingHoverInstances.has(
+					this.#drawingToolsManager.uuid,
+				);
+			if (blockedByOther) return;
+
 			// Check hover state
 			this.#interactionManagerHelper.checkHover(distances, ray);
 
@@ -348,9 +357,11 @@ export class DesktopStrategy implements IStrategy {
 			return;
 		}
 
-		// If a non-interactive DT has a point closer to the cursor, suppress hover
-		// so the locked handle visually "wins" the hit-test.
-		const blocked = DesktopStrategy.#blockingHoverInstances.size > 0;
+		// If a non-interactive DT or another interactive DT with an active control
+		// hover has priority, suppress this DT's point hover.
+		const blocked =
+			DesktopStrategy.#blockingHoverInstances.size > 0 &&
+			!DesktopStrategy.#blockingHoverInstances.has(uuid);
 
 		// Controls take priority: if a control is hovered, suppress regular hover.
 		const controlHovered =
@@ -359,6 +370,15 @@ export class DesktopStrategy implements IStrategy {
 			controlHovered || blocked ? undefined : distances,
 			ray,
 		);
+
+		// When a control is hovered on this DT, register as a blocker so that
+		// other interactive DTs (e.g. the rotation handle) suppress their own
+		// point hover and cannot start a drag at the same time.
+		if (controlHovered) {
+			DesktopStrategy.#blockingHoverInstances.add(uuid);
+		} else {
+			DesktopStrategy.#blockingHoverInstances.delete(uuid);
+		}
 
 		if (pointerMoved) {
 			// Handle insertion movement
@@ -943,6 +963,7 @@ export class DesktopStrategy implements IStrategy {
 		const uuid = this.#drawingToolsManager.uuid;
 		DesktopStrategy.#draggingInstances.delete(uuid);
 		DesktopStrategy.#hoveringInstances.delete(uuid);
+		DesktopStrategy.#blockingHoverInstances.delete(uuid);
 	}
 
 	/**
@@ -1007,6 +1028,12 @@ export class DesktopStrategy implements IStrategy {
 			return false;
 
 		if (this.#interactionManager.controlsManager.startDragging()) {
+			// Immediately register as a blocker so that other DTs that process
+			// onDown in the same event cycle see the control drag and skip their
+			// own point drag (e.g. rotation handle near an edge control midpoint).
+			DesktopStrategy.#blockingHoverInstances.add(
+				this.#drawingToolsManager.uuid,
+			);
 			if (!this.#cameraFreezeFlag) {
 				this.#cameraFreezeFlag = this.#viewport.addFlag(
 					FLAG_TYPE.CAMERA_FREEZE,

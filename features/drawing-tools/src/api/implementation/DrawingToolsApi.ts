@@ -214,6 +214,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		this.#drawingToolsManager.cancel();
 	}
 
+	public cancelDrag(): void {
+		this.#drawingToolsManager.cancelDrag();
+	}
+
+	public isInteractionActive(): boolean {
+		return this.#drawingToolsManager.isInteractionActive();
+	}
+
 	public close(): void {
 		this.#drawingToolsManager.close();
 	}

@@ -71,6 +71,14 @@ export interface IDrawingToolsApi {
 	 */
 	cancel(): void;
 	/**
+	 * Cancel any in-progress hover or drag interaction without closing the drawing tool.
+	 */
+	cancelDrag(): void;
+	/**
+	 * Returns true if a point or control is currently hovered or being dragged.
+	 */
+	isInteractionActive(): boolean;
+	/**
 	 * Close the drawing tool.
 	 */
 	close(): void;

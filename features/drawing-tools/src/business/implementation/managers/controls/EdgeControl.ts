@@ -3,6 +3,7 @@ import {IRay} from "@shapediver/viewer.shared.types";
 import {quat, vec3} from "gl-matrix";
 
 import {
+	ApplyConstraintsFn,
 	GetPositionFn,
 	MoveTemporaryFn,
 } from "../../../interfaces/controls/IControl";
@@ -104,28 +105,97 @@ export class EdgeControl implements IEdgeControl {
 	 * line-line closest-point calculation, moves point1 and point2 by the
 	 * resulting delta, and returns the new visual midpoint position.
 	 *
+	 * When `restrictedPosition` is supplied (e.g. the result of
+	 * `restrictionManager.rayTrace`) the unconstrained line-line computation is
+	 * skipped.  Instead the restricted world-space point is projected onto the
+	 * direction axis so that the movement is both restriction-aware AND stays
+	 * on the desired drag direction.
+	 *
 	 * Returns undefined when the ray and direction axis are parallel
 	 * (degenerate case — no movement applied).
 	 */
-	public move(ray: IRay, moveTemporary: MoveTemporaryFn): vec3 | undefined {
+	public move(
+		ray: IRay,
+		moveTemporary: MoveTemporaryFn,
+		restrictedPosition?: vec3,
+		applyConstraints?: ApplyConstraintsFn,
+	): vec3 | undefined {
 		const dir = this.#direction;
-		const rayOrigin = ray.origin as unknown as vec3;
-		const rayDir = ray.direction as unknown as vec3;
 
-		// Line-line closest-point:
-		//   Line 1 (control axis): dragStartPos + t * dir
-		//   Line 2 (mouse ray)   : ray.origin   + s * ray.direction
-		const w = vec3.sub(vec3.create(), this.#dragStartPos!, rayOrigin);
-		const a = vec3.dot(dir, dir);
-		const b = vec3.dot(dir, rayDir);
-		const c = vec3.dot(rayDir, rayDir);
-		const d = vec3.dot(w, dir);
-		const e = vec3.dot(w, rayDir);
+		let t: number;
 
-		const denom = a * c - b * b;
-		if (Math.abs(denom) < 1e-10) return undefined; // lines are parallel
+		if (restrictedPosition !== undefined) {
+			// Project the restriction-constrained point onto the direction axis:
+			//   t = dot(restrictedPosition - dragStartPos, dir) / dot(dir, dir)
+			const dirLenSq = vec3.dot(dir, dir);
+			if (dirLenSq < 1e-10) return undefined;
+			const diff = vec3.sub(
+				vec3.create(),
+				restrictedPosition,
+				this.#dragStartPos!,
+			);
+			t = vec3.dot(diff, dir) / dirLenSq;
+		} else {
+			const rayOrigin = ray.origin as unknown as vec3;
+			const rayDir = ray.direction as unknown as vec3;
 
-		const t = (b * e - c * d) / denom;
+			// Line-line closest-point:
+			//   Line 1 (control axis): dragStartPos + t * dir
+			//   Line 2 (mouse ray)   : ray.origin   + s * ray.direction
+			const w = vec3.sub(vec3.create(), this.#dragStartPos!, rayOrigin);
+			const a = vec3.dot(dir, dir);
+			const b = vec3.dot(dir, rayDir);
+			const c = vec3.dot(rayDir, rayDir);
+			const d = vec3.dot(w, dir);
+			const e = vec3.dot(w, rayDir);
+
+			const denom = a * c - b * b;
+			if (Math.abs(denom) < 1e-10) return undefined; // lines are parallel
+
+			t = (b * e - c * d) / denom;
+		}
+
+		// If a constraint evaluator is provided, find the tightest valid scalar t
+		// so that both endpoints always translate rigidly together.
+		//
+		// Strategy: evaluate applyConstraints on each endpoint with an overrides
+		// map containing both unconstrained positions, then back-project the
+		// clamped position onto the direction axis to get the effective t for
+		// each component.  The most conservative (smallest |t|) is used.
+		if (applyConstraints !== undefined) {
+			const delta = vec3.scale(vec3.create(), dir, t);
+			const newP1Unc = vec3.add(vec3.create(), this.#dragStartP1!, delta);
+			const newP2Unc = vec3.add(vec3.create(), this.#dragStartP2!, delta);
+
+			const overrides = new Map<number, vec3>([
+				[this.#config.point1, newP1Unc],
+				[this.#config.point2, newP2Unc],
+			]);
+			const cp1 = applyConstraints(
+				newP1Unc,
+				this.#config.point1,
+				overrides,
+				this.#dragStartP1,
+			);
+			const cp2 = applyConstraints(
+				newP2Unc,
+				this.#config.point2,
+				overrides,
+				this.#dragStartP2,
+			);
+
+			let tClamped = t;
+			for (let i = 0; i < 3; i++) {
+				const di = dir[i];
+				if (Math.abs(di) < 1e-10) continue;
+				const t1 = (cp1[i] - this.#dragStartP1![i]) / di;
+				if (Math.abs(t1) < Math.abs(tClamped)) tClamped = t1;
+				const t2 = (cp2[i] - this.#dragStartP2![i]) / di;
+				if (Math.abs(t2) < Math.abs(tClamped)) tClamped = t2;
+			}
+			t = tClamped;
+		}
+
 		const delta = vec3.scale(vec3.create(), dir, t);
 
 		const newP1 = vec3.add(vec3.create(), this.#dragStartP1!, delta);

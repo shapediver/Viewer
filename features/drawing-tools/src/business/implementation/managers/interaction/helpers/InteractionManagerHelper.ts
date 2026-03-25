@@ -355,6 +355,13 @@ export class InteractionManagerHelper {
 					this.#draggedPointPosition,
 				);
 
+				// Phase 1 – compute constrained proposed positions for every
+				// directly-selected point, building an overrides map so that
+				// each peer's constrained position is visible when checking the
+				// next point's size constraint.
+				const overrides = new Map<number, vec3>();
+				const constrainedPositions: vec3[] = [];
+
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
 					const isLastPoint =
 						this.#selectedPointIndices.length === 1 &&
@@ -371,58 +378,87 @@ export class InteractionManagerHelper {
 						this.#geometryState.closeLoop === false &&
 						this.#settings.geometry.autoClose === false;
 
+					let rawProposed: vec3;
 					if (isLastPoint && canBeClosed && shouldBeClosed) {
-						// if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
 						const firstPoint = this.#geometryState.getPosition(0);
-						const lastPoint = intersectionPoint;
-
 						if (
-							lastPoint &&
 							this.#geometryMathManager.screenSpaceDistanceCheck(
 								firstPoint,
-								lastPoint,
+								intersectionPoint,
 								this.#settings.visualization.points.size_0! *
 									this.#settings.visualization
 										.distanceMultiplicationFactor,
 							).check === true
 						) {
-							// close the geometry
-							this.#selectedMovedPointPositions[i] =
-								vec3.clone(firstPoint);
-							this.#drawingToolsManager.movePointTemporary(
-								this.#selectedPointIndices[i],
-								firstPoint,
-								rayTraceResult,
-							);
+							// snap to first point to close the geometry
+							rawProposed = vec3.clone(firstPoint);
 						} else {
-							// not close enough to close the geometry
-							this.#selectedMovedPointPositions[i] = vec3.add(
+							rawProposed = vec3.add(
 								vec3.create(),
 								differenceToIntersected,
 								this.#selectedPointPositions[i],
 							);
-							this.#drawingToolsManager.movePointTemporary(
-								this.#selectedPointIndices[i],
-								this.#selectedMovedPointPositions[i],
-								rayTraceResult,
-							);
 						}
 					} else {
-						// add difference to selected point
-						this.#selectedMovedPointPositions[i] = vec3.add(
+						rawProposed = vec3.add(
 							vec3.create(),
 							differenceToIntersected,
 							this.#selectedPointPositions[i],
 						);
-						this.#drawingToolsManager.movePointTemporary(
-							this.#selectedPointIndices[i],
-							this.#selectedMovedPointPositions[i],
-							rayTraceResult,
-						);
 					}
+
+					const constrained =
+						this.#drawingToolsManager.applyConstraints(
+							rawProposed,
+							this.#selectedPointIndices[i],
+							overrides,
+						);
+					constrainedPositions.push(constrained);
+					overrides.set(this.#selectedPointIndices[i], constrained);
 				}
 
-				this.applyAdjacencyPropagation(differenceToIntersected);
+				// Effective delta for the dragged point after constraint clamping.
+				const draggedSelIdx = this.#selectedPointIndices.indexOf(
+					this.#draggedPoint!,
+				);
+				const effectiveDelta =
+					draggedSelIdx >= 0
+						? vec3.sub(
+								vec3.create(),
+								constrainedPositions[draggedSelIdx],
+								this.#selectedPointPositions[draggedSelIdx],
+							)
+						: differenceToIntersected;
+
+				// Phase 2 – compute indirect positions once; null means a
+				// constraint would be violated, so abort without moving anything.
+				const indirectPositions = this.applyAdjacencyPropagation(
+					effectiveDelta,
+					overrides,
+				);
+				if (indirectPositions === null) {
+					return intersectionPoint;
+				}
+
+				// Phase 3 – apply constrained positions to direct points.
+				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+					this.#selectedMovedPointPositions[i] =
+						constrainedPositions[i];
+					this.#drawingToolsManager.movePointTemporary(
+						this.#selectedPointIndices[i],
+						constrainedPositions[i],
+						rayTraceResult,
+					);
+				}
+
+				// Phase 4 – apply pre-computed indirect positions.
+				for (const [targetIdx, pos] of indirectPositions) {
+					this.#drawingToolsManager.movePointTemporary(
+						targetIdx,
+						pos,
+						this.#geometryState.metadataArray[targetIdx],
+					);
+				}
 
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
@@ -786,15 +822,26 @@ export class InteractionManagerHelper {
 	/**
 	 * BFS propagation of a drag delta through the weightedAdjacency graph.
 	 *
-	 * - Selected points are the BFS roots; each receives `differenceToIntersected`.
-	 * - Non-selected reachable points accumulate weighted contributions from all
-	 *   paths leading to them, then are moved via movePointTemporary.
-	 * - A node is expanded as a source at most once (cycle-safe).
-	 * - Processing order follows adjacency array declaration order (BFS).
+	 * Runs the BFS exactly once, validates constraints for every indirect
+	 * point, and returns a ready-to-apply position map so the caller can
+	 * commit the moves without any redundant computation.
+	 *
+	 * @param differenceToIntersected  Effective drag delta (already
+	 *                                  constraint-clamped for the dragged point).
+	 * @param overrides                 Positions of directly-moved points, used
+	 *                                  as reference geometry when checking size
+	 *                                  constraints for indirect points.
+	 * @returns A map of pointIndex → final position for every indirect point
+	 *          that should be moved, or `null` if any indirect point would be
+	 *          constrained away from its proposed position (move is blocked).
 	 */
-	private applyAdjacencyPropagation(differenceToIntersected: vec3): void {
+	private applyAdjacencyPropagation(
+		differenceToIntersected: vec3,
+		overrides?: Map<number, vec3>,
+	): Map<number, vec3> | null {
 		const adjacency = this.#settings.geometry.weightedAdjacency;
-		if (!adjacency || this.#propagatedBasePositions.size === 0) return;
+		if (!adjacency || this.#propagatedBasePositions.size === 0)
+			return new Map();
 
 		// Seed BFS from all selected points.
 		const queue: [number, vec3][] = this.#selectedPointIndices.map(
@@ -840,16 +887,23 @@ export class InteractionManagerHelper {
 			processSource(sourceIdx, sourceDelta);
 		}
 
-		// Apply all accumulated deltas using the stored pre-drag base positions.
+		// Validate constraints and build the final position map in one pass.
+		// If any indirect point would be clamped, return null to block the move.
+		const result = new Map<number, vec3>();
 		for (const [targetIdx, delta] of accumulatedDeltas) {
 			const base = this.#propagatedBasePositions.get(targetIdx);
 			if (!base) continue;
-			this.#drawingToolsManager.movePointTemporary(
+			const proposed = vec3.add(vec3.create(), base, delta);
+			const constrained = this.#drawingToolsManager.applyConstraints(
+				proposed,
 				targetIdx,
-				vec3.add(vec3.create(), base, delta),
-				this.#geometryState.metadataArray[targetIdx],
+				overrides,
 			);
+			if (!vec3.equals(constrained, proposed)) return null;
+			result.set(targetIdx, proposed);
 		}
+
+		return result;
 	}
 
 	/**

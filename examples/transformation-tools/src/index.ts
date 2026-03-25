@@ -4,15 +4,14 @@ import {
 	EventResponseMapping,
 	RectangleTransform,
 } from "@shapediver/viewer.features.transformation-tools";
-import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
+import {RectangleTransformSettingsOptional} from "@shapediver/viewer.features.transformation-tools/dist/interfaces/rectangleTransform/IRectangleTransform";
 import {
 	createCustomUi,
 	IBooleanElement,
-	IDropdownElement,
 	ISliderElement,
 } from "@shapediver/viewer.shared.demo-helper";
-import {RectangleTransformSettingsOptional} from "@shapediver/viewer.features.transformation-tools/dist/interfaces/rectangleTransform/IRectangleTransform";
 import {vec3} from "gl-matrix";
+import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
 
 (<any>window).SDV = SDV;
 
@@ -43,7 +42,6 @@ const sendNotification = (title: string, message: string) => {
 	});
 
 	const imageOutput = session.getOutputByName("Image Plane")![0];
-	console.log(imageOutput.node?.boundingBox.boundingSphere.center);
 
 	const settings: RectangleTransformSettingsOptional = {
 		enableScaling: true,
@@ -57,12 +55,17 @@ const sendNotification = (title: string, message: string) => {
 			vector_v: [0, 1, 0],
 			type: RESTRICTION_TYPE.PLANE,
 		},
+		scaling: {
+			xMin: 25,
+		},
 	};
 
 	// create the gumballTransform
-	let gumballTransform = new RectangleTransform(viewport, [imageOutput.node!], settings);
-
-	console.log(imageOutput.node!);
+	let gumballTransform = new RectangleTransform(
+		viewport,
+		[imageOutput.node!],
+		settings,
+	);
 
 	/**
 	 * Remove the transformation applied by this tool from all nodes, resetting
@@ -85,7 +88,11 @@ const sendNotification = (title: string, message: string) => {
 		gumballTransform.close();
 		resetTransformation();
 		await new Promise((resolve) => setTimeout(resolve, 100)); // ensure the old rectangleTransform is fully closed before creating a new one
-		gumballTransform = new RectangleTransform(viewport, [imageOutput.node!], settings);
+		gumballTransform = new RectangleTransform(
+			viewport,
+			[imageOutput.node!],
+			settings,
+		);
 	};
 
 	// create an event listener for the gumballTransform
@@ -231,24 +238,6 @@ const sendNotification = (title: string, message: string) => {
 					recreateRectangleTransform();
 				},
 			},
-			<IBooleanElement>{
-				type: "boolean",
-				name: "Scaling: Allow X",
-				value: settings.scaling?.x ?? true,
-				onChangeCallback: (value: boolean) => {
-					settings.scaling = {...settings.scaling, x: value};
-					recreateRectangleTransform();
-				},
-			},
-			<IBooleanElement>{
-				type: "boolean",
-				name: "Scaling: Allow Y",
-				value: settings.scaling?.y ?? true,
-				onChangeCallback: (value: boolean) => {
-					settings.scaling = {...settings.scaling, y: value};
-					recreateRectangleTransform();
-				},
-			},
 			<ISliderElement>{
 				type: "slider",
 				name: "Scaling: X Min",
@@ -259,7 +248,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						xMin: value || undefined,
+						xMin: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -274,7 +263,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						xMax: value || undefined,
+						xMax: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -289,7 +278,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						yMin: value || undefined,
+						yMin: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -304,7 +293,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						yMax: value || undefined,
+						yMax: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -319,22 +308,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						step: value || undefined,
-					};
-					recreateRectangleTransform();
-				},
-			},
-			<ISliderElement>{
-				type: "slider",
-				name: "Scaling: Step Threshold",
-				min: 0,
-				max: 1,
-				step: 0.05,
-				value: settings.scaling?.stepThreshold ?? 0,
-				onChangeCallback: (value: number) => {
-					settings.scaling = {
-						...settings.scaling,
-						stepThreshold: value || undefined,
+						step: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -351,7 +325,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.rotation = {
 						...settings.rotation,
-						step: value || undefined,
+						step: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -366,7 +340,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.rotation = {
 						...settings.rotation,
-						stepThreshold: value || undefined,
+						stepThreshold: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -381,7 +355,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.rotation = {
 						...settings.rotation,
-						min: value <= -360 ? undefined : value,
+						min: value <= -360 ? undefined : +value,
 					};
 					recreateRectangleTransform();
 				},
@@ -396,7 +370,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.rotation = {
 						...settings.rotation,
-						max: value >= 360 ? undefined : value,
+						max: value >= 360 ? undefined : +value,
 					};
 					recreateRectangleTransform();
 				},
@@ -411,7 +385,7 @@ const sendNotification = (title: string, message: string) => {
 				onChangeCallback: (value: number) => {
 					settings.rotation = {
 						...settings.rotation,
-						handleDistance: value,
+						handleDistance: +value,
 					};
 					recreateRectangleTransform();
 				},

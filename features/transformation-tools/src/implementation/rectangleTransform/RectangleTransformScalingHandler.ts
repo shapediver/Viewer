@@ -7,12 +7,12 @@ import {
 	PlaneRestrictionProperties,
 } from "@shapediver/viewer.features.drawing-tools";
 import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {Plane} from "@shapediver/viewer.shared.math";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
 
 import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
+import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {
 	cornersToFullPoints,
 	getRectBasis,
@@ -24,22 +24,21 @@ import {
 	RectangleTransformPointsMapping,
 } from "./RectangleTransformPointsMapping";
 
-export class RectangleTransformScalingHandler {
+export class RectangleTransformScalingHandler
+	implements IRectangleTransformHandler
+{
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #scalingConfig: RectangleTransformSettings["scaling"];
-	readonly #plane: Plane;
 	readonly #pointsMapping: RectangleTransformPointsMapping;
 
 	constructor(
 		viewport: IViewportApi,
 		parentNode: ITreeNode,
-		plane: Plane,
 		localPoints: vec3[],
 		visibilityConfig: PointVisibilityConfig,
 		scalingConfig: RectangleTransformSettings["scaling"],
 	) {
-		this.#scalingConfig = scalingConfig!;
-		this.#plane = plane;
+		this.#scalingConfig = scalingConfig;
 		this.#pointsMapping = new RectangleTransformPointsMapping(
 			visibilityConfig,
 		);
@@ -54,6 +53,15 @@ export class RectangleTransformScalingHandler {
 			vector_u: vec3.fromValues(1, 0, 0),
 			vector_v: vec3.fromValues(0, 1, 0),
 		};
+
+		// If step is configured, add a grid snap restriction to the plane restriction
+		if (scalingConfig?.step) {
+			lsRestriction.gridSnapRestriction = {
+				gridUnit: scalingConfig.step,
+				enabled: true,
+				enableVisualization: false,
+			};
+		}
 
 		// All four corners in order: C0(DT0), C2(DT1), C4(DT2), C6(DT3).
 		const dtLSPoints = this.#pointsMapping.dtToConceptual.map((ci) => {
@@ -133,6 +141,10 @@ export class RectangleTransformScalingHandler {
 						this.#pointsMapping.disabledDTIndices.length > 0
 							? this.#pointsMapping.disabledDTIndices
 							: undefined,
+					constraints:
+						RectangleTransformScalingHandler.buildSizeConstraints(
+							scalingConfig,
+						),
 				},
 				controls,
 				restrictions: {plane: lsRestriction},
@@ -169,16 +181,50 @@ export class RectangleTransformScalingHandler {
 		return this.#pointsMapping;
 	}
 
-	/**
-	 * Apply configured clamp/snap constraints to an initial rectangle.
-	 * Uses center anchoring so initialization does not drift.
-	 */
-	public applyInitialConstraints(localPoints: vec3[]): vec3[] {
-		return this.clampAndSnap(localPoints, localPoints, "center", "center");
-	}
-
 	public close(): void {
 		this.#drawingTools.close();
+	}
+
+	public recompute(localPoints: vec3[], temporary: boolean): void {
+		this.flushRectPoints(localPoints, temporary);
+	}
+
+	/**
+	 * Read back the corner positions currently stored in the drawing tool (after
+	 * any constraints have been applied) and return a full 8-point conceptual
+	 * local-space array.  Call this after `recompute` during creation so that
+	 * `#localPoints` in RectangleTransform reflects the constrained state.
+	 */
+	public readbackConstrainedPoints(): vec3[] {
+		const dtPoints = this.#drawingTools.pointsData;
+		const fullPoints: vec3[] = new Array(8);
+		for (let di = 0; di < this.#pointsMapping.dtToConceptual.length; di++) {
+			const ci = this.#pointsMapping.dtToConceptual[di];
+			const p = dtPoints[di];
+			fullPoints[ci] = vec3.fromValues(p[0], p[1], p[2]);
+		}
+		// Recompute midpoints as averages of their adjacent corners.
+		fullPoints[1] = vec3.fromValues(
+			(fullPoints[0][0] + fullPoints[2][0]) / 2,
+			(fullPoints[0][1] + fullPoints[2][1]) / 2,
+			0,
+		);
+		fullPoints[3] = vec3.fromValues(
+			(fullPoints[2][0] + fullPoints[4][0]) / 2,
+			(fullPoints[2][1] + fullPoints[4][1]) / 2,
+			0,
+		);
+		fullPoints[5] = vec3.fromValues(
+			(fullPoints[4][0] + fullPoints[6][0]) / 2,
+			(fullPoints[4][1] + fullPoints[6][1]) / 2,
+			0,
+		);
+		fullPoints[7] = vec3.fromValues(
+			(fullPoints[6][0] + fullPoints[0][0]) / 2,
+			(fullPoints[6][1] + fullPoints[0][1]) / 2,
+			0,
+		);
+		return fullPoints;
 	}
 
 	/**
@@ -214,7 +260,7 @@ export class RectangleTransformScalingHandler {
 		let c4uv = readCorner(4);
 		let c6uv = readCorner(6);
 
-		if (this.#scalingConfig!.uniform) {
+		if (this.#scalingConfig?.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
 			const movedUV =
 				index === 0
@@ -243,13 +289,7 @@ export class RectangleTransformScalingHandler {
 			}
 		}
 
-		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
-		return this.clampAndSnap(
-			result,
-			localPoints,
-			controlsLeft ? "right" : "left",
-			controlsBottom ? "top" : "bottom",
-		);
+		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
 	}
 
 	/**
@@ -300,6 +340,12 @@ export class RectangleTransformScalingHandler {
 		let c4uv = toRectFrame(localPoints[4], basis);
 		let c6uv = toRectFrame(localPoints[6], basis);
 
+		// Snapshot original bounds needed for uniform-scaling calculation below.
+		const origBottomV = c0uv.v;
+		const origTopV = c6uv.v;
+		const origLeftU = c0uv.u;
+		const origRightU = c2uv.u;
+
 		if (isUEdge) {
 			if (conceptualMidIndex === 1) {
 				c0uv = {u: c0uv.u, v: movedUV.v};
@@ -318,105 +364,74 @@ export class RectangleTransformScalingHandler {
 			}
 		}
 
-		const result = cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
-		const anchorU: "left" | "right" | "center" = isUEdge
-			? "center"
-			: conceptualMidIndex === 3
-				? "left"
-				: "right";
-		const anchorV: "bottom" | "top" | "center" = isUEdge
-			? conceptualMidIndex === 1
-				? "top"
-				: "bottom"
-			: "center";
-		return this.clampAndSnap(result, localPoints, anchorU, anchorV);
+		if (this.#scalingConfig?.uniform) {
+			if (isUEdge) {
+				// Height changed; expand width by the same amount, symmetric about center U.
+				const halfWidthChange =
+					(c6uv.v - c0uv.v - (origTopV - origBottomV)) / 2;
+				const centerU = (origLeftU + origRightU) / 2;
+				const prevHalfWidth = (origRightU - origLeftU) / 2;
+				c0uv = {
+					u: centerU - prevHalfWidth - halfWidthChange,
+					v: c0uv.v,
+				};
+				c2uv = {
+					u: centerU + prevHalfWidth + halfWidthChange,
+					v: c2uv.v,
+				};
+				c4uv = {
+					u: centerU + prevHalfWidth + halfWidthChange,
+					v: c4uv.v,
+				};
+				c6uv = {
+					u: centerU - prevHalfWidth - halfWidthChange,
+					v: c6uv.v,
+				};
+			} else {
+				// Width changed; expand height by the same amount, symmetric about center V.
+				const halfHeightChange =
+					(c2uv.u - c0uv.u - (origRightU - origLeftU)) / 2;
+				const centerV = (origBottomV + origTopV) / 2;
+				const prevHalfHeight = (origTopV - origBottomV) / 2;
+				c0uv = {
+					u: c0uv.u,
+					v: centerV - prevHalfHeight - halfHeightChange,
+				};
+				c2uv = {
+					u: c2uv.u,
+					v: centerV - prevHalfHeight - halfHeightChange,
+				};
+				c4uv = {
+					u: c4uv.u,
+					v: centerV + prevHalfHeight + halfHeightChange,
+				};
+				c6uv = {
+					u: c6uv.u,
+					v: centerV + prevHalfHeight + halfHeightChange,
+				};
+			}
+		}
+
+		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
 	}
 
 	/**
-	 * Clamp rectangle dimensions to [xMin,xMax] x [yMin,yMax] (in world space) and snap to
-	 * step increments (also in world space). The rectangle is resized from the specified anchor
-	 * so the non-moving side stays in place.
+	 * Build the DT constraints.size object from xMin/xMax/yMin/yMax.
+	 * Maps undefined bounds to 0 (for min) or Infinity (for max) so a
+	 * one-sided constraint can still be expressed as a [number, number] tuple.
 	 */
-	private clampAndSnap(
-		points: vec3[],
-		prevPoints: vec3[],
-		anchorU: "left" | "right" | "center",
-		anchorV: "bottom" | "top" | "center",
-	): vec3[] {
-		const cfg = this.#scalingConfig!;
-		const hasClamp =
-			cfg.xMin !== undefined ||
-			cfg.xMax !== undefined ||
-			cfg.yMin !== undefined ||
-			cfg.yMax !== undefined;
-		if (!hasClamp) return points;
-
-		const basis = getRectBasis(prevPoints);
-		const c0 = toRectFrame(points[0], basis);
-		const c2 = toRectFrame(points[2], basis);
-		const c4 = toRectFrame(points[4], basis);
-
-		const lsWidth = c2.u - c0.u;
-		const lsHeight = c4.v - c0.v;
-
-		// Measure world-space dimensions (xMin/xMax/yMin/yMax/step are all in world units).
-		// p0=BL, p2=BR, p6=TL — bottom edge gives X width, left edge gives Y height.
-		const p0ws = this.#plane.convertFromLSToWS(points[0]);
-		const p2ws = this.#plane.convertFromLSToWS(points[2]);
-		const p6ws = this.#plane.convertFromLSToWS(points[6]);
-		const origWsWidth = vec3.distance(p0ws, p2ws);
-		const origWsHeight = vec3.distance(p0ws, p6ws);
-
-		let wsWidth = origWsWidth;
-		let wsHeight = origWsHeight;
-
-		if (cfg.xMin !== undefined) wsWidth = Math.max(cfg.xMin, wsWidth);
-		if (cfg.xMax !== undefined) wsWidth = Math.min(cfg.xMax, wsWidth);
-		if (cfg.yMin !== undefined) wsHeight = Math.max(cfg.yMin, wsHeight);
-		if (cfg.yMax !== undefined) wsHeight = Math.min(cfg.yMax, wsHeight);
-
-		// Convert target world-space dimensions back to local space via the WS/LS ratio.
-		const width =
-			origWsWidth > 0 ? lsWidth * (wsWidth / origWsWidth) : lsWidth;
-		const height =
-			origWsHeight > 0 ? lsHeight * (wsHeight / origWsHeight) : lsHeight;
-
-		// Place the clamped rectangle while keeping the non-moving side anchored.
-		let leftU: number, rightU: number;
-		if (anchorU === "left") {
-			leftU = c0.u;
-			rightU = leftU + width;
-		} else if (anchorU === "right") {
-			rightU = c2.u;
-			leftU = rightU - width;
-		} else {
-			const cu = (c0.u + c2.u) / 2;
-			leftU = cu - width / 2;
-			rightU = cu + width / 2;
-		}
-
-		let bottomV: number, topV: number;
-		if (anchorV === "bottom") {
-			bottomV = c0.v;
-			topV = bottomV + height;
-		} else if (anchorV === "top") {
-			topV = c4.v;
-			bottomV = topV - height;
-		} else {
-			const cv = (c0.v + c4.v) / 2;
-			bottomV = cv - height / 2;
-			topV = cv + height / 2;
-		}
-
-		return cornersToFullPoints(
-			[
-				{u: leftU, v: bottomV},
-				{u: rightU, v: bottomV},
-				{u: rightU, v: topV},
-				{u: leftU, v: topV},
-			],
-			basis,
-		);
+	private static buildSizeConstraints(
+		cfg: RectangleTransformSettings["scaling"],
+	): {size: {x?: [number, number]; y?: [number, number]}} | undefined {
+		const hasX = cfg?.xMin !== undefined || cfg?.xMax !== undefined;
+		const hasY = cfg?.yMin !== undefined || cfg?.yMax !== undefined;
+		if (!hasX && !hasY) return undefined;
+		return {
+			size: {
+				...(hasX ? {x: [cfg!.xMin ?? 0, cfg!.xMax ?? Infinity]} : {}),
+				...(hasY ? {y: [cfg!.yMin ?? 0, cfg!.yMax ?? Infinity]} : {}),
+			},
+		};
 	}
 
 	/**

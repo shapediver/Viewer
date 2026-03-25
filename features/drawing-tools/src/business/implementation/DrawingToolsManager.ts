@@ -246,6 +246,139 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	// #region Public Methods (28)
 
 	/**
+	 * Apply position and size constraints to a proposed point position.
+	 * Position constraints clamp each axis independently.
+	 * Size constraints clamp the moved point so the geometry extent stays within [min, max].
+	 *
+	 * @param proposedPosition  The unconstrained candidate position.
+	 * @param pointIndex        The index of the point being moved/added. Pass the
+	 *                          current point count (or any value >= count) when adding
+	 *                          a new point so that all current points are treated as
+	 *                          "other" points.
+	 * @param overrides         Optional map of pointIndex→position for points that
+	 *                          are being moved in the same frame (e.g. other selected
+	 *                          points or already-computed adjacency targets). These
+	 *                          positions are used instead of the stored positions when
+	 *                          computing the geometry extent.
+	 */
+	public applyConstraints(
+		proposedPosition: vec3,
+		pointIndex: number,
+		overrides?: Map<number, vec3>,
+		originalPositionOverride?: vec3,
+	): vec3 {
+		const constraints = this.#settings.geometry.constraints;
+		if (!constraints) return proposedPosition;
+
+		const result = vec3.clone(proposedPosition);
+		// #geometryManager may not be assigned yet during GeometryState.init();
+		// safe fallback: derive pointCount from overrides when unavailable.
+		const geometryState = this.#geometryManager?.geometryState;
+		const pointCount =
+			geometryState?.getPointCount() ??
+			(overrides ? overrides.size + 1 : 0);
+
+		// Position constraints: clamp each axis to [min, max].
+		if (constraints.position) {
+			const posAxes = ["x", "y", "z"] as const;
+			for (let i = 0; i < 3; i++) {
+				const c = constraints.position[posAxes[i]];
+				if (c) result[i] = Math.max(c[0], Math.min(c[1], result[i]));
+			}
+		}
+
+		// Size constraints: keep geometry extent within [minSize, maxSize].
+		if (constraints.size && pointCount > 0) {
+			// traverse all points and get the min and max on each axis
+			const min = vec3.fromValues(
+				Number.POSITIVE_INFINITY,
+				Number.POSITIVE_INFINITY,
+				Number.POSITIVE_INFINITY,
+			);
+			const max = vec3.fromValues(
+				Number.NEGATIVE_INFINITY,
+				Number.NEGATIVE_INFINITY,
+				Number.NEGATIVE_INFINITY,
+			);
+			for (let i = 0; i < pointCount; i++) {
+				if (i === pointIndex) continue;
+				const pos = overrides?.get(i) ?? geometryState?.getPosition(i);
+				if (!pos) continue;
+				for (let j = 0; j < 3; j++) {
+					min[j] = Math.min(min[j], pos[j]);
+					max[j] = Math.max(max[j], pos[j]);
+				}
+			}
+
+			// now we check if our new point position would violate the size constraints and if yes, we clamp it to the valid range
+			const sizeAxes = ["x", "y", "z"] as const;
+			// The committed (pre-drag) position of the moving point, used to detect
+			// when an edge control has crossed to the other side of the opposite edge.
+			// When an originalPositionOverride is provided (e.g. from EdgeControl with
+			// the drag-start position), use it so that the crossing detection always
+			// refers to the true pre-drag side, even when movePointTemporary has
+			// updated positionArray mid-drag.
+			const originalPosition =
+				originalPositionOverride ??
+				geometryState?.getPosition(pointIndex);
+			for (let i = 0; i < 3; i++) {
+				const c = constraints.size[sizeAxes[i]];
+				if (!c) continue;
+
+				const [minSize, maxSize] = c;
+				const newExtent =
+					Math.max(max[i], result[i]) - Math.min(min[i], result[i]);
+
+				// check if there is a maxSize constraint and if it is violated, if yes clamp to the valid range
+				if (
+					maxSize !== undefined &&
+					isFinite(maxSize) &&
+					newExtent > maxSize
+				) {
+					if (result[i] <= min[i]) result[i] = max[i] - maxSize;
+					else result[i] = min[i] + maxSize;
+				}
+
+				// check if there is a minSize constraint and if it is violated, if yes clamp to the valid range
+				if (
+					minSize !== undefined &&
+					isFinite(minSize) &&
+					newExtent < minSize
+				) {
+					if (result[i] >= max[i]) {
+						if (
+							originalPosition !== undefined &&
+							originalPosition[i] <= min[i]
+						) {
+							// Crossing case (low→high): the point originated on the low
+							// side but has now moved past the opposite edge. The sibling
+							// override contaminates max[i], so use min[i] as the stable
+							// reference instead.
+							result[i] = min[i] - minSize;
+						} else {
+							// Standard high-side case: push it up from the low reference.
+							result[i] = min[i] + minSize;
+						}
+					} else if (
+						originalPosition !== undefined &&
+						originalPosition[i] >= max[i]
+					) {
+						// Crossing case (high→low): the point originated on the high side
+						// but has now moved past the opposite edge. The sibling override
+						// contaminates min[i], so use max[i] as the stable reference.
+						result[i] = max[i] + minSize;
+					} else {
+						// Standard low-side case: point is legitimately on the low side.
+						result[i] = max[i] - minSize;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Add a point to the drawing tool.
 	 *
 	 * @param index
@@ -445,6 +578,28 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	public onUp(event: PointerEvent): void {
 		if (this.closed) return;
 		this.#interactionManager.onUp(event);
+	}
+
+	/**
+	 * Cancel any in-progress hover or drag interaction without closing the drawing tool.
+	 */
+	public cancelDrag(): void {
+		if (this.closed) return;
+		this.#interactionManager.onOut();
+	}
+
+	/**
+	 * Returns true if a point or control is currently hovered or being dragged.
+	 */
+	public isInteractionActive(): boolean {
+		const helper = this.#interactionManager.interactionManagerHelper;
+		const controls = this.#interactionManager.controlsManager;
+		return (
+			helper.hoveredPoint !== undefined ||
+			helper.dragging ||
+			controls?.hoveredControlIndex !== undefined ||
+			(controls?.isDraggingControl ?? false)
+		);
 	}
 
 	public redo(): void {
@@ -705,6 +860,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					: settingsOptional.geometry.autoClose,
 				weightedAdjacency: settingsOptional.geometry.weightedAdjacency,
 				disabledPoints: settingsOptional.geometry.disabledPoints,
+				constraints: settingsOptional.geometry.constraints,
 			};
 		}
 

@@ -35,6 +35,7 @@ export class GeometryState {
 	// #region Properties (16)
 
 	readonly #drawingToolsId: string;
+	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #geometryManager: GeometryManager;
 	readonly #parentNode: ITreeNode;
@@ -64,6 +65,7 @@ export class GeometryState {
 		this.#geometryManager = geometryManager;
 
 		this.#drawingToolsId = drawingToolsManager.uuid;
+		this.#drawingToolsManager = drawingToolsManager;
 		this.#settings = drawingToolsManager.settings;
 		this.#viewport = drawingToolsManager.viewport;
 		this.#parentNode = geometryManager.parentNode;
@@ -335,7 +337,32 @@ export class GeometryState {
 			}
 
 			this.#positionArray = new Float32Array(points.length * 3);
-			this.#positionArray.set(([] as number[]).concat(...points));
+			// Build a map of all incoming points so applyConstraints can evaluate
+			// size constraints against other points without touching geometryState
+			// (which is not yet available at this point in construction).
+			const allIncoming = new Map<number, vec3>(
+				points.map(
+					(p, i) =>
+						[i, vec3.fromValues(p[0], p[1], p[2])] as [
+							number,
+							vec3,
+						],
+				),
+			);
+			const constrained = ([] as number[]).concat(
+				...points.map((p, i) => {
+					const overrides = new Map(allIncoming);
+					overrides.delete(i);
+					return Array.from(
+						this.#drawingToolsManager.applyConstraints(
+							vec3.fromValues(p[0], p[1], p[2]),
+							i,
+							overrides,
+						),
+					);
+				}),
+			);
+			this.#positionArray.set(constrained);
 			this.#metadataArray = new Array(points.length).fill(undefined);
 		} else {
 			this.#positionArray = new Float32Array();

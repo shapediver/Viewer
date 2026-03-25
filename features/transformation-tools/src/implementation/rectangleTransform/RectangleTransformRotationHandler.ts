@@ -7,8 +7,9 @@ import {
 import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
-import {vec3} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
+import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
 
 const rotationDefaultTextures: {[key: string]: Promise<IMapData> | IMapData} =
 	{};
@@ -29,12 +30,33 @@ function normalizeSignedAngle(angle: number): number {
 	return (((angle % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
 }
 
-export class RectangleTransformRotationHandler {
+export class RectangleTransformRotationHandler
+	implements IRectangleTransformHandler
+{
 	readonly #drawingTools: IDrawingToolsApi;
 	readonly #handleDistance: number;
 	readonly #rotationConfig: RectangleTransformSettings["rotation"];
+	readonly #onMove: (rotated: vec3[]) => void;
+	readonly #onCommit: (localPoints: vec3[]) => void;
 
 	#handleLocalPoint: vec3;
+
+	// Running cumulative rotation used for min/max enforcement and snapping.
+	#cumulativeRotation: number = 0;
+	// Accumulated rotation expressed as a matrix (plane-LS). Each committed
+	// gesture is composed on top of the previous one, so multiple rotations
+	// with different centers (e.g. after asymmetric scaling) are handled
+	// correctly without collapsing them to a single angle + single center.
+	#M_accumulatedRotation: mat4 = mat4.create();
+	// Cumulative rotation and center captured at the START of each gesture
+	// (preserved across clearDragState so syncAccumulatedToCumulative can use
+	// them when pointer-out fires mid-gesture).
+	#gestureStartCumulative: number = 0;
+	#gestureCenter: vec3 = vec3.create();
+	// Drag-start snapshot captured on the first DRAG_MOVE of each gesture.
+	#dragStart:
+		| {localPoints: vec3[]; handle: vec3; cumulative: number}
+		| undefined = undefined;
 
 	constructor(
 		viewport: IViewportApi,
@@ -48,9 +70,32 @@ export class RectangleTransformRotationHandler {
 			handleDistance: 0.25,
 			visualization: undefined,
 		},
+		onMove: (rotated: vec3[]) => void = () => {},
+		onCommit: (localPoints: vec3[]) => void = () => {},
 	) {
+		this.#onMove = onMove;
+		this.#onCommit = onCommit;
 		this.#handleDistance = rotationConfig.handleDistance ?? 0.25;
-		this.#rotationConfig = rotationConfig;
+		this.#rotationConfig = {
+			step:
+				rotationConfig?.step !== undefined
+					? rotationConfig.step * (Math.PI / 180)
+					: undefined,
+			stepThreshold:
+				rotationConfig?.stepThreshold !== undefined
+					? rotationConfig.stepThreshold * (Math.PI / 180)
+					: undefined,
+			min:
+				rotationConfig?.min !== undefined
+					? rotationConfig.min * (Math.PI / 180)
+					: undefined,
+			max:
+				rotationConfig?.max !== undefined
+					? rotationConfig.max * (Math.PI / 180)
+					: undefined,
+			handleDistance: rotationConfig?.handleDistance ?? 0.25,
+			visualization: rotationConfig?.visualization,
+		};
 
 		// Place the handle above the top edge (M5) by handleDistance * height
 		const min = localPoints[0]; // C0 in local space (bottom-left)
@@ -123,18 +168,160 @@ export class RectangleTransformRotationHandler {
 		return this.#handleLocalPoint;
 	}
 
+	public get accumulatedRotationMatrix(): mat4 {
+		return this.#M_accumulatedRotation;
+	}
+
 	/**
-	 * Apply the drag result by updating the handle position and moving the drawing-tools point.
-	 * @param newHandle
-	 * @param temporary
+	 * Clear the drag-start snapshot at the end of a gesture.
 	 */
-	public applyDrag(newHandle: vec3, temporary: boolean): void {
+	public clearDragState(): void {
+		this.#dragStart = undefined;
+	}
+
+	public close(): void {
+		this.#drawingTools.close();
+	}
+
+	/**
+	 * Sync accumulated to cumulative — called on pointer-out to commit any
+	 * in-progress gesture without a proper DRAG_END.
+	 */
+	public syncAccumulatedToCumulative(): void {
+		const deltaAngle =
+			this.#cumulativeRotation - this.#gestureStartCumulative;
+		if (deltaAngle !== 0) {
+			this.#composeDeltaIntoMatrix(this.#gestureCenter, deltaAngle);
+		}
+		// Advance the gesture baseline so a second call is idempotent.
+		this.#gestureStartCumulative = this.#cumulativeRotation;
+	}
+
+	/**
+	 * Process a drag event: runs the full snapping/clamping pipeline and calls
+	 * onMove (temporary drag-move) or onCommit (drag-end) as appropriate.
+	 */
+	public processDrag(
+		ev: IDrawingToolsEvent,
+		localPoints: vec3[],
+		commit: boolean,
+	): void {
+		this.#beginDrag(localPoints);
+
+		const {deltaAngle: rawDelta} = this.computeDrag(ev, localPoints);
+
+		const rawNext = this.#cumulativeRotation + rawDelta;
+		const snappedNext = this.#snapCumulative(rawNext);
+		const finalNext = this.#clampAngle(snappedNext);
+
+		if (finalNext === this.#cumulativeRotation) {
+			// Angle unchanged: only commit the parent matrix on DRAG_END so the
+			// object does not reset (DRAG_END almost always hits this branch).
+			if (commit) {
+				this.#commitAndFlush(finalNext, localPoints);
+			} else if (this.#rotationConfig?.step !== undefined) {
+				// When a step is configured, keep the handle pinned at the current
+				// snapped position so the DT point does not drift with the raw cursor.
+				this.#applyDrag(this.#handleLocalPoint, true);
+			}
+			return;
+		}
+
+		const drag = this.#dragStart!;
+		const absoluteDelta = finalNext - drag.cumulative;
+		const {rotated, newHandle} = this.computeDragByAngle(
+			drag.localPoints,
+			absoluteDelta,
+			drag.handle,
+		);
+
+		this.#cumulativeRotation = finalNext;
+
+		if (commit) {
+			// On commit: bake rotation into the parent matrix and flush canonical
+			// (axis-aligned) DT positions — the parent matrix now carries the rotation.
+			this.#commitAndFlush(finalNext, localPoints);
+		} else {
+			// On drag-move: temporarily move DT points so the viewport renders them
+			// at the rotated positions without updating the parent matrix yet.
+			this.#applyDrag(newHandle, true);
+			this.#onMove(rotated);
+		}
+	}
+
+	// Commit + recompute + notify — shared by the unchanged-angle and changed-angle commit paths.
+	#commitAndFlush(finalNext: number, localPoints: vec3[]): void {
+		const center = vec3.fromValues(
+			(localPoints[0][0] + localPoints[4][0]) / 2,
+			(localPoints[0][1] + localPoints[4][1]) / 2,
+			0,
+		);
+		const deltaAngle = finalNext - this.#gestureStartCumulative;
+		if (deltaAngle !== 0) {
+			this.#composeDeltaIntoMatrix(center, deltaAngle);
+		}
+		// Advance baseline so the next gesture starts from the right offset.
+		this.#gestureStartCumulative = finalNext;
+		this.#dragStart = undefined;
+		this.recompute(localPoints, false);
+		this.#onCommit(localPoints);
+	}
+
+	#composeDeltaIntoMatrix(center: vec3, deltaAngle: number): void {
+		const negCenter = vec3.negate(vec3.create(), center);
+		const M_delta = mat4.multiply(
+			mat4.create(),
+			mat4.fromTranslation(mat4.create(), center),
+			mat4.multiply(
+				mat4.create(),
+				mat4.fromZRotation(mat4.create(), deltaAngle),
+				mat4.fromTranslation(mat4.create(), negCenter),
+			),
+		);
+		mat4.multiply(
+			this.#M_accumulatedRotation,
+			this.#M_accumulatedRotation,
+			M_delta,
+		);
+	}
+
+	#beginDrag(localPoints: vec3[]): void {
+		if (this.#dragStart !== undefined) return;
+		this.#gestureStartCumulative = this.#cumulativeRotation;
+		this.#gestureCenter = vec3.fromValues(
+			(localPoints[0][0] + localPoints[4][0]) / 2,
+			(localPoints[0][1] + localPoints[4][1]) / 2,
+			0,
+		);
+		this.#dragStart = {
+			localPoints: localPoints.map((p) => vec3.clone(p)),
+			handle: vec3.clone(this.#handleLocalPoint),
+			cumulative: this.#cumulativeRotation,
+		};
+	}
+
+	#applyDrag(newHandle: vec3, temporary: boolean): void {
 		this.#handleLocalPoint = newHandle;
 		this.#drawingTools.movePoint(
 			0,
 			[newHandle[0], newHandle[1], newHandle[2]],
 			temporary,
 		);
+	}
+
+	#clampAngle(snappedNext: number): number {
+		const {min, max} = this.#rotationConfig!;
+		if (min !== undefined && max !== undefined)
+			return Math.min(max, Math.max(min, snappedNext));
+		if (min !== undefined) return Math.max(min, snappedNext);
+		if (max !== undefined) return Math.min(max, snappedNext);
+		return snappedNext;
+	}
+
+	#snapCumulative(cumulative: number): number {
+		const {step, stepThreshold} = this.#rotationConfig!;
+		if (step === undefined) return cumulative;
+		return snapAngle(cumulative, step, stepThreshold ?? step / 2);
 	}
 
 	/**
@@ -182,16 +369,14 @@ export class RectangleTransformRotationHandler {
 	/**
 	 * Snap a cumulative angle to the nearest configured step increment.
 	 * If no step is configured, returns the angle unchanged.
+	 * @deprecated Use processDrag which handles snapping internally.
 	 */
 	public snapCumulative(cumulative: number): number {
-		const {step, stepThreshold} = this.#rotationConfig!;
-		if (step === undefined) return cumulative;
-		return snapAngle(cumulative, step, stepThreshold ?? step / 2);
+		return this.#snapCumulative(cumulative);
 	}
 
 	/**
 	 * Rotate localPoints by an explicit angle (radians) around their center.
-	 * Used by RectangleTransform to apply the clamped delta after min/max enforcement.
 	 */
 	public computeDragByAngle(
 		localPoints: vec3[],

@@ -72,6 +72,12 @@ export type RectangleTransformSettings = {
 		 */
 		yMax?: number;
 		/**
+		 * The step size for scaling in the local x and y directions. The step is provided in world units.
+		 * With this setting, it's possible to snap the scaling to specific increments.
+		 * Default is undefined (no snapping).
+		 */
+		step?: number;
+		/**
 		 * The visualization settings for the main scaling handles and the outline.
 		 * This allows customizing the appearance of the scaling handles and the outline, such as their color, size, and shape.
 		 * Default is undefined (uses default visualization settings).

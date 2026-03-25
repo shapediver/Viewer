@@ -16,10 +16,10 @@ import {mat4, vec3} from "gl-matrix";
 
 import {
 	IRectangleTransform,
-	RectangleTransformSettings,
 	RectangleTransformSettingsOptional,
 } from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
+import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {RectangleTransformRotationHandler} from "./RectangleTransformRotationHandler";
 import {RectangleTransformScalingHandler} from "./RectangleTransformScalingHandler";
 import {RectangleTransformTranslationHandler} from "./RectangleTransformTranslationHandler";
@@ -44,35 +44,25 @@ export class RectangleTransform
 	// The initial (static) plane-to-WS matrix – used as the base for composing
 	// accumulated rotation / translation transforms.
 	#M_planeToWS: mat4 = mat4.create();
-	// Accumulated rotation angle (radians) across all committed gestures.
-	#accumulatedRotation: number = 0;
-	// Accumulated translation (in plane-LS) across all committed gestures.
-	#committedTranslation: vec3 = vec3.create();
-	// The plane-LS pivot used for all rotation matrix builds. Updated only at
-	// rotation commit so that a subsequent scaling (which shifts #localPoints
-	// center) does not silently change the effective rotation pivot and cause
-	// an object jump when translation drag-move fires applyAccumulatedTransform.
-	#rotationCenter: vec3 = vec3.create();
 
 	#dragEndListener: string;
 	#dragMoveListener: string;
 	#hasPendingTemporaryTransform: boolean = false;
+	#isDTDragging: boolean = false;
 	#initialLocalPoints: vec3[] = [];
 	#localPoints: vec3[] = [];
 	#rotationHandler: RectangleTransformRotationHandler | undefined;
 	#scalingHandler: RectangleTransformScalingHandler | undefined;
 	#translationHandler: RectangleTransformTranslationHandler | undefined;
-	#scalingConfig: RectangleTransformSettings["scaling"];
-	#rotationConfig: RectangleTransformSettings["rotation"];
-	// Accumulated rotation angle in radians, used to enforce rotation.min/max.
-	#cumulativeRotation: number = 0;
 
-	// Drag-start state: captured at the first DRAG_MOVE of each gesture so that
-	// every frame rotates by a single clean matrix from the start position,
-	// preventing floating-point drift from many incremental multiplications.
-	#dragStartLocalPoints: vec3[] | undefined = undefined;
-	#dragStartHandle: vec3 | undefined = undefined;
-	#dragStartCumulative: number = 0;
+	// Typed as the common interface for coordinating all handlers uniformly.
+	get #handlers(): (IRectangleTransformHandler | undefined)[] {
+		return [
+			this.#scalingHandler,
+			this.#rotationHandler,
+			this.#translationHandler,
+		];
+	}
 
 	constructor(
 		viewport: IViewportApi,
@@ -112,28 +102,6 @@ export class RectangleTransform
 				planeRestriction.origin!,
 			),
 		);
-		const sc = settings!.scaling;
-		this.#scalingConfig = {
-			uniform: sc?.uniform ?? false,
-			xMin: sc?.xMin,
-			xMax: sc?.xMax,
-			yMin: sc?.yMin,
-			yMax: sc?.yMax,
-			visualization: sc?.visualization,
-		};
-		const rc = settings!.rotation;
-		this.#rotationConfig = {
-			step:
-				rc?.step !== undefined ? rc.step * (Math.PI / 180) : undefined,
-			stepThreshold:
-				rc?.stepThreshold !== undefined
-					? rc.stepThreshold * (Math.PI / 180)
-					: undefined,
-			min: rc?.min !== undefined ? rc.min * (Math.PI / 180) : undefined,
-			max: rc?.max !== undefined ? rc.max * (Math.PI / 180) : undefined,
-			handleDistance: rc?.handleDistance ?? 0.25,
-			visualization: rc?.visualization,
-		};
 
 		this.init();
 
@@ -155,6 +123,10 @@ export class RectangleTransform
 		return "rectangleTransform";
 	}
 
+	private get committedTranslation(): vec3 {
+		return this.#translationHandler?.committedTranslation ?? vec3.create();
+	}
+
 	protected get transformationToolsPlaceholderMatrix(): mat4 {
 		return this.#currentTransformationMatrix;
 	}
@@ -163,31 +135,24 @@ export class RectangleTransform
 		this.#eventEngine.removeListener(this.#dragMoveListener);
 		this.#eventEngine.removeListener(this.#dragEndListener);
 
-		this.#rotationHandler?.drawingTools.close();
-		this.#scalingHandler?.close();
-		this.#translationHandler?.close();
+		for (const handler of this.#handlers) handler?.close();
 
 		sceneTree.root.removeChild(this.#dtParentNode);
 		sceneTree.root.updateVersion(false, false);
 	}
 
 	protected onPointerOutLogic(_event: PointerEvent): void {
-		this.#dragStartLocalPoints = undefined;
-		this.#dragStartHandle = undefined;
+		this.#rotationHandler?.clearDragState();
 
 		if (!this.#hasPendingTemporaryTransform) return;
 
 		// Commit any in-progress rotation to the parent matrix before flushing
 		// canonical positions, otherwise calculateTransformationMatrix writes
 		// identity and the object resets.
-		this.#accumulatedRotation = this.#cumulativeRotation;
-		this.applyAccumulatedTransform(
-			this.#accumulatedRotation,
-			this.#committedTranslation,
-		);
-		this.#scalingHandler?.flushRectPoints(this.#localPoints, false);
-		this.#rotationHandler?.recompute(this.#localPoints, false);
-		this.#translationHandler?.updatePlane(this.#localPoints);
+		this.#rotationHandler?.syncAccumulatedToCumulative();
+		this.applyAccumulatedTransform(this.committedTranslation);
+		for (const handler of this.#handlers)
+			handler?.recompute(this.#localPoints, false);
 		this.calculateTransformationMatrix(this.#localPoints, true);
 		this.#hasPendingTemporaryTransform = false;
 	}
@@ -266,12 +231,33 @@ export class RectangleTransform
 		}
 	}
 
+	protected onPointerMoveLogic(_event: PointerEvent): void {
+		// Refresh the translation cursor after all DT canvas listeners have run.
+		// queueMicrotask defers until after the current pointermove event cycle
+		// so DT hover state is current when we check it.
+		if (!this.#translationHandler) return;
+		const handler = this.#translationHandler;
+		queueMicrotask(() => {
+			const blocked =
+				this.#isDTDragging ||
+				(this.#scalingHandler?.drawingTools.isInteractionActive() ??
+					false) ||
+				(this.#rotationHandler?.drawingTools.isInteractionActive() ??
+					false);
+			handler.refreshCursor(blocked);
+		});
+	}
+
 	private dispatchDrag(ev: IDrawingToolsEvent, commit: boolean): void {
+		// Guard: do not process a DT drag while translation is in progress.
+		if (this.#translationHandler?.isDragging) return;
 		if (ev.drawingToolsId === this.#rotationHandler?.drawingTools.uuid) {
-			this.handleRotationDrag(ev, commit);
+			this.#isDTDragging = !commit;
+			this.#rotationHandler.processDrag(ev, this.#localPoints, commit);
 		} else if (
 			ev.drawingToolsId === this.#scalingHandler?.drawingTools.uuid
 		) {
+			this.#isDTDragging = !commit;
 			this.handleRectDrag(ev, commit);
 		}
 	}
@@ -300,7 +286,7 @@ export class RectangleTransform
 			);
 		}
 
-		this.#scalingHandler.flushRectPoints(adjusted, !commit);
+		this.#scalingHandler.recompute(adjusted, !commit);
 		if (this.#rotationHandler)
 			this.#rotationHandler.recompute(adjusted, !commit);
 
@@ -309,99 +295,13 @@ export class RectangleTransform
 		this.#localPoints = adjusted;
 
 		if (commit) {
-			this.#translationHandler?.updatePlane(adjusted);
+			this.#translationHandler?.recompute(adjusted, false);
 			this.#hasPendingTemporaryTransform = false;
 		} else {
 			this.#hasPendingTemporaryTransform = true;
 		}
 
 		this.calculateTransformationMatrix(adjusted, commit);
-	}
-
-	// Commits the accumulated rotation at `finalNext` radians: updates the
-	// parent matrix, flushes canonical DT point positions, and resets drag state.
-	// Called from both the unchanged-angle and changed-angle commit paths in
-	// handleRotationDrag so the logic lives in exactly one place.
-	private commitRotation(finalNext: number): void {
-		this.#accumulatedRotation = finalNext;
-		this.#rotationCenter = vec3.fromValues(
-			(this.#localPoints[0][0] + this.#localPoints[4][0]) / 2,
-			(this.#localPoints[0][1] + this.#localPoints[4][1]) / 2,
-			0,
-		);
-		this.applyAccumulatedTransform(
-			this.#accumulatedRotation,
-			this.#committedTranslation,
-		);
-		this.#scalingHandler?.flushRectPoints(this.#localPoints, false);
-		this.#rotationHandler!.recompute(this.#localPoints, false);
-		this.#translationHandler?.updatePlane(this.#localPoints);
-		this.#hasPendingTemporaryTransform = false;
-		this.#dragStartLocalPoints = undefined;
-		this.#dragStartHandle = undefined;
-		this.calculateTransformationMatrix(this.#localPoints, true);
-	}
-
-	private handleRotationDrag(ev: IDrawingToolsEvent, commit: boolean): void {
-		if (!this.#rotationHandler) return;
-
-		if (this.#dragStartLocalPoints === undefined) {
-			this.#dragStartLocalPoints = this.#localPoints.map((p) =>
-				vec3.clone(p),
-			);
-			this.#dragStartHandle = vec3.clone(
-				this.#rotationHandler.handleLocalPoint,
-			);
-			this.#dragStartCumulative = this.#cumulativeRotation;
-		}
-
-		const {deltaAngle: rawDelta} = this.#rotationHandler.computeDrag(
-			ev,
-			this.#localPoints,
-		);
-
-		const rawNext = this.#cumulativeRotation + rawDelta;
-		const snappedNext = this.#rotationHandler.snapCumulative(rawNext);
-		const {min, max} = this.#rotationConfig!;
-		const finalNext =
-			min !== undefined && max !== undefined
-				? Math.min(max, Math.max(min, snappedNext))
-				: min !== undefined
-					? Math.max(min, snappedNext)
-					: max !== undefined
-						? Math.min(max, snappedNext)
-						: snappedNext;
-
-		if (finalNext === this.#cumulativeRotation) {
-			// Angle unchanged: only commit the parent matrix on DRAG_END so the
-			// object does not reset (DRAG_END almost always hits this branch).
-			if (commit) this.commitRotation(finalNext);
-			return;
-		}
-
-		const absoluteDelta = finalNext - this.#dragStartCumulative;
-		const {rotated, newHandle} = this.#rotationHandler.computeDragByAngle(
-			this.#dragStartLocalPoints!,
-			absoluteDelta,
-			this.#dragStartHandle,
-		);
-
-		this.#cumulativeRotation = finalNext;
-
-		if (commit) {
-			// On commit: bake rotation into the parent matrix and flush canonical
-			// (axis-aligned) DT positions — the parent matrix now carries the rotation.
-			this.commitRotation(finalNext);
-		} else {
-			// On drag-move: temporarily move DT points so the viewport renders them
-			// at the rotated positions without updating the parent matrix yet.
-			this.#scalingHandler?.flushRectPoints(rotated, true);
-			this.#rotationHandler.applyDrag(newHandle, true);
-			this.#hasPendingTemporaryTransform = true;
-			// Pass the temporarily rotated positions so mAffineLS encodes the
-			// rotation (parent matrix hasn't been updated yet).
-			this.calculateTransformationMatrix(rotated, false);
-		}
 	}
 
 	private init() {
@@ -489,33 +389,30 @@ export class RectangleTransform
 		];
 		this.#initialLocalPoints = initPoints.map((p) => vec3.clone(p));
 		this.#localPoints = initPoints.map((p) => vec3.clone(p));
-		this.#rotationCenter = vec3.fromValues(
-			(initPoints[0][0] + initPoints[4][0]) / 2,
-			(initPoints[0][1] + initPoints[4][1]) / 2,
-			0,
-		);
 
 		if (this.settings?.enableScaling ?? true) {
 			this.#scalingHandler = new RectangleTransformScalingHandler(
 				this.viewport,
 				this.#dtParentNode,
-				this.#plane,
 				this.#localPoints,
 				{
 					corners: this.settings?.corners,
 					midpoints: this.settings?.midpoints,
 				},
-				this.#scalingConfig,
+				this.settings?.scaling,
 			);
 
-			const constrained = this.#scalingHandler.applyInitialConstraints(
-				this.#localPoints,
-			);
-			this.#localPoints = constrained;
-			this.#scalingHandler.flushRectPoints(this.#localPoints, false);
+			this.#scalingHandler.recompute(this.#localPoints, false);
 
-			// Keep the initial frame as the original geometry and commit the constrained
-			// state immediately so min/max/step restrictions are active from creation.
+			// Read back the positions actually stored in the DT after applyConstraints
+			// may have clamped the initial points (e.g. size min/max restrictions).
+			// Without this sync #localPoints would still hold the unconstrained values
+			// and calculateTransformationMatrix would not update the object.
+			this.#localPoints =
+				this.#scalingHandler.readbackConstrainedPoints();
+
+			// Commit the constrained state so that the object reflects the DT
+			// geometry from creation and min/max/step restrictions are active.
 			this.calculateTransformationMatrix(this.#localPoints, true);
 		}
 
@@ -524,7 +421,22 @@ export class RectangleTransform
 				this.viewport,
 				this.#dtParentNode,
 				this.#localPoints,
-				this.#rotationConfig,
+				this.settings?.rotation,
+				(rotated) => {
+					// Drag-move: temporarily show rotated positions; parent matrix
+					// is not yet updated so mAffineLS encodes the rotation.
+					this.#scalingHandler?.recompute(rotated, true);
+					this.#hasPendingTemporaryTransform = true;
+					this.calculateTransformationMatrix(rotated, false);
+				},
+				(localPoints) => {
+					// Drag-end: bake rotation into parent matrix and commit.
+					this.applyAccumulatedTransform(this.committedTranslation);
+					this.#scalingHandler?.recompute(localPoints, false);
+					this.#translationHandler?.recompute(localPoints, false);
+					this.#hasPendingTemporaryTransform = false;
+					this.calculateTransformationMatrix(localPoints, true);
+				},
 			);
 		}
 
@@ -545,40 +457,24 @@ export class RectangleTransform
 				this.#dtParentNode,
 				this.#M_planeToWS,
 				() => this.#localPoints,
-				(newPoints) => {
-					// Rotation stays in parent matrix; extract translation delta and
-					// apply it on top of the accumulated committed translation.
-					const deltaLS = vec3.subtract(
-						vec3.create(),
-						newPoints[0],
-						this.#localPoints[0],
-					);
-					const runningTrans = vec3.add(
-						vec3.create(),
-						this.#committedTranslation,
-						deltaLS,
-					);
-					// Update parent matrix with correct order:
-					// applyAccumulatedTransform builds M_planeToWS * T * M_rot,
-					// which means rotate-then-translate — the translation is in
-					// the initial (unrotated) plane-LS frame → world-aligned.
-					// Using tempPoints would build M_rot * T which rotates the
-					// translation direction, making it follow the object orientation.
-					this.applyAccumulatedTransform(
-						this.#accumulatedRotation,
-						runningTrans,
-						false,
-					);
-					// Sync the parent ThreeJS matrix so the DT handles (whose
-					// buffer positions are in parent-LS) appear at correct WS
-					// positions without triggering a full scene-tree rebuild.
-					this.viewport.updateNodeTransformation(this.#dtParentNode);
-					// Flush canonical LS positions — the parent matrix carries
-					// the translation, same pattern as committed rotation.
-					this.#scalingHandler?.flushRectPoints(
-						this.#localPoints,
-						true,
-					);
+				// Blocked when either DT has active hover/drag, OR a DT drag is still
+				// flagged (covers the gap before isInteractionActive updates)
+				() =>
+					this.#isDTDragging ||
+					(this.#scalingHandler?.drawingTools.isInteractionActive() ??
+						false) ||
+					(this.#rotationHandler?.drawingTools.isInteractionActive() ??
+						false),
+				() => {
+					// Cancel any active DT drag so only translation runs for this gesture.
+					this.#scalingHandler?.drawingTools.cancelDrag();
+					this.#rotationHandler?.drawingTools.cancelDrag();
+					this.#isDTDragging = false;
+				},
+				(runningTrans) => {
+					// Rotation stays in parent matrix; translate on top of it.
+					this.applyAccumulatedTransform(runningTrans, false);
+					this.#scalingHandler?.recompute(this.#localPoints, true);
 					this.#rotationHandler?.recompute(this.#localPoints, true);
 					this.#hasPendingTemporaryTransform = true;
 					this.calculateTransformationMatrix(
@@ -586,22 +482,13 @@ export class RectangleTransform
 						false,
 					);
 				},
-				(newPoints) => {
-					const deltaLS = vec3.subtract(
-						vec3.create(),
-						newPoints[0],
-						this.#localPoints[0],
-					);
-					vec3.add(
-						this.#committedTranslation,
-						this.#committedTranslation,
-						deltaLS,
-					);
-					this.applyAccumulatedTransform(
-						this.#accumulatedRotation,
-						this.#committedTranslation,
-					);
-					this.#translationHandler?.updatePlane(this.#localPoints);
+				(committedTrans) => {
+					this.applyAccumulatedTransform(committedTrans);
+					// Permanently commit the DT handle positions that were only
+					// temporarily moved during drag-move, so the rotation/scaling
+					// DT points reflect the current state when a new gesture starts.
+					this.#scalingHandler?.recompute(this.#localPoints, false);
+					this.#rotationHandler?.recompute(this.#localPoints, false);
 					this.calculateTransformationMatrix(this.#localPoints, true);
 				},
 			);
@@ -610,30 +497,18 @@ export class RectangleTransform
 
 	/**
 	 * Recompute and write the shared DT parentNode matrix from the given
-	 * accumulated rotation (radians) and translation (plane-LS vector).
-	 * The rotation is always applied around the current rectangle centre.
+	 * translation (plane-LS vector). Rotation is taken from the rotation handler.
 	 */
 	private applyAccumulatedTransform(
-		rotation: number,
 		translation: vec3,
 		emitUpdate: boolean = true,
 	): void {
-		// Use the stored rotation center (set at rotation commit time), NOT
-		// the current #localPoints center. If scaling happens between a rotation
-		// and a translation, #localPoints center shifts, but the rotation pivot
-		// must stay fixed to avoid a sudden jump when translation drag fires.
-		const center = vec3.clone(this.#rotationCenter);
-		const negCenter = vec3.negate(vec3.create(), center);
-		// M_rot = translate(center) * rotZ(rotation) * translate(-center)
-		const M_rot = mat4.multiply(
-			mat4.create(),
-			mat4.fromTranslation(mat4.create(), center),
-			mat4.multiply(
-				mat4.create(),
-				mat4.fromZRotation(mat4.create(), rotation),
-				mat4.fromTranslation(mat4.create(), negCenter),
-			),
-		);
+		// The accumulated rotation is stored as a matrix that was composed
+		// incrementally across multiple gestures, so each rotation's center is
+		// preserved correctly even when the rectangle center shifts due to
+		// asymmetric scaling between rotations.
+		const M_rot =
+			this.#rotationHandler?.accumulatedRotationMatrix ?? mat4.create();
 		const M_trans = mat4.fromTranslation(mat4.create(), translation);
 		// accumulated = M_trans * M_rot  (translate after rotate, both in LS)
 		const accumulated = mat4.multiply(mat4.create(), M_trans, M_rot);

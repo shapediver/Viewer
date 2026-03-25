@@ -7,7 +7,11 @@ import {
 	TreeNode,
 } from "@shapediver/viewer";
 import {IRay} from "@shapediver/viewer.features.interaction";
-import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	DrawingRestrictionMetaData,
+	GeometryMathManager,
+	RayTraceResult,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	EventEngine,
@@ -53,6 +57,7 @@ export class ControlsManager {
 	readonly #viewport: IViewportApi;
 
 	#draggedControlIndex?: number;
+	#dragStartMidpoint?: vec3;
 	#geometryData?: IGeometryData;
 
 	// Hover state
@@ -191,6 +196,7 @@ export class ControlsManager {
 
 		this.#isDraggingControl = false;
 		this.#draggedControlIndex = undefined;
+		this.#dragStartMidpoint = undefined;
 	}
 
 	/**
@@ -205,14 +211,45 @@ export class ControlsManager {
 		const control = this.#controls[this.#draggedControlIndex];
 		const geometryState = this.#drawingToolsManager.geometryState;
 
+		// Query the active restriction so the control's movement is
+		// constrained to both the restriction surface and the direction axis.
+		const restrictionManager = this.#drawingToolsManager.restrictionManager;
+		restrictionManager.showRestrictionVisualization = true;
+
+		const metaData: DrawingRestrictionMetaData = {
+			type: "drawing",
+			startPoint: this.#dragStartMidpoint
+				? vec3.clone(this.#dragStartMidpoint)
+				: vec3.create(),
+			positionArray: this.#drawingToolsManager.positionArray,
+		};
+		const rayTraceResult: RayTraceResult | undefined =
+			restrictionManager.rayTrace(ray, metaData);
+		const restrictedPosition = rayTraceResult?.point;
+
 		// Track which points were moved and their new temporary positions so
 		// sibling controls that share those points can be refreshed below.
 		const movedPoints = new Map<number, vec3>();
 
-		const newPos = control.move(ray, (idx, pos) => {
-			movedPoints.set(idx, vec3.clone(pos));
-			this.#drawingToolsManager.movePointTemporary(idx, pos, undefined);
-		});
+		const newPos = control.move(
+			ray,
+			(idx, pos) => {
+				movedPoints.set(idx, vec3.clone(pos));
+				this.#drawingToolsManager.movePointTemporary(
+					idx,
+					pos,
+					rayTraceResult,
+				);
+			},
+			restrictedPosition,
+			(pos, idx, overrides, originalPositionOverride) =>
+				this.#drawingToolsManager.applyConstraints(
+					pos,
+					idx,
+					overrides,
+					originalPositionOverride,
+				),
+		);
 		if (newPos === undefined) return;
 
 		this.setControlPosition(this.#draggedControlIndex, newPos);
@@ -282,6 +319,7 @@ export class ControlsManager {
 		this.clearHover();
 		this.#isDraggingControl = false;
 		this.#draggedControlIndex = undefined;
+		this.#dragStartMidpoint = undefined;
 	}
 
 	/**
@@ -299,6 +337,7 @@ export class ControlsManager {
 			return false;
 
 		this.#draggedControlIndex = this.#hoveredControlIndex;
+		this.#dragStartMidpoint = vec3.clone(control.position);
 		this.#isDraggingControl = true;
 
 		this.updateMaterialIndex(
@@ -443,7 +482,6 @@ export class ControlsManager {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
 			if (event.drawingToolsId !== this.#geometryNodeId) return;
-			if (this.#isDraggingControl) return;
 			if (event.index !== undefined) {
 				this.updateControlsForPoint(event.index);
 			}
@@ -470,15 +508,42 @@ export class ControlsManager {
 	}
 
 	private updateControlsForPoint(movedIndex: number): void {
-		const getPosition = (idx: number) =>
-			this.#drawingToolsManager.geometryState.getPosition(idx);
+		// During a drag, geometryState.positionArray is stale for temporarily-moved
+		// points (it is only updated on permanent moves). Read live positions from
+		// the THREE.js buffer, which IS updated for temporary moves.
+		const getPosition = this.#isDraggingControl
+			? (idx: number) => this.getLivePosition(idx)
+			: (idx: number) =>
+					this.#drawingToolsManager.geometryState.getPosition(idx);
 		for (let i = 0; i < this.#controls.length; i++) {
+			// Skip the actively dragged control — its position is managed
+			// directly by moveDraggedControl via setControlPosition.
+			if (this.#isDraggingControl && i === this.#draggedControlIndex)
+				continue;
 			if (
 				this.#controls[i].refreshForMovedPoint(movedIndex, getPosition)
 			) {
 				this.setControlPosition(i, this.#controls[i].position);
 			}
 		}
+	}
+
+	/**
+	 * Returns the current live position of a geometry point, reading from the
+	 * THREE.js buffer so that temporary (uncommitted) moves are reflected.
+	 */
+	private getLivePosition(index: number): vec3 {
+		const geom = this.#drawingToolsManager.geometryState.geometryDataPoints
+			.convertedObject?.[this.#viewport.id] as THREE.Points | undefined;
+		if (geom) {
+			const attr = geom.geometry.attributes["position"];
+			return vec3.fromValues(
+				attr.getX(index),
+				attr.getY(index),
+				attr.getZ(index),
+			);
+		}
+		return this.#drawingToolsManager.geometryState.getPosition(index);
 	}
 
 	private updateMaterialIndex(
