@@ -32,6 +32,7 @@ import {
 import {IParameter} from "../../interfaces/dto/IParameter";
 import {DraggingParameter} from "../dto/interaction/DraggingParameter";
 import {GumballTransformParameter} from "../dto/interaction/GumballTransformParameter";
+import {RectangleTransformParameter} from "../dto/interaction/RectangleTransformParameter";
 import {SelectionParameter} from "../dto/interaction/SelectionParameter";
 import {Parameter} from "../dto/Parameter";
 import {SessionEngineCore} from "../SessionEngineCore";
@@ -201,6 +202,12 @@ export class UtilsManager {
 					);
 				case "dragging":
 					return new DraggingParameter(
+						parameter,
+						this._sessionEngineCore,
+						this._sessionEngineCore.parameterManager,
+					);
+				case "rectangleTransform":
+					return new RectangleTransformParameter(
 						parameter,
 						this._sessionEngineCore,
 						this._sessionEngineCore.parameterManager,

@@ -162,11 +162,14 @@ import {
 	IInteractionParameterSettings,
 	InteractionEffect,
 	InteractionParameterSettingsType,
+	IRectangleTransformParameterJsonSchema,
+	IRectangleTransformParameterPropsJsonSchema,
 	ISelectionParameterJsonSchema,
 	ISelectionParameterPropsJsonSchema,
 	validateDraggingParameterSettings,
 	validateGumballTransformParameterSettings,
 	validateInteractionParameterSettings,
+	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings,
 } from "./interfaces/parameter/IInteractionParameterSettings";
 import {
@@ -222,6 +225,10 @@ import {
 	INumberGradient,
 	IStringGradient,
 } from "./interfaces/attribute-visualization";
+import {
+	IRectangleTransformParameterProps,
+	RectangleTransformParameterValue,
+} from "./interfaces/parameter/IRectangleTransformParameterSettings";
 import {
 	CAMERA_TYPE,
 	ICameraOptions,
@@ -390,6 +397,11 @@ export {
 	IGumballTransformParameterJsonSchema,
 	IGumballTransformParameterPropsJsonSchema,
 	validateGumballTransformParameterSettings,
+	IRectangleTransformParameterProps,
+	RectangleTransformParameterValue,
+	IRectangleTransformParameterJsonSchema,
+	IRectangleTransformParameterPropsJsonSchema,
+	validateRectangleTransformParameterSettings,
 	IDraggingParameterProps,
 	DraggingParameterValue,
 	IDraggingParameterJsonSchema,

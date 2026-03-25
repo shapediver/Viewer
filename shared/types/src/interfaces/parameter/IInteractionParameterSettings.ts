@@ -7,7 +7,8 @@ import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffect
 export type InteractionParameterSettingsType =
 	| "selection"
 	| "gumballTransform"
-	| "dragging";
+	| "dragging"
+	| "rectangleTransform";
 
 export type InteractionEffect =
 	| string
@@ -185,6 +186,104 @@ export const IGumballTransformParameterJsonSchema = z.object({
 	props: IGumballTransformParameterPropsJsonSchema,
 });
 
+export const IRectangleTransformParameterPropsJsonSchema = z
+	.object({
+		enableRotation: optionalBoolean,
+		enableScaling: optionalBoolean,
+		enableTranslation: optionalBoolean,
+		nameFilter: z.array(z.string()).nullable().optional(),
+		selectionColor: interactionEffectSchema.optional(),
+		availableColor: interactionEffectSchema.optional(),
+		maximumSelection: z.number().nullable().optional(),
+		minimumSelection: z.number().nullable().optional(),
+		deselectOnEmpty: optionalBoolean,
+		objects: z
+			.array(
+				z.object({
+					nameFilter: z.string(),
+					restrictions: z.array(z.string()),
+				}),
+			)
+			.nullable()
+			.optional(),
+		restrictions: z
+			.array(
+				z
+					.object({
+						id: z.string(),
+						type: z.string(),
+						rotation: z
+							.object({
+								axis: z.array(z.number()),
+								angle: z.number(),
+							})
+							.nullable()
+							.optional(),
+					})
+					.passthrough(),
+			)
+			.nullable()
+			.optional(),
+		plane: z
+			.object({
+				id: z.string(),
+				type: z.string(),
+				rotation: z
+					.object({
+						axis: z.array(z.number()),
+						angle: z.number(),
+					})
+					.nullable()
+					.optional(),
+			})
+			.passthrough(),
+		corners: z
+			.object({
+				topLeft: optionalBoolean,
+				topRight: optionalBoolean,
+				bottomLeft: optionalBoolean,
+				bottomRight: optionalBoolean,
+			})
+			.nullable()
+			.optional(),
+		midpoints: z
+			.object({
+				top: optionalBoolean,
+				bottom: optionalBoolean,
+				left: optionalBoolean,
+				right: optionalBoolean,
+			})
+			.nullable()
+			.optional(),
+		scaling: z
+			.object({
+				uniform: optionalBoolean,
+				xMin: z.number().nullable().optional(),
+				xMax: z.number().nullable().optional(),
+				yMin: z.number().nullable().optional(),
+				yMax: z.number().nullable().optional(),
+				step: z.number().nullable().optional(),
+			})
+			.nullable()
+			.optional(),
+		rotation: z
+			.object({
+				step: z.number().nullable().optional(),
+				stepThreshold: z.number().nullable().optional(),
+				min: z.number().nullable().optional(),
+				max: z.number().nullable().optional(),
+				handleDistance: z.number().nullable().optional(),
+			})
+			.nullable()
+			.optional(),
+	})
+	.merge(IGeneralInteractionParameterJsonSchema);
+
+export const IRectangleTransformParameterJsonSchema = z.object({
+	type: z.literal("rectangle"),
+	props: IRectangleTransformParameterPropsJsonSchema,
+});
+
 export const IDraggingParameterPropsJsonSchema = z
 	.object({
 		draggingColor: interactionEffectSchema.optional(),
@@ -243,7 +342,9 @@ export const IDraggingParameterJsonSchema = z.object({
 
 export const IInteractionParameterJsonSchema = ISelectionParameterJsonSchema.or(
 	IGumballTransformParameterJsonSchema,
-).or(IDraggingParameterJsonSchema);
+)
+	.or(IRectangleTransformParameterJsonSchema)
+	.or(IDraggingParameterJsonSchema);
 
 export const validateInteractionParameterSettings = (param: unknown) => {
 	return IInteractionParameterJsonSchema.safeParse(param);
@@ -256,6 +357,9 @@ export const validateGumballTransformParameterSettings = (param: unknown) => {
 };
 export const validateDraggingParameterSettings = (param: unknown) => {
 	return IDraggingParameterJsonSchema.safeParse(param);
+};
+export const validateRectangleTransformParameterSettings = (param: unknown) => {
+	return IRectangleTransformParameterJsonSchema.safeParse(param);
 };
 
 // #endregion Variables (7)

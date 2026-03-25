@@ -15,6 +15,7 @@ import {
 	DrawingParameter,
 	FileParameter,
 	GumballTransformParameter,
+	RectangleTransformParameter,
 	SelectionParameter,
 	SessionEngine,
 } from "@shapediver/viewer.session-engine.session-engine";
@@ -38,6 +39,7 @@ import {DrawingParameterApi} from "./parameter/DrawingParameterApi";
 import {FileParameterApi} from "./parameter/FileParameterApi";
 import {GumballTransformParameterApi} from "./parameter/GumballTransformParameterApi";
 import {ParameterApi} from "./parameter/ParameterApi";
+import {RectangleTransformParameterApi} from "./parameter/RectangleTransformParameterApi";
 import {SelectionParameterApi} from "./parameter/SelectionParameterApi";
 
 export class SessionApi implements ISessionApi {
@@ -94,10 +96,22 @@ export class SessionApi implements ISessionApi {
 					<SelectionParameter>this.#sessionEngine.parameters[p],
 				);
 			} else if (
-				this.#sessionEngine.parameters[p] instanceof GumballTransformParameter
+				this.#sessionEngine.parameters[p] instanceof
+				GumballTransformParameter
 			) {
 				this.#parameters[p] = new GumballTransformParameterApi(
-					<GumballTransformParameter>this.#sessionEngine.parameters[p],
+					<GumballTransformParameter>(
+						this.#sessionEngine.parameters[p]
+					),
+				);
+			} else if (
+				this.#sessionEngine.parameters[p] instanceof
+				RectangleTransformParameter
+			) {
+				this.#parameters[p] = new RectangleTransformParameterApi(
+					<RectangleTransformParameter>(
+						this.#sessionEngine.parameters[p]
+					),
 				);
 			} else if (
 				this.#sessionEngine.parameters[p] instanceof DrawingParameter

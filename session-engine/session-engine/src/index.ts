@@ -3,6 +3,7 @@ import {Export} from "./implementation/dto/Export";
 import {FileParameter} from "./implementation/dto/FileParameter";
 import {DraggingParameter} from "./implementation/dto/interaction/DraggingParameter";
 import {GumballTransformParameter} from "./implementation/dto/interaction/GumballTransformParameter";
+import {RectangleTransformParameter} from "./implementation/dto/interaction/RectangleTransformParameter";
 import {SelectionParameter} from "./implementation/dto/interaction/SelectionParameter";
 import {Output} from "./implementation/dto/Output";
 import {Parameter} from "./implementation/dto/Parameter";
@@ -15,6 +16,7 @@ import {IFileParameter} from "./interfaces/dto/IFileParameter";
 import {IDraggingParameter} from "./interfaces/dto/interaction/IDraggingParameter";
 import {IGumballTransformParameter} from "./interfaces/dto/interaction/IGumballTransformParameter";
 import {IInteractionParameter} from "./interfaces/dto/interaction/IInteractionParameter";
+import {IRectangleTransformParameter} from "./interfaces/dto/interaction/IRectangleTransformParameter";
 import {ISelectionParameter} from "./interfaces/dto/interaction/ISelectionParameter";
 import {
 	IOutput,
@@ -43,6 +45,8 @@ export {
 	SelectionParameter,
 	IGumballTransformParameter,
 	GumballTransformParameter,
+	IRectangleTransformParameter,
+	RectangleTransformParameter,
 	IDrawingParameter,
 	DrawingParameter,
 	IExport,
