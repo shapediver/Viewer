@@ -318,7 +318,7 @@ export class GumballTransform
 		this.#gumballTransformControls.addEventListener(
 			"dragging-changed",
 			(event: unknown) =>
-				this.toggleCameraFreeze(!(event as {value: boolean}).value),
+				this.toggleCameraFreeze((event as {value: boolean}).value),
 		);
 	}
 

@@ -351,15 +351,15 @@ export abstract class TransformationToolsManager
 						);
 						mat4.multiply(
 							transformationPlaceholderMatrix,
-							transformationPlaceholderMatrix,
 							initialWorldTransform,
+							transformationPlaceholderMatrix,
 						);
 					} else {
 						this.#initialTransform[0] = mat4.create();
 						mat4.multiply(
 							transformationPlaceholderMatrix,
-							transformationPlaceholderMatrix,
 							this.#nodes[0].worldMatrix,
+							transformationPlaceholderMatrix,
 						);
 					}
 				}
@@ -402,8 +402,8 @@ export abstract class TransformationToolsManager
 				);
 				mat4.multiply(
 					transformationPlaceholderMatrix,
-					transformationPlaceholderMatrix,
 					mat4.fromTranslation(mat4.create(), this.#initialOffset),
+					transformationPlaceholderMatrix,
 				);
 			}
 		} else {
@@ -478,8 +478,8 @@ export abstract class TransformationToolsManager
 
 			mat4.multiply(
 				transformationPlaceholderMatrix,
-				transformationPlaceholderMatrix,
 				mat4.fromTranslation(mat4.create(), this.#initialOffset),
+				transformationPlaceholderMatrix,
 			);
 		}
 
