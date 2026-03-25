@@ -64,7 +64,7 @@ export class GumballTransformParameter
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
-		return "gumballTransform";
+		return "gumball";
 	}
 
 	public get nameFilter(): string[] | undefined {
@@ -83,7 +83,9 @@ export class GumballTransformParameter
 		return this.getGumballTransformProperties()?.space;
 	}
 
-	private getGumballTransformProperties(): IGumballTransformParameterProps | undefined {
+	private getGumballTransformProperties():
+		| IGumballTransformParameterProps
+		| undefined {
 		const result = validateGumballTransformParameterSettings(
 			this.settings as unknown as IInteractionParameterSettings,
 		);

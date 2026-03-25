@@ -10,7 +10,10 @@ import {TransformationToolsManager} from "../TransformationToolsManager";
 import {GumballTransformControls} from "./three/GumballTransformControls";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export class GumballTransform extends TransformationToolsManager implements IGumballTransform {
+export class GumballTransform
+	extends TransformationToolsManager
+	implements IGumballTransform
+{
 	readonly #gumballTransformControls: GumballTransformControls;
 	readonly #systemInfo: SystemInfo = SystemInfo.instance;
 	readonly #transformationToolsPlaceholder: THREE.Object3D =
@@ -157,8 +160,8 @@ export class GumballTransform extends TransformationToolsManager implements IGum
 		);
 	}
 
-	public get type(): "gumballTransform" {
-		return "gumballTransform";
+	public get type(): "gumball" {
+		return "gumball";
 	}
 
 	public closeLogic(): void {
@@ -202,7 +205,10 @@ export class GumballTransform extends TransformationToolsManager implements IGum
 		this.#gumballTransformControls.onPointerDown(event);
 
 		this.#moving = this.#gumballTransformControls.dragging;
-		if (this.#gumballTransformControls.dragging || this.#gumballTransformControls.hovering)
+		if (
+			this.#gumballTransformControls.dragging ||
+			this.#gumballTransformControls.hovering
+		)
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -234,7 +240,10 @@ export class GumballTransform extends TransformationToolsManager implements IGum
 		this.#gumballTransformControls.onPointerHover(event);
 		if (this.#moving) this.#gumballTransformControls.onPointerMove(event);
 
-		if (this.#gumballTransformControls.dragging || this.#gumballTransformControls.hovering) {
+		if (
+			this.#gumballTransformControls.dragging ||
+			this.#gumballTransformControls.hovering
+		) {
 			this.viewport.addRestrictedCanvasListenerToken(
 				this.canvasEventListenerToken,
 			);
@@ -283,9 +292,12 @@ export class GumballTransform extends TransformationToolsManager implements IGum
 		this.#pivotDragging = false;
 
 		this.#gumballTransformControls.pivotDragged = false;
-		this.#gumballTransformControls.gizmo.enableTranslation = this.#enableTranslation;
-		this.#gumballTransformControls.gizmo.enableRotation = this.#enableRotation;
-		this.#gumballTransformControls.gizmo.enableScaling = this.#enableScaling;
+		this.#gumballTransformControls.gizmo.enableTranslation =
+			this.#enableTranslation;
+		this.#gumballTransformControls.gizmo.enableRotation =
+			this.#enableRotation;
+		this.#gumballTransformControls.gizmo.enableScaling =
+			this.#enableScaling;
 	}
 
 	private setup() {
@@ -294,7 +306,9 @@ export class GumballTransform extends TransformationToolsManager implements IGum
 			new THREE.Matrix4().fromArray(matrix),
 		);
 
-		this.#gumballTransformControls.attach(this.#transformationToolsPlaceholder);
+		this.#gumballTransformControls.attach(
+			this.#transformationToolsPlaceholder,
+		);
 		this.#gumballTransformControls.setSize(this.scale);
 		this.parentObject.add(this.#gumballTransformControls);
 		this.parentObject.add(this.#transformationToolsPlaceholder);

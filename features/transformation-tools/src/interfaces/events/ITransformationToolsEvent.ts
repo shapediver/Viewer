@@ -23,5 +23,5 @@ export interface ITransformationToolsEvent extends IViewportEvent {
 	/**
 	 * The type of transformation tools that was used.
 	 */
-	type: "gumballTransform" | "rectangleTransform";
+	type: "gumball" | "rectangleTransform";
 }

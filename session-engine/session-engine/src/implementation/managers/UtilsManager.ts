@@ -194,7 +194,7 @@ export class UtilsManager {
 						this._sessionEngineCore,
 						this._sessionEngineCore.parameterManager,
 					);
-				case "gumballTransform":
+				case "gumball":
 					return new GumballTransformParameter(
 						parameter,
 						this._sessionEngineCore,

@@ -10,7 +10,6 @@ import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
-	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 
@@ -145,7 +144,7 @@ export abstract class TransformationToolsManager
 		return this.#singleNode;
 	}
 
-	protected abstract get type(): "gumballTransform" | "rectangleTransform";
+	protected abstract get type(): "gumball" | "rectangleTransform";
 
 	protected get viewport(): IViewportApi {
 		return this.#viewport;

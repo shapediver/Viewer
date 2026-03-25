@@ -6,7 +6,7 @@ import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffect
 
 export type InteractionParameterSettingsType =
 	| "selection"
-	| "gumballTransform"
+	| "gumball"
 	| "dragging"
 	| "rectangleTransform";
 
@@ -182,7 +182,7 @@ export const IGumballTransformParameterPropsJsonSchema = z
 	.merge(IGeneralInteractionParameterJsonSchema);
 
 export const IGumballTransformParameterJsonSchema = z.object({
-	type: z.literal("gumballTransform"),
+	type: z.literal("gumball"),
 	props: IGumballTransformParameterPropsJsonSchema,
 });
 
