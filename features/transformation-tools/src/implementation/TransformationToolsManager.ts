@@ -333,10 +333,8 @@ export abstract class TransformationToolsManager
 				{
 					const transformations: {[key: string]: mat4} = {};
 					this.#nodes[0].traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent)
-							transformations[c.parent.name] = mat4.clone(
-								c.parent.nodeMatrix,
-							);
+						if (c.data.find((d) => d instanceof GeometryData))
+							transformations[c.name] = mat4.clone(c.nodeMatrix);
 					});
 
 					if (
@@ -428,10 +426,8 @@ export abstract class TransformationToolsManager
 				{
 					const transformations: {[key: string]: mat4} = {};
 					node.traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent) {
-							transformations[c.parent.name] = mat4.clone(
-								c.parent.nodeMatrix,
-							);
+						if (c.data.find((d) => d instanceof GeometryData)) {
+							transformations[c.name] = mat4.clone(c.nodeMatrix);
 						}
 					});
 					if (
