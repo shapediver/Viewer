@@ -302,6 +302,7 @@ export abstract class TransformationToolsManager
 	}
 
 	protected initialize(): mat4 {
+		console.log("INITIALIZE 2");
 		const transformationPlaceholderMatrix = mat4.create();
 
 		// assign the position to the transformation tools objects
@@ -332,12 +333,30 @@ export abstract class TransformationToolsManager
 				);
 				{
 					const transformations: {[key: string]: mat4} = {};
+
+					console.log("currently selected node:", this.#nodes[0]);
 					this.#nodes[0].traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent)
-							transformations[c.parent.name] = mat4.clone(
-								c.parent.nodeMatrix,
+						for (const data of c.data) {
+							console.log(
+								"data of node:",
+								data,
+								"is instance of GeometryData?",
+								(data as GeometryData).primitive !== undefined,
 							);
+						}
+
+						if (
+							c.data.find(
+								(d) =>
+									(d as GeometryData).primitive !== undefined,
+							)
+						) {
+							console.log("found geometry node:", c);
+							transformations[c.name] = mat4.clone(c.worldMatrix);
+						}
 					});
+
+					console.log("transformations:", transformations);
 
 					if (
 						Object.keys(transformations).length === 1 &&
@@ -428,7 +447,10 @@ export abstract class TransformationToolsManager
 				{
 					const transformations: {[key: string]: mat4} = {};
 					node.traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent) {
+						if (
+							c.data.find((d) => d instanceof GeometryData) &&
+							c.parent
+						) {
 							transformations[c.parent.name] = mat4.clone(
 								c.parent.nodeMatrix,
 							);

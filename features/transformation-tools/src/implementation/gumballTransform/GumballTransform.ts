@@ -34,6 +34,12 @@ export class GumballTransform
 		settings?: GumballTransformSettingsOptional,
 	) {
 		super(viewport, nodes, settings);
+		console.log(
+			"creating gumball transform with nodes",
+			nodes,
+			"and settings",
+			settings,
+		);
 
 		this.#gumballTransformControls = new GumballTransformControls(
 			viewport.threeJsCoreObjects.camera,
