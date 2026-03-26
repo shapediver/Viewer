@@ -82,9 +82,39 @@ export class RectangleTransform
 			: {
 					// Clone vec3 values to prevent in-place mutation by internal drawing-tools processing
 					...planeDefinition,
-					origin: vec3.clone(planeDefinition.origin!),
-					vector_u: vec3.clone(planeDefinition.vector_u!),
-					vector_v: vec3.clone(planeDefinition.vector_v!),
+					type: RESTRICTION_TYPE.PLANE,
+					rotation: planeDefinition.rotation
+						? {
+								angle: planeDefinition.rotation.angle,
+								axis: vec3.fromValues(
+									planeDefinition.rotation.axis[0],
+									planeDefinition.rotation.axis[1],
+									planeDefinition.rotation.axis[2],
+								),
+							}
+						: undefined,
+					origin: planeDefinition.origin
+						? vec3.fromValues(
+								planeDefinition.origin[0],
+								planeDefinition.origin[1],
+								planeDefinition.origin[2],
+							)
+						: vec3.fromValues(0, 0, 0),
+
+					vector_u: planeDefinition.vector_u
+						? vec3.fromValues(
+								planeDefinition.vector_u[0],
+								planeDefinition.vector_u[1],
+								planeDefinition.vector_u[2],
+							)
+						: vec3.fromValues(1, 0, 0),
+					vector_v: planeDefinition.vector_v
+						? vec3.fromValues(
+								planeDefinition.vector_v[0],
+								planeDefinition.vector_v[1],
+								planeDefinition.vector_v[2],
+							)
+						: vec3.fromValues(0, 1, 0),
 				};
 
 		this.#plane = new Plane(

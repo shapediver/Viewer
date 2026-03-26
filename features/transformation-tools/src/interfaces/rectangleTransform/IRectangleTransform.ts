@@ -1,7 +1,5 @@
-import {
-	IVisualizationSettings,
-	PlaneRestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {IVisualizationSettings} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {IPlaneRestrictionDefinition} from "@shapediver/viewer.shared.types/dist/interfaces/parameter/IRestrictionSettings";
 import {
 	ITransformationToolsManager,
 	Settings,
@@ -14,7 +12,7 @@ export type RectangleTransformSettings = {
 	 * The plane restriction for the RectangleTransform.
 	 * This is required for the RectangleTransform to work, as it determines the plane on which the RectangleTransform will be displayed and interacted with.
 	 */
-	plane: PlaneRestrictionProperties;
+	plane: IPlaneRestrictionDefinition;
 	/**
 	 * Options to disable specific points of the rectangle.
 	 * Disabled points are not interactive but still visible as locked handles.
