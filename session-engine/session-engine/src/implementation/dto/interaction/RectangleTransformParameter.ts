@@ -13,12 +13,16 @@ export class RectangleTransformParameter
 	extends Parameter<string>
 	implements IRectangleTransformParameter
 {
+	readonly #settings: IRectangleTransformParameterProps;
+
 	constructor(
 		paramDef: ResParameter,
 		sessionEngineCore: SessionEngineCore,
 		parameterManager: ParameterManager,
 	) {
 		super(paramDef, sessionEngineCore, parameterManager);
+
+		this.#settings = paramDef.settings as IRectangleTransformParameterProps;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
@@ -26,6 +30,6 @@ export class RectangleTransformParameter
 	}
 
 	public get settings(): IRectangleTransformParameterProps {
-		return this.settings as IRectangleTransformParameterProps;
+		return this.#settings;
 	}
 }

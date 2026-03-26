@@ -12,12 +12,16 @@ export class DrawingParameter
 	extends Parameter<string>
 	implements IDrawingParameter
 {
+	readonly #settings: IDrawingParameterSettings;
+
 	constructor(
 		paramDef: ResParameter,
 		sessionEngineCore: SessionEngineCore,
 		parameterManager: ParameterManager,
 	) {
 		super(paramDef, sessionEngineCore, parameterManager);
+
+		this.#settings = paramDef.settings as IDrawingParameterSettings;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
@@ -25,6 +29,6 @@ export class DrawingParameter
 	}
 
 	public get settings(): IDrawingParameterSettings {
-		return this.settings as IDrawingParameterSettings;
+		return this.#settings;
 	}
 }

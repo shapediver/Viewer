@@ -13,12 +13,16 @@ export class GumballTransformParameter
 	extends Parameter<string>
 	implements IGumballTransformParameter
 {
+	readonly #settings: IGumballTransformParameterProps;
+
 	constructor(
 		paramDef: ResParameter,
 		sessionEngineCore: SessionEngineCore,
 		parameterManager: ParameterManager,
 	) {
 		super(paramDef, sessionEngineCore, parameterManager);
+
+		this.#settings = paramDef.settings as IGumballTransformParameterProps;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
@@ -26,6 +30,6 @@ export class GumballTransformParameter
 	}
 
 	public get settings(): IGumballTransformParameterProps {
-		return this.settings as IGumballTransformParameterProps;
+		return this.#settings;
 	}
 }

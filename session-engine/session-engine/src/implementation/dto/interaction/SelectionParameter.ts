@@ -13,12 +13,16 @@ export class SelectionParameter
 	extends Parameter<string>
 	implements ISelectionParameter
 {
+	readonly #settings: ISelectionParameterProps;
+
 	constructor(
 		paramDef: ResParameter,
 		sessionEngineCore: SessionEngineCore,
 		parameterManager: ParameterManager,
 	) {
 		super(paramDef, sessionEngineCore, parameterManager);
+
+		this.#settings = paramDef.settings as ISelectionParameterProps;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
@@ -26,6 +30,6 @@ export class SelectionParameter
 	}
 
 	public get settings(): ISelectionParameterProps {
-		return this.settings as ISelectionParameterProps;
+		return this.#settings;
 	}
 }

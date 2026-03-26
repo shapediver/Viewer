@@ -13,12 +13,16 @@ export class DraggingParameter
 	extends Parameter<string>
 	implements IDraggingParameter
 {
+	readonly #settings: IDraggingParameterProps;
+
 	constructor(
 		paramDef: ResParameter,
 		sessionEngineCore: SessionEngineCore,
 		parameterManager: ParameterManager,
 	) {
 		super(paramDef, sessionEngineCore, parameterManager);
+
+		this.#settings = paramDef.settings as IDraggingParameterProps;
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
@@ -26,6 +30,6 @@ export class DraggingParameter
 	}
 
 	public get settings(): IDraggingParameterProps {
-		return this.settings as IDraggingParameterProps;
+		return this.#settings;
 	}
 }
