@@ -8,7 +8,8 @@ export type InteractionParameterSettingsType =
 	| "selection"
 	| "gumball"
 	| "dragging"
-	| "rectangleTransform";
+	| "rectangleTransform"
+	| "drawing";
 
 export type InteractionEffect =
 	| string

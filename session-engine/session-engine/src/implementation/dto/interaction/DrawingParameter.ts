@@ -1,17 +1,16 @@
-﻿import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
+	IDrawingParameterSettings,
 	InteractionParameterSettingsType,
-	IRectangleTransformParameterProps,
 } from "@shapediver/viewer.shared.types";
-
-import {IRectangleTransformParameter} from "../../../interfaces/dto/IInteractionParameter";
+import {IDrawingParameter} from "../../..";
 import {ParameterManager} from "../../managers/ParameterManager";
 import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";
 
-export class RectangleTransformParameter
+export class DrawingParameter
 	extends Parameter<string>
-	implements IRectangleTransformParameter
+	implements IDrawingParameter
 {
 	constructor(
 		paramDef: ResParameter,
@@ -22,10 +21,10 @@ export class RectangleTransformParameter
 	}
 
 	public get interactionType(): InteractionParameterSettingsType {
-		return "rectangleTransform";
+		return "drawing";
 	}
 
-	public get settings(): IRectangleTransformParameterProps {
-		return this.settings as IRectangleTransformParameterProps;
+	public get settings(): IDrawingParameterSettings {
+		return this.settings as IDrawingParameterSettings;
 	}
 }

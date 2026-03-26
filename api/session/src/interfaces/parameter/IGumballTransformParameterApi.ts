@@ -2,5 +2,6 @@
 import {IInteractionParameterApi} from "./IInteractionParameterApi";
 
 export interface IGumballTransformParameterApi
-	extends IInteractionParameterApi,
-		IGumballTransformParameterProps {}
+	extends IInteractionParameterApi {
+	readonly settings: IGumballTransformParameterProps;
+}
