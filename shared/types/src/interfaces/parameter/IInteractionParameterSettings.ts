@@ -229,6 +229,9 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 			.object({
 				id: z.string(),
 				type: z.string(),
+				origin: z.array(z.number()),
+				vector_u: z.array(z.number()),
+				vector_v: z.array(z.number()),
 				rotation: z
 					.object({
 						axis: z.array(z.number()),
