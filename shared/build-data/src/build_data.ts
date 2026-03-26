@@ -1,1 +1,1 @@
-export const build_data = {"build_version":"3.3.16.0-rc.11","build_date":"2026-03-26T12:43:04.065Z","build_branch":"task/SS-9453","build_commit":"e259e3902b406947515294d11cbaedaa87d0ff73"};
+export const build_data = {"build_version":"3.3.16.0-rc.12","build_date":"2026-03-26T20:59:48.710Z","build_branch":"task/SS-9453","build_commit":"9324b98969893e0eb90e058a56c7928d666e7b47"};
