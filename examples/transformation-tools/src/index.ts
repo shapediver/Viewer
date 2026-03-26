@@ -10,7 +10,6 @@ import {
 	IBooleanElement,
 	ISliderElement,
 } from "@shapediver/viewer.shared.demo-helper";
-import {vec3} from "gl-matrix";
 import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
 
 (<any>window).SDV = SDV;
@@ -48,9 +47,12 @@ const sendNotification = (title: string, message: string) => {
 		enableRotation: true,
 		enableTranslation: true,
 		plane: {
-			origin: vec3.clone(
-				imageOutput.node?.boundingBox.boundingSphere.center!,
-			),
+			id: "myPlaneRestriction",
+			origin: [
+				imageOutput.node?.boundingBox.boundingSphere.center[0] ?? 0,
+				imageOutput.node?.boundingBox.boundingSphere.center[1] ?? 0,
+				imageOutput.node?.boundingBox.boundingSphere.center[2] ?? 0,
+			],
 			vector_u: [1, 0, 0],
 			vector_v: [0, 1, 0],
 			type: RESTRICTION_TYPE.PLANE,
