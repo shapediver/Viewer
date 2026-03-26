@@ -438,34 +438,46 @@ export class RectangleTransform
 		sceneTree.root.addChild(this.#dtParentNode);
 		sceneTree.root.updateVersion(false, false);
 
-		// Compute the geometry's LOCAL bounding box (not affected by the node's
-		// world transform, unlike node.boundingBox which is an inflated WS AABB).
-		const localBB = new Box();
-		this.nodes.forEach((node) =>
-			node.traverseData((d) => {
-				if (d instanceof GeometryData) localBB.union(d.boundingBox);
-			}),
-		);
-
-		// Transform the 8 local-BB corners to world space via the initial world
-		// transform, then project onto the (rotated) plane. This gives a tight
-		// rectangle that matches the object's actual extents, not the world AABB.
+		// Compute 8 world-space corners of the combined geometry extent,
+		// then project them onto the interaction plane.
 		let projectedPoints: vec3[] = [];
-		for (let i = 0; i < 8; i++) {
-			const localPt = vec3.fromValues(
-				localBB.min[0] + (i & 1) * (localBB.max[0] - localBB.min[0]),
-				localBB.min[1] +
-					((i >> 1) & 1) * (localBB.max[1] - localBB.min[1]),
-				localBB.min[2] +
-					((i >> 2) & 1) * (localBB.max[2] - localBB.min[2]),
-			);
-			// local → world via initialWorldOrient (rotation+scale + translation)
-			const worldPt = vec3.transformMat4(
-				vec3.create(),
-				localPt,
-				this.#M_initialWorldOrient,
-			);
-			projectedPoints.push(this.#plane.clampPoint(worldPt));
+		if (this.singleNode) {
+			// Single-node: use local GeometryData BBs + M_initialWorldOrient
+			// for a tight rectangle aligned to the object's local axes.
+			const localBB = new Box();
+			this.nodes[0].traverseData((d) => {
+				if (d instanceof GeometryData) localBB.union(d.boundingBox);
+			});
+			for (let i = 0; i < 8; i++) {
+				const localPt = vec3.fromValues(
+					localBB.min[0] +
+						(i & 1) * (localBB.max[0] - localBB.min[0]),
+					localBB.min[1] +
+						((i >> 1) & 1) * (localBB.max[1] - localBB.min[1]),
+					localBB.min[2] +
+						((i >> 2) & 1) * (localBB.max[2] - localBB.min[2]),
+				);
+				const worldPt = vec3.transformMat4(
+					vec3.create(),
+					localPt,
+					this.#M_initialWorldOrient,
+				);
+				projectedPoints.push(this.#plane.clampPoint(worldPt));
+			}
+		} else {
+			// Multi-node: each node has its own world transform, so local
+			// GeometryData BBs cannot be meaningfully unioned. Use the
+			// world-space bounding boxes instead.
+			const wsBB = new Box();
+			this.nodes.forEach((node) => wsBB.union(node.boundingBox));
+			for (let i = 0; i < 8; i++) {
+				const wsPt = vec3.fromValues(
+					wsBB.min[0] + (i & 1) * (wsBB.max[0] - wsBB.min[0]),
+					wsBB.min[1] + ((i >> 1) & 1) * (wsBB.max[1] - wsBB.min[1]),
+					wsBB.min[2] + ((i >> 2) & 1) * (wsBB.max[2] - wsBB.min[2]),
+				);
+				projectedPoints.push(this.#plane.clampPoint(wsPt));
+			}
 		}
 
 		for (let i = 0; i < projectedPoints.length; i++)
