@@ -136,9 +136,11 @@ export class RectangleTransformRotationHandler
 						origin: vec3.create(),
 						vector_u: vec3.fromValues(1, 0, 0),
 						vector_v: vec3.fromValues(0, 1, 0),
+						createHelperObjects: false,
 					},
 				},
 				visualization: {
+					distanceMultiplicationFactor: 1,
 					distanceLabels: false,
 					pointerPosition: false,
 					...rotVis,

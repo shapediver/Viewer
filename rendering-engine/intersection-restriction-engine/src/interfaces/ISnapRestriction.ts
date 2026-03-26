@@ -6,6 +6,10 @@ import {RestrictionMetaData, RestrictionResult} from "./IRestriction";
 
 export type SnapRestrictionProperties = {
 	/**
+	 * Whether to create visual helper objects (grid, axis, etc.) for restrictions. (default: true)
+	 */
+	createHelperObjects?: boolean;
+	/**
 	 * If the restriction should be enabled by default.
 	 */
 	enabled?: boolean;

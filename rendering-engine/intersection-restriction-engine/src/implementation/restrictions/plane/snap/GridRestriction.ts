@@ -71,7 +71,7 @@ export class GridRestriction
 		planeRestriction: PlaneRestriction,
 		properties?: GridRestrictionProperties,
 	) {
-		super(viewport, parentNode, "grid");
+		super(viewport, parentNode, "grid", properties);
 
 		this.#planeRestriction = planeRestriction;
 
@@ -312,6 +312,8 @@ export class GridRestriction
 	// #region Private Methods (2)
 
 	private createGridVisualization(): void {
+		if (!this._createHelperObjects) return;
+
 		if (this.#gridHelper) {
 			this._object3D.remove(this.#gridHelper);
 			this.#gridHelper.dispose();

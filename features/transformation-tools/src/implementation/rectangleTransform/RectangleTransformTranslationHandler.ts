@@ -226,7 +226,13 @@ export class RectangleTransformTranslationHandler
 			vec3.create(),
 			vec3.fromValues(M[4], M[5], M[6]),
 		);
-		return {type: RESTRICTION_TYPE.PLANE, origin, vector_u, vector_v};
+		return {
+			type: RESTRICTION_TYPE.PLANE,
+			origin,
+			vector_u,
+			vector_v,
+			createHelperObjects: false,
+		};
 	}
 
 	private createPlaneNode(localPoints: vec3[]) {

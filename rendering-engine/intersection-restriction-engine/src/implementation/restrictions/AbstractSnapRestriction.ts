@@ -1,18 +1,22 @@
+import * as THREE from "three";
+
 import {IViewportApi} from "@shapediver/viewer";
 import {ThreejsData} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {IRay} from "@shapediver/viewer.shared.types";
+
 import {vec3} from "gl-matrix";
-import * as THREE from "three";
+
 import {
 	RestrictionMetaData,
 	RestrictionResult,
 } from "../../interfaces/IRestriction";
-import {ISnapRestriction} from "../../interfaces/ISnapRestriction";
+import {
+	ISnapRestriction,
+	SnapRestrictionProperties,
+} from "../../interfaces/ISnapRestriction";
 
 export abstract class AbstractSnapRestriction implements ISnapRestriction {
-	// #region Properties (10)
-
 	readonly #id: string;
 	readonly #parentNode: ITreeNode;
 	readonly #viewport: IViewportApi;
@@ -23,26 +27,30 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 	#showVisualization: boolean = false;
 
 	protected _active: boolean = false;
+	protected _createHelperObjects: boolean;
+	protected _enableVisualization: boolean = true;
 	protected _enabled: boolean = true;
 	protected _enabledEditable: boolean = true;
-	protected _enableVisualization: boolean = true;
 	protected _object3D!: THREE.Object3D;
 	protected _priority: number = 0;
 
-	// #endregion Properties (10)
-
-	// #region Constructors (1)
-
-	constructor(viewport: IViewportApi, parentNode: ITreeNode, id: string) {
+	constructor(
+		viewport: IViewportApi,
+		parentNode: ITreeNode,
+		id: string,
+		properties?: SnapRestrictionProperties,
+	) {
 		this.#parentNode = parentNode;
 		this.#viewport = viewport;
 		this.#id = id;
-		this.createGridHelperObject();
+		this._createHelperObjects = properties?.createHelperObjects ?? true;
+		if (this._createHelperObjects) {
+			this.createGridHelperObject();
+		} else {
+			this._object3D = new THREE.Object3D();
+			this._object3D.visible = false;
+		}
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (11)
 
 	public get active(): boolean {
 		return this._active;
@@ -50,6 +58,15 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 
 	public set active(value: boolean) {
 		this._active = value;
+	}
+
+	public get enableVisualization(): boolean {
+		return this._enableVisualization;
+	}
+
+	public set enableVisualization(value: boolean) {
+		this._enableVisualization = value;
+		this.showVisualization = value;
 	}
 
 	public get enabled(): boolean {
@@ -69,15 +86,6 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 
 	public set enabledEditable(value: boolean) {
 		this._enabledEditable = value;
-	}
-
-	public get enableVisualization(): boolean {
-		return this._enableVisualization;
-	}
-
-	public set enableVisualization(value: boolean) {
-		this._enableVisualization = value;
-		this.showVisualization = value;
 	}
 
 	public get id(): string {
@@ -108,19 +116,12 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 		this.visibilityChanged(this._object3D.visible);
 	}
 
-	// #endregion Public Getters And Setters (11)
-
-	// #region Public Methods (1)
-
 	public removeVisualization(): void {
+		if (!this._createHelperObjects) return;
 		this.#parentNode.removeChild(this.#visualizationNode);
 		this.#parentNode.updateVersion(false, false);
 		this.#viewport.updateNode(this.#parentNode);
 	}
-
-	// #endregion Public Methods (1)
-
-	// #region Public Abstract Methods (1)
 
 	public abstract snap(
 		ray: IRay,
@@ -129,17 +130,11 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 		metaData?: RestrictionMetaData,
 	): RestrictionResult | undefined;
 
-	// #endregion Public Abstract Methods (1)
-
-	// #region Protected Abstract Methods (1)
-
 	protected abstract visibilityChanged(visible: boolean): void;
 
-	// #endregion Protected Abstract Methods (1)
-
-	// #region Private Methods (1)
-
 	private createGridHelperObject(): void {
+		if (!this._createHelperObjects) return;
+
 		this._object3D = new THREE.Object3D();
 		this._object3D.visible = false;
 
@@ -154,6 +149,4 @@ export abstract class AbstractSnapRestriction implements ISnapRestriction {
 		this.#parentNode.updateVersion(false, false);
 		this.#viewport.updateNode(this.#parentNode);
 	}
-
-	// #endregion Private Methods (1)
 }

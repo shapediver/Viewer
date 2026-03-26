@@ -52,6 +52,7 @@ export class RectangleTransformScalingHandler
 			origin: vec3.create(),
 			vector_u: vec3.fromValues(1, 0, 0),
 			vector_v: vec3.fromValues(0, 1, 0),
+			createHelperObjects: false,
 		};
 
 		// If step is configured, add a grid snap restriction to the plane restriction
@@ -60,6 +61,7 @@ export class RectangleTransformScalingHandler
 				gridUnit: scalingConfig.step,
 				enabled: true,
 				enableVisualization: false,
+				createHelperObjects: false,
 			};
 		}
 
@@ -149,6 +151,7 @@ export class RectangleTransformScalingHandler
 				controls,
 				restrictions: {plane: lsRestriction},
 				visualization: {
+					distanceMultiplicationFactor: 1.2,
 					distanceLabels: false,
 					pointerPosition: false,
 					...vis,

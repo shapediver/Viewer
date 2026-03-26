@@ -79,6 +79,11 @@ export interface RestrictionMetaData {
 
 export interface RestrictionPropertiesBase {
 	/**
+	 * Whether to create visual helper objects (grid, axis, etc.) for restrictions. (default: true)
+	 */
+	createHelperObjects?: boolean;
+
+	/**
 	 * If the restriction should be hidden by geometry in front of it. (default: false)
 	 */
 	hideable?: boolean;
