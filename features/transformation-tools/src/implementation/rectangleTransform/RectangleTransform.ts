@@ -11,6 +11,7 @@ import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
 } from "@shapediver/viewer.shared.services";
+import {GeometryData} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
@@ -43,7 +44,17 @@ export class RectangleTransform
 	};
 	// The initial (static) plane-to-WS matrix – used as the base for composing
 	// accumulated rotation / translation transforms.
+	// Translation column = object's world-space pivot; orientation columns = vector_u/v/normal.
 	#M_planeToWS: mat4 = mat4.create();
+	// The initial world-space orientation+scale of the object (no translation).
+	// = initialTransformationMatrix × translation(-initialOffset)
+	// Used to rotate the interaction plane by the object's transform and to
+	// transform local BB corners to world space.
+	#M_initialWorldOrient: mat4 = mat4.create();
+	// The starting placeholder matrix from initialize(). Stored so that
+	// calculateTransformationMatrix can compose DT changes on top of it,
+	// matching how the Gumball's placeholder starts at this matrix.
+	#initialTransformationMatrix: mat4 = mat4.create();
 
 	#dragEndListener: string;
 	#dragMoveListener: string;
@@ -232,26 +243,28 @@ export class RectangleTransform
 			1,
 		);
 
-		// Plane LS ↔ WS matrices
-		// Use the parentNode's current accumulated matrix (includes rotation +
-		// translation on top of the initial plane→WS transform) together with
-		// the inverse of the INITIAL plane→WS matrix so that scaling, rotation
-		// and translation are all composed correctly.
+		// Compute the world-space DT transform:
+		// wsTransform = M_planeToWS × totalLS × inv(M_planeToWS)
+		//             = dtParent × mAffineLS × inv(M_planeToWS)
+		// This conjugation converts the plane-LS affine (scale + rotation +
+		// translation from the DT handles) into a world-space transform that
+		// correctly preserves the DT handle pivots.
 		const mWStoLSInitial = mat4.invert(mat4.create(), this.#M_planeToWS);
 		if (!mWStoLSInitial) return;
 
-		// M_ws_relative = currentParentMatrix × M_affine_LS × inv(initialPlaneMatrix)
-		const mWSRelative = mat4.multiply(
+		const wsTransform = mat4.multiply(
 			mat4.create(),
 			this.#dtParentTransformation.matrix,
 			mat4.multiply(mat4.create(), mAffineLS, mWStoLSInitial),
 		);
 
-		// placeholderMatrix = M_ws_relative × translation(initialOffset)
+		// Compose onto the initial placeholder matrix, matching the Gumball
+		// pattern where the controls modify the placeholder starting state.
+		// At rest (wsTransform = identity) this gives initialTransformationMatrix.
 		mat4.multiply(
 			this.#currentTransformationMatrix,
-			mWSRelative,
-			mat4.fromTranslation(mat4.create(), this.initialOffset),
+			wsTransform,
+			this.#initialTransformationMatrix,
 		);
 
 		if (commit) {
@@ -340,10 +353,61 @@ export class RectangleTransform
 			this.#currentTransformationMatrix,
 			initialTransformationMatrix,
 		);
+		mat4.copy(
+			this.#initialTransformationMatrix,
+			initialTransformationMatrix,
+		);
 
-		// Compute the initial plane→WS matrix and create the shared DT parent node.
-		// All drawing-tool instances receive this node so their points are stored
-		// in plane-local space; the node's transform carries WS positioning.
+		// Compute initial world orientation+scale (no geometry-center offset).
+		// initialWorldOrient = initialTransformationMatrix × translation(-initialOffset)
+		mat4.multiply(
+			this.#M_initialWorldOrient,
+			initialTransformationMatrix,
+			mat4.fromTranslation(
+				mat4.create(),
+				vec3.negate(vec3.create(), this.initialOffset),
+			),
+		);
+
+		// Rotate the interaction plane by the object's initial world orientation
+		// so the DT handles and interaction plane are aligned with the object's
+		// local axes. The plane definition's vector_u/v only provide the base
+		// orientation; the object's transform applies on top.
+		{
+			const M = this.#M_initialWorldOrient;
+			const rotateDir = (v: vec3): vec3 =>
+				vec3.normalize(
+					vec3.create(),
+					vec3.fromValues(
+						M[0] * v[0] + M[4] * v[1] + M[8] * v[2],
+						M[1] * v[0] + M[5] * v[1] + M[9] * v[2],
+						M[2] * v[0] + M[6] * v[1] + M[10] * v[2],
+					),
+				);
+			this.#plane.vector_u = rotateDir(this.#plane.vector_u);
+			this.#plane.vector_v = rotateDir(this.#plane.vector_v);
+			this.#plane.normal = vec3.normalize(
+				vec3.create(),
+				vec3.cross(
+					vec3.create(),
+					this.#plane.vector_u,
+					this.#plane.vector_v,
+				),
+			);
+			// Place the plane through the geometry's world-space center
+			// (not the node pivot) so the rectangle is centered on the object.
+			const geometryCenterWS = vec3.transformMat4(
+				vec3.create(),
+				this.initialOffset,
+				this.#M_initialWorldOrient,
+			);
+			this.#plane.constant = -vec3.dot(
+				this.#plane.normal,
+				geometryCenterWS,
+			);
+		}
+
+		// Build M_planeToWS from the (now rotated) plane vectors.
 		const planeOrigin = vec3.scale(
 			vec3.create(),
 			this.#plane.normal,
@@ -374,20 +438,34 @@ export class RectangleTransform
 		sceneTree.root.addChild(this.#dtParentNode);
 		sceneTree.root.updateVersion(false, false);
 
-		// create the shared BB from the nodes so that
-		// we can create points around it
-		const box = new Box();
-		this.nodes.forEach((node) => box.union(node.boundingBox));
+		// Compute the geometry's LOCAL bounding box (not affected by the node's
+		// world transform, unlike node.boundingBox which is an inflated WS AABB).
+		const localBB = new Box();
+		this.nodes.forEach((node) =>
+			node.traverseData((d) => {
+				if (d instanceof GeometryData) localBB.union(d.boundingBox);
+			}),
+		);
 
-		// project the 8 corners of the bounding box onto the plane
+		// Transform the 8 local-BB corners to world space via the initial world
+		// transform, then project onto the (rotated) plane. This gives a tight
+		// rectangle that matches the object's actual extents, not the world AABB.
 		let projectedPoints: vec3[] = [];
 		for (let i = 0; i < 8; i++) {
-			const point = vec3.fromValues(
-				box.min[0] + (i & 1) * (box.max[0] - box.min[0]),
-				box.min[1] + ((i >> 1) & 1) * (box.max[1] - box.min[1]),
-				box.min[2] + ((i >> 2) & 1) * (box.max[2] - box.min[2]),
+			const localPt = vec3.fromValues(
+				localBB.min[0] + (i & 1) * (localBB.max[0] - localBB.min[0]),
+				localBB.min[1] +
+					((i >> 1) & 1) * (localBB.max[1] - localBB.min[1]),
+				localBB.min[2] +
+					((i >> 2) & 1) * (localBB.max[2] - localBB.min[2]),
 			);
-			projectedPoints.push(this.#plane.clampPoint(point));
+			// local → world via initialWorldOrient (rotation+scale + translation)
+			const worldPt = vec3.transformMat4(
+				vec3.create(),
+				localPt,
+				this.#M_initialWorldOrient,
+			);
+			projectedPoints.push(this.#plane.clampPoint(worldPt));
 		}
 
 		for (let i = 0; i < projectedPoints.length; i++)
