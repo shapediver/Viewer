@@ -227,9 +227,9 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 			.optional(),
 		plane: z
 			.object({
-				id: z.string(),
+				id: z.string().optional(),
 				type: z.string(),
-				origin: z.array(z.number()),
+				origin: z.array(z.number()).optional(),
 				vector_u: z.array(z.number()),
 				vector_v: z.array(z.number()),
 				rotation: z
@@ -240,7 +240,9 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 					.nullable()
 					.optional(),
 			})
-			.passthrough(),
+			.passthrough()
+			.nullable()
+			.optional(),
 		corners: z
 			.object({
 				topLeft: optionalBoolean,

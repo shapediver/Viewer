@@ -64,9 +64,10 @@ export interface IRectangleTransformParameterProps
 
 	/**
 	 * The plane restriction for the RectangleTransform.
-	 * This is required for the RectangleTransform to work, as it determines the plane on which the RectangleTransform will be displayed and interacted with.
+	 * At least the plane type and the plane vectors need to be defined if a custom plane restriction is provided.
+	 * If not provided, a default plane restriction will be applied.
 	 */
-	plane: IPlaneRestrictionDefinition;
+	plane?: Partial<IPlaneRestrictionDefinition>;
 
 	/** The restrictions that can be applied to the draggable objects. */
 	restrictions?: RestrictionDefinition[];
