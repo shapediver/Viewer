@@ -78,19 +78,23 @@ export class RectangleTransformRotationHandler
 		this.#handleDistance = rotationConfig.handleDistance ?? 0.25;
 		this.#rotationConfig = {
 			step:
-				rotationConfig?.step !== undefined
+				rotationConfig?.step !== undefined &&
+				rotationConfig?.step !== null
 					? rotationConfig.step * (Math.PI / 180)
 					: undefined,
 			stepThreshold:
-				rotationConfig?.stepThreshold !== undefined
+				rotationConfig?.stepThreshold !== undefined &&
+				rotationConfig?.stepThreshold !== null
 					? rotationConfig.stepThreshold * (Math.PI / 180)
 					: undefined,
 			min:
-				rotationConfig?.min !== undefined
+				rotationConfig?.min !== undefined &&
+				rotationConfig?.min !== null
 					? rotationConfig.min * (Math.PI / 180)
 					: undefined,
 			max:
-				rotationConfig?.max !== undefined
+				rotationConfig?.max !== undefined &&
+				rotationConfig?.max !== null
 					? rotationConfig.max * (Math.PI / 180)
 					: undefined,
 			handleDistance: rotationConfig?.handleDistance ?? 0.25,

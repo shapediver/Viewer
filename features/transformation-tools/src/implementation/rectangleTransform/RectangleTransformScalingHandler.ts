@@ -426,8 +426,12 @@ export class RectangleTransformScalingHandler
 	private static buildSizeConstraints(
 		cfg: RectangleTransformSettings["scaling"],
 	): {size: {x?: [number, number]; y?: [number, number]}} | undefined {
-		const hasX = cfg?.uMin !== undefined || cfg?.uMax !== undefined;
-		const hasY = cfg?.vMin !== undefined || cfg?.vMax !== undefined;
+		const hasX =
+			(cfg?.uMin !== undefined && cfg?.uMin !== null) ||
+			(cfg?.uMax !== undefined && cfg?.uMax !== null);
+		const hasY =
+			(cfg?.vMin !== undefined && cfg?.vMin !== null) ||
+			(cfg?.vMax !== undefined && cfg?.vMax !== null);
 		if (!hasX && !hasY) return undefined;
 		return {
 			size: {
