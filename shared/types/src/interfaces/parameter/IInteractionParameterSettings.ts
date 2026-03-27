@@ -286,7 +286,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 	.merge(IGeneralInteractionParameterJsonSchema);
 
 export const IRectangleTransformParameterJsonSchema = z.object({
-	type: z.literal("rectangle"),
+	type: z.literal("rectangleTransform"),
 	props: IRectangleTransformParameterPropsJsonSchema,
 });
 
