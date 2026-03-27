@@ -52,25 +52,25 @@ export type RectangleTransformSettings = {
 		 * With this settings, it's possible to restrict the scaling to a certain range.
 		 * Default is undefined (no minimum length).
 		 */
-		xMin?: number;
+		uMin?: number;
 		/**
 		 * The maximum allowed length of the rectangle's sides during scaling.
 		 * With this settings, it's possible to restrict the scaling to a certain range.
 		 * Default is undefined (no maximum length).
 		 */
-		xMax?: number;
+		uMax?: number;
 		/**
 		 * The minimum allowed length of the rectangle's sides during scaling.
 		 * With this settings, it's possible to restrict the scaling to a certain range.
 		 * Default is undefined (no minimum length).
 		 */
-		yMin?: number;
+		vMin?: number;
 		/**
 		 * The maximum allowed length of the rectangle's sides during scaling.
 		 * With this settings, it's possible to restrict the scaling to a certain range.
 		 * Default is undefined (no maximum length).
 		 */
-		yMax?: number;
+		vMax?: number;
 		/**
 		 * The step size for scaling in the local x and y directions. The step is provided in world units.
 		 * With this setting, it's possible to snap the scaling to specific increments.

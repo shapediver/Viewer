@@ -419,20 +419,20 @@ export class RectangleTransformScalingHandler
 	}
 
 	/**
-	 * Build the DT constraints.size object from xMin/xMax/yMin/yMax.
+	 * Build the DT constraints.size object from uMin/uMax/vMin/vMax.
 	 * Maps undefined bounds to 0 (for min) or Infinity (for max) so a
 	 * one-sided constraint can still be expressed as a [number, number] tuple.
 	 */
 	private static buildSizeConstraints(
 		cfg: RectangleTransformSettings["scaling"],
 	): {size: {x?: [number, number]; y?: [number, number]}} | undefined {
-		const hasX = cfg?.xMin !== undefined || cfg?.xMax !== undefined;
-		const hasY = cfg?.yMin !== undefined || cfg?.yMax !== undefined;
+		const hasX = cfg?.uMin !== undefined || cfg?.uMax !== undefined;
+		const hasY = cfg?.vMin !== undefined || cfg?.vMax !== undefined;
 		if (!hasX && !hasY) return undefined;
 		return {
 			size: {
-				...(hasX ? {x: [cfg!.xMin ?? 0, cfg!.xMax ?? Infinity]} : {}),
-				...(hasY ? {y: [cfg!.yMin ?? 0, cfg!.yMax ?? Infinity]} : {}),
+				...(hasX ? {x: [cfg!.uMin ?? 0, cfg!.uMax ?? Infinity]} : {}),
+				...(hasY ? {y: [cfg!.vMin ?? 0, cfg!.vMax ?? Infinity]} : {}),
 			},
 		};
 	}

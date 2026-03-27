@@ -87,10 +87,12 @@ export interface IGeometryData extends ITreeNodeData {
 
 	attributeMaterial: IMaterialAbstractData | null;
 	boundingBox: IBox;
+	castShadow: boolean;
 	effectMaterials: {material: IMaterialAbstractData; token: string}[];
 	material: IMaterialAbstractData | null;
 	materialVariants: {material: IMaterialAbstractData; variant: number}[];
 	morphWeights: number[];
+	receiveShadow: boolean;
 	renderOrder: number;
 	standardMaterial: IMaterialAbstractData | null;
 

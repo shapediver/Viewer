@@ -262,10 +262,10 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 		scaling: z
 			.object({
 				uniform: optionalBoolean,
-				xMin: z.number().nullable().optional(),
-				xMax: z.number().nullable().optional(),
-				yMin: z.number().nullable().optional(),
-				yMax: z.number().nullable().optional(),
+				uMin: z.number().nullable().optional(),
+				uMax: z.number().nullable().optional(),
+				vMin: z.number().nullable().optional(),
+				vMax: z.number().nullable().optional(),
 				step: z.number().nullable().optional(),
 			})
 			.nullable()

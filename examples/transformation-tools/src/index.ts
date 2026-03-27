@@ -58,7 +58,7 @@ const sendNotification = (title: string, message: string) => {
 			type: RESTRICTION_TYPE.PLANE,
 		},
 		scaling: {
-			xMin: 25,
+			uMin: 25,
 		},
 	};
 
@@ -246,11 +246,11 @@ const sendNotification = (title: string, message: string) => {
 				min: 0,
 				max: 100,
 				step: 0.1,
-				value: settings.scaling?.xMin ?? 0,
+				value: settings.scaling?.uMin ?? 0,
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						xMin: +value || undefined,
+						uMin: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -261,11 +261,11 @@ const sendNotification = (title: string, message: string) => {
 				min: 0,
 				max: 100,
 				step: 0.1,
-				value: settings.scaling?.xMax ?? 0,
+				value: settings.scaling?.uMax ?? 0,
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						xMax: +value || undefined,
+						uMax: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -276,11 +276,11 @@ const sendNotification = (title: string, message: string) => {
 				min: 0,
 				max: 100,
 				step: 0.1,
-				value: settings.scaling?.yMin ?? 0,
+				value: settings.scaling?.vMin ?? 0,
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						yMin: +value || undefined,
+						vMin: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},
@@ -291,11 +291,11 @@ const sendNotification = (title: string, message: string) => {
 				min: 0,
 				max: 100,
 				step: 0.1,
-				value: settings.scaling?.yMax ?? 0,
+				value: settings.scaling?.vMax ?? 0,
 				onChangeCallback: (value: number) => {
 					settings.scaling = {
 						...settings.scaling,
-						yMax: +value || undefined,
+						vMax: +value || undefined,
 					};
 					recreateRectangleTransform();
 				},

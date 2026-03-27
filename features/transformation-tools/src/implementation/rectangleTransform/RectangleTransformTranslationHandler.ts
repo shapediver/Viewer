@@ -306,7 +306,12 @@ export class RectangleTransformTranslationHandler
 		const material = new MaterialStandardData({
 			opacity: 0,
 			alphaMode: MATERIAL_ALPHA.BLEND,
+			transparent: true,
+			depthWrite: false,
+			depthTest: false,
 		});
+		geometryData.castShadow = false;
+		geometryData.receiveShadow = false;
 		geometryData.material = material;
 
 		const node = new TreeNode("RectangleTransformTranslationPlane");
