@@ -33,7 +33,7 @@ export interface IRectangleTransformParameterProps
 	/** If the rotation is enabled. (default: true) */
 	enableRotation?: boolean;
 
-	/** If the scaling is enabled. (default: false) */
+	/** If the scaling is enabled. (default: true) */
 	enableScaling?: boolean;
 
 	/** If the translation is enabled. (default: true) */
