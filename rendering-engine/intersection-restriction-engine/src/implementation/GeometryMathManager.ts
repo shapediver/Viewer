@@ -405,7 +405,7 @@ export class GeometryMathManager {
 			distanceSquared: distanceSquared,
 			check:
 				distanceSquared * 4 <
-				(SystemInfo.instance.isMobile ? threshold * 4 : threshold) ** 2,
+				(SystemInfo.instance.isMobile ? threshold * 2 : threshold) ** 2,
 		};
 	}
 

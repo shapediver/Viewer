@@ -62,6 +62,7 @@ export class ControlsManager {
 
 	// Hover state
 	#hoveredControlIndex?: number;
+	#hoveredControlDistance?: number;
 
 	// Drag state
 	#isDraggingControl: boolean = false;
@@ -97,8 +98,26 @@ export class ControlsManager {
 		return this.#hoveredControlIndex;
 	}
 
+	public get hoveredControlDistance(): number | undefined {
+		return this.#hoveredControlDistance;
+	}
+
 	public get isDraggingControl(): boolean {
 		return this.#isDraggingControl;
+	}
+
+	/**
+	 * Returns the screen-space distance to the closest control for the given ray
+	 * without modifying hover state. Returns undefined if no control is within
+	 * the hit threshold.
+	 */
+	public closestControlDistance(ray: IRay): number | undefined {
+		if (this.#controls.length === 0) return undefined;
+		const distances = this.#geometryMathManager.checkPointDistances(
+			ray,
+			this.#positionArray,
+		);
+		return distances?.[0]?.distance;
 	}
 
 	/**
@@ -125,6 +144,7 @@ export class ControlsManager {
 				this.#hoveredControlIndex = index;
 				this.updateMaterialIndex(index, MATERIAL_INDEX.HOVERED);
 			}
+			this.#hoveredControlDistance = distances[0].distance;
 			return true;
 		}
 
@@ -140,6 +160,7 @@ export class ControlsManager {
 			);
 			this.#hoveredControlIndex = undefined;
 		}
+		this.#hoveredControlDistance = undefined;
 	}
 
 	public close(): void {

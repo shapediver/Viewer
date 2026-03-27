@@ -83,7 +83,14 @@ export class DesktopStrategy implements IStrategy {
 	// Non-interactive DTs (enableTranslation=false && enableSelection=false) that
 	// currently have a point near the cursor. While this set is non-empty, interactive
 	// DTs suppress hover so the non-interactive handle "wins" the hit-test.
-	static readonly #blockingHoverInstances: Set<string> = new Set();
+	// Maps uuid → {distance, cancel} for blocking claims (control hover or
+	// non-interactive-DT point hover). A later DT that has a CLOSER candidate
+	// calls cancel() on farther entries and removes them, ensuring the globally
+	// closest target always wins.
+	static readonly #blockingHoverInstances: Map<
+		string,
+		{distance: number; cancel: () => void}
+	> = new Map();
 
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #geometryMathManager: GeometryMathManager;
@@ -172,12 +179,31 @@ export class DesktopStrategy implements IStrategy {
 			// Handle mid-point insertion
 			this.handleMidPointInsertion(distances);
 
-			// If another DT's control drag has already started (or its control is
-			// hovered), skip point hover and drag to avoid both executing together.
+			const myOnDownPointDist = distances?.[0]?.distance ?? Infinity;
+
+			// Cancel any blocker that is farther than our nearest point so the
+			// closest target wins, even if another DT registered first this cycle.
+			if (myOnDownPointDist < Infinity) {
+				for (const [bid, bentry] of [
+					...DesktopStrategy.#blockingHoverInstances,
+				]) {
+					if (
+						bid !== this.#drawingToolsManager.uuid &&
+						myOnDownPointDist < bentry.distance
+					) {
+						bentry.cancel();
+						DesktopStrategy.#blockingHoverInstances.delete(bid);
+					}
+				}
+			}
+
+			// Skip this DT if a remaining (closer) blocker outbids our point.
 			const blockedByOther =
-				DesktopStrategy.#blockingHoverInstances.size > 0 &&
 				!DesktopStrategy.#blockingHoverInstances.has(
 					this.#drawingToolsManager.uuid,
+				) &&
+				[...DesktopStrategy.#blockingHoverInstances.values()].some(
+					(e) => e.distance <= myOnDownPointDist,
 				);
 			if (blockedByOther) return;
 
@@ -345,11 +371,13 @@ export class DesktopStrategy implements IStrategy {
 		);
 
 		if (!enableTranslation && !enableSelection) {
-			// Non-interactive DT: update blocking-hover priority set so that
-			// interactive DTs registered later suppress their hover while this
-			// DT's point is nearest to the cursor.
+			// Non-interactive DT: register its nearest-point distance so that
+			// interactive DTs only defer to it when it is genuinely closer.
 			if (distances) {
-				DesktopStrategy.#blockingHoverInstances.add(uuid);
+				DesktopStrategy.#blockingHoverInstances.set(uuid, {
+					distance: distances[0].distance,
+					cancel: () => {},
+				});
 			} else {
 				DesktopStrategy.#blockingHoverInstances.delete(uuid);
 			}
@@ -357,25 +385,58 @@ export class DesktopStrategy implements IStrategy {
 			return;
 		}
 
-		// If a non-interactive DT or another interactive DT with an active control
-		// hover has priority, suppress this DT's point hover.
-		const blocked =
-			DesktopStrategy.#blockingHoverInstances.size > 0 &&
-			!DesktopStrategy.#blockingHoverInstances.has(uuid);
+		const myNearestPointDist = distances?.[0]?.distance ?? Infinity;
 
-		// Controls take priority: if a control is hovered, suppress regular hover.
-		const controlHovered =
-			this.#interactionManager.controlsManager?.checkHover(ray) ?? false;
+		// Cancel any blocker whose registered distance is farther than ours.
+		// This ensures the globally nearest target wins rather than whichever
+		// DT happened to process first.
+		if (myNearestPointDist < Infinity) {
+			for (const [bid, bentry] of [
+				...DesktopStrategy.#blockingHoverInstances,
+			]) {
+				if (bid !== uuid && myNearestPointDist < bentry.distance) {
+					bentry.cancel();
+					DesktopStrategy.#blockingHoverInstances.delete(bid);
+				}
+			}
+		}
+
+		// Suppress hover if a remaining blocker is at least as close as our
+		// nearest point (it already won the distance contest above).
+		const blocked =
+			!DesktopStrategy.#blockingHoverInstances.has(uuid) &&
+			[...DesktopStrategy.#blockingHoverInstances.values()].some(
+				(e) => e.distance <= myNearestPointDist,
+			);
+
+		// Controls take priority only if no regular point of this DT is closer.
+		// This prevents an edge control from stealing hover from a nearby regular
+		// point (e.g. the rotation handle of another DT that overlaps in screen space).
+		const controlDist =
+			this.#interactionManager.controlsManager?.closestControlDistance(
+				ray,
+			) ?? Infinity;
+		const pointDist = distances?.[0]?.distance ?? Infinity;
+		const controlIsCloser = controlDist <= pointDist;
+		const controlHovered = controlIsCloser
+			? (this.#interactionManager.controlsManager?.checkHover(ray) ??
+				false)
+			: false;
+		if (!controlIsCloser)
+			this.#interactionManager.controlsManager?.clearHover();
 		this.#interactionManagerHelper.checkHover(
 			controlHovered || blocked ? undefined : distances,
 			ray,
 		);
 
-		// When a control is hovered on this DT, register as a blocker so that
-		// other interactive DTs (e.g. the rotation handle) suppress their own
-		// point hover and cannot start a drag at the same time.
+		// When a control is hovered, register with its distance and a cancel
+		// callback so other DTs can evict this claim when they are closer.
 		if (controlHovered) {
-			DesktopStrategy.#blockingHoverInstances.add(uuid);
+			const cm = this.#interactionManager.controlsManager;
+			DesktopStrategy.#blockingHoverInstances.set(uuid, {
+				distance: controlDist,
+				cancel: () => cm?.clearHover(),
+			});
 		} else {
 			DesktopStrategy.#blockingHoverInstances.delete(uuid);
 		}
@@ -1028,11 +1089,21 @@ export class DesktopStrategy implements IStrategy {
 			return false;
 
 		if (this.#interactionManager.controlsManager.startDragging()) {
-			// Immediately register as a blocker so that other DTs that process
-			// onDown in the same event cycle see the control drag and skip their
-			// own point drag (e.g. rotation handle near an edge control midpoint).
-			DesktopStrategy.#blockingHoverInstances.add(
+			// Register with cancel callback so other DTs can evict this drag if
+			// they find a closer point in the same event cycle.
+			const cm = this.#interactionManager.controlsManager;
+			DesktopStrategy.#blockingHoverInstances.set(
 				this.#drawingToolsManager.uuid,
+				{
+					distance: cm.hoveredControlDistance ?? Infinity,
+					cancel: () => {
+						cm.onOut();
+						if (this.#cameraFreezeFlag) {
+							this.#viewport.removeFlag(this.#cameraFreezeFlag);
+							this.#cameraFreezeFlag = "";
+						}
+					},
+				},
 			);
 			if (!this.#cameraFreezeFlag) {
 				this.#cameraFreezeFlag = this.#viewport.addFlag(

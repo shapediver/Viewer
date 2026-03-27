@@ -18,6 +18,15 @@ import {InteractionManager} from "../InteractionManager";
 import {IStrategy} from "../interfaces/IStrategy";
 
 export class MobileStrategy implements IStrategy {
+	// Maps uuid → {distance, cancel} for any DT that has started a control drag
+	// on the current touch. A later DT compares its own closest distance; if it
+	// is closer it cancels the earlier claim and takes over, so the globally
+	// nearest target always wins.
+	static readonly #blockingInstances: Map<
+		string,
+		{distance: number; cancel: () => void}
+	> = new Map();
+
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #eventEngine = EventEngine.instance;
 	readonly #deletionInteractionHandler: DeletionInteractionHandler;
@@ -61,15 +70,81 @@ export class MobileStrategy implements IStrategy {
 	}
 
 	public onDown(event: PointerEvent, ray: IRay): void {
-		this.#downPress = {event, ray};
-
-		// check if there are points close to the ray
-		this.#distances = this.#geometryMathManager.checkPointDistances(
-			this.#downPress!.ray,
+		// Compute this DT's closest candidate distance (control or regular point)
+		// so we can compete fairly against other DTs registered earlier.
+		const controlsManager = this.#interactionManager.controlsManager;
+		const controlDist =
+			controlsManager?.closestControlDistance(ray) ?? Infinity;
+		const pointDists = this.#geometryMathManager.checkPointDistances(
+			ray,
 			this.#drawingToolsManager.positionArray,
 		);
+		const pointDist = pointDists?.[0]?.distance ?? Infinity;
+		const myClosestDist = Math.min(controlDist, pointDist);
+
+		// Cross-DT priority: compete against any earlier DT that has registered a
+		// control-drag claim.  If we are closer we cancel their weaker claim; if
+		// they are closer (or equal) we are outbid and skip this DT entirely.
+		// When this DT has nothing close (myClosestDist = Infinity) but another DT
+		// does, skip to avoid spurious long-press at the same location.
+		if (myClosestDist < Infinity) {
+			const toCancel: Array<() => void> = [];
+			let wasOutbid = false;
+			for (const entry of MobileStrategy.#blockingInstances.values()) {
+				if (myClosestDist < entry.distance) {
+					toCancel.push(entry.cancel);
+				} else {
+					wasOutbid = true;
+				}
+			}
+			if (wasOutbid) return;
+			for (const cancel of toCancel) cancel();
+		} else if (MobileStrategy.#blockingInstances.size > 0) {
+			// Nothing close on this DT but another DT has a valid hit — skip.
+			return;
+		}
+
+		this.#downPress = {event, ray};
+
+		// Try edge-control drag first, but only if the control is at least as
+		// close as this DT's own regular points.
+		if (
+			controlDist < Infinity &&
+			controlDist <= pointDist &&
+			controlsManager!.checkHover(ray) &&
+			controlsManager!.startDragging()
+		) {
+			const uuid = this.#drawingToolsManager.uuid;
+			MobileStrategy.#blockingInstances.set(uuid, {
+				distance: controlDist,
+				cancel: () => {
+					this.#interactionManager.controlsManager?.onOut();
+					this.clearDownPress();
+				},
+			});
+			if (!this.#cameraFreezeFlag)
+				this.#cameraFreezeFlag = this.#viewport.addFlag(
+					FLAG_TYPE.CAMERA_FREEZE,
+				);
+			return;
+		}
+
+		// Reuse the already-computed point distances.
+		this.#distances = pointDists;
 
 		if (this.#distances && this.#distances.length > 0) {
+			// Register this point hit as a blocking claim so that other DTs
+			// processed later in the same touch event are outbid when their
+			// nearest candidate is farther away.
+			const uuid = this.#drawingToolsManager.uuid;
+			MobileStrategy.#blockingInstances.set(uuid, {
+				distance: pointDist,
+				cancel: () => {
+					this.#interactionManagerHelper.removeAllSelectedPoints();
+					this.clearDownPress();
+				},
+			});
+
 			// select the point
 			if (this.#drawingToolsManager.settings.general.enableSelection)
 				this.#interactionManagerHelper.toggleSelection(
@@ -157,6 +232,19 @@ export class MobileStrategy implements IStrategy {
 		const clickThresholdSquared = 25;
 		const pointerMoved = distanceSquared > clickThresholdSquared;
 
+		// If an edge control is being dragged, move it.
+		const controlsManager = this.#interactionManager.controlsManager;
+		if (controlsManager?.isDraggingControl) {
+			if (pointerMoved) {
+				controlsManager.moveDraggedControl(ray);
+				if (this.#downPressTimeout) {
+					clearTimeout(this.#downPressTimeout);
+					this.#downPressTimeout = undefined;
+				}
+			}
+			return;
+		}
+
 		// if we have selected points, move them
 		if (
 			this.#drawingToolsManager.settings.general.enableTranslation &&
@@ -176,12 +264,22 @@ export class MobileStrategy implements IStrategy {
 	}
 
 	public onOut(): void {
+		// Cancel any in-progress edge control drag.
+		this.#interactionManager.controlsManager?.onOut();
 		// cleanup
 		this.#interactionManagerHelper.removeAllSelectedPoints();
 		this.clearDownPress();
 	}
 
 	public onUp(event: PointerEvent): void {
+		// If an edge control was being dragged, commit it.
+		const controlsManager = this.#interactionManager.controlsManager;
+		if (controlsManager?.isDraggingControl) {
+			controlsManager.endDragging();
+			this.clearDownPress();
+			return;
+		}
+
 		if (this.#downPressTimeout) {
 			// it's a short press!
 			// do short press stuff here
@@ -268,6 +366,9 @@ export class MobileStrategy implements IStrategy {
 			this.#cameraFreezeFlag = "";
 		}
 
+		MobileStrategy.#blockingInstances.delete(
+			this.#drawingToolsManager.uuid,
+		);
 		this.#hoveredPoint = undefined;
 		this.#restrictionManager.showRestrictionVisualization = false;
 		this.#interactionManagerHelper.reset();
