@@ -80,7 +80,7 @@ export class RectangleTransformPointsMapping {
 			{mi: 7, c1: 6, c2: 0, show: showM7},
 		];
 		for (const {mi, c1, c2, show} of midDefs) {
-			if (show && !lockedSet.has(c1) && !lockedSet.has(c2)) {
+			if (show) {
 				midpointEdges.push({
 					conceptualMidIndex: mi,
 					corner1CI: c1,
