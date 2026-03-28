@@ -942,6 +942,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				)
 					? undefined
 					: settingsOptional.visualization.wireframeColor,
+				edgeControlVisualization: isUndefinedOrNull(
+					settingsOptional.visualization.edgeControlVisualization,
+				)
+					? undefined
+					: settingsOptional.visualization.edgeControlVisualization,
 			};
 		}
 

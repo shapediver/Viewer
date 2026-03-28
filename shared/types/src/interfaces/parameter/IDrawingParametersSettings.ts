@@ -1,81 +1,41 @@
 import {z} from "zod";
+
 import {IMaterialBasicLineDataProperties} from "../data/material/IMaterialBasicLineData";
 import {IMaterialMultiPointDataProperties} from "../data/material/IMaterialMultiPointData";
 import {RestrictionDefinition} from "./IRestrictionSettings";
-
-// #region Interfaces (2)
-
-export type DrawingParameterValue = {
-	points: number[][];
-};
-
-export interface IVisualizationSettings {
-	// #region Properties (5)
-
-	/**
-	 * If the distance labels are shown.
-	 * The distance labels display the distance between the points.
-	 *
-	 * @default true
-	 */
-	distanceLabels: boolean;
-	/**
-	 * The multiplication factor of the point size when interactions are performed.
-	 * If the factor is set to 2, the point size is doubled when interacting.
-	 *
-	 * @default 2
-	 */
-	distanceMultiplicationFactor: number;
-	/**
-	 * The material properties of the lines.
-	 */
-	lines: IMaterialBasicLineDataProperties;
-	/**
-	 * If the point labels are shown.
-	 * The point labels display the position of the points.
-	 *
-	 * @default false
-	 */
-	pointLabels: boolean;
-	/**
-	 * If the pointer position is shown.
-	 * The pointer position displays the position of the pointer.
-	 *
-	 * @default true
-	 */
-	pointerPosition: boolean;
-	/**
-	 * The material properties of the points.
-	 */
-	points: IMaterialMultiPointDataProperties;
-	/**
-	 * If the geometry restrictions should display a wireframe.
-	 *
-	 * This settings is only applied to geometry restrictions that
-	 * do not have this settings defined already.
-	 *
-	 * @default undefined
-	 */
-	wireframe?: boolean;
-	/**
-	 * The color of the wireframe.
-	 *
-	 * This settings is only applied to geometry restrictions that
-	 * do not have this settings defined already.
-	 *
-	 * @default undefined
-	 */
-	wireframeColor?: string;
-
-	// #endregion Properties (5)
-}
 
 /**
  * General properties of a drawing tools parameter.
  */
 export interface IDrawingParameterSettings {
-	// #region Properties (2)
-
+	display?: Partial<IVisualizationSettings>;
+	general?: {
+		/** A prompt that can be defined which is displayed instead of the default prompt. */
+		prompt?: {
+			/** The title when the parameter is inactive. */
+			inactiveTitle?: string;
+			/** The title when the parameter is active. */
+			activeTitle?: string;
+			/** The text when the parameter is inactive. */
+			activeText?: string;
+		};
+		options?: {
+			/** If true, the distance labels are shown. (default: true) */
+			showDistanceLabels?: boolean;
+			/** If true, the point labels are shown. (default: false) */
+			showPointLabels?: boolean;
+			/** If true, the pointer position is shown. (default: true) */
+			showPointerPosition?: boolean;
+			/** If true, the snapping to vertices is enabled, if there is a geometry restriction. (default: true) */
+			snapToVertices?: boolean;
+			/** If true, the snapping to edges is enabled, if there is a geometry restriction. (default: true) */
+			snapToEdges?: boolean;
+			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
+			snapToFaces?: boolean;
+		};
+		/** The mode to determine when the parameter is active. (default: 'default') */
+		activeMode?: "default" | "activeOnStart";
+	};
 	geometry?: {
 		/**
 		 * The mode of the geometry.
@@ -124,41 +84,85 @@ export interface IDrawingParameterSettings {
 		autoClose: boolean;
 	};
 	restrictions?: RestrictionDefinition[];
-	general?: {
-		/** A prompt that can be defined which is displayed instead of the default prompt. */
-		prompt?: {
-			/** The title when the parameter is inactive. */
-			inactiveTitle?: string;
-			/** The title when the parameter is active. */
-			activeTitle?: string;
-			/** The text when the parameter is inactive. */
-			activeText?: string;
-		};
-		options?: {
-			/** If true, the distance labels are shown. (default: true) */
-			showDistanceLabels?: boolean;
-			/** If true, the point labels are shown. (default: false) */
-			showPointLabels?: boolean;
-			/** If true, the pointer position is shown. (default: true) */
-			showPointerPosition?: boolean;
-			/** If true, the snapping to vertices is enabled, if there is a geometry restriction. (default: true) */
-			snapToVertices?: boolean;
-			/** If true, the snapping to edges is enabled, if there is a geometry restriction. (default: true) */
-			snapToEdges?: boolean;
-			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
-			snapToFaces?: boolean;
-		};
-		/** The mode to determine when the parameter is active. (default: 'default') */
-		activeMode?: "default" | "activeOnStart";
-	};
-	display?: Partial<IVisualizationSettings>;
-
-	// #endregion Properties (2)
 }
 
-// #endregion Interfaces (2)
+export interface IVisualizationSettings {
+	/**
+	 * If the distance labels are shown.
+	 * The distance labels display the distance between the points.
+	 *
+	 * @default true
+	 */
+	distanceLabels: boolean;
 
-// #region Variables (2)
+	/**
+	 * The multiplication factor of the point size when interactions are performed.
+	 * If the factor is set to 2, the point size is doubled when interacting.
+	 *
+	 * @default 2
+	 */
+	distanceMultiplicationFactor: number;
+
+	/**
+	 * The visualization settings for the edge control of the geometry restrictions.
+	 * If not defined, the edge control visualization is determined by the general line and point visualization settings.
+	 */
+	edgeControlVisualization?: Pick<IVisualizationSettings, "points" | "lines">;
+
+	/**
+	 * The material properties of the lines.
+	 */
+	lines: IMaterialBasicLineDataProperties;
+
+	/**
+	 * If the point labels are shown.
+	 * The point labels display the position of the points.
+	 *
+	 * @default false
+	 */
+	pointLabels: boolean;
+
+	/**
+	 * If the pointer position is shown.
+	 * The pointer position displays the position of the pointer.
+	 *
+	 * @default true
+	 */
+	pointerPosition: boolean;
+
+	/**
+	 * The material properties of the points.
+	 */
+	points: IMaterialMultiPointDataProperties;
+
+	/**
+	 * If the geometry restrictions should display a wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframe?: boolean;
+
+	/**
+	 * The color of the wireframe.
+	 *
+	 * This settings is only applied to geometry restrictions that
+	 * do not have this settings defined already.
+	 *
+	 * @default undefined
+	 */
+	wireframeColor?: string;
+}
+
+export type DrawingParameterValue = {
+	points: number[][];
+};
+
+export const validateDrawingParameterSettings = (param: unknown) => {
+	return IDrawingParameterJsonSchema.safeParse(param);
+};
 
 const optionalBoolean = z.preprocess((val) => {
 	if (val === "true") return true;
@@ -215,13 +219,14 @@ export const IDrawingParameterJsonSchema = z.object({
 			points: z.any().nullable().optional(),
 			wireframe: optionalBoolean,
 			wireframeColor: z.string().nullable().optional(),
+			edgeControlVisualization: z
+				.object({
+					lines: z.any().nullable().optional(),
+					points: z.any().nullable().optional(),
+				})
+				.nullable()
+				.optional(),
 		})
 		.nullable()
 		.optional(),
 });
-
-export const validateDrawingParameterSettings = (param: unknown) => {
-	return IDrawingParameterJsonSchema.safeParse(param);
-};
-
-// #endregion Variables (2)

@@ -438,7 +438,8 @@ export class ControlsManager {
 					depthWrite: false,
 					transparent: true,
 				},
-				this.#settings.visualization.points,
+				this.#settings.visualization.edgeControlVisualization?.points ??
+					this.#settings.visualization.points,
 			),
 		);
 
