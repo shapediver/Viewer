@@ -192,40 +192,52 @@ const sendNotification = (title: string, message: string) => {
 				},
 			},
 
-			// ── Midpoints ─────────────────────────────────────────────────────
+			// ── EdgeControls ─────────────────────────────────────────────────────
 			<IBooleanElement>{
 				type: "boolean",
-				name: "Midpoint: Top",
-				value: settings.midpoints?.top ?? true,
+				name: "EdgeControl: Top",
+				value: settings.edgeControls?.top ?? true,
 				onChangeCallback: (value: boolean) => {
-					settings.midpoints = {...settings.midpoints, top: value};
+					settings.edgeControls = {
+						...settings.edgeControls,
+						top: value,
+					};
 					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
 				type: "boolean",
-				name: "Midpoint: Bottom",
-				value: settings.midpoints?.bottom ?? true,
+				name: "EdgeControl: Bottom",
+				value: settings.edgeControls?.bottom ?? true,
 				onChangeCallback: (value: boolean) => {
-					settings.midpoints = {...settings.midpoints, bottom: value};
+					settings.edgeControls = {
+						...settings.edgeControls,
+						bottom: value,
+					};
 					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
 				type: "boolean",
-				name: "Midpoint: Left",
-				value: settings.midpoints?.left ?? true,
+				name: "EdgeControl: Left",
+				value: settings.edgeControls?.left ?? true,
 				onChangeCallback: (value: boolean) => {
-					settings.midpoints = {...settings.midpoints, left: value};
+					settings.edgeControls = {
+						...settings.edgeControls,
+						left: value,
+					};
 					recreateRectangleTransform();
 				},
 			},
 			<IBooleanElement>{
 				type: "boolean",
-				name: "Midpoint: Right",
-				value: settings.midpoints?.right ?? true,
+				name: "EdgeControl: Right",
+				value: settings.edgeControls?.right ?? true,
 				onChangeCallback: (value: boolean) => {
-					settings.midpoints = {...settings.midpoints, right: value};
+					settings.edgeControls = {
+						...settings.edgeControls,
+						right: value,
+					};
 					recreateRectangleTransform();
 				},
 			},

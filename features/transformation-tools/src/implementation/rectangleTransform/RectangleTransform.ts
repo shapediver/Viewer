@@ -517,7 +517,7 @@ export class RectangleTransform
 				this.#localPoints,
 				{
 					corners: this.settings?.corners,
-					midpoints: this.settings?.midpoints,
+					edgeControls: this.settings?.edgeControls,
 				},
 				this.settings?.scaling,
 			);

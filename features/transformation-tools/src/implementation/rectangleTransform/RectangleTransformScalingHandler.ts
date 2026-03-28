@@ -71,15 +71,15 @@ export class RectangleTransformScalingHandler
 			return [p[0], p[1], p[2]] as [number, number, number];
 		});
 
-		// Midpoint controls: each controls the midpoint of an edge and has a fixed direction.
-		const controls: IControl[] = this.#pointsMapping.midpointEdges.map(
-			({conceptualMidIndex, corner1CI, corner2CI}) => {
+		// EdgeControls: each controls the midpoint of an edge and has a fixed direction.
+		const controls: IControl[] = this.#pointsMapping.edgeControls.map(
+			({conceptualEdgeControlIndex, corner1CI, corner2CI}) => {
 				const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
 				const di2 = this.#pointsMapping.conceptualToDT[corner2CI];
 				// Direction perpendicular to the edge in plane-LS:
 				//   U-edges (M1, M5, horizontal) → V-axis (0,1,0)
 				//   V-edges (M3, M7, vertical)   → U-axis (1,0,0)
-				const isUEdge = conceptualMidIndex % 4 === 1;
+				const isUEdge = conceptualEdgeControlIndex % 4 === 1;
 				const direction = isUEdge
 					? vec3.fromValues(0, 1, 0)
 					: vec3.fromValues(1, 0, 0);
@@ -318,11 +318,11 @@ export class RectangleTransformScalingHandler
 		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
-		const {conceptualMidIndex, corner1CI, corner2CI} =
-			this.#pointsMapping.midpointEdges[controlIndex];
+		const {conceptualEdgeControlIndex, corner1CI, corner2CI} =
+			this.#pointsMapping.edgeControls[controlIndex];
 		// M1,M5 are on U-axis edges (horizontal) → only V changes.
 		// M3,M7 are on V-axis edges (vertical)   → only U changes.
-		const isUEdge = conceptualMidIndex % 4 === 1;
+		const isUEdge = conceptualEdgeControlIndex % 4 === 1;
 
 		const basis = getRectBasis(localPoints);
 		const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
@@ -350,7 +350,7 @@ export class RectangleTransformScalingHandler
 		const origRightU = c2uv.u;
 
 		if (isUEdge) {
-			if (conceptualMidIndex === 1) {
+			if (conceptualEdgeControlIndex === 1) {
 				c0uv = {u: c0uv.u, v: movedUV.v};
 				c2uv = {u: c2uv.u, v: movedUV.v};
 			} else {
@@ -358,7 +358,7 @@ export class RectangleTransformScalingHandler
 				c6uv = {u: c6uv.u, v: movedUV.v};
 			}
 		} else {
-			if (conceptualMidIndex === 3) {
+			if (conceptualEdgeControlIndex === 3) {
 				c2uv = {u: movedUV.u, v: c2uv.v};
 				c4uv = {u: movedUV.u, v: c4uv.v};
 			} else {

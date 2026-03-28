@@ -27,11 +27,11 @@ export type RectangleTransformSettings = {
 		topLeft?: boolean;
 	};
 	/**
-	 * Options to disable specific midpoints of the rectangle.
-	 * Disabled midpoints are not interactive but still visible as locked handles.
-	 * By default, all midpoints are enabled.
+	 * Options to disable specific edgeControls of the rectangle.
+	 * Disabled edgeControls are not interactive but still visible as locked handles.
+	 * By default, all edgeControls are enabled.
 	 */
-	midpoints?: {
+	edgeControls?: {
 		top?: boolean;
 		bottom?: boolean;
 		left?: boolean;

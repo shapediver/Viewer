@@ -252,7 +252,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 			})
 			.nullable()
 			.optional(),
-		midpoints: z
+		edgeControls: z
 			.object({
 				top: optionalBoolean,
 				bottom: optionalBoolean,
