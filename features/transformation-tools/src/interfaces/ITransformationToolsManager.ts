@@ -8,6 +8,12 @@ export interface ITransformationToolsManager extends IDomEventListener {
 	readonly closed: boolean;
 
 	/**
+	 * The id of the transformation tools instance.
+	 * This can be used to identify the transformation tools instance and is useful when working with multiple transformation tools instances.
+	 */
+	readonly id: string;
+
+	/**
 	 * Show or hide the Transformation Tools.
 	 */
 	show: boolean;

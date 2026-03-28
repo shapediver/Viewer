@@ -10,6 +10,7 @@ import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
+	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 
@@ -25,12 +26,14 @@ export abstract class TransformationToolsManager
 	implements ITransformationToolsManager
 {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
+	readonly #id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
 	readonly #singleNode: boolean;
+	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
 	#cameraFreezeFlag?: string;
@@ -50,10 +53,12 @@ export abstract class TransformationToolsManager
 	protected abstract transformationToolsPlaceholderMatrix: mat4;
 
 	constructor(
+		id: string | undefined,
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
 		settings?: SettingsOptional,
 	) {
+		this.#id = id ?? this.#uuidGenerator.create();
 		this.#viewport = viewport;
 		this.#canvasEventListenerToken =
 			this.#viewport.addCanvasEventListener(this);
@@ -82,6 +87,14 @@ export abstract class TransformationToolsManager
 
 	public get closed(): boolean {
 		return this.#closed;
+	}
+
+	public get id(): string {
+		return this.#id;
+	}
+
+	public get settings(): SettingsOptional | undefined {
+		return this.#settings;
 	}
 
 	public get show(): boolean {
@@ -134,10 +147,6 @@ export abstract class TransformationToolsManager
 
 	protected get reuseTransformation(): boolean {
 		return this.#reuseTransformation;
-	}
-
-	public get settings(): SettingsOptional | undefined {
-		return this.#settings;
 	}
 
 	protected get singleNode(): boolean {
@@ -526,6 +535,7 @@ export abstract class TransformationToolsManager
 			transformations: [],
 			localTransformations: [],
 			nodes: [],
+			id: this.id,
 			type: this.type,
 		};
 

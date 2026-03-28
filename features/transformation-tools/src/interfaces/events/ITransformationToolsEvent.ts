@@ -5,6 +5,11 @@ import {mat4} from "gl-matrix";
 
 export interface ITransformationToolsEvent extends IViewportEvent {
 	/**
+	 * The id of the transformation tools instance.
+	 */
+	id: string;
+
+	/**
 	 * The local transformations.
 	 * This is the transformation that is applied to the nodes, with the inverted initial transformations for single nodes and the multiplied initial transformations for multiple nodes.
 	 */

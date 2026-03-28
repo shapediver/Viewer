@@ -32,8 +32,9 @@ export class GumballTransform
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
 		settings?: GumballTransformSettingsOptional,
+		id?: string,
 	) {
-		super(viewport, nodes, settings);
+		super(id, viewport, nodes, settings);
 
 		this.#gumballTransformControls = new GumballTransformControls(
 			viewport.threeJsCoreObjects.camera,

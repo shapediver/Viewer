@@ -79,8 +79,9 @@ export class RectangleTransform
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
 		settings?: RectangleTransformSettingsOptional,
+		id?: string,
 	) {
-		super(viewport, nodes, settings);
+		super(id, viewport, nodes, settings);
 
 		const planeDefinition = this.settings?.plane;
 		const planeRestriction: PlaneRestrictionProperties = !planeDefinition
