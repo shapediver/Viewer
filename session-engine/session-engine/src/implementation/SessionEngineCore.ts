@@ -119,7 +119,9 @@ export class SessionEngineCore {
 				},
 			});
 		} catch (e) {
-			throw this._httpClient.convertError(e);
+			this._utilsManager.handleError(e).then((convertedError) => {
+				throw convertedError;
+			});
 		}
 	}
 
@@ -374,16 +376,20 @@ export class SessionEngineCore {
 				downloadTexture: async (
 					url: string,
 				): Promise<[ArrayBuffer, string]> => {
-					const response = await new UtilsApi(
-						this._sdkConfig,
-					).downloadImage(this._sessionId!, url, {
-						responseType: "arraybuffer",
-					});
+					try {
+						const response = await new UtilsApi(
+							this._sdkConfig,
+						).downloadImage(this._sessionId!, url, {
+							responseType: "arraybuffer",
+						});
 
-					return [
-						response.data as unknown as ArrayBuffer,
-						response.headers["content-type"],
-					];
+						return [
+							response.data as unknown as ArrayBuffer,
+							response.headers["content-type"],
+						];
+					} catch (e) {
+						throw await this._utilsManager.handleError(e);
+					}
 				},
 			});
 

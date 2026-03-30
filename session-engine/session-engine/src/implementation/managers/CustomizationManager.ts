@@ -26,6 +26,7 @@ import {ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
 import {SessionData} from "../SessionData";
 import {SessionEngineCore} from "../SessionEngineCore";
 import {SessionTreeNode} from "../SessionTreeNode";
+import {UtilsManager} from "./UtilsManager";
 
 /**
  * Manager responsible for for various customization tasks within the session engine.
@@ -41,6 +42,7 @@ export class CustomizationManager {
 	private readonly _sessionEngineCore: SessionEngineCore;
 	private readonly _stateEngine = StateEngine.instance;
 	private readonly _uuidGenerator = UuidGenerator.instance;
+	private readonly _utilsManager: UtilsManager;
 
 	private _customizationBusyModes: string[] = [];
 	private _customizationProcess?: string;
@@ -49,6 +51,7 @@ export class CustomizationManager {
 
 	constructor(sessionEngineCore: SessionEngineCore) {
 		this._sessionEngineCore = sessionEngineCore;
+		this._utilsManager = sessionEngineCore.utilsManager;
 	}
 
 	public get customizationBusyModes(): string[] {
@@ -456,7 +459,7 @@ export class CustomizationManager {
 				customizationId,
 			);
 
-			throw await this._httpClient.convertError(e);
+			throw await this._utilsManager.handleError(e, false);
 		}
 	}
 

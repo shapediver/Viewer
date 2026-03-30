@@ -118,58 +118,23 @@ export class HttpClient {
 	 *
 	 * @param e
 	 */
-	public async convertError(
-		err: ShapeDiverBackendError | Error | unknown,
-		log: boolean = false,
-	) {
+	public async convertError(err: ShapeDiverBackendError | Error | unknown) {
 		const e = err instanceof Error ? await processError(err) : err;
 
 		let convertedError = e;
 		if (e instanceof ResponseError) {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: ${e.type}\n\t- message: ${e.message}\n\t- description: ${e.description}\n\t- status: ${e.status}\n`,
-				);
-
 			convertedError = new ShapeDiverGeometryBackendResponseError(
 				e.message,
 				e.status,
 				e.type,
 				e.description,
 			);
-		} else if (e instanceof ShapeDiverGeometryBackendResponseError) {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: ${e.geometryBackendErrorType}\n\t- message: ${e.message}\n\t- description: ${e.desc}\n\t- status: ${e.status}\n`,
-				);
 		} else if (e instanceof RequestError) {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: RequestError\n\t- message: ${e.message}\n`,
-				);
-
 			convertedError = new ShapeDiverGeometryBackendRequestError(
 				e.message,
 			);
-		} else if (e instanceof ShapeDiverGeometryBackendRequestError) {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: RequestError\n\t- message: ${e.message}\n`,
-				);
 		} else if (e instanceof ShapeDiverBackendError) {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: ShapeDiverBackendError\n\t- message: ${e.message}\n`,
-				);
-
 			convertedError = new ShapeDiverGeometryBackendError(e.message);
-		} else {
-			if (log)
-				this._logger.error(
-					`\nFailed to load resource:\n\t- type: UnknownError\n\t- message: ${
-						e instanceof Error ? e.message : String(e)
-					}\n`,
-				);
 		}
 
 		return convertedError;
@@ -265,7 +230,7 @@ export class HttpClient {
 					href,
 					Object.assign({method: "get"}, config),
 				).catch(async (e) => {
-					throw await this.convertError(e, true);
+					throw await this.convertError(e);
 				});
 			} else {
 				// all data links where we could somehow find a session to load it with
@@ -292,7 +257,7 @@ export class HttpClient {
 							});
 					},
 				).catch(async (e) => {
-					throw await this.convertError(e, true);
+					throw await this.convertError(e);
 				});
 			}
 		}
@@ -370,7 +335,7 @@ export class HttpClient {
 				}
 			})
 			.catch(async (e) => {
-				throw await this.convertError(e, true);
+				throw await this.convertError(e);
 			});
 
 		// add the result to the cache

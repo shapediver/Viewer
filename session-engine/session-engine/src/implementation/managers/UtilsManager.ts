@@ -1,6 +1,7 @@
 ﻿import {
 	processError,
 	ReqFileDefinition,
+	RequestError,
 	ResComputationStatus,
 	ResErrorType,
 	ResExport,
@@ -314,8 +315,14 @@ export class UtilsManager {
 					throw await this._httpClient.convertError(e);
 				}
 			} else {
+				this._logger.error(
+					`\nResponseError:\n\t- type: ${e.type}\n\t- message: ${e.message}\n\t- description: ${e.description}\n\t- status: ${e.status}\n`,
+				);
 				throw await this._httpClient.convertError(e);
 			}
+		} else if (e instanceof RequestError) {
+			this._logger.error(`\nRequestError:\n\t- message: ${e.message}\n`);
+			throw await this._httpClient.convertError(e);
 		} else {
 			throw await this._httpClient.convertError(e);
 		}
