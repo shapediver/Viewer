@@ -1,9 +1,14 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+﻿import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {IViewportEvent} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
 
 export interface ITransformationToolsEvent extends IViewportEvent {
+	/**
+	 * The id of the transformation tools instance.
+	 */
+	id: string;
+
 	/**
 	 * The local transformations.
 	 * This is the transformation that is applied to the nodes, with the inverted initial transformations for single nodes and the multiplied initial transformations for multiple nodes.
@@ -19,4 +24,9 @@ export interface ITransformationToolsEvent extends IViewportEvent {
 	 * The currently used matrix.
 	 */
 	transformations: mat4[];
+
+	/**
+	 * The type of transformation tools that was used.
+	 */
+	type: "gumball" | "rectangleTransform";
 }

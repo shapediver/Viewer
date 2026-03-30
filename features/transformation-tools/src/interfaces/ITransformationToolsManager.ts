@@ -8,6 +8,12 @@ export interface ITransformationToolsManager extends IDomEventListener {
 	readonly closed: boolean;
 
 	/**
+	 * The id of the transformation tools instance.
+	 * This can be used to identify the transformation tools instance and is useful when working with multiple transformation tools instances.
+	 */
+	readonly id: string;
+
+	/**
 	 * Show or hide the Transformation Tools.
 	 */
 	show: boolean;
@@ -45,16 +51,6 @@ export type Settings = {
 	 * Reuse the transformation that are already applied to the nodes. (default: true)
 	 */
 	reuseTransformation: boolean;
-
-	/**
-	 * The scale of the Transformation Tools compared to the screen size. (default: 0.15)
-	 */
-	scale: number;
-
-	/**
-	 * The space in which the Transformation Tools operates. (default: 'local')
-	 */
-	space: "local" | "world";
 };
 
 export type SettingsOptional = Partial<Settings>;

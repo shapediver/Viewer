@@ -63,9 +63,9 @@ Here you can define the visualization of the drawing tool.
 | points                       | The material properties of the points. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialMultiPointDataProperties.html). |
 | lines                        | The material properties of the lines. For more details please have a look at the [API documentation](https://viewer.shapediver.com/v3/latest/api/interfaces/IMaterialBasicLineData.html).             |
 
-#### controls
+#### keyBindings
 
-The control settings of the drawing tool.
+The key binding settings of the drawing tool.
 Here you can define which keys are used for the different actions of the drawing tool.
 
 | Property | Description                                     |

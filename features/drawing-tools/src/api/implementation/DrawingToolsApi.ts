@@ -1,4 +1,4 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {ITreeNode, IViewportApi} from "@shapediver/viewer";
 import {
 	CameraPlaneRestriction,
 	CameraPlaneRestrictionApi,
@@ -40,12 +40,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		callbacks: Callbacks,
 		settings: SettingsOptional,
 		defaultTextures?: DefaultTextures,
+		parentNode?: ITreeNode,
 	) {
 		this.#drawingToolsManager = new DrawingToolsManager(
 			viewport,
 			callbacks,
 			settings,
 			defaultTextures,
+			parentNode,
 		);
 
 		for (const token in this.#drawingToolsManager.restrictions) {
@@ -107,6 +109,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
 	public get pointsData(): PointsData {
 		return this.#drawingToolsManager.getPointsData();
+	}
+
+	public get uuid(): string {
+		return this.#drawingToolsManager.uuid;
 	}
 
 	public get restrictions(): {[key: string]: IRestrictionApi} {
@@ -208,8 +214,25 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		this.#drawingToolsManager.cancel();
 	}
 
+	public cancelDrag(): void {
+		this.#drawingToolsManager.cancelDrag();
+	}
+
+	public isInteractionActive(): boolean {
+		return this.#drawingToolsManager.isInteractionActive();
+	}
+
 	public close(): void {
 		this.#drawingToolsManager.close();
+	}
+
+	public movePoint(index: number, position: vec3, temporary?: boolean): void {
+		this.#drawingToolsManager.movePoint(
+			index,
+			position,
+			undefined,
+			temporary,
+		);
 	}
 
 	public redo(): void {

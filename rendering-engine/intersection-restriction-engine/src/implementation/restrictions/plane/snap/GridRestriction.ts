@@ -71,13 +71,15 @@ export class GridRestriction
 		planeRestriction: PlaneRestriction,
 		properties?: GridRestrictionProperties,
 	) {
-		super(viewport, parentNode, "grid");
+		super(viewport, parentNode, "grid", properties);
 
 		this.#planeRestriction = planeRestriction;
 
 		this.#activationKey = properties?.activationKey || "g";
 		this.enabled = properties?.enabled ?? false;
 		this._enabledEditable = properties?.enabledEditable ?? true;
+		this._enableVisualization = properties?.enableVisualization ?? true;
+
 		// if a grid unit is provided, we toggle it on by default
 		if (properties?.gridUnit !== undefined && properties?.gridUnit !== 0) {
 			this.#toggleInversion = true;
@@ -310,6 +312,8 @@ export class GridRestriction
 	// #region Private Methods (2)
 
 	private createGridVisualization(): void {
+		if (!this._createHelperObjects) return;
+
 		if (this.#gridHelper) {
 			this._object3D.remove(this.#gridHelper);
 			this.#gridHelper.dispose();

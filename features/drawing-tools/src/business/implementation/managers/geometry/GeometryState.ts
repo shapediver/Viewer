@@ -25,6 +25,7 @@ import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/Event
 import {IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
 import {
 	DefaultTextures,
+	MATERIAL_INDEX,
 	PointsData,
 	Settings,
 } from "../../../interfaces/IDrawingToolsManager";
@@ -34,6 +35,7 @@ export class GeometryState {
 	// #region Properties (16)
 
 	readonly #drawingToolsId: string;
+	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #geometryManager: GeometryManager;
 	readonly #parentNode: ITreeNode;
@@ -63,6 +65,7 @@ export class GeometryState {
 		this.#geometryManager = geometryManager;
 
 		this.#drawingToolsId = drawingToolsManager.uuid;
+		this.#drawingToolsManager = drawingToolsManager;
 		this.#settings = drawingToolsManager.settings;
 		this.#viewport = drawingToolsManager.viewport;
 		this.#parentNode = geometryManager.parentNode;
@@ -72,28 +75,60 @@ export class GeometryState {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (event.temporary === false && event.index !== undefined) {
-				// shift the temporary indices
-				this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-					i > event.index! ? i + 1 : i,
-				);
-			} else if (event.temporary === true && event.index !== undefined) {
-				this.#temporaryIndices.push(event.index!);
+			if (event.drawingToolsId !== this.#parentNode.id) return;
+			if (event.temporary === false) {
+				if (event.index !== undefined) {
+					// shift the temporary indices
+					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
+						i > event.index! ? i + 1 : i,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
+						let shift = 0;
+						for (const index of event.indices!) {
+							if (i > index) shift++;
+						}
+						return i + shift;
+					});
+				}
+			} else if (event.temporary === true) {
+				if (event.index !== undefined) {
+					this.#temporaryIndices.push(event.index!);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices.push(...event.indices!);
+				}
 			}
 		});
 
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (event.temporary === false && event.index !== undefined) {
-				// shift the temporary indices
-				this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-					i > event.index! ? i - 1 : i,
-				);
-			} else if (event.temporary === true && event.index !== undefined) {
-				this.#temporaryIndices = this.#temporaryIndices.filter(
-					(i) => i !== event.index,
-				);
+			if (event.drawingToolsId !== this.#parentNode.id) return;
+			if (event.temporary === false) {
+				if (event.index !== undefined) {
+					// shift the temporary indices
+					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
+						i > event.index! ? i - 1 : i,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
+						let shift = 0;
+						for (const index of event.indices!) {
+							if (i > index) shift++;
+						}
+						return i - shift;
+					});
+				}
+			} else if (event.temporary === true) {
+				if (event.index !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.filter(
+						(i) => i !== event.index!,
+					);
+				} else if (event.indices !== undefined) {
+					this.#temporaryIndices = this.#temporaryIndices.filter(
+						(i) => !event.indices!.includes(i),
+					);
+				}
 			}
 		});
 	}
@@ -302,7 +337,32 @@ export class GeometryState {
 			}
 
 			this.#positionArray = new Float32Array(points.length * 3);
-			this.#positionArray.set(([] as number[]).concat(...points));
+			// Build a map of all incoming points so applyConstraints can evaluate
+			// size constraints against other points without touching geometryState
+			// (which is not yet available at this point in construction).
+			const allIncoming = new Map<number, vec3>(
+				points.map(
+					(p, i) =>
+						[i, vec3.fromValues(p[0], p[1], p[2])] as [
+							number,
+							vec3,
+						],
+				),
+			);
+			const constrained = ([] as number[]).concat(
+				...points.map((p, i) => {
+					const overrides = new Map(allIncoming);
+					overrides.delete(i);
+					return Array.from(
+						this.#drawingToolsManager.applyConstraints(
+							vec3.fromValues(p[0], p[1], p[2]),
+							i,
+							overrides,
+						),
+					);
+				}),
+			);
+			this.#positionArray.set(constrained);
 			this.#metadataArray = new Array(points.length).fill(undefined);
 		} else {
 			this.#positionArray = new Float32Array();
@@ -369,6 +429,14 @@ export class GeometryState {
 
 		// create material index array
 		this.#materialIndexArray = new Array(1024).fill(0);
+
+		// Apply DISABLED material for any disabled points
+		const disabledPoints = this.#settings.geometry.disabledPoints;
+		if (disabledPoints) {
+			for (const idx of disabledPoints) {
+				this.#materialIndexArray[idx] = MATERIAL_INDEX.DISABLED;
+			}
+		}
 
 		this.#geometryDataPoints.material = new MaterialMultiPointData(
 			Object.assign(
@@ -455,7 +523,7 @@ export class GeometryState {
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
 			viewportId: this.#viewport.id,
-			drawingToolId: this.#drawingToolsId,
+			drawingToolsId: this.#drawingToolsId,
 			points: this.getPointsData(),
 			metaData: this.#metadataArray,
 			temporary: false,
@@ -571,7 +639,7 @@ export class GeometryState {
 
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, {
 			viewportId: this.#viewport.id,
-			drawingToolId: this.#drawingToolsId,
+			drawingToolsId: this.#drawingToolsId,
 			points: this.getPointsData(),
 			metaData: this.#metadataArray,
 			temporary,

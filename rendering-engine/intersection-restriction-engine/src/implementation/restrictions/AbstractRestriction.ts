@@ -16,6 +16,7 @@ import {ISnapRestriction} from "../../interfaces/ISnapRestriction";
 export abstract class AbstractRestriction implements IRestriction {
 	// #region Properties (12)
 
+	readonly #createHelperObjects: boolean;
 	readonly #id: string;
 	readonly #parentNode: ITreeNode;
 	readonly #type: RESTRICTION_TYPE;
@@ -54,7 +55,13 @@ export abstract class AbstractRestriction implements IRestriction {
 		};
 		this.#priority = properties.priority || -1;
 		this.#hideable = properties.hideable || false;
-		this.createGridHelperObject();
+		this.#createHelperObjects = properties.createHelperObjects ?? true;
+		if (this.#createHelperObjects) {
+			this.createGridHelperObject();
+		} else {
+			this._object3D = new THREE.Object3D();
+			this._object3D.visible = false;
+		}
 	}
 
 	// #endregion Constructors (1)
@@ -123,6 +130,7 @@ export abstract class AbstractRestriction implements IRestriction {
 	// #region Public Methods (1)
 
 	public removeVisualization(): void {
+		if (!this.#createHelperObjects) return;
 		this.#parentNode.removeChild(this.#visualizationNode);
 		this.#parentNode.updateVersion(false, false);
 		this.#viewport.updateNode(this.#parentNode);
@@ -148,6 +156,8 @@ export abstract class AbstractRestriction implements IRestriction {
 	// #region Private Methods (1)
 
 	private createGridHelperObject(): void {
+		if (!this.#createHelperObjects) return;
+
 		this._object3D = new THREE.Object3D();
 		this._object3D.visible = false;
 

@@ -1,3 +1,6 @@
 import {IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
+import {IInteractionParameterApi} from "./IInteractionParameterApi";
 
-export type IDrawingParameterApi = IDrawingParameterSettings;
+export interface IDrawingParameterApi extends IInteractionParameterApi {
+	readonly settings: IDrawingParameterSettings;
+}

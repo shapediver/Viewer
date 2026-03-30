@@ -58,6 +58,7 @@ export class RestrictionManager implements IRestrictionManager {
 			color: "#0d44f0",
 		},
 		pointLabels: false,
+		pointerPosition: true,
 		points: {
 			size_0: 15,
 			size_1: 20,
@@ -65,12 +66,14 @@ export class RestrictionManager implements IRestrictionManager {
 			size_3: 20,
 			size_4: 15,
 			size_5: 20,
+			size_6: 10,
 			color_0: "#0d44f0",
 			color_1: "#197aeb",
 			color_2: "#9e27d8",
 			color_3: "#bc47fd",
 			color_4: "#00ff78",
 			color_5: "#00ff78",
+			color_6: "#888888",
 		},
 	};
 	readonly #uuidGenerator = UuidGenerator.instance;

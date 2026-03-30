@@ -13,6 +13,7 @@ import {
 import {numberCleaner} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
+import {DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
 import {Settings} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
 
@@ -36,6 +37,7 @@ export class TextVisualizationManager {
 	#prevWidth: number = 0;
 	#showDistanceLabels: boolean = true;
 	#showPointLabels: boolean = true;
+	#showPointerPosition: boolean = true;
 
 	// #endregion Properties (14)
 
@@ -121,6 +123,8 @@ export class TextVisualizationManager {
 
 		this.#showPointLabels = this.#settings.visualization.pointLabels;
 		this.#showDistanceLabels = this.#settings.visualization.distanceLabels;
+		this.#showPointerPosition =
+			this.#settings.visualization.pointerPosition;
 
 		const node = new TreeNode("ThreeJsDataNode");
 		node.intersectionTest = false;
@@ -137,12 +141,18 @@ export class TextVisualizationManager {
 		this.createPointLabels();
 		this.createDistanceLabels();
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.createPointLabels();
 			this.createDistanceLabels();
 		});
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.createPointLabels();
 			this.createDistanceLabels();
 		});
@@ -175,6 +185,17 @@ export class TextVisualizationManager {
 			this.createPointLabels();
 		} else {
 			this.#positionObject3D.remove(...this.#positionObject3D.children);
+		}
+	}
+
+	public get showPointerPosition(): boolean {
+		return this.#showPointerPosition;
+	}
+
+	public set showPointerPosition(value: boolean) {
+		this.#showPointerPosition = value;
+		if (!this.#showPointerPosition) {
+			this.#pointerPositionField.innerHTML = "";
 		}
 	}
 
@@ -318,10 +339,12 @@ export class TextVisualizationManager {
 	}
 
 	public updatePointerPosition(p?: vec3): void {
+		if (!this.#showPointerPosition) return;
+
 		if (!p) {
-			this.#pointerPositionField.innerHTML = "";
+			this.#pointerPositionField.innerText = "";
 		} else {
-			this.#pointerPositionField.innerHTML = `[${numberCleaner(p[0])}, ${numberCleaner(p[1])}, ${numberCleaner(p[2])}]`;
+			this.#pointerPositionField.innerText = `[${numberCleaner(p[0])}, ${numberCleaner(p[1])}, ${numberCleaner(p[2])}]`;
 		}
 	}
 

@@ -1,6 +1,10 @@
 import {addListener} from "@shapediver/viewer";
 import {IRay} from "@shapediver/viewer.features.interaction";
-import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	GeometryMathManager,
+	PlaneRestriction,
+	RESTRICTION_TYPE,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
@@ -8,7 +12,9 @@ import {
 
 import {vec3} from "gl-matrix";
 
+import {DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
 import {
+	AdjacencyEntry,
 	MATERIAL_INDEX,
 	Settings,
 } from "../../../../interfaces/IDrawingToolsManager";
@@ -32,6 +38,7 @@ export class InteractionManagerHelper {
 	#lastRay: IRay | undefined;
 	#midPointInserted: boolean = false;
 	#moving: boolean = false;
+	#propagatedBasePositions: Map<number, vec3> = new Map();
 	#selectedMovedPointPositions: vec3[] = [];
 	#selectedPointIndices: number[] = [];
 	#selectedPointPositions: vec3[] = [];
@@ -47,7 +54,10 @@ export class InteractionManagerHelper {
 			this.#drawingToolsManager.geometryMathManager;
 		this.#settings = this.#drawingToolsManager.settings;
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, () => {
+		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
+			const event =
+				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			this.removeAllSelectedPoints();
 		});
 	}
@@ -172,7 +182,14 @@ export class InteractionManagerHelper {
 			)
 				return;
 			if (this.#hoveredPoint !== undefined) {
-				if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+				if (this.isPointDisabled(this.#hoveredPoint)) {
+					this.#drawingToolsManager.updateMaterialIndex(
+						this.#hoveredPoint,
+						MATERIAL_INDEX.DISABLED,
+					);
+				} else if (
+					this.#selectedPointIndices.includes(this.#hoveredPoint)
+				) {
 					this.#drawingToolsManager.updateMaterialIndex(
 						this.#hoveredPoint,
 						MATERIAL_INDEX.SELECTED,
@@ -205,7 +222,12 @@ export class InteractionManagerHelper {
 				}
 			}
 
-			if (this.#selectedPointIndices.includes(index)) {
+			if (this.isPointDisabled(index)) {
+				this.#drawingToolsManager.updateMaterialIndex(
+					index,
+					MATERIAL_INDEX.DISABLED,
+				);
+			} else if (this.#selectedPointIndices.includes(index)) {
 				this.#drawingToolsManager.updateMaterialIndex(
 					index,
 					MATERIAL_INDEX.SELECTED_HOVERED,
@@ -240,7 +262,14 @@ export class InteractionManagerHelper {
 		} else {
 			// remove the hovered point if there is no point close to the ray
 			if (this.#hoveredPoint !== undefined) {
-				if (this.#selectedPointIndices.includes(this.#hoveredPoint)) {
+				if (this.isPointDisabled(this.#hoveredPoint)) {
+					this.#drawingToolsManager.updateMaterialIndex(
+						this.#hoveredPoint,
+						MATERIAL_INDEX.DISABLED,
+					);
+				} else if (
+					this.#selectedPointIndices.includes(this.#hoveredPoint)
+				) {
 					this.#drawingToolsManager.updateMaterialIndex(
 						this.#hoveredPoint,
 						MATERIAL_INDEX.SELECTED,
@@ -284,6 +313,7 @@ export class InteractionManagerHelper {
 		this.#selectedPointPositions = [];
 		this.#selectedMovedPointPositions = [];
 		this.#draggedPointPosition = vec3.create();
+		this.#propagatedBasePositions.clear();
 	}
 
 	public deselectPoint(index: number): void {
@@ -313,7 +343,7 @@ export class InteractionManagerHelper {
 				this.#drawingToolsManager.restrictionManager.rayTrace(ray, {
 					type: "drawing",
 					index: this.#draggedPoint!,
-					startPoint: this.#draggedPointPosition,
+					startPoint: vec3.clone(this.#draggedPointPosition),
 					positionArray: this.#drawingToolsManager.positionArray,
 				});
 			const intersectionPoint = rayTraceResult?.point;
@@ -324,6 +354,13 @@ export class InteractionManagerHelper {
 					intersectionPoint,
 					this.#draggedPointPosition,
 				);
+
+				// Phase 1 – compute constrained proposed positions for every
+				// directly-selected point, building an overrides map so that
+				// each peer's constrained position is visible when checking the
+				// next point's size constraint.
+				const overrides = new Map<number, vec3>();
+				const constrainedPositions: vec3[] = [];
 
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
 					const isLastPoint =
@@ -341,60 +378,101 @@ export class InteractionManagerHelper {
 						this.#geometryState.closeLoop === false &&
 						this.#settings.geometry.autoClose === false;
 
+					let rawProposed: vec3;
 					if (isLastPoint && canBeClosed && shouldBeClosed) {
-						// if restricted point is close to the first point, remove the current insertion point and draw a line to the first point
 						const firstPoint = this.#geometryState.getPosition(0);
-						const lastPoint = intersectionPoint;
-
 						if (
-							lastPoint &&
 							this.#geometryMathManager.screenSpaceDistanceCheck(
 								firstPoint,
-								lastPoint,
+								intersectionPoint,
 								this.#settings.visualization.points.size_0! *
 									this.#settings.visualization
 										.distanceMultiplicationFactor,
 							).check === true
 						) {
-							// close the geometry
-							this.#selectedMovedPointPositions[i] =
-								vec3.clone(firstPoint);
-							this.#drawingToolsManager.movePointTemporary(
-								this.#selectedPointIndices[i],
-								firstPoint,
-								rayTraceResult,
-							);
+							// snap to first point to close the geometry
+							rawProposed = vec3.clone(firstPoint);
 						} else {
-							// not close enough to close the geometry
-							this.#selectedMovedPointPositions[i] = vec3.add(
+							rawProposed = vec3.add(
 								vec3.create(),
 								differenceToIntersected,
 								this.#selectedPointPositions[i],
 							);
-							this.#drawingToolsManager.movePointTemporary(
-								this.#selectedPointIndices[i],
-								this.#selectedMovedPointPositions[i],
-								rayTraceResult,
-							);
 						}
 					} else {
-						// add difference to selected point
-						this.#selectedMovedPointPositions[i] = vec3.add(
+						rawProposed = vec3.add(
 							vec3.create(),
 							differenceToIntersected,
 							this.#selectedPointPositions[i],
 						);
-						this.#drawingToolsManager.movePointTemporary(
-							this.#selectedPointIndices[i],
-							this.#selectedMovedPointPositions[i],
-							rayTraceResult,
-						);
 					}
+
+					const constrained =
+						this.#drawingToolsManager.applyConstraints(
+							rawProposed,
+							this.#selectedPointIndices[i],
+							overrides,
+						);
+					constrainedPositions.push(constrained);
+					overrides.set(this.#selectedPointIndices[i], constrained);
+				}
+
+				// Effective delta for the dragged point after constraint clamping.
+				const draggedSelIdx = this.#selectedPointIndices.indexOf(
+					this.#draggedPoint!,
+				);
+				const effectiveDelta =
+					draggedSelIdx >= 0
+						? vec3.sub(
+								vec3.create(),
+								constrainedPositions[draggedSelIdx],
+								this.#selectedPointPositions[draggedSelIdx],
+							)
+						: differenceToIntersected;
+
+				// Phase 2 – compute indirect positions once; null means a
+				// constraint would be violated, so abort without moving anything.
+				const indirectPositions = this.applyAdjacencyPropagation(
+					effectiveDelta,
+					overrides,
+				);
+				if (indirectPositions === null) {
+					return intersectionPoint;
+				}
+
+				// Phase 3 – apply constrained positions to direct points.
+				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
+					this.#selectedMovedPointPositions[i] =
+						constrainedPositions[i];
+					this.#drawingToolsManager.movePointTemporary(
+						this.#selectedPointIndices[i],
+						constrainedPositions[i],
+						rayTraceResult,
+					);
+				}
+
+				// Phase 4 – apply pre-computed indirect positions.
+				for (const [targetIdx, pos] of indirectPositions) {
+					this.#drawingToolsManager.movePointTemporary(
+						targetIdx,
+						pos,
+						this.#geometryState.metadataArray[targetIdx],
+					);
 				}
 
 				this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_MOVE, {
 					viewportId: this.#drawingToolsManager.viewport.id,
 					drawingToolsId: this.#drawingToolsManager.uuid,
+					points: this.#geometryState.getPointsData(),
+					index:
+						this.#selectedPointIndices.length === 1
+							? this.#selectedPointIndices[0]
+							: undefined,
+					indices:
+						this.#selectedPointIndices.length > 1
+							? this.#selectedPointIndices
+							: undefined,
+					metaData: this.#geometryState.metadataArray,
 				});
 			}
 
@@ -419,6 +497,15 @@ export class InteractionManagerHelper {
 				this.#draggedPointPosition,
 				this.#geometryState.metadataArray[this.#draggedPoint!],
 			);
+
+			// reset any propagated points to their pre-drag positions
+			this.#propagatedBasePositions.forEach((basePos, idx) => {
+				this.#drawingToolsManager.movePointTemporary(
+					idx,
+					basePos,
+					this.#geometryState.metadataArray[idx],
+				);
+			});
 		}
 
 		// remove the hovered point and the selected points
@@ -480,7 +567,7 @@ export class InteractionManagerHelper {
 				EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 				{
 					viewportId: this.#drawingToolsManager.viewport.id,
-					drawingToolId: this.#drawingToolsManager.uuid,
+					drawingToolsId: this.#drawingToolsManager.uuid,
 					points: this.#geometryState.getPointsData(),
 					metaData: this.#geometryState.metadataArray,
 					temporary: false,
@@ -491,6 +578,16 @@ export class InteractionManagerHelper {
 			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_END, {
 				viewportId: this.#drawingToolsManager.viewport.id,
 				drawingToolsId: this.#drawingToolsManager.uuid,
+				points: this.#geometryState.getPointsData(),
+				index:
+					selectedPointIndices.length === 1
+						? selectedPointIndices[0]
+						: undefined,
+				indices:
+					selectedPointIndices.length > 1
+						? selectedPointIndices
+						: undefined,
+				metaData: this.#geometryState.metadataArray,
 			});
 		} else if (
 			this.#hoveredPoint !== undefined &&
@@ -509,7 +606,7 @@ export class InteractionManagerHelper {
 					EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 					{
 						viewportId: this.#drawingToolsManager.viewport.id,
-						drawingToolId: this.#drawingToolsManager.uuid,
+						drawingToolsId: this.#drawingToolsManager.uuid,
 						points: this.#geometryState.getPointsData(),
 						metaData: this.#geometryState.metadataArray,
 						temporary: false,
@@ -565,6 +662,7 @@ export class InteractionManagerHelper {
 		this.#dragging = false;
 		this.#selectedPointPositions = [];
 		this.#selectedMovedPointPositions = [];
+		this.#propagatedBasePositions.clear();
 	}
 
 	public selectPoint(
@@ -578,6 +676,7 @@ export class InteractionManagerHelper {
 		if (distances) {
 			// add the id if it is not already in the array
 			// remove it if it is in the array
+			if (this.isPointDisabled(distances[0].index)) return;
 			if (!this.#selectedPointIndices.includes(distances[0].index)) {
 				this.toggleSelection(distances[0].index);
 				this.#justSelected = true;
@@ -586,39 +685,225 @@ export class InteractionManagerHelper {
 	}
 
 	public startDragging(): boolean {
-		if (
+		const selectedAndHovered =
 			this.#selectedPointIndices.length > 0 &&
 			this.#hoveredPoint !== undefined &&
-			this.#selectedPointIndices.includes(this.#hoveredPoint)
-		) {
-			// store selected point positions
-			this.#selectedPointIndices.forEach((element) =>
-				this.#selectedPointPositions.push(
-					this.#geometryState.getPosition(element),
-				),
-			);
+			this.#selectedPointIndices.includes(this.#hoveredPoint);
 
-			// copy values into selected moved point positions
-			this.#selectedMovedPointPositions =
-				this.#selectedPointPositions.map((element) =>
-					vec3.clone(element),
+		// Fallback: when no points are selected but a point is hovered, drag it
+		// directly. This supports translation without requiring selection.
+		const hoverOnlyDrag =
+			!selectedAndHovered &&
+			this.#selectedPointIndices.length === 0 &&
+			this.#hoveredPoint !== undefined;
+
+		if (!selectedAndHovered && !hoverOnlyDrag) return false;
+
+		// Disabled points cannot be dragged
+		if (
+			this.#hoveredPoint !== undefined &&
+			this.isPointDisabled(this.#hoveredPoint)
+		)
+			return false;
+
+		if (hoverOnlyDrag) {
+			// Temporarily track the hovered point so moveSelectedPoints works.
+			// It is cleaned up by removeAllSelectedPoints() in onUp().
+			this.#selectedPointIndices.push(this.#hoveredPoint!);
+		}
+
+		// store selected point positions
+		this.#selectedPointIndices.forEach((element) =>
+			this.#selectedPointPositions.push(
+				this.#geometryState.getPosition(element),
+			),
+		);
+
+		// copy values into selected moved point positions
+		this.#selectedMovedPointPositions = this.#selectedPointPositions.map(
+			(element) => vec3.clone(element),
+		);
+
+		this.#draggedPointPosition = this.#geometryState.getPosition(
+			this.#hoveredPoint!,
+		);
+
+		this.#draggedPoint = this.#hoveredPoint;
+
+		this.#dragging = true;
+		this.collectPropagatedBasePositions();
+		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
+			viewportId: this.#drawingToolsManager.viewport.id,
+			drawingToolsId: this.#drawingToolsManager.uuid,
+		});
+
+		return true;
+	}
+
+	/**
+	 * Traverse the adjacency graph from all currently selected points and store the
+	 * pre-drag world-space position of every reachable non-selected point so that
+	 * delta propagation can work from a stable baseline across multiple move frames.
+	 */
+	private collectPropagatedBasePositions(): void {
+		const adjacency = this.#settings.geometry.weightedAdjacency;
+		if (!adjacency) return;
+
+		const queue: number[] = [...this.#selectedPointIndices];
+		const expanded = new Set<number>(this.#selectedPointIndices);
+
+		while (queue.length > 0) {
+			const sourceIdx = queue.shift()!;
+			const adjList = adjacency[sourceIdx];
+			if (!adjList) continue;
+
+			for (const {to: targetIdx} of adjList) {
+				if (this.#selectedPointIndices.includes(targetIdx)) continue;
+				if (!this.#propagatedBasePositions.has(targetIdx)) {
+					this.#propagatedBasePositions.set(
+						targetIdx,
+						this.#geometryState.getPosition(targetIdx),
+					);
+				}
+				if (!expanded.has(targetIdx)) {
+					expanded.add(targetIdx);
+					queue.push(targetIdx);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Convert a world-space source delta into a weighted propagation delta.
+	 *
+	 * "world" (default): multiply XYZ components directly by weights.
+	 * "local": decompose the delta along the active plane restriction's U/V/N axes,
+	 *          apply per-axis weights, then recompose.  Falls back to "world" when no
+	 *          enabled plane restriction is present.
+	 */
+	private computeWeightedDelta(
+		sourceDelta: vec3,
+		weights: AdjacencyEntry["weights"],
+		space: AdjacencyEntry["space"],
+	): vec3 {
+		if (space === "local") {
+			const planeRestriction = Object.values(
+				this.#drawingToolsManager.restrictionManager.restrictions,
+			).find((r) => r.type === RESTRICTION_TYPE.PLANE && r.enabled) as
+				| PlaneRestriction
+				| undefined;
+
+			if (planeRestriction) {
+				const u = planeRestriction.vectorU;
+				const v = planeRestriction.vectorV;
+				const n = planeRestriction.normal;
+				const du = vec3.dot(sourceDelta, u);
+				const dv = vec3.dot(sourceDelta, v);
+				const dn = vec3.dot(sourceDelta, n);
+				return vec3.add(
+					vec3.create(),
+					vec3.add(
+						vec3.create(),
+						vec3.scale(vec3.create(), u, du * weights[0]),
+						vec3.scale(vec3.create(), v, dv * weights[1]),
+					),
+					vec3.scale(vec3.create(), n, dn * weights[2]),
+				);
+			}
+		}
+
+		return vec3.fromValues(
+			sourceDelta[0] * weights[0],
+			sourceDelta[1] * weights[1],
+			sourceDelta[2] * weights[2],
+		);
+	}
+
+	/**
+	 * BFS propagation of a drag delta through the weightedAdjacency graph.
+	 *
+	 * Runs the BFS exactly once, validates constraints for every indirect
+	 * point, and returns a ready-to-apply position map so the caller can
+	 * commit the moves without any redundant computation.
+	 *
+	 * @param differenceToIntersected  Effective drag delta (already
+	 *                                  constraint-clamped for the dragged point).
+	 * @param overrides                 Positions of directly-moved points, used
+	 *                                  as reference geometry when checking size
+	 *                                  constraints for indirect points.
+	 * @returns A map of pointIndex → final position for every indirect point
+	 *          that should be moved, or `null` if any indirect point would be
+	 *          constrained away from its proposed position (move is blocked).
+	 */
+	private applyAdjacencyPropagation(
+		differenceToIntersected: vec3,
+		overrides?: Map<number, vec3>,
+	): Map<number, vec3> | null {
+		const adjacency = this.#settings.geometry.weightedAdjacency;
+		if (!adjacency || this.#propagatedBasePositions.size === 0)
+			return new Map();
+
+		// Seed BFS from all selected points.
+		const queue: [number, vec3][] = this.#selectedPointIndices.map(
+			(idx) => [idx, differenceToIntersected],
+		);
+		const expanded = new Set<number>(this.#selectedPointIndices);
+		const accumulatedDeltas = new Map<number, vec3>();
+
+		const processSource = (sourceIdx: number, sourceDelta: vec3): void => {
+			const adjList = adjacency[sourceIdx];
+			if (!adjList) return;
+
+			for (const entry of adjList) {
+				const {to: targetIdx, weights, space} = entry;
+				if (this.#selectedPointIndices.includes(targetIdx)) continue;
+
+				const weightedDelta = this.computeWeightedDelta(
+					sourceDelta,
+					weights,
+					space,
 				);
 
-			this.#draggedPointPosition = this.#geometryState.getPosition(
-				this.#hoveredPoint,
-			);
+				if (accumulatedDeltas.has(targetIdx)) {
+					vec3.add(
+						accumulatedDeltas.get(targetIdx)!,
+						accumulatedDeltas.get(targetIdx)!,
+						weightedDelta,
+					);
+				} else {
+					accumulatedDeltas.set(targetIdx, vec3.clone(weightedDelta));
+				}
 
-			this.#draggedPoint = this.#hoveredPoint;
+				// Queue target for chain propagation (using its received delta).
+				if (!expanded.has(targetIdx)) {
+					expanded.add(targetIdx);
+					queue.push([targetIdx, weightedDelta]);
+				}
+			}
+		};
 
-			this.#dragging = true;
-			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.DRAG_START, {
-				viewportId: this.#drawingToolsManager.viewport.id,
-				drawingToolsId: this.#drawingToolsManager.uuid,
-			});
-
-			return true;
+		while (queue.length > 0) {
+			const [sourceIdx, sourceDelta] = queue.shift()!;
+			processSource(sourceIdx, sourceDelta);
 		}
-		return false;
+
+		// Validate constraints and build the final position map in one pass.
+		// If any indirect point would be clamped, return null to block the move.
+		const result = new Map<number, vec3>();
+		for (const [targetIdx, delta] of accumulatedDeltas) {
+			const base = this.#propagatedBasePositions.get(targetIdx);
+			if (!base) continue;
+			const proposed = vec3.add(vec3.create(), base, delta);
+			const constrained = this.#drawingToolsManager.applyConstraints(
+				proposed,
+				targetIdx,
+				overrides,
+			);
+			if (!vec3.equals(constrained, proposed)) return null;
+			result.set(targetIdx, proposed);
+		}
+
+		return result;
 	}
 
 	/**
@@ -627,6 +912,8 @@ export class InteractionManagerHelper {
 	 * @param index
 	 */
 	public toggleSelection(index: number): void {
+		// Disabled points cannot be selected
+		if (this.isPointDisabled(index)) return;
 		// add the id if it is not already in the array
 		// remove it if it is in the array
 		const indexInArray = this.#selectedPointIndices.indexOf(index);
@@ -657,5 +944,9 @@ export class InteractionManagerHelper {
 				index,
 			});
 		}
+	}
+
+	private isPointDisabled(index: number): boolean {
+		return this.#settings.geometry.disabledPoints?.includes(index) ?? false;
 	}
 }

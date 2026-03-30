@@ -23,6 +23,10 @@ export interface IDrawingToolsApi {
 	readonly restrictions: {
 		[key: string]: IRestrictionApi;
 	};
+	/**
+	 * The unique identifier of the drawing tool instance.
+	 */
+	readonly uuid: string;
 
 	/**
 	 * Show the distance labels of the drawing tool.
@@ -67,9 +71,25 @@ export interface IDrawingToolsApi {
 	 */
 	cancel(): void;
 	/**
+	 * Cancel any in-progress hover or drag interaction without closing the drawing tool.
+	 */
+	cancelDrag(): void;
+	/**
+	 * Returns true if a point or control is currently hovered or being dragged.
+	 */
+	isInteractionActive(): boolean;
+	/**
 	 * Close the drawing tool.
 	 */
 	close(): void;
+	/**
+	 * Move a point of the drawing tool.
+	 *
+	 * @param index The index of the point in the position array.
+	 * @param position The new position of the point.
+	 * @param temporary If true, the move will not be applied immediatly (default: false).
+	 */
+	movePoint(index: number, position: vec3, temporary?: boolean): void;
 	/**
 	 * Redo the last action of the drawing tool.
 	 */

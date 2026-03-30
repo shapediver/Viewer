@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Auto-generate llms.txt for the ShapeDiver Viewer repository
@@ -50,7 +50,7 @@ class LLMSGenerator {
 			"features/drawing-tools/package.json",
 			"features/interaction/package.json",
 			"features/attribute-visualization/package.json",
-			"features/gumball/package.json",
+			"features/gumballTransform/package.json",
 		];
 
 		for (const pkgPath of packageJsonPaths) {
@@ -254,7 +254,7 @@ ${this.features
 - **ISelectionParameterApi** - Manage selection-based parameters with multiple choice options
 - **IDraggingParameterApi** - Support drag-and-drop interactions for 3D parameter control
 - **IDrawingParameterApi** - Enable drawing-based parameter input (lines, shapes, annotations)
-- **IGumballParameterApi** - 3D transformation gizmo for object manipulation
+- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation
 - **IInteractionParameterApi** - General interaction-based parameter handling
 
 #### Sub-APIs for Advanced Control
@@ -291,7 +291,7 @@ import { isViewerError, isViewerSessionError, isViewerViewportError } from "@sha
 import { createDrawingTools } from "@shapediver/viewer.features.drawing-tools";
 import { InteractionEngine, SelectManager, DragManager } from "@shapediver/viewer.features.interaction";
 import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
-import { Gumball } from "@shapediver/viewer.features.gumball";
+import { GumballTransform } from "@shapediver/viewer.features.gumballTransform";
 \`\`\`
 
 ### 3D Rendering
@@ -479,7 +479,7 @@ The viewer integrates seamlessly with the ShapeDiver platform:
 - **Ticket System**: Uses tickets for secure model access
 - **Model View URLs**: Points to ShapeDiver backend servers (e.g., \`https://sdr8euc1.eu-central-1.shapediver.com\`)
 - **Grasshopper Integration**: Direct connection to Grasshopper definitions
-- **App Builder**: Some features like Gumball are integrated with ShapeDiver App Builder
+- **App Builder**: Some features like GumballTransform are integrated with ShapeDiver App Builder
 - **Platform Features**: Attribute visualization is already implemented on [shapediver.com/app](https://shapediver.com/app)
 
 ## Getting Started

@@ -13,6 +13,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
+import {ControlsManager} from "../controls/ControlsManager";
 import {DeletionInteractionHandler} from "./handlers/DeletionInteractionHandler";
 import {InsertionInteractionHandler} from "./handlers/InsertionInteractionHandler";
 import {MidPointInteractionHandler} from "./handlers/MidPointInteractionHandler";
@@ -22,7 +23,7 @@ import {DesktopStrategy} from "./strategies/DesktopStrategy";
 import {MobileStrategy} from "./strategies/MobileStategy";
 
 export class InteractionManager {
-	// #region Properties (11)
+	// #region Properties (12)
 
 	readonly #deletionInteractionHandler: DeletionInteractionHandler;
 	readonly #drawingToolsManager: DrawingToolsManager;
@@ -33,9 +34,10 @@ export class InteractionManager {
 	readonly #restrictionManager: IRestrictionManager;
 	readonly #viewport: IViewportApi;
 
+	#controlsManager?: ControlsManager;
 	#strategy: IStrategy;
 
-	// #endregion Properties (11)
+	// #endregion Properties (12)
 
 	// #region Constructors (1)
 
@@ -81,18 +83,44 @@ export class InteractionManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			this.addPoint(event.index!);
+			if (
+				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
+			)
+				return;
+			if (event.index !== undefined) {
+				this.addPoint(event.index);
+			} else if (event.indices !== undefined) {
+				event.indices.forEach((index) => this.addPoint(index));
+			}
 		});
 
 		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			this.removePoint(event.index!);
+			if (
+				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
+			)
+				return;
+
+			if (event.index !== undefined) {
+				this.addPoint(event.index);
+			} else if (event.indices !== undefined) {
+				event.indices.forEach((index) => this.addPoint(index));
+			}
 		});
 
 		this.#strategy = SystemInfo.instance.isMobile
 			? new MobileStrategy(this.#drawingToolsManager, this)
 			: new DesktopStrategy(this.#drawingToolsManager, this);
+
+		if (
+			this.#drawingToolsManager.settings.controls &&
+			this.#drawingToolsManager.settings.controls.length > 0
+		) {
+			this.#controlsManager = new ControlsManager(
+				this.#drawingToolsManager,
+			);
+		}
 	}
 
 	// #endregion Constructors (1)
@@ -119,6 +147,10 @@ export class InteractionManager {
 		return this.#interactionManagerHelper;
 	}
 
+	public get controlsManager(): ControlsManager | undefined {
+		return this.#controlsManager;
+	}
+
 	// #endregion Public Getters And Setters (4)
 
 	// #region Public Methods (10)
@@ -131,10 +163,15 @@ export class InteractionManager {
 		if (this.#strategy.cameraFreezeFlag)
 			this.#viewport.removeFlag(this.#strategy.cameraFreezeFlag);
 
-		document.body.style.cursor = "default";
+		// Use onOut() instead of hard-setting "default" so the static
+		// cursor-priority sets in DesktopStrategy are cleaned up. This prevents
+		// closing one drawing-tools instance from resetting the cursor while
+		// another instance still has a point hovered or is dragging.
+		this.#strategy.onOut();
 
 		this.#interactionManagerHelper.close();
 		this.#restrictionManager.close();
+		this.#controlsManager?.close();
 	}
 
 	public deleteSelection(): void {

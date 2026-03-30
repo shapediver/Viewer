@@ -204,8 +204,10 @@ export class GeometryLoader implements ILoader {
 			};
 		}
 
-		threeGeometryObject.castShadow = true;
-		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial);
+		threeGeometryObject.castShadow = geometry.castShadow;
+		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial)
+			? geometry.receiveShadow
+			: false;
 
 		return threeGeometryObject;
 	}

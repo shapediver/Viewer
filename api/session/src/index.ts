@@ -1,4 +1,4 @@
-import {
+﻿import {
 	ReqExportDefinitionGroup as ShapeDiverResponseExportDefinitionGroup,
 	ResExport as ShapeDiverResponseExport,
 	ResExportContent as ShapeDiverResponseExportContent,
@@ -124,7 +124,7 @@ import {
 	EventResponseMapping,
 	FLAG_TYPE,
 	GeometryData,
-	GumballParameterValue,
+	GumballTransformParameterValue,
 	HTMLElementAnchorCustomData,
 	HTMLElementAnchorData,
 	HTMLElementAnchorImageData,
@@ -143,9 +143,9 @@ import {
 	IDrawingParameterJsonSchema,
 	IDrawingParameterSettings,
 	IGeometryData,
-	IGumballParameterJsonSchema,
-	IGumballParameterProps,
-	IGumballParameterPropsJsonSchema,
+	IGumballTransformParameterJsonSchema,
+	IGumballTransformParameterProps,
+	IGumballTransformParameterPropsJsonSchema,
 	IHTMLElementAnchorData,
 	IHTMLElementAnchorUpdateProperties,
 	IInstanceData,
@@ -194,6 +194,9 @@ import {
 	IOutputEvent,
 	IParameterEvent,
 	IPrimitiveData,
+	IRectangleTransformParameterJsonSchema,
+	IRectangleTransformParameterProps,
+	IRectangleTransformParameterPropsJsonSchema,
 	IRenderingEvent,
 	ISceneEvent,
 	ISDTFAttributeData,
@@ -232,6 +235,7 @@ import {
 	PARAMETER_VISUALIZATION,
 	PrimitiveData,
 	PRIMITIVE_MODE,
+	RectangleTransformParameterValue,
 	RENDERER_TYPE,
 	SDTFAttributeData,
 	SDTFAttributesData,
@@ -252,8 +256,9 @@ import {
 	TONE_MAPPING,
 	validateDraggingParameterSettings,
 	validateDrawingParameterSettings,
-	validateGumballParameterSettings,
+	validateGumballTransformParameterSettings,
 	validateInteractionParameterSettings,
+	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings,
 	ViewportCreationDefinition,
 	VISIBILITY_MODE,
@@ -265,8 +270,9 @@ import {isOutputApi} from "./implementation/OutputApi";
 import {isDraggingParameterApi} from "./implementation/parameter/DraggingParameterApi";
 import {isDrawingParameterApi} from "./implementation/parameter/DrawingParameterApi";
 import {isFileParameterApi} from "./implementation/parameter/FileParameterApi";
-import {isGumballParameterApi} from "./implementation/parameter/GumballParameterApi";
+import {isGumballTransformParameterApi} from "./implementation/parameter/GumballTransformParameterApi";
 import {isParameterApi} from "./implementation/parameter/ParameterApi";
+import {isRectangleTransformParameterApi} from "./implementation/parameter/RectangleTransformParameterApi";
 import {isSelectionParameterApi} from "./implementation/parameter/SelectionParameterApi";
 import {isSessionApi} from "./implementation/SessionApi";
 import {IOutputApiData} from "./interfaces/data/IOutputApiData";
@@ -277,8 +283,9 @@ import {ISessionApi} from "./interfaces/ISessionApi";
 import {IDraggingParameterApi} from "./interfaces/parameter/IDraggingParameterApi";
 import {IDrawingParameterApi} from "./interfaces/parameter/IDrawingParameterApi";
 import {IFileParameterApi} from "./interfaces/parameter/IFileParameterApi";
-import {IGumballParameterApi} from "./interfaces/parameter/IGumballParameterApi";
+import {IGumballTransformParameterApi} from "./interfaces/parameter/IGumballTransformParameterApi";
 import {IParameterApi} from "./interfaces/parameter/IParameterApi";
+import {IRectangleTransformParameterApi} from "./interfaces/parameter/IRectangleTransformParameterApi";
 import {ISelectionParameterApi} from "./interfaces/parameter/ISelectionParameterApi";
 import {createSession, sessions} from "./main";
 
@@ -289,7 +296,8 @@ export {
 	IParameterApi,
 	ISessionApi,
 	ISelectionParameterApi,
-	IGumballParameterApi,
+	IGumballTransformParameterApi,
+	IRectangleTransformParameterApi,
 	IDrawingParameterApi,
 	IDraggingParameterApi,
 };
@@ -300,7 +308,8 @@ export {
 	isOutputApi,
 	isParameterApi,
 	isSelectionParameterApi,
-	isGumballParameterApi,
+	isGumballTransformParameterApi,
+	isRectangleTransformParameterApi,
 	isDrawingParameterApi,
 	isDraggingParameterApi,
 };
@@ -313,10 +322,14 @@ export {
 	SelectionParameterValue,
 	ISelectionParameterJsonSchema,
 	ISelectionParameterPropsJsonSchema,
-	IGumballParameterProps,
-	GumballParameterValue,
-	IGumballParameterJsonSchema,
-	IGumballParameterPropsJsonSchema,
+	IGumballTransformParameterProps,
+	GumballTransformParameterValue,
+	IGumballTransformParameterJsonSchema,
+	IGumballTransformParameterPropsJsonSchema,
+	IRectangleTransformParameterProps,
+	RectangleTransformParameterValue,
+	IRectangleTransformParameterJsonSchema,
+	IRectangleTransformParameterPropsJsonSchema,
 	IDraggingParameterProps,
 	DraggingParameterValue,
 	IDraggingParameterJsonSchema,
@@ -326,7 +339,8 @@ export {
 	IDrawingParameterJsonSchema,
 	validateInteractionParameterSettings,
 	validateSelectionParameterSettings,
-	validateGumballParameterSettings,
+	validateGumballTransformParameterSettings,
+	validateRectangleTransformParameterSettings,
 	validateDraggingParameterSettings,
 	validateDrawingParameterSettings,
 };

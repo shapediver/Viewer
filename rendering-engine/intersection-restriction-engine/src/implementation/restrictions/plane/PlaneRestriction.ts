@@ -17,7 +17,10 @@ import {
 	RestrictionPropertiesBase,
 	RestrictionResult,
 } from "../../../interfaces/IRestriction";
-import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
+import {
+	ISnapRestriction,
+	SnapRestrictionProperties,
+} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 import {
@@ -115,12 +118,30 @@ export class PlaneRestriction
 		this.#cameraId = this.#viewport.camera!.id;
 		this.#properties = properties;
 
+		// Propagate createHelperObjects to sub-restrictions that don't have
+		// an explicit override, so that a single flag on the plane restriction
+		// suppresses helper objects for all its child snap restrictions.
+		const inheritHelperObjects = (
+			sub: SnapRestrictionProperties | undefined,
+		): SnapRestrictionProperties | undefined => {
+			if (properties.createHelperObjects === undefined) return sub;
+			if (sub === undefined)
+				return {createHelperObjects: properties.createHelperObjects};
+			return {
+				...sub,
+				createHelperObjects:
+					sub.createHelperObjects ?? properties.createHelperObjects,
+			};
+		};
+
 		this.#gridRestriction = new GridRestriction(
 			viewport,
 			geometryMathManager,
 			parentNode,
 			this,
-			this.#properties.gridSnapRestriction,
+			inheritHelperObjects(this.#properties.gridSnapRestriction) as
+				| GridRestrictionProperties
+				| undefined,
 		);
 		this.#angularRestriction = new AngularRestriction(
 			viewport,
@@ -128,14 +149,18 @@ export class PlaneRestriction
 			parentNode,
 			this,
 			settings,
-			this.#properties.angularSnapRestriction,
+			inheritHelperObjects(this.#properties.angularSnapRestriction) as
+				| AngularRestrictionProperties
+				| undefined,
 		);
 		this.#axisRestriction = new AxisRestriction(
 			viewport,
 			geometryMathManager,
 			parentNode,
 			this,
-			this.#properties.axisSnapRestriction,
+			inheritHelperObjects(this.#properties.axisSnapRestriction) as
+				| AxisRestrictionProperties
+				| undefined,
 		);
 
 		this.updatePlaneDefinition();

@@ -15,6 +15,7 @@ import {GeometryState} from "../GeometryState";
 export class GeometryManagerHelper {
 	// #region Properties (4)
 
+	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #eventEngine = EventEngine.instance;
 	readonly #geometryManager: GeometryManager;
 	readonly #geometryState: GeometryState;
@@ -29,6 +30,7 @@ export class GeometryManagerHelper {
 		geometryManager: GeometryManager,
 		geometryState: GeometryState,
 	) {
+		this.#drawingToolsManager = drawingToolsManager;
 		this.#geometryManager = geometryManager;
 		this.#geometryState = geometryState;
 		this.#viewport = drawingToolsManager.viewport;
@@ -93,6 +95,11 @@ export class GeometryManagerHelper {
 			// get neighboring point and calculate center
 		}
 
+		// Apply constraints. Pass positionArrayLength as pointIndex so that all
+		// existing points are treated as "other" points (the new point is not yet
+		// in the array).
+		p = this.#drawingToolsManager.applyConstraints(p, positionArrayLength);
+
 		newPositionArray.set([
 			...this.#geometryState.positionArray.slice(0, scaledIndex),
 			...p,
@@ -140,6 +147,8 @@ export class GeometryManagerHelper {
 		metaData: RayTraceResult | undefined,
 		temporary = false,
 	): void {
+		point = this.#drawingToolsManager.applyConstraints(point, index);
+
 		const threeJsPointsGeometry: THREE.Points = this.#geometryState
 			.geometryDataPoints.convertedObject[
 			this.#viewport.id
@@ -170,9 +179,9 @@ export class GeometryManagerHelper {
 
 		// update the metadata at that index (even if temporary)
 		this.#geometryState.metadataArray[index] = metaData;
-		const metadataArray = this.#geometryState.metadataArray.slice();
 
 		if (temporary === false) {
+			const metadataArray = this.#geometryState.metadataArray.slice();
 			// adjust position array
 			const positionArray = new Float32Array(
 				this.#geometryState.positionArray,

@@ -70,7 +70,7 @@ export class AngularRestriction
 		settings: IVisualizationSettings,
 		properties?: AngularRestrictionProperties,
 	) {
-		super(viewport, parentNode, "angular");
+		super(viewport, parentNode, "angular", properties);
 
 		this.#geometryMathManager = geometryMathManager;
 		this.#settings = settings;

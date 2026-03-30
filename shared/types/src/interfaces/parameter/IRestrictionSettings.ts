@@ -20,7 +20,8 @@ export type Rotation = {
 
 // #region Interfaces (6)
 
-interface ICameraPlaneRestrictionDefinition extends IRestrictionDefinition {
+export interface ICameraPlaneRestrictionDefinition
+	extends IRestrictionDefinition {
 	// #region Properties (1)
 
 	type: "camera_plane";
@@ -28,7 +29,7 @@ interface ICameraPlaneRestrictionDefinition extends IRestrictionDefinition {
 	// #endregion Properties (1)
 }
 
-interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
+export interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
 	// #region Properties (2)
 
 	/** The name filter for the objects that can be dragged with the defined settings. */
@@ -38,7 +39,7 @@ interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
 	// #endregion Properties (2)
 }
 
-interface ILineRestrictionDefinition extends IRestrictionDefinition {
+export interface ILineRestrictionDefinition extends IRestrictionDefinition {
 	// #region Properties (4)
 
 	/** The first point of the restriction. */
@@ -52,7 +53,7 @@ interface ILineRestrictionDefinition extends IRestrictionDefinition {
 	// #endregion Properties (4)
 }
 
-interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
+export interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
 	// #region Properties (4)
 
 	/** The origin of the plane. */
@@ -70,7 +71,7 @@ interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
 	// #endregion Properties (4)
 }
 
-interface IPointRestrictionDefinition extends IRestrictionDefinition {
+export interface IPointRestrictionDefinition extends IRestrictionDefinition {
 	// #region Properties (3)
 
 	/** The point of the restriction. */
@@ -82,7 +83,7 @@ interface IPointRestrictionDefinition extends IRestrictionDefinition {
 	// #endregion Properties (3)
 }
 
-interface IRestrictionDefinition {
+export interface IRestrictionDefinition {
 	// #region Properties (3)
 
 	/** The unique id of the restriction. */

@@ -247,11 +247,13 @@ export class GeometryData
 
 	#attributeMaterial: IMaterialAbstractData | null = null;
 	#boundingBox: IBox = new Box();
+	#castShadow: boolean = true;
 	#effectMaterials: {material: IMaterialAbstractData; token: string}[] = [];
 	#material: IMaterialAbstractData | null = null;
 	#materialVariants: {material: IMaterialAbstractData; variant: number}[] =
 		[];
 	#morphWeights: number[] = [];
+	#receiveShadow: boolean = true;
 	#renderOrder: number = 0;
 	#standardMaterial: IMaterialAbstractData | null = null;
 
@@ -271,13 +273,17 @@ export class GeometryData
 		material: IMaterialAbstractData | null = null,
 		morphWeights: number[] = [],
 		attributeMaterial: IMaterialAbstractData | null = null,
+		castShadow: boolean = true,
+		receiveShadow: boolean = true,
 		id?: string,
 		version?: string,
 	) {
 		super(id, version);
 		this.#primitive = primitive;
+		this.#castShadow = castShadow;
 		this.#boundingBox = this.primitive.boundingBox.clone();
 		this.#morphWeights = morphWeights;
+		this.#receiveShadow = receiveShadow;
 
 		this.#mode = mode;
 		this.#material = material;
@@ -299,6 +305,14 @@ export class GeometryData
 
 	public get boundingBox(): IBox {
 		return this.#boundingBox;
+	}
+
+	public get castShadow(): boolean {
+		return this.#castShadow;
+	}
+
+	public set castShadow(value: boolean) {
+		this.#castShadow = value;
 	}
 
 	public get effectMaterials(): {
@@ -339,6 +353,14 @@ export class GeometryData
 		return this.#primitive;
 	}
 
+	public get receiveShadow(): boolean {
+		return this.#receiveShadow;
+	}
+
+	public set receiveShadow(value: boolean) {
+		this.#receiveShadow = value;
+	}
+
 	public get renderOrder(): number {
 		return this.#renderOrder;
 	}
@@ -369,6 +391,8 @@ export class GeometryData
 			this.#material,
 			this.#morphWeights,
 			this.#attributeMaterial,
+			this.#castShadow,
+			this.#receiveShadow,
 		);
 	}
 

@@ -55,7 +55,7 @@ export class AxisRestriction
 		planeRestriction: PlaneRestriction,
 		properties?: AxisRestrictionProperties,
 	) {
-		super(viewport, parentNode, "axis");
+		super(viewport, parentNode, "axis", properties);
 		this.#planeRestriction = planeRestriction;
 		this.#geometryMathManager = geometryMathManager;
 
@@ -260,6 +260,8 @@ export class AxisRestriction
 	// #region Private Methods (1)
 
 	private createAxesVisualization(): void {
+		if (!this._createHelperObjects) return;
+
 		if (this.#axesHelper) {
 			this._object3D.remove(this.#axesHelper);
 			this.#axesHelper.dispose();

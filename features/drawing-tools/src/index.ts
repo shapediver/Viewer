@@ -1,8 +1,8 @@
 import {
 	IMapData,
+	ITreeNode,
 	IViewportApi,
 	MaterialEngine,
-	ShapeDiverViewerDrawingToolsError,
 } from "@shapediver/viewer";
 import {
 	AngularRestrictionApi,
@@ -37,9 +37,12 @@ import {
 import {RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
 import {IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
+import {IControl} from "./business/interfaces/controls/IControl";
+import {IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
 import {DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
 import {IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
 import {
+	AdjacencyEntry,
 	Callbacks,
 	PointsData,
 	SettingsOptional,
@@ -47,12 +50,15 @@ import {
 
 export {
 	SettingsOptional as Settings,
+	AdjacencyEntry,
 	Callbacks,
 	DrawingToolsEventResponseMapping,
 	IDrawingToolsEvent,
 	IDrawingToolsApi,
 	DrawingToolsApi,
 	PointsData,
+	IControl,
+	IEdgeControl,
 };
 export {IRestriction, ISnapRestriction};
 export {
@@ -101,27 +107,28 @@ let drawingTools: IDrawingToolsApi | undefined;
 /**
  * Create a new instance of DrawingTools.
  *
+ * Multiple instances can be active simultaneously. Each returned instance is
+ * independent and must be closed individually when no longer needed.
+ *
  * @param viewport The viewport to which the DrawingTools should be attached.
  * @param callback The callback function that is called when the drawing is finished.
  * @param properties The customization properties for the DrawingTools.
+ * @param customDefaultTextures An object containing custom default textures. The keys should correspond to the texture names used in the properties, and the values should be either a Promise that resolves to an IMapData or an IMapData object.
  * @returns The DrawingTools instance.
- * @throws An error if there is already an active instance of DrawingTools.
  */
 export const createDrawingTools = (
 	viewport: IViewportApi,
 	callbacks: Callbacks,
 	settings: SettingsOptional,
+	customDefaultTextures?: {[key: string]: Promise<IMapData> | IMapData},
+	parentNode?: ITreeNode,
 ): IDrawingToolsApi => {
-	if (drawingTools && drawingTools.closed === false)
-		throw new ShapeDiverViewerDrawingToolsError(
-			"There can only be one instance of DrawingTools active at a time. Please close the current instance before creating a new one.",
-		);
-
 	drawingTools = new DrawingToolsApi(
 		viewport,
 		callbacks,
 		settings,
-		defaultTextures,
+		customDefaultTextures || defaultTextures,
+		parentNode,
 	);
 	return drawingTools;
 };

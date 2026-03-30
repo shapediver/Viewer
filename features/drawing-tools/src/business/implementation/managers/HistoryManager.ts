@@ -32,6 +32,7 @@ export class HistoryManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
 			if (
 				event.temporary === false &&
 				event.points !== undefined &&

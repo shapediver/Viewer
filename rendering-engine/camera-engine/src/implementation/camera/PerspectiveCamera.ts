@@ -305,13 +305,13 @@ export class PerspectiveCamera
 			),
 		);
 
-		const planeCross = new Plane(vec3.clone(cross), 0);
+		const planeCross = new Plane();
 		planeCross.setFromNormalAndCoplanarPoint(
 			vec3.clone(cross),
 			vec3.clone(target),
 		);
 
-		const planeUp = new Plane(vec3.fromValues(0, 0, 1), 0);
+		const planeUp = new Plane();
 		planeUp.setFromNormalAndCoplanarPoint(
 			vec3.clone(up),
 			vec3.clone(target),

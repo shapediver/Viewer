@@ -6,6 +6,7 @@ import {
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {IMapData} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
+import {IControl} from "./controls/IControl";
 
 // #region Type aliases (5)
 
@@ -41,6 +42,21 @@ export type DefaultTextures = {[key: string]: Promise<IMapData> | IMapData};
  * @typedef PointsData
  */
 export type PointsData = number[][];
+/**
+ * Per-axis propagation weight from one point to another in local space.
+ * When a point is dragged, its delta is multiplied component-wise by these
+ * weights before being added to the target point's position.
+ */
+export type AdjacencyEntry = {
+	to: number;
+	weights: [number, number, number];
+	/**
+	 * Whether the weights are applied in the DT's plane local space (U/V/N axes)
+	 * or directly to world-space delta XYZ components.
+	 * Default is "world".
+	 */
+	space?: "local" | "world";
+};
 /**
  * The initial settings of the drawing tool.
  * Here you can define the initial settings of the drawing tool.
@@ -122,7 +138,51 @@ export type Settings = {
 		 * @default true
 		 */
 		autoClose: boolean;
+
+		/**
+		 * Per-point adjacency graph. When a real point is dragged, its corrected
+		 * delta is propagated to each listed target via component-wise weight
+		 * multiplication. Entries with all-zero weights are no-ops and can be omitted.
+		 * Processing order follows the array declaration order.
+		 */
+		weightedAdjacency?: AdjacencyEntry[][];
+
+		/**
+		 * The indices of points that are disabled. Disabled points cannot be moved, selected or deleted, but they can be inserted next to.
+		 * This is useful for points that should be fixed in place, such as the endpoints of a line.
+		 * The pointer is also not changed to a move pointer when hovering over disabled points, since they cannot be moved.
+		 */
+		disabledPoints?: number[];
+
+		/**
+		 * Constraints on the geometry. This can be used to restrict the movement of points to a specific area.
+		 * The constraints are separated into position and size constraints, which can be defined per axis.
+		 * Each constraint is defined as a tuple of two numbers, where the first number is the minimum value and the second number is the maximum value.
+		 * If a number is number is not defined, there is no constraint on that axis.
+		 *
+		 * For the size constraints, the constraint is applied to the size of the geometry, which is defined as the distance between the furthest points in each axis.
+		 */
+		constraints?: {
+			position?: {
+				x?: [number, number];
+				y?: [number, number];
+				z?: [number, number];
+			};
+			size?: {
+				x?: [number, number];
+				y?: [number, number];
+				z?: [number, number];
+			};
+		};
 	};
+
+	/**
+	 * The controls of the drawing tool.
+	 *
+	 * Here you can define the controls that are used when interacting with the drawing tool.
+	 * Controls are used to manipulate the points of the drawing tool in specific ways, such as moving a point along an edge or within a plane defined by other points.
+	 */
+	controls?: IControl[];
 
 	/**
 	 * The restrictions of the drawing tool.
@@ -140,11 +200,11 @@ export type Settings = {
 	visualization: IVisualizationSettings;
 
 	/**
-	 * The control settings of the drawing tool.
+	 * The key binding settings of the drawing tool.
 	 *
 	 * Here you can define which keys are used for the different actions of the drawing tool.
 	 */
-	controls: {
+	keyBindings: {
 		/**
 		 * The key that is used to insert a point.
 		 *
@@ -220,13 +280,50 @@ export type Settings = {
 		 * @default ''
 		 */
 		displayUnit: string;
+
+		/**
+		 * If points can be translated by dragging them.
+		 * If this setting is set to false, the user cannot move existing points by dragging them.
+		 *
+		 * The pointer is also not changed to a move pointer when hovering over points, since they cannot be moved.
+		 *
+		 * In this mode, the drawing tools are used for display purposes.
+		 *
+		 * @default true
+		 */
+		enableTranslation: boolean;
+
+		/**
+		 * If points can be added in general.
+		 * If this setting is set to false, the user cannot add new points by clicking or using the insert key.
+		 *
+		 * @default true
+		 */
+		enableInsertion: boolean;
+
+		/**
+		 * If points can be deleted in general.
+		 * If this setting is set to false, the user cannot delete points by using the delete key.
+		 *
+		 * @default true
+		 */
+		enableDeletion: boolean;
+
+		/**
+		 * If points can be selected in general.
+		 * If this setting is set to false, the user cannot select points by clicking or using the select key.
+		 *
+		 * @default true
+		 */
+		enableSelection: boolean;
 	};
 };
 export type SettingsOptional = {
 	geometry?: Partial<Settings["geometry"]>;
+	controls?: Partial<Settings["controls"]>;
 	restrictions?: Partial<Settings["restrictions"]>;
 	visualization?: Partial<Settings["visualization"]>;
-	controls?: Partial<Settings["controls"]>;
+	keyBindings?: Partial<Settings["keyBindings"]>;
 	general?: Partial<Settings["general"]>;
 };
 
@@ -239,9 +336,11 @@ export interface IDrawingToolsManager {
 
 	readonly closed: boolean;
 	readonly restrictions: {[key: string]: IRestriction};
+	readonly uuid: string;
 
 	showDistanceLabels: boolean;
 	showPointLabels: boolean;
+	showPointerPosition: boolean;
 
 	// #endregion Properties (4)
 
@@ -260,7 +359,9 @@ export interface IDrawingToolsManager {
 	canRedo(): boolean;
 	canUndo(): boolean;
 	cancel(): void;
+	cancelDrag(): void;
 	close(): void;
+	isInteractionActive(): boolean;
 	getPointsData(): PointsData;
 	movePoint(
 		index: number,
@@ -292,6 +393,7 @@ export enum MATERIAL_INDEX {
 	SELECTED_HOVERED = 3,
 	INSERTION = 4,
 	INSERTION_HOVERED = 5,
+	DISABLED = 6,
 }
 
 // #endregion Enums (1)

@@ -34,15 +34,21 @@ export class DeletionInteractionHandler {
 	// #region Public Methods (2)
 
 	public deletePoint(ray: IRay): void {
+		if (!this.#drawingToolsManager.settings.general.enableDeletion) return;
 		// check if there is a point close to the ray
 		const distances = this.#geometryMathManager.checkPointDistances(
 			ray,
 			this.#drawingToolsManager.positionArray,
 		);
 		if (distances) {
-			// add the id if it is not already in the array
-			// remove it if it is in the array
-			this.#drawingToolsManager.removePoint(distances[0].index);
+			const idx = distances[0].index;
+			if (
+				this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					idx,
+				)
+			)
+				return;
+			this.#drawingToolsManager.removePoint(idx);
 			this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 				viewportId: this.#viewport.id,
 				drawingToolsId: this.#drawingToolsManager.uuid,
@@ -51,8 +57,15 @@ export class DeletionInteractionHandler {
 	}
 
 	public deleteSelection(indices: number[]): void {
-		if (indices.length === 0) return;
-		this.#drawingToolsManager.removePoints(indices);
+		if (!this.#drawingToolsManager.settings.general.enableDeletion) return;
+		const toDelete = indices.filter(
+			(i) =>
+				!this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					i,
+				),
+		);
+		if (toDelete.length === 0) return;
+		this.#drawingToolsManager.removePoints(toDelete);
 		this.#eventEngine.emitEvent(EVENTTYPE_DRAWING_TOOLS.REMOVED, {
 			viewportId: this.#viewport.id,
 			drawingToolsId: this.#drawingToolsManager.uuid,

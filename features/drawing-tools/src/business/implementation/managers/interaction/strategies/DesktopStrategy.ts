@@ -76,6 +76,22 @@ export class DesktopStrategy implements IStrategy {
 	private static readonly CLICK_THRESHOLD_SQUARED = 25; // 5px threshold squared
 	private static readonly COORDINATE_STEP = 3; // Number of coordinates per point (x, y, z)
 
+	// Priority-based cursor tracking across all DesktopStrategy instances:
+	// only reset to "default" when no instance is hovering or dragging.
+	static readonly #hoveringInstances: Set<string> = new Set();
+	static readonly #draggingInstances: Set<string> = new Set();
+	// Non-interactive DTs (enableTranslation=false && enableSelection=false) that
+	// currently have a point near the cursor. While this set is non-empty, interactive
+	// DTs suppress hover so the non-interactive handle "wins" the hit-test.
+	// Maps uuid → {distance, cancel} for blocking claims (control hover or
+	// non-interactive-DT point hover). A later DT that has a CLOSER candidate
+	// calls cancel() on farther entries and removes them, ensuring the globally
+	// closest target always wins.
+	static readonly #blockingHoverInstances: Map<
+		string,
+		{distance: number; cancel: () => void}
+	> = new Map();
+
 	readonly #drawingToolsManager: DrawingToolsManager;
 	readonly #geometryMathManager: GeometryMathManager;
 	readonly #insertionInteractionHandler: InsertionInteractionHandler;
@@ -144,6 +160,11 @@ export class DesktopStrategy implements IStrategy {
 				return;
 			}
 
+			// Handle control drag initiation (controls take priority over points)
+			if (this.handleControlDragStart()) {
+				return;
+			}
+
 			// Handle insertion finalization and restart
 			if (this.handleInsertionFinalization(event, ray)) {
 				return;
@@ -158,6 +179,34 @@ export class DesktopStrategy implements IStrategy {
 			// Handle mid-point insertion
 			this.handleMidPointInsertion(distances);
 
+			const myOnDownPointDist = distances?.[0]?.distance ?? Infinity;
+
+			// Cancel any blocker that is farther than our nearest point so the
+			// closest target wins, even if another DT registered first this cycle.
+			if (myOnDownPointDist < Infinity) {
+				for (const [bid, bentry] of [
+					...DesktopStrategy.#blockingHoverInstances,
+				]) {
+					if (
+						bid !== this.#drawingToolsManager.uuid &&
+						myOnDownPointDist < bentry.distance
+					) {
+						bentry.cancel();
+						DesktopStrategy.#blockingHoverInstances.delete(bid);
+					}
+				}
+			}
+
+			// Skip this DT if a remaining (closer) blocker outbids our point.
+			const blockedByOther =
+				!DesktopStrategy.#blockingHoverInstances.has(
+					this.#drawingToolsManager.uuid,
+				) &&
+				[...DesktopStrategy.#blockingHoverInstances.values()].some(
+					(e) => e.distance <= myOnDownPointDist,
+				);
+			if (blockedByOther) return;
+
 			// Check hover state
 			this.#interactionManagerHelper.checkHover(distances, ray);
 
@@ -170,7 +219,7 @@ export class DesktopStrategy implements IStrategy {
 	}
 
 	/**
-	 * Handles keyboard input for drawing tool controls
+	 * Handles keyboard input for drawing tool key bindings
 	 *
 	 * ## Supported Operations:
 	 *
@@ -223,12 +272,14 @@ export class DesktopStrategy implements IStrategy {
 
 		// Handle insert key
 		if (keys.insert) {
-			this.startInsertion();
+			if (this.#drawingToolsManager.settings.general.enableInsertion)
+				this.startInsertion();
 		}
 
 		// Handle delete key
 		if (keys.delete) {
-			this.#interactionManager.deleteSelection();
+			if (this.#drawingToolsManager.settings.general.enableDeletion)
+				this.#interactionManager.deleteSelection();
 		}
 	}
 
@@ -281,6 +332,13 @@ export class DesktopStrategy implements IStrategy {
 			return;
 		}
 
+		// Handle control drag (short-circuit all other logic while dragging)
+		if (this.#interactionManager.controlsManager?.isDraggingControl) {
+			this.#interactionManager.controlsManager.moveDraggedControl(ray);
+			this.updateCursor();
+			return;
+		}
+
 		let currentRestrictedPoint: vec3 | undefined;
 
 		// Handle automatic start and insertion resume
@@ -296,25 +354,103 @@ export class DesktopStrategy implements IStrategy {
 			this.#lastEvent = event;
 
 			// Handle point dragging
-			currentRestrictedPoint =
-				this.#interactionManagerHelper.moveSelectedPoints(ray) ||
-				currentRestrictedPoint;
+			if (this.#drawingToolsManager.settings.general.enableTranslation)
+				currentRestrictedPoint =
+					this.#interactionManagerHelper.moveSelectedPoints(ray) ||
+					currentRestrictedPoint;
 		}
+
+		const {enableTranslation, enableSelection} =
+			this.#drawingToolsManager.settings.general;
+		const uuid = this.#drawingToolsManager.uuid;
 
 		// Check point distances and hover state
 		const distances = this.#geometryMathManager.checkPointDistances(
 			ray,
 			this.#drawingToolsManager.positionArray,
 		);
-		this.#interactionManagerHelper.checkHover(distances, ray);
+
+		if (!enableTranslation && !enableSelection) {
+			// Non-interactive DT: register its nearest-point distance so that
+			// interactive DTs only defer to it when it is genuinely closer.
+			if (distances) {
+				DesktopStrategy.#blockingHoverInstances.set(uuid, {
+					distance: distances[0].distance,
+					cancel: () => {},
+				});
+			} else {
+				DesktopStrategy.#blockingHoverInstances.delete(uuid);
+			}
+			this.updateCursor();
+			return;
+		}
+
+		const myNearestPointDist = distances?.[0]?.distance ?? Infinity;
+
+		// Cancel any blocker whose registered distance is farther than ours.
+		// This ensures the globally nearest target wins rather than whichever
+		// DT happened to process first.
+		if (myNearestPointDist < Infinity) {
+			for (const [bid, bentry] of [
+				...DesktopStrategy.#blockingHoverInstances,
+			]) {
+				if (bid !== uuid && myNearestPointDist < bentry.distance) {
+					bentry.cancel();
+					DesktopStrategy.#blockingHoverInstances.delete(bid);
+				}
+			}
+		}
+
+		// Suppress hover if a remaining blocker is at least as close as our
+		// nearest point (it already won the distance contest above).
+		const blocked =
+			!DesktopStrategy.#blockingHoverInstances.has(uuid) &&
+			[...DesktopStrategy.#blockingHoverInstances.values()].some(
+				(e) => e.distance <= myNearestPointDist,
+			);
+
+		// Controls take priority only if no regular point of this DT is closer.
+		// This prevents an edge control from stealing hover from a nearby regular
+		// point (e.g. the rotation handle of another DT that overlaps in screen space).
+		const controlDist =
+			this.#interactionManager.controlsManager?.closestControlDistance(
+				ray,
+			) ?? Infinity;
+		const pointDist = distances?.[0]?.distance ?? Infinity;
+		const controlIsCloser = controlDist <= pointDist;
+		const controlHovered = controlIsCloser
+			? (this.#interactionManager.controlsManager?.checkHover(ray) ??
+				false)
+			: false;
+		if (!controlIsCloser)
+			this.#interactionManager.controlsManager?.clearHover();
+		this.#interactionManagerHelper.checkHover(
+			controlHovered || blocked ? undefined : distances,
+			ray,
+		);
+
+		// When a control is hovered, register with its distance and a cancel
+		// callback so other DTs can evict this claim when they are closer.
+		if (controlHovered) {
+			const cm = this.#interactionManager.controlsManager;
+			DesktopStrategy.#blockingHoverInstances.set(uuid, {
+				distance: controlDist,
+				cancel: () => cm?.clearHover(),
+			});
+		} else {
+			DesktopStrategy.#blockingHoverInstances.delete(uuid);
+		}
 
 		if (pointerMoved) {
 			// Handle insertion movement
 			currentRestrictedPoint =
 				this.handleInsertionMove(ray) || currentRestrictedPoint;
 
-			// Handle mid-point insertion
-			this.handleMidPointMove(ray);
+			// Handle mid-point insertion.
+			// Suppressed when a control is hovered: with hoveredPoint=undefined
+			// the mid-point handler would otherwise detect the edge under the
+			// control as a valid insertion target and add a temporary point there.
+			if (!controlHovered) this.handleMidPointMove(ray);
 		}
 
 		// Update cursor and handle insertion pause
@@ -343,9 +479,11 @@ export class DesktopStrategy implements IStrategy {
 	 * This ensures the UI returns to a clean state when interaction is interrupted.
 	 */
 	public onOut(): void {
+		this.#interactionManager.controlsManager?.onOut();
 		this.#restrictionManager.showRestrictionVisualization = false;
 		this.#insertionInteractionHandler.pauseInsertion();
 		this.#interactionManagerHelper.onOut();
+		this.clearCursorState();
 		this.reset();
 	}
 
@@ -382,12 +520,15 @@ export class DesktopStrategy implements IStrategy {
 
 			// Clear box hovered points, last move event, and update material indices for all points
 			this.#boxHoveredPoints = [];
-			this.#updateAllPointMaterials();
+			this.updateAllPointMaterials();
 			this.#lastMoveEvent = undefined;
 
 			this.#isBoxSelecting = false;
 			this.#selectionBox.reset();
 		}
+
+		// Finalize control drag (no-op when not dragging)
+		this.#interactionManager.controlsManager?.endDragging();
 
 		this.#interactionManagerHelper.onUp();
 		this.reset();
@@ -427,16 +568,16 @@ export class DesktopStrategy implements IStrategy {
 	private getKeyStates() {
 		return {
 			insert: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.insert,
+				this.#drawingToolsManager.settings.keyBindings.insert,
 			),
 			cancel: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.cancel,
+				this.#drawingToolsManager.settings.keyBindings.cancel,
 			),
 			confirm: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.confirm,
+				this.#drawingToolsManager.settings.keyBindings.confirm,
 			),
 			delete: this.#drawingToolsManager.keyPressed(
-				this.#drawingToolsManager.settings.controls.delete,
+				this.#drawingToolsManager.settings.keyBindings.delete,
 			),
 		};
 	}
@@ -459,6 +600,7 @@ export class DesktopStrategy implements IStrategy {
 	 */
 	private handleAutoStart(event: PointerEvent): vec3 | undefined {
 		if (
+			this.#drawingToolsManager.settings.general.enableInsertion &&
 			this.#drawingToolsManager.settings.general.autoStart &&
 			this.#insertionInteractionHandler.insertionActive === false &&
 			this.#drawingToolsManager.getPointsData().length === 0
@@ -539,6 +681,8 @@ export class DesktopStrategy implements IStrategy {
 	 */
 	private handleBoxSelectionStart(event: PointerEvent): boolean {
 		if (!event.altKey) return false;
+		if (!this.#drawingToolsManager.settings.general.enableSelection)
+			return false;
 
 		this.#isBoxSelecting = true;
 		if (this.#viewport.camera) {
@@ -578,6 +722,10 @@ export class DesktopStrategy implements IStrategy {
 		ray: IRay,
 	): boolean {
 		if (!this.#insertionInteractionHandler.insertionActive) return false;
+		if (!this.#drawingToolsManager.settings.general.enableInsertion) {
+			this.stopInsertion();
+			return false;
+		}
 
 		const result = this.#insertionInteractionHandler.finalizeInsertion();
 		const distances = this.#geometryMathManager.checkPointDistances(
@@ -620,7 +768,10 @@ export class DesktopStrategy implements IStrategy {
 	 * Handle resuming paused insertion
 	 */
 	private handleInsertionResume(event: PointerEvent): vec3 | undefined {
-		if (this.#insertionInteractionHandler.insertionPaused) {
+		if (
+			this.#drawingToolsManager.settings.general.enableInsertion &&
+			this.#insertionInteractionHandler.insertionPaused
+		) {
 			this.#lastEvent = event;
 			return this.startInsertion();
 		}
@@ -666,8 +817,11 @@ export class DesktopStrategy implements IStrategy {
 	): void {
 		if (!distances) return;
 
-		this.#interactionManagerHelper.selectPoint(distances);
+		if (this.#drawingToolsManager.settings.general.enableSelection)
+			this.#interactionManagerHelper.selectPoint(distances);
 
+		if (!this.#drawingToolsManager.settings.general.enableTranslation)
+			return;
 		const draggingStarted = this.#interactionManagerHelper.startDragging();
 		if (draggingStarted && !this.#cameraFreezeFlag) {
 			this.#cameraFreezeFlag = this.#viewport.addFlag(
@@ -727,6 +881,9 @@ export class DesktopStrategy implements IStrategy {
 			this.#viewport.removeFlag(this.#cameraFreezeFlag);
 			this.#cameraFreezeFlag = "";
 		}
+		DesktopStrategy.#blockingHoverInstances.delete(
+			this.#drawingToolsManager.uuid,
+		);
 		this.#interactionManagerHelper.reset();
 	}
 
@@ -776,7 +933,7 @@ export class DesktopStrategy implements IStrategy {
 	/**
 	 * Update material indices for all points to ensure correct display after selection changes
 	 */
-	#updateAllPointMaterials(): void {
+	private updateAllPointMaterials(): void {
 		if (
 			!this.#drawingToolsManager.positionArray ||
 			this.#drawingToolsManager.positionArray.length === 0
@@ -859,16 +1016,103 @@ export class DesktopStrategy implements IStrategy {
 	}
 
 	/**
-	 * Update cursor based on current interaction state
+	 * Remove this instance from the global cursor-priority tracking sets.
+	 * Called when the pointer leaves the canvas so this instance no longer
+	 * blocks the cursor from resetting to "default".
+	 */
+	private clearCursorState(): void {
+		const uuid = this.#drawingToolsManager.uuid;
+		DesktopStrategy.#draggingInstances.delete(uuid);
+		DesktopStrategy.#hoveringInstances.delete(uuid);
+		DesktopStrategy.#blockingHoverInstances.delete(uuid);
+	}
+
+	/**
+	 * Update cursor based on current interaction state across all active instances.
+	 * Uses a priority of: grabbing > pointer > default, so that having two
+	 * drawing-tool instances active at once (e.g. rectangle + rotation handle in
+	 * RectangleTransform) does not cause the second instance to override a valid "pointer"
+	 * cursor set by the first.
 	 */
 	private updateCursor(): void {
-		if (this.#interactionManagerHelper.dragging) {
+		const uuid = this.#drawingToolsManager.uuid;
+		const {enableTranslation, enableSelection} =
+			this.#drawingToolsManager.settings.general;
+		const isDraggingControl =
+			this.#interactionManager.controlsManager?.isDraggingControl ??
+			false;
+		const isHoveringControl =
+			this.#interactionManager.controlsManager !== undefined &&
+			this.#interactionManager.controlsManager.hoveredControlIndex !==
+				undefined;
+
+		if (
+			(this.#interactionManagerHelper.dragging && enableTranslation) ||
+			isDraggingControl
+		) {
+			DesktopStrategy.#draggingInstances.add(uuid);
+			DesktopStrategy.#hoveringInstances.delete(uuid);
+		} else if (
+			(this.#interactionManagerHelper.hoveredPoint !== undefined &&
+				(enableTranslation || enableSelection) &&
+				!this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+					this.#interactionManagerHelper.hoveredPoint,
+				)) ||
+			isHoveringControl
+		) {
+			DesktopStrategy.#hoveringInstances.add(uuid);
+			DesktopStrategy.#draggingInstances.delete(uuid);
+		} else {
+			DesktopStrategy.#draggingInstances.delete(uuid);
+			DesktopStrategy.#hoveringInstances.delete(uuid);
+		}
+
+		if (DesktopStrategy.#draggingInstances.size > 0) {
 			document.body.style.cursor = "grabbing";
-		} else if (this.#interactionManagerHelper.hoveredPoint !== undefined) {
+		} else if (DesktopStrategy.#hoveringInstances.size > 0) {
 			document.body.style.cursor = "pointer";
 		} else {
 			document.body.style.cursor = "default";
 		}
+	}
+
+	/**
+	 * Initiates control dragging if a control is currently hovered.
+	 * Returns true if control dragging was started.
+	 */
+	private handleControlDragStart(): boolean {
+		if (
+			!this.#interactionManager.controlsManager ||
+			this.#interactionManager.controlsManager.hoveredControlIndex ===
+				undefined
+		)
+			return false;
+
+		if (this.#interactionManager.controlsManager.startDragging()) {
+			// Register with cancel callback so other DTs can evict this drag if
+			// they find a closer point in the same event cycle.
+			const cm = this.#interactionManager.controlsManager;
+			DesktopStrategy.#blockingHoverInstances.set(
+				this.#drawingToolsManager.uuid,
+				{
+					distance: cm.hoveredControlDistance ?? Infinity,
+					cancel: () => {
+						cm.onOut();
+						if (this.#cameraFreezeFlag) {
+							this.#viewport.removeFlag(this.#cameraFreezeFlag);
+							this.#cameraFreezeFlag = "";
+						}
+					},
+				},
+			);
+			if (!this.#cameraFreezeFlag) {
+				this.#cameraFreezeFlag = this.#viewport.addFlag(
+					FLAG_TYPE.CAMERA_FREEZE,
+				);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -879,6 +1123,18 @@ export class DesktopStrategy implements IStrategy {
 		isSelected: boolean,
 		isHovered: boolean,
 	): void {
+		if (
+			this.#drawingToolsManager.settings.geometry.disabledPoints?.includes(
+				index,
+			)
+		) {
+			this.#drawingToolsManager.updateMaterialIndex(
+				index,
+				MATERIAL_INDEX.DISABLED,
+			);
+			return;
+		}
+
 		let materialIndex: MATERIAL_INDEX;
 		if (isSelected && isHovered) {
 			materialIndex = MATERIAL_INDEX.SELECTED_HOVERED;

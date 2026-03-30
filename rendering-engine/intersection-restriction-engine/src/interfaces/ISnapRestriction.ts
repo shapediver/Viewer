@@ -6,6 +6,10 @@ import {RestrictionMetaData, RestrictionResult} from "./IRestriction";
 
 export type SnapRestrictionProperties = {
 	/**
+	 * Whether to create visual helper objects (grid, axis, etc.) for restrictions. (default: true)
+	 */
+	createHelperObjects?: boolean;
+	/**
 	 * If the restriction should be enabled by default.
 	 */
 	enabled?: boolean;
@@ -26,6 +30,11 @@ export type SnapRestrictionProperties = {
 	 * If the key is provided, the restriction is only active when the key is pressed.
 	 */
 	activationKey?: string;
+	/**
+	 * Whether the visualization of the restriction is shown or not (if there is one).
+	 * @default true
+	 */
+	enableVisualization?: boolean;
 };
 
 // #endregion Type aliases (1)
@@ -53,6 +62,11 @@ export interface ISnapRestriction {
 	 * If it is not editable, the default value for enabling or disabling the restriction is used.
 	 */
 	enabledEditable: boolean;
+	/**
+	 * If the visualization of the restriction is enabled or not.
+	 * If the restriction has no visualization, this property has no effect.
+	 */
+	enableVisualization: boolean;
 	/**
 	 * The priority of the restriction.
 	 */

@@ -2081,7 +2081,9 @@ export class MaterialLoader implements ILoader {
 
 	private createDataKeyFromMap(map: IMapData): string {
 		let id = "";
-		if (map.image instanceof HTMLImageElement) {
+		if (map.asData === true) {
+			id = map.id;
+		} else if (map.image instanceof HTMLImageElement) {
 			id = map.image.src;
 		} else if (map.image instanceof ImageBitmap) {
 			id = map.image.id;

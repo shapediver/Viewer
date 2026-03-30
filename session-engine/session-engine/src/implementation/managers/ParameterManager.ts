@@ -5,8 +5,8 @@ import {PARAMETER_TYPE} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 
 import {IParameter} from "../../interfaces/dto/IParameter";
-import {DrawingParameter} from "../dto/DrawingParameter";
 import {FileParameter} from "../dto/FileParameter";
+import {DrawingParameter} from "../dto/interaction/DrawingParameter";
 import {Parameter} from "../dto/Parameter";
 import {SessionEngineCore} from "../SessionEngineCore";
 

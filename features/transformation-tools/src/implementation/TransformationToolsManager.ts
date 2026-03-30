@@ -1,4 +1,4 @@
-import * as THREE from "three";
+﻿import * as THREE from "three";
 
 import {Box, IViewportApi, SessionApiData} from "@shapediver/viewer";
 import {
@@ -10,7 +10,7 @@ import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
-	SystemInfo,
+	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
 
@@ -26,13 +26,14 @@ export abstract class TransformationToolsManager
 	implements ITransformationToolsManager
 {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
+	readonly #id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
 	readonly #singleNode: boolean;
-	readonly #systemInfo: SystemInfo = SystemInfo.instance;
+	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
 	#cameraFreezeFlag?: string;
@@ -46,22 +47,24 @@ export abstract class TransformationToolsManager
 	#pivotOffset: mat4 = mat4.create();
 	#previousTransformationToolsMatrix: mat4[] = [];
 	#reuseTransformation: boolean = true;
-	#scale: number = 0.15;
+	#settings?: SettingsOptional;
 	#show: boolean = true;
-	#space: "local" | "world" = "local";
 
 	protected abstract transformationToolsPlaceholderMatrix: mat4;
 
 	constructor(
+		id: string | undefined,
 		viewport: IViewportApi,
 		nodes: ITreeNode[],
 		settings?: SettingsOptional,
 	) {
+		this.#id = id ?? this.#uuidGenerator.create();
 		this.#viewport = viewport;
 		this.#canvasEventListenerToken =
 			this.#viewport.addCanvasEventListener(this);
 		this.#nodes = nodes;
 		this.#singleNode = nodes.length === 1;
+		this.#settings = settings;
 
 		if (this.#singleNode && settings?.restrictions !== undefined) {
 			const restrictionsArray: RestrictionProperties[] = [];
@@ -78,17 +81,20 @@ export abstract class TransformationToolsManager
 			);
 		}
 
-		const isMobile = this.#systemInfo.isMobile;
-		const mobileFactor = isMobile ? 2 : 1;
-		this.#scale = (settings?.scale ?? 0.15) * mobileFactor;
-		// we don't allow to change the space for now
-		this.#space = settings?.space ?? "local";
 		// we don't allow to change the reuseTransformation for now
 		this.#reuseTransformation = settings?.reuseTransformation ?? true;
 	}
 
 	public get closed(): boolean {
 		return this.#closed;
+	}
+
+	public get id(): string {
+		return this.#id;
+	}
+
+	public get settings(): SettingsOptional | undefined {
+		return this.#settings;
 	}
 
 	public get show(): boolean {
@@ -143,17 +149,11 @@ export abstract class TransformationToolsManager
 		return this.#reuseTransformation;
 	}
 
-	protected get scale(): number {
-		return this.#scale;
-	}
-
 	protected get singleNode(): boolean {
 		return this.#singleNode;
 	}
 
-	protected get space(): "local" | "world" {
-		return this.#space;
-	}
+	protected abstract get type(): "gumball" | "rectangleTransform";
 
 	protected get viewport(): IViewportApi {
 		return this.#viewport;
@@ -161,6 +161,7 @@ export abstract class TransformationToolsManager
 
 	public close(): void {
 		this.#closed = true;
+		this.closeLogic();
 
 		this.#viewport.removeCanvasEventListener(
 			this.#canvasEventListenerToken,
@@ -341,10 +342,8 @@ export abstract class TransformationToolsManager
 				{
 					const transformations: {[key: string]: mat4} = {};
 					this.#nodes[0].traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent)
-							transformations[c.parent.name] = mat4.clone(
-								c.parent.nodeMatrix,
-							);
+						if (c.data.find((d) => d instanceof GeometryData))
+							transformations[c.name] = mat4.clone(c.nodeMatrix);
 					});
 
 					if (
@@ -361,15 +360,15 @@ export abstract class TransformationToolsManager
 						);
 						mat4.multiply(
 							transformationPlaceholderMatrix,
-							transformationPlaceholderMatrix,
 							initialWorldTransform,
+							transformationPlaceholderMatrix,
 						);
 					} else {
 						this.#initialTransform[0] = mat4.create();
 						mat4.multiply(
 							transformationPlaceholderMatrix,
-							transformationPlaceholderMatrix,
 							this.#nodes[0].worldMatrix,
+							transformationPlaceholderMatrix,
 						);
 					}
 				}
@@ -412,8 +411,8 @@ export abstract class TransformationToolsManager
 				);
 				mat4.multiply(
 					transformationPlaceholderMatrix,
-					transformationPlaceholderMatrix,
 					mat4.fromTranslation(mat4.create(), this.#initialOffset),
+					transformationPlaceholderMatrix,
 				);
 			}
 		} else {
@@ -436,10 +435,8 @@ export abstract class TransformationToolsManager
 				{
 					const transformations: {[key: string]: mat4} = {};
 					node.traverse((c) => {
-						if (c.name.startsWith("mesh_") && c.parent) {
-							transformations[c.parent.name] = mat4.clone(
-								c.parent.nodeMatrix,
-							);
+						if (c.data.find((d) => d instanceof GeometryData)) {
+							transformations[c.name] = mat4.clone(c.nodeMatrix);
 						}
 					});
 					if (
@@ -490,33 +487,33 @@ export abstract class TransformationToolsManager
 
 			mat4.multiply(
 				transformationPlaceholderMatrix,
-				transformationPlaceholderMatrix,
 				mat4.fromTranslation(mat4.create(), this.#initialOffset),
+				transformationPlaceholderMatrix,
 			);
 		}
 
 		return transformationPlaceholderMatrix;
 	}
 
-	protected abstract onKeyDownLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
+	protected onKeyDownLogic(
+		_event: KeyboardEvent,
+		_pointerInCanvas: boolean,
+	): void {}
 
-	protected abstract onKeyUpLogic(
-		event: KeyboardEvent,
-		pointerInCanvas: boolean,
-	): void;
+	protected onKeyUpLogic(
+		_event: KeyboardEvent,
+		_pointerInCanvas: boolean,
+	): void {}
 
-	protected abstract onPointerDownLogic(event: PointerEvent): void;
+	protected onPointerDownLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerEndLogic(event: PointerEvent): void;
+	protected onPointerEndLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerMoveLogic(event: PointerEvent): void;
+	protected onPointerMoveLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerOutLogic(event: PointerEvent): void;
+	protected onPointerOutLogic(_event: PointerEvent): void {}
 
-	protected abstract onPointerUpLogic(event: PointerEvent): void;
+	protected onPointerUpLogic(_event: PointerEvent): void {}
 
 	protected toggleCameraFreeze(freeze: boolean): void {
 		if (freeze) {
@@ -538,6 +535,8 @@ export abstract class TransformationToolsManager
 			transformations: [],
 			localTransformations: [],
 			nodes: [],
+			id: this.id,
+			type: this.type,
 		};
 
 		this.nodes.forEach((node, i) => {
