@@ -80,8 +80,8 @@ export class CameraManager implements IManager {
 					distance * aspect;
 				orthographicCameraThreeJs.top = orthographicCameraData.top =
 					distance;
-				orthographicCameraThreeJs.near =
-					orthographicCameraData.near = 0.01;
+				orthographicCameraThreeJs.near = orthographicCameraData.near =
+					Math.max(0.0001, distance * 0.001);
 				orthographicCameraThreeJs.far = orthographicCameraData.far =
 					100 * distance;
 				orthographicCameraThreeJs.position.set(
@@ -159,8 +159,17 @@ export class CameraManager implements IManager {
 					aspect;
 				perspectiveCameraThreeJs.far = perspectiveCameraData.far =
 					fov < 10 ? fov * 100.0 * 100 * radius : 100 * radius;
-				perspectiveCameraThreeJs.near = perspectiveCameraData.near =
+				const cameraDistance = vec3.distance(
+					perspectiveCameraData.position,
+					perspectiveCameraData.target,
+				);
+				const defaultNear =
 					fov < 10 ? fov * 100.0 * 0.01 * radius : 0.01 * radius;
+				perspectiveCameraThreeJs.near = perspectiveCameraData.near =
+					Math.max(
+						0.0001,
+						Math.min(defaultNear, cameraDistance * 0.01),
+					);
 				perspectiveCameraThreeJs.position.set(
 					perspectiveCameraData.position[0],
 					perspectiveCameraData.position[1],
