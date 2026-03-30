@@ -1,5 +1,5 @@
+import {ISpherical} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {ISpherical} from "../interfaces/ISpherical";
 
 export class Spherical implements ISpherical {
 	constructor(

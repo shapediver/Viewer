@@ -2,6 +2,7 @@ import {
 	QueryGltfConversion,
 	ResBase,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
+import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 import {SettingsEngine} from "../settings-engine/SettingsEngine";
 import {StatePromise} from "./StatePromise";
 
@@ -20,6 +21,7 @@ export interface ISessionGlobalAccessObjectDefinition {
 	readonly modelViewUrl: string;
 	readonly settingsEngine: SettingsEngine;
 	readonly settingsRegistered: StatePromise<boolean>;
+	readonly sessionCreationDefinition: SessionCreationDefinition;
 
 	isFirstSession: boolean;
 	uploadGLTF: (

@@ -1,7 +1,8 @@
 import {
 	SESSION_SETTINGS_MODE,
-	SettingsEngine,
-} from "../settings-engine/SettingsEngine";
+	ViewportCreationDefinition,
+} from "@shapediver/viewer.shared.types";
+import {SettingsEngine} from "../settings-engine/SettingsEngine";
 import {StatePromise} from "./StatePromise";
 
 /**
@@ -19,6 +20,7 @@ export interface IViewportGlobalAccessObjectDefinition {
 	readonly sessionSettingsId?: string;
 	readonly sessionSettingsMode: SESSION_SETTINGS_MODE;
 	readonly settingsAssigned: StatePromise<boolean>;
+	readonly viewportCreationDefinition: ViewportCreationDefinition;
 
 	applySettings: (
 		sections?: {

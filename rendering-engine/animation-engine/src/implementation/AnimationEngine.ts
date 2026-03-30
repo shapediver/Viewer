@@ -1,10 +1,12 @@
 import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	AnimationData,
 	GeometryData,
-	IAnimationData,
-} from "@shapediver/viewer.shared.types";
+	ITree,
+	ITreeNode,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
+import {IAnimationData} from "@shapediver/viewer.shared.types";
 import * as TWEEN from "@tweenjs/tween.js";
 import {mat4, quat, vec3, vec4} from "gl-matrix";
 import {IAnimationEngine} from "../interfaces/IAnimationEngine";

@@ -1,22 +1,22 @@
 import {
 	addListener,
+	AttributeData,
 	EVENTTYPE_DRAWING_TOOLS,
+	GeometryData,
 	ITreeNode,
 	IViewportApi,
+	MapData,
+	MaterialBasicLineData,
+	MaterialMultiPointData,
+	PrimitiveData,
 } from "@shapediver/viewer";
 import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {EventEngine, IEvent} from "@shapediver/viewer.shared.services";
 import {
-	AttributeData,
-	GeometryData,
 	IGeometryData,
 	IMapData,
-	MapData,
-	MaterialBasicLineData,
-	MaterialMultiPointData,
 	MATERIAL_ALPHA,
-	PrimitiveData,
 	PRIMITIVE_MODE,
 } from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";

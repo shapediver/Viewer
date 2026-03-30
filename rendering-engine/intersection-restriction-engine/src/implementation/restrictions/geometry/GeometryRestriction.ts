@@ -1,10 +1,9 @@
 import {IViewportApi, sceneTree} from "@shapediver/viewer";
 import {SDObject} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs/dist/objects/SDObject";
 import {Box} from "@shapediver/viewer.shared.math";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
-	GeometryData,
 	IGeometryData,
 	IRay,
 	ISceneEvent,

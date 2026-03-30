@@ -272,7 +272,7 @@ export class CreationControlCenterSession
 			});
 
 			this.#stateEngine.sessionEngines[sessionEngineId] =
-				new SessionGlobalAccessObject(sessionEngine);
+				new SessionGlobalAccessObject(sessionEngine, properties);
 
 			const eventInit: ITaskEvent = {
 				type: TASK_TYPE.SESSION_CREATION,

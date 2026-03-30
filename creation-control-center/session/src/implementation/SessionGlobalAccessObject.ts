@@ -8,12 +8,12 @@ import {
 	SettingsEngine,
 	StatePromise,
 } from "@shapediver/viewer.shared.services";
+import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export class SessionGlobalAccessObject
 	implements ISessionGlobalAccessObjectDefinition
 {
-	// #region Properties (5)
-
+	readonly #sessionCreationDefinition: SessionCreationDefinition;
 	readonly #sessionEngine: SessionEngine;
 
 	#initialOutputsLoaded: StatePromise<boolean> = new StatePromise();
@@ -21,17 +21,13 @@ export class SessionGlobalAccessObject
 	#isFirstSession: boolean = false;
 	#settingsRegistered: StatePromise<boolean> = new StatePromise();
 
-	// #endregion Properties (5)
-
-	// #region Constructors (1)
-
-	constructor(sessionEngine: SessionEngine) {
+	constructor(
+		sessionEngine: SessionEngine,
+		sessionCreationDefinition: SessionCreationDefinition,
+	) {
 		this.#sessionEngine = sessionEngine;
+		this.#sessionCreationDefinition = sessionCreationDefinition;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (9)
 
 	public get canUploadGLTF(): boolean {
 		return this.#sessionEngine.canUploadGLTF;
@@ -61,6 +57,10 @@ export class SessionGlobalAccessObject
 		return this.#sessionEngine.modelViewUrl;
 	}
 
+	public get sessionCreationDefinition(): SessionCreationDefinition {
+		return this.#sessionCreationDefinition;
+	}
+
 	public get settingsEngine(): SettingsEngine {
 		return this.#sessionEngine.settingsEngine;
 	}
@@ -69,16 +69,10 @@ export class SessionGlobalAccessObject
 		return this.#settingsRegistered;
 	}
 
-	// #endregion Public Getters And Setters (9)
-
-	// #region Public Methods (1)
-
 	public uploadGLTF(
 		gltf: Blob,
 		name: QueryGltfConversion | undefined,
 	): Promise<ResBase> {
 		return this.#sessionEngine.uploadGLTF(gltf, name);
 	}
-
-	// #endregion Public Methods (1)
 }

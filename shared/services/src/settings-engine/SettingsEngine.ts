@@ -199,32 +199,6 @@ export class SettingsEngine {
 
 // #region Enums (1)
 
-/**
- * Session settings to be used by a viewport.
- *
- * The {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}
- * allows to persist settings of the viewer, individually for each model that it hosts. Persisting the settings
- * of the viewer requires permissions which are typically only granted to the owner of the model. Editing
- * of the settings typically happens on the model edit page of the ShapeDiver Platform.
- *
- * Whenever an instance of the viewer creates a session with a model, the settings are made available to the viewer.
- * It is possible to use multiple sessions with different models from a single instance of the viewer.
- * Therefore the viewer offers a choice on which settings to use.
- */
-export enum SESSION_SETTINGS_MODE {
-	/** No settings of a session will be used for the viewport. */
-	NONE = "none",
-	/**
-	 * The settings of the very first session created will be used for the viewport.
-	 */
-	FIRST = "first",
-	/**
-	 * Use this mode in case you want to assign a specific session identifier
-	 * to the viewport, whose settings will be used.
-	 */
-	MANUAL = "manual",
-}
-
 export const defaultSettings = {
 	default: Defaults,
 	furniture: FurnitureDefaults,

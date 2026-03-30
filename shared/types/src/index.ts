@@ -185,6 +185,7 @@ import {
 	PARAMETER_VISUALIZATION,
 	SDImageBitmap,
 	SessionCreationDefinition,
+	SESSION_SETTINGS_MODE,
 	ViewportCreationDefinition,
 } from "./types";
 
@@ -195,6 +196,28 @@ import {
 	INumberGradient,
 	IStringGradient,
 } from "./interfaces/attribute-visualization";
+import {
+	EVENTTYPE,
+	EVENTTYPE_CAMERA,
+	EVENTTYPE_DRAWING_TOOLS,
+	EVENTTYPE_INTERACTION,
+	EVENTTYPE_OUTPUT,
+	EVENTTYPE_PARAMETER,
+	EVENTTYPE_RENDERING,
+	EVENTTYPE_SCENE,
+	EVENTTYPE_SESSION,
+	EVENTTYPE_TASK,
+	EVENTTYPE_TRANSFORMATION_TOOLS,
+	EVENTTYPE_VIEWPORT,
+	MainEventTypes,
+} from "./interfaces/events/EventTypes";
+import {IEvent} from "./interfaces/events/IEvent";
+import {IBox} from "./interfaces/math/IBox";
+import {IGeometry} from "./interfaces/math/IGeometry";
+import {IPlane} from "./interfaces/math/IPlane";
+import {ISphere} from "./interfaces/math/ISphere";
+import {ISpherical} from "./interfaces/math/ISpherical";
+import {ITriangle} from "./interfaces/math/ITriangle";
 import {
 	IRectangleTransformParameterProps,
 	RectangleTransformParameterValue,
@@ -233,6 +256,7 @@ import {ITree} from "./interfaces/tree-node/ITree";
 import {ITransformation, ITreeNode} from "./interfaces/tree-node/ITreeNode";
 import {ITreeNodeData} from "./interfaces/tree-node/ITreeNodeData";
 
+export {IBox, ISphere, ISpherical, IPlane, ITriangle, IGeometry};
 export {
 	IMaterialStandardData,
 	IMaterialStandardDataProperties,
@@ -295,6 +319,7 @@ export {
 export {ICustomData, IInstanceData};
 export {
 	EventResponseMapping,
+	IEvent,
 	IViewportEvent,
 	ISessionEvent,
 	ISessionErrorEvent,
@@ -367,8 +392,22 @@ export {
 };
 export {
 	BUSY_MODE_DISPLAY,
+	EVENTTYPE,
+	EVENTTYPE_CAMERA,
+	EVENTTYPE_DRAWING_TOOLS,
+	EVENTTYPE_INTERACTION,
+	EVENTTYPE_OUTPUT,
+	EVENTTYPE_PARAMETER,
+	EVENTTYPE_RENDERING,
+	EVENTTYPE_SCENE,
+	EVENTTYPE_SESSION,
+	EVENTTYPE_TASK,
+	EVENTTYPE_TRANSFORMATION_TOOLS,
+	EVENTTYPE_VIEWPORT,
+	MainEventTypes,
 	FLAG_TYPE,
 	RENDERER_TYPE,
+	SESSION_SETTINGS_MODE,
 	SPINNER_POSITIONING,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,

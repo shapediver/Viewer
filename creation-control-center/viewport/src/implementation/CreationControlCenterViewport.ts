@@ -158,7 +158,7 @@ export class CreationControlCenterViewport
 
 			const viewportEngine = new RenderingEngineThreeJs(properties);
 			this.#stateEngine.viewportEngines[viewportEngineId] =
-				new ViewportGlobalAccessObject(viewportEngine);
+				new ViewportGlobalAccessObject(viewportEngine, properties);
 			this.viewportEngines[viewportEngineId] = viewportEngine;
 			viewportEngine.start();
 

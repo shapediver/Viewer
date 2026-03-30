@@ -1,4 +1,4 @@
-import {IEvent} from "@shapediver/viewer.shared.services";
+import {IEvent} from "./IEvent";
 
 export interface ISessionErrorEvent extends ISessionEvent {
 	/**

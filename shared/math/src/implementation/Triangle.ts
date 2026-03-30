@@ -1,5 +1,5 @@
+import {ITriangle} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
-import {ITriangle} from "../interfaces/ITriangle";
 
 export class Triangle implements ITriangle {
 	constructor(

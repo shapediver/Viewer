@@ -1,7 +1,6 @@
-import {IBox} from "@shapediver/viewer.shared.math";
-
 import {vec2, vec3} from "gl-matrix";
 import {Color} from "../../types";
+import {IBox} from "../math/IBox";
 import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface IAnchorDataImage {

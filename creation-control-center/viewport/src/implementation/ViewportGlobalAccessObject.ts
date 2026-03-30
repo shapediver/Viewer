@@ -4,31 +4,27 @@ import {
 	SettingsEngine,
 	StatePromise,
 } from "@shapediver/viewer.shared.services";
+import {ViewportCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export class ViewportGlobalAccessObject
 	implements IViewportGlobalAccessObjectDefinition
 {
-	// #region Properties (6)
-
 	readonly #boundingBoxCreated: StatePromise<boolean> = new StatePromise();
 	readonly #initialized: StatePromise<boolean> = new StatePromise();
 	readonly #settingsAssigned: StatePromise<boolean> = new StatePromise();
+	readonly #viewportCreationDefinition: ViewportCreationDefinition;
 	readonly #viewportEngine: RenderingEngine;
 
 	#busy: string[] = [];
 	#environmentMapLoaded: StatePromise<boolean> = new StatePromise();
 
-	// #endregion Properties (6)
-
-	// #region Constructors (1)
-
-	constructor(viewportEngine: RenderingEngine) {
+	constructor(
+		viewportEngine: RenderingEngine,
+		viewportCreationDefinition: ViewportCreationDefinition,
+	) {
 		this.#viewportEngine = viewportEngine;
+		this.#viewportCreationDefinition = viewportCreationDefinition;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (9)
 
 	public get boundingBoxCreated(): StatePromise<boolean> {
 		return this.#boundingBoxCreated;
@@ -66,9 +62,9 @@ export class ViewportGlobalAccessObject
 		return this.#settingsAssigned;
 	}
 
-	// #endregion Public Getters And Setters (9)
-
-	// #region Public Methods (6)
+	public get viewportCreationDefinition(): ViewportCreationDefinition {
+		return this.#viewportCreationDefinition;
+	}
 
 	public applySettings(
 		sections?:
@@ -111,6 +107,4 @@ export class ViewportGlobalAccessObject
 	public update(id: string): void {
 		this.#viewportEngine.update(id);
 	}
-
-	// #endregion Public Methods (6)
 }

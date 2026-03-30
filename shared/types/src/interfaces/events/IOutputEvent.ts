@@ -1,5 +1,5 @@
-import {IEvent} from "@shapediver/viewer.shared.services";
 import {ITreeNode} from "../tree-node/ITreeNode";
+import {IEvent} from "./IEvent";
 
 /**
  * Definition of the output event.

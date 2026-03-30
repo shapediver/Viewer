@@ -7,7 +7,7 @@ import {
 	EVENTTYPE_SESSION,
 	EVENTTYPE_TASK,
 	EVENTTYPE_VIEWPORT,
-} from "@shapediver/viewer.shared.services";
+} from "./EventTypes";
 import {ICameraEvent} from "./ICameraEvent";
 import {IOutputEvent} from "./IOutputEvent";
 import {IParameterEvent} from "./IParameterEvent";

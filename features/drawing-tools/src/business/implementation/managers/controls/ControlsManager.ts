@@ -2,8 +2,13 @@ import * as THREE from "three";
 
 import {
 	addListener,
+	AttributeData,
+	GeometryData,
 	ITreeNode,
 	IViewportApi,
+	MapData,
+	MaterialMultiPointData,
+	PrimitiveData,
 	TreeNode,
 } from "@shapediver/viewer";
 import {IRay} from "@shapediver/viewer.features.interaction";
@@ -19,14 +24,9 @@ import {
 	IEvent,
 } from "@shapediver/viewer.shared.services";
 import {
-	AttributeData,
-	GeometryData,
 	IGeometryData,
 	IMapData,
-	MapData,
-	MaterialMultiPointData,
 	MATERIAL_ALPHA,
-	PrimitiveData,
 	PRIMITIVE_MODE,
 } from "@shapediver/viewer.shared.types";
 

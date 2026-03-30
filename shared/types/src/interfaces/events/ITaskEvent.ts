@@ -1,6 +1,6 @@
-import {IEvent} from "@shapediver/viewer.shared.services";
-
 // #region Interfaces (1)
+
+import {IEvent} from "./IEvent";
 
 /**
  * Definition of the task event.

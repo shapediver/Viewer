@@ -1,8 +1,4 @@
 import {ResErrorType as ShapeDiverGeometryBackendResponseErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {Converter} from "./converter/Converter";
-import {DomEventEngine} from "./dom-event-engine/DomEventEngine";
-import {IDomEventListener} from "./dom-event-engine/IDomEventListener";
-import {EventEngine} from "./event-engine/EventEngine";
 import {
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
@@ -16,9 +12,14 @@ import {
 	EVENTTYPE_TASK,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
 	EVENTTYPE_VIEWPORT,
+	IEvent,
 	MainEventTypes,
-} from "./event-engine/EventTypes";
-import {IEvent} from "./event-engine/interfaces/IEvent";
+	SESSION_SETTINGS_MODE,
+} from "@shapediver/viewer.shared.types";
+import {Converter} from "./converter/Converter";
+import {DomEventEngine} from "./dom-event-engine/DomEventEngine";
+import {IDomEventListener} from "./dom-event-engine/IDomEventListener";
+import {EventEngine} from "./event-engine/EventEngine";
 import {HttpClient} from "./http-client/HttpClient";
 import {HttpResponse} from "./http-client/HttpResponse";
 import {InputValidator} from "./input-validator/InputValidator";
@@ -73,7 +74,6 @@ import {isValid, stringify} from "./parameter-utils/ParameterUtils";
 import {PerformanceEvaluator} from "./performance-evaluator/PerformanceEvaluator";
 import {
 	defaultSettings,
-	SESSION_SETTINGS_MODE,
 	SettingsEngine,
 } from "./settings-engine/SettingsEngine";
 import {ISessionGlobalAccessObjectDefinition} from "./state-engine/ISessionGlobalAccessObjectDefinition";

@@ -1,6 +1,5 @@
+import {IBox, ISphere} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
-import {IBox} from "../interfaces/IBox";
-import {ISphere} from "../interfaces/ISphere";
 
 export class Sphere implements ISphere {
 	// #region Constructors (1)

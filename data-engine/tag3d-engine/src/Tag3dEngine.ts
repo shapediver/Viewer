@@ -1,18 +1,19 @@
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {ITag3D} from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	CustomData,
+	GeometryData,
+	InstanceData,
+	ITreeNode,
+	MaterialStandardData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
-import {
-	Color,
-	CustomData,
-	GeometryData,
-	InstanceData,
-	MaterialStandardData,
-} from "@shapediver/viewer.shared.types";
+import {Color} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 
 // #region Type aliases (1)

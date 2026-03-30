@@ -1,5 +1,5 @@
-import {IBox} from "@shapediver/viewer.shared.math";
 import {mat4} from "gl-matrix";
+import {IBox} from "../math/IBox";
 import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 import {IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
