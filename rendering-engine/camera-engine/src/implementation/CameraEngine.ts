@@ -260,32 +260,55 @@ export class CameraEngine implements ICameraEngine {
 		// this is needed as the default position and target might not make sense if the model is loaded with a different modelState
 		// or different initial parameters
 		if (this.camera?.autoAdjust) {
-			const token = this._eventEngine.addListener(
-				EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE,
-				(e: IEvent) => {
-					const viewerEvent = <ISceneEvent>e;
-					if (viewerEvent.viewportId === this._renderingEngine.id) {
-						this._boundingBox = new Box(
-							viewerEvent.boundingBox!.min,
-							viewerEvent.boundingBox!.max,
-						);
-						if (this._boundingBox.isEmpty() || !this.camera) return;
+			const sessionObj = Object.values(
+				this._stateEngine.sessionEngines,
+			).find((s) => s?.settingsEngine === settingsEngine);
+			const zoomTo =
+				!!sessionObj?.sessionCreationDefinition
+					.initialParameterValues ||
+				!!sessionObj?.sessionCreationDefinition.modelStateId;
 
-						// check if the at least a part of the bounding box is visible
+			if (zoomTo) {
+				// Use boundingBoxCreated which resolves immediately if the scene
+				// is already loaded (session-first), or once it appears (viewport-first).
+				const camera = this.camera;
+				this._stateEngine.viewportEngines[
+					this._renderingEngine.id
+				]?.boundingBoxCreated.then(() => {
+					if (camera.autoAdjust)
+						camera.zoomTo(undefined, {duration: 0});
+				});
+			} else {
+				// Default: zoom only if the camera cannot see any part of the scene.
+				const token = this._eventEngine.addListener(
+					EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE,
+					(e: IEvent) => {
+						const viewerEvent = <ISceneEvent>e;
 						if (
-							!this.camera.boundingSphereVisible(
-								this._boundingBox.boundingSphere,
-							)
+							viewerEvent.viewportId === this._renderingEngine.id
 						) {
-							this.camera.zoomTo(this._boundingBox, {
-								duration: 0,
-							});
-						}
+							this._boundingBox = new Box(
+								viewerEvent.boundingBox!.min,
+								viewerEvent.boundingBox!.max,
+							);
+							if (this._boundingBox.isEmpty() || !this.camera)
+								return;
 
-						this._eventEngine.removeListener(token);
-					}
-				},
-			);
+							if (
+								!this.camera.boundingSphereVisible(
+									this._boundingBox.boundingSphere,
+								)
+							) {
+								this.camera.zoomTo(this._boundingBox, {
+									duration: 0,
+								});
+							}
+
+							this._eventEngine.removeListener(token);
+						}
+					},
+				);
+			}
 		}
 
 		if (this._update) this._update();
