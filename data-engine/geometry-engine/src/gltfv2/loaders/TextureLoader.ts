@@ -1,18 +1,14 @@
 import {IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
-import {
-	Converter,
-	hashForArraySampled,
-	HttpClient,
-} from "@shapediver/viewer.shared.services";
+import {hashForArraySampled} from "@shapediver/viewer.shared.services";
 
+import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {SDImageBitmap} from "@shapediver/viewer.shared.types/dist/types";
 import {BufferViewLoader} from "./BufferViewLoader";
 
 export class TextureLoader {
 	// #region Properties (3)
 
-	private readonly _converter: Converter = Converter.instance;
-	private readonly _httpClient: HttpClient = HttpClient.instance;
+	private readonly _materialEngine: MaterialEngine = MaterialEngine.instance;
 
 	private _loaded: {
 		[key: string]: {
@@ -124,7 +120,7 @@ export class TextureLoader {
 						: `${this._baseUri}/${image.uri}`;
 				promises.push(
 					new Promise<void>((resolve, reject) => {
-						this._httpClient
+						this._materialEngine
 							.loadTexture(url!)
 							.then((response) => {
 								if (!response) {

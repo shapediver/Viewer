@@ -236,7 +236,8 @@ export class UtilsManager {
 		err: SdGeometryError | ShapeDiverViewerError | Error | unknown,
 		retry = false,
 	) {
-		if (!(err instanceof Error)) throw this._httpClient.convertError(err);
+		if (!(err instanceof Error))
+			throw await this._httpClient.convertError(err);
 
 		// Process the error
 		const e = await processError(err);
@@ -274,7 +275,7 @@ export class UtilsManager {
 					} catch (e) {
 						/* empty */
 					}
-					throw this._httpClient.convertError(e);
+					throw await this._httpClient.convertError(e);
 				}
 			} else if (e.type === ResErrorType.JWT_VALIDATION_ERROR) {
 				// if any of the above errors occur, we try to get a new bearer token
@@ -297,7 +298,7 @@ export class UtilsManager {
 						} catch (e) {
 							/* empty */
 						}
-						throw this._httpClient.convertError(e);
+						throw await this._httpClient.convertError(e);
 					}
 				} else {
 					// the retries were exceeded, we close the session
@@ -310,13 +311,13 @@ export class UtilsManager {
 					} catch (e) {
 						/* empty */
 					}
-					throw this._httpClient.convertError(e);
+					throw await this._httpClient.convertError(e);
 				}
 			} else {
-				throw this._httpClient.convertError(e);
+				throw await this._httpClient.convertError(e);
 			}
 		} else {
-			throw this._httpClient.convertError(e);
+			throw await this._httpClient.convertError(e);
 		}
 	}
 

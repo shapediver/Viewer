@@ -1,4 +1,7 @@
-import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {
+	ResErrorType,
+	ResOutputContent,
+} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	IMaterialContentData,
 	IMaterialContentDataV1,
@@ -11,11 +14,11 @@ import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
+	HttpResponse,
 	Logger,
+	ShapeDiverGeometryBackendResponseError,
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
-import {vec2, vec4} from "gl-matrix";
-import {materialDatabase} from "./materialDatabase";
 /* eslint-disable no-prototype-builtins */
 import {
 	IMapDataPropertiesDefinition,
@@ -47,26 +50,20 @@ import {
 	TEXTURE_WRAPPING,
 } from "@shapediver/viewer.shared.types";
 
-export class MaterialEngine {
-	// #region Properties (4)
+import {vec2, vec4} from "gl-matrix";
 
+import {materialDatabase} from "./materialDatabase";
+
+export class MaterialEngine {
 	private readonly _converter: Converter = Converter.instance;
 	private readonly _httpClient: HttpClient = HttpClient.instance;
 	private readonly _logger: Logger = Logger.instance;
 
 	private static _instance: MaterialEngine;
 
-	// #endregion Properties (4)
-
-	// #region Public Static Getters And Setters (1)
-
 	public static get instance() {
 		return this._instance || (this._instance = new this());
 	}
-
-	// #endregion Public Static Getters And Setters (1)
-
-	// #region Public Methods (12)
 
 	/**
 	 * Create a material data based on the material properties
@@ -533,9 +530,9 @@ export class MaterialEngine {
 	): Promise<MapData | undefined> {
 		let response;
 		if (!id) {
-			response = await this._httpClient.loadTexture(url);
+			response = await this.loadTexture(url);
 		} else {
-			response = await this._httpClient.loadTexture(
+			response = await this.loadTexture(
 				"https://viewer.shapediver.com/v2/materials/1024/" +
 					id +
 					"/" +
@@ -591,7 +588,7 @@ export class MaterialEngine {
 	public async loadMapWithProperties(
 		texture: ITexture,
 	): Promise<MapData | undefined> {
-		const response = await this._httpClient.loadTexture(texture.href!);
+		const response = await this.loadTexture(texture.href!);
 
 		if (!response) return;
 
@@ -950,9 +947,35 @@ export class MaterialEngine {
 		return definition;
 	}
 
-	// #endregion Public Methods (12)
+	public async loadTexture(url: string): Promise<
+		HttpResponse<{
+			image?: HTMLImageElement;
+			buffer: ArrayBuffer;
+			blob: Blob;
+		}>
+	> {
+		try {
+			return await this._httpClient.loadTexture(url);
+		} catch (e) {
+			const err = await this._httpClient.convertError(e);
 
-	// #region Private Methods (4)
+			if (
+				err instanceof ShapeDiverGeometryBackendResponseError &&
+				err.geometryBackendErrorType === ResErrorType.TEXTURE_URL_ERROR
+			) {
+				// in this case, the texture could not be loaded
+				// as a fallback, we create a new texture and disable the text
+				// "Error: Fetching user-defined texture failed" on it
+				return await this.createTextureFromText(
+					"Error: Fetching user-defined texture failed",
+				);
+			}
+			throw new Error(
+				"MaterialEngine.loadTexture: Failed to load texture from url: " +
+					url,
+			);
+		}
+	}
 
 	private assignGeneralDefinition(
 		id: {class: string; specific: string},
@@ -1158,6 +1181,78 @@ export class MaterialEngine {
 		if (specificDefinition.side) definition.side = specificDefinition.side;
 	}
 
+	/**
+	 * Create a texture where the text is rendered on.
+	 * This can be used as a fallback when a texture could not be loaded.
+	 * @param text
+	 */
+	private createTextureFromText(text: string): Promise<
+		HttpResponse<{
+			image?: HTMLImageElement;
+			buffer: ArrayBuffer;
+			blob: Blob;
+		}>
+	> {
+		return new Promise((resolve, reject) => {
+			const size = 512;
+			const canvas = document.createElement("canvas");
+			canvas.width = size;
+			canvas.height = size;
+
+			const ctx = canvas.getContext("2d");
+			if (!ctx)
+				return reject(new Error("Could not get 2D canvas context"));
+
+			ctx.fillStyle = "#cccccc";
+			ctx.fillRect(0, 0, size, size);
+
+			ctx.fillStyle = "#333333";
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+
+			const maxWidth = size * 0.85;
+			let fontSize = 32;
+			ctx.font = `${fontSize}px sans-serif`;
+			while (ctx.measureText(text).width > maxWidth && fontSize > 8) {
+				fontSize -= 2;
+				ctx.font = `${fontSize}px sans-serif`;
+			}
+
+			ctx.fillText(text, size / 2, size / 2, maxWidth);
+
+			canvas.toBlob((blob) => {
+				if (!blob)
+					return reject(
+						new Error("Failed to create blob from canvas"),
+					);
+
+				blob.arrayBuffer()
+					.then((buffer) => {
+						const image = new Image();
+						const objectUrl = URL.createObjectURL(blob);
+						image.onload = () => {
+							URL.revokeObjectURL(objectUrl);
+							resolve({
+								data: {image, buffer, blob},
+								headers: {"content-type": "image/png"},
+								size: buffer.byteLength,
+							});
+						};
+						image.onerror = () => {
+							URL.revokeObjectURL(objectUrl);
+							resolve({
+								data: {buffer, blob},
+								headers: {"content-type": "image/png"},
+								size: buffer.byteLength,
+							});
+						};
+						image.src = objectUrl;
+					})
+					.catch(reject);
+			}, "image/png");
+		});
+	}
+
 	private getClassAndSpecificId(id: number): {
 		class: string;
 		specific: string;
@@ -1200,6 +1295,4 @@ export class MaterialEngine {
 			),
 		];
 	}
-
-	// #endregion Private Methods (4)
 }

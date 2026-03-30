@@ -1,4 +1,5 @@
 import {
+	processError,
 	RequestError,
 	ResponseError,
 	SdGeometryError as ShapeDiverBackendError,
@@ -117,21 +118,61 @@ export class HttpClient {
 	 *
 	 * @param e
 	 */
-	public convertError(e: ShapeDiverBackendError | Error | unknown) {
+	public async convertError(
+		err: ShapeDiverBackendError | Error | unknown,
+		log: boolean = false,
+	) {
+		const e = err instanceof Error ? await processError(err) : err;
+
+		let convertedError = e;
 		if (e instanceof ResponseError) {
-			throw new ShapeDiverGeometryBackendResponseError(
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: ${e.type}\n\t- message: ${e.message}\n\t- description: ${e.description}\n\t- status: ${e.status}\n`,
+				);
+
+			convertedError = new ShapeDiverGeometryBackendResponseError(
 				e.message,
 				e.status,
 				e.type,
 				e.description,
 			);
+		} else if (e instanceof ShapeDiverGeometryBackendResponseError) {
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: ${e.geometryBackendErrorType}\n\t- message: ${e.message}\n\t- description: ${e.desc}\n\t- status: ${e.status}\n`,
+				);
 		} else if (e instanceof RequestError) {
-			throw new ShapeDiverGeometryBackendRequestError(e.message);
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: RequestError\n\t- message: ${e.message}\n`,
+				);
+
+			convertedError = new ShapeDiverGeometryBackendRequestError(
+				e.message,
+			);
+		} else if (e instanceof ShapeDiverGeometryBackendRequestError) {
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: RequestError\n\t- message: ${e.message}\n`,
+				);
 		} else if (e instanceof ShapeDiverBackendError) {
-			throw new ShapeDiverGeometryBackendError(e.message);
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: ShapeDiverBackendError\n\t- message: ${e.message}\n`,
+				);
+
+			convertedError = new ShapeDiverGeometryBackendError(e.message);
 		} else {
-			throw e;
+			if (log)
+				this._logger.error(
+					`\nFailed to load resource:\n\t- type: UnknownError\n\t- message: ${
+						e instanceof Error ? e.message : String(e)
+					}\n`,
+				);
 		}
+
+		return convertedError;
 	}
 
 	/**
@@ -200,8 +241,8 @@ export class HttpClient {
 							})
 							.catch((e) => reject(e));
 					},
-				).catch((e) => {
-					throw this.convertError(e);
+				).catch(async (e) => {
+					throw await this.convertError(e);
 				});
 			} else {
 				// we can load blobs and data urls directly
@@ -213,8 +254,8 @@ export class HttpClient {
 					.then(async (result) => {
 						return result;
 					})
-					.catch((e) => {
-						throw this.convertError(e);
+					.catch(async (e) => {
+						throw await this.convertError(e);
 					});
 			}
 		} else {
@@ -223,8 +264,8 @@ export class HttpClient {
 				loadingPromise = axios(
 					href,
 					Object.assign({method: "get"}, config),
-				).catch((e) => {
-					throw this.convertError(e);
+				).catch(async (e) => {
+					throw await this.convertError(e, true);
 				});
 			} else {
 				// all data links where we could somehow find a session to load it with
@@ -250,8 +291,8 @@ export class HttpClient {
 								resolve(axiosPromise);
 							});
 					},
-				).catch((e) => {
-					throw this.convertError(e);
+				).catch(async (e) => {
+					throw await this.convertError(e, true);
 				});
 			}
 		}
@@ -286,13 +327,12 @@ export class HttpClient {
 					blob: Blob;
 				}>
 			>;
-		let loadingPromise;
-		try {
-			loadingPromise = (
-				this.get(href, undefined, true) as Promise<
-					HttpResponse<ArrayBuffer>
-				>
-			).then(async (response) => {
+		let loadingPromise = (
+			this.get(href, undefined, true) as Promise<
+				HttpResponse<ArrayBuffer>
+			>
+		)
+			.then(async (response) => {
 				const buffer = response.data;
 				const arrayBufferView = new Uint8Array(response.data);
 				const blob = new Blob([arrayBufferView], {
@@ -328,16 +368,13 @@ export class HttpClient {
 						headers: response.headers,
 					};
 				}
+			})
+			.catch(async (e) => {
+				throw await this.convertError(e, true);
 			});
 
-			const dataKey = this.hrefToDataKey(href);
-			// add the result to the cache
-
-			this.addToCache(dataKey, loadingPromise);
-		} catch (e) {
-			// log the error and return undefined
-			this._logger.error(`Failed to load texture: ${e}`);
-		}
+		// add the result to the cache
+		this.addToCache(dataKey, loadingPromise);
 
 		// return undefined if the texture could not be loaded
 		// that way the loading can be continued without the texture
@@ -395,8 +432,8 @@ export class HttpClient {
 					size,
 				});
 			})
-			.catch((e) => {
-				throw this.convertError(e);
+			.catch(() => {
+				// Rejection is handled by the caller; suppress unhandled rejection on this branch.
 			});
 	}
 

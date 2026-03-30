@@ -456,7 +456,7 @@ export class CustomizationManager {
 				customizationId,
 			);
 
-			throw this._httpClient.convertError(e);
+			throw await this._httpClient.convertError(e);
 		}
 	}
 

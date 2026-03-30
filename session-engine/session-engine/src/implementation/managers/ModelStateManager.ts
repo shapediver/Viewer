@@ -264,7 +264,7 @@ export class ModelStateManager {
 			).data;
 			return response;
 		} catch (e) {
-			throw this._httpClient.convertError(e);
+			throw await this._httpClient.convertError(e);
 		}
 	}
 }
