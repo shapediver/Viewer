@@ -1,7 +1,9 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {ISDTFAttributeData} from "../../interfaces/sdtf/ISDTFAttributesData";
-import {ISDTFItemData} from "../../interfaces/sdtf/ISDTFItemData";
+import {
+	ISDTFAttributeData,
+	ISDTFItemData,
+} from "@shapediver/viewer.shared.types";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class SDTFItemData
 	extends AbstractTreeNodeData

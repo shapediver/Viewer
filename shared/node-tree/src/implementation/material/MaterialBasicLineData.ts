@@ -1,24 +1,16 @@
 import {
+	IMaterialBasicLineData,
+	IMaterialBasicLineDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialUnlitData,
-	IMaterialUnlitDataProperties,
-} from "../../interfaces/data/material/IMaterialUnlitData";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialUnlitData
+export class MaterialBasicLineData
 	extends AbstractMaterialData
-	implements IMaterialUnlitData
+	implements IMaterialBasicLineData
 {
-	// #region Properties (1)
-
-	#envMap?: string | string[];
-
-	// #endregion Properties (1)
-
 	// #region Constructors (1)
 
 	/**
@@ -28,33 +20,20 @@ export class MaterialUnlitData
 	 * @param id the id
 	 */
 	constructor(
-		properties?: IMaterialUnlitDataProperties,
+		properties?: IMaterialBasicLineDataProperties,
 		id?: string,
 		version?: string,
 	) {
 		super(properties, id, version);
 		if (!properties) return;
-		if (properties.envMap !== undefined) this.envMap = properties.envMap;
 	}
 
 	// #endregion Constructors (1)
 
-	// #region Public Accessors (2)
-
-	public get envMap(): string | string[] | undefined {
-		return this.#envMap;
-	}
-
-	public set envMap(value: string | string[] | undefined) {
-		this.#envMap = value;
-	}
-
-	// #endregion Public Accessors (2)
-
 	// #region Public Methods (3)
 
-	public clone(): IMaterialUnlitData {
-		return new MaterialUnlitData(
+	public clone(): IMaterialBasicLineData {
+		return new MaterialBasicLineData(
 			{
 				alphaMap: this.alphaMap,
 				alphaCutoff: this.alphaCutoff,
@@ -76,14 +55,13 @@ export class MaterialUnlitData
 				opacity: this.opacity,
 				side: this.side,
 				transparent: this.transparent,
-				envMap: this.envMap,
 			},
 			this.id,
 			this.version,
 		);
 	}
 
-	public copy(source: MaterialUnlitData): void {
+	public copy(source: MaterialBasicLineData): void {
 		this.alphaCutoff = source.alphaCutoff;
 		this.alphaMap = source.alphaMap;
 		this.alphaMode = source.alphaMode;
@@ -103,7 +81,6 @@ export class MaterialUnlitData
 		this.opacity = source.opacity;
 		this.shading = source.shading;
 		this.side = source.side;
-		this.envMap = source.envMap;
 		this.transparent = source.transparent;
 	}
 
@@ -128,7 +105,6 @@ export class MaterialUnlitData
 		this.shading = MATERIAL_SHADING.SMOOTH;
 		this.side = MATERIAL_SIDE.DOUBLE;
 		this.transparent = undefined;
-		this.envMap = undefined;
 	}
 
 	// #endregion Public Methods (3)

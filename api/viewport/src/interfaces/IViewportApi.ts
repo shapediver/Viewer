@@ -4,7 +4,12 @@ import {
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ISettings} from "@shapediver/viewer.settings";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	ITreeNode,
+	MaterialBasicLineData,
+	MaterialPointData,
+	MaterialStandardData,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	IDomEventListener,
 	SESSION_SETTINGS_MODE,
@@ -18,9 +23,6 @@ import {
 	ISDTFAttributeVisualizationData,
 	ISDTFItemData,
 	ISDTFOverview,
-	MaterialBasicLineData,
-	MaterialPointData,
-	MaterialStandardData,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,

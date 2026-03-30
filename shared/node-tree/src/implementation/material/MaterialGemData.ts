@@ -1,15 +1,13 @@
-import {vec3} from "gl-matrix";
-import {IMapData} from "../../interfaces/data/material/IMapData";
 import {
+	Color,
+	IMapData,
+	IMaterialGemData,
+	IMaterialGemDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialGemData,
-	IMaterialGemDataProperties,
-} from "../../interfaces/data/material/IMaterialGemDataProperties";
-import {Color} from "../../types";
+} from "@shapediver/viewer.shared.types";
+import {vec3} from "gl-matrix";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialGemData

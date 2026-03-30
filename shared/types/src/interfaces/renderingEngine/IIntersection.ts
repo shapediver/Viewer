@@ -1,8 +1,7 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-
 import {vec3} from "gl-matrix";
 
 import {IGeometryData} from "../data/IGeometryData";
+import {ITreeNode} from "../tree-node/ITreeNode";
 
 export interface IBoxSelectionIntersection extends IIntersectionDefinition {
 	/** The type of the intersection. */

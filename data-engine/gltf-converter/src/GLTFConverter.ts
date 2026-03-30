@@ -15,7 +15,18 @@ import {
 } from "@shapediver/viewer.data-engine.shared-types";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	AnimationData,
+	AttributeData,
+	GeometryData,
+	InstanceData,
+	ITreeNode,
+	MapData,
+	MaterialSpecularGlossinessData,
+	MaterialStandardData,
+	MaterialUnlitData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	atobCustom,
 	Converter,
@@ -25,21 +36,13 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
-	AnimationData,
-	AttributeData,
-	GeometryData,
 	IAnimationData,
 	IAttributeData,
 	IGeometryData,
 	IMapData,
 	IMaterialAbstractData,
-	InstanceData,
 	IPrimitiveData,
 	ITaskEvent,
-	MapData,
-	MaterialSpecularGlossinessData,
-	MaterialStandardData,
-	MaterialUnlitData,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,

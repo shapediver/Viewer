@@ -1,5 +1,5 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface ISDTFOverview {
 	// #region Public Indexers (1)

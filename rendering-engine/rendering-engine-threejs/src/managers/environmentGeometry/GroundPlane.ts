@@ -1,9 +1,6 @@
+import {MaterialStandardData} from "@shapediver/viewer.shared.node-tree";
 import {Converter} from "@shapediver/viewer.shared.services";
-import {
-	Color,
-	MaterialStandardData,
-	MATERIAL_SIDE,
-} from "@shapediver/viewer.shared.types";
+import {Color, MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {RenderingEngine} from "../..";

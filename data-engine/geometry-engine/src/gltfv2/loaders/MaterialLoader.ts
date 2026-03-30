@@ -13,10 +13,6 @@ import {
 	IMaterialSpecularGlossinessDataProperties,
 	IMaterialStandardDataProperties,
 	IMaterialUnlitDataProperties,
-	MapData,
-	MaterialSpecularGlossinessData,
-	MaterialStandardData,
-	MaterialUnlitData,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	TEXTURE_FILTERING,
@@ -24,6 +20,12 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {vec2} from "gl-matrix";
 
+import {
+	MapData,
+	MaterialSpecularGlossinessData,
+	MaterialStandardData,
+	MaterialUnlitData,
+} from "@shapediver/viewer.shared.node-tree";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {TextureLoader} from "./TextureLoader";
 

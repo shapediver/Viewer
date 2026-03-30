@@ -1,10 +1,10 @@
 import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {SDTFItemData} from "@shapediver/viewer.shared.node-tree";
 import {
 	Color,
 	ISDTFAttributeVisualizationData,
 	ISDTFOverview,
 	MATERIAL_TYPE,
-	SDTFItemData,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
 } from "@shapediver/viewer.shared.types";

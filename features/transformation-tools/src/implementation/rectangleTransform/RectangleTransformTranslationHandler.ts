@@ -11,16 +11,15 @@ import {
 	RestrictionProperties,
 	RESTRICTION_TYPE,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
+	ITreeNode,
 	MaterialStandardData,
-	MATERIAL_ALPHA,
 	PrimitiveData,
-	PRIMITIVE_MODE,
-} from "@shapediver/viewer.shared.types";
+} from "@shapediver/viewer.shared.node-tree";
+import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
+import {MATERIAL_ALPHA, PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 

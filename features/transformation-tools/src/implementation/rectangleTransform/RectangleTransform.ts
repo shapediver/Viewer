@@ -6,12 +6,15 @@ import {
 } from "@shapediver/viewer.features.drawing-tools";
 import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
-import {ITransformation, ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	GeometryData,
+	ITransformation,
+	ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
 } from "@shapediver/viewer.shared.services";
-import {GeometryData} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 

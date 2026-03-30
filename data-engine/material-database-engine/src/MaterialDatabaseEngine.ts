@@ -1,13 +1,16 @@
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	GeometryData,
+	ITreeNode,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
 	Logger,
 } from "@shapediver/viewer.shared.services";
 import {
-	GeometryData,
 	IMaterialAbstractData,
 	IMaterialGemDataPropertiesDefinition,
 	IMaterialStandardDataPropertiesDefinition,

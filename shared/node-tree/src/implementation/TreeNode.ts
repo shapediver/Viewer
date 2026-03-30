@@ -3,11 +3,13 @@ import {
 	ObservableArray,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
+import {
+	ITransformation,
+	ITreeNode,
+	ITreeNodeData,
+} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
-
-import {ITransformation, ITreeNode} from "../interfaces/ITreeNode";
-import {ITreeNodeData} from "../interfaces/ITreeNodeData";
 
 export class TreeNode implements ITreeNode {
 	readonly #boundingBox: IBox = new Box();

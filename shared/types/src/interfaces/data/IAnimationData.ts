@@ -1,9 +1,6 @@
-import {
-	ITransformation,
-	ITreeNode,
-	ITreeNodeData,
-} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
+import {ITransformation, ITreeNode} from "../tree-node/ITreeNode";
+import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface IAnimationTrack {
 	// #region Properties (6)

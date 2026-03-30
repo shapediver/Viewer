@@ -2,13 +2,16 @@ import {
 	ResComputationStatus,
 	ResOutput,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	ChunkData,
+	ITreeNode,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	InputValidator,
 	Logger,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {ChunkData} from "@shapediver/viewer.shared.types";
 
 import {
 	IOutput,

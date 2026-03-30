@@ -1,5 +1,5 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {Color} from "../../../types";
+import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
 import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
 
 // #region Type aliases (2)

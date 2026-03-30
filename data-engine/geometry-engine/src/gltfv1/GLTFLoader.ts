@@ -5,7 +5,14 @@ import {
 	IGLTF_v1,
 	IGLTF_v1_Material,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	AttributeData,
+	GeometryData,
+	ITreeNode,
+	MaterialStandardData,
+	PrimitiveData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -17,12 +24,8 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
-	AttributeData,
-	GeometryData,
 	ITaskEvent,
-	MaterialStandardData,
 	MATERIAL_SIDE,
-	PrimitiveData,
 	PRIMITIVE_MODE,
 	TASK_TYPE,
 } from "@shapediver/viewer.shared.types";

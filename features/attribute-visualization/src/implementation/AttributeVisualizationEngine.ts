@@ -5,18 +5,20 @@ import {
 	IViewportApi,
 	sceneTree,
 } from "@shapediver/viewer";
-import {EVENTTYPE, UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
-	IMaterialAbstractData,
-	ISDTFItemData,
-	ISDTFOverview,
 	MaterialGemData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
 	SDTFItemData,
+} from "@shapediver/viewer.shared.node-tree";
+import {EVENTTYPE, UuidGenerator} from "@shapediver/viewer.shared.services";
+import {
+	IMaterialAbstractData,
+	ISDTFItemData,
+	ISDTFOverview,
 	SdtfPrimitiveTypeGuard,
 } from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";

@@ -1,7 +1,6 @@
 import {IViewportApi} from "@shapediver/viewer";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
-import {GeometryData} from "@shapediver/viewer.shared.types";
 
 import {
 	IInteractionEffect,

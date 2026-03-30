@@ -1,15 +1,17 @@
 import {
+	AttributeData,
+	GeometryData,
+	InstanceData,
+	MaterialGemData,
+} from "@shapediver/viewer.shared.node-tree";
+import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
 import {
-	AttributeData,
-	GeometryData,
 	IAttributeData,
 	IMaterialAbstractData,
-	InstanceData,
 	IPrimitiveData,
-	MaterialGemData,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,
 	RENDERER_TYPE,

@@ -1,9 +1,6 @@
-import {ITreeNodeData, Tree} from "@shapediver/viewer.shared.node-tree";
-import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
-	IMapData,
-	IMaterialAbstractData,
+	ITreeNodeData,
 	MaterialBasicLineData,
 	MaterialGemData,
 	MaterialLambertData,
@@ -14,6 +11,12 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
+import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
+import {
+	IMapData,
+	IMaterialAbstractData,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,

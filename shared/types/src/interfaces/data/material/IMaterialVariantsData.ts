@@ -1,4 +1,4 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
 import {IGeometryData} from "../IGeometryData";
 
 export interface IMaterialVariantsData extends ITreeNodeData {

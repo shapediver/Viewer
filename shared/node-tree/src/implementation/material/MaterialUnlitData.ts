@@ -1,24 +1,21 @@
 import {
+	IMaterialUnlitData,
+	IMaterialUnlitDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialPointData,
-	IMaterialPointDataProperties,
-} from "../../interfaces/data/material/IMaterialPointData";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialPointData
+export class MaterialUnlitData
 	extends AbstractMaterialData
-	implements IMaterialPointData
+	implements IMaterialUnlitData
 {
-	// #region Properties (2)
+	// #region Properties (1)
 
-	#size?: number = undefined;
-	#sizeAttenuation?: boolean = undefined;
+	#envMap?: string | string[];
 
-	// #endregion Properties (2)
+	// #endregion Properties (1)
 
 	// #region Constructors (1)
 
@@ -29,43 +26,33 @@ export class MaterialPointData
 	 * @param id the id
 	 */
 	constructor(
-		properties?: IMaterialPointDataProperties,
+		properties?: IMaterialUnlitDataProperties,
 		id?: string,
 		version?: string,
 	) {
 		super(properties, id, version);
 		if (!properties) return;
-		if (properties.size !== undefined) this.size = properties.size;
-		if (properties.sizeAttenuation !== undefined)
-			this.sizeAttenuation = properties.sizeAttenuation;
+		if (properties.envMap !== undefined) this.envMap = properties.envMap;
 	}
 
 	// #endregion Constructors (1)
 
-	// #region Public Accessors (4)
+	// #region Public Accessors (2)
 
-	public get size(): number | undefined {
-		return this.#size;
+	public get envMap(): string | string[] | undefined {
+		return this.#envMap;
 	}
 
-	public set size(value: number | undefined) {
-		this.#size = value;
+	public set envMap(value: string | string[] | undefined) {
+		this.#envMap = value;
 	}
 
-	public get sizeAttenuation(): boolean | undefined {
-		return this.#sizeAttenuation;
-	}
-
-	public set sizeAttenuation(value: boolean | undefined) {
-		this.#sizeAttenuation = value;
-	}
-
-	// #endregion Public Accessors (4)
+	// #endregion Public Accessors (2)
 
 	// #region Public Methods (3)
 
-	public clone(): IMaterialPointData {
-		return new MaterialPointData(
+	public clone(): IMaterialUnlitData {
+		return new MaterialUnlitData(
 			{
 				alphaMap: this.alphaMap,
 				alphaCutoff: this.alphaCutoff,
@@ -87,15 +74,14 @@ export class MaterialPointData
 				opacity: this.opacity,
 				side: this.side,
 				transparent: this.transparent,
-				size: this.size,
-				sizeAttenuation: this.sizeAttenuation,
+				envMap: this.envMap,
 			},
 			this.id,
 			this.version,
 		);
 	}
 
-	public copy(source: MaterialPointData): void {
+	public copy(source: MaterialUnlitData): void {
 		this.alphaCutoff = source.alphaCutoff;
 		this.alphaMap = source.alphaMap;
 		this.alphaMode = source.alphaMode;
@@ -115,10 +101,8 @@ export class MaterialPointData
 		this.opacity = source.opacity;
 		this.shading = source.shading;
 		this.side = source.side;
+		this.envMap = source.envMap;
 		this.transparent = source.transparent;
-
-		this.size = source.size;
-		this.sizeAttenuation = source.sizeAttenuation;
 	}
 
 	public reset(): void {
@@ -142,9 +126,7 @@ export class MaterialPointData
 		this.shading = MATERIAL_SHADING.SMOOTH;
 		this.side = MATERIAL_SIDE.DOUBLE;
 		this.transparent = undefined;
-
-		this.size = undefined;
-		this.sizeAttenuation = undefined;
+		this.envMap = undefined;
 	}
 
 	// #endregion Public Methods (3)

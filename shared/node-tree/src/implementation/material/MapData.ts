@@ -1,11 +1,12 @@
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {vec2} from "gl-matrix";
 import {
+	Color,
 	IMapData,
+	SDImageBitmap,
 	TEXTURE_FILTERING,
 	TEXTURE_WRAPPING,
-} from "../../interfaces/data/material/IMapData";
-import {Color, SDImageBitmap} from "../../types";
+} from "@shapediver/viewer.shared.types";
+import {vec2} from "gl-matrix";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class MapData extends AbstractTreeNodeData implements IMapData {
 	// #region Properties (15)

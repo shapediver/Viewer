@@ -6,13 +6,13 @@ import {
 	RestrictionManager,
 	RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {FLAG_TYPE, GeometryData} from "@shapediver/viewer.shared.types";
+import {FLAG_TYPE} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 

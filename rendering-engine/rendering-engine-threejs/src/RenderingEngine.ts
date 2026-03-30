@@ -13,7 +13,14 @@ import {
 } from "@shapediver/viewer.rendering-engine.canvas-engine";
 import {LightEngine} from "@shapediver/viewer.rendering-engine.light-engine";
 import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
+import {
+	ITree,
+	ITreeNode,
+	MaterialBasicLineData,
+	MaterialPointData,
+	MaterialStandardData,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	DomEventEngine,
@@ -39,9 +46,6 @@ import {
 	ISDTFOverview,
 	IViewportEvent,
 	IViewportSettingsSections,
-	MaterialBasicLineData,
-	MaterialPointData,
-	MaterialStandardData,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,

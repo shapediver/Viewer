@@ -11,7 +11,13 @@ import {
 	PointLight,
 	SpotLight,
 } from "@shapediver/viewer.rendering-engine.light-engine";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	AnimationData,
+	CustomData,
+	InstanceData,
+	ITreeNode,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -23,11 +29,8 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
-	AnimationData,
 	Color,
-	CustomData,
 	IAnimationTrack,
-	InstanceData,
 	ITaskEvent,
 	TASK_TYPE,
 } from "@shapediver/viewer.shared.types";

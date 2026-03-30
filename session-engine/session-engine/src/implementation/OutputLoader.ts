@@ -1,6 +1,12 @@
 import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
-import {ITreeNode, Tree, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	AbstractMaterialData,
+	GeometryData,
+	ITreeNode,
+	Tree,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -8,8 +14,6 @@ import {
 	PerformanceEvaluator,
 } from "@shapediver/viewer.shared.services";
 import {
-	AbstractMaterialData,
-	GeometryData,
 	IMaterialAbstractData,
 	ITaskEvent,
 	ITaskEventDescription,

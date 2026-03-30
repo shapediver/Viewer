@@ -3,17 +3,18 @@ import {
 	ACCESSORTYPE_V1 as ACCESSORTYPE,
 	ISDGTF_v1,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	AttributeData,
+	GeometryData,
+	ITreeNode,
+	PrimitiveData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
 	ShapeDiverViewerDataProcessingError,
 } from "@shapediver/viewer.shared.services";
-import {
-	AttributeData,
-	GeometryData,
-	PrimitiveData,
-	PRIMITIVE_MODE,
-} from "@shapediver/viewer.shared.types";
+import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 
 export class SDGTFLoader {

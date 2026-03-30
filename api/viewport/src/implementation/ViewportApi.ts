@@ -17,7 +17,13 @@ import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.renderin
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
 import {build_data} from "@shapediver/viewer.shared.build-data";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	ITreeNode,
+	MaterialBasicLineData,
+	MaterialPointData,
+	MaterialStandardData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	IDomEventListener,
 	InputValidator,
@@ -37,9 +43,6 @@ import {
 	ISDTFAttributeVisualizationData,
 	ISDTFItemData,
 	ISDTFOverview,
-	MaterialBasicLineData,
-	MaterialPointData,
-	MaterialStandardData,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,

@@ -1,13 +1,13 @@
 import {Box, IBox} from "@shapediver/viewer.shared.math";
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {mat4, quat, vec3} from "gl-matrix";
 import {
 	IAttributeData,
 	IGeometryData,
+	IMaterialAbstractData,
 	IPrimitiveData,
 	PRIMITIVE_MODE,
-} from "../../interfaces/data/IGeometryData";
-import {IMaterialAbstractData} from "../../interfaces/data/material/IMaterialAbstractData";
+} from "@shapediver/viewer.shared.types";
+import {mat4, quat, vec3} from "gl-matrix";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 // #region Classes (3)
 

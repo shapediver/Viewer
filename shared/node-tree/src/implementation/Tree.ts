@@ -1,5 +1,4 @@
-import {ITree} from "../interfaces/ITree";
-import {ITreeNode} from "../interfaces/ITreeNode";
+import {ITree, ITreeNode} from "@shapediver/viewer.shared.types";
 import {TreeNode} from "./TreeNode";
 
 export class Tree implements ITree {

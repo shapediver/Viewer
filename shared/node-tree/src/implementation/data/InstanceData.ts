@@ -1,7 +1,6 @@
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {Color, IInstanceData} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
-import {IInstanceData} from "../../interfaces/data/IInstanceData";
-import {Color} from "../../types";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class InstanceData
 	extends AbstractTreeNodeData

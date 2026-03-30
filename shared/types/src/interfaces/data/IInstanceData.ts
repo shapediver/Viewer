@@ -1,6 +1,6 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {mat4} from "gl-matrix";
 import {Color} from "../../types";
+import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface IInstanceData extends ITreeNodeData {
 	// #region Properties (2)

@@ -1,5 +1,5 @@
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {ICustomData} from "../../interfaces/data/ICustomData";
+import {ICustomData} from "@shapediver/viewer.shared.types";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class CustomData extends AbstractTreeNodeData implements ICustomData {
 	// #region Properties (1)

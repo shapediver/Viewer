@@ -1,8 +1,8 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
-	BUSY_MODE_DISPLAY,
 	HTMLElementAnchorData,
-} from "@shapediver/viewer.shared.types";
+	ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
+import {BUSY_MODE_DISPLAY} from "@shapediver/viewer.shared.types";
 import {vec2, vec3} from "gl-matrix";
 import {ILoader} from "../interfaces/ILoader";
 import {RenderingEngine} from "../RenderingEngine";

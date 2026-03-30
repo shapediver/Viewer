@@ -1,3 +1,7 @@
+import {
+	MaterialStandardData,
+	MaterialUnlitData,
+} from "@shapediver/viewer.shared.node-tree";
 import {Converter} from "@shapediver/viewer.shared.services";
 import {
 	ATTRIBUTE_VISUALIZATION,
@@ -8,8 +12,6 @@ import {
 	INumberGradient,
 	ISDTFAttributeVisualizationData,
 	IStringGradient,
-	MaterialStandardData,
-	MaterialUnlitData,
 } from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {isNumberGradient, isStringGradient} from "../interfaces/IGradient";

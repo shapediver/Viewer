@@ -1,5 +1,5 @@
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {IMaterialVariantsData} from "../../interfaces/data/material/IMaterialVariantsData";
+import {IMaterialVariantsData} from "@shapediver/viewer.shared.types";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 import {GeometryData} from "../data/GeometryData";
 
 export class MaterialVariantsData

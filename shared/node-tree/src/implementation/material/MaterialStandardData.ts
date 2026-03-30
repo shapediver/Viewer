@@ -1,14 +1,12 @@
-import {IMapData} from "../../interfaces/data/material/IMapData";
 import {
+	Color,
+	IMapData,
+	IMaterialStandardData,
+	IMaterialStandardDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialStandardData,
-	IMaterialStandardDataProperties,
-} from "../../interfaces/data/material/IMaterialStandardData";
-import {Color} from "../../types";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialStandardData

@@ -8,25 +8,22 @@ import {
 import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box, IBox} from "@shapediver/viewer.shared.math";
 import {
+	GeometryData,
+	HTMLElementAnchorData,
+	InstanceData,
 	ITree,
 	ITreeNode,
 	ITreeNodeData,
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
+import {ISDTFOverview, RENDERER_TYPE} from "@shapediver/viewer.shared.types";
+
 import {
 	EventEngine,
 	EVENTTYPE,
 	PerformanceEvaluator,
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
-import {
-	GeometryData,
-	HTMLElementAnchorData,
-	InstanceData,
-	ISDTFOverview,
-	RENDERER_TYPE,
-} from "@shapediver/viewer.shared.types";
-
 import {vec3} from "gl-matrix";
 
 import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";

@@ -1,12 +1,10 @@
 import {
-	AbstractTreeNodeData,
-	ITreeNode,
-} from "@shapediver/viewer.shared.node-tree";
-import {mat4, quat, vec3} from "gl-matrix";
-import {
 	IAnimationData,
 	IAnimationTrack,
-} from "../../interfaces/data/IAnimationData";
+	ITreeNode,
+} from "@shapediver/viewer.shared.types";
+import {mat4, quat, vec3} from "gl-matrix";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 import {GeometryData} from "./GeometryData";
 
 export class AnimationData
@@ -422,11 +420,12 @@ export class AnimationData
 						for (let l = 0; l < node.data.length; l++)
 							if (
 								node.data[l] instanceof GeometryData &&
-								(<GeometryData>node.data[l]).morphWeights
-									.length === weightCount
+								(<GeometryData>(<unknown>node.data[l]))
+									.morphWeights.length === weightCount
 							)
-								(<GeometryData>node.data[l]).morphWeights =
-									weights;
+								(<GeometryData>(
+									(<unknown>node.data[l])
+								)).morphWeights = weights;
 
 						for (let l = 0; l < node.children.length; l++)
 							applyWeights(node.children[l]);

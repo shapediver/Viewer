@@ -1,6 +1,6 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {vec2} from "gl-matrix";
 import {Color, SDImageBitmap} from "../../../types";
+import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
 
 // #region Type aliases (2)
 

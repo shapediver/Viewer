@@ -1,39 +1,6 @@
 ﻿import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {AnimationData} from "./implementation/data/AnimationData";
-import {ChunkData} from "./implementation/data/ChunkData";
-import {CustomData} from "./implementation/data/CustomData";
-import {
-	AttributeData,
-	GeometryData,
-	PrimitiveData,
-} from "./implementation/data/GeometryData";
-import {
-	HTMLElementAnchorCustomData,
-	HTMLElementAnchorData,
-	HTMLElementAnchorImageData,
-	HTMLElementAnchorTextData,
-} from "./implementation/data/HTMLElementAnchorData";
-import {InstanceData} from "./implementation/data/InstanceData";
-import {AbstractMaterialData} from "./implementation/material/AbstractMaterialData";
-import {MapData} from "./implementation/material/MapData";
-import {MaterialBasicLineData} from "./implementation/material/MaterialBasicLineData";
-import {MaterialGemData} from "./implementation/material/MaterialGemData";
-import {MaterialLambertData} from "./implementation/material/MaterialLambertData";
-import {MaterialMultiPointData} from "./implementation/material/MaterialMultiPointData";
-import {MaterialPhongData} from "./implementation/material/MaterialPhongData";
-import {MaterialPointData} from "./implementation/material/MaterialPointData";
-import {MaterialShadowData} from "./implementation/material/MaterialShadowData";
-import {MaterialSpecularGlossinessData} from "./implementation/material/MaterialSpecularGlossinessData";
-import {MaterialStandardData} from "./implementation/material/MaterialStandardData";
-import {MaterialUnlitData} from "./implementation/material/MaterialUnlitData";
-import {MaterialVariantsData} from "./implementation/material/MaterialVariantsData";
-import {
-	SDTFAttributeData,
-	SDTFAttributesData,
-} from "./implementation/sdtf/SDTFAttributesData";
-import {SDTFItemData} from "./implementation/sdtf/SDTFItemData";
-import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
+
 import {
 	IAnimationData,
 	IAnimationTrack,
@@ -262,56 +229,47 @@ import {
 	IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
 } from "./interfaces/renderingEngine/IPostProcessingEffectDefinitions";
+import {ITree} from "./interfaces/tree-node/ITree";
+import {ITransformation, ITreeNode} from "./interfaces/tree-node/ITreeNode";
+import {ITreeNodeData} from "./interfaces/tree-node/ITreeNodeData";
 
 export {
 	IMaterialStandardData,
-	MaterialStandardData,
 	IMaterialStandardDataProperties,
 	IMaterialStandardDataPropertiesDefinition,
 	IMaterialAbstractData,
 	IMaterialAbstractDataProperties,
-	AbstractMaterialData,
 	IMaterialAbstractDataPropertiesDefinition,
 	IMaterialUnlitData,
-	MaterialUnlitData,
 	IMaterialUnlitDataProperties,
 	IMaterialUnlitDataPropertiesDefinition,
 	IMaterialShadowData,
-	MaterialShadowData,
 	IMaterialShadowDataProperties,
 	IMaterialShadowDataPropertiesDefinition,
 	IMaterialSpecularGlossinessData,
-	MaterialSpecularGlossinessData,
 	IMaterialSpecularGlossinessDataProperties,
 	IMaterialSpecularGlossinessDataPropertiesDefinition,
 	IMaterialGemData,
-	MaterialGemData,
 	IMaterialGemDataProperties,
 	IMaterialGemDataPropertiesDefinition,
 	IMaterialPointData,
-	MaterialPointData,
 	IMaterialPointDataProperties,
 	IMaterialPointDataPropertiesDefinition,
 	IMaterialMultiPointData,
-	MaterialMultiPointData,
 	IMaterialMultiPointDataProperties,
 	IMaterialMultiPointDataPropertiesDefinition,
 	IMaterialBasicLineData,
-	MaterialBasicLineData,
 	IMaterialBasicLineDataProperties,
 	IMaterialBasicLineDataPropertiesDefinition,
 	IMaterialLambertData,
-	MaterialLambertData,
 	IMaterialLambertDataProperties,
 	IMaterialLambertDataPropertiesDefinition,
 	IMaterialPhongData,
-	MaterialPhongData,
 	IMaterialPhongDataProperties,
 	IMaterialPhongDataPropertiesDefinition,
 	IMapData,
 	IMapDataProperties,
 	IMapDataPropertiesDefinition,
-	MapData,
 	MATERIAL_SIDE,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
@@ -321,16 +279,11 @@ export {
 };
 export {
 	IAnimationData,
-	AnimationData,
 	IAnimationTrack,
 	IGeometryData,
 	IAttributeData,
 	IPrimitiveData,
 	IMaterialVariantsData,
-	GeometryData,
-	AttributeData,
-	PrimitiveData,
-	MaterialVariantsData,
 	PRIMITIVE_MODE,
 };
 export {
@@ -338,12 +291,8 @@ export {
 	IAnchorDataText,
 	IHTMLElementAnchorData,
 	IHTMLElementAnchorUpdateProperties,
-	HTMLElementAnchorCustomData,
-	HTMLElementAnchorTextData,
-	HTMLElementAnchorImageData,
-	HTMLElementAnchorData,
 };
-export {ICustomData, CustomData, IInstanceData, InstanceData};
+export {ICustomData, IInstanceData};
 export {
 	EventResponseMapping,
 	IViewportEvent,
@@ -363,13 +312,9 @@ export {
 };
 export {
 	ISDTFOverviewData,
-	SDTFOverviewData,
 	ISDTFOverview,
-	SDTFAttributesData,
 	ISDTFAttributesData,
 	ISDTFAttributeData,
-	SDTFAttributeData,
-	SDTFItemData,
 	ISDTFItemData,
 	ISDTFAttributeVisualizationData,
 	SdtfTypeHintName as SDTF_TYPEHINT,
@@ -437,7 +382,7 @@ export {
 	IIntersectionFilter,
 };
 export {SessionCreationDefinition, ViewportCreationDefinition};
-export {IChunkData, ChunkData};
+export {IChunkData};
 export {
 	ANTI_ALIASING_TECHNIQUE,
 	IBloomEffectDefinition,
@@ -475,3 +420,4 @@ export {
 	IStringGradient,
 	Gradient,
 };
+export {ITree, ITreeNode, ITreeNodeData, ITransformation};

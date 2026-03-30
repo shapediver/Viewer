@@ -1,12 +1,12 @@
 import {Box} from "@shapediver/viewer.shared.math";
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {vec3} from "gl-matrix";
 import {
 	IAnchorDataImage,
 	IAnchorDataText,
 	IHTMLElementAnchorData,
 	IHTMLElementAnchorUpdateProperties,
-} from "../../interfaces/data/IHTMLElementAnchorData";
+} from "@shapediver/viewer.shared.types";
+import {vec3} from "gl-matrix";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export abstract class HTMLElementAnchorData
 	extends AbstractTreeNodeData

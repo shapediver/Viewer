@@ -6,10 +6,14 @@ import {
 	RaycasterParameters,
 	SelectionBox,
 } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
-import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
+	ITree,
+	ITreeNode,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
+import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
+import {
 	IIntersectionDefinition,
 	IIntersectionFilter,
 	IRay,

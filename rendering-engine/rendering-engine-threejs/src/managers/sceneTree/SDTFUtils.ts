@@ -1,12 +1,15 @@
-import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {InputValidator} from "@shapediver/viewer.shared.services";
 import {
 	GeometryData,
-	IMaterialAbstractData,
-	ISDTFOverview,
+	ITreeNode,
+	ITreeNodeData,
 	MaterialStandardData,
 	SDTFItemData,
 	SDTFOverviewData,
+} from "@shapediver/viewer.shared.node-tree";
+import {InputValidator} from "@shapediver/viewer.shared.services";
+import {
+	IMaterialAbstractData,
+	ISDTFOverview,
 } from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {RenderingEngine} from "../..";

@@ -1,18 +1,23 @@
 import {
+	IMaterialPointData,
+	IMaterialPointDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialBasicLineData,
-	IMaterialBasicLineDataProperties,
-} from "../../interfaces/data/material/IMaterialBasicLineData";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialBasicLineData
+export class MaterialPointData
 	extends AbstractMaterialData
-	implements IMaterialBasicLineData
+	implements IMaterialPointData
 {
+	// #region Properties (2)
+
+	#size?: number = undefined;
+	#sizeAttenuation?: boolean = undefined;
+
+	// #endregion Properties (2)
+
 	// #region Constructors (1)
 
 	/**
@@ -22,20 +27,43 @@ export class MaterialBasicLineData
 	 * @param id the id
 	 */
 	constructor(
-		properties?: IMaterialBasicLineDataProperties,
+		properties?: IMaterialPointDataProperties,
 		id?: string,
 		version?: string,
 	) {
 		super(properties, id, version);
 		if (!properties) return;
+		if (properties.size !== undefined) this.size = properties.size;
+		if (properties.sizeAttenuation !== undefined)
+			this.sizeAttenuation = properties.sizeAttenuation;
 	}
 
 	// #endregion Constructors (1)
 
+	// #region Public Accessors (4)
+
+	public get size(): number | undefined {
+		return this.#size;
+	}
+
+	public set size(value: number | undefined) {
+		this.#size = value;
+	}
+
+	public get sizeAttenuation(): boolean | undefined {
+		return this.#sizeAttenuation;
+	}
+
+	public set sizeAttenuation(value: boolean | undefined) {
+		this.#sizeAttenuation = value;
+	}
+
+	// #endregion Public Accessors (4)
+
 	// #region Public Methods (3)
 
-	public clone(): IMaterialBasicLineData {
-		return new MaterialBasicLineData(
+	public clone(): IMaterialPointData {
+		return new MaterialPointData(
 			{
 				alphaMap: this.alphaMap,
 				alphaCutoff: this.alphaCutoff,
@@ -57,13 +85,15 @@ export class MaterialBasicLineData
 				opacity: this.opacity,
 				side: this.side,
 				transparent: this.transparent,
+				size: this.size,
+				sizeAttenuation: this.sizeAttenuation,
 			},
 			this.id,
 			this.version,
 		);
 	}
 
-	public copy(source: MaterialBasicLineData): void {
+	public copy(source: MaterialPointData): void {
 		this.alphaCutoff = source.alphaCutoff;
 		this.alphaMap = source.alphaMap;
 		this.alphaMode = source.alphaMode;
@@ -84,6 +114,9 @@ export class MaterialBasicLineData
 		this.shading = source.shading;
 		this.side = source.side;
 		this.transparent = source.transparent;
+
+		this.size = source.size;
+		this.sizeAttenuation = source.sizeAttenuation;
 	}
 
 	public reset(): void {
@@ -107,6 +140,9 @@ export class MaterialBasicLineData
 		this.shading = MATERIAL_SHADING.SMOOTH;
 		this.side = MATERIAL_SIDE.DOUBLE;
 		this.transparent = undefined;
+
+		this.size = undefined;
+		this.sizeAttenuation = undefined;
 	}
 
 	// #endregion Public Methods (3)

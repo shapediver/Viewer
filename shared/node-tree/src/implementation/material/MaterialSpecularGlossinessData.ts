@@ -1,14 +1,12 @@
-import {IMapData} from "../../interfaces/data/material/IMapData";
 import {
+	Color,
+	IMapData,
+	IMaterialSpecularGlossinessData,
+	IMaterialSpecularGlossinessDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialSpecularGlossinessData,
-	IMaterialSpecularGlossinessDataProperties,
-} from "../../interfaces/data/material/IMaterialSpecularGlossinessDataProperties";
-import {Color} from "../../types";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialSpecularGlossinessData

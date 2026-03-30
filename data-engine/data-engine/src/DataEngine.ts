@@ -5,14 +5,18 @@ import {MaterialDatabaseEngine} from "@shapediver/viewer.data-engine.material-da
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {SDTFEngine} from "@shapediver/viewer.data-engine.sdtf-engine";
 import {Tag3dEngine} from "@shapediver/viewer.data-engine.tag3d-engine";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	CustomData,
+	ITreeNode,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	ShapeDiverViewerDataProcessingError,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {CustomData, TASK_TYPE} from "@shapediver/viewer.shared.types";
+import {TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 
 export class DataEngine {

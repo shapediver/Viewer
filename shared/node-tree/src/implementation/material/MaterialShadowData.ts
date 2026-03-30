@@ -1,7 +1,7 @@
 import {
 	IMaterialShadowData,
 	IMaterialShadowDataProperties,
-} from "../../interfaces/data/material/IMaterialShadowData";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialShadowData

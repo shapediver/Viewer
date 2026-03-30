@@ -1,9 +1,9 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {
 	ISDTFAttributeData,
 	ISDTFAttributesData,
-} from "../../interfaces/sdtf/ISDTFAttributesData";
+} from "@shapediver/viewer.shared.types";
+import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class SDTFAttributeData implements ISDTFAttributeData {
 	// #region Properties (2)

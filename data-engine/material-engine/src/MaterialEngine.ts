@@ -10,7 +10,17 @@ import {
 	IPresetMaterialDefinition,
 	ITexture,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	ITreeNode,
+	MapData,
+	MaterialGemData,
+	MaterialLambertData,
+	MaterialPhongData,
+	MaterialSpecularGlossinessData,
+	MaterialStandardData,
+	MaterialUnlitData,
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
@@ -37,13 +47,6 @@ import {
 	IMaterialStandardDataPropertiesDefinition,
 	IMaterialUnlitDataProperties,
 	IMaterialUnlitDataPropertiesDefinition,
-	MapData,
-	MaterialGemData,
-	MaterialLambertData,
-	MaterialPhongData,
-	MaterialSpecularGlossinessData,
-	MaterialStandardData,
-	MaterialUnlitData,
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,
 	TEXTURE_FILTERING,

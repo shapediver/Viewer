@@ -3,8 +3,8 @@ import {
 	ACCESSORTYPE_V2 as ACCESSORTYPE,
 	IGLTF_v2,
 } from "@shapediver/viewer.data-engine.shared-types";
+import {AttributeData} from "@shapediver/viewer.shared.node-tree";
 import {Logger} from "@shapediver/viewer.shared.services";
-import {AttributeData} from "@shapediver/viewer.shared.types";
 
 import {BufferViewLoader} from "./BufferViewLoader";
 

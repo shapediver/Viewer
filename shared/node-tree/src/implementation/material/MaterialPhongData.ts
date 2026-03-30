@@ -1,19 +1,20 @@
-import {IMapData} from "../../interfaces/data/material/IMapData";
 import {
+	Color,
+	IMapData,
+	IMaterialPhongData,
+	IMaterialPhongDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-} from "../../interfaces/data/material/IMaterialAbstractData";
-import {
-	IMaterialLambertData,
-	IMaterialLambertDataProperties,
-} from "../../interfaces/data/material/IMaterialLambertData";
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
-export class MaterialLambertData
+export class MaterialPhongData
 	extends AbstractMaterialData
-	implements IMaterialLambertData
+	implements IMaterialPhongData
 {
+	#specular: Color = "#111111";
+	#shininess: number = 30;
 	#displacementBias: number = 0;
 	#displacementMap?: IMapData;
 	#displacementScale: number = 1;
@@ -22,12 +23,16 @@ export class MaterialLambertData
 	#reflectivity: number = 1;
 
 	constructor(
-		properties?: IMaterialLambertDataProperties,
+		properties?: IMaterialPhongDataProperties,
 		id?: string,
 		version?: string,
 	) {
 		super(properties, id, version);
 		if (!properties) return;
+		if (properties.specular !== undefined)
+			this.specular = properties.specular;
+		if (properties.shininess !== undefined)
+			this.shininess = properties.shininess;
 		if (properties.displacementBias !== undefined)
 			this.displacementBias = properties.displacementBias;
 		if (properties.displacementMap !== undefined)
@@ -39,6 +44,22 @@ export class MaterialLambertData
 		if (properties.envMap !== undefined) this.envMap = properties.envMap;
 		if (properties.reflectivity !== undefined)
 			this.reflectivity = properties.reflectivity;
+	}
+
+	public get specular(): Color {
+		return this.#specular;
+	}
+
+	public set specular(value: Color) {
+		this.#specular = value;
+	}
+
+	public get shininess(): number {
+		return this.#shininess;
+	}
+
+	public set shininess(value: number) {
+		this.#shininess = value;
 	}
 
 	public get displacementBias(): number {
@@ -89,8 +110,8 @@ export class MaterialLambertData
 		this.#reflectivity = value;
 	}
 
-	public clone(): IMaterialLambertData {
-		return new MaterialLambertData(
+	public clone(): IMaterialPhongData {
+		return new MaterialPhongData(
 			{
 				alphaMap: this.alphaMap,
 				alphaCutoff: this.alphaCutoff,
@@ -117,6 +138,8 @@ export class MaterialLambertData
 				displacementBias: this.displacementBias,
 				envMap: this.envMap,
 				reflectivity: this.reflectivity,
+				specular: this.specular,
+				shininess: this.shininess,
 				specularMap: this.specularMap,
 			},
 			this.id,
@@ -124,7 +147,9 @@ export class MaterialLambertData
 		);
 	}
 
-	public copy(source: IMaterialLambertData): void {
+	public copy(source: IMaterialPhongData): void {
+		this.specular = source.specular;
+		this.shininess = source.shininess;
 		this.displacementBias = source.displacementBias;
 		this.displacementMap = source.displacementMap;
 		this.displacementScale = source.displacementScale;
@@ -155,6 +180,8 @@ export class MaterialLambertData
 		this.side = MATERIAL_SIDE.DOUBLE;
 		this.transparent = undefined;
 
+		this.specular = "#111111";
+		this.shininess = 30;
 		this.displacementBias = 0;
 		this.displacementMap = undefined;
 		this.displacementScale = 1;

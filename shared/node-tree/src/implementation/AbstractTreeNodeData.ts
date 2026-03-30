@@ -1,5 +1,5 @@
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
-import {ITreeNodeData} from "../interfaces/ITreeNodeData";
+import {ITreeNodeData} from "@shapediver/viewer.shared.types";
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	readonly #id: string;

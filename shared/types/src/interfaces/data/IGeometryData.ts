@@ -1,6 +1,6 @@
 import {IBox} from "@shapediver/viewer.shared.math";
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {mat4} from "gl-matrix";
+import {ITreeNodeData} from "../tree-node/ITreeNodeData";
 import {IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
 export enum PRIMITIVE_MODE {
