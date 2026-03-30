@@ -126,7 +126,10 @@ import {IOutputEvent} from "./interfaces/events/IOutputEvent";
 import {IParameterEvent} from "./interfaces/events/IParameterEvent";
 import {IRenderingEvent} from "./interfaces/events/IRenderingEvent";
 import {ISceneEvent} from "./interfaces/events/ISceneEvent";
-import {ISessionEvent} from "./interfaces/events/ISessionEvent";
+import {
+	ISessionErrorEvent,
+	ISessionEvent,
+} from "./interfaces/events/ISessionEvent";
 import {
 	ITaskEvent,
 	ITaskEventDescription,
@@ -345,6 +348,7 @@ export {
 	EventResponseMapping,
 	IViewportEvent,
 	ISessionEvent,
+	ISessionErrorEvent,
 	IOutputEvent,
 	ICameraEvent,
 	IRenderingEvent,

@@ -17,6 +17,7 @@ import {
 	Converter,
 	EventEngine,
 	EVENTTYPE,
+	EVENTTYPE_SESSION,
 	HttpClient,
 	Logger,
 	ShapeDiverViewerCustomizationError,
@@ -26,6 +27,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	IInteractionParameterSettings,
+	ISessionErrorEvent,
 	ITaskEvent,
 	validateInteractionParameterSettings,
 } from "@shapediver/viewer.shared.types";
@@ -242,6 +244,13 @@ export class UtilsManager {
 
 		// Process the error
 		const e = await processError(err);
+		// emit event
+		this._eventEngine.emitEvent(EVENTTYPE_SESSION.SESSION_ERROR, <
+			ISessionErrorEvent
+		>{
+			sessionId: this._sessionEngineCore.sessionId!,
+			error: e,
+		});
 
 		if (e instanceof ResponseError) {
 			if (e.type === ResErrorType.SESSION_GONE_ERROR) {

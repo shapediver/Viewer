@@ -13,7 +13,7 @@ import {IOutputEvent} from "./IOutputEvent";
 import {IParameterEvent} from "./IParameterEvent";
 import {IRenderingEvent} from "./IRenderingEvent";
 import {ISceneEvent} from "./ISceneEvent";
-import {ISessionEvent} from "./ISessionEvent";
+import {ISessionErrorEvent, ISessionEvent} from "./ISessionEvent";
 import {ITaskEvent} from "./ITaskEvent";
 import {IViewportEvent} from "./IViewportEvent";
 
@@ -46,6 +46,7 @@ export type EventResponseMapping = {
 	[EVENTTYPE_SESSION.SESSION_CLOSED]: ISessionEvent;
 	[EVENTTYPE_SESSION.SESSION_INITIAL_OUTPUTS_LOADED]: ISessionEvent;
 	[EVENTTYPE_SESSION.SESSION_SDTF_DELAYED_LOADED]: ISessionEvent;
+	[EVENTTYPE_SESSION.SESSION_ERROR]: ISessionErrorEvent;
 	[EVENTTYPE_TASK.TASK_START]: ITaskEvent;
 	[EVENTTYPE_TASK.TASK_PROCESS]: ITaskEvent;
 	[EVENTTYPE_TASK.TASK_END]: ITaskEvent;

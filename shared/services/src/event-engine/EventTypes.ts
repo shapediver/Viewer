@@ -253,6 +253,10 @@ export enum EVENTTYPE_SESSION {
 	 * The SESSION_SDTF_DELAYED_LOADED-event is sent when the SDTF of the session has been delayed loaded.
 	 */
 	SESSION_SDTF_DELAYED_LOADED = "session.sdtfDelayedLoaded",
+	/**
+	 * The SESSION_ERROR-event is sent when an error occurs in the session.
+	 */
+	SESSION_ERROR = "session.error",
 }
 
 /**
