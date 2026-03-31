@@ -195,9 +195,13 @@ export class RectangleTransform
 		// canonical positions, otherwise calculateTransformationMatrix writes
 		// identity and the object resets.
 		this.#rotationHandler?.syncAccumulatedToCumulative();
-		this.applyAccumulatedTransform(this.committedTranslation);
+		// Update the parent matrix without emitting yet, flush all DT handle
+		// positions to canonical first, then emit — so the synchronous
+		// updateCallback fired by updateVersion sees consistent state.
+		this.applyAccumulatedTransform(this.committedTranslation, false);
 		for (const handler of this.#handlers)
 			handler?.recompute(this.#localPoints, false);
+		this.#dtParentNode.updateVersion();
 		this.calculateTransformationMatrix(this.#localPoints, true);
 		this.#hasPendingTemporaryTransform = false;
 	}
@@ -555,10 +559,18 @@ export class RectangleTransform
 				},
 				(localPoints) => {
 					// Drag-end: bake rotation into parent matrix and commit.
-					this.applyAccumulatedTransform(this.committedTranslation);
+					// Update the parent matrix without emitting yet, flush all DT
+					// handle positions to canonical first, then emit — so the
+					// synchronous updateCallback fired by updateVersion sees
+					// consistent state and not stale temporary-rotated positions.
+					this.applyAccumulatedTransform(
+						this.committedTranslation,
+						false,
+					);
 					this.#scalingHandler?.recompute(localPoints, false);
 					this.#translationHandler?.recompute(localPoints, false);
 					this.#hasPendingTemporaryTransform = false;
+					this.#dtParentNode.updateVersion();
 					this.calculateTransformationMatrix(localPoints, true);
 				},
 			);
