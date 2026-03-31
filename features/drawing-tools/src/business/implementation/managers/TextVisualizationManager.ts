@@ -275,7 +275,9 @@ export class TextVisualizationManager {
 				document.head.appendChild(style);
 			}
 
-			child.textContent = `${numberCleaner(vec3.distance(firstPoint, secondPoint))}${this.#settings.general.displayUnit}`;
+			child.textContent = this.#formatValue(
+				vec3.distance(firstPoint, secondPoint),
+			);
 			text.appendChild(child);
 
 			const label = new CSS2DObject(text);
@@ -325,7 +327,7 @@ export class TextVisualizationManager {
 				document.head.appendChild(style);
 			}
 
-			child.textContent = `[${numberCleaner(positionArray[i])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 1])}${this.#settings.general.displayUnit}, ${numberCleaner(positionArray[i + 2])}${this.#settings.general.displayUnit}]`;
+			child.textContent = `[${this.#formatValue(positionArray[i])}, ${this.#formatValue(positionArray[i + 1])}, ${this.#formatValue(positionArray[i + 2])}]`;
 			text.appendChild(child);
 
 			const label = new CSS2DObject(text);
@@ -344,9 +346,73 @@ export class TextVisualizationManager {
 		if (!p) {
 			this.#pointerPositionField.innerText = "";
 		} else {
-			this.#pointerPositionField.innerText = `[${numberCleaner(p[0])}, ${numberCleaner(p[1])}, ${numberCleaner(p[2])}]`;
+			this.#pointerPositionField.innerText = `[${this.#formatValue(p[0])}, ${this.#formatValue(p[1])}, ${this.#formatValue(p[2])}]`;
 		}
 	}
 
 	// #endregion Public Methods (4)
+
+	// #region Private Methods (2)
+
+	#formatValue(value: number): string {
+		const displayUnit = this.#settings.general.displayUnit;
+		switch (displayUnit) {
+			case "mile":
+				return this.#formatImperial(value, 63360);
+			case "feet":
+				return this.#formatImperial(value, 12);
+			case "inch":
+				return this.#formatImperial(value, 1);
+			case "meter":
+				return this.#formatMetric(value, 1);
+			case "kilometer":
+				return this.#formatMetric(value, 1000);
+			case "millimeter":
+				return this.#formatMetric(value, 0.001);
+			default:
+				return `${numberCleaner(value)}${displayUnit}`;
+		}
+	}
+
+	// Converts value to inches via toInches factor, then cascades mi → ft → in.
+	// Preserves up to 2 decimal places in the smallest non-zero unit shown.
+	#formatImperial(value: number, toInches: number): string {
+		const neg = value < 0 ? "-" : "";
+		// Work in 0.01 inch units to retain 2 decimal places without float drift
+		const total = Math.round(Math.abs(value) * toInches * 100);
+
+		const mi = Math.floor(total / 6_336_000); // 1 mile = 63360 inches = 6,336,000 units
+		const ft = Math.floor((total % 6_336_000) / 1_200); // 1 foot = 12 inches = 1,200 units
+		const inch = (total % 1_200) / 100;
+
+		const parts: string[] = [];
+		if (mi > 0) parts.push(`${mi}mi`);
+		if (ft > 0) parts.push(`${ft}′`);
+		if (inch > 0) parts.push(`${inch}″`);
+
+		return neg + (parts.length > 0 ? parts.join(" ") : "0");
+	}
+
+	// Converts value to meters via toMeters factor, then cascades km → m → cm → mm.
+	// Preserves up to 2 decimal places in the smallest non-zero unit shown.
+	#formatMetric(value: number, toMeters: number): string {
+		const neg = value < 0 ? "-" : "";
+		// Work in 0.01 mm units (10^-5 m) to retain 2 decimal places in mm without float drift
+		const total = Math.round(Math.abs(value) * toMeters * 100_000);
+
+		const km = Math.floor(total / 100_000_000);
+		const m = Math.floor((total % 100_000_000) / 100_000);
+		const cm = Math.floor((total % 100_000) / 1_000);
+		const mm = (total % 1_000) / 100;
+
+		const parts: string[] = [];
+		if (km > 0) parts.push(`${km}km`);
+		if (m > 0) parts.push(`${m}m`);
+		if (cm > 0) parts.push(`${cm}cm`);
+		if (mm > 0) parts.push(`${mm}mm`);
+
+		return neg + (parts.length > 0 ? parts.join(" ") : "0");
+	}
+
+	// #endregion Private Methods (2)
 }
