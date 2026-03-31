@@ -103,6 +103,10 @@ export interface ICameraApi {
 	 */
 	enabled: boolean;
 	/**
+	 * If the camera should automatically adjust to the size of the scene whenever the scene is loaded for the first time.
+	 */
+	initialAutoAdjust: boolean;
+	/**
 	 * The speed of the camera for key panning. The higher this value, the faster you can pan.
 	 */
 	keyPanSpeed: number;

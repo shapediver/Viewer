@@ -259,7 +259,7 @@ export class CameraEngine implements ICameraEngine {
 		// If the camera is set to auto adjust, we call zoomTo once when the bounding box is available
 		// this is needed as the default position and target might not make sense if the model is loaded with a different modelState
 		// or different initial parameters
-		if (this.camera?.autoAdjust) {
+		if (this.camera?.autoAdjust || this.camera?.initialAutoAdjust) {
 			const sessionObj = Object.values(
 				this._stateEngine.sessionEngines,
 			).find((s) => s?.settingsEngine === settingsEngine);
@@ -275,10 +275,10 @@ export class CameraEngine implements ICameraEngine {
 				this._stateEngine.viewportEngines[
 					this._renderingEngine.id
 				]?.boundingBoxCreated.then(() => {
-					if (camera.autoAdjust)
+					if (camera.autoAdjust || camera.initialAutoAdjust)
 						camera.zoomTo(undefined, {duration: 0});
 				});
-			} else {
+			} else if (!this.camera?.initialAutoAdjust) {
 				// Default: zoom only if the camera cannot see any part of the scene.
 				const token = this._eventEngine.addListener(
 					EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE,
@@ -455,6 +455,7 @@ export class CameraEngine implements ICameraEngine {
 					autoAdjust: camera.autoAdjust,
 					cameraMovementDuration: camera.cameraMovementDuration,
 					enableCameraControls: camera.enableCameraControls,
+					initialAutoAdjust: camera.initialAutoAdjust,
 					revertAtMouseUp: camera.revertAtMouseUp,
 					revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
 					zoomExtentsFactor: camera.zoomExtentsFactor,
@@ -607,6 +608,7 @@ export class CameraEngine implements ICameraEngine {
 					autoAdjust: camera.autoAdjust,
 					cameraMovementDuration: camera.cameraMovementDuration,
 					enableCameraControls: camera.enableCameraControls,
+					initialAutoAdjust: camera.initialAutoAdjust,
 					revertAtMouseUp: camera.revertAtMouseUp,
 					revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
 					zoomExtentsFactor: camera.zoomExtentsFactor,

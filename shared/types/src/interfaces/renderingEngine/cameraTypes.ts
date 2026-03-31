@@ -24,6 +24,7 @@ type CameraProperties = {
 	defaultPosition: vec3;
 	defaultTarget: vec3;
 	enableCameraControls: boolean;
+	initialAutoAdjust: boolean;
 	name?: string;
 	order?: number;
 	position: vec3;

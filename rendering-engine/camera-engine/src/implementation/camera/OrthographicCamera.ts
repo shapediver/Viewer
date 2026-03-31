@@ -149,6 +149,7 @@ export class OrthographicCamera
 			this.autoAdjust = cameraSetting.autoAdjust;
 			this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
 			this.enableCameraControls = cameraSetting.enableCameraControls;
+			this.initialAutoAdjust = cameraSetting.initialAutoAdjust;
 			this.revertAtMouseUp = cameraSetting.revertAtMouseUp;
 			this.revertAtMouseUpDuration =
 				cameraSetting.revertAtMouseUpDuration;

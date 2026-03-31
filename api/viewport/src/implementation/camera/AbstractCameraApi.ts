@@ -9,65 +9,24 @@ import {
 	Logger,
 	ShapeDiverViewerValidationError,
 } from "@shapediver/viewer.shared.services";
+
 import {vec2, vec3} from "gl-matrix";
+
 import {ICameraApi} from "../../interfaces/camera/ICameraApi";
 import {IViewportApi} from "../../interfaces/IViewportApi";
 
 export abstract class AbstractCameraApi implements ICameraApi {
-	// #region Properties (6)
-
 	readonly #camera: ICamera;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
-	readonly #validateOptions = (scope: string, options?: ICameraOptions) => {
-		this.#inputValidator.validateAndError(
-			`${this.scope}.${scope}`,
-			options,
-			"object",
-			false,
-		);
-		const prop = Object.assign({}, options);
-		this.#inputValidator.validateAndError(
-			`${this.scope}.${scope}`,
-			prop.easing,
-			"string",
-			false,
-		);
-		this.#inputValidator.validateAndError(
-			`${this.scope}.${scope}`,
-			prop.duration,
-			"number",
-			false,
-		);
-		this.#inputValidator.validateAndError(
-			`${this.scope}.${scope}`,
-			prop.coordinates,
-			"string",
-			false,
-		);
-		this.#inputValidator.validateAndError(
-			`${this.scope}.${scope}`,
-			prop.interpolation,
-			"string",
-			false,
-		);
-	};
 	readonly #viewportApi: IViewportApi;
 
 	protected scope: string = "AbstractCameraApi";
-
-	// #endregion Properties (6)
-
-	// #region Constructors (1)
 
 	constructor(viewportApi: IViewportApi, camera: ICamera) {
 		this.#viewportApi = viewportApi;
 		this.#camera = camera;
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (74)
 
 	public get autoAdjust(): boolean {
 		return this.#camera.autoAdjust;
@@ -415,6 +374,24 @@ export abstract class AbstractCameraApi implements ICameraApi {
 
 	public get id(): string {
 		return this.#camera.id;
+	}
+
+	public get initialAutoAdjust(): boolean {
+		return this.#camera.initialAutoAdjust;
+	}
+
+	public set initialAutoAdjust(value: boolean) {
+		const scope = "initialAutoAdjust";
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#camera.initialAutoAdjust = value;
+		this.#logger.debug(
+			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.#viewportApi.update();
 	}
 
 	public get isDefault(): boolean {
@@ -817,10 +794,6 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#viewportApi.update();
 	}
 
-	// #endregion Public Getters And Setters (74)
-
-	// #region Public Methods (7)
-
 	public animate(
 		path: {position: vec3; target: vec3}[],
 		options?: ICameraOptions,
@@ -946,5 +919,37 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		return this.#camera.zoomTo(zoomTarget, options);
 	}
 
-	// #endregion Public Methods (7)
+	readonly #validateOptions = (scope: string, options?: ICameraOptions) => {
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			options,
+			"object",
+			false,
+		);
+		const prop = Object.assign({}, options);
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			prop.easing,
+			"string",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			prop.duration,
+			"number",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			prop.coordinates,
+			"string",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`${this.scope}.${scope}`,
+			prop.interpolation,
+			"string",
+			false,
+		);
+	};
 }

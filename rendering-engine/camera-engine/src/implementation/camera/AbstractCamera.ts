@@ -11,7 +11,9 @@ import {
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
 import {CAMERA_TYPE, ICameraOptions} from "@shapediver/viewer.shared.types";
+
 import {mat4, vec2, vec3, vec4} from "gl-matrix";
+
 import {ICamera} from "../../interfaces/camera/ICamera";
 import {ICameraControls} from "../../interfaces/controls/ICameraControls";
 
@@ -19,18 +21,17 @@ export abstract class AbstractCamera
 	extends AbstractTreeNodeData
 	implements ICamera
 {
-	// #region Properties (24)
-
 	#active: boolean = false;
 	#autoAdjust: boolean = true;
 	#cameraMovementDuration: number = 800;
 	#defaultPosition: vec3 = vec3.create();
 	#defaultTarget: vec3 = vec3.create();
 	#domEventListenerToken: string | undefined;
+	#enableCameraControls: boolean = true;
 	#eventListenerSceneCreatedToken: string | undefined;
 	#eventListenerViewportUpdatedToken: string | undefined;
-	#enableCameraControls: boolean = true;
 	#far: number = 1000;
+	#initialAutoAdjust: boolean = false;
 	#name?: string;
 	#near: number = 1;
 	#node?: ITreeNode;
@@ -50,10 +51,6 @@ export abstract class AbstractCamera
 	protected _target: vec3 = vec3.create();
 	protected _viewportId?: string;
 
-	// #endregion Properties (24)
-
-	// #region Constructors (1)
-
 	constructor(
 		private readonly _id: string,
 		private readonly _type: CAMERA_TYPE,
@@ -62,10 +59,6 @@ export abstract class AbstractCamera
 	) {
 		super(_id, version);
 	}
-
-	// #endregion Constructors (1)
-
-	// #region Public Getters And Setters (44)
 
 	public get active(): boolean {
 		return this.#active;
@@ -141,6 +134,14 @@ export abstract class AbstractCamera
 
 	public get id(): string {
 		return this._id;
+	}
+
+	public get initialAutoAdjust(): boolean {
+		return this.#initialAutoAdjust;
+	}
+
+	public set initialAutoAdjust(value: boolean) {
+		this.#initialAutoAdjust = value;
 	}
 
 	public get isDefault(): boolean {
@@ -245,27 +246,6 @@ export abstract class AbstractCamera
 		this.#zoomExtentsFactor = value;
 	}
 
-	// #endregion Public Getters And Setters (44)
-
-	// #region Protected Abstract Getters And Setters (1)
-
-	protected abstract getProjectionMatrix(sphere: Sphere): mat4 | undefined;
-
-	// #endregion Protected Abstract Getters And Setters (1)
-
-	// #region Protected Getters (1)
-
-	protected getViewMatrix(): mat4 {
-		const viewMatrix = mat4.create();
-		const up = vec3.fromValues(0, 0, 1);
-		mat4.lookAt(viewMatrix, this._position, this._target, up);
-		return viewMatrix;
-	}
-
-	// #endregion Protected Getters (1)
-
-	// #region Public Methods (6)
-
 	public async animate(
 		path: {position: vec3; target: vec3}[],
 		options?: ICameraOptions,
@@ -285,6 +265,10 @@ export abstract class AbstractCamera
 		}
 		return res;
 	}
+
+	public abstract applySettings(settingsEngine?: SettingsEngine): void;
+
+	public abstract assignViewer(renderingEngine: IRenderingEngine): void;
 
 	public boundingSphereVisible(sphere: Sphere): boolean {
 		const projectionMatrix = this.getProjectionMatrix(sphere);
@@ -313,6 +297,12 @@ export abstract class AbstractCamera
 		return true;
 	}
 
+	public abstract calculateZoomTo(
+		zoomTarget?: Box,
+		startingPosition?: vec3,
+		startingTarget?: vec3,
+	): {position: vec3; target: vec3};
+
 	public destroy() {
 		if (this.#eventListenerSceneCreatedToken)
 			this._eventEngine.removeListener(
@@ -325,6 +315,8 @@ export abstract class AbstractCamera
 			);
 		this.#eventListenerViewportUpdatedToken = undefined;
 	}
+
+	public abstract project(p: vec3): vec2;
 
 	public reset(options?: ICameraOptions): Promise<boolean> {
 		if (
@@ -373,6 +365,8 @@ export abstract class AbstractCamera
 		return res;
 	}
 
+	public abstract unproject(p: vec3): vec3;
+
 	public update(time: number): boolean {
 		if (this.useNodeData && this.node && this._viewportId) {
 			return true;
@@ -400,24 +394,6 @@ export abstract class AbstractCamera
 		const {position, target} = this.calculateZoomTo(zoomTarget);
 		return this.set(position, target, options);
 	}
-
-	// #endregion Public Methods (6)
-
-	// #region Public Abstract Methods (5)
-
-	public abstract applySettings(settingsEngine?: SettingsEngine): void;
-	public abstract assignViewer(renderingEngine: IRenderingEngine): void;
-	public abstract calculateZoomTo(
-		zoomTarget?: Box,
-		startingPosition?: vec3,
-		startingTarget?: vec3,
-	): {position: vec3; target: vec3};
-	public abstract project(p: vec3): vec2;
-	public abstract unproject(p: vec3): vec3;
-
-	// #endregion Public Abstract Methods (5)
-
-	// #region Protected Methods (2)
 
 	protected assignViewerInternal(viewportId: string) {
 		this._viewportId = viewportId;
@@ -514,5 +490,12 @@ export abstract class AbstractCamera
 		return planes;
 	}
 
-	// #endregion Protected Methods (2)
+	protected abstract getProjectionMatrix(sphere: Sphere): mat4 | undefined;
+
+	protected getViewMatrix(): mat4 {
+		const viewMatrix = mat4.create();
+		const up = vec3.fromValues(0, 0, 1);
+		mat4.lookAt(viewMatrix, this._position, this._target, up);
+		return viewMatrix;
+	}
 }

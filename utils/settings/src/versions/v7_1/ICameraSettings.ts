@@ -3,6 +3,7 @@ interface IGeneralCameraSettings {
 	cameraMovementDuration: number;
 	controls: ICameraControlsSettings;
 	enableCameraControls: boolean;
+	initialAutoAdjust: boolean;
 	name?: string;
 	position: {x: number; y: number; z: number};
 	revertAtMouseUp: boolean;

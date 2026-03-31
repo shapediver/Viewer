@@ -23,6 +23,7 @@ export interface ICamera extends ITreeNodeData {
 	defaultTarget: vec3;
 	domEventListenerToken?: string;
 	enableCameraControls: boolean;
+	initialAutoAdjust: boolean;
 	name?: string;
 	node?: ITreeNode;
 	order?: number;
