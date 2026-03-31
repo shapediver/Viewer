@@ -203,12 +203,22 @@ export class SceneTreeManager implements IManager {
 						<HTMLElementAnchorData>treeNodeData,
 						isVisibleInHierarchy,
 					);
-					const dataChild = new THREE.Object3D();
-					dataChild.userData.SDtype =
-						SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
-					dataChild.userData.SDid = treeNodeData.id;
-					dataChild.userData.SDversion = treeNodeData.version;
-					convertedObject.add(dataChild);
+					const existingAnchor = convertedObject.children.find(
+						(o) =>
+							!(o instanceof SDObject) &&
+							o.userData.SDtype ===
+								SD_DATA_TYPE.HTML_ELEMENT_ANCHOR &&
+							o.userData.SDid === treeNodeData.id &&
+							o.userData.SDversion === treeNodeData.version,
+					);
+					if (!existingAnchor) {
+						const dataChild = new THREE.Object3D();
+						dataChild.userData.SDtype =
+							SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
+						dataChild.userData.SDid = treeNodeData.id;
+						dataChild.userData.SDversion = treeNodeData.version;
+						convertedObject.add(dataChild);
+					}
 				}
 				break;
 			default:
@@ -499,8 +509,14 @@ export class SceneTreeManager implements IManager {
 		});
 		childrenToRemove.forEach((cTR) => {
 			cTR.traverse((o) => {
-				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT)
+				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT) {
 					removeData(this._renderingEngine, o);
+				} else if (
+					!(o instanceof SDObject) &&
+					o.userData.SDtype !== undefined
+				) {
+					removeData(this._renderingEngine, o);
+				}
 			});
 			convertedObject.remove(cTR);
 		});
