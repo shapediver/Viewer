@@ -67,6 +67,30 @@ export class CameraManager implements IManager {
 						orthographicCameraData.position,
 						orthographicCameraData.target,
 					) / 2;
+
+				// For orthographic cameras, zooming is done via left/right/top/bottom,
+				// not by moving the camera position. Use a safe position far enough
+				// outside the scene so the camera never ends up inside the model.
+				const bsOrtho =
+					this._renderingEngine.sceneTreeManager.boundingBox
+						.boundingSphere;
+				const bsOrthoRadius = bsOrtho.radius > 0 ? bsOrtho.radius : 2;
+				const orthoDir = vec3.normalize(
+					vec3.create(),
+					vec3.subtract(
+						vec3.create(),
+						orthographicCameraData.position,
+						orthographicCameraData.target,
+					),
+				);
+				const safeOrthoDistance = bsOrthoRadius + distance;
+				const safeOrthoPos = vec3.scaleAndAdd(
+					vec3.create(),
+					orthographicCameraData.target,
+					orthoDir,
+					safeOrthoDistance,
+				);
+
 				orthographicCameraThreeJs.up.set(
 					orthographicCameraData.up[0],
 					orthographicCameraData.up[1],
@@ -81,13 +105,13 @@ export class CameraManager implements IManager {
 				orthographicCameraThreeJs.top = orthographicCameraData.top =
 					distance;
 				orthographicCameraThreeJs.near = orthographicCameraData.near =
-					Math.max(0.0001, distance * 0.001);
+					Math.max(0.0001, safeOrthoDistance - bsOrthoRadius);
 				orthographicCameraThreeJs.far = orthographicCameraData.far =
-					100 * distance;
+					safeOrthoDistance + bsOrthoRadius;
 				orthographicCameraThreeJs.position.set(
-					orthographicCameraData.position[0],
-					orthographicCameraData.position[1],
-					orthographicCameraData.position[2],
+					safeOrthoPos[0],
+					safeOrthoPos[1],
+					safeOrthoPos[2],
 				);
 				orthographicCameraThreeJs.lookAt(
 					orthographicCameraData.target[0],
