@@ -78,6 +78,7 @@ export class SceneTracingManager implements IManager {
 		let closestIntersectionDistance = Number.MAX_VALUE;
 		this._renderingEngine.sceneTreeManager.scene.traverseVisible(
 			(obj: THREE.Object3D) => {
+				if (obj.userData.ignoreInRayTracingTest) return;
 				if (obj instanceof THREE.Mesh) {
 					const curIntersections =
 						this._raycaster.intersectObject(obj);

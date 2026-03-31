@@ -313,6 +313,9 @@ export class GumballTransform
 		this.#gumballTransformControls.setSize(this.scale);
 		this.parentObject.add(this.#gumballTransformControls);
 		this.parentObject.add(this.#transformationToolsPlaceholder);
+		this.parentObject.traverse(
+			(obj) => (obj.userData.ignoreInRayTracingTest = true),
+		);
 		this.viewport.threeJsCoreObjects.scene.add(this.parentObject);
 
 		// we register the CAMERA_FREEZE whenever the dragging happens
