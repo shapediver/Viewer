@@ -7,6 +7,7 @@ import {
 	IViewportApi,
 	MapData,
 	MaterialBasicLineData,
+	MaterialEngine,
 	MaterialMultiPointData,
 	PrimitiveData,
 } from "@shapediver/viewer";
@@ -16,6 +17,8 @@ import {EventEngine, IEvent} from "@shapediver/viewer.shared.services";
 import {
 	IGeometryData,
 	IMapData,
+	IMaterialBasicLineDataProperties,
+	IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
 	PRIMITIVE_MODE,
 } from "@shapediver/viewer.shared.types";
@@ -383,7 +386,6 @@ export class GeometryState {
 			PRIMITIVE_MODE.POINTS,
 		);
 		this.#geometryDataPoints.renderOrder = 1000;
-		this.#parentNode.addData(this.#geometryDataPoints);
 
 		if (geometryProperties.mode !== "points") {
 			this.#indicesArrayLines = new Uint8Array();
@@ -427,6 +429,8 @@ export class GeometryState {
 			);
 		}
 
+		this.#parentNode.addData(this.#geometryDataPoints);
+
 		// create material index array
 		this.#materialIndexArray = new Array(1024).fill(0);
 
@@ -452,7 +456,7 @@ export class GeometryState {
 					transparent: true,
 				},
 				this.#settings.visualization.points,
-			),
+			) as unknown as IMaterialMultiPointDataProperties,
 		);
 		const updateMaterialVariation = (
 			variations: string[],
@@ -471,7 +475,7 @@ export class GeometryState {
 			this.#geometryDataPoints.updateVersion();
 		};
 
-		const variation_0 = [
+		const variations = [
 			"map_0",
 			"map_1",
 			"map_2",
@@ -484,15 +488,43 @@ export class GeometryState {
 
 		if (this.#defaultTextures.variation_0 instanceof MapData) {
 			updateMaterialVariation(
-				variation_0,
+				variations,
 				this.#defaultTextures.variation_0,
 			);
 		} else {
 			(this.#defaultTextures.variation_0 as Promise<IMapData>).then(
 				(map) => {
-					updateMaterialVariation(variation_0, map);
+					updateMaterialVariation(variations, map);
 				},
 			);
+		}
+
+		// Override specific map slots with any URL strings supplied in the settings.
+		// Object.assign above copies the raw string values but they are overwritten
+		// by the default-texture pass above, so we need to load and re-apply them.
+		const pointSettings = this.#settings.visualization.points as Record<
+			string,
+			unknown
+		>;
+
+		// if a single "map" property is provided, use it for all variations
+		if (pointSettings["map"]) {
+			const mapValue = pointSettings["map"];
+			if (typeof mapValue === "string") {
+				MaterialEngine.instance.loadMap(mapValue).then((map) => {
+					if (map) updateMaterialVariation(variations, map);
+				});
+			}
+		}
+
+		// if specific "map_0" to "map_7" properties are provided, use them for the corresponding variations
+		for (const key of variations) {
+			const settingValue = pointSettings[key];
+			if (typeof settingValue === "string") {
+				MaterialEngine.instance.loadMap(settingValue).then((map) => {
+					if (map) updateMaterialVariation([key], map);
+				});
+			}
 		}
 
 		if (this.#geometryDataLines) {
@@ -505,7 +537,7 @@ export class GeometryState {
 						transparent: true,
 					},
 					this.#settings.visualization.lines,
-				),
+				) as unknown as IMaterialBasicLineDataProperties,
 			);
 		}
 

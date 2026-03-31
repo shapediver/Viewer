@@ -7,6 +7,7 @@ import {
 	ITreeNode,
 	IViewportApi,
 	MapData,
+	MaterialEngine,
 	MaterialMultiPointData,
 	PrimitiveData,
 	TreeNode,
@@ -26,6 +27,7 @@ import {
 import {
 	IGeometryData,
 	IMapData,
+	IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
 	PRIMITIVE_MODE,
 } from "@shapediver/viewer.shared.types";
@@ -82,7 +84,7 @@ export class ControlsManager {
 
 		const parentNode = new TreeNode("DrawingToolsControls");
 		parentNode.intersectionTest = false;
-		drawingToolsManager.geometryManager.parentNode.addChild(parentNode);
+		drawingToolsManager.parentNode.addChild(parentNode);
 		this.#parentNode = parentNode;
 
 		this.buildControls();
@@ -164,7 +166,7 @@ export class ControlsManager {
 	}
 
 	public close(): void {
-		const parent = this.#drawingToolsManager.geometryManager.parentNode;
+		const parent = this.#drawingToolsManager.parentNode;
 		parent.removeChild(this.#parentNode);
 		parent.updateVersion();
 	}
@@ -440,7 +442,7 @@ export class ControlsManager {
 				},
 				this.#settings.visualization.edgeControlVisualization?.points ??
 					this.#settings.visualization.points,
-			),
+			) as unknown as IMaterialMultiPointDataProperties,
 		);
 
 		const applyTexture = (variations: string[], map: IMapData): void => {
@@ -457,7 +459,7 @@ export class ControlsManager {
 			this.#geometryData!.updateVersion();
 		};
 
-		const variation_0 = [
+		const variations = [
 			"map_0",
 			"map_1",
 			"map_2",
@@ -469,11 +471,35 @@ export class ControlsManager {
 		];
 
 		if (this.#defaultTextures.variation_0 instanceof MapData) {
-			applyTexture(variation_0, this.#defaultTextures.variation_0);
+			applyTexture(variations, this.#defaultTextures.variation_0);
 		} else {
 			(this.#defaultTextures.variation_0 as Promise<IMapData>).then(
-				(map) => applyTexture(variation_0, map),
+				(map) => applyTexture(variations, map),
 			);
+		}
+
+		// Override specific map slots with any URL strings supplied in the settings.
+		const pointSettings = (this.#settings.visualization
+			.edgeControlVisualization?.points ??
+			this.#settings.visualization.points) as Record<string, unknown>;
+		// if a single "map" property is provided, use it for all variations
+		if (pointSettings["map"]) {
+			const mapValue = pointSettings["map"];
+			if (typeof mapValue === "string") {
+				MaterialEngine.instance.loadMap(mapValue).then((map) => {
+					if (map) applyTexture(variations, map);
+				});
+			}
+		}
+
+		// if specific "map_0" to "map_7" properties are provided, use them for the corresponding variations
+		for (const key of variations) {
+			const settingValue = pointSettings[key];
+			if (typeof settingValue === "string") {
+				MaterialEngine.instance.loadMap(settingValue).then((map) => {
+					if (map) applyTexture([key], map);
+				});
+			}
 		}
 
 		this.#parentNode.addData(this.#geometryData);

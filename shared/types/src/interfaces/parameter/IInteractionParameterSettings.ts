@@ -1,6 +1,7 @@
 ﻿import {z} from "zod";
 import {IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
 import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
+import {IDrawingParameterVisualizationSettingsJsonSchema} from "./IDrawingParametersSettings";
 
 // #region Type aliases (1)
 
@@ -269,6 +270,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 				vMin: z.number().nullable().optional(),
 				vMax: z.number().nullable().optional(),
 				step: z.number().nullable().optional(),
+				visualization: IDrawingParameterVisualizationSettingsJsonSchema,
 			})
 			.nullable()
 			.optional(),
@@ -279,6 +281,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 				min: z.number().nullable().optional(),
 				max: z.number().nullable().optional(),
 				handleDistance: z.number().nullable().optional(),
+				visualization: IDrawingParameterVisualizationSettingsJsonSchema,
 			})
 			.nullable()
 			.optional(),

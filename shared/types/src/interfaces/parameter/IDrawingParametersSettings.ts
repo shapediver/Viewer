@@ -1,14 +1,14 @@
 import {z} from "zod";
 
-import {IMaterialBasicLineDataProperties} from "../data/material/IMaterialBasicLineData";
-import {IMaterialMultiPointDataProperties} from "../data/material/IMaterialMultiPointData";
+import {IMaterialBasicLineDataPropertiesDefinition} from "../data/material/IMaterialBasicLineData";
+import {IMaterialMultiPointDataPropertiesDefinition} from "../data/material/IMaterialMultiPointData";
 import {RestrictionDefinition} from "./IRestrictionSettings";
 
 /**
  * General properties of a drawing tools parameter.
  */
 export interface IDrawingParameterSettings {
-	display?: Partial<IVisualizationSettings>;
+	visualization?: Partial<IVisualizationSettings>;
 	general?: {
 		/** A prompt that can be defined which is displayed instead of the default prompt. */
 		prompt?: {
@@ -107,12 +107,15 @@ export interface IVisualizationSettings {
 	 * The visualization settings for the edge control of the geometry restrictions.
 	 * If not defined, the edge control visualization is determined by the general line and point visualization settings.
 	 */
-	edgeControlVisualization?: Pick<IVisualizationSettings, "points" | "lines">;
+	edgeControlVisualization?: Pick<
+		Partial<IVisualizationSettings>,
+		"points" | "lines"
+	>;
 
 	/**
 	 * The material properties of the lines.
 	 */
-	lines: IMaterialBasicLineDataProperties;
+	lines: IMaterialBasicLineDataPropertiesDefinition;
 
 	/**
 	 * If the point labels are shown.
@@ -133,7 +136,7 @@ export interface IVisualizationSettings {
 	/**
 	 * The material properties of the points.
 	 */
-	points: IMaterialMultiPointDataProperties;
+	points: IMaterialMultiPointDataPropertiesDefinition;
 
 	/**
 	 * If the geometry restrictions should display a wireframe.
@@ -170,6 +173,27 @@ const optionalBoolean = z.preprocess((val) => {
 	if (val === null) return undefined;
 	return val;
 }, z.boolean().optional());
+
+export const IDrawingParameterVisualizationSettingsJsonSchema = z
+	.object({
+		distanceLabels: optionalBoolean,
+		pointLabels: optionalBoolean,
+		pointerPosition: optionalBoolean,
+		distanceMultiplicationFactor: z.number().nullable().optional(),
+		lines: z.any().nullable().optional(),
+		points: z.any().nullable().optional(),
+		wireframe: optionalBoolean,
+		wireframeColor: z.string().nullable().optional(),
+		edgeControlVisualization: z
+			.object({
+				lines: z.any().nullable().optional(),
+				points: z.any().nullable().optional(),
+			})
+			.nullable()
+			.optional(),
+	})
+	.nullable()
+	.optional();
 
 export const IDrawingParameterJsonSchema = z.object({
 	geometry: z
@@ -209,24 +233,5 @@ export const IDrawingParameterJsonSchema = z.object({
 		})
 		.nullable()
 		.optional(),
-	display: z
-		.object({
-			distanceLabels: optionalBoolean,
-			pointLabels: optionalBoolean,
-			pointerPosition: optionalBoolean,
-			distanceMultiplicationFactor: z.number().nullable().optional(),
-			lines: z.any().nullable().optional(),
-			points: z.any().nullable().optional(),
-			wireframe: optionalBoolean,
-			wireframeColor: z.string().nullable().optional(),
-			edgeControlVisualization: z
-				.object({
-					lines: z.any().nullable().optional(),
-					points: z.any().nullable().optional(),
-				})
-				.nullable()
-				.optional(),
-		})
-		.nullable()
-		.optional(),
+	visualization: IDrawingParameterVisualizationSettingsJsonSchema,
 });

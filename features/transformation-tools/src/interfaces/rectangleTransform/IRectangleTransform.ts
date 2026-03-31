@@ -82,7 +82,7 @@ export type RectangleTransformSettings = {
 		 * This allows customizing the appearance of the scaling handles and the outline, such as their color, size, and shape.
 		 * Default is undefined (uses default visualization settings).
 		 */
-		visualization?: IVisualizationSettings;
+		visualization?: Partial<IVisualizationSettings>;
 	};
 	rotation?: {
 		/**
@@ -118,7 +118,7 @@ export type RectangleTransformSettings = {
 		 * This allows customizing the appearance of the rotation handle, such as its color, size, and shape.
 		 * Default is undefined (uses default visualization settings).
 		 */
-		visualization?: IVisualizationSettings;
+		visualization?: Partial<IVisualizationSettings>;
 	};
 } & Settings;
 

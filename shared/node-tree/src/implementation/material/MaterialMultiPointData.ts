@@ -83,64 +83,104 @@ export class MaterialMultiPointData
 
 		if (properties.alphaMap_0 !== undefined)
 			this.alphaMap_0 = properties.alphaMap_0;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_0 = properties.alphaMap;
 		if (properties.color_0 !== undefined) this.color_0 = properties.color_0;
+		else if (properties.color !== undefined)
+			this.color_0 = properties.color;
 		if (properties.map_0 !== undefined) this.map_0 = properties.map_0;
+		else if (properties.map !== undefined) this.map_0 = properties.map;
 		if (properties.size_0 !== undefined) this.size_0 = properties.size_0;
 		if (properties.sizeAttenuation_0 !== undefined)
 			this.sizeAttenuation_0 = properties.sizeAttenuation_0;
 
 		if (properties.alphaMap_1 !== undefined)
 			this.alphaMap_1 = properties.alphaMap_1;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_1 = properties.alphaMap;
 		if (properties.color_1 !== undefined) this.color_1 = properties.color_1;
+		else if (properties.color !== undefined)
+			this.color_1 = properties.color;
 		if (properties.map_1 !== undefined) this.map_1 = properties.map_1;
+		else if (properties.map !== undefined) this.map_1 = properties.map;
 		if (properties.size_1 !== undefined) this.size_1 = properties.size_1;
 		if (properties.sizeAttenuation_1 !== undefined)
 			this.sizeAttenuation_1 = properties.sizeAttenuation_1;
 
 		if (properties.alphaMap_2 !== undefined)
 			this.alphaMap_2 = properties.alphaMap_2;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_2 = properties.alphaMap;
 		if (properties.color_2 !== undefined) this.color_2 = properties.color_2;
+		else if (properties.color !== undefined)
+			this.color_2 = properties.color;
 		if (properties.map_2 !== undefined) this.map_2 = properties.map_2;
+		else if (properties.map !== undefined) this.map_2 = properties.map;
 		if (properties.size_2 !== undefined) this.size_2 = properties.size_2;
 		if (properties.sizeAttenuation_2 !== undefined)
 			this.sizeAttenuation_2 = properties.sizeAttenuation_2;
 
 		if (properties.alphaMap_3 !== undefined)
 			this.alphaMap_3 = properties.alphaMap_3;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_3 = properties.alphaMap;
 		if (properties.color_3 !== undefined) this.color_3 = properties.color_3;
+		else if (properties.color !== undefined)
+			this.color_3 = properties.color;
 		if (properties.map_3 !== undefined) this.map_3 = properties.map_3;
+		else if (properties.map !== undefined) this.map_3 = properties.map;
 		if (properties.size_3 !== undefined) this.size_3 = properties.size_3;
 		if (properties.sizeAttenuation_3 !== undefined)
 			this.sizeAttenuation_3 = properties.sizeAttenuation_3;
 
 		if (properties.alphaMap_4 !== undefined)
 			this.alphaMap_4 = properties.alphaMap_4;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_4 = properties.alphaMap;
 		if (properties.color_4 !== undefined) this.color_4 = properties.color_4;
+		else if (properties.color !== undefined)
+			this.color_4 = properties.color;
 		if (properties.map_4 !== undefined) this.map_4 = properties.map_4;
+		else if (properties.map !== undefined) this.map_4 = properties.map;
 		if (properties.size_4 !== undefined) this.size_4 = properties.size_4;
 		if (properties.sizeAttenuation_4 !== undefined)
 			this.sizeAttenuation_4 = properties.sizeAttenuation_4;
 
 		if (properties.alphaMap_5 !== undefined)
 			this.alphaMap_5 = properties.alphaMap_5;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_5 = properties.alphaMap;
 		if (properties.color_5 !== undefined) this.color_5 = properties.color_5;
+		else if (properties.color !== undefined)
+			this.color_5 = properties.color;
 		if (properties.map_5 !== undefined) this.map_5 = properties.map_5;
+		else if (properties.map !== undefined) this.map_5 = properties.map;
 		if (properties.size_5 !== undefined) this.size_5 = properties.size_5;
 		if (properties.sizeAttenuation_5 !== undefined)
 			this.sizeAttenuation_5 = properties.sizeAttenuation_5;
 
 		if (properties.alphaMap_6 !== undefined)
 			this.alphaMap_6 = properties.alphaMap_6;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_6 = properties.alphaMap;
 		if (properties.color_6 !== undefined) this.color_6 = properties.color_6;
+		else if (properties.color !== undefined)
+			this.color_6 = properties.color;
 		if (properties.map_6 !== undefined) this.map_6 = properties.map_6;
+		else if (properties.map !== undefined) this.map_6 = properties.map;
 		if (properties.size_6 !== undefined) this.size_6 = properties.size_6;
 		if (properties.sizeAttenuation_6 !== undefined)
 			this.sizeAttenuation_6 = properties.sizeAttenuation_6;
 
 		if (properties.alphaMap_7 !== undefined)
 			this.alphaMap_7 = properties.alphaMap_7;
+		else if (properties.alphaMap !== undefined)
+			this.alphaMap_7 = properties.alphaMap;
 		if (properties.color_7 !== undefined) this.color_7 = properties.color_7;
+		else if (properties.color !== undefined)
+			this.color_7 = properties.color;
 		if (properties.map_7 !== undefined) this.map_7 = properties.map_7;
+		else if (properties.map !== undefined) this.map_7 = properties.map;
 		if (properties.size_7 !== undefined) this.size_7 = properties.size_7;
 		if (properties.sizeAttenuation_7 !== undefined)
 			this.sizeAttenuation_7 = properties.sizeAttenuation_7;
