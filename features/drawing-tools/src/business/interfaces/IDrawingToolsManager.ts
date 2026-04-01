@@ -5,10 +5,79 @@ import {
 	RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {IMapData} from "@shapediver/viewer.shared.types";
+
 import {vec3} from "gl-matrix";
+
 import {IControl} from "./controls/IControl";
 
-// #region Type aliases (5)
+export enum MATERIAL_INDEX {
+	DEFAULT = 0,
+	HOVERED = 1,
+	SELECTED = 2,
+	SELECTED_HOVERED = 3,
+	INSERTION = 4,
+	INSERTION_HOVERED = 5,
+	DISABLED = 6,
+}
+
+export interface IDrawingToolsManager {
+	readonly closed: boolean;
+	readonly restrictions: {[key: string]: IRestriction};
+	readonly uuid: string;
+
+	showDistanceLabels: boolean;
+	showPointLabels: boolean;
+	showPointerPosition: boolean;
+
+	addPoint(
+		index: number,
+		position?: vec3,
+		metaData?: RayTraceResult,
+		temporary?: boolean,
+	): void;
+	addRestriction(
+		properties: RestrictionProperties,
+		token?: string,
+	): string | undefined;
+	canRedo(): boolean;
+	canUndo(): boolean;
+	cancel(): void;
+	cancelDrag(): void;
+	close(): void;
+	getPointsData(): PointsData;
+	isInteractionActive(): boolean;
+	movePoint(
+		index: number,
+		position: vec3,
+		metaData?: RayTraceResult,
+		temporary?: boolean,
+	): void;
+	redo(): void;
+	removePoint(index: number, temporary?: boolean): void;
+	removePoints(indices: number[]): void;
+	removeRestriction(token: string): void;
+	undo(): void;
+	update(): {
+		pointsData: PointsData;
+		metaData: (RayTraceResult | undefined)[];
+	} | void;
+}
+
+/**
+ * Per-axis propagation weight from one point to another in local space.
+ * When a point is dragged, its delta is multiplied component-wise by these
+ * weights before being added to the target point's position.
+ */
+export type AdjacencyEntry = {
+	/**
+	 * Whether the weights are applied in the DT's plane local space (U/V/N axes)
+	 * or directly to world-space delta XYZ components.
+	 * Default is "world".
+	 */
+	space?: "local" | "world";
+	to: number;
+	weights: [number, number, number];
+};
 
 /**
  * The callbacks of the drawing tool.
@@ -22,6 +91,7 @@ export type Callbacks = {
 	 * The callback that is called when the drawing tool is cancelled.
 	 */
 	onCancel(): void;
+
 	/**
 	 * The callback that is called when the drawing tool is updated.
 	 *
@@ -32,7 +102,10 @@ export type Callbacks = {
 		metaData: (RayTraceResult | undefined)[],
 	): void;
 };
-export type DefaultTextures = {[key: string]: Promise<IMapData> | IMapData};
+
+export type DefaultTextures = {
+	[key: string]: Promise<IMapData> | IMapData;
+};
 
 /**
  * The data of the points.
@@ -42,21 +115,7 @@ export type DefaultTextures = {[key: string]: Promise<IMapData> | IMapData};
  * @typedef PointsData
  */
 export type PointsData = number[][];
-/**
- * Per-axis propagation weight from one point to another in local space.
- * When a point is dragged, its delta is multiplied component-wise by these
- * weights before being added to the target point's position.
- */
-export type AdjacencyEntry = {
-	to: number;
-	weights: [number, number, number];
-	/**
-	 * Whether the weights are applied in the DT's plane local space (U/V/N axes)
-	 * or directly to world-space delta XYZ components.
-	 * Default is "world".
-	 */
-	space?: "local" | "world";
-};
+
 /**
  * The initial settings of the drawing tool.
  * Here you can define the initial settings of the drawing tool.
@@ -65,6 +124,84 @@ export type AdjacencyEntry = {
  *
  */
 export type Settings = {
+	/**
+	 * The controls of the drawing tool.
+	 *
+	 * Here you can define the controls that are used when interacting with the drawing tool.
+	 * Controls are used to manipulate the points of the drawing tool in specific ways, such as moving a point along an edge or within a plane defined by other points.
+	 */
+	controls?: IControl[];
+
+	/**
+	 * The general settings of the drawing tool.
+	 *
+	 * Here you can define general settings of the drawing tool.
+	 */
+	general: {
+		/**
+		 * If the drawing tool is started automatically when no points are defined.
+		 *
+		 * @default true
+		 */
+		autoStart: boolean;
+
+		/**
+		 * If the drawing tool is updated automatically when the drawing is changed.
+		 *
+		 * @default false
+		 */
+		autoUpdate: boolean;
+		/**
+		 * If the drawing tool is closed when the drawing is updated.
+		 *
+		 * @default false
+		 */
+		closeOnUpdate: boolean;
+
+		/**
+		 * The unit that will be displayed in the distance and point labels.
+		 *
+		 * @default ''
+		 */
+		displayUnit: string;
+
+		/**
+		 * If points can be translated by dragging them.
+		 * If this setting is set to false, the user cannot move existing points by dragging them.
+		 *
+		 * The pointer is also not changed to a move pointer when hovering over points, since they cannot be moved.
+		 *
+		 * In this mode, the drawing tools are used for display purposes.
+		 *
+		 * @default true
+		 */
+		enableTranslation: boolean;
+
+		/**
+		 * If points can be added in general.
+		 * If this setting is set to false, the user cannot add new points by clicking or using the insert key.
+		 *
+		 * @default true
+		 */
+		enableInsertion: boolean;
+
+		/**
+		 * If points can be deleted in general.
+		 * If this setting is set to false, the user cannot delete points by using the delete key.
+		 *
+		 * @default true
+		 */
+		enableDeletion: boolean;
+
+		/**
+		 * If points can be selected in general.
+		 * If this setting is set to false, the user cannot select points by clicking or using the select key.
+		 *
+		 * @default true
+		 */
+		enableSelection: boolean;
+	};
+
 	/**
 	 * The geometry settings of the drawing tool.
 	 *
@@ -177,29 +314,6 @@ export type Settings = {
 	};
 
 	/**
-	 * The controls of the drawing tool.
-	 *
-	 * Here you can define the controls that are used when interacting with the drawing tool.
-	 * Controls are used to manipulate the points of the drawing tool in specific ways, such as moving a point along an edge or within a plane defined by other points.
-	 */
-	controls?: IControl[];
-
-	/**
-	 * The restrictions of the drawing tool.
-	 *
-	 * Here you can define the restrictions that are used when interacting with the drawing tool.
-	 * At least one restriction is required, the plane restriction is added by default if no restrictions are defined.
-	 */
-	restrictions: {[key: string]: RestrictionProperties};
-
-	/**
-	 * The visualization settings of the drawing tool.
-	 *
-	 * Here you can define the visualization of the drawing tool.
-	 */
-	visualization: IVisualizationSettings;
-
-	/**
 	 * The key binding settings of the drawing tool.
 	 *
 	 * Here you can define which keys are used for the different actions of the drawing tool.
@@ -249,151 +363,26 @@ export type Settings = {
 	};
 
 	/**
-	 * The general settings of the drawing tool.
+	 * The restrictions of the drawing tool.
 	 *
-	 * Here you can define general settings of the drawing tool.
+	 * Here you can define the restrictions that are used when interacting with the drawing tool.
+	 * At least one restriction is required, the plane restriction is added by default if no restrictions are defined.
 	 */
-	general: {
-		/**
-		 * If the drawing tool is started automatically when no points are defined.
-		 *
-		 * @default true
-		 */
-		autoStart: boolean;
+	restrictions: {[key: string]: RestrictionProperties};
 
-		/**
-		 * If the drawing tool is updated automatically when the drawing is changed.
-		 *
-		 * @default false
-		 */
-		autoUpdate: boolean;
-		/**
-		 * If the drawing tool is closed when the drawing is updated.
-		 *
-		 * @default false
-		 */
-		closeOnUpdate: boolean;
-
-		/**
-		 * The unit that will be displayed in the distance and point labels.
-		 *
-		 * @default ''
-		 */
-		displayUnit: string;
-
-		/**
-		 * If points can be translated by dragging them.
-		 * If this setting is set to false, the user cannot move existing points by dragging them.
-		 *
-		 * The pointer is also not changed to a move pointer when hovering over points, since they cannot be moved.
-		 *
-		 * In this mode, the drawing tools are used for display purposes.
-		 *
-		 * @default true
-		 */
-		enableTranslation: boolean;
-
-		/**
-		 * If points can be added in general.
-		 * If this setting is set to false, the user cannot add new points by clicking or using the insert key.
-		 *
-		 * @default true
-		 */
-		enableInsertion: boolean;
-
-		/**
-		 * If points can be deleted in general.
-		 * If this setting is set to false, the user cannot delete points by using the delete key.
-		 *
-		 * @default true
-		 */
-		enableDeletion: boolean;
-
-		/**
-		 * If points can be selected in general.
-		 * If this setting is set to false, the user cannot select points by clicking or using the select key.
-		 *
-		 * @default true
-		 */
-		enableSelection: boolean;
-	};
+	/**
+	 * The visualization settings of the drawing tool.
+	 *
+	 * Here you can define the visualization of the drawing tool.
+	 */
+	visualization: IVisualizationSettings;
 };
+
 export type SettingsOptional = {
-	geometry?: Partial<Settings["geometry"]>;
 	controls?: Partial<Settings["controls"]>;
+	general?: Partial<Settings["general"]>;
+	geometry?: Partial<Settings["geometry"]>;
+	keyBindings?: Partial<Settings["keyBindings"]>;
 	restrictions?: Partial<Settings["restrictions"]>;
 	visualization?: Partial<Settings["visualization"]>;
-	keyBindings?: Partial<Settings["keyBindings"]>;
-	general?: Partial<Settings["general"]>;
 };
-
-// #endregion Type aliases (5)
-
-// #region Interfaces (1)
-
-export interface IDrawingToolsManager {
-	// #region Properties (4)
-
-	readonly closed: boolean;
-	readonly restrictions: {[key: string]: IRestriction};
-	readonly uuid: string;
-
-	showDistanceLabels: boolean;
-	showPointLabels: boolean;
-	showPointerPosition: boolean;
-
-	// #endregion Properties (4)
-
-	// #region Public Methods (14)
-
-	addPoint(
-		index: number,
-		position?: vec3,
-		metaData?: RayTraceResult,
-		temporary?: boolean,
-	): void;
-	addRestriction(
-		properties: RestrictionProperties,
-		token?: string,
-	): string | undefined;
-	canRedo(): boolean;
-	canUndo(): boolean;
-	cancel(): void;
-	cancelDrag(): void;
-	close(): void;
-	isInteractionActive(): boolean;
-	getPointsData(): PointsData;
-	movePoint(
-		index: number,
-		position: vec3,
-		metaData?: RayTraceResult,
-		temporary?: boolean,
-	): void;
-	redo(): void;
-	removePoint(index: number, temporary?: boolean): void;
-	removePoints(indices: number[]): void;
-	removeRestriction(token: string): void;
-	undo(): void;
-	update(): {
-		pointsData: PointsData;
-		metaData: (RayTraceResult | undefined)[];
-	} | void;
-
-	// #endregion Public Methods (14)
-}
-
-// #endregion Interfaces (1)
-
-// #region Enums (1)
-
-export enum MATERIAL_INDEX {
-	DEFAULT = 0,
-	HOVERED = 1,
-	SELECTED = 2,
-	SELECTED_HOVERED = 3,
-	INSERTION = 4,
-	INSERTION_HOVERED = 5,
-	DISABLED = 6,
-}
-
-// #endregion Enums (1)

@@ -361,12 +361,14 @@ export class TextVisualizationManager {
 				return this.#formatImperial(value, 63360);
 			case "feet":
 				return this.#formatImperial(value, 12);
-			case "inch":
+			case "inches":
 				return this.#formatImperial(value, 1);
 			case "meter":
 				return this.#formatMetric(value, 1);
 			case "kilometer":
 				return this.#formatMetric(value, 1000);
+			case "centimeter":
+				return this.#formatMetric(value, 0.01);
 			case "millimeter":
 				return this.#formatMetric(value, 0.001);
 			default:
