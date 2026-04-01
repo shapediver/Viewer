@@ -337,36 +337,6 @@ export class RectangleTransform
 			);
 		}
 
-		if (commit) {
-			console.log(
-				"[RectTf] scaling commit — ev.points (DT positionArray):",
-				ev.points
-					?.map(
-						(p, i) =>
-							`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-					)
-					.join(" "),
-			);
-			console.log(
-				"[RectTf] scaling commit — #localPoints before recompute:",
-				this.#localPoints
-					.map(
-						(p, i) =>
-							`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-					)
-					.join(" "),
-			);
-			console.log(
-				"[RectTf] scaling commit — adjusted (cornerPointMoved output):",
-				adjusted
-					.map(
-						(p, i) =>
-							`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-					)
-					.join(" "),
-			);
-		}
-
 		this.#scalingHandler.recompute(adjusted, !commit);
 
 		// After a permanent commit, read back the positions actually stored in
@@ -378,18 +348,6 @@ export class RectangleTransform
 		this.#localPoints = commit
 			? this.#scalingHandler.readbackConstrainedPoints()
 			: adjusted;
-
-		if (commit) {
-			console.log(
-				"[RectTf] scaling commit — #localPoints after readback (constrained):",
-				this.#localPoints
-					.map(
-						(p, i) =>
-							`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-					)
-					.join(" "),
-			);
-		}
 
 		if (this.#rotationHandler)
 			this.#rotationHandler.recompute(this.#localPoints, !commit);
@@ -612,65 +570,11 @@ export class RectangleTransform
 					// handle positions to canonical first, then emit — so the
 					// synchronous updateCallback fired by updateVersion sees
 					// consistent state and not stale temporary-rotated positions.
-					console.log(
-						"[RectTf] rotation onCommit — #localPoints (should equal localPoints arg):",
-						this.#localPoints
-							.map(
-								(p, i) =>
-									`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-							)
-							.join(" "),
-					);
-					console.log(
-						"[RectTf] rotation onCommit — localPoints arg:",
-						localPoints
-							.map(
-								(p, i) =>
-									`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-							)
-							.join(" "),
-					);
 					this.applyAccumulatedTransform(
 						this.committedTranslation,
 						false,
 					);
 					this.#scalingHandler?.recompute(localPoints, false);
-					if (this.#scalingHandler) {
-						const afterFlush =
-							this.#scalingHandler.readbackConstrainedPoints();
-						console.log(
-							"[RectTf] rotation onCommit — scaling DT after recompute (readback):",
-							afterFlush
-								.map(
-									(p, i) =>
-										`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-								)
-								.join(" "),
-						);
-						const mismatch = localPoints.some(
-							(p, i) =>
-								Math.abs(p[0] - afterFlush[i][0]) > 1e-4 ||
-								Math.abs(p[1] - afterFlush[i][1]) > 1e-4,
-						);
-						if (mismatch)
-							console.warn(
-								"[RectTf] *** MISMATCH after rotation commit recompute — constraints changed positions!",
-								"flushed:",
-								localPoints
-									.map(
-										(p, i) =>
-											`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-									)
-									.join(" "),
-								"readback:",
-								afterFlush
-									.map(
-										(p, i) =>
-											`[${i}]=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
-									)
-									.join(" "),
-							);
-					}
 					this.#translationHandler?.recompute(localPoints, false);
 					this.#hasPendingTemporaryTransform = false;
 					this.#dtParentNode.updateVersion();

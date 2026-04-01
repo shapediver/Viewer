@@ -91,12 +91,14 @@ export class GeometryManager {
 		position: vec3,
 		metaData: RayTraceResult | undefined,
 		temporary = false,
+		overrides?: Map<number, vec3>,
 	): void {
 		this.#geometryManagerHelper.movePoint(
 			index,
 			position,
 			metaData,
 			temporary,
+			overrides,
 		);
 	}
 

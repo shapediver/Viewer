@@ -226,12 +226,18 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		this.#drawingToolsManager.close();
 	}
 
-	public movePoint(index: number, position: vec3, temporary?: boolean): void {
+	public movePoint(
+		index: number,
+		position: vec3,
+		temporary?: boolean,
+		overrides?: Map<number, vec3>,
+	): void {
 		this.#drawingToolsManager.movePoint(
 			index,
 			position,
 			undefined,
 			temporary,
+			overrides,
 		);
 	}
 

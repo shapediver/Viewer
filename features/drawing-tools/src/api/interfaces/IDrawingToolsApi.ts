@@ -87,9 +87,14 @@ export interface IDrawingToolsApi {
 	 *
 	 * @param index The index of the point in the position array.
 	 * @param position The new position of the point.
-	 * @param temporary If true, the move will not be applied immediatly (default: false).
+	 * @param temporary If true, the move will not be applied immediately (default: false).
 	 */
-	movePoint(index: number, position: vec3, temporary?: boolean): void;
+	movePoint(
+		index: number,
+		position: vec3,
+		temporary?: boolean,
+		overrides?: Map<number, vec3>,
+	): void;
 	/**
 	 * Redo the last action of the drawing tool.
 	 */
