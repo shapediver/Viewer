@@ -72,10 +72,50 @@ export class RectangleTransformPointsMapping {
 		drawingTools: IDrawingToolsApi,
 		temporary: boolean,
 	): void {
+		if (!temporary) {
+			console.log(
+				"[ScalingDT] flushRectPoints (permanent) — input corners:",
+				[0, 2, 4, 6]
+					.map((ci) => `C${ci}=(${localPoints[ci][0].toFixed(4)},${localPoints[ci][1].toFixed(4)})`)
+					.join(" "),
+			);
+			console.log(
+				"[ScalingDT] flushRectPoints (permanent) — DT positionArray BEFORE flush:",
+				...[...Array(this.dtToConceptual.length).keys()].map(
+					(di) => {
+						const p = drawingTools.pointsData[di];
+						return `DT${di}=(${p[0].toFixed(4)},${p[1].toFixed(4)})`;
+					},
+				),
+			);
+		}
 		for (let di = 0; di < this.dtToConceptual.length; di++) {
 			const ci = this.dtToConceptual[di];
 			const p = localPoints[ci];
 			drawingTools.movePoint(di, [p[0], p[1], p[2]], temporary);
+			if (!temporary) {
+				const stored = drawingTools.pointsData[di];
+				const xDiff = Math.abs(stored[0] - p[0]);
+				const yDiff = Math.abs(stored[1] - p[1]);
+				if (xDiff > 1e-4 || yDiff > 1e-4) {
+					console.warn(
+						`[ScalingDT] *** CONSTRAINT changed DT${di} (C${ci}) after movePoint:`,
+						`sent=(${p[0].toFixed(4)},${p[1].toFixed(4)})`,
+						`stored=(${stored[0].toFixed(4)},${stored[1].toFixed(4)})`,
+					);
+				}
+			}
+		}
+		if (!temporary) {
+			console.log(
+				"[ScalingDT] flushRectPoints (permanent) — DT positionArray AFTER flush:",
+				...[...Array(this.dtToConceptual.length).keys()].map(
+					(di) => {
+						const p = drawingTools.pointsData[di];
+						return `DT${di}=(${p[0].toFixed(4)},${p[1].toFixed(4)})`;
+					},
+				),
+			);
 		}
 	}
 }
