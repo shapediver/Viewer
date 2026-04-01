@@ -152,7 +152,11 @@ export class TextVisualizationManager {
 		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e) => {
 			const event =
 				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
-			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
+			if (
+				event.drawingToolsId !==
+				this.#drawingToolsManager.geometryManager.parentNode.id
+			)
+				return;
 			this.createPointLabels();
 			this.createDistanceLabels();
 		});

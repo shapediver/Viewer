@@ -254,12 +254,28 @@ export class MobileStrategy implements IStrategy {
 			this.#interactionManagerHelper.hoveredPoint = this.#hoveredPoint;
 
 			// get the restricted point
-			this.#interactionManagerHelper.moveSelectedPoints(ray);
+			const restrictedPoint =
+				this.#interactionManagerHelper.moveSelectedPoints(ray);
+			this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(
+				restrictedPoint,
+			);
 
 			if (this.#downPressTimeout) {
 				clearTimeout(this.#downPressTimeout);
 				this.#downPressTimeout = undefined;
 			}
+		} else if (
+			this.#drawingToolsManager.settings.general.enableInsertion &&
+			this.#interactionManagerHelper.selectedPointIndices.length === 0
+		) {
+			// No point being dragged — show where a new point would be inserted
+			const rayTraceResult = this.#restrictionManager.rayTrace(ray, {
+				type: "drawing",
+				positionArray: this.#drawingToolsManager.positionArray,
+			});
+			this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(
+				rayTraceResult?.point,
+			);
 		}
 	}
 
@@ -268,6 +284,9 @@ export class MobileStrategy implements IStrategy {
 		this.#interactionManager.controlsManager?.onOut();
 		// cleanup
 		this.#interactionManagerHelper.removeAllSelectedPoints();
+		this.#drawingToolsManager.textVisualizationManager.updatePointerPosition(
+			undefined,
+		);
 		this.clearDownPress();
 	}
 
