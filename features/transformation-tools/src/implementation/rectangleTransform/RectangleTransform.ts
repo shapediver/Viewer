@@ -338,21 +338,28 @@ export class RectangleTransform
 		}
 
 		this.#scalingHandler.recompute(adjusted, !commit);
-		if (this.#rotationHandler)
-			this.#rotationHandler.recompute(adjusted, !commit);
 
-		// Keep the latest valid points even during drag-move. This prevents
-		// pointer-out cancellations from reverting to stale pre-drag points.
-		this.#localPoints = adjusted;
+		// After a permanent commit, read back the positions actually stored in
+		// the DT. applyConstraints inside movePoint may clamp corners (e.g.
+		// uMin/uMax), so the DT state can differ from `adjusted`. Storing
+		// unclamped `adjusted` in #localPoints would cause it to diverge from
+		// the DT, leading to wrong positions when the next rotation commit
+		// reuses #localPoints to reflush the scaling DT.
+		this.#localPoints = commit
+			? this.#scalingHandler.readbackConstrainedPoints()
+			: adjusted;
+
+		if (this.#rotationHandler)
+			this.#rotationHandler.recompute(this.#localPoints, !commit);
 
 		if (commit) {
-			this.#translationHandler?.recompute(adjusted, false);
+			this.#translationHandler?.recompute(this.#localPoints, false);
 			this.#hasPendingTemporaryTransform = false;
 		} else {
 			this.#hasPendingTemporaryTransform = true;
 		}
 
-		this.calculateTransformationMatrix(adjusted, commit);
+		this.calculateTransformationMatrix(this.#localPoints, commit);
 	}
 
 	private init() {
