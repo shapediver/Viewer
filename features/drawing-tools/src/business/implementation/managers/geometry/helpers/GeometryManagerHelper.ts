@@ -147,7 +147,36 @@ export class GeometryManagerHelper {
 		metaData: RayTraceResult | undefined,
 		temporary = false,
 	): void {
+		const sent = vec3.clone(point);
 		point = this.#drawingToolsManager.applyConstraints(point, index);
+		if (!temporary) {
+			// Log what positionArray has for other points (the stale values applyConstraints
+			// would have read WITHOUT overrides) vs what overrides supplied.
+			const ptCount = this.#geometryState.getPointCount();
+			const staleOthers = [];
+			for (let i = 0; i < ptCount; i++) {
+				if (i === index) continue;
+				const stale = this.#geometryState.getPosition(i);
+				staleOthers.push(
+					`[${i}]=(${stale[0].toFixed(4)},${stale[1].toFixed(4)})`,
+				);
+			}
+			const xDiff = Math.abs(point[0] - sent[0]);
+			const yDiff = Math.abs(point[1] - sent[1]);
+			if (xDiff > 1e-4 || yDiff > 1e-4) {
+				console.warn(
+					`[GeoHelper] *** applyConstraints CHANGED point[${index}]:`,
+					`sent=(${sent[0].toFixed(4)},${sent[1].toFixed(4)})`,
+					`→ constrained=(${point[0].toFixed(4)},${point[1].toFixed(4)})`,
+					`| stale positionArray others: ${staleOthers.join(" ")}`,
+				);
+			} else {
+				console.log(
+					`[GeoHelper] applyConstraints unchanged point[${index}]=(${point[0].toFixed(4)},${point[1].toFixed(4)})`,
+					`| stale: ${staleOthers.join(" ")}`,
+				);
+			}
+		}
 
 		const threeJsPointsGeometry: THREE.Points = this.#geometryState
 			.geometryDataPoints.convertedObject[
