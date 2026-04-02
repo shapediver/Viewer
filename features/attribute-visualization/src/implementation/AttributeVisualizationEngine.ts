@@ -6,7 +6,6 @@ import {
 	sceneTree,
 } from "@shapediver/viewer";
 import {
-	GeometryData,
 	MaterialGemData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
@@ -31,6 +30,11 @@ import {
 import {IAttributeVisualizationEngine} from "../interfaces/IAttributeVisualizationEngine";
 import {ILayer} from "../interfaces/ILayer";
 import {AttributeVisualizationUtils} from "./AttributeVisualizationUtils";
+
+/** Shared identity matrix — never mutate this. */
+const IDENTITY_MATRIX: mat4 = mat4.create();
+
+type SDTFOverviewEntry = ISDTFOverview[string][number];
 
 export class AttributeVisualizationEngine
 	implements IAttributeVisualizationEngine
@@ -60,6 +64,9 @@ export class AttributeVisualizationEngine
 	#visualizedMaterialType: "unlit" | "standard" = "unlit";
 	#layerMaterialType: "unlit" | "standard" = "unlit";
 	#nodesWithAttributeData: ITreeNode[] = [];
+	/** Pre-cached overview lookups keyed by "attributeKey:typeHint" */
+	#overviewCache: Map<string, SDTFOverviewEntry> = new Map();
+	#updateScheduled: boolean = false;
 
 	// #endregion Properties (7)
 
@@ -71,6 +78,7 @@ export class AttributeVisualizationEngine
 		this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
 		this.createLayers();
 		this.gatherNodesWithAttributeData();
+		this.buildOverviewCache();
 		this.constructAttributeVisualization();
 
 		const cb = () => {
@@ -83,6 +91,7 @@ export class AttributeVisualizationEngine
 			}
 
 			this.gatherNodesWithAttributeData();
+			this.buildOverviewCache();
 			this.constructAttributeVisualization();
 
 			for (const l in this.#listeners) this.#listeners[l]();
@@ -100,8 +109,12 @@ export class AttributeVisualizationEngine
 		this.#nodesWithAttributeData = [];
 
 		sceneTree.root.traverse((node: ITreeNode) => {
-			if (node.data.some((d) => d instanceof SDTFItemData)) {
-				this.#nodesWithAttributeData.push(node);
+			const data = node.data;
+			for (let i = 0, len = data.length; i < len; i++) {
+				if (data[i] instanceof SDTFItemData) {
+					this.#nodesWithAttributeData.push(node);
+					break;
+				}
 			}
 		});
 	}
@@ -136,40 +149,35 @@ export class AttributeVisualizationEngine
 
 	public updateAttributes(attributes: IAttribute[]) {
 		this.#attributes = attributes;
-		this.constructAttributeVisualization();
+		this.buildOverviewCache();
+		this.scheduleUpdate();
 	}
 
 	public updateDefaultLayer(layer: ILayer) {
 		this.#defaultLayer = layer;
-		this.constructAttributeVisualization();
+		this.scheduleUpdate();
 	}
 
 	public updateDefaultMaterial(material: IMaterialAbstractData) {
 		this.#defaultMaterial = material;
-		// we need to update the geometry data of all nodes
-		// otherwise the changes for default materials/layers won't be visible
-		sceneTree.root.traverseData((d) => {
-			if (d instanceof GeometryData) d.updateVersion();
-		});
-		sceneTree.root.updateVersion();
-		this.constructAttributeVisualization();
+		this.scheduleUpdate();
 	}
 
 	public updateLayerMaterialType(type: "unlit" | "standard") {
 		this.#layerMaterialType = type;
 		this.createLayers();
-		this.constructAttributeVisualization();
+		this.scheduleUpdate();
 	}
 
 	public updateVisualizedMaterialType(type: "unlit" | "standard") {
 		this.#visualizedMaterialType = type;
 		this.createLayers();
-		this.constructAttributeVisualization();
+		this.scheduleUpdate();
 	}
 
 	public updateLayers(layers: {[key: string]: ILayer}) {
 		this.#layers = layers;
-		this.constructAttributeVisualization();
+		this.scheduleUpdate();
 	}
 
 	public addListener(cb: () => void): string {
@@ -186,60 +194,81 @@ export class AttributeVisualizationEngine
 
 	// #endregion Public Methods (3)
 
-	// #region Private Methods (2)
+	// #region Private Methods
+
+	/**
+	 * Coalesce multiple rapid update calls into a single
+	 * constructAttributeVisualization + invalidation pass using microtask scheduling.
+	 */
+	private scheduleUpdate() {
+		if (this.#updateScheduled) return;
+		this.#updateScheduled = true;
+		queueMicrotask(() => {
+			this.#updateScheduled = false;
+			this.constructAttributeVisualization();
+		});
+	}
+
+	/**
+	 * Pre-build a lookup map from "key:typeHint" -> ISDTFAttributeOverview
+	 * so the hot-path callback avoids Array.filter() per geometry item.
+	 */
+	private buildOverviewCache() {
+		this.#overviewCache.clear();
+		for (const a of this.#attributes) {
+			const overviewEntries = this.#overview[a.key];
+			if (!overviewEntries) continue;
+			for (let j = 0; j < overviewEntries.length; j++) {
+				if (overviewEntries[j].typeHint === a.type) {
+					this.#overviewCache.set(
+						a.key + ":" + a.type,
+						overviewEntries[j],
+					);
+					break;
+				}
+			}
+		}
+	}
+
+	private createMaterial(
+		type: "unlit" | "standard",
+		color: IMaterialAbstractData["color"],
+		opacity: number,
+	): IMaterialAbstractData {
+		return type === "unlit"
+			? new MaterialUnlitData({color, opacity})
+			: new MaterialStandardData({color, opacity});
+	}
 
 	private constructAttributeVisualization() {
 		this.#viewport.visualizeAttributes = (
-			overview: ISDTFOverview,
+			_overview: ISDTFOverview,
 			itemData?: ISDTFItemData,
 		) => {
 			// early out if there are not attributes in this itemData
 			if (!itemData || !itemData.attributes) {
 				if (this.#attributes.length === 0) {
-					// return default layer material
-					let material;
-					if (this.#layerMaterialType === "unlit") {
-						material = new MaterialUnlitData({
-							opacity: this.#defaultLayer.enabled
-								? this.#defaultLayer.opacity
-								: 0,
-							color: this.#defaultLayer.color,
-						});
-					} else {
-						material = new MaterialStandardData({
-							opacity: this.#defaultLayer.enabled
-								? this.#defaultLayer.opacity
-								: 0,
-							color: this.#defaultLayer.color,
-						});
-					}
 					return {
-						matrix: mat4.create(),
-						material,
+						matrix: IDENTITY_MATRIX,
+						material: this.createMaterial(
+							this.#layerMaterialType,
+							this.#defaultLayer.color,
+							this.#defaultLayer.enabled
+								? this.#defaultLayer.opacity
+								: 0,
+						),
 					};
 				} else {
-					// return default layer material
-					let material;
-					if (this.#layerMaterialType === "unlit") {
-						material = new MaterialUnlitData({
-							opacity: this.#defaultLayer.enabled
-								? this.#defaultLayer.opacity *
-									this.#defaultMaterial.opacity
-								: 0,
-							color: this.#defaultMaterial.color,
-						});
-					} else {
-						material = new MaterialStandardData({
-							opacity: this.#defaultLayer.enabled
-								? this.#defaultLayer.opacity *
-									this.#defaultMaterial.opacity
-								: 0,
-							color: this.#defaultMaterial.color,
-						});
-					}
 					return {
-						matrix: mat4.create(),
-						material,
+						matrix: IDENTITY_MATRIX,
+						material: this.createMaterial(
+							this.#layerMaterialType,
+							this.#defaultMaterial.color,
+							this.#defaultLayer.enabled
+								? this.#defaultLayer.opacity *
+										this.#defaultMaterial.opacity
+								: 0,
+						),
 					};
 				}
 			}
@@ -261,29 +290,20 @@ export class AttributeVisualizationEngine
 				const mat = this.createMaterialCopy(this.#defaultMaterial);
 				mat.opacity = 0;
 				return {
-					matrix: mat4.create(),
+					matrix: IDENTITY_MATRIX,
 					material: mat,
 				};
 			}
 
 			if (this.#attributes.length === 0) {
 				// no attributes are specified, we go into layer visualization mode
-				let material;
-				if (this.#layerMaterialType === "unlit") {
-					material = new MaterialUnlitData({
-						opacity: layer.opacity,
-						color: layer.color,
-					});
-				} else {
-					material = new MaterialStandardData({
-						opacity: layer.opacity,
-						color: layer.color,
-					});
-				}
-
 				return {
-					matrix: mat4.create(),
-					material,
+					matrix: IDENTITY_MATRIX,
+					material: this.createMaterial(
+						this.#layerMaterialType,
+						layer.color,
+						layer.opacity,
+					),
 				};
 			} else {
 				// attributes are specified, we go into attribute visualization mode
@@ -298,9 +318,8 @@ export class AttributeVisualizationEngine
 						itemData.attributes[a.key].typeHint === a.type
 					) {
 						const itemDataAttribute = itemData.attributes[a.key];
-						const itemDataAttributeOverview = overview[
-							a.key
-						].filter((o) => o.typeHint === a.type)[0];
+						const itemDataAttributeOverview =
+							this.#overviewCache.get(a.key + ":" + a.type);
 
 						switch (true) {
 							case SdtfPrimitiveTypeGuard.isColorType(a.type):
@@ -312,7 +331,7 @@ export class AttributeVisualizationEngine
 								material.color = convertedValue;
 								material.opacity *= layer.opacity;
 								return {
-									matrix: mat4.create(),
+									matrix: IDENTITY_MATRIX,
 									material,
 								};
 							case SdtfPrimitiveTypeGuard.isNumberType(a.type):
@@ -322,10 +341,10 @@ export class AttributeVisualizationEngine
 										itemDataAttribute.value,
 										(numberAttribute.min !== undefined
 											? numberAttribute.min
-											: itemDataAttributeOverview.min)!,
+											: itemDataAttributeOverview?.min)!,
 										(numberAttribute.max !== undefined
 											? numberAttribute.max
-											: itemDataAttributeOverview.max)!,
+											: itemDataAttributeOverview?.max)!,
 										numberAttribute.visualization,
 										this.#visualizedMaterialType,
 										this.#defaultMaterial,
@@ -333,7 +352,7 @@ export class AttributeVisualizationEngine
 
 								if (!numberVisualizationData) {
 									return {
-										matrix: mat4.create(),
+										matrix: IDENTITY_MATRIX,
 										material,
 									};
 								} else {
@@ -347,7 +366,7 @@ export class AttributeVisualizationEngine
 									AttributeVisualizationUtils.stringVisualization(
 										itemDataAttribute.value,
 										stringAttribute.values ||
-											itemDataAttributeOverview.values,
+											itemDataAttributeOverview?.values,
 										stringAttribute.visualization,
 										this.#visualizedMaterialType,
 										this.#defaultMaterial,
@@ -355,7 +374,7 @@ export class AttributeVisualizationEngine
 
 								if (!stringVisualizationData) {
 									return {
-										matrix: mat4.create(),
+										matrix: IDENTITY_MATRIX,
 										material,
 									};
 								} else {
@@ -368,7 +387,7 @@ export class AttributeVisualizationEngine
 								material.color = defaultAttribute.color;
 								material.opacity *= layer.opacity;
 								return {
-									matrix: mat4.create(),
+									matrix: IDENTITY_MATRIX,
 									material,
 								};
 						}
@@ -379,20 +398,18 @@ export class AttributeVisualizationEngine
 				const mat = this.createMaterialCopy(this.#defaultMaterial);
 				mat.opacity *= layer.opacity;
 				return {
-					matrix: mat4.create(),
+					matrix: IDENTITY_MATRIX,
 					material: mat,
 				};
 			}
 		};
 
-		// update all nodes with attribute data
-		// also update the geometry data items
-		this.#nodesWithAttributeData.forEach((n) => {
-			n.traverseData((d) => {
-				if (d instanceof GeometryData) d.updateVersion();
-			});
-			n.updateVersion();
-		});
+		// Use the viewport's updateNode helper to directly re-convert each
+		// affected node, which re-runs injectAttributeData (and our visualizeAttributes
+		// callback) without the overhead of version-stomping the entire tree.
+		for (let i = 0; i < this.#nodesWithAttributeData.length; i++) {
+			this.#viewport.updateNode(this.#nodesWithAttributeData[i]);
+		}
 	}
 
 	private createMaterialCopy(

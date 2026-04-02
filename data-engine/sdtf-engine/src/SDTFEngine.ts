@@ -23,7 +23,7 @@ import {
 import {ISDTFOverview} from "@shapediver/viewer.shared.types";
 
 export class SDTFEngine {
-	// #region Properties (3)
+	// #region Properties (4)
 
 	private readonly _logger: Logger = Logger.instance;
 
@@ -31,7 +31,9 @@ export class SDTFEngine {
 
 	private _parsedFile!: ISdtfReadableAsset;
 
-	// #endregion Properties (3)
+	private _overview: ISDTFOverview = {};
+
+	// #endregion Properties (4)
 
 	// #region Public Static Accessors (1)
 
@@ -70,14 +72,17 @@ export class SDTFEngine {
 		// parse the file
 		this._parsedFile = await parser.readFromUrl(content.href!);
 
-		// crete the overview and save it in the node data
-		node.data.push(await this.createSDTFOverview());
+		// reset overview — it will be populated during item loading
+		this._overview = {};
 
-		// add the loaded chunks to the node
-		for (let i = 0; i < this._parsedFile.chunks.length; i++)
-			node.children.push(
-				await this.loadChunk(this._parsedFile.chunks[i], i),
-			);
+		// load all chunks in parallel
+		const chunks = await Promise.all(
+			this._parsedFile.chunks.map((chunk, i) => this.loadChunk(chunk, i)),
+		);
+		for (const chunk of chunks) node.children.push(chunk);
+
+		// create the overview from data collected during item loading
+		node.data.push(new SDTFOverviewData(this._overview));
 
 		return node;
 	}
@@ -87,124 +92,68 @@ export class SDTFEngine {
 	// #region Private Methods (5)
 
 	/**
-	 * Create an overview of the SDTF file.
-	 * This overview is used for the data visualization.
-	 * It is structured as a dictionary with the name as the key and an array of Objects as the value.
-	 * The array of objects contains the different types that can be found in the SDTF file under the same name.
-	 *
-	 * Example:
-	 * {
-	 *     "color": [
-	 *         {
-	 *             typeHint: 'string',
-	 *             count: 2,
-	 *             values: ["red", "blue"]
-	 *         },
-	 *         {
-	 *             typeHint: 'numberArray',
-	 *             count: 2,
-	 *             values: [[1,0,0,1], [0,0,1,1]]
-	 *         },
-	 *     ]
-	 * }
-	 *
-	 * The overview contains the following information:
-	 * - name of the attribute + type of the attribute
-	 * - the count
-	 * - for numerical attributes, the min and max values
-	 * - for string attributes, the unique values
-	 *
-	 * @returns
+	 * Update the overview with a single attribute entry.
+	 * Called during item loading so we avoid a separate pass over all items.
 	 */
-	private async createSDTFOverview(): Promise<SDTFOverviewData> {
-		const overview: ISDTFOverview = {};
+	private updateOverview(
+		key: string,
+		dataTypehint: string,
+		value: unknown,
+	): void {
+		const overview = this._overview;
 
-		// go through all attributes
-		for (let i = 0; i < this._parsedFile.items.length; i++) {
-			const itemAttributes = this._parsedFile.items[i].attributes;
+		// check if the attribute is already in the overview
+		const existingEntries = overview[key]
+			? overview[key].filter((o) => o.typeHint === dataTypehint)
+			: [];
 
-			// if there are no attributes, continue
-			if (!itemAttributes) continue;
+		if (overview[key] && existingEntries.length > 0) {
+			// update the existing entry
+			const entry = existingEntries[0];
+			entry.count++;
 
-			// go through all entries
-			for (let key in itemAttributes.entries) {
-				const dataToCopy = itemAttributes.entries[key];
-				const value = await dataToCopy.getContent();
-
-				// create the type hint to use
-				const dataTypehint =
-					dataToCopy.typeHint === undefined
-						? "undefined"
-						: dataToCopy.typeHint.name;
-
-				// check if the attribute is already in the overview
-				const existingEntries = overview[key]
-					? overview[key].filter((o) => o.typeHint === dataTypehint)
-					: [];
-
-				if (overview[key] && existingEntries.length > 0) {
-					// update the existing entry
-					const entry = existingEntries[0];
-					// update the count
-					entry.count++;
-
-					// update the values
-					if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
-						if (!entry.values?.includes(<string>value)) {
-							entry.values?.push(<string>value);
-							entry.countForValue?.push(1);
-						} else {
-							const index = entry.values?.indexOf(<string>value);
-							if (index !== undefined && index > -1)
-								entry.countForValue![index] += 1;
-						}
-					}
-
-					// update the min and max
-					if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {
-						entry.min = Math.min(<number>value, entry.min!);
-						entry.max = Math.max(<number>value, entry.max!);
-					}
+			if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
+				if (!entry.values?.includes(<string>value)) {
+					entry.values?.push(<string>value);
+					entry.countForValue?.push(1);
 				} else {
-					// create a new entry, if the name already exists, but the type does not
-					if (overview[key]) {
-						overview[key].push({
-							typeHint: dataTypehint,
-							count: 1,
-						});
-					}
-					// create completely new entry
-					else {
-						overview[key] = [
-							{
-								typeHint: dataTypehint,
-								count: 1,
-							},
-						];
-					}
-
-					// update the values
-					if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
-						overview[key][overview[key].length - 1].values = [
-							<string>value,
-						];
-						overview[key][overview[key].length - 1].countForValue =
-							[1];
-					}
-
-					// update the min and max
-					if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {
-						overview[key][overview[key].length - 1].min = <number>(
-							value
-						);
-						overview[key][overview[key].length - 1].max = <number>(
-							value
-						);
-					}
+					const index = entry.values?.indexOf(<string>value);
+					if (index !== undefined && index > -1)
+						entry.countForValue![index] += 1;
 				}
 			}
+
+			if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {
+				entry.min = Math.min(<number>value, entry.min!);
+				entry.max = Math.max(<number>value, entry.max!);
+			}
+		} else {
+			if (overview[key]) {
+				overview[key].push({
+					typeHint: dataTypehint,
+					count: 1,
+				});
+			} else {
+				overview[key] = [
+					{
+						typeHint: dataTypehint,
+						count: 1,
+					},
+				];
+			}
+
+			const newEntry = overview[key][overview[key].length - 1];
+
+			if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
+				newEntry.values = [<string>value];
+				newEntry.countForValue = [1];
+			}
+
+			if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {
+				newEntry.min = <number>value;
+				newEntry.max = <number>value;
+			}
 		}
-		return new SDTFOverviewData(overview);
 	}
 
 	/**
@@ -217,45 +166,57 @@ export class SDTFEngine {
 		attributes: ISdtfReadableAttributes,
 	): Promise<SDTFAttributesData> {
 		const data = new SDTFAttributesData();
-		// go through all attributes entries and save them in data items
-		for (let key in attributes.entries) {
+		const keys = Object.keys(attributes.entries);
+
+		// Separate keys into primitive (need content now) and non-primitive (lazy)
+		const primitiveKeys: string[] = [];
+		const lazyKeys: string[] = [];
+
+		for (const key of keys) {
+			const typeName = attributes.entries[key].typeHint?.name;
 			if (
-				SdtfPrimitiveTypeGuard.isBooleanType(
-					attributes.entries[key].typeHint?.name,
-				) ||
-				SdtfPrimitiveTypeGuard.isColorType(
-					attributes.entries[key].typeHint?.name,
-				) ||
-				SdtfPrimitiveTypeGuard.isNumberType(
-					attributes.entries[key].typeHint?.name,
-				) ||
-				SdtfPrimitiveTypeGuard.isStringType(
-					attributes.entries[key].typeHint?.name,
-				)
+				SdtfPrimitiveTypeGuard.isBooleanType(typeName) ||
+				SdtfPrimitiveTypeGuard.isColorType(typeName) ||
+				SdtfPrimitiveTypeGuard.isNumberType(typeName) ||
+				SdtfPrimitiveTypeGuard.isStringType(typeName)
 			) {
-				// create the data item and save it in the dictionary
-				const typeHint =
-					attributes.entries[key].typeHint === undefined
-						? "undefined"
-						: attributes.entries[key].typeHint!.name;
-				data.attributes[key] = new SDTFAttributeData(
-					typeHint,
-					await attributes.entries[key].getContent(),
-				);
+				primitiveKeys.push(key);
 			} else {
-				// async data
-				const typeHint =
-					attributes.entries[key].typeHint === undefined
-						? "undefined"
-						: attributes.entries[key].typeHint!.name;
-				data.attributes[key] = new SDTFAttributeData(
-					typeHint,
-					async () => {
-						return await attributes.entries[key].getContent();
-					},
-				);
+				lazyKeys.push(key);
 			}
 		}
+
+		// Fetch all primitive attribute contents in parallel
+		const primitiveContents = await Promise.all(
+			primitiveKeys.map((key) => attributes.entries[key].getContent()),
+		);
+
+		for (let i = 0; i < primitiveKeys.length; i++) {
+			const key = primitiveKeys[i];
+			const typeHint =
+				attributes.entries[key].typeHint === undefined
+					? "undefined"
+					: attributes.entries[key].typeHint!.name;
+			data.attributes[key] = new SDTFAttributeData(
+				typeHint,
+				primitiveContents[i],
+			);
+
+			// Update overview inline to avoid a second pass
+			this.updateOverview(key, typeHint, primitiveContents[i]);
+		}
+
+		// Non-primitive attributes stay lazy
+		for (const key of lazyKeys) {
+			const typeHint =
+				attributes.entries[key].typeHint === undefined
+					? "undefined"
+					: attributes.entries[key].typeHint!.name;
+			data.attributes[key] = new SDTFAttributeData(typeHint, async () => {
+				return await attributes.entries[key].getContent();
+			});
+		}
+
 		return data;
 	}
 
@@ -277,21 +238,20 @@ export class SDTFEngine {
 			chunkDef.data.push(await this.loadAttributes(chunk.attributes));
 		}
 
-		// if there are items, add them to the chunk as children
-		if (chunk.items !== undefined && chunk.items.length > 0) {
-			for (let i = 0, len = chunk.items.length; i < len; i++) {
-				// got through all items
-				chunkDef.addChild(await this.loadItem(chunk.items[i], i));
-			}
-		}
+		// load items and nodes in parallel
+		const [items, nodes] = await Promise.all([
+			chunk.items !== undefined && chunk.items.length > 0
+				? Promise.all(
+						chunk.items.map((item, i) => this.loadItem(item, i)),
+					)
+				: [],
+			chunk.nodes !== undefined && chunk.nodes.length > 0
+				? Promise.all(chunk.nodes.map((n, i) => this.loadNode(n, i)))
+				: [],
+		]);
 
-		// if there are nodes, add them to the chunk as children
-		if (chunk.nodes !== undefined && chunk.nodes.length > 0) {
-			for (let i = 0, len = chunk.nodes.length; i < len; i++) {
-				// got through all children
-				chunkDef.addChild(await this.loadNode(chunk.nodes[i], i));
-			}
-		}
+		if (items.length > 0) chunkDef.addChild(items);
+		if (nodes.length > 0) chunkDef.addChild(nodes);
 
 		return chunkDef;
 	}
@@ -318,28 +278,26 @@ export class SDTFEngine {
 		const typeHint =
 			item.typeHint === undefined ? "undefined" : item.typeHint!.name;
 
-		let itemData;
-		// create the data and save it in the item node
-		if (
+		const isPrimitive =
 			SdtfPrimitiveTypeGuard.isBooleanType(typeHint) ||
 			SdtfPrimitiveTypeGuard.isColorType(typeHint) ||
 			SdtfPrimitiveTypeGuard.isNumberType(typeHint) ||
-			SdtfPrimitiveTypeGuard.isStringType(typeHint)
-		) {
-			itemData = new SDTFItemData(
-				typeHint,
-				await item.getContent(),
-				attributes?.attributes!,
-			);
-		} else {
-			itemData = new SDTFItemData(
-				typeHint,
-				async () => {
-					return await item.getContent();
-				},
-				attributes?.attributes!,
-			);
-		}
+			SdtfPrimitiveTypeGuard.isStringType(typeHint);
+
+		// For primitive items, fetch content in parallel with attributes (already done above)
+		const itemData = isPrimitive
+			? new SDTFItemData(
+					typeHint,
+					await item.getContent(),
+					attributes?.attributes!,
+				)
+			: new SDTFItemData(
+					typeHint,
+					async () => {
+						return await item.getContent();
+					},
+					attributes?.attributes!,
+				);
 		itemDef.data.push(itemData);
 
 		return itemDef;
@@ -363,21 +321,20 @@ export class SDTFEngine {
 			nodeDef.data.push(await this.loadAttributes(node.attributes));
 		}
 
-		// if there are items, add them to the node as children
-		if (node.items !== undefined && node.items.length > 0) {
-			for (let i = 0, len = node.items.length; i < len; i++) {
-				// got through all items
-				nodeDef.addChild(await this.loadItem(node.items[i], i));
-			}
-		}
+		// load items and nodes in parallel
+		const [items, nodes] = await Promise.all([
+			node.items !== undefined && node.items.length > 0
+				? Promise.all(
+						node.items.map((item, i) => this.loadItem(item, i)),
+					)
+				: [],
+			node.nodes !== undefined && node.nodes.length > 0
+				? Promise.all(node.nodes.map((n, i) => this.loadNode(n, i)))
+				: [],
+		]);
 
-		// if there are nodes, add them to the node as children
-		if (node.nodes !== undefined && node.nodes.length > 0) {
-			for (let i = 0, len = node.nodes.length; i < len; i++) {
-				// got through all children
-				nodeDef.addChild(await this.loadNode(node.nodes[i], i));
-			}
-		}
+		if (items.length > 0) nodeDef.addChild(items);
+		if (nodes.length > 0) nodeDef.addChild(nodes);
 
 		return nodeDef;
 	}

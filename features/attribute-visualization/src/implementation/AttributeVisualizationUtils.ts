@@ -16,7 +16,36 @@ import {
 import {mat4} from "gl-matrix";
 import {isNumberGradient, isStringGradient} from "../interfaces/IGradient";
 
+/** Shared identity matrix — never mutate this. */
+const IDENTITY_MATRIX: mat4 = mat4.create();
+
+/** Singleton converter reference, resolved once. */
+let _converter: InstanceType<typeof Converter> | undefined;
+const getConverter = () => _converter || (_converter = Converter.instance);
+
+/** Cache for getColorSteps — gradient arrays are immutable, only create once. */
+const colorStepsCache = new Map<
+	ATTRIBUTE_VISUALIZATION,
+	{value: number; colorBefore: string; colorAfter: string}[] | undefined
+>();
+
 export const getColorSteps = (
+	gradient: ATTRIBUTE_VISUALIZATION,
+):
+	| {
+			value: number;
+			colorBefore: string;
+			colorAfter: string;
+	  }[]
+	| undefined => {
+	const cached = colorStepsCache.get(gradient);
+	if (cached !== undefined) return cached;
+	const result = computeColorSteps(gradient);
+	colorStepsCache.set(gradient, result);
+	return result;
+};
+
+const computeColorSteps = (
 	gradient: ATTRIBUTE_VISUALIZATION,
 ):
 	| {
@@ -652,7 +681,7 @@ const opacityVisualization = (
 						color: defaultMaterial.color,
 						opacity: factor,
 					}),
-		matrix: mat4.create(),
+		matrix: IDENTITY_MATRIX,
 	};
 };
 
@@ -674,7 +703,7 @@ const hslVisualization = (
 						color: "hsl(" + Math.floor(hue) + ", 100%, 50%)",
 						opacity: 1,
 					}),
-		matrix: mat4.create(),
+		matrix: IDENTITY_MATRIX,
 	};
 };
 
@@ -683,7 +712,7 @@ const interpolateColors = (
 	color2: Color,
 	factor: number,
 ): string => {
-	const converter = Converter.instance;
+	const converter = getConverter();
 	const colorArray1 = converter.toColorArray(color1);
 	const colorArray2 = converter.toColorArray(color2);
 
@@ -711,7 +740,7 @@ const numberGradientVisualization = (
 						color: gradient.steps[i].colorBefore,
 						opacity: 1,
 					}),
-					matrix: mat4.create(),
+					matrix: IDENTITY_MATRIX,
 				};
 			} else {
 				// get the previous color
@@ -734,7 +763,7 @@ const numberGradientVisualization = (
 						),
 						opacity: 1,
 					}),
-					matrix: mat4.create(),
+					matrix: IDENTITY_MATRIX,
 				};
 			}
 		}
@@ -746,7 +775,7 @@ const numberGradientVisualization = (
 			color: gradient.steps[gradient.steps.length - 1].colorAfter,
 			opacity: 1,
 		}),
-		matrix: mat4.create(),
+		matrix: IDENTITY_MATRIX,
 	};
 };
 
@@ -771,7 +800,7 @@ const stringGradientVisualization = (
 			color: color,
 			opacity: 1,
 		}),
-		matrix: mat4.create(),
+		matrix: IDENTITY_MATRIX,
 	};
 };
 
@@ -801,7 +830,7 @@ const numberVisualization = (
 								color: color,
 								opacity: 1,
 							}),
-				matrix: mat4.create(),
+				matrix: IDENTITY_MATRIX,
 			};
 		} else if (type === ATTRIBUTE_VISUALIZATION.OPACITY) {
 			return opacityVisualization(factor, materialType, defaultMaterial);
@@ -851,7 +880,7 @@ const stringVisualization = (
 								color: color,
 								opacity: 1,
 							}),
-				matrix: mat4.create(),
+				matrix: IDENTITY_MATRIX,
 			};
 		} else if (type === ATTRIBUTE_VISUALIZATION.OPACITY) {
 			return opacityVisualization(factor, materialType, defaultMaterial);
