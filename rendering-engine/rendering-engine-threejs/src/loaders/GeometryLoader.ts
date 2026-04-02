@@ -188,6 +188,31 @@ export class GeometryLoader implements ILoader {
 				this._geometryCache[geometry.id + "_" + geometry.version].obj;
 
 			threeGeometryObject.material = material;
+
+			// Clear instance colors when in ATTRIBUTES mode to prevent them
+			// from multiplying with the attribute material color
+			if (threeGeometryObject instanceof THREE.InstancedMesh) {
+				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+					threeGeometryObject.instanceColor = null;
+				} else if (instanceData && !threeGeometryObject.instanceColor) {
+					for (
+						let i = 0;
+						i < instanceData.instanceColors.length;
+						i++
+					) {
+						threeGeometryObject.setColorAt(
+							i,
+							this._renderingEngine.createThreeJsColor(
+								instanceData.instanceColors[i],
+							),
+						);
+					}
+					// setColorAt creates instanceColor; re-read after mutation
+					(
+						threeGeometryObject as THREE.InstancedMesh
+					).instanceColor!.needsUpdate = true;
+				}
+			}
 		} else {
 			threeGeometryObject = this.createMesh(
 				geometry,
@@ -341,6 +366,14 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
+
+		// Clear instance colors when in ATTRIBUTES mode to prevent them
+		// from multiplying with the attribute material color
+		if (cached.obj instanceof THREE.InstancedMesh) {
+			if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+				cached.obj.instanceColor = null;
+			}
+		}
 	}
 
 	public removeFromGeometryCache(id: string) {
@@ -660,15 +693,19 @@ export class GeometryLoader implements ILoader {
 				);
 				// Reuse matrix object to reduce allocations
 				const tempMatrix = new THREE.Matrix4();
+				const useInstanceColors =
+					this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES;
 				for (let i = 0; i < instanceCount; i++) {
 					tempMatrix.fromArray(instanceData.instanceMatrices[i]);
 					instancedMesh.setMatrixAt(i, tempMatrix);
-					instancedMesh.setColorAt(
-						i,
-						this._renderingEngine.createThreeJsColor(
-							instanceData.instanceColors[i],
-						),
-					);
+					if (useInstanceColors) {
+						instancedMesh.setColorAt(
+							i,
+							this._renderingEngine.createThreeJsColor(
+								instanceData.instanceColors[i],
+							),
+						);
+					}
 				}
 
 				if (instancedMesh.instanceColor)

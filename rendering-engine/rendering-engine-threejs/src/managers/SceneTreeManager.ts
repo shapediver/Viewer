@@ -101,12 +101,14 @@ export class SceneTreeManager implements IManager {
 		let dataChild: THREE.Object3D | undefined;
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			injectAttributeData(
-				this._renderingEngine,
-				this._currentSDTFOverview,
-				treeNode,
-				treeNodeData,
-			);
+			if (treeNodeData instanceof GeometryData) {
+				injectAttributeData(
+					this._renderingEngine,
+					this._currentSDTFOverview,
+					treeNode,
+					treeNodeData,
+				);
+			}
 		} else {
 			const sdtfTransform = treeNode.getTransformation("sdtf");
 			if (sdtfTransform) treeNode.removeTransformation(sdtfTransform);
