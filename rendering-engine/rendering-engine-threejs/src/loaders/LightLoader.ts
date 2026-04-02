@@ -124,6 +124,10 @@ export class LightLoader implements ILoader {
 			if (!threeLight) {
 				threeLight = new THREE.DirectionalLight();
 				dataChild.add(threeLight);
+				(<THREE.DirectionalLight>threeLight).target.userData.SDid =
+					light.id;
+				(<THREE.DirectionalLight>threeLight).target.userData.SDversion =
+					light.version;
 				dataChild.add((<THREE.DirectionalLight>threeLight).target);
 				light.convertedObject[this._renderingEngine.id] = <
 					THREE.DirectionalLight
@@ -205,6 +209,9 @@ export class LightLoader implements ILoader {
 				);
 				dataChild.add(threeLight);
 				dataChild.add((<THREE.SpotLight>threeLight).target);
+				(<THREE.SpotLight>threeLight).target.userData.SDid = light.id;
+				(<THREE.SpotLight>threeLight).target.userData.SDversion =
+					light.version;
 				light.convertedObject[this._renderingEngine.id] = <
 					THREE.SpotLight
 				>threeLight;
