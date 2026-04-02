@@ -348,6 +348,15 @@ export class MobileStrategy implements IStrategy {
 							fromHistory: false,
 						},
 					);
+
+					// When autoUpdate is false the GEOMETRY_CHANGED listener is
+					// gated and will not call update(), so we mirror desktop
+					// behavior and call it directly.
+					if (
+						!this.#drawingToolsManager.settings.general.autoUpdate
+					) {
+						this.#drawingToolsManager.update();
+					}
 				}
 			} else {
 				if (!this.#drawingToolsManager.settings.general.enableInsertion)
@@ -369,6 +378,28 @@ export class MobileStrategy implements IStrategy {
 					restrictedPoint,
 					rayTraceResult,
 				);
+
+				// If the maximum number of points has been reached, call
+				// update() directly, mirroring desktop behavior. We only
+				// skip the direct call when the GEOMETRY_CHANGED listener
+				// would already fire update() (autoUpdate on AND the close
+				// state condition passes), to avoid calling it twice.
+				const dtSettings = this.#drawingToolsManager.settings;
+				const dtGeometryState = this.#drawingToolsManager.geometryState;
+				const reachedMax =
+					dtSettings.geometry.maxPoints !== undefined &&
+					dtGeometryState.getPointCount() ===
+						dtSettings.geometry.maxPoints;
+				if (reachedMax) {
+					const listenerWillFire =
+						dtSettings.general.autoUpdate &&
+						(dtSettings.geometry.autoClose ||
+							dtSettings.geometry.close ===
+								dtGeometryState.closeLoop);
+					if (!listenerWillFire) {
+						this.#drawingToolsManager.update();
+					}
+				}
 			}
 		} else {
 			this.#interactionManagerHelper.hoveredPoint = undefined;
