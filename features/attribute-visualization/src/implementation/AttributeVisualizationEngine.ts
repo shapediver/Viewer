@@ -47,7 +47,7 @@ export class AttributeVisualizationEngine
 	#attributes: IAttribute[] = [];
 	#defaultMaterial: IMaterialAbstractData = new MaterialUnlitData({
 		color: "#000000",
-		opacity: 0.1,
+		opacity: 1,
 	});
 	#defaultLayer: ILayer = {
 		color: "#000000",
