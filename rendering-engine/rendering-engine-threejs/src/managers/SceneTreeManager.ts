@@ -535,6 +535,11 @@ export class SceneTreeManager implements IManager {
 		const dataMap = new Map(treeNode.data.map((d) => [d.id, d.version]));
 		const dataToRemove = convertedObject.children.filter((oc) => {
 			if (!(oc instanceof SDObject)) {
+				// Skip untracked children (SDid=undefined) — these are implicit
+				// loader-managed objects such as DirectionalLight/SpotLight targets
+				// that should only be removed when their parent SDObject is removed.
+				if (oc.userData.SDid === undefined) return false;
+
 				const version = dataMap.get(oc.userData.SDid);
 				if (version !== undefined) {
 					if (version !== oc.userData.SDversion) {
