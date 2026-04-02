@@ -9,6 +9,7 @@ import {
 	IGeometryData,
 	IIntersectionFilter,
 	RENDERER_TYPE,
+	ViewportCreationDefinition,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
 
@@ -35,6 +36,7 @@ export interface IRenderingEngine {
 	show: boolean;
 	showStatistics: boolean;
 	type: RENDERER_TYPE;
+	viewportCreationDefinition: ViewportCreationDefinition;
 	visibility: VISIBILITY_MODE;
 	visibilitySessionIds?: string[];
 

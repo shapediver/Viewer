@@ -178,6 +178,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _showStatistics: boolean = false;
 	private _softShadows: boolean = true;
 	private _spinnerDivElement: HTMLDivElement;
+	private _viewportCreationDefinition: ViewportCreationDefinition;
 	private _toneMapping: TONE_MAPPING = TONE_MAPPING.NONE;
 	private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 	private _useLegacyLights: boolean = false;
@@ -202,6 +203,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		document.head.appendChild(style);
 
 		const prop = Object.assign({}, properties);
+		this._viewportCreationDefinition = prop;
 		const branding = Object.assign({}, prop.branding);
 
 		// setting some of the provided properties
@@ -975,6 +977,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public get usingSwiftShader(): boolean {
 		return this.renderingManager.usingSwiftShader;
+	}
+
+	public get viewportCreationDefinition(): ViewportCreationDefinition {
+		return this._viewportCreationDefinition;
 	}
 
 	public get visibility(): VISIBILITY_MODE {

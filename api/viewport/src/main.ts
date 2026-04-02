@@ -165,6 +165,12 @@ export const createViewport = async (
 		false,
 		Object.values(SPINNER_POSITIONING),
 	);
+	inputValidator.validateAndError(
+		"createViewport",
+		prop.initialAutoAdjust,
+		"boolean",
+		false,
+	);
 
 	prop.sessionSettingsMode =
 		prop.sessionSettingsMode !== undefined

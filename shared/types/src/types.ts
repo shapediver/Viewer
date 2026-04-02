@@ -191,4 +191,8 @@ export type ViewportCreationDefinition = {
 	flags?: {
 		[key: string]: FLAG_TYPE;
 	};
+	/**
+	 * If the viewport should automatically adjust the camera to fit the model on creation. (default: false)
+	 */
+	initialAutoAdjust?: boolean;
 };
