@@ -4,6 +4,7 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 	const s: ISettings = {
 		build_date: "",
 		build_version: "",
+		configuration: {},
 		settings_version: "7.0",
 		ar: {
 			enable: true,

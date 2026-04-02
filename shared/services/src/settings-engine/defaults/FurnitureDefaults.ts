@@ -4,6 +4,7 @@ export const FurnitureDefaults: () => ISettings = () => {
 	const s: ISettings = {
 		build_date: "",
 		build_version: "",
+		configuration: {},
 		settings_version: "",
 		ar: {
 			enable: true,
