@@ -697,6 +697,14 @@ export interface IViewportApi {
 	 */
 	updateEnvironmentGeometry(): void;
 	/**
+	 * Update the material of the given geometry data on the GPU without triggering a full scene tree reconversion.
+	 * Use this instead of calling {@link IGeometryData.updateVersion} when only the effect material has changed,
+	 * e.g. during hover interactions, to avoid the overhead of reconstructing Three.js objects.
+	 *
+	 * @param geometryData The geometry data whose material should be updated.
+	 */
+	updateGeometryData(geometryData: IGeometryData): void;
+	/**
 	 * Update the viewport with the current changes of given scene tree node and its descendants.
 	 * This carries out preparations for rendering. Call it after doing direct changes to the scene tree.
 	 *

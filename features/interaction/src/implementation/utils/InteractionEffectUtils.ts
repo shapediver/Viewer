@@ -44,7 +44,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 							material: effect,
 							token,
 						});
-						geometryData.updateVersion();
+						this.#viewport?.updateGeometryData(geometryData);
 					}
 				}
 
@@ -87,7 +87,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 					);
 					if (index !== -1) {
 						geometryData.effectMaterials.splice(index, 1);
-						geometryData.updateVersion();
+						this.#viewport?.updateGeometryData(geometryData);
 					}
 				}
 			}

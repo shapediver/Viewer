@@ -304,6 +304,45 @@ export class GeometryLoader implements ILoader {
 		}
 	}
 
+	public updateGeometryMaterial(geometry: GeometryData): void {
+		const cacheKey = geometry.id + "_" + geometry.version;
+		const cached = this._geometryCache[cacheKey];
+		if (!cached) return;
+
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
+
+		const threeGeometry = cached.obj.geometry;
+		const attributes = threeGeometry.attributes;
+		const morphAttributes = threeGeometry.morphAttributes;
+		const hasMorphTargets = Object.keys(morphAttributes).length > 0;
+
+		const materialSettings = {
+			mode: geometry.mode,
+			useVertexTangents: attributes.tangent !== undefined,
+			useVertexColors:
+				attributes.color !== undefined &&
+				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+			useFlatShading: attributes.normal === undefined,
+			useMorphTargets: hasMorphTargets,
+			useMorphNormals:
+				hasMorphTargets && morphAttributes.normal !== undefined,
+		};
+
+		cached.obj.material = this._renderingEngine.materialLoader.load(
+			incomingMaterialData || geometry,
+			materialSettings,
+		);
+	}
+
 	public removeFromGeometryCache(id: string) {
 		if (this._geometryCache[id]) {
 			if (this._geometryCache[id].counter === 1) {

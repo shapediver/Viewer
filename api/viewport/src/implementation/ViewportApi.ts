@@ -18,6 +18,7 @@ import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rend
 import {ISettings} from "@shapediver/viewer.settings";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {
+	GeometryData,
 	ITreeNode,
 	MaterialBasicLineData,
 	MaterialPointData,
@@ -1727,6 +1728,12 @@ export class ViewportApi implements IViewportApi {
 
 	public updateEnvironmentGeometry(): void {
 		this.#renderingEngine.updateEnvironmentGeometry();
+	}
+
+	public updateGeometryData(geometryData: IGeometryData): void {
+		this.#renderingEngine.geometryLoader.updateGeometryMaterial(
+			geometryData as GeometryData,
+		);
 	}
 
 	public updateNode(node: ITreeNode): void {
