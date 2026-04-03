@@ -492,7 +492,7 @@ describe("device testing", () => {
 		expect(r2.target[2]).toBeCloseTo(-100);
 		await screenshotCompare(
 			await driver.takeScreenshot(),
-			name + "/ortho_set",
+			name + "/ortho_reset",
 		);
 
 		const r3: any = await driver.executeAsyncScript(async (cb: any) => {
