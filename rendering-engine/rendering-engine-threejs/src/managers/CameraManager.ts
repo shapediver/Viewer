@@ -74,7 +74,8 @@ export class CameraManager implements IManager {
 				const bsOrtho =
 					this._renderingEngine.sceneTreeManager.boundingBox
 						.boundingSphere;
-				const bsOrthoRadius = bsOrtho.radius > 0 ? bsOrtho.radius : 2;
+				const bsOrthoRadius =
+					bsOrtho.radius > 0 ? bsOrtho.radius * 4 : 2;
 				const orthoDir = vec3.normalize(
 					vec3.create(),
 					vec3.subtract(
@@ -83,13 +84,31 @@ export class CameraManager implements IManager {
 						orthographicCameraData.target,
 					),
 				);
-				const safeOrthoDistance = bsOrthoRadius + distance;
+
+				// Project the bounding sphere center onto the view axis so that
+				// near/far always enclose the full sphere regardless of rotation/pan.
+				const projBsCenterOnDir = vec3.dot(
+					vec3.subtract(
+						vec3.create(),
+						bsOrtho.center as vec3,
+						orthographicCameraData.target,
+					),
+					orthoDir,
+				);
+				// Ensure the camera is placed behind the far side of the sphere
+				const safeOrthoDistance =
+					Math.max(bsOrthoRadius, projBsCenterOnDir + bsOrthoRadius) +
+					distance;
 				const safeOrthoPos = vec3.scaleAndAdd(
 					vec3.create(),
 					orthographicCameraData.target,
 					orthoDir,
 					safeOrthoDistance,
 				);
+
+				// Depth from safe camera position to the bounding sphere center
+				const distToSphereCenter =
+					safeOrthoDistance - projBsCenterOnDir;
 
 				orthographicCameraThreeJs.up.set(
 					orthographicCameraData.up[0],
@@ -104,10 +123,11 @@ export class CameraManager implements IManager {
 					distance * aspect;
 				orthographicCameraThreeJs.top = orthographicCameraData.top =
 					distance;
+				// near/far guarantee the whole bounding sphere is always between them
 				orthographicCameraThreeJs.near = orthographicCameraData.near =
-					Math.max(0.0001, safeOrthoDistance - bsOrthoRadius);
+					Math.max(0.0001, distToSphereCenter - bsOrthoRadius);
 				orthographicCameraThreeJs.far = orthographicCameraData.far =
-					safeOrthoDistance + bsOrthoRadius;
+					distToSphereCenter + bsOrthoRadius;
 				orthographicCameraThreeJs.position.set(
 					safeOrthoPos[0],
 					safeOrthoPos[1],
