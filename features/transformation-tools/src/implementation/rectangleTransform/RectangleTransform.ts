@@ -231,6 +231,8 @@ export class RectangleTransform
 		const txLS = newC0[0] - aU * initC0[0] - bU * initC0[1];
 		const tyLS = newC0[1] - aV * initC0[0] - bV * initC0[1];
 
+		const det = aU * bV - aV * bU;
+
 		// Column-major 4×4 affine (scale + rotation + translation in LS)
 		const mAffineLS = mat4.fromValues(
 			aU,
@@ -345,9 +347,12 @@ export class RectangleTransform
 		// unclamped `adjusted` in #localPoints would cause it to diverge from
 		// the DT, leading to wrong positions when the next rotation commit
 		// reuses #localPoints to reflush the scaling DT.
-		this.#localPoints = commit
-			? this.#scalingHandler.readbackConstrainedPoints()
-			: adjusted;
+		if (commit) {
+			const readback = this.#scalingHandler.readbackConstrainedPoints();
+			this.#localPoints = readback;
+		} else {
+			this.#localPoints = adjusted;
+		}
 
 		if (this.#rotationHandler)
 			this.#rotationHandler.recompute(this.#localPoints, !commit);

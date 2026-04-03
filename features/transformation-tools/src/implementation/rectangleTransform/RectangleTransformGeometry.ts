@@ -63,14 +63,36 @@ export function getRectBasis(localPoints: vec3[]): RectBasis {
 	const c6 = localPoints[6];
 	const edgeU = vec3.subtract(vec3.create(), c2, c0);
 	const edgeV = vec3.subtract(vec3.create(), c6, c0);
+	const lenU = vec3.length(edgeU);
+	const lenV = vec3.length(edgeV);
 	const axisU =
-		vec3.length(edgeU) > 0
+		lenU > 0
 			? vec3.normalize(vec3.create(), edgeU)
 			: vec3.fromValues(1, 0, 0);
-	const axisV =
-		vec3.length(edgeV) > 0
-			? vec3.normalize(vec3.create(), edgeV)
-			: vec3.fromValues(0, 1, 0);
+
+	// Derive axisV as the perpendicular component of edgeV relative to axisU
+	// (Gram-Schmidt). This guards against degenerate inputs where C0→C6 is
+	// (nearly) parallel or anti-parallel to C0→C2 — which can occur under
+	// combined rotation and min-scaling constraints.
+	// Falls back to the 90° CCW rotation of axisU when the perpendicular
+	// component is too small.
+	const axisVCCW = vec3.fromValues(-axisU[1], axisU[0], 0);
+	let axisV: vec3;
+	if (lenV > 0) {
+		const proj = vec3.dot(edgeV, axisU);
+		const perp = vec3.subtract(
+			vec3.create(),
+			edgeV,
+			vec3.scale(vec3.create(), axisU, proj),
+		);
+		axisV =
+			vec3.length(perp) > lenV * 1e-3
+				? vec3.normalize(vec3.create(), perp)
+				: axisVCCW;
+	} else {
+		axisV = axisVCCW;
+	}
+
 	const origin = vec3.fromValues(
 		(c0[0] + localPoints[4][0]) / 2,
 		(c0[1] + localPoints[4][1]) / 2,

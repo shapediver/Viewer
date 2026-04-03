@@ -260,21 +260,78 @@ export class RectangleTransformScalingHandler
 		const controlsLeft = n === 0 || n === 3;
 		const controlsBottom = n < 2;
 
-		// Read corner position from DT (already propagated) or fall back to localPoints
-		// for locked corners that have no DT slot.
-		const readCorner = (ci: number): RectFrameCoord => {
-			const di = this.#pointsMapping.conceptualToDT[ci];
-			if (di >= 0) {
-				const p = updatedDtPoints[di];
-				return toRectFrame(vec3.fromValues(p[0], p[1], p[2]), basis);
-			}
-			return toRectFrame(localPoints[ci], basis);
-		};
+		// Get the dragged corner's authoritative position from the DT.
+		const draggedDI = this.#pointsMapping.conceptualToDT[index];
+		const draggedWorld =
+			draggedDI >= 0
+				? vec3.fromValues(
+						updatedDtPoints[draggedDI][0],
+						updatedDtPoints[draggedDI][1],
+						0,
+					)
+				: localPoints[index];
+		const dragged = toRectFrame(draggedWorld, basis);
 
-		let c0uv = readCorner(0);
-		let c2uv = readCorner(2);
-		let c4uv = readCorner(4);
-		let c6uv = readCorner(6);
+		// The pivot is the diagonally opposite corner — it must not move during
+		// this drag.  Always read it from localPoints (the previous committed
+		// state) rather than from the DT, because the DT's adjacency weights are
+		// fixed in world-axis directions ([1,0,0] / [0,1,0]) and diverge from
+		// the rect-frame U/V axes after any rotation, causing non-dragged corners
+		// to drift to geometrically wrong positions.
+		const pivotCI = index === 0 ? 4 : index === 2 ? 6 : index === 4 ? 0 : 2;
+		const pivot = toRectFrame(localPoints[pivotCI], basis);
+
+		// Reconstruct a proper rectangle entirely in rect-frame space.
+		// The dragged corner owns its side's u and v; the pivot provides the
+		// opposite fixed values.  This is correct for any orientation or flip.
+		const uleft = controlsLeft ? dragged.u : pivot.u;
+		const uright = controlsLeft ? pivot.u : dragged.u;
+		const vbottom = controlsBottom ? dragged.v : pivot.v;
+		const vtop = controlsBottom ? pivot.v : dragged.v;
+
+		// Apply min/max size constraints in rect-frame (rotation-independent).
+		// Sign is preserved so that flipping remains possible; only the
+		// magnitude of the width/height is clamped.
+		const uMin = this.#scalingConfig?.uMin ?? 0;
+		const uMax = this.#scalingConfig?.uMax;
+		const vMin = this.#scalingConfig?.vMin ?? 0;
+		const vMax = this.#scalingConfig?.vMax;
+
+		let appliedUleft = uleft;
+		let appliedUright = uright;
+		let appliedVbottom = vbottom;
+		let appliedVtop = vtop;
+
+		const width = uright - uleft;
+		const height = vtop - vbottom;
+		const widthSign = width >= 0 ? 1 : -1;
+		const heightSign = height >= 0 ? 1 : -1;
+
+		if (uMin > 0 && Math.abs(width) < uMin) {
+			const target = widthSign * uMin;
+			if (controlsLeft) appliedUleft = uright - target;
+			else appliedUright = uleft + target;
+		}
+		if (uMax !== undefined && uMax !== null && Math.abs(width) > uMax) {
+			const target = widthSign * uMax;
+			if (controlsLeft) appliedUleft = uright - target;
+			else appliedUright = uleft + target;
+		}
+		if (vMin > 0 && Math.abs(height) < vMin) {
+			const target = heightSign * vMin;
+			if (controlsBottom) appliedVbottom = vtop - target;
+			else appliedVtop = vbottom + target;
+		}
+		if (vMax !== undefined && vMax !== null && Math.abs(height) > vMax) {
+			const target = heightSign * vMax;
+			if (controlsBottom) appliedVbottom = vtop - target;
+			else appliedVtop = vbottom + target;
+		}
+
+		let c0uv: RectFrameCoord = {u: appliedUleft, v: appliedVbottom};
+		let c2uv: RectFrameCoord = {u: appliedUright, v: appliedVbottom};
+		let c4uv: RectFrameCoord = {u: appliedUright, v: appliedVtop};
+		let c6uv: RectFrameCoord = {u: appliedUleft, v: appliedVtop};
 
 		if (this.#scalingConfig?.uniform) {
 			const prevUV = toRectFrame(localPoints[index], basis);
@@ -466,6 +523,7 @@ export class RectangleTransformScalingHandler
 		const deltaU = signU * (movedUV.u - prevUV.u);
 		const deltaV = signV * (movedUV.v - prevUV.v);
 		const d = Math.abs(deltaU) < Math.abs(deltaV) ? deltaU : deltaV;
-		return {u: prevUV.u + signU * d, v: prevUV.v + signV * d};
+		const result = {u: prevUV.u + signU * d, v: prevUV.v + signV * d};
+		return result;
 	}
 }
