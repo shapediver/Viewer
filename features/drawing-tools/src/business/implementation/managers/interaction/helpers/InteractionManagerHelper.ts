@@ -430,15 +430,11 @@ export class InteractionManagerHelper {
 							)
 						: differenceToIntersected;
 
-				// Phase 2 – compute indirect positions once; null means a
-				// constraint would be violated, so abort without moving anything.
+				// Phase 2 – compute indirect (constraint-clamped) positions.
 				const indirectPositions = this.applyAdjacencyPropagation(
 					effectiveDelta,
 					overrides,
 				);
-				if (indirectPositions === null) {
-					return intersectionPoint;
-				}
 
 				// Phase 3 – apply constrained positions to direct points.
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
@@ -831,14 +827,13 @@ export class InteractionManagerHelper {
 	 * @param overrides                 Positions of directly-moved points, used
 	 *                                  as reference geometry when checking size
 	 *                                  constraints for indirect points.
-	 * @returns A map of pointIndex → final position for every indirect point
-	 *          that should be moved, or `null` if any indirect point would be
-	 *          constrained away from its proposed position (move is blocked).
+	 * @returns A map of pointIndex → final (constraint-clamped) position for
+	 *          every indirect point that should be moved.
 	 */
 	private applyAdjacencyPropagation(
 		differenceToIntersected: vec3,
 		overrides?: Map<number, vec3>,
-	): Map<number, vec3> | null {
+	): Map<number, vec3> {
 		const adjacency = this.#settings.geometry.weightedAdjacency;
 		if (!adjacency || this.#propagatedBasePositions.size === 0)
 			return new Map();
@@ -888,8 +883,12 @@ export class InteractionManagerHelper {
 		}
 
 		// Validate constraints and build the final position map in one pass.
-		// If any indirect point would be clamped, return null to block the move.
+		// Use clamped positions so each axis can move independently even when
+		// the other axis is constrained (e.g. uMin blocks X but Y is free).
 		const result = new Map<number, vec3>();
+		const extendedOverrides = overrides
+			? new Map(overrides)
+			: new Map<number, vec3>();
 		for (const [targetIdx, delta] of accumulatedDeltas) {
 			const base = this.#propagatedBasePositions.get(targetIdx);
 			if (!base) continue;
@@ -897,10 +896,10 @@ export class InteractionManagerHelper {
 			const constrained = this.#drawingToolsManager.applyConstraints(
 				proposed,
 				targetIdx,
-				overrides,
+				extendedOverrides,
 			);
-			if (!vec3.equals(constrained, proposed)) return null;
-			result.set(targetIdx, proposed);
+			result.set(targetIdx, constrained);
+			extendedOverrides.set(targetIdx, constrained);
 		}
 
 		return result;
