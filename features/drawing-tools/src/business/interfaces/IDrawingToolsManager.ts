@@ -51,7 +51,7 @@ export interface IDrawingToolsManager {
 		position: vec3,
 		metaData?: RayTraceResult,
 		temporary?: boolean,
-		overrides?: Map<number, vec3>,
+		skipConstraints?: boolean,
 	): void;
 	redo(): void;
 	removePoint(index: number, temporary?: boolean): void;

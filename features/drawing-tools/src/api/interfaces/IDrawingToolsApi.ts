@@ -93,7 +93,7 @@ export interface IDrawingToolsApi {
 		index: number,
 		position: vec3,
 		temporary?: boolean,
-		overrides?: Map<number, vec3>,
+		skipConstraints?: boolean,
 	): void;
 	/**
 	 * Redo the last action of the drawing tool.

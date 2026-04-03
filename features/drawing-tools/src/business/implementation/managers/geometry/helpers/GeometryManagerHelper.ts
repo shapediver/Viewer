@@ -146,9 +146,11 @@ export class GeometryManagerHelper {
 		point: vec3,
 		metaData: RayTraceResult | undefined,
 		temporary = false,
-		overrides?: Map<number, vec3>,
+		skipConstraints?: boolean,
 	): void {
-		point = this.#drawingToolsManager.applyConstraints(point, index, overrides);
+		if (!skipConstraints) {
+			point = this.#drawingToolsManager.applyConstraints(point, index);
+		}
 
 		const threeJsPointsGeometry: THREE.Points = this.#geometryState
 			.geometryDataPoints.convertedObject[

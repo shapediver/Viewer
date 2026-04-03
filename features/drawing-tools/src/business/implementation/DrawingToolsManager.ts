@@ -499,14 +499,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		position: vec3,
 		metaData: RayTraceResult | undefined,
 		temporary = false,
-		overrides?: Map<number, vec3>,
+		skipConstraints?: boolean,
 	): void {
 		this.#geometryManager.movePoint(
 			index,
 			position,
 			metaData,
 			temporary,
-			overrides,
+			skipConstraints,
 		);
 	}
 

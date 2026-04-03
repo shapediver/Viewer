@@ -72,24 +72,10 @@ export class RectangleTransformPointsMapping {
 		drawingTools: IDrawingToolsApi,
 		temporary: boolean,
 	): void {
-		// Build an overrides map with all target positions so that
-		// applyConstraints sees the correct (not stale) values for points
-		// that haven't been flushed yet in this loop iteration.
-		const overrides = new Map<number, vec3>();
 		for (let di = 0; di < this.dtToConceptual.length; di++) {
 			const ci = this.dtToConceptual[di];
 			const p = localPoints[ci];
-			overrides.set(di, vec3.fromValues(p[0], p[1], p[2]));
-		}
-		for (let di = 0; di < this.dtToConceptual.length; di++) {
-			const ci = this.dtToConceptual[di];
-			const p = localPoints[ci];
-			drawingTools.movePoint(
-				di,
-				[p[0], p[1], p[2]],
-				temporary,
-				overrides,
-			);
+			drawingTools.movePoint(di, [p[0], p[1], p[2]], temporary, true);
 		}
 	}
 }
