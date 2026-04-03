@@ -431,10 +431,29 @@ export class InteractionManagerHelper {
 						: differenceToIntersected;
 
 				// Phase 2 – compute indirect (constraint-clamped) positions.
-				const indirectPositions = this.applyAdjacencyPropagation(
-					effectiveDelta,
-					overrides,
-				);
+				const {indirectPositions, correctedDelta} =
+					this.applyAdjacencyPropagation(effectiveDelta, overrides);
+
+				// If indirect constraints required reducing the effective delta
+				// per-axis, re-derive direct point positions so that the
+				// rectangle invariant (shared coordinates) is maintained.
+				if (correctedDelta) {
+					for (
+						let i = 0;
+						i < this.#selectedPointIndices.length;
+						i++
+					) {
+						constrainedPositions[i] = vec3.add(
+							vec3.create(),
+							this.#selectedPointPositions[i],
+							correctedDelta,
+						);
+						overrides.set(
+							this.#selectedPointIndices[i],
+							constrainedPositions[i],
+						);
+					}
+				}
 
 				// Phase 3 – apply constrained positions to direct points.
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
@@ -827,16 +846,20 @@ export class InteractionManagerHelper {
 	 * @param overrides                 Positions of directly-moved points, used
 	 *                                  as reference geometry when checking size
 	 *                                  constraints for indirect points.
-	 * @returns A map of pointIndex → final (constraint-clamped) position for
-	 *          every indirect point that should be moved.
+	 * @returns Indirect positions and, when indirect constraints required
+	 *          reducing the effective delta, a correctedDelta for the caller
+	 *          to re-derive direct point positions from.
 	 */
 	private applyAdjacencyPropagation(
 		differenceToIntersected: vec3,
 		overrides?: Map<number, vec3>,
-	): Map<number, vec3> {
+	): {
+		indirectPositions: Map<number, vec3>;
+		correctedDelta?: vec3;
+	} {
 		const adjacency = this.#settings.geometry.weightedAdjacency;
 		if (!adjacency || this.#propagatedBasePositions.size === 0)
-			return new Map();
+			return {indirectPositions: new Map()};
 
 		// Seed BFS from all selected points.
 		const queue: [number, vec3][] = this.#selectedPointIndices.map(
@@ -882,13 +905,14 @@ export class InteractionManagerHelper {
 			processSource(sourceIdx, sourceDelta);
 		}
 
-		// Validate constraints and build the final position map in one pass.
-		// Use clamped positions so each axis can move independently even when
-		// the other axis is constrained (e.g. uMin blocks X but Y is free).
-		const result = new Map<number, vec3>();
-		const extendedOverrides = overrides
-			? new Map(overrides)
-			: new Map<number, vec3>();
+		// First pass: check constraints and compute per-axis scale factors.
+		// When an indirect point is clamped on axis i, we determine how much
+		// the source delta on that axis must be reduced so the indirect point
+		// lands exactly at the constraint boundary. The most restrictive
+		// (smallest) scale factor per axis wins.
+		const axisScales: [number, number, number] = [1, 1, 1];
+		let needsCorrection = false;
+
 		for (const [targetIdx, delta] of accumulatedDeltas) {
 			const base = this.#propagatedBasePositions.get(targetIdx);
 			if (!base) continue;
@@ -896,13 +920,63 @@ export class InteractionManagerHelper {
 			const constrained = this.#drawingToolsManager.applyConstraints(
 				proposed,
 				targetIdx,
-				extendedOverrides,
+				overrides,
 			);
-			result.set(targetIdx, constrained);
-			extendedOverrides.set(targetIdx, constrained);
+			for (let i = 0; i < 3; i++) {
+				if (
+					Math.abs(delta[i]) > 1e-10 &&
+					Math.abs(constrained[i] - proposed[i]) > 1e-10
+				) {
+					const scale = Math.max(
+						0,
+						(constrained[i] - base[i]) / delta[i],
+					);
+					if (scale < axisScales[i]) {
+						axisScales[i] = scale;
+						needsCorrection = true;
+					}
+				}
+			}
 		}
 
-		return result;
+		if (!needsCorrection) {
+			// All proposed positions satisfy constraints.
+			const indirectPositions = new Map<number, vec3>();
+			for (const [targetIdx, delta] of accumulatedDeltas) {
+				const base = this.#propagatedBasePositions.get(targetIdx);
+				if (!base) continue;
+				indirectPositions.set(
+					targetIdx,
+					vec3.add(vec3.create(), base, delta),
+				);
+			}
+			return {indirectPositions};
+		}
+
+		// Compute corrected effective delta (scaled per-axis).
+		const correctedDelta = vec3.fromValues(
+			differenceToIntersected[0] * axisScales[0],
+			differenceToIntersected[1] * axisScales[1],
+			differenceToIntersected[2] * axisScales[2],
+		);
+
+		// Recompute indirect positions using the scaled deltas.
+		const indirectPositions = new Map<number, vec3>();
+		for (const [targetIdx, delta] of accumulatedDeltas) {
+			const base = this.#propagatedBasePositions.get(targetIdx);
+			if (!base) continue;
+			const scaledDelta = vec3.fromValues(
+				delta[0] * axisScales[0],
+				delta[1] * axisScales[1],
+				delta[2] * axisScales[2],
+			);
+			indirectPositions.set(
+				targetIdx,
+				vec3.add(vec3.create(), base, scaledDelta),
+			);
+		}
+
+		return {indirectPositions, correctedDelta};
 	}
 
 	/**
