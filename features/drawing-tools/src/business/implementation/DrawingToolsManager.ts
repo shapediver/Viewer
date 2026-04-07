@@ -289,14 +289,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 		// Size constraints: keep geometry extent within [minSize, maxSize].
 		if (constraints.size && pointCount > 0) {
-			console.log(
-				"[CONSTRAINT] applyConstraints | pointIndex:",
-				pointIndex,
-				"| proposed:",
-				Array.from(proposedPosition).map((v) => +v.toFixed(4)),
-				"| sizeConstraints:",
-				JSON.stringify(constraints.size),
-			);
 			// traverse all points and get the min and max on each axis
 			const min = vec3.fromValues(
 				Number.POSITIVE_INFINITY,
@@ -329,12 +321,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			const originalPosition =
 				originalPositionOverride ??
 				geometryState?.getPosition(pointIndex);
-			console.log(
-				"[CONSTRAINT] peerExtents | min:",
-				Array.from(min).map((v) => +v.toFixed(4)),
-				"| max:",
-				Array.from(max).map((v) => +v.toFixed(4)),
-			);
 			for (let i = 0; i < 3; i++) {
 				const c = constraints.size[sizeAxes[i]];
 				if (!c) continue;
@@ -389,16 +375,6 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			}
 		}
 
-		console.log(
-			"[CONSTRAINT] result | pointIndex:",
-			pointIndex,
-			"| result:",
-			Array.from(result).map((v) => +v.toFixed(4)),
-			"| changed:",
-			result[0] !== proposedPosition[0] ||
-				result[1] !== proposedPosition[1] ||
-				result[2] !== proposedPosition[2],
-		);
 		return result;
 	}
 

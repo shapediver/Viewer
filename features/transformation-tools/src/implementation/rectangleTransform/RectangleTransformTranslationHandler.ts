@@ -130,24 +130,12 @@ export class RectangleTransformTranslationHandler
 				const dragEv = e as IDragEvent;
 				this.handleDrag(dragEv, true);
 				if (dragEv.manager === this.#dragManager) {
-					console.log(
-						"[TRANS] DRAG_END | isDragging:",
-						this.#isDragging,
-						"| isHovering:",
-						this.#isHovering,
-						"| nodeId:",
-						this.#node?.id,
-					);
 					this.#isDragging = false;
 					// recompute() replaced the node, so HOVER_OFF for the old
 					// node won't fire. Reset hover state; the next pointermove
 					// will fire HOVER_ON for the new node if pointer is inside.
 					this.#isHovering = false;
 					this.#viewport.canvas.style.cursor = "";
-					console.log(
-						"[TRANS] DRAG_END done | newNodeId:",
-						this.#node?.id,
-					);
 				}
 			},
 		);
@@ -160,25 +148,12 @@ export class RectangleTransformTranslationHandler
 				const previousNodeMatch =
 					!!this.#previousNode &&
 					ev.nodes.indexOf(this.#previousNode) !== -1;
-				console.log(
-					"[TRANS] HOVER_ON | ourManager:",
-					ev.manager === this.#hoverManager,
-					"| nodeMatch:",
-					nodeMatch,
-					"| previousNodeMatch:",
-					previousNodeMatch,
-					"| nodes:",
-					ev.nodes.map((n) => n.id),
-					"| ourNodeId:",
-					this.#node?.id,
-				);
 				if (ev.manager !== this.#hoverManager) return;
 				if (!nodeMatch && !previousNodeMatch) return;
 				// Stale intersection matched the previous node; clear it once accepted.
 				if (previousNodeMatch) this.#previousNode = undefined;
 				this.#isHovering = true;
 				const blocked = this.#isInteractionBlocked();
-				console.log("[TRANS] HOVER_ON accepted | blocked:", blocked);
 				this.refreshCursor(blocked);
 			},
 		);
@@ -188,14 +163,6 @@ export class RectangleTransformTranslationHandler
 			(e) => {
 				const ev = e as IHoverEvent;
 				const remainingHasNode = ev.nodes.indexOf(this.#node) !== -1;
-				console.log(
-					"[TRANS] HOVER_OFF | ourManager:",
-					ev.manager === this.#hoverManager,
-					"| isDragging:",
-					this.#isDragging,
-					"| remainingHasNode:",
-					remainingHasNode,
-				);
 				if (ev.manager !== this.#hoverManager) return;
 				// The old (replaced) node was deactivated but our current node is
 				// still in the remaining hover set — pointer hasn't left our mesh.
@@ -224,16 +191,6 @@ export class RectangleTransformTranslationHandler
 			: this.#isHovering && !blocked
 				? "move"
 				: "";
-		console.log(
-			"[TRANS] refreshCursor | isDragging:",
-			this.#isDragging,
-			"| isHovering:",
-			this.#isHovering,
-			"| blocked:",
-			blocked,
-			"| cursor:",
-			newCursor,
-		);
 		this.#viewport.canvas.style.cursor = newCursor;
 	}
 
@@ -254,7 +211,6 @@ export class RectangleTransformTranslationHandler
 	 * and parent-node world matrix (e.g. after a rotation commit).
 	 */
 	public recompute(localPoints: vec3[], _temporary: boolean): void {
-		console.log("[TRANS] recompute | oldNodeId:", this.#node?.id);
 		// Update the drag restriction to the current world-space plane.
 		if (this.#planeRestrictionToken !== undefined) {
 			this.#dragManager.removeRestriction(this.#planeRestrictionToken);
@@ -267,7 +223,6 @@ export class RectangleTransformTranslationHandler
 		this.#previousNode = this.#node;
 		sceneTree.root.removeChild(this.#node);
 		this.createPlaneNode(localPoints);
-		console.log("[TRANS] recompute done | newNodeId:", this.#node?.id);
 	}
 
 	/** Build a plane restriction from the parentNode's current world matrix. */

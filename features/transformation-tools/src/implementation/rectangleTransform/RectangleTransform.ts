@@ -320,23 +320,6 @@ export class RectangleTransform
 	private handleRectDrag(ev: IDrawingToolsEvent, commit: boolean): void {
 		if (!this.#scalingHandler) return;
 
-		console.log(
-			"[SCALE-DRAG] handleRectDrag | commit:",
-			commit,
-			"| evPoints:",
-			ev.points?.map((p) => `[${p.map((v) => +v.toFixed(4))}]`).join(" "),
-			"| localPoints c0:",
-			Array.from(this.#localPoints[0]).map((v) => +v.toFixed(4)),
-			"c4:",
-			Array.from(this.#localPoints[4]).map((v) => +v.toFixed(4)),
-			"| accumulatedRot:",
-			this.#rotationHandler
-				? Array.from(this.#rotationHandler.accumulatedRotationMatrix)
-						.slice(0, 8)
-						.map((v) => +v.toFixed(4))
-				: "none",
-		);
-
 		// ev.points are already in parent-local space (DT handles WS→LS via parentNode).
 		let adjusted: vec3[];
 		if (ev.controlIndex !== undefined) {
@@ -368,16 +351,6 @@ export class RectangleTransform
 		// reuses #localPoints to reflush the scaling DT.
 		if (commit) {
 			const readback = this.#scalingHandler.readbackConstrainedPoints();
-			console.log(
-				"[SCALE-DRAG] commit readback | adjusted c0:",
-				Array.from(adjusted[0]).map((v) => +v.toFixed(4)),
-				"c4:",
-				Array.from(adjusted[4]).map((v) => +v.toFixed(4)),
-				"| readback c0:",
-				Array.from(readback[0]).map((v) => +v.toFixed(4)),
-				"c4:",
-				Array.from(readback[4]).map((v) => +v.toFixed(4)),
-			);
 			this.#localPoints = readback;
 		} else {
 			this.#localPoints = adjusted;

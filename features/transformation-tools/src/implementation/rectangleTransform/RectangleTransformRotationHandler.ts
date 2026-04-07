@@ -260,20 +260,6 @@ export class RectangleTransformRotationHandler
 			0,
 		);
 		const deltaAngle = finalNext - this.#gestureStartCumulative;
-		console.log(
-			"[ROT-COMMIT] commitAndFlush | cumulativeDeg:",
-			+((finalNext * 180) / Math.PI).toFixed(2),
-			"| deltaAngleDeg:",
-			+((deltaAngle * 180) / Math.PI).toFixed(2),
-			"| localPoints c0:",
-			Array.from(localPoints[0]).map((v) => +v.toFixed(4)),
-			"c2:",
-			Array.from(localPoints[2]).map((v) => +v.toFixed(4)),
-			"c4:",
-			Array.from(localPoints[4]).map((v) => +v.toFixed(4)),
-			"c6:",
-			Array.from(localPoints[6]).map((v) => +v.toFixed(4)),
-		);
 		if (deltaAngle !== 0) {
 			this.#composeDeltaIntoMatrix(center, deltaAngle);
 		}
