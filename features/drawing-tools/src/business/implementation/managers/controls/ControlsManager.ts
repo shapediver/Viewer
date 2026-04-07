@@ -564,10 +564,6 @@ export class ControlsManager {
 			: (idx: number) =>
 					this.#drawingToolsManager.geometryState.getPosition(idx);
 		for (let i = 0; i < this.#controls.length; i++) {
-			// Skip the actively dragged control — its position is managed
-			// directly by moveDraggedControl via setControlPosition.
-			if (this.#isDraggingControl && i === this.#draggedControlIndex)
-				continue;
 			if (
 				this.#controls[i].refreshForMovedPoint(movedIndex, getPosition)
 			) {

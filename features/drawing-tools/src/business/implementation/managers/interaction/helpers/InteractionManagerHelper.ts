@@ -412,6 +412,7 @@ export class InteractionManagerHelper {
 							rawProposed,
 							this.#selectedPointIndices[i],
 							overrides,
+							this.#selectedPointPositions[i],
 						);
 					constrainedPositions.push(constrained);
 					overrides.set(this.#selectedPointIndices[i], constrained);
@@ -456,22 +457,30 @@ export class InteractionManagerHelper {
 				}
 
 				// Phase 3 – apply constrained positions to direct points.
+				// Constraints are already applied in Phase 1, skip re-application
+				// to avoid stale positionArray reads producing wrong results.
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
 					this.#selectedMovedPointPositions[i] =
 						constrainedPositions[i];
-					this.#drawingToolsManager.movePointTemporary(
+					this.#drawingToolsManager.movePoint(
 						this.#selectedPointIndices[i],
 						constrainedPositions[i],
 						rayTraceResult,
+						true,
+						true,
 					);
 				}
 
 				// Phase 4 – apply pre-computed indirect positions.
+				// Constraints are already applied in Phase 2, skip re-application
+				// to avoid stale positionArray reads producing wrong results.
 				for (const [targetIdx, pos] of indirectPositions) {
-					this.#drawingToolsManager.movePointTemporary(
+					this.#drawingToolsManager.movePoint(
 						targetIdx,
 						pos,
 						this.#geometryState.metadataArray[targetIdx],
+						true,
+						true,
 					);
 				}
 
@@ -796,34 +805,60 @@ export class InteractionManagerHelper {
 	 *          apply per-axis weights, then recompose.  Falls back to "world" when no
 	 *          enabled plane restriction is present.
 	 */
+	/**
+	 * Find the active plane restriction's local axes (U, V, N).
+	 * Returns undefined when no enabled plane restriction is present.
+	 */
+	private getActivePlaneAxes(): [vec3, vec3, vec3] | undefined {
+		const planeRestriction = Object.values(
+			this.#drawingToolsManager.restrictionManager.restrictions,
+		).find((r) => r.type === RESTRICTION_TYPE.PLANE && r.enabled) as
+			| PlaneRestriction
+			| undefined;
+		if (!planeRestriction) return undefined;
+		return [
+			planeRestriction.vectorU,
+			planeRestriction.vectorV,
+			planeRestriction.normal,
+		];
+	}
+
+	/**
+	 * Scale a world-space delta per local axis.
+	 * Decomposes into the local U/V/N basis, applies per-axis scale factors,
+	 * then recomposes to world space.
+	 */
+	private scaleInLocalAxes(
+		delta: vec3,
+		axisScales: [number, number, number],
+		localAxes: [vec3, vec3, vec3],
+	): vec3 {
+		const [u, v, n] = localAxes;
+		const result = vec3.create();
+		vec3.scaleAndAdd(result, result, u, vec3.dot(delta, u) * axisScales[0]);
+		vec3.scaleAndAdd(result, result, v, vec3.dot(delta, v) * axisScales[1]);
+		vec3.scaleAndAdd(result, result, n, vec3.dot(delta, n) * axisScales[2]);
+		return result;
+	}
+
 	private computeWeightedDelta(
 		sourceDelta: vec3,
 		weights: AdjacencyEntry["weights"],
 		space: AdjacencyEntry["space"],
 	): vec3 {
 		if (space === "local") {
-			const planeRestriction = Object.values(
-				this.#drawingToolsManager.restrictionManager.restrictions,
-			).find((r) => r.type === RESTRICTION_TYPE.PLANE && r.enabled) as
-				| PlaneRestriction
-				| undefined;
+			const localAxes = this.getActivePlaneAxes();
 
-			if (planeRestriction) {
-				const u = planeRestriction.vectorU;
-				const v = planeRestriction.vectorV;
-				const n = planeRestriction.normal;
+			if (localAxes) {
+				const [u, v, n] = localAxes;
 				const du = vec3.dot(sourceDelta, u);
 				const dv = vec3.dot(sourceDelta, v);
 				const dn = vec3.dot(sourceDelta, n);
-				return vec3.add(
-					vec3.create(),
-					vec3.add(
-						vec3.create(),
-						vec3.scale(vec3.create(), u, du * weights[0]),
-						vec3.scale(vec3.create(), v, dv * weights[1]),
-					),
-					vec3.scale(vec3.create(), n, dn * weights[2]),
-				);
+				const result = vec3.create();
+				vec3.scaleAndAdd(result, result, u, du * weights[0]);
+				vec3.scaleAndAdd(result, result, v, dv * weights[1]);
+				vec3.scaleAndAdd(result, result, n, dn * weights[2]);
+				return result;
 			}
 		}
 
@@ -905,11 +940,27 @@ export class InteractionManagerHelper {
 			processSource(sourceIdx, sourceDelta);
 		}
 
+		// Detect whether any adjacency entry uses "local" space so the
+		// correction path can operate along the plane restriction's U/V/N axes
+		// instead of world X/Y/Z.  This ensures correct behavior even when the
+		// geometry is rotated relative to the world frame.
+		let localAxes: [vec3, vec3, vec3] | undefined;
+		outer: for (const list of adjacency) {
+			for (const entry of list) {
+				if (entry.space === "local") {
+					localAxes = this.getActivePlaneAxes();
+					break outer;
+				}
+			}
+		}
+
 		// First pass: check constraints and compute per-axis scale factors.
 		// When an indirect point is clamped on axis i, we determine how much
 		// the source delta on that axis must be reduced so the indirect point
 		// lands exactly at the constraint boundary. The most restrictive
 		// (smallest) scale factor per axis wins.
+		// When localAxes is set, "axis i" refers to the plane's U/V/N axes;
+		// otherwise it refers to world X/Y/Z.
 		const axisScales: [number, number, number] = [1, 1, 1];
 		let needsCorrection = false;
 
@@ -921,19 +972,43 @@ export class InteractionManagerHelper {
 				proposed,
 				targetIdx,
 				overrides,
+				base,
 			);
-			for (let i = 0; i < 3; i++) {
-				if (
-					Math.abs(delta[i]) > 1e-10 &&
-					Math.abs(constrained[i] - proposed[i]) > 1e-10
-				) {
-					const scale = Math.max(
-						0,
-						(constrained[i] - base[i]) / delta[i],
-					);
-					if (scale < axisScales[i]) {
-						axisScales[i] = scale;
-						needsCorrection = true;
+
+			if (localAxes) {
+				// Decompose delta and correction along local U/V/N axes.
+				const diff = vec3.sub(vec3.create(), constrained, base);
+				for (let i = 0; i < 3; i++) {
+					const deltaLocal = vec3.dot(delta, localAxes[i]);
+					const constrainedLocal = vec3.dot(diff, localAxes[i]);
+					if (
+						Math.abs(deltaLocal) > 1e-10 &&
+						Math.abs(constrainedLocal - deltaLocal) > 1e-10
+					) {
+						const scale = Math.max(
+							0,
+							constrainedLocal / deltaLocal,
+						);
+						if (scale < axisScales[i]) {
+							axisScales[i] = scale;
+							needsCorrection = true;
+						}
+					}
+				}
+			} else {
+				for (let i = 0; i < 3; i++) {
+					if (
+						Math.abs(delta[i]) > 1e-10 &&
+						Math.abs(constrained[i] - proposed[i]) > 1e-10
+					) {
+						const scale = Math.max(
+							0,
+							(constrained[i] - base[i]) / delta[i],
+						);
+						if (scale < axisScales[i]) {
+							axisScales[i] = scale;
+							needsCorrection = true;
+						}
 					}
 				}
 			}
@@ -954,22 +1029,30 @@ export class InteractionManagerHelper {
 		}
 
 		// Compute corrected effective delta (scaled per-axis).
-		const correctedDelta = vec3.fromValues(
-			differenceToIntersected[0] * axisScales[0],
-			differenceToIntersected[1] * axisScales[1],
-			differenceToIntersected[2] * axisScales[2],
-		);
+		const correctedDelta = localAxes
+			? this.scaleInLocalAxes(
+					differenceToIntersected,
+					axisScales,
+					localAxes,
+				)
+			: vec3.fromValues(
+					differenceToIntersected[0] * axisScales[0],
+					differenceToIntersected[1] * axisScales[1],
+					differenceToIntersected[2] * axisScales[2],
+				);
 
 		// Recompute indirect positions using the scaled deltas.
 		const indirectPositions = new Map<number, vec3>();
 		for (const [targetIdx, delta] of accumulatedDeltas) {
 			const base = this.#propagatedBasePositions.get(targetIdx);
 			if (!base) continue;
-			const scaledDelta = vec3.fromValues(
-				delta[0] * axisScales[0],
-				delta[1] * axisScales[1],
-				delta[2] * axisScales[2],
-			);
+			const scaledDelta = localAxes
+				? this.scaleInLocalAxes(delta, axisScales, localAxes)
+				: vec3.fromValues(
+						delta[0] * axisScales[0],
+						delta[1] * axisScales[1],
+						delta[2] * axisScales[2],
+					);
 			indirectPositions.set(
 				targetIdx,
 				vec3.add(vec3.create(), base, scaledDelta),

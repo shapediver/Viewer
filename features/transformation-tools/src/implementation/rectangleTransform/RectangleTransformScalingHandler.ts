@@ -14,12 +14,6 @@ import {vec3} from "gl-matrix";
 import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {
-	cornersToFullPoints,
-	getRectBasis,
-	RectFrameCoord,
-	toRectFrame,
-} from "./RectangleTransformGeometry";
-import {
 	PointVisibilityConfig,
 	RectangleTransformPointsMapping,
 } from "./RectangleTransformPointsMapping";
@@ -115,9 +109,17 @@ export class RectangleTransformScalingHandler
 			const diU = this.#pointsMapping.conceptualToDT[sameU];
 			const diV = this.#pointsMapping.conceptualToDT[sameV];
 			if (!lockedSet.has(sameU))
-				weightedAdjacency[di].push({to: diU, weights: [1, 0, 0]});
+				weightedAdjacency[di].push({
+					to: diU,
+					weights: [1, 0, 0],
+					space: "local",
+				});
 			if (!lockedSet.has(sameV))
-				weightedAdjacency[di].push({to: diV, weights: [0, 1, 0]});
+				weightedAdjacency[di].push({
+					to: diV,
+					weights: [0, 1, 0],
+					space: "local",
+				});
 		}
 
 		this.#drawingTools = createDrawingTools(
@@ -246,123 +248,58 @@ export class RectangleTransformScalingHandler
 	/**
 	 * Handle a corner drag.
 	 * The DT has already propagated the drag delta to the two adjacent corners
-	 * via weightedAdjacency ([1,0,0] for the shared-U neighbor, [0,1,0] for the
-	 * shared-V neighbor). This method reads those DT-updated positions and applies
-	 * uniform scaling, axis locks, and clamp/snap on top.
+	 * via weightedAdjacency (space: "local") and applied size constraints.
+	 * This method reads the DT-updated positions and applies uniform scaling
+	 * on top when configured.
 	 */
 	public cornerPointMoved(
 		index: number,
 		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
-		const basis = getRectBasis(localPoints);
-		const n = index / 2;
-		const controlsLeft = n === 0 || n === 3;
-		const controlsBottom = n < 2;
-
-		// Get the dragged corner's authoritative position from the DT.
-		const draggedDI = this.#pointsMapping.conceptualToDT[index];
-		const draggedWorld =
-			draggedDI >= 0
-				? vec3.fromValues(
-						updatedDtPoints[draggedDI][0],
-						updatedDtPoints[draggedDI][1],
-						0,
-					)
-				: localPoints[index];
-		const dragged = toRectFrame(draggedWorld, basis);
-
-		// The pivot is the diagonally opposite corner — it must not move during
-		// this drag.  Always read it from localPoints (the previous committed
-		// state) rather than from the DT, because the DT's adjacency weights are
-		// fixed in world-axis directions ([1,0,0] / [0,1,0]) and diverge from
-		// the rect-frame U/V axes after any rotation, causing non-dragged corners
-		// to drift to geometrically wrong positions.
-		const pivotCI = index === 0 ? 4 : index === 2 ? 6 : index === 4 ? 0 : 2;
-		const pivot = toRectFrame(localPoints[pivotCI], basis);
-
-		// Reconstruct a proper rectangle entirely in rect-frame space.
-		// The dragged corner owns its side's u and v; the pivot provides the
-		// opposite fixed values.  This is correct for any orientation or flip.
-		const uleft = controlsLeft ? dragged.u : pivot.u;
-		const uright = controlsLeft ? pivot.u : dragged.u;
-		const vbottom = controlsBottom ? dragged.v : pivot.v;
-		const vtop = controlsBottom ? pivot.v : dragged.v;
-
-		// Apply min/max size constraints in rect-frame (rotation-independent).
-		// Sign is preserved so that flipping remains possible; only the
-		// magnitude of the width/height is clamped.
-		const uMin = this.#scalingConfig?.uMin ?? 0;
-		const uMax = this.#scalingConfig?.uMax;
-		const vMin = this.#scalingConfig?.vMin ?? 0;
-		const vMax = this.#scalingConfig?.vMax;
-
-		let appliedUleft = uleft;
-		let appliedUright = uright;
-		let appliedVbottom = vbottom;
-		let appliedVtop = vtop;
-
-		const width = uright - uleft;
-		const height = vtop - vbottom;
-		const widthSign = width >= 0 ? 1 : -1;
-		const heightSign = height >= 0 ? 1 : -1;
-
-		if (uMin > 0 && Math.abs(width) < uMin) {
-			const target = widthSign * uMin;
-			if (controlsLeft) appliedUleft = uright - target;
-			else appliedUright = uleft + target;
-		}
-		if (uMax !== undefined && uMax !== null && Math.abs(width) > uMax) {
-			const target = widthSign * uMax;
-			if (controlsLeft) appliedUleft = uright - target;
-			else appliedUright = uleft + target;
-		}
-		if (vMin > 0 && Math.abs(height) < vMin) {
-			const target = heightSign * vMin;
-			if (controlsBottom) appliedVbottom = vtop - target;
-			else appliedVtop = vbottom + target;
-		}
-		if (vMax !== undefined && vMax !== null && Math.abs(height) > vMax) {
-			const target = heightSign * vMax;
-			if (controlsBottom) appliedVbottom = vtop - target;
-			else appliedVtop = vbottom + target;
-		}
-
-		let c0uv: RectFrameCoord = {u: appliedUleft, v: appliedVbottom};
-		let c2uv: RectFrameCoord = {u: appliedUright, v: appliedVbottom};
-		let c4uv: RectFrameCoord = {u: appliedUright, v: appliedVtop};
-		let c6uv: RectFrameCoord = {u: appliedUleft, v: appliedVtop};
+		// Read all 4 corner positions from the DT (adjacency + constraints
+		// already applied by the drawing tools).
+		let c0 = this.getCornerFromDT(0, updatedDtPoints, localPoints);
+		let c2 = this.getCornerFromDT(2, updatedDtPoints, localPoints);
+		let c4 = this.getCornerFromDT(4, updatedDtPoints, localPoints);
+		let c6 = this.getCornerFromDT(6, updatedDtPoints, localPoints);
 
 		if (this.#scalingConfig?.uniform) {
-			const prevUV = toRectFrame(localPoints[index], basis);
-			const movedUV =
-				index === 0
-					? c0uv
-					: index === 2
-						? c2uv
-						: index === 4
-							? c4uv
-							: c6uv;
-			const signU = controlsLeft ? -1 : 1;
-			const signV = controlsBottom ? -1 : 1;
-			const adjusted = this.scaleUniformly(prevUV, movedUV, signU, signV);
+			const n = index / 2;
+			const controlsLeft = n === 0 || n === 3;
+			const controlsBottom = n < 2;
+
+			const prev = localPoints[index];
+			const moved = this.getCornerFromDT(
+				index,
+				updatedDtPoints,
+				localPoints,
+			);
+			const signX = controlsLeft ? -1 : 1;
+			const signY = controlsBottom ? -1 : 1;
+			const deltaX = signX * (moved[0] - prev[0]);
+			const deltaY = signY * (moved[1] - prev[1]);
+			const d = Math.abs(deltaX) < Math.abs(deltaY) ? deltaX : deltaY;
+			const adjustedX = prev[0] + signX * d;
+			const adjustedY = prev[1] + signY * d;
+
 			if (controlsLeft) {
-				c0uv = {u: adjusted.u, v: c0uv.v};
-				c6uv = {u: adjusted.u, v: c6uv.v};
+				c0 = vec3.fromValues(adjustedX, c0[1], 0);
+				c6 = vec3.fromValues(adjustedX, c6[1], 0);
 			} else {
-				c2uv = {u: adjusted.u, v: c2uv.v};
-				c4uv = {u: adjusted.u, v: c4uv.v};
+				c2 = vec3.fromValues(adjustedX, c2[1], 0);
+				c4 = vec3.fromValues(adjustedX, c4[1], 0);
 			}
 			if (controlsBottom) {
-				c0uv = {u: c0uv.u, v: adjusted.v};
-				c2uv = {u: c2uv.u, v: adjusted.v};
+				c0 = vec3.fromValues(c0[0], adjustedY, 0);
+				c2 = vec3.fromValues(c2[0], adjustedY, 0);
 			} else {
-				c4uv = {u: c4uv.u, v: adjusted.v};
-				c6uv = {u: c6uv.u, v: adjusted.v};
+				c4 = vec3.fromValues(c4[0], adjustedY, 0);
+				c6 = vec3.fromValues(c6[0], adjustedY, 0);
 			}
 		}
 
-		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		return RectangleTransformScalingHandler.buildFullPoints(c0, c2, c4, c6);
 	}
 
 	/**
@@ -380,112 +317,59 @@ export class RectangleTransformScalingHandler
 	/**
 	 * Handle an EdgeControl (midpoint) drag.
 	 * The drawing tools have already moved the two corner points for the dragged
-	 * edge; this method reads their new positions from the updated DT points
-	 * array, reconstructs the rectangle, and applies axis-lock and clamp/snap.
+	 * edge (with constraints applied). This method reads the DT-updated positions
+	 * and applies uniform scaling on top when configured.
 	 */
 	public controlMoved(
 		controlIndex: number,
 		updatedDtPoints: number[][],
 		localPoints: vec3[],
 	): vec3[] {
-		const {conceptualEdgeControlIndex, corner1CI, corner2CI} =
-			this.#pointsMapping.edgeControls[controlIndex];
-		// M1,M5 are on U-axis edges (horizontal) → only V changes.
-		// M3,M7 are on V-axis edges (vertical)   → only U changes.
-		const isUEdge = conceptualEdgeControlIndex % 4 === 1;
-
-		const basis = getRectBasis(localPoints);
-		const di1 = this.#pointsMapping.conceptualToDT[corner1CI];
-		const di2 = this.#pointsMapping.conceptualToDT[corner2CI];
-
-		// Use the midpoint of the two moved corners as the effective dragged position.
-		const rp1 = updatedDtPoints[di1];
-		const rp2 = updatedDtPoints[di2];
-		const midLS = vec3.fromValues(
-			(rp1[0] + rp2[0]) / 2,
-			(rp1[1] + rp2[1]) / 2,
-			(rp1[2] + rp2[2]) / 2,
-		);
-		const movedUV = toRectFrame(midLS, basis);
-
-		let c0uv = toRectFrame(localPoints[0], basis);
-		let c2uv = toRectFrame(localPoints[2], basis);
-		let c4uv = toRectFrame(localPoints[4], basis);
-		let c6uv = toRectFrame(localPoints[6], basis);
-
-		// Snapshot original bounds needed for uniform-scaling calculation below.
-		const origBottomV = c0uv.v;
-		const origTopV = c6uv.v;
-		const origLeftU = c0uv.u;
-		const origRightU = c2uv.u;
-
-		if (isUEdge) {
-			if (conceptualEdgeControlIndex === 1) {
-				c0uv = {u: c0uv.u, v: movedUV.v};
-				c2uv = {u: c2uv.u, v: movedUV.v};
-			} else {
-				c4uv = {u: c4uv.u, v: movedUV.v};
-				c6uv = {u: c6uv.u, v: movedUV.v};
-			}
-		} else {
-			if (conceptualEdgeControlIndex === 3) {
-				c2uv = {u: movedUV.u, v: c2uv.v};
-				c4uv = {u: movedUV.u, v: c4uv.v};
-			} else {
-				c0uv = {u: movedUV.u, v: c0uv.v};
-				c6uv = {u: movedUV.u, v: c6uv.v};
-			}
-		}
+		// Read all 4 corner positions from the DT (already moved by EdgeControl
+		// + constrained by the drawing tools).
+		let c0 = this.getCornerFromDT(0, updatedDtPoints, localPoints);
+		let c2 = this.getCornerFromDT(2, updatedDtPoints, localPoints);
+		let c4 = this.getCornerFromDT(4, updatedDtPoints, localPoints);
+		let c6 = this.getCornerFromDT(6, updatedDtPoints, localPoints);
 
 		if (this.#scalingConfig?.uniform) {
+			const {conceptualEdgeControlIndex} =
+				this.#pointsMapping.edgeControls[controlIndex];
+			const isUEdge = conceptualEdgeControlIndex % 4 === 1;
+
+			const origC0 = localPoints[0];
+			const origC2 = localPoints[2];
+			const origC4 = localPoints[4];
+			const origC6 = localPoints[6];
+
 			if (isUEdge) {
-				// Height changed; expand width by the same amount, symmetric about center U.
-				const halfWidthChange =
-					(c6uv.v - c0uv.v - (origTopV - origBottomV)) / 2;
-				const centerU = (origLeftU + origRightU) / 2;
-				const prevHalfWidth = (origRightU - origLeftU) / 2;
-				c0uv = {
-					u: centerU - prevHalfWidth - halfWidthChange,
-					v: c0uv.v,
-				};
-				c2uv = {
-					u: centerU + prevHalfWidth + halfWidthChange,
-					v: c2uv.v,
-				};
-				c4uv = {
-					u: centerU + prevHalfWidth + halfWidthChange,
-					v: c4uv.v,
-				};
-				c6uv = {
-					u: centerU - prevHalfWidth - halfWidthChange,
-					v: c6uv.v,
-				};
+				// Height (Y) changed; expand width symmetrically about center X.
+				const heightChange = c6[1] - c0[1] - (origC6[1] - origC0[1]);
+				const halfWidthChange = heightChange / 2;
+				const centerX = (origC0[0] + origC2[0]) / 2;
+				const prevHalfWidth = (origC2[0] - origC0[0]) / 2;
+				const newLeft = centerX - prevHalfWidth - halfWidthChange;
+				const newRight = centerX + prevHalfWidth + halfWidthChange;
+				c0 = vec3.fromValues(newLeft, c0[1], 0);
+				c2 = vec3.fromValues(newRight, c2[1], 0);
+				c4 = vec3.fromValues(newRight, c4[1], 0);
+				c6 = vec3.fromValues(newLeft, c6[1], 0);
 			} else {
-				// Width changed; expand height by the same amount, symmetric about center V.
-				const halfHeightChange =
-					(c2uv.u - c0uv.u - (origRightU - origLeftU)) / 2;
-				const centerV = (origBottomV + origTopV) / 2;
-				const prevHalfHeight = (origTopV - origBottomV) / 2;
-				c0uv = {
-					u: c0uv.u,
-					v: centerV - prevHalfHeight - halfHeightChange,
-				};
-				c2uv = {
-					u: c2uv.u,
-					v: centerV - prevHalfHeight - halfHeightChange,
-				};
-				c4uv = {
-					u: c4uv.u,
-					v: centerV + prevHalfHeight + halfHeightChange,
-				};
-				c6uv = {
-					u: c6uv.u,
-					v: centerV + prevHalfHeight + halfHeightChange,
-				};
+				// Width (X) changed; expand height symmetrically about center Y.
+				const widthChange = c2[0] - c0[0] - (origC2[0] - origC0[0]);
+				const halfHeightChange = widthChange / 2;
+				const centerY = (origC0[1] + origC6[1]) / 2;
+				const prevHalfHeight = (origC6[1] - origC0[1]) / 2;
+				const newBottom = centerY - prevHalfHeight - halfHeightChange;
+				const newTop = centerY + prevHalfHeight + halfHeightChange;
+				c0 = vec3.fromValues(c0[0], newBottom, 0);
+				c2 = vec3.fromValues(c2[0], newBottom, 0);
+				c4 = vec3.fromValues(c4[0], newTop, 0);
+				c6 = vec3.fromValues(c6[0], newTop, 0);
 			}
 		}
 
-		return cornersToFullPoints([c0uv, c2uv, c4uv, c6uv], basis);
+		return RectangleTransformScalingHandler.buildFullPoints(c0, c2, c4, c6);
 	}
 
 	/**
@@ -512,18 +396,48 @@ export class RectangleTransformScalingHandler
 	}
 
 	/**
-	 * Scale the rectangle uniformly by adjusting the moved corner's UV coordinates to maintain the aspect ratio.
+	 * Read a conceptual corner position from the DT's updated points array.
+	 * Falls back to localPoints when the corner has no DT representation
+	 * (e.g. locked/disabled).
 	 */
-	private scaleUniformly(
-		prevUV: RectFrameCoord,
-		movedUV: RectFrameCoord,
-		signU: number,
-		signV: number,
-	): RectFrameCoord {
-		const deltaU = signU * (movedUV.u - prevUV.u);
-		const deltaV = signV * (movedUV.v - prevUV.v);
-		const d = Math.abs(deltaU) < Math.abs(deltaV) ? deltaU : deltaV;
-		const result = {u: prevUV.u + signU * d, v: prevUV.v + signV * d};
-		return result;
+	private getCornerFromDT(
+		conceptualIndex: number,
+		updatedDtPoints: number[][],
+		localPoints: vec3[],
+	): vec3 {
+		const di = this.#pointsMapping.conceptualToDT[conceptualIndex];
+		if (di >= 0) {
+			return vec3.fromValues(
+				updatedDtPoints[di][0],
+				updatedDtPoints[di][1],
+				0,
+			);
+		}
+		return vec3.clone(localPoints[conceptualIndex]);
+	}
+
+	/**
+	 * Build the full 8-point conceptual array (4 corners + 4 midpoints) from
+	 * corner positions in plane local space.
+	 */
+	private static buildFullPoints(
+		c0: vec3,
+		c2: vec3,
+		c4: vec3,
+		c6: vec3,
+	): vec3[] {
+		const pts: vec3[] = new Array(8);
+		pts[0] = c0;
+		pts[2] = c2;
+		pts[4] = c4;
+		pts[6] = c6;
+		for (let i = 1; i < 8; i += 2) {
+			pts[i] = vec3.fromValues(
+				(pts[(i + 7) % 8][0] + pts[(i + 1) % 8][0]) / 2,
+				(pts[(i + 7) % 8][1] + pts[(i + 1) % 8][1]) / 2,
+				0,
+			);
+		}
+		return pts;
 	}
 }
