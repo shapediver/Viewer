@@ -52,7 +52,12 @@ export const removeData = (
 					}
 
 					for (const texture of texturesToRemove) {
-						if (texture.userData.cacheKey) {
+						if (
+							texture.userData.cacheKey &&
+							renderingEngine.materialLoader.threeJsTextureCache[
+								texture.userData.cacheKey
+							]
+						) {
 							renderingEngine.materialLoader.threeJsTextureCache[
 								texture.userData.cacheKey
 							].usage--;
