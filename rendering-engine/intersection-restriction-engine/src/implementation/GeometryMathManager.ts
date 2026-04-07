@@ -392,20 +392,37 @@ export class GeometryMathManager {
 
 		const distanceSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
 
-		/**
-		 * Logic: The actual calculation would be
-		 * distance * 2 < threshold
-		 * the multiplication by 2 is to account for the fact that the distance is from the center of the point
-		 *
-		 * However, we work with the squared distance to avoid the sqrt operation
-		 * Therefore we square all values:
-		 * distanceSquared * 4 < threshold ** 2
-		 */
+		const thresholdValue = SystemInfo.instance.isMobile
+			? threshold * 2
+			: threshold;
+		const passed = distanceSquared * 4 < thresholdValue ** 2;
+		// Log when the 3D distance is large (>2 units) but the screen-space check passes.
+		// This would indicate that local-space projection is making far-away points look close.
+		if (passed) {
+			const dist3D = vec3.distance(point1, point2);
+			if (dist3D > 2) {
+				console.warn(
+					"[HITAREA] screenSpaceDistanceCheck PASSED with large 3D dist:",
+					+dist3D.toFixed(3),
+					"| screenDist:",
+					+Math.sqrt(distanceSquared).toFixed(1),
+					"px",
+					"| threshold:",
+					+thresholdValue.toFixed(0),
+					"| pt1:",
+					Array.from(point1).map((v) => +v.toFixed(2)),
+					"| pt2:",
+					Array.from(point2).map((v) => +v.toFixed(2)),
+					"| screen1:",
+					[+x1.toFixed(0), +y1.toFixed(0)],
+					"| screen2:",
+					[+x2.toFixed(0), +y2.toFixed(0)],
+				);
+			}
+		}
 		return {
 			distanceSquared: distanceSquared,
-			check:
-				distanceSquared * 4 <
-				(SystemInfo.instance.isMobile ? threshold * 2 : threshold) ** 2,
+			check: passed,
 		};
 	}
 

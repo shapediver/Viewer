@@ -102,7 +102,18 @@ export class RectangleTransformTranslationHandler
 				const ev = e as IDragEvent;
 				if (ev.manager !== this.#dragManager) return;
 				// Guard: do not start translation while a DT drag (scaling/rotation) is active.
-				if (this.#isInteractionBlocked()) return;
+				if (this.#isInteractionBlocked()) {
+					console.log(
+						"[TRANS] DRAG_START blocked by isInteractionBlocked",
+					);
+					return;
+				}
+				console.log(
+					"[TRANS] DRAG_START accepted | committedTrans:",
+					Array.from(this.#committedTranslation).map(
+						(v) => +v.toFixed(4),
+					),
+				);
 				// Cancel any active DT hover/drag (e.g. a hovered edge control) so
 				// that only translation runs for this gesture.
 				this.#onTranslationStart();
@@ -126,10 +137,24 @@ export class RectangleTransformTranslationHandler
 		this.#dragEndToken = this.#eventEngine.addListener(
 			EVENTTYPE.INTERACTION.DRAG_END,
 			(e) => {
-				this.handleDrag(e as IDragEvent, true);
-				if ((e as IDragEvent).manager === this.#dragManager) {
+				const dragEv = e as IDragEvent;
+				if (dragEv.manager === this.#dragManager) {
+					console.log(
+						"[TRANS] DRAG_END | isDragging:",
+						this.#isDragging,
+						"| isBlocked:",
+						this.#isInteractionBlocked(),
+					);
+				}
+				this.handleDrag(dragEv, true);
+				if (dragEv.manager === this.#dragManager) {
 					this.#isDragging = false;
-					this.refreshCursor(this.#isInteractionBlocked());
+					// The pointer is still over the rectangle after drag-end,
+					// but recompute() inside handleDrag replaced the plane node
+					// so hover state was lost. Force "move" cursor; HOVER_OFF
+					// will clear it normally when the pointer actually leaves.
+					this.#isHovering = true;
+					this.#viewport.canvas.style.cursor = "move";
 				}
 			},
 		);
@@ -333,7 +358,18 @@ export class RectangleTransformTranslationHandler
 	private handleDrag(ev: IDragEvent, commit: boolean): void {
 		if (ev.manager !== this.#dragManager) return;
 		// Guard: skip if DT drag (scaling/rotation) is active, or if drag-start was suppressed.
-		if (this.#isInteractionBlocked() || !this.#isDragging) return;
+		if (this.#isInteractionBlocked() || !this.#isDragging) {
+			if (this.#isDragging)
+				console.log(
+					"[TRANS] handleDrag BLOCKED | commit:",
+					commit,
+					"| isDragging:",
+					this.#isDragging,
+					"| isBlocked:",
+					this.#isInteractionBlocked(),
+				);
+			return;
+		}
 		if (!ev.matrix || this.#localPointsAtDragStart.length === 0) return;
 		// The drag matrix is a pure translation in world space
 		// (plane restriction + identity world transform of the mesh node).
@@ -355,6 +391,16 @@ export class RectangleTransformTranslationHandler
 			vec3.dot(deltaWS, uWS),
 			vec3.dot(deltaWS, vWS),
 			0,
+		);
+		console.log(
+			"[TRANS] handleDrag | commit:",
+			commit,
+			"| deltaWS:",
+			Array.from(deltaWS).map((v) => +v.toFixed(4)),
+			"| deltaLS:",
+			Array.from(deltaLS).map((v) => +v.toFixed(4)),
+			"| committed:",
+			Array.from(this.#committedTranslation).map((v) => +v.toFixed(4)),
 		);
 		if (commit) {
 			vec3.add(

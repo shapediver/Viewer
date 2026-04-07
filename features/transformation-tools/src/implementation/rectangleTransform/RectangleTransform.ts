@@ -327,7 +327,10 @@ export class RectangleTransform
 
 	private dispatchDrag(ev: IDrawingToolsEvent, commit: boolean): void {
 		// Guard: do not process a DT drag while translation is in progress.
-		if (this.#translationHandler?.isDragging) return;
+		if (this.#translationHandler?.isDragging) {
+			console.log("[DISPATCH] DT drag blocked — translation isDragging");
+			return;
+		}
 		if (ev.drawingToolsId === this.#rotationHandler?.drawingTools.uuid) {
 			this.#isDTDragging = !commit;
 			this.#rotationHandler.processDrag(ev, this.#localPoints, commit);
