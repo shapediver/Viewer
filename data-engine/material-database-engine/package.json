@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.data-engine.material-database-engine",
-	"version": "3.16.0-rc.33",
+	"version": "3.16.0-rc.34",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,12 +38,12 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.data-engine.material-engine": "3.16.0-rc.33",
-		"@shapediver/viewer.data-engine.shared-types": "3.16.0-rc.33",
-		"@shapediver/viewer.shared.global-access-objects": "3.16.0-rc.33",
-		"@shapediver/viewer.shared.node-tree": "3.16.0-rc.33",
-		"@shapediver/viewer.shared.services": "3.16.0-rc.33",
-		"@shapediver/viewer.shared.types": "3.16.0-rc.33",
+		"@shapediver/viewer.data-engine.material-engine": "3.16.0-rc.34",
+		"@shapediver/viewer.data-engine.shared-types": "3.16.0-rc.34",
+		"@shapediver/viewer.shared.global-access-objects": "3.16.0-rc.34",
+		"@shapediver/viewer.shared.node-tree": "3.16.0-rc.34",
+		"@shapediver/viewer.shared.services": "3.16.0-rc.34",
+		"@shapediver/viewer.shared.types": "3.16.0-rc.34",
 		"gl-matrix": "3.3.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
