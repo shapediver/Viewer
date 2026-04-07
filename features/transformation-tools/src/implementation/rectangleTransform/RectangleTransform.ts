@@ -190,6 +190,7 @@ export class RectangleTransform
 		this.#rotationHandler?.clearDragState();
 
 		if (!this.#hasPendingTemporaryTransform) return;
+		console.log('[PTROUT] onPointerOutLogic running — hasPendingTemp was true');
 
 		// Commit any in-progress rotation to the parent matrix before flushing
 		// canonical positions, otherwise calculateTransformationMatrix writes
@@ -202,13 +203,14 @@ export class RectangleTransform
 		for (const handler of this.#handlers)
 			handler?.recompute(this.#localPoints, false);
 		this.#dtParentNode.updateVersion();
-		this.calculateTransformationMatrix(this.#localPoints, true);
+		this.calculateTransformationMatrix(this.#localPoints, true, "pointerOut");
 		this.#hasPendingTemporaryTransform = false;
 	}
 
 	private calculateTransformationMatrix(
 		localPoints: vec3[],
 		commit: boolean,
+		source: string = "unknown",
 	): void {
 		// Derive a general 2D affine in the plane's local space that maps
 		// the initial rectangle to the current one using corners C0, C2, C6.
@@ -218,7 +220,7 @@ export class RectangleTransform
 		const initC0 = this.#initialLocalPoints[0];
 		if (commit) {
 			console.log(
-				"[CALC] commit | newC0=",
+				`[CALC] commit (${source}) | newC0=`,
 				Array.from(newC0).map((v) => +v.toFixed(4)),
 				"newC2=",
 				Array.from(newC2).map((v) => +v.toFixed(4)),
@@ -403,7 +405,7 @@ export class RectangleTransform
 			this.#hasPendingTemporaryTransform = true;
 		}
 
-		this.calculateTransformationMatrix(this.#localPoints, commit);
+		this.calculateTransformationMatrix(this.#localPoints, commit, "handleRectDrag");
 	}
 
 	private init() {
@@ -592,7 +594,7 @@ export class RectangleTransform
 
 			// Commit the constrained state so that the object reflects the DT
 			// geometry from creation and min/max/step restrictions are active.
-			this.calculateTransformationMatrix(this.#localPoints, true);
+			this.calculateTransformationMatrix(this.#localPoints, true, "init");
 		}
 
 		if (this.settings?.enableRotation ?? true) {
@@ -616,7 +618,7 @@ export class RectangleTransform
 					);
 					this.#scalingHandler?.recompute(rotated, true);
 					this.#hasPendingTemporaryTransform = true;
-					this.calculateTransformationMatrix(rotated, false);
+					this.calculateTransformationMatrix(rotated, false, "rotOnMove");
 				},
 				(localPoints) => {
 					// Drag-end: bake rotation into parent matrix and commit.
@@ -666,7 +668,7 @@ export class RectangleTransform
 					this.#translationHandler?.recompute(localPoints, false);
 					this.#hasPendingTemporaryTransform = false;
 					this.#dtParentNode.updateVersion();
-					this.calculateTransformationMatrix(localPoints, true);
+					this.calculateTransformationMatrix(localPoints, true, "rotOnCommit");
 				},
 			);
 		}
@@ -711,6 +713,7 @@ export class RectangleTransform
 					this.calculateTransformationMatrix(
 						this.#localPoints,
 						false,
+						"transOnMove",
 					);
 				},
 				(committedTrans) => {
@@ -720,7 +723,7 @@ export class RectangleTransform
 					// DT points reflect the current state when a new gesture starts.
 					this.#scalingHandler?.recompute(this.#localPoints, false);
 					this.#rotationHandler?.recompute(this.#localPoints, false);
-					this.calculateTransformationMatrix(this.#localPoints, true);
+					this.calculateTransformationMatrix(this.#localPoints, true, "transOnCommit");
 				},
 			);
 		}
@@ -734,20 +737,16 @@ export class RectangleTransform
 		translation: vec3,
 		emitUpdate: boolean = true,
 	): void {
-		// The accumulated rotation is stored as a matrix that was composed
-		// incrementally across multiple gestures, so each rotation's center is
-		// preserved correctly even when the rectangle center shifts due to
-		// asymmetric scaling between rotations.
 		const M_rot =
 			this.#rotationHandler?.accumulatedRotationMatrix ?? mat4.create();
 		const M_trans = mat4.fromTranslation(mat4.create(), translation);
-		// accumulated = M_trans * M_rot  (translate after rotate, both in LS)
 		const accumulated = mat4.multiply(mat4.create(), M_trans, M_rot);
 		mat4.multiply(
 			this.#dtParentTransformation.matrix,
 			this.#M_planeToWS,
 			accumulated,
 		);
+		console.log('[APPLY] applyAccum | trans:', Array.from(translation).map(v => +v.toFixed(4)), '| emit:', emitUpdate, '| result:', Array.from(this.#dtParentTransformation.matrix).map(v => +v.toFixed(6)));
 		if (emitUpdate) this.#dtParentNode.updateVersion();
 	}
 }
