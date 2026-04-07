@@ -359,7 +359,13 @@ export class InteractionManagerHelper {
 				// directly-selected point, building an overrides map so that
 				// each peer's constrained position is visible when checking the
 				// next point's size constraint.
-				const overrides = new Map<number, vec3>();
+				// Seed with drag-start positions of propagated (indirect) points
+				// so that constraint checks see stable original positions, not
+				// stale values from positionArray that may have been
+				// contaminated by temporary moves (e.g. flushRectPoints).
+				const overrides = new Map<number, vec3>(
+					this.#propagatedBasePositions,
+				);
 				const constrainedPositions: vec3[] = [];
 
 				for (let i = 0; i < this.#selectedPointIndices.length; i++) {
