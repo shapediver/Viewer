@@ -358,16 +358,6 @@ export class RectangleTransform
 			);
 		}
 
-		// Enforce U/V size constraints in plane-LS (always axis-aligned regardless
-		// of accumulated rotation). This replaces the old DrawingToolsManager
-		// constraints.size mechanism which mis-fired after rotation due to
-		// floating-point equality between the dragged corner's committed position
-		// and peerMax, incorrectly triggering the "crossing case" branch.
-		adjusted = this.#scalingHandler.clampToSizeConstraints(
-			adjusted,
-			this.#localPoints,
-		);
-
 		this.#scalingHandler.recompute(adjusted, !commit);
 
 		// After a permanent commit, read back the positions actually stored in
