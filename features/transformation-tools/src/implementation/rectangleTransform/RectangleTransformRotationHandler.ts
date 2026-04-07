@@ -161,49 +161,6 @@ export class RectangleTransformRotationHandler
 			rotationDefaultTextures,
 			parentNode,
 		);
-
-		console.log("rotation handler settings", {
-			general: {
-				enableInsertion: false,
-				enableDeletion: false,
-				enableSelection: false,
-			},
-			geometry: {
-				mode: "points",
-				points: [
-					[
-						this.#handleLocalPoint[0],
-						this.#handleLocalPoint[1],
-						this.#handleLocalPoint[2],
-					],
-				],
-				minPoints: 1,
-				maxPoints: 1,
-			},
-			restrictions: {
-				plane: {
-					type: RESTRICTION_TYPE.PLANE,
-					origin: vec3.create(),
-					vector_u: vec3.fromValues(1, 0, 0),
-					vector_v: vec3.fromValues(0, 1, 0),
-					createHelperObjects: false,
-				},
-			},
-			visualization: {
-				distanceMultiplicationFactor: 1,
-				distanceLabels: false,
-				pointerPosition: false,
-				...rotVis,
-				points: {
-					size_0: 50,
-					size_1: 50,
-					size_2: 50,
-					size_3: 50,
-					color: "#000",
-					...rotVis?.points,
-				},
-			},
-		});
 	}
 
 	public get drawingTools(): IDrawingToolsApi {
@@ -303,6 +260,20 @@ export class RectangleTransformRotationHandler
 			0,
 		);
 		const deltaAngle = finalNext - this.#gestureStartCumulative;
+		console.log(
+			"[ROT-COMMIT] commitAndFlush | cumulativeDeg:",
+			+((finalNext * 180) / Math.PI).toFixed(2),
+			"| deltaAngleDeg:",
+			+((deltaAngle * 180) / Math.PI).toFixed(2),
+			"| localPoints c0:",
+			Array.from(localPoints[0]).map((v) => +v.toFixed(4)),
+			"c2:",
+			Array.from(localPoints[2]).map((v) => +v.toFixed(4)),
+			"c4:",
+			Array.from(localPoints[4]).map((v) => +v.toFixed(4)),
+			"c6:",
+			Array.from(localPoints[6]).map((v) => +v.toFixed(4)),
+		);
 		if (deltaAngle !== 0) {
 			this.#composeDeltaIntoMatrix(center, deltaAngle);
 		}

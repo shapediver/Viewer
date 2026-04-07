@@ -264,21 +264,6 @@ export class RectangleTransformScalingHandler
 		let c4 = this.getCornerFromDT(4, updatedDtPoints, localPoints);
 		let c6 = this.getCornerFromDT(6, updatedDtPoints, localPoints);
 
-		console.log(
-			"[SCALE] cornerPointMoved | ci:",
-			index,
-			"| fromDT: c0=",
-			Array.from(c0).map((v) => +v.toFixed(4)),
-			"c2=",
-			Array.from(c2).map((v) => +v.toFixed(4)),
-			"c4=",
-			Array.from(c4).map((v) => +v.toFixed(4)),
-			"c6=",
-			Array.from(c6).map((v) => +v.toFixed(4)),
-			"| prev localPoints[ci]=",
-			Array.from(localPoints[index]).map((v) => +v.toFixed(4)),
-		);
-
 		if (this.#scalingConfig?.uniform) {
 			const n = index / 2;
 			const controlsLeft = n === 0 || n === 3;
@@ -319,16 +304,6 @@ export class RectangleTransformScalingHandler
 			c2,
 			c4,
 			c6,
-		);
-		console.log(
-			"[SCALE] cornerPointMoved result | c0=",
-			Array.from(result[0]).map((v) => +v.toFixed(4)),
-			"c2=",
-			Array.from(result[2]).map((v) => +v.toFixed(4)),
-			"c4=",
-			Array.from(result[4]).map((v) => +v.toFixed(4)),
-			"c6=",
-			Array.from(result[6]).map((v) => +v.toFixed(4)),
 		);
 		return result;
 	}

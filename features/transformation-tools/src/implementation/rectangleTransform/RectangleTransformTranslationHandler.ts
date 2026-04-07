@@ -129,12 +129,24 @@ export class RectangleTransformTranslationHandler
 				const dragEv = e as IDragEvent;
 				this.handleDrag(dragEv, true);
 				if (dragEv.manager === this.#dragManager) {
+					console.log(
+						"[TRANS] DRAG_END | isDragging:",
+						this.#isDragging,
+						"| isHovering:",
+						this.#isHovering,
+						"| nodeId:",
+						this.#node?.id,
+					);
 					this.#isDragging = false;
 					// recompute() replaced the node, so HOVER_OFF for the old
 					// node won't fire. Reset hover state; the next pointermove
 					// will fire HOVER_ON for the new node if pointer is inside.
 					this.#isHovering = false;
 					this.#viewport.canvas.style.cursor = "";
+					console.log(
+						"[TRANS] DRAG_END done | newNodeId:",
+						this.#node?.id,
+					);
 				}
 			},
 		);
@@ -143,10 +155,22 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.HOVER_ON,
 			(e) => {
 				const ev = e as IHoverEvent;
+				console.log(
+					"[TRANS] HOVER_ON | ourManager:",
+					ev.manager === this.#hoverManager,
+					"| nodeMatch:",
+					ev.nodes.indexOf(this.#node) !== -1,
+					"| nodes:",
+					ev.nodes.map((n) => n.id),
+					"| ourNodeId:",
+					this.#node?.id,
+				);
 				if (ev.manager !== this.#hoverManager) return;
 				if (ev.nodes.indexOf(this.#node) === -1) return;
 				this.#isHovering = true;
-				this.refreshCursor(this.#isInteractionBlocked());
+				const blocked = this.#isInteractionBlocked();
+				console.log("[TRANS] HOVER_ON accepted | blocked:", blocked);
+				this.refreshCursor(blocked);
 			},
 		);
 
@@ -154,6 +178,12 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.HOVER_OFF,
 			(e) => {
 				const ev = e as IHoverEvent;
+				console.log(
+					"[TRANS] HOVER_OFF | ourManager:",
+					ev.manager === this.#hoverManager,
+					"| isDragging:",
+					this.#isDragging,
+				);
 				if (ev.manager !== this.#hoverManager) return;
 				this.#isHovering = false;
 				if (!this.#isDragging) this.#viewport.canvas.style.cursor = "";
@@ -174,13 +204,22 @@ export class RectangleTransformTranslationHandler
 	 * @param blocked true if any DT point/control is currently hovered or being dragged
 	 */
 	public refreshCursor(blocked: boolean): void {
-		if (this.#isDragging) {
-			this.#viewport.canvas.style.cursor = "move";
-		} else if (this.#isHovering && !blocked) {
-			this.#viewport.canvas.style.cursor = "move";
-		} else {
-			this.#viewport.canvas.style.cursor = "";
-		}
+		const newCursor = this.#isDragging
+			? "move"
+			: this.#isHovering && !blocked
+				? "move"
+				: "";
+		console.log(
+			"[TRANS] refreshCursor | isDragging:",
+			this.#isDragging,
+			"| isHovering:",
+			this.#isHovering,
+			"| blocked:",
+			blocked,
+			"| cursor:",
+			newCursor,
+		);
+		this.#viewport.canvas.style.cursor = newCursor;
 	}
 
 	public close(): void {
@@ -200,6 +239,7 @@ export class RectangleTransformTranslationHandler
 	 * and parent-node world matrix (e.g. after a rotation commit).
 	 */
 	public recompute(localPoints: vec3[], _temporary: boolean): void {
+		console.log("[TRANS] recompute | oldNodeId:", this.#node?.id);
 		// Update the drag restriction to the current world-space plane.
 		if (this.#planeRestrictionToken !== undefined) {
 			this.#dragManager.removeRestriction(this.#planeRestrictionToken);
@@ -209,6 +249,7 @@ export class RectangleTransformTranslationHandler
 		);
 		sceneTree.root.removeChild(this.#node);
 		this.createPlaneNode(localPoints);
+		console.log("[TRANS] recompute done | newNodeId:", this.#node?.id);
 	}
 
 	/** Build a plane restriction from the parentNode's current world matrix. */
