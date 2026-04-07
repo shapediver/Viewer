@@ -431,9 +431,41 @@ export class InteractionManagerHelper {
 							)
 						: differenceToIntersected;
 
+				console.log(
+					"[DT-DRAG] Phase 1 done | dragged:",
+					this.#draggedPoint,
+					"| rawDelta:",
+					Array.from(differenceToIntersected).map(
+						(v) => +v.toFixed(4),
+					),
+					"| effectiveDelta:",
+					Array.from(effectiveDelta).map((v) => +v.toFixed(4)),
+					"| constrained:",
+					constrainedPositions
+						.map(
+							(p, i) =>
+								`idx${this.#selectedPointIndices[i]}=[${Array.from(p).map((v) => +v.toFixed(4))}]`,
+						)
+						.join(" "),
+				);
+
 				// Phase 2 – compute indirect (constraint-clamped) positions.
 				const {indirectPositions, correctedDelta} =
 					this.applyAdjacencyPropagation(effectiveDelta, overrides);
+
+				console.log(
+					"[DT-DRAG] Phase 2 done | indirect:",
+					Array.from(indirectPositions.entries())
+						.map(
+							([idx, p]) =>
+								`idx${idx}=[${Array.from(p).map((v) => +v.toFixed(4))}]`,
+						)
+						.join(" "),
+					"| correctedDelta:",
+					correctedDelta
+						? Array.from(correctedDelta).map((v) => +v.toFixed(4))
+						: "none",
+				);
 
 				// If indirect constraints required reducing the effective delta
 				// per-axis, re-derive direct point positions so that the
@@ -454,6 +486,18 @@ export class InteractionManagerHelper {
 							constrainedPositions[i],
 						);
 					}
+				}
+
+				if (correctedDelta) {
+					console.log(
+						"[DT-DRAG] After correctedDelta rewrite | constrained:",
+						constrainedPositions
+							.map(
+								(p, i) =>
+									`idx${this.#selectedPointIndices[i]}=[${Array.from(p).map((v) => +v.toFixed(4))}]`,
+							)
+							.join(" "),
+					);
 				}
 
 				// Phase 3 – apply constrained positions to direct points.

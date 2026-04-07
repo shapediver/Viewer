@@ -339,6 +339,29 @@ export class RectangleTransform
 			);
 		}
 
+		console.log(
+			"[RECT] handleRectDrag | commit:",
+			commit,
+			"| adjusted corners: c0=",
+			Array.from(adjusted[0]).map((v) => +v.toFixed(4)),
+			"c2=",
+			Array.from(adjusted[2]).map((v) => +v.toFixed(4)),
+			"c4=",
+			Array.from(adjusted[4]).map((v) => +v.toFixed(4)),
+			"c6=",
+			Array.from(adjusted[6]).map((v) => +v.toFixed(4)),
+		);
+		console.log(
+			"[RECT] prev #localPoints: c0=",
+			Array.from(this.#localPoints[0]).map((v) => +v.toFixed(4)),
+			"c2=",
+			Array.from(this.#localPoints[2]).map((v) => +v.toFixed(4)),
+			"c4=",
+			Array.from(this.#localPoints[4]).map((v) => +v.toFixed(4)),
+			"c6=",
+			Array.from(this.#localPoints[6]).map((v) => +v.toFixed(4)),
+		);
+
 		this.#scalingHandler.recompute(adjusted, !commit);
 
 		// After a permanent commit, read back the positions actually stored in
