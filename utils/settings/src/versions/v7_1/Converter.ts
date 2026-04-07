@@ -76,6 +76,7 @@ export const convertToPrevious = (
 		rendering: newSettings.rendering,
 		postprocessing: newSettings.postprocessing,
 		material: newSettings.material,
+		configuration: newSettings.configuration,
 	};
 
 	return <ISettingsV7>settings;
