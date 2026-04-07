@@ -303,26 +303,8 @@ export class RectangleTransformRotationHandler
 			0,
 		);
 		const deltaAngle = finalNext - this.#gestureStartCumulative;
-		console.log(
-			"[ROT] commitAndFlush | cumRot:",
-			+this.#cumulativeRotation.toFixed(6),
-			"| gestureStart:",
-			+this.#gestureStartCumulative.toFixed(6),
-			"| deltaAngle:",
-			+deltaAngle.toFixed(6),
-			"| center:",
-			Array.from(center).map((v) => +v.toFixed(4)),
-			"| accRotMat:",
-			Array.from(this.#M_accumulatedRotation).map((v) => +v.toFixed(6)),
-		);
 		if (deltaAngle !== 0) {
 			this.#composeDeltaIntoMatrix(center, deltaAngle);
-			console.log(
-				"[ROT] commitAndFlush | accRotMat AFTER compose:",
-				Array.from(this.#M_accumulatedRotation).map(
-					(v) => +v.toFixed(6),
-				),
-			);
 		}
 		// Advance baseline so the next gesture starts from the right offset.
 		this.#gestureStartCumulative = finalNext;

@@ -103,17 +103,8 @@ export class RectangleTransformTranslationHandler
 				if (ev.manager !== this.#dragManager) return;
 				// Guard: do not start translation while a DT drag (scaling/rotation) is active.
 				if (this.#isInteractionBlocked()) {
-					console.log(
-						"[TRANS] DRAG_START blocked by isInteractionBlocked",
-					);
 					return;
 				}
-				console.log(
-					"[TRANS] DRAG_START accepted | committedTrans:",
-					Array.from(this.#committedTranslation).map(
-						(v) => +v.toFixed(4),
-					),
-				);
 				// Cancel any active DT hover/drag (e.g. a hovered edge control) so
 				// that only translation runs for this gesture.
 				this.#onTranslationStart();
@@ -129,8 +120,6 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.DRAG_MOVE,
 			(e) => {
 				this.handleDrag(e as IDragEvent, false);
-				if ((e as IDragEvent).manager === this.#dragManager)
-					this.refreshCursor(false);
 			},
 		);
 
@@ -138,23 +127,14 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.DRAG_END,
 			(e) => {
 				const dragEv = e as IDragEvent;
-				if (dragEv.manager === this.#dragManager) {
-					console.log(
-						"[TRANS] DRAG_END | isDragging:",
-						this.#isDragging,
-						"| isBlocked:",
-						this.#isInteractionBlocked(),
-					);
-				}
 				this.handleDrag(dragEv, true);
 				if (dragEv.manager === this.#dragManager) {
 					this.#isDragging = false;
-					// The pointer is still over the rectangle after drag-end,
-					// but recompute() inside handleDrag replaced the plane node
-					// so hover state was lost. Force "move" cursor; HOVER_OFF
-					// will clear it normally when the pointer actually leaves.
-					this.#isHovering = true;
-					this.#viewport.canvas.style.cursor = "move";
+					// recompute() replaced the node, so HOVER_OFF for the old
+					// node won't fire. Reset hover state; the next pointermove
+					// will fire HOVER_ON for the new node if pointer is inside.
+					this.#isHovering = false;
+					this.#viewport.canvas.style.cursor = "";
 				}
 			},
 		);
@@ -164,7 +144,7 @@ export class RectangleTransformTranslationHandler
 			(e) => {
 				const ev = e as IHoverEvent;
 				if (ev.manager !== this.#hoverManager) return;
-				if (!ev.nodes.includes(this.#node)) return;
+				if (ev.nodes.indexOf(this.#node) === -1) return;
 				this.#isHovering = true;
 				this.refreshCursor(this.#isInteractionBlocked());
 			},
@@ -191,9 +171,6 @@ export class RectangleTransformTranslationHandler
 
 	/**
 	 * Refresh the canvas cursor based on current hover/drag state.
-	 * Called from HOVER_ON/OFF events and from RectangleTransform on every pointer move
-	 * to ensure the cursor stays correct even when DT interaction state changes between
-	 * HOVER_ON/OFF edge events.
 	 * @param blocked true if any DT point/control is currently hovered or being dragged
 	 */
 	public refreshCursor(blocked: boolean): void {
@@ -201,7 +178,7 @@ export class RectangleTransformTranslationHandler
 			this.#viewport.canvas.style.cursor = "move";
 		} else if (this.#isHovering && !blocked) {
 			this.#viewport.canvas.style.cursor = "move";
-		} else if (!this.#isDragging) {
+		} else {
 			this.#viewport.canvas.style.cursor = "";
 		}
 	}
@@ -364,14 +341,6 @@ export class RectangleTransformTranslationHandler
 		// committedTranslation stays in sync with the visual state.
 		if (!this.#isDragging) return;
 		if (this.#isInteractionBlocked() && !commit) {
-			console.log(
-				"[TRANS] handleDrag BLOCKED | commit:",
-				commit,
-				"| isDragging:",
-				this.#isDragging,
-				"| isBlocked:",
-				this.#isInteractionBlocked(),
-			);
 			return;
 		}
 		if (!ev.matrix || this.#localPointsAtDragStart.length === 0) return;
@@ -395,16 +364,6 @@ export class RectangleTransformTranslationHandler
 			vec3.dot(deltaWS, uWS),
 			vec3.dot(deltaWS, vWS),
 			0,
-		);
-		console.log(
-			"[TRANS] handleDrag | commit:",
-			commit,
-			"| deltaWS:",
-			Array.from(deltaWS).map((v) => +v.toFixed(4)),
-			"| deltaLS:",
-			Array.from(deltaLS).map((v) => +v.toFixed(4)),
-			"| committed:",
-			Array.from(this.#committedTranslation).map((v) => +v.toFixed(4)),
 		);
 		if (commit) {
 			vec3.add(

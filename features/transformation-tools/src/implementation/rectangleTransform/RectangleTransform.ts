@@ -190,9 +190,6 @@ export class RectangleTransform
 		this.#rotationHandler?.clearDragState();
 
 		if (!this.#hasPendingTemporaryTransform) return;
-		console.log(
-			"[PTROUT] onPointerOutLogic running — hasPendingTemp was true",
-		);
 
 		// Commit any in-progress rotation to the parent matrix before flushing
 		// canonical positions, otherwise calculateTransformationMatrix writes
@@ -205,18 +202,13 @@ export class RectangleTransform
 		for (const handler of this.#handlers)
 			handler?.recompute(this.#localPoints, false);
 		this.#dtParentNode.updateVersion();
-		this.calculateTransformationMatrix(
-			this.#localPoints,
-			true,
-			"pointerOut",
-		);
+		this.calculateTransformationMatrix(this.#localPoints, true);
 		this.#hasPendingTemporaryTransform = false;
 	}
 
 	private calculateTransformationMatrix(
 		localPoints: vec3[],
 		commit: boolean,
-		source: string = "unknown",
 	): void {
 		// Derive a general 2D affine in the plane's local space that maps
 		// the initial rectangle to the current one using corners C0, C2, C6.
@@ -224,22 +216,6 @@ export class RectangleTransform
 		const newC2 = localPoints[2];
 		const newC6 = localPoints[6];
 		const initC0 = this.#initialLocalPoints[0];
-		if (commit) {
-			console.log(
-				`[CALC] commit (${source}) | newC0=`,
-				Array.from(newC0).map((v) => +v.toFixed(4)),
-				"newC2=",
-				Array.from(newC2).map((v) => +v.toFixed(4)),
-				"newC6=",
-				Array.from(newC6).map((v) => +v.toFixed(4)),
-				"| initC0=",
-				Array.from(initC0).map((v) => +v.toFixed(4)),
-				"| parentMat:",
-				Array.from(this.#dtParentTransformation.matrix).map(
-					(v) => +v.toFixed(6),
-				),
-			);
-		}
 		const initW =
 			this.#initialLocalPoints[2][0] - this.#initialLocalPoints[0][0];
 		const initH =
@@ -328,7 +304,6 @@ export class RectangleTransform
 	private dispatchDrag(ev: IDrawingToolsEvent, commit: boolean): void {
 		// Guard: do not process a DT drag while translation is in progress.
 		if (this.#translationHandler?.isDragging) {
-			console.log("[DISPATCH] DT drag blocked — translation isDragging");
 			return;
 		}
 		if (ev.drawingToolsId === this.#rotationHandler?.drawingTools.uuid) {
@@ -366,29 +341,6 @@ export class RectangleTransform
 			);
 		}
 
-		console.log(
-			"[RECT] handleRectDrag | commit:",
-			commit,
-			"| adjusted corners: c0=",
-			Array.from(adjusted[0]).map((v) => +v.toFixed(4)),
-			"c2=",
-			Array.from(adjusted[2]).map((v) => +v.toFixed(4)),
-			"c4=",
-			Array.from(adjusted[4]).map((v) => +v.toFixed(4)),
-			"c6=",
-			Array.from(adjusted[6]).map((v) => +v.toFixed(4)),
-		);
-		console.log(
-			"[RECT] prev #localPoints: c0=",
-			Array.from(this.#localPoints[0]).map((v) => +v.toFixed(4)),
-			"c2=",
-			Array.from(this.#localPoints[2]).map((v) => +v.toFixed(4)),
-			"c4=",
-			Array.from(this.#localPoints[4]).map((v) => +v.toFixed(4)),
-			"c6=",
-			Array.from(this.#localPoints[6]).map((v) => +v.toFixed(4)),
-		);
-
 		this.#scalingHandler.recompute(adjusted, !commit);
 
 		// After a permanent commit, read back the positions actually stored in
@@ -414,11 +366,7 @@ export class RectangleTransform
 			this.#hasPendingTemporaryTransform = true;
 		}
 
-		this.calculateTransformationMatrix(
-			this.#localPoints,
-			commit,
-			"handleRectDrag",
-		);
+		this.calculateTransformationMatrix(this.#localPoints, commit);
 	}
 
 	private init() {
@@ -607,7 +555,7 @@ export class RectangleTransform
 
 			// Commit the constrained state so that the object reflects the DT
 			// geometry from creation and min/max/step restrictions are active.
-			this.calculateTransformationMatrix(this.#localPoints, true, "init");
+			this.calculateTransformationMatrix(this.#localPoints, true);
 		}
 
 		if (this.settings?.enableRotation ?? true) {
@@ -619,23 +567,9 @@ export class RectangleTransform
 				(rotated) => {
 					// Drag-move: temporarily show rotated positions; parent matrix
 					// is not yet updated so mAffineLS encodes the rotation.
-					console.log(
-						"[ROT] onMove | rotated c0=",
-						Array.from(rotated[0]).map((v) => +v.toFixed(4)),
-						"c2=",
-						Array.from(rotated[2]).map((v) => +v.toFixed(4)),
-						"c4=",
-						Array.from(rotated[4]).map((v) => +v.toFixed(4)),
-						"c6=",
-						Array.from(rotated[6]).map((v) => +v.toFixed(4)),
-					);
 					this.#scalingHandler?.recompute(rotated, true);
 					this.#hasPendingTemporaryTransform = true;
-					this.calculateTransformationMatrix(
-						rotated,
-						false,
-						"rotOnMove",
-					);
+					this.calculateTransformationMatrix(rotated, false);
 				},
 				(localPoints) => {
 					// Drag-end: bake rotation into parent matrix and commit.
@@ -643,53 +577,15 @@ export class RectangleTransform
 					// handle positions to canonical first, then emit — so the
 					// synchronous updateCallback fired by updateVersion sees
 					// consistent state and not stale temporary-rotated positions.
-					console.log(
-						"[ROT] onCommit | localPoints c0=",
-						Array.from(localPoints[0]).map((v) => +v.toFixed(4)),
-						"c2=",
-						Array.from(localPoints[2]).map((v) => +v.toFixed(4)),
-						"c4=",
-						Array.from(localPoints[4]).map((v) => +v.toFixed(4)),
-						"c6=",
-						Array.from(localPoints[6]).map((v) => +v.toFixed(4)),
-					);
-					console.log(
-						"[ROT] onCommit | #localPoints c0=",
-						Array.from(this.#localPoints[0]).map(
-							(v) => +v.toFixed(4),
-						),
-						"c2=",
-						Array.from(this.#localPoints[2]).map(
-							(v) => +v.toFixed(4),
-						),
-						"c4=",
-						Array.from(this.#localPoints[4]).map(
-							(v) => +v.toFixed(4),
-						),
-						"c6=",
-						Array.from(this.#localPoints[6]).map(
-							(v) => +v.toFixed(4),
-						),
-					);
 					this.applyAccumulatedTransform(
 						this.committedTranslation,
 						false,
-					);
-					console.log(
-						"[ROT] onCommit | parentMatrix after applyAccum:",
-						Array.from(this.#dtParentTransformation.matrix).map(
-							(v) => +v.toFixed(6),
-						),
 					);
 					this.#scalingHandler?.recompute(localPoints, false);
 					this.#translationHandler?.recompute(localPoints, false);
 					this.#hasPendingTemporaryTransform = false;
 					this.#dtParentNode.updateVersion();
-					this.calculateTransformationMatrix(
-						localPoints,
-						true,
-						"rotOnCommit",
-					);
+					this.calculateTransformationMatrix(localPoints, true);
 				},
 			);
 		}
@@ -734,7 +630,6 @@ export class RectangleTransform
 					this.calculateTransformationMatrix(
 						this.#localPoints,
 						false,
-						"transOnMove",
 					);
 				},
 				(committedTrans) => {
@@ -744,11 +639,7 @@ export class RectangleTransform
 					// DT points reflect the current state when a new gesture starts.
 					this.#scalingHandler?.recompute(this.#localPoints, false);
 					this.#rotationHandler?.recompute(this.#localPoints, false);
-					this.calculateTransformationMatrix(
-						this.#localPoints,
-						true,
-						"transOnCommit",
-					);
+					this.calculateTransformationMatrix(this.#localPoints, true);
 				},
 			);
 		}
@@ -770,16 +661,6 @@ export class RectangleTransform
 			this.#dtParentTransformation.matrix,
 			this.#M_planeToWS,
 			accumulated,
-		);
-		console.log(
-			"[APPLY] applyAccum | trans:",
-			Array.from(translation).map((v) => +v.toFixed(4)),
-			"| emit:",
-			emitUpdate,
-			"| result:",
-			Array.from(this.#dtParentTransformation.matrix).map(
-				(v) => +v.toFixed(6),
-			),
 		);
 		if (emitUpdate) this.#dtParentNode.updateVersion();
 	}
