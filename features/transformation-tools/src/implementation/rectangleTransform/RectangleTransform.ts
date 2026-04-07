@@ -190,7 +190,9 @@ export class RectangleTransform
 		this.#rotationHandler?.clearDragState();
 
 		if (!this.#hasPendingTemporaryTransform) return;
-		console.log('[PTROUT] onPointerOutLogic running — hasPendingTemp was true');
+		console.log(
+			"[PTROUT] onPointerOutLogic running — hasPendingTemp was true",
+		);
 
 		// Commit any in-progress rotation to the parent matrix before flushing
 		// canonical positions, otherwise calculateTransformationMatrix writes
@@ -203,7 +205,11 @@ export class RectangleTransform
 		for (const handler of this.#handlers)
 			handler?.recompute(this.#localPoints, false);
 		this.#dtParentNode.updateVersion();
-		this.calculateTransformationMatrix(this.#localPoints, true, "pointerOut");
+		this.calculateTransformationMatrix(
+			this.#localPoints,
+			true,
+			"pointerOut",
+		);
 		this.#hasPendingTemporaryTransform = false;
 	}
 
@@ -405,7 +411,11 @@ export class RectangleTransform
 			this.#hasPendingTemporaryTransform = true;
 		}
 
-		this.calculateTransformationMatrix(this.#localPoints, commit, "handleRectDrag");
+		this.calculateTransformationMatrix(
+			this.#localPoints,
+			commit,
+			"handleRectDrag",
+		);
 	}
 
 	private init() {
@@ -618,7 +628,11 @@ export class RectangleTransform
 					);
 					this.#scalingHandler?.recompute(rotated, true);
 					this.#hasPendingTemporaryTransform = true;
-					this.calculateTransformationMatrix(rotated, false, "rotOnMove");
+					this.calculateTransformationMatrix(
+						rotated,
+						false,
+						"rotOnMove",
+					);
 				},
 				(localPoints) => {
 					// Drag-end: bake rotation into parent matrix and commit.
@@ -668,7 +682,11 @@ export class RectangleTransform
 					this.#translationHandler?.recompute(localPoints, false);
 					this.#hasPendingTemporaryTransform = false;
 					this.#dtParentNode.updateVersion();
-					this.calculateTransformationMatrix(localPoints, true, "rotOnCommit");
+					this.calculateTransformationMatrix(
+						localPoints,
+						true,
+						"rotOnCommit",
+					);
 				},
 			);
 		}
@@ -723,7 +741,11 @@ export class RectangleTransform
 					// DT points reflect the current state when a new gesture starts.
 					this.#scalingHandler?.recompute(this.#localPoints, false);
 					this.#rotationHandler?.recompute(this.#localPoints, false);
-					this.calculateTransformationMatrix(this.#localPoints, true, "transOnCommit");
+					this.calculateTransformationMatrix(
+						this.#localPoints,
+						true,
+						"transOnCommit",
+					);
 				},
 			);
 		}
@@ -746,7 +768,16 @@ export class RectangleTransform
 			this.#M_planeToWS,
 			accumulated,
 		);
-		console.log('[APPLY] applyAccum | trans:', Array.from(translation).map(v => +v.toFixed(4)), '| emit:', emitUpdate, '| result:', Array.from(this.#dtParentTransformation.matrix).map(v => +v.toFixed(6)));
+		console.log(
+			"[APPLY] applyAccum | trans:",
+			Array.from(translation).map((v) => +v.toFixed(4)),
+			"| emit:",
+			emitUpdate,
+			"| result:",
+			Array.from(this.#dtParentTransformation.matrix).map(
+				(v) => +v.toFixed(6),
+			),
+		);
 		if (emitUpdate) this.#dtParentNode.updateVersion();
 	}
 }
