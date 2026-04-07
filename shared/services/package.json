@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@ctrl/tinycolor": "3.6.1",
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.1.0",
-		"@shapediver/viewer.settings": "1.2.3",
+		"@shapediver/viewer.settings": "1.2.4",
 		"@shapediver/viewer.shared.build-data": "3.16.0-rc.31",
 		"@shapediver/viewer.shared.types": "3.16.0-rc.31",
 		"@types/ua-parser-js": "0.7.39",
