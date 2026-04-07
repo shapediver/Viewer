@@ -216,6 +216,22 @@ export class RectangleTransform
 		const newC2 = localPoints[2];
 		const newC6 = localPoints[6];
 		const initC0 = this.#initialLocalPoints[0];
+		if (commit) {
+			console.log(
+				"[CALC] commit | newC0=",
+				Array.from(newC0).map((v) => +v.toFixed(4)),
+				"newC2=",
+				Array.from(newC2).map((v) => +v.toFixed(4)),
+				"newC6=",
+				Array.from(newC6).map((v) => +v.toFixed(4)),
+				"| initC0=",
+				Array.from(initC0).map((v) => +v.toFixed(4)),
+				"| parentMat:",
+				Array.from(this.#dtParentTransformation.matrix).map(
+					(v) => +v.toFixed(6),
+				),
+			);
+		}
 		const initW =
 			this.#initialLocalPoints[2][0] - this.#initialLocalPoints[0][0];
 		const initH =
@@ -588,6 +604,16 @@ export class RectangleTransform
 				(rotated) => {
 					// Drag-move: temporarily show rotated positions; parent matrix
 					// is not yet updated so mAffineLS encodes the rotation.
+					console.log(
+						"[ROT] onMove | rotated c0=",
+						Array.from(rotated[0]).map((v) => +v.toFixed(4)),
+						"c2=",
+						Array.from(rotated[2]).map((v) => +v.toFixed(4)),
+						"c4=",
+						Array.from(rotated[4]).map((v) => +v.toFixed(4)),
+						"c6=",
+						Array.from(rotated[6]).map((v) => +v.toFixed(4)),
+					);
 					this.#scalingHandler?.recompute(rotated, true);
 					this.#hasPendingTemporaryTransform = true;
 					this.calculateTransformationMatrix(rotated, false);
@@ -598,9 +624,43 @@ export class RectangleTransform
 					// handle positions to canonical first, then emit — so the
 					// synchronous updateCallback fired by updateVersion sees
 					// consistent state and not stale temporary-rotated positions.
+					console.log(
+						"[ROT] onCommit | localPoints c0=",
+						Array.from(localPoints[0]).map((v) => +v.toFixed(4)),
+						"c2=",
+						Array.from(localPoints[2]).map((v) => +v.toFixed(4)),
+						"c4=",
+						Array.from(localPoints[4]).map((v) => +v.toFixed(4)),
+						"c6=",
+						Array.from(localPoints[6]).map((v) => +v.toFixed(4)),
+					);
+					console.log(
+						"[ROT] onCommit | #localPoints c0=",
+						Array.from(this.#localPoints[0]).map(
+							(v) => +v.toFixed(4),
+						),
+						"c2=",
+						Array.from(this.#localPoints[2]).map(
+							(v) => +v.toFixed(4),
+						),
+						"c4=",
+						Array.from(this.#localPoints[4]).map(
+							(v) => +v.toFixed(4),
+						),
+						"c6=",
+						Array.from(this.#localPoints[6]).map(
+							(v) => +v.toFixed(4),
+						),
+					);
 					this.applyAccumulatedTransform(
 						this.committedTranslation,
 						false,
+					);
+					console.log(
+						"[ROT] onCommit | parentMatrix after applyAccum:",
+						Array.from(this.#dtParentTransformation.matrix).map(
+							(v) => +v.toFixed(6),
+						),
 					);
 					this.#scalingHandler?.recompute(localPoints, false);
 					this.#translationHandler?.recompute(localPoints, false);

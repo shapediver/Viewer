@@ -116,7 +116,11 @@ export class RectangleTransformTranslationHandler
 
 		this.#dragMoveToken = this.#eventEngine.addListener(
 			EVENTTYPE.INTERACTION.DRAG_MOVE,
-			(e) => this.handleDrag(e as IDragEvent, false),
+			(e) => {
+				this.handleDrag(e as IDragEvent, false);
+				if ((e as IDragEvent).manager === this.#dragManager)
+					this.refreshCursor(false);
+			},
 		);
 
 		this.#dragEndToken = this.#eventEngine.addListener(
