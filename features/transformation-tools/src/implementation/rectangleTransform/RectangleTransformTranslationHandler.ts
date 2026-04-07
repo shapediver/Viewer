@@ -50,6 +50,7 @@ export class RectangleTransformTranslationHandler
 	#onTranslationStart: () => void;
 	#localPointsAtDragStart: vec3[] = [];
 	#node!: ITreeNode;
+	#previousNode: ITreeNode | undefined;
 	#planeRestrictionToken: string | undefined;
 
 	constructor(
@@ -155,18 +156,26 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.HOVER_ON,
 			(e) => {
 				const ev = e as IHoverEvent;
+				const nodeMatch = ev.nodes.indexOf(this.#node) !== -1;
+				const previousNodeMatch =
+					!!this.#previousNode &&
+					ev.nodes.indexOf(this.#previousNode) !== -1;
 				console.log(
 					"[TRANS] HOVER_ON | ourManager:",
 					ev.manager === this.#hoverManager,
 					"| nodeMatch:",
-					ev.nodes.indexOf(this.#node) !== -1,
+					nodeMatch,
+					"| previousNodeMatch:",
+					previousNodeMatch,
 					"| nodes:",
 					ev.nodes.map((n) => n.id),
 					"| ourNodeId:",
 					this.#node?.id,
 				);
 				if (ev.manager !== this.#hoverManager) return;
-				if (ev.nodes.indexOf(this.#node) === -1) return;
+				if (!nodeMatch && !previousNodeMatch) return;
+				// Stale intersection matched the previous node; clear it once accepted.
+				if (previousNodeMatch) this.#previousNode = undefined;
 				this.#isHovering = true;
 				const blocked = this.#isInteractionBlocked();
 				console.log("[TRANS] HOVER_ON accepted | blocked:", blocked);
@@ -178,13 +187,19 @@ export class RectangleTransformTranslationHandler
 			EVENTTYPE.INTERACTION.HOVER_OFF,
 			(e) => {
 				const ev = e as IHoverEvent;
+				const remainingHasNode = ev.nodes.indexOf(this.#node) !== -1;
 				console.log(
 					"[TRANS] HOVER_OFF | ourManager:",
 					ev.manager === this.#hoverManager,
 					"| isDragging:",
 					this.#isDragging,
+					"| remainingHasNode:",
+					remainingHasNode,
 				);
 				if (ev.manager !== this.#hoverManager) return;
+				// The old (replaced) node was deactivated but our current node is
+				// still in the remaining hover set — pointer hasn't left our mesh.
+				if (remainingHasNode) return;
 				this.#isHovering = false;
 				if (!this.#isDragging) this.#viewport.canvas.style.cursor = "";
 			},
@@ -247,6 +262,9 @@ export class RectangleTransformTranslationHandler
 		this.#planeRestrictionToken = this.#dragManager.addRestriction(
 			this.currentPlaneRestriction(localPoints),
 		);
+		// Save the old node so HOVER_ON events carrying the stale node ID
+		// (from the intersection cache) are still accepted after the swap.
+		this.#previousNode = this.#node;
 		sceneTree.root.removeChild(this.#node);
 		this.createPlaneNode(localPoints);
 		console.log("[TRANS] recompute done | newNodeId:", this.#node?.id);

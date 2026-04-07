@@ -379,26 +379,106 @@ export class RectangleTransformScalingHandler
 	}
 
 	/**
-	 * Build the DT constraints.size object from uMin/uMax/vMin/vMax.
-	 * Maps undefined bounds to 0 (for min) or Infinity (for max) so a
-	 * one-sided constraint can still be expressed as a [number, number] tuple.
+	 * Clamp the adjusted rectangle points to the configured U/V size limits.
+	 * This runs AFTER cornerPointMoved/controlMoved in handleRectDrag, where
+	 * all points are in unrotated plane-LS regardless of any accumulated
+	 * rotation on the parentNode — so U-width = x1-x0 and V-height = y1-y0
+	 * are always valid.
+	 *
+	 * By enforcing constraints here rather than via DrawingToolsManager
+	 * applyConstraints, we avoid the well-known float-precision issue where
+	 * the "crossing case" branch fires when the dragged corner's committed
+	 * position equals peerMax (same rectangle edge), flipping the corner to
+	 * peerMax + minSize.
 	 */
-	private static buildSizeConstraints(
-		cfg: RectangleTransformSettings["scaling"],
-	): {size: {x?: [number, number]; y?: [number, number]}} | undefined {
+	public clampToSizeConstraints(
+		adjusted: vec3[],
+		localPoints: vec3[],
+	): vec3[] {
+		const cfg = this.#scalingConfig;
 		const hasX =
 			(cfg?.uMin !== undefined && cfg?.uMin !== null) ||
 			(cfg?.uMax !== undefined && cfg?.uMax !== null);
 		const hasY =
 			(cfg?.vMin !== undefined && cfg?.vMin !== null) ||
 			(cfg?.vMax !== undefined && cfg?.vMax !== null);
-		if (!hasX && !hasY) return undefined;
-		return {
-			size: {
-				...(hasX ? {x: [cfg!.uMin ?? 0, cfg!.uMax ?? Infinity]} : {}),
-				...(hasY ? {y: [cfg!.vMin ?? 0, cfg!.vMax ?? Infinity]} : {}),
-			},
-		};
+		if (!hasX && !hasY) return adjusted;
+
+		const uMin = cfg!.uMin ?? 0;
+		const uMax = cfg!.uMax ?? Infinity;
+		const vMin = cfg!.vMin ?? 0;
+		const vMax = cfg!.vMax ?? Infinity;
+
+		// In plane-LS: C0=BL, C2=BR, C4=TR, C6=TL (indices 0,2,4,6).
+		let x0 = adjusted[0][0]; // left edge x
+		let x1 = adjusted[2][0]; // right edge x
+		let y0 = adjusted[0][1]; // bottom edge y
+		let y1 = adjusted[6][1]; // top edge y
+
+		const prevX0 = localPoints[0][0];
+		const prevX1 = localPoints[2][0];
+		const prevY0 = localPoints[0][1];
+		const prevY1 = localPoints[6][1];
+
+		let changed = false;
+
+		if (hasX) {
+			const width = x1 - x0;
+			const clampedWidth = Math.max(uMin, Math.min(uMax, width));
+			if (clampedWidth !== width) {
+				changed = true;
+				const leftMoved = Math.abs(x0 - prevX0) > 1e-10;
+				const rightMoved = Math.abs(x1 - prevX1) > 1e-10;
+				if (rightMoved && !leftMoved) {
+					x1 = x0 + clampedWidth;
+				} else if (leftMoved && !rightMoved) {
+					x0 = x1 - clampedWidth;
+				} else {
+					// Both (or neither) edges moved: symmetric adjustment.
+					const cx = (prevX0 + prevX1) / 2;
+					x0 = cx - clampedWidth / 2;
+					x1 = cx + clampedWidth / 2;
+				}
+			}
+		}
+
+		if (hasY) {
+			const height = y1 - y0;
+			const clampedHeight = Math.max(vMin, Math.min(vMax, height));
+			if (clampedHeight !== height) {
+				changed = true;
+				const bottomMoved = Math.abs(y0 - prevY0) > 1e-10;
+				const topMoved = Math.abs(y1 - prevY1) > 1e-10;
+				if (topMoved && !bottomMoved) {
+					y1 = y0 + clampedHeight;
+				} else if (bottomMoved && !topMoved) {
+					y0 = y1 - clampedHeight;
+				} else {
+					const cy = (prevY0 + prevY1) / 2;
+					y0 = cy - clampedHeight / 2;
+					y1 = cy + clampedHeight / 2;
+				}
+			}
+		}
+
+		if (!changed) return adjusted;
+		return RectangleTransformScalingHandler.buildFullPoints(
+			vec3.fromValues(x0, y0, 0),
+			vec3.fromValues(x1, y0, 0),
+			vec3.fromValues(x1, y1, 0),
+			vec3.fromValues(x0, y1, 0),
+		);
+	}
+
+	/**
+	 * Build the DT constraints.size object from uMin/uMax/vMin/vMax.
+	 * Size constraints are now enforced at the handleRectDrag level via
+	 * clampToSizeConstraints, so the DT itself needs no size constraints.
+	 */
+	private static buildSizeConstraints(
+		_cfg: RectangleTransformSettings["scaling"],
+	): {size: {x?: [number, number]; y?: [number, number]}} | undefined {
+		return undefined;
 	}
 
 	/**
