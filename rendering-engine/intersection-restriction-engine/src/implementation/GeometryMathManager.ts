@@ -1,14 +1,15 @@
 import {IViewportApi, SystemInfo} from "@shapediver/viewer";
 import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
-import {vec3} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 
 export class GeometryMathManager {
-	// #region Properties (2)
+	// #region Properties (3)
 
+	#localToWorldMatrix: mat4 = mat4.create();
 	readonly #settings: IVisualizationSettings;
 	readonly #viewport: IViewportApi;
 
-	// #endregion Properties (2)
+	// #endregion Properties (3)
 
 	// #region Constructors (1)
 
@@ -18,6 +19,16 @@ export class GeometryMathManager {
 	}
 
 	// #endregion Constructors (1)
+
+	/**
+	 * Set the matrix that transforms local-space points to world space.
+	 * When set, screenSpaceDistanceCheck will transform points before projecting
+	 * via camera.project(), which expects world-space input.
+	 * Defaults to identity (local space = world space).
+	 */
+	public set localToWorldMatrix(m: mat4) {
+		this.#localToWorldMatrix = m;
+	}
 
 	// #region Public Methods (9)
 
@@ -377,9 +388,22 @@ export class GeometryMathManager {
 	) {
 		const camera = this.#viewport.camera!;
 
+		// Transform local-space points to world space before projection.
+		// camera.project() expects world-space input.
+		const ws1 = vec3.transformMat4(
+			vec3.create(),
+			point1,
+			this.#localToWorldMatrix,
+		);
+		const ws2 = vec3.transformMat4(
+			vec3.create(),
+			point2,
+			this.#localToWorldMatrix,
+		);
+
 		// Project points to NDC
-		const screenPos1 = camera.project(vec3.clone(point1));
-		const screenPos2 = camera.project(vec3.clone(point2));
+		const screenPos1 = camera.project(ws1);
+		const screenPos2 = camera.project(ws2);
 
 		const width = this.#viewport.canvas.width;
 		const height = this.#viewport.canvas.height;

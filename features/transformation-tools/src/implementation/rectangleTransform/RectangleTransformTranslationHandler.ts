@@ -358,16 +358,20 @@ export class RectangleTransformTranslationHandler
 	private handleDrag(ev: IDragEvent, commit: boolean): void {
 		if (ev.manager !== this.#dragManager) return;
 		// Guard: skip if DT drag (scaling/rotation) is active, or if drag-start was suppressed.
-		if (this.#isInteractionBlocked() || !this.#isDragging) {
-			if (this.#isDragging)
-				console.log(
-					"[TRANS] handleDrag BLOCKED | commit:",
-					commit,
-					"| isDragging:",
-					this.#isDragging,
-					"| isBlocked:",
-					this.#isInteractionBlocked(),
-				);
+		// Exception: always allow commit (DRAG_END) when isDragging — if we
+		// were translating and got blocked mid-gesture (e.g. by a false-positive
+		// rotation hover), we must still commit the accumulated delta so the
+		// committedTranslation stays in sync with the visual state.
+		if (!this.#isDragging) return;
+		if (this.#isInteractionBlocked() && !commit) {
+			console.log(
+				"[TRANS] handleDrag BLOCKED | commit:",
+				commit,
+				"| isDragging:",
+				this.#isDragging,
+				"| isBlocked:",
+				this.#isInteractionBlocked(),
+			);
 			return;
 		}
 		if (!ev.matrix || this.#localPointsAtDragStart.length === 0) return;

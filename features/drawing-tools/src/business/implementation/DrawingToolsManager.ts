@@ -520,6 +520,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public onDown(event: PointerEvent, ray: IRay): void {
 		if (this.closed) return;
+		this.#geometryMathManager.localToWorldMatrix =
+			this.#sceneParent.worldMatrix;
 		this.#interactionManager.onDown(
 			event,
 			this.transformRayToLocalSpace(ray),
@@ -564,6 +566,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			this.#continuousRenderingFlag = this.#viewport.addFlag(
 				FLAG_TYPE.CONTINUOUS_RENDERING,
 			);
+		this.#geometryMathManager.localToWorldMatrix =
+			this.#sceneParent.worldMatrix;
 		this.#interactionManager.onMove(
 			event,
 			this.transformRayToLocalSpace(ray),
