@@ -82,8 +82,9 @@ export class PlaneRestriction
 	extends AbstractRestriction
 	implements IRestriction
 {
-	// #region Properties (14)
+	// #region Properties (15)
 
+	readonly #parentNode: ITreeNode;
 	readonly #properties: PlaneRestrictionProperties;
 	readonly #viewport: IViewportApi;
 
@@ -100,7 +101,7 @@ export class PlaneRestriction
 	#vectorU: vec3 = vec3.create();
 	#vectorV: vec3 = vec3.create();
 
-	// #endregion Properties (14)
+	// #endregion Properties (15)
 
 	// #region Constructors (1)
 
@@ -114,6 +115,7 @@ export class PlaneRestriction
 	) {
 		super(viewport, parentNode, id, properties);
 
+		this.#parentNode = parentNode;
 		this.#viewport = viewport;
 		this.#cameraId = this.#viewport.camera!.id;
 		this.#properties = properties;
@@ -512,7 +514,7 @@ export class PlaneRestriction
 
 			if (camera.type === CAMERA_TYPE.ORTHOGRAPHIC) {
 				const cameraApi = camera as IOrthographicCameraApi;
-				const cameraDirection = vec3.normalize(
+				const cameraDirectionWS = vec3.normalize(
 					vec3.create(),
 					vec3.sub(
 						vec3.create(),
@@ -521,8 +523,37 @@ export class PlaneRestriction
 					),
 				);
 
-				// if the dot product of the camera direction and the normal tells us that they are parallel
-				// the plane is perpendicular to the camera direction
+				// When this restriction is used inside a drawing tool that
+				// transforms rays to the parent node's local space (via
+				// DrawingToolsManager.transformRayToLocalSpace), the plane
+				// vectors (vectorU, vectorV, normal) are in local space while
+				// cameraDirectionWS is still in world space.  Converting to
+				// local space ensures the edge-on check is performed in the
+				// same coordinate frame as the plane normal.
+				const invParentMatrix = mat4.invert(
+					mat4.create(),
+					this.#parentNode.worldMatrix,
+				);
+				const cameraDirection = invParentMatrix
+					? vec3.normalize(
+							vec3.create(),
+							vec3.fromValues(
+								invParentMatrix[0] * cameraDirectionWS[0] +
+									invParentMatrix[4] * cameraDirectionWS[1] +
+									invParentMatrix[8] * cameraDirectionWS[2],
+								invParentMatrix[1] * cameraDirectionWS[0] +
+									invParentMatrix[5] * cameraDirectionWS[1] +
+									invParentMatrix[9] * cameraDirectionWS[2],
+								invParentMatrix[2] * cameraDirectionWS[0] +
+									invParentMatrix[6] * cameraDirectionWS[1] +
+									invParentMatrix[10] * cameraDirectionWS[2],
+							),
+						)
+					: cameraDirectionWS;
+
+				// If the (local-space) camera direction is perpendicular to the
+				// plane normal the plane is seen edge-on and intersection would
+				// be degenerate — fall back to a camera-facing plane instead.
 				if (Math.abs(vec3.dot(cameraDirection, normal)) < 0.0001) {
 					this.createDefaultPlane(camera);
 				} else {
