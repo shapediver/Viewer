@@ -1,20 +1,26 @@
 import {versions} from "../..";
 import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ISettings as ISettingsV7} from "../v7/ISettings";
-import {ISettings as ISettingsV7_1} from "./ISettings";
+import {ISettings as ISettingsV6_2} from "../v6_2/ISettings";
+import {ISettings as ISettingsV7} from "./ISettings";
 
 export const convertFromPrevious = (
 	s: IGlobalSettings,
 	v: versions,
 ): IGlobalSettings => {
-	const oldSettings = <ISettingsV7>s;
-	const settings: ISettingsV7_1 = {
-		settings_version: "7.1",
+	const oldSettings = <ISettingsV6_2>s;
+	const settings: ISettingsV7 = {
+		settings_version: "7.0",
 		ar: oldSettings.ar,
 		build_date: oldSettings.build_date,
 		build_version: oldSettings.build_version,
 		camera: oldSettings.camera,
-		general: oldSettings.general,
+		general: {
+			transformation: oldSettings.general.transformation,
+			blurWhenBusy: oldSettings.general.blurWhenBusy,
+			pointSize: oldSettings.general.pointSize,
+			showMessages: oldSettings.general.showMessages,
+			defaultMaterialColor: oldSettings.general.defaultMaterialColor,
+		},
 		light: oldSettings.light,
 		session: oldSettings.session,
 		environment: oldSettings.environment,
@@ -22,24 +28,35 @@ export const convertFromPrevious = (
 		rendering: oldSettings.rendering,
 		postprocessing: oldSettings.postprocessing,
 		material: oldSettings.material,
-		configuration: oldSettings.configuration,
+		configuration: {
+			parametersCommit: oldSettings.general.commitParameters,
+		},
 	};
 
-	return <ISettingsV7_1>settings;
+	return <ISettingsV7>settings;
 };
 
 export const convertToPrevious = (
 	s: IGlobalSettings,
 	v: versions,
 ): IGlobalSettings => {
-	const newSettings = <ISettingsV7_1>s;
-	const settings: ISettingsV7 = {
-		settings_version: "7.0",
+	const newSettings = <ISettingsV7>s;
+	const settings: ISettingsV6_2 = {
+		settings_version: "6.2",
 		ar: newSettings.ar,
 		build_date: newSettings.build_date,
 		build_version: newSettings.build_version,
 		camera: newSettings.camera,
-		general: newSettings.general,
+		general: {
+			transformation: newSettings.general.transformation,
+			blurWhenBusy: newSettings.general.blurWhenBusy,
+			commitSettings: false,
+			commitParameters:
+				newSettings.configuration?.parametersCommit ?? false,
+			pointSize: newSettings.general.pointSize,
+			showMessages: newSettings.general.showMessages,
+			defaultMaterialColor: newSettings.general.defaultMaterialColor,
+		},
 		light: newSettings.light,
 		session: newSettings.session,
 		environment: newSettings.environment,
@@ -49,5 +66,5 @@ export const convertToPrevious = (
 		material: newSettings.material,
 	};
 
-	return <ISettingsV7>settings;
+	return <ISettingsV6_2>settings;
 };
