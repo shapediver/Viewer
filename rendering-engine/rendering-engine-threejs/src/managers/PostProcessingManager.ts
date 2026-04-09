@@ -231,6 +231,9 @@ export class PostProcessingManager implements IManager {
 		t?: string,
 	): string {
 		const token = t || this._uuidGenerator.create();
+		console.debug(
+			`[PostProcessingManager] addEffect: type=${definition.type}, token=${token.substring(0, 60)}…, _effectDefinitions.length=${this._effectDefinitions.length + 1}`,
+		);
 		this._effectDefinitions.push({token, definition});
 
 		switch (definition.type) {
@@ -1531,6 +1534,9 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public removeEffect(token: string): boolean {
+		console.debug(
+			`[PostProcessingManager] removeEffect: token=${token.substring(0, 60)}…, _effectDefinitions.length before=${this._effectDefinitions.length}`,
+		);
 		const effectToRemove = this._effectDefinitions.find(
 			(e) => e.token === token,
 		);
@@ -1539,6 +1545,9 @@ export class PostProcessingManager implements IManager {
 				this._effectDefinitions.indexOf(effectToRemove),
 				1,
 			);
+		console.debug(
+			`[PostProcessingManager] removeEffect: done, found=${!!effectToRemove}, _effectDefinitions.length after=${this._effectDefinitions.length}`,
+		);
 		this.changeEffectPass();
 		return true;
 	}

@@ -100,6 +100,9 @@ export abstract class AbstractInteractionManager
 	}
 
 	public set viewport(value: IViewportApi | undefined) {
+		console.debug(
+			`[AbstractInteractionManager] viewport set: id=${this.#id}, old=${!!this.#viewport}, new=${!!value}`,
+		);
 		this.#viewport = value;
 		this.#interactionEffectUtils.viewport = value;
 	}

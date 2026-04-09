@@ -58,8 +58,16 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			const stringified = JSON.stringify(effect);
 			const postProcessingEffect =
 				this.#viewport.postProcessing.outlineEffects[stringified];
-			if (!postProcessingEffect)
+			if (!postProcessingEffect) {
+				console.debug(
+					`[InteractionEffectUtils] applyInteractionEffect: ADDING new outline effect to postProcessing, token=${stringified.substring(0, 60)}…, node="${node.name}"`,
+				);
 				this.#viewport.postProcessing.addEffect(effect, stringified);
+			} else {
+				console.debug(
+					`[InteractionEffectUtils] applyInteractionEffect: reusing existing outline effect, token=${stringified.substring(0, 60)}…, node="${node.name}"`,
+				);
+			}
 
 			this.#viewport.postProcessing.outlineEffects[
 				stringified
@@ -102,6 +110,21 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		const postProcessingEffect =
 			this.#viewport.postProcessing.outlineEffects[token];
 
-		if (postProcessingEffect) postProcessingEffect.removeSelection(node);
+		if (postProcessingEffect) {
+			const removed = postProcessingEffect.removeSelection(node);
+			const remaining = postProcessingEffect.selectedNodes().length;
+			console.debug(
+				`[InteractionEffectUtils] removeInteractionEffect: removeSelection(node="${node.name}") removed=${removed}, remaining nodes in OutlineManager=${remaining}, token=${token.substring(0, 60)}…`,
+			);
+			if (remaining === 0) {
+				console.debug(
+					`[InteractionEffectUtils] removeInteractionEffect: OutlineManager is now EMPTY — effect definition still alive in getEffectTokens() (no auto-cleanup in SDK). token=${token.substring(0, 60)}…`,
+				);
+			}
+		} else {
+			console.debug(
+				`[InteractionEffectUtils] removeInteractionEffect: no outline effect found for token=${token.substring(0, 60)}…, viewport=${!!this.#viewport}`,
+			);
+		}
 	}
 }
