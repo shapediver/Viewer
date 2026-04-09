@@ -142,13 +142,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	 * Deselect all nodes.
 	 */
 	public deselectAll() {
-		console.debug(
-			`[MultiSelectManager] deselectAll: id=${this.id}, nodes=${this.#nodes.length}, viewport=${!!this.viewport}`,
-		);
 		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
-		console.debug(
-			`[MultiSelectManager] deselectAll: done, remaining nodes=${this.#nodes.length}`,
-		);
 		this.emitSelectionEvents();
 	}
 
@@ -253,13 +247,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 	}
 
 	public remove(): void {
-		console.debug(
-			`[MultiSelectManager] remove: id=${this.id}, nodes=${this.#nodes.length}, viewport=${!!this.viewport}`,
-		);
 		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
-		console.debug(
-			`[MultiSelectManager] remove: after deselectAll, remaining=${this.#nodes.length}. Setting viewport=undefined.`,
-		);
 		this.viewport = undefined;
 	}
 
@@ -365,9 +353,6 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			this.#logger,
 		);
 		if (!viewportOk) {
-			console.warn(
-				`[MultiSelectManager] deactivateNode: BAILING — viewport not set! id=${this.id}, node="${node.name}"`,
-			);
 			return;
 		}
 
@@ -381,9 +366,6 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		if (data) data.interactionStates.select = false;
 
 		const index = this.#nodes.indexOf(node);
-		console.debug(
-			`[MultiSelectManager] deactivateNode: node="${node.name}", index=${index}, token=${JSON.stringify(this.#interactionEffectTokens[index])?.substring(0, 60)}, id=${this.id}`,
-		);
 		if (index === -1) return;
 
 		InteractionManagerUtils.removeInteractionEffects(

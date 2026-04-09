@@ -20,26 +20,17 @@ export class OutlineManager {
 	// #region Public Methods (5)
 
 	public addSelection(node: ITreeNode): void {
-		console.debug(
-			`[OutlineManager] addSelection: node="${node.name}", nodes before=${this._outlineNodes.length}`,
-		);
 		this._outlineNodes.push(node);
 		this.updateOutlineEffectObjects();
 	}
 
 	public clearSelection(): void {
-		console.debug(
-			`[OutlineManager] clearSelection: clearing ${this._outlineNodes.length} nodes`,
-		);
 		this._outlineNodes = [];
 		this.updateOutlineEffectObjects();
 	}
 
 	public removeSelection(node: ITreeNode): boolean {
 		const index = this._outlineNodes.indexOf(node);
-		console.debug(
-			`[OutlineManager] removeSelection: node="${node.name}", found=${index !== -1}, nodes before=${this._outlineNodes.length}`,
-		);
 		if (index !== -1) {
 			this._outlineNodes.splice(index, 1);
 			this.updateOutlineEffectObjects();

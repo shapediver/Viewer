@@ -88,9 +88,6 @@ export class SelectManager extends AbstractInteractionManager {
 	 * Deselect the current node.
 	 */
 	public deselect() {
-		console.debug(
-			`[SelectManager] deselect: id=${this.id}, node="${this.#node?.name ?? "none"}", viewport=${!!this.viewport}`,
-		);
 		if (this.#node) this.deactivateNode();
 	}
 
@@ -164,13 +161,7 @@ export class SelectManager extends AbstractInteractionManager {
 	}
 
 	public remove(): void {
-		console.debug(
-			`[SelectManager] remove: id=${this.id}, node="${this.#node?.name ?? "none"}", viewport=${!!this.viewport}`,
-		);
 		if (this.#node) this.deactivateNode();
-		console.debug(
-			`[SelectManager] remove: after deactivateNode, setting viewport=undefined`,
-		);
 		this.viewport = undefined;
 	}
 
@@ -272,9 +263,6 @@ export class SelectManager extends AbstractInteractionManager {
 			this.#logger,
 		);
 		if (!viewportOk) {
-			console.warn(
-				`[SelectManager] deactivateNode: BAILING — viewport not set! id=${this.id}, node="${this.#node?.name}"`,
-			);
 			return;
 		}
 
@@ -287,9 +275,6 @@ export class SelectManager extends AbstractInteractionManager {
 		);
 		if (data) data.interactionStates.select = false;
 
-		console.debug(
-			`[SelectManager] deactivateNode: node="${this.#node?.name}", token=${JSON.stringify(this.#interactionEffectToken)?.substring(0, 60)}, id=${this.id}`,
-		);
 		InteractionManagerUtils.removeInteractionEffects(
 			this.#node!,
 			this.#groupedNodes,

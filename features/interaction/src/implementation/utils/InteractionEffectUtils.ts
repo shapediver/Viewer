@@ -66,14 +66,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				stringified,
 			);
 			if (!alreadyRegistered) {
-				console.debug(
-					`[InteractionEffectUtils] applyInteractionEffect: ADDING outline effect to postProcessing (not in _effectDefinitions), node="${node.name}"`,
-				);
 				this.#viewport.postProcessing.addEffect(effect, stringified);
-			} else {
-				console.debug(
-					`[InteractionEffectUtils] applyInteractionEffect: reusing existing outline effect, node="${node.name}"`,
-				);
 			}
 
 			this.#viewport.postProcessing.outlineEffects[
@@ -120,9 +113,6 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		if (postProcessingEffect) {
 			const removed = postProcessingEffect.removeSelection(node);
 			const remaining = postProcessingEffect.selectedNodes().length;
-			console.debug(
-				`[InteractionEffectUtils] removeInteractionEffect: removeSelection(node="${node.name}") removed=${removed}, remaining=${remaining}`,
-			);
 			if (remaining === 0) {
 				// The OutlineManager is empty. The SDK does not auto-remove the
 				// effect from _effectDefinitions, so getEffectTokens() would keep
@@ -130,15 +120,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				// on every frame). Explicitly remove it so the effect pipeline is
 				// truly clean. applyInteractionEffect checks getEffectTokens() so
 				// it will re-call addEffect next time.
-				console.debug(
-					`[InteractionEffectUtils] removeInteractionEffect: OutlineManager empty — calling postProcessing.removeEffect to clean up _effectDefinitions`,
-				);
 				this.#viewport.postProcessing.removeEffect(token);
 			}
-		} else {
-			console.debug(
-				`[InteractionEffectUtils] removeInteractionEffect: no outline effect found for token (already removed or material token), viewport=${!!this.#viewport}`,
-			);
 		}
 	}
 }
