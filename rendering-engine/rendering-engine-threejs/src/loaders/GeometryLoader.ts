@@ -45,10 +45,9 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryCache: {
 		[key: string]: {
-			obj: GeometryType;
+			/** All live mesh instances that share this GeometryData. */
+			meshes: GeometryType[];
 			primitiveCacheId: string;
-			clones: GeometryType[];
-			counter: number;
 		};
 	} = {};
 	private _logger: Logger = Logger.instance;
@@ -71,8 +70,6 @@ export class GeometryLoader implements ILoader {
 	// #region Public Methods (6)
 
 	public emptyGeometryCache() {
-		for (const key in this._geometryCache)
-			this.removeFromGeometryCache(key);
 		this._geometryCache = {};
 
 		for (const key in this._primitiveCache)
@@ -181,55 +178,27 @@ export class GeometryLoader implements ILoader {
 		// unless properties that affect the shader have changed
 		material.needsUpdate = false;
 
-		let threeGeometryObject: GeometryType;
-		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
-			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			threeGeometryObject =
-				this._geometryCache[geometry.id + "_" + geometry.version].obj;
-
-			threeGeometryObject.material = material;
-
-			// Clear instance colors when in ATTRIBUTES mode to prevent them
-			// from multiplying with the attribute material color
-			if (threeGeometryObject instanceof THREE.InstancedMesh) {
-				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-					threeGeometryObject.instanceColor = null;
-				} else if (instanceData && !threeGeometryObject.instanceColor) {
-					for (
-						let i = 0;
-						i < instanceData.instanceColors.length;
-						i++
-					) {
-						threeGeometryObject.setColorAt(
-							i,
-							this._renderingEngine.createThreeJsColor(
-								instanceData.instanceColors[i],
-							),
-						);
-					}
-					// setColorAt creates instanceColor; re-read after mutation
-					(
-						threeGeometryObject as THREE.InstancedMesh
-					).instanceColor!.needsUpdate = true;
-				}
-			}
-		} else {
-			threeGeometryObject = this.createMesh(
-				geometry,
-				threeGeometry,
-				material,
-				instanceData,
-			);
-			threeGeometryObject.userData.cacheKey =
-				geometry.id + "_" + geometry.version;
-			this._geometryCache[geometry.id + "_" + geometry.version] = {
-				obj: threeGeometryObject,
-				counter: 1,
-				clones: [],
+		// Always create a fresh mesh. THREE.Object3Ds can only belong to one
+		// parent, so caching the mesh object itself would cause re-parenting
+		// issues when the same GeometryData is referenced by multiple tree nodes.
+		// BufferGeometry and Material are already cached at their own layers
+		// (_primitiveCache and MaterialLoader respectively).
+		const threeGeometryObject = this.createMesh(
+			geometry,
+			threeGeometry,
+			material,
+			instanceData,
+		);
+		const geomCacheKey = geometry.id + "_" + geometry.version;
+		threeGeometryObject.userData.cacheKey = geomCacheKey;
+		if (!this._geometryCache[geomCacheKey]) {
+			this._geometryCache[geomCacheKey] = {
+				meshes: [],
 				primitiveCacheId:
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
 		}
+		this._geometryCache[geomCacheKey].meshes.push(threeGeometryObject);
 
 		threeGeometryObject.castShadow = geometry.castShadow;
 		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial)
@@ -332,7 +301,7 @@ export class GeometryLoader implements ILoader {
 	public updateGeometryMaterial(geometry: GeometryData): void {
 		const cacheKey = geometry.id + "_" + geometry.version;
 		const cached = this._geometryCache[cacheKey];
-		if (!cached) return;
+		if (!cached || cached.meshes.length === 0) return;
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
@@ -345,7 +314,9 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.material;
 		}
 
-		const threeGeometry = cached.obj.geometry;
+		// Use the first mesh as the representative for geometry attribute inspection
+		const representative = cached.meshes[0];
+		const threeGeometry = representative.geometry;
 		const attributes = threeGeometry.attributes;
 		const morphAttributes = threeGeometry.morphAttributes;
 		const hasMorphTargets = Object.keys(morphAttributes).length > 0;
@@ -362,36 +333,40 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
-		cached.obj.material = this._renderingEngine.materialLoader.load(
+		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
 
-		// Clear instance colors when in ATTRIBUTES mode to prevent them
-		// from multiplying with the attribute material color
-		if (cached.obj instanceof THREE.InstancedMesh) {
-			if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-				cached.obj.instanceColor = null;
+		// Update every live mesh instance that shares this GeometryData
+		for (const mesh of cached.meshes) {
+			mesh.material = material;
+
+			// Clear instance colors when in ATTRIBUTES mode to prevent them
+			// from multiplying with the attribute material color
+			if (mesh instanceof THREE.InstancedMesh) {
+				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+					mesh.instanceColor = null;
+				}
 			}
 		}
 	}
 
-	public removeFromGeometryCache(id: string) {
-		if (this._geometryCache[id]) {
-			if (this._geometryCache[id].counter === 1) {
-				this.removeFromPrimitiveCache(
-					this._geometryCache[id].primitiveCacheId,
-				);
+	public removeFromGeometryCache(id: string, mesh?: GeometryType) {
+		const entry = this._geometryCache[id];
+		if (!entry) return;
 
-				this._geometryCache[id].clones.forEach((c) => {
-					this.removeFromPrimitiveCache(
-						this._geometryCache[id].primitiveCacheId,
-					);
-				});
-				delete this._geometryCache[id];
-			} else {
-				this._geometryCache[id].counter--;
-			}
+		// Remove the specific mesh from the live registry
+		if (mesh) {
+			const idx = entry.meshes.indexOf(mesh);
+			if (idx !== -1) entry.meshes.splice(idx, 1);
+		}
+
+		// Decrement the underlying BufferGeometry reference count
+		this.removeFromPrimitiveCache(entry.primitiveCacheId);
+
+		if (entry.meshes.length === 0) {
+			delete this._geometryCache[id];
 		}
 	}
 
