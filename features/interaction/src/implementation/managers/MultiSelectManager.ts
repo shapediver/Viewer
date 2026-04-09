@@ -395,7 +395,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		);
 
 		InteractionManagerUtils.updateViewport(
-			this.viewport,
+			this.viewport!,
 			node,
 			this.#groupedNodes[index],
 		);
@@ -409,7 +409,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken.splice(index, 1);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.MULTI_SELECT_OFF, {
-			viewportId: this.viewport.id,
+			viewportId: this.viewport!.id,
 			nodes: this.#nodes,
 			node: node,
 			event,

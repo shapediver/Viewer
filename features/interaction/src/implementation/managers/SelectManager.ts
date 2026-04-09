@@ -301,13 +301,13 @@ export class SelectManager extends AbstractInteractionManager {
 		this.#groupInteractionEffectToken = undefined;
 
 		InteractionManagerUtils.updateViewport(
-			this.viewport,
+			this.viewport!,
 			this.#node!,
 			this.#groupedNodes,
 		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, {
-			viewportId: this.viewport.id,
+			viewportId: this.viewport!.id,
 			node: this.#node,
 			event,
 			manager: this,
