@@ -60,7 +60,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			// outlineEffects[] (reflects _outlineManagers, which removeEffect never
 			// cleans up). This ensures addEffect is re-called when an effect was
 			// previously removed via postProcessing.removeEffect on empty OutlineManager.
-			const effectTokens = this.#viewport.postProcessing.getEffectTokens();
+			const effectTokens =
+				this.#viewport.postProcessing.getEffectTokens();
 			const alreadyRegistered = Object.prototype.hasOwnProperty.call(
 				effectTokens,
 				stringified,
