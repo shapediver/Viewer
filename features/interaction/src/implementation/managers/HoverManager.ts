@@ -170,9 +170,16 @@ export class HoverManager extends AbstractInteractionManager {
 
 		// if there are no box selection intersections, adjust the filteredIntersections to only contain the first ray tracing intersection
 		if (!hasBoxSelection) {
-			const firstIntersectionIndex = filteredIntersections.findIndex(
-				(fi) => fi?.type === "RayTracingIntersection",
-			);
+			// Only hover if this manager's node is the closest interactive node
+			// overall. If filteredIntersections[0] is null, another manager's node
+			// is in front — don't hover anything for this manager.
+			const firstIntersectionIndex =
+				filteredIntersections.length > 0 &&
+				filteredIntersections[0] !== null
+					? filteredIntersections.findIndex(
+							(fi) => fi?.type === "RayTracingIntersection",
+						)
+					: -1;
 			for (let i = 0; i < filteredIntersections.length; i++) {
 				if (i !== firstIntersectionIndex) {
 					filteredIntersections[i] = null;
