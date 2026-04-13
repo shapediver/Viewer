@@ -34,8 +34,7 @@ export const removeData = (
 					renderingEngine.scene.remove(o);
 
 					renderingEngine.geometryLoader.removeFromGeometryCache(
-						o.userData.cacheKey,
-						o as THREE.Mesh,
+						o.geometry.userData.cacheKey,
 					);
 					renderingEngine.materialLoader.removeFromMaterialCache(
 						o.material.userData.cacheKey,
