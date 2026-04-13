@@ -132,6 +132,18 @@ export class SceneTreeManager implements IManager {
 							instanceTransformationData,
 						);
 
+						// Three.js Object3Ds can only have one parent. If the
+						// same GeometryData is referenced by multiple tree nodes,
+						// the cache returns the same mesh each time. Adding it to
+						// a second node silently removes it from the first. Clone
+						// only when this would happen (different existing parent).
+						if (
+							dataChild.parent !== null &&
+							dataChild.parent !== convertedObject
+						) {
+							dataChild = dataChild.clone() as typeof dataChild;
+						}
+
 						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
 						dataChild.userData.SDid = treeNodeData.id;
 						dataChild.userData.SDversion = treeNodeData.version;
