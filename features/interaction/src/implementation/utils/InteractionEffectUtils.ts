@@ -56,19 +56,10 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		} else {
 			if (!this.#viewport) return token;
 			const stringified = JSON.stringify(effect);
-			// Use getEffectTokens() (reflects _effectDefinitions) rather than
-			// outlineEffects[] (reflects _outlineManagers, which removeEffect never
-			// cleans up). This ensures addEffect is re-called when an effect was
-			// previously removed via postProcessing.removeEffect on empty OutlineManager.
-			const effectTokens =
-				this.#viewport.postProcessing.getEffectTokens();
-			const alreadyRegistered = Object.prototype.hasOwnProperty.call(
-				effectTokens,
-				stringified,
-			);
-			if (!alreadyRegistered) {
+			const postProcessingEffect =
+				this.#viewport.postProcessing.outlineEffects[stringified];
+			if (!postProcessingEffect)
 				this.#viewport.postProcessing.addEffect(effect, stringified);
-			}
 
 			this.#viewport.postProcessing.outlineEffects[
 				stringified
@@ -108,21 +99,9 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		removeEffect(node);
 
 		if (!this.#viewport) return;
-		const postProcessingEffect = this.#viewport.postProcessing
-			.outlineEffects[token] as any;
+		const postProcessingEffect =
+			this.#viewport.postProcessing.outlineEffects[token];
 
-		if (postProcessingEffect) {
-			const removed = postProcessingEffect.removeSelection(node);
-			const remaining = postProcessingEffect.selectedNodes().length;
-			if (remaining === 0) {
-				// The OutlineManager is empty. The SDK does not auto-remove the
-				// effect from _effectDefinitions, so getEffectTokens() would keep
-				// reporting it (and changeEffectPass rebuilds a no-op OutlineEffect
-				// on every frame). Explicitly remove it so the effect pipeline is
-				// truly clean. applyInteractionEffect checks getEffectTokens() so
-				// it will re-call addEffect next time.
-				this.#viewport.postProcessing.removeEffect(token);
-			}
-		}
+		if (postProcessingEffect) postProcessingEffect.removeSelection(node);
 	}
 }
