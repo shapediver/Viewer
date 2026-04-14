@@ -336,6 +336,21 @@ export class RectangleTransformTranslationHandler
 		const node = new TreeNode("RectangleTransformTranslationPlane");
 		node.addData(geometryData);
 		const interactionData = new InteractionData({drag: true, hover: true});
+
+		// use the plane centroid in world space
+		// so the drag always starts from the centre of the rectangle.
+		// centroid is already in current LS (localPoints are up-to-date),
+		// so a plain LS→WS transform via the parent matrix is sufficient.
+		interactionData.dragOrigin = vec3.add(
+			vec3.create(),
+			vec3.fromValues(
+				M[0] * centroid[0] + M[4] * centroid[1] + M[12],
+				M[1] * centroid[0] + M[5] * centroid[1] + M[13],
+				M[2] * centroid[0] + M[6] * centroid[1] + M[14],
+			),
+			normalOffset,
+		);
+
 		node.addData(interactionData);
 
 		sceneTree.root.addChild(node);

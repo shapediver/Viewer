@@ -107,6 +107,52 @@ export const ISelectionParameterJsonSchema = z.object({
 	props: ISelectionParameterPropsJsonSchema,
 });
 
+export const IDraggableObjectsJsonSchema = z
+	.array(
+		z.object({
+			nameFilter: z.string(),
+			restrictions: z.array(z.string()),
+			dragAnchors: z
+				.array(
+					z.object({
+						id: z.string(),
+						position: z.array(z.number()),
+						rotation: z
+							.object({
+								axis: z.array(z.number()),
+								angle: z.number(),
+							})
+							.nullable()
+							.optional(),
+					}),
+				)
+				.nullable()
+				.optional(),
+			dragOrigin: z.array(z.number()).nullable().optional(),
+		}),
+	)
+	.nullable()
+	.optional();
+
+export const IRestrictionsJsonSchema = z
+	.array(
+		z
+			.object({
+				id: z.string(),
+				type: z.string(),
+				rotation: z
+					.object({
+						axis: z.array(z.number()),
+						angle: z.number(),
+					})
+					.nullable()
+					.optional(),
+			})
+			.passthrough(),
+	)
+	.nullable()
+	.optional();
+
 export const IGumballTransformParameterPropsJsonSchema = z
 	.object({
 		enableRotation: optionalBoolean,
@@ -153,33 +199,8 @@ export const IGumballTransformParameterPropsJsonSchema = z
 		maximumSelection: z.number().nullable().optional(),
 		minimumSelection: z.number().nullable().optional(),
 		deselectOnEmpty: optionalBoolean,
-		objects: z
-			.array(
-				z.object({
-					nameFilter: z.string(),
-					restrictions: z.array(z.string()),
-				}),
-			)
-			.nullable()
-			.optional(),
-		restrictions: z
-			.array(
-				z
-					.object({
-						id: z.string(),
-						type: z.string(),
-						rotation: z
-							.object({
-								axis: z.array(z.number()),
-								angle: z.number(),
-							})
-							.nullable()
-							.optional(),
-					})
-					.passthrough(),
-			)
-			.nullable()
-			.optional(),
+		objects: IDraggableObjectsJsonSchema,
+		restrictions: IRestrictionsJsonSchema,
 	})
 	.merge(IGeneralInteractionParameterJsonSchema);
 
@@ -199,33 +220,8 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 		maximumSelection: z.number().nullable().optional(),
 		minimumSelection: z.number().nullable().optional(),
 		deselectOnEmpty: optionalBoolean,
-		objects: z
-			.array(
-				z.object({
-					nameFilter: z.string(),
-					restrictions: z.array(z.string()),
-				}),
-			)
-			.nullable()
-			.optional(),
-		restrictions: z
-			.array(
-				z
-					.object({
-						id: z.string(),
-						type: z.string(),
-						rotation: z
-							.object({
-								axis: z.array(z.number()),
-								angle: z.number(),
-							})
-							.nullable()
-							.optional(),
-					})
-					.passthrough(),
-			)
-			.nullable()
-			.optional(),
+		objects: IDraggableObjectsJsonSchema,
+		restrictions: IRestrictionsJsonSchema,
 		plane: z
 			.object({
 				id: z.string().optional(),
@@ -297,50 +293,8 @@ export const IDraggingParameterPropsJsonSchema = z
 	.object({
 		draggingColor: interactionEffectSchema.optional(),
 		availableColor: interactionEffectSchema.optional(),
-		objects: z
-			.array(
-				z.object({
-					nameFilter: z.string(),
-					restrictions: z.array(z.string()),
-					dragAnchors: z
-						.array(
-							z.object({
-								id: z.string(),
-								position: z.array(z.number()),
-								rotation: z
-									.object({
-										axis: z.array(z.number()),
-										angle: z.number(),
-									})
-									.nullable()
-									.optional(),
-							}),
-						)
-						.nullable()
-						.optional(),
-					dragOrigin: z.array(z.number()).nullable().optional(),
-				}),
-			)
-			.nullable()
-			.optional(),
-		restrictions: z
-			.array(
-				z
-					.object({
-						id: z.string(),
-						type: z.string(),
-						rotation: z
-							.object({
-								axis: z.array(z.number()),
-								angle: z.number(),
-							})
-							.nullable()
-							.optional(),
-					})
-					.passthrough(),
-			)
-			.nullable()
-			.optional(),
+		objects: IDraggableObjectsJsonSchema,
+		restrictions: IRestrictionsJsonSchema,
 	})
 	.merge(IGeneralInteractionParameterJsonSchema);
 

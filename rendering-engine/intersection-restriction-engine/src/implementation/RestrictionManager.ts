@@ -303,6 +303,13 @@ export class RestrictionManager implements IRestrictionManager {
 						restrictionResult = result;
 					}
 				}
+
+				// if there is a result for a geometry restriction,
+				// we prioritize this result over the other restrictions,
+				// as this always means it's within the radius
+				if (result.restriction instanceof GeometryRestriction) {
+					restrictionResult = result;
+				}
 			} else if (
 				result.restriction.priority ===
 				restrictionResult.restriction.priority

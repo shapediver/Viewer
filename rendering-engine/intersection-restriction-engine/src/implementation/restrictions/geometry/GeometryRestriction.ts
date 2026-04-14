@@ -57,6 +57,11 @@ export interface GeometryRestrictionProperties
 	 * If the restriction should snap to faces. (default: true)
 	 */
 	snapToFaces?: boolean;
+	/**
+	 * The radius in which the restriction should snap. (default: undefined)
+	 * Overrides the snapToVerticesRadius and snapToEdgesRadius if defined.
+	 */
+	radius?: number;
 }
 
 /**
@@ -94,6 +99,7 @@ export class GeometryRestriction
 	#lineIntersectionPercentage: number = 0.025;
 	#nodes: ITreeNode[] = [];
 	#pointIntersectionPercentage: number = 0.025;
+	#radius?: number;
 	#sceneBoundingSphereRadius: number = 0;
 	#settings: IVisualizationSettings;
 	#snapRestrictions: {[key: string]: ISnapRestriction} = {};
@@ -133,6 +139,7 @@ export class GeometryRestriction
 		this.#snapToFaces = properties.snapToFaces ?? true;
 		this.#snapToVerticesRadius = properties.snapToVerticesRadius;
 		this.#snapToEdgesRadius = properties.snapToEdgesRadius;
+		this.#radius = properties.radius;
 
 		this.#sceneBoundingSphereRadius =
 			sceneTree.root.boundingBox.boundingSphere.radius;
@@ -353,17 +360,17 @@ export class GeometryRestriction
 					const distanceA = this.checkDistance(
 						intersectionPointVec3,
 						vertexAVec3,
-						this.#snapToVerticesRadius,
+						this.#radius ?? this.#snapToVerticesRadius,
 					);
 					const distanceB = this.checkDistance(
 						intersectionPointVec3,
 						vertexBVec3,
-						this.#snapToVerticesRadius,
+						this.#radius ?? this.#snapToVerticesRadius,
 					);
 					const distanceC = this.checkDistance(
 						intersectionPointVec3,
 						vertexCVec3,
-						this.#snapToVerticesRadius,
+						this.#radius ?? this.#snapToVerticesRadius,
 					);
 
 					// part 1 - check if the intersection point is close to a vertex
@@ -430,17 +437,17 @@ export class GeometryRestriction
 					const distanceAB = this.checkDistance(
 						intersectionPointVec3,
 						closestPointOnEdgeAB,
-						this.#snapToEdgesRadius,
+						this.#radius ?? this.#snapToEdgesRadius,
 					);
 					const distanceBC = this.checkDistance(
 						intersectionPointVec3,
 						closestPointOnEdgeBC,
-						this.#snapToEdgesRadius,
+						this.#radius ?? this.#snapToEdgesRadius,
 					);
 					const distanceCA = this.checkDistance(
 						intersectionPointVec3,
 						closestPointOnEdgeCA,
-						this.#snapToEdgesRadius,
+						this.#radius ?? this.#snapToEdgesRadius,
 					);
 
 					// check if the intersection point is close to an edge
@@ -562,10 +569,13 @@ export class GeometryRestriction
 
 	private updateIntersectionThresholds(): void {
 		this.#rayCasterParams.Points.threshold =
+			this.#radius ??
 			this.#sceneBoundingSphereRadius * this.#pointIntersectionPercentage;
 		this.#rayCasterParams.Line.threshold =
+			this.#radius ??
 			this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
 		this.#rayCasterParams.Line2!.threshold =
+			this.#radius ??
 			this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
 	}
 

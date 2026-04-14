@@ -291,6 +291,13 @@ export class RectangleTransform
 		if (!this.#translationHandler) return;
 		const handler = this.#translationHandler;
 		queueMicrotask(() => {
+			// While translation is in progress, continuously cancel any hover
+			// that the DT interaction strategies may have established during
+			// this pointer-move cycle, so handles never appear highlighted.
+			if (handler.isDragging) {
+				this.#scalingHandler?.drawingTools.cancelDrag();
+				this.#rotationHandler?.drawingTools.cancelDrag();
+			}
 			const blocked =
 				this.#isDTDragging ||
 				(this.#scalingHandler?.drawingTools.isInteractionActive() ??
