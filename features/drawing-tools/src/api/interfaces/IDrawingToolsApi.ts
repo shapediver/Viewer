@@ -14,6 +14,10 @@ export interface IDrawingToolsApi {
 	 */
 	readonly closed: boolean;
 	/**
+	 * Check if the drawing tool is paused.
+	 */
+	readonly paused: boolean;
+	/**
 	 * The points data of the drawing tool.
 	 */
 	readonly pointsData: PointsData;
@@ -66,6 +70,15 @@ export interface IDrawingToolsApi {
 	 * Check if the drawing tool can undo the last action.
 	 */
 	canUndo(): boolean;
+	/**
+	 * Pause the drawing tool, suspending all user interactions while keeping the
+	 * current state. Call {@link continue} to resume.
+	 */
+	pause(): void;
+	/**
+	 * Resume the drawing tool after it has been paused.
+	 */
+	continue(): void;
 	/**
 	 * Cancel the drawing tool.
 	 */

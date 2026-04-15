@@ -627,6 +627,10 @@ export class RectangleTransform
 					this.#scalingHandler?.drawingTools.cancelDrag();
 					this.#rotationHandler?.drawingTools.cancelDrag();
 					this.#isDTDragging = false;
+					// Pause scaling/rotation drawing tools so their interaction
+					// handlers ignore any pointer events during translation.
+					this.#scalingHandler?.drawingTools.pause();
+					this.#rotationHandler?.drawingTools.pause();
 				},
 				(runningTrans) => {
 					// Rotation stays in parent matrix; translate on top of it.
@@ -647,6 +651,9 @@ export class RectangleTransform
 					this.#scalingHandler?.recompute(this.#localPoints, false);
 					this.#rotationHandler?.recompute(this.#localPoints, false);
 					this.calculateTransformationMatrix(this.#localPoints, true);
+					// Resume scaling/rotation drawing tools now that translation is done.
+					this.#scalingHandler?.drawingTools.continue();
+					this.#rotationHandler?.drawingTools.continue();
 				},
 			);
 		}

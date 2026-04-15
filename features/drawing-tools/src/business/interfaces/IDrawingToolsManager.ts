@@ -22,6 +22,7 @@ export enum MATERIAL_INDEX {
 
 export interface IDrawingToolsManager {
 	readonly closed: boolean;
+	readonly paused: boolean;
 	readonly restrictions: {[key: string]: IRestriction};
 	readonly uuid: string;
 
@@ -29,6 +30,8 @@ export interface IDrawingToolsManager {
 	showPointLabels: boolean;
 	showPointerPosition: boolean;
 
+	pause(): void;
+	continue(): void;
 	addPoint(
 		index: number,
 		position?: vec3,

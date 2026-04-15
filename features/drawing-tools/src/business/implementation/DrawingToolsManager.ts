@@ -61,6 +61,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	readonly #viewport: IViewportApi;
 
 	#closed: boolean = false;
+	#paused: boolean = false;
 	#continuousRenderingFlag?: string;
 	#uuid = this.#uuidGenerator.create();
 
@@ -150,6 +151,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public get closed(): boolean {
 		return this.#closed;
+	}
+
+	public get paused(): boolean {
+		return this.#paused;
 	}
 
 	public get defaultTextures(): DefaultTextures {
@@ -446,6 +451,17 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		return this.#historyManager.canUndo();
 	}
 
+	public pause(): void {
+		if (this.#closed || this.#paused) return;
+		this.#interactionManager.onOut();
+		this.#paused = true;
+	}
+
+	public continue(): void {
+		if (this.#closed) return;
+		this.#paused = false;
+	}
+
 	public cancel(): void {
 		if (this.#closed) return;
 		try {
@@ -519,7 +535,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onDown(event: PointerEvent, ray: IRay): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		this.#geometryMathManager.localToWorldMatrix =
 			this.#sceneParent.worldMatrix;
 		this.#interactionManager.onDown(
@@ -529,7 +545,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		if (!pointerInCanvas) return;
 
 		this.#keysPressed[event.key] = true;
@@ -556,12 +572,12 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		this.#keysPressed[event.key] = false;
 	}
 
 	public onMove(event: PointerEvent, ray: IRay): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		if (!this.#continuousRenderingFlag)
 			this.#continuousRenderingFlag = this.#viewport.addFlag(
 				FLAG_TYPE.CONTINUOUS_RENDERING,
@@ -575,7 +591,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onOut(): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		this.#interactionManager.onOut();
 		if (
 			this.#continuousRenderingFlag &&
@@ -587,7 +603,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onUp(event: PointerEvent): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		this.#interactionManager.onUp(event);
 	}
 
@@ -595,7 +611,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	 * Cancel any in-progress hover or drag interaction without closing the drawing tool.
 	 */
 	public cancelDrag(): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		this.#interactionManager.onOut();
 	}
 

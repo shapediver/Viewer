@@ -107,6 +107,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		return this.#drawingToolsManager.closed;
 	}
 
+	public get paused(): boolean {
+		return this.#drawingToolsManager.paused;
+	}
+
 	public get pointsData(): PointsData {
 		return this.#drawingToolsManager.getPointsData();
 	}
@@ -208,6 +212,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
 	public canUndo(): boolean {
 		return this.#drawingToolsManager.canUndo();
+	}
+
+	public pause(): void {
+		this.#drawingToolsManager.pause();
+	}
+
+	public continue(): void {
+		this.#drawingToolsManager.continue();
 	}
 
 	public cancel(): void {
