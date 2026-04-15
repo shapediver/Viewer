@@ -321,7 +321,13 @@ export class PostProcessingManager implements IManager {
 		}
 
 		// remove the effects where the tokens are not in the effectDefinitions
-		this._effects.forEach((e) => e.effect.dispose());
+		this._effects.forEach((e) => {
+			// Clear selection layer bits from meshes before disposing,
+			// otherwise stale layer bits remain on meshes and get picked up
+			// when layers are reused by newly created effects.
+			if (e.effect instanceof OutlineEffect) e.effect.selection.clear();
+			e.effect.dispose();
+		});
 		this._effects = [];
 
 		for (let i = 0; i < this._effectDefinitions.length; i++) {
@@ -1541,9 +1547,14 @@ export class PostProcessingManager implements IManager {
 			);
 
 		if (this._godRaysManagers[token]) delete this._godRaysManagers[token];
-		if (this._outlineManagers[token]) delete this._outlineManagers[token];
-		if (this._selectiveBloomManagers[token])
+		if (this._outlineManagers[token]) {
+			this._outlineManagers[token].clearSelection();
+			delete this._outlineManagers[token];
+		}
+		if (this._selectiveBloomManagers[token]) {
+			this._selectiveBloomManagers[token].clearSelection();
 			delete this._selectiveBloomManagers[token];
+		}
 
 		this.changeEffectPass();
 		return true;
