@@ -2,6 +2,7 @@ import {IViewportApi} from "@shapediver/viewer";
 import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
+import * as THREE from "three";
 import {
 	IRestriction,
 	RestrictionMetaData,
@@ -37,6 +38,14 @@ export interface LineRestrictionProperties extends RestrictionPropertiesBase {
 	 * The radius of the second point.
 	 */
 	point2Radius?: number;
+	/**
+	 * If the restriction should be displayed as a wireframe line.
+	 */
+	wireframe?: boolean;
+	/**
+	 * The color of the wireframe.
+	 */
+	wireframeColor?: string;
 }
 
 // #endregion Type aliases (1)
@@ -47,7 +56,7 @@ export class LineRestriction
 	extends AbstractRestriction
 	implements IRestriction
 {
-	// #region Properties (7)
+	// #region Properties (11)
 
 	readonly #viewport: IViewportApi;
 
@@ -58,9 +67,13 @@ export class LineRestriction
 	#point2: vec3;
 	#point2Restriction: PointRestriction | undefined;
 	#radius: number;
+	#settings: IVisualizationSettings;
 	#snapRestrictions: {[key: string]: ISnapRestriction} = {};
+	#visualizationObject: THREE.Object3D = new THREE.Object3D();
+	#wireframe: boolean;
+	#wireframeColor: string;
 
-	// #endregion Properties (7)
+	// #endregion Properties (11)
 
 	// #region Constructors (1)
 
@@ -78,6 +91,13 @@ export class LineRestriction
 		this.#point1 = properties.point1;
 		this.#point2 = properties.point2;
 		this.#radius = properties.radius || 0;
+		this.#settings = settings;
+		this.#wireframe = properties.wireframe ?? settings.wireframe ?? true;
+		this.#wireframeColor =
+			properties.wireframeColor ??
+			settings.wireframeColor ??
+			(settings.points.color_1 as string);
+
 		if (properties.point1Radius !== undefined) {
 			this.#point1Restriction = new PointRestriction(
 				viewport,
@@ -121,6 +141,37 @@ export class LineRestriction
 				),
 			),
 		};
+
+		if (this.#wireframe) {
+			const geometry = new THREE.BufferGeometry();
+			geometry.setAttribute(
+				"position",
+				new THREE.Float32BufferAttribute(
+					[
+						this.#point1[0],
+						this.#point1[1],
+						this.#point1[2],
+						this.#point2[0],
+						this.#point2[1],
+						this.#point2[2],
+					],
+					3,
+				),
+			);
+			const line = new THREE.Line(
+				geometry,
+				new THREE.LineBasicMaterial({
+					color: new THREE.Color(this.#wireframeColor),
+					depthTest: false,
+					depthWrite: false,
+					transparent: true,
+				}),
+			);
+			line.matrixAutoUpdate = false;
+			line.renderOrder = 100;
+			this.#visualizationObject.add(line);
+			this._object3D.add(this.#visualizationObject);
+		}
 	}
 
 	// #endregion Constructors (1)

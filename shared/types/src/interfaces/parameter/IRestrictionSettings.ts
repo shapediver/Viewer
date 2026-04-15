@@ -34,13 +34,17 @@ export interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
 
 	/** The name filter for the objects that can be dragged with the defined settings. */
 	nameFilter: string[];
+	/** If the restriction should be displayed as a wireframe line. */
+	wireframe?: boolean;
+	/** The color of the wireframe. */
+	wireframeColor?: string;
 	type: "geometry";
 
 	// #endregion Properties (2)
 }
 
 export interface ILineRestrictionDefinition extends IRestrictionDefinition {
-	// #region Properties (4)
+	// #region Properties (6)
 
 	/** The first point of the restriction. */
 	point1: number[];
@@ -49,8 +53,12 @@ export interface ILineRestrictionDefinition extends IRestrictionDefinition {
 	/** The radius of the restriction. */
 	radius: number;
 	type: "line";
+	/** If the restriction should be displayed as a wireframe line. */
+	wireframe?: boolean;
+	/** The color of the wireframe. */
+	wireframeColor?: string;
 
-	// #endregion Properties (4)
+	// #endregion Properties (6)
 }
 
 export interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
@@ -72,15 +80,19 @@ export interface IPlaneRestrictionDefinition extends IRestrictionDefinition {
 }
 
 export interface IPointRestrictionDefinition extends IRestrictionDefinition {
-	// #region Properties (3)
+	// #region Properties (5)
 
 	/** The point of the restriction. */
 	point: number[];
 	/** The radius of the restriction. */
 	radius: number;
 	type: "point";
+	/** If the restriction should be displayed as a wireframe point. */
+	wireframe?: boolean;
+	/** The color of the wireframe. */
+	wireframeColor?: string;
 
-	// #endregion Properties (3)
+	// #endregion Properties (5)
 }
 
 export interface IRestrictionDefinition {

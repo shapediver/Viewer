@@ -549,6 +549,32 @@ export class GeometryRestriction
 							line.matrix.copy(object.matrixWorld);
 							line.matrixAutoUpdate = false;
 							this.#visualizationObject.add(line);
+						} else if (object instanceof THREE.Line) {
+							const line = new THREE.Line(
+								object.geometry,
+								new THREE.LineBasicMaterial({
+									color: new THREE.Color(
+										this.#wireframeColor,
+									),
+								}),
+							);
+							line.matrix.copy(object.matrixWorld);
+							line.matrixAutoUpdate = false;
+							this.#visualizationObject.add(line);
+						} else if (object instanceof THREE.Points) {
+							const points = new THREE.Points(
+								object.geometry,
+								new THREE.PointsMaterial({
+									color: new THREE.Color(
+										this.#wireframeColor,
+									),
+									size: this.#settings.points.size_1,
+									sizeAttenuation: true,
+								}),
+							);
+							points.matrix.copy(object.matrixWorld);
+							points.matrixAutoUpdate = false;
+							this.#visualizationObject.add(points);
 						}
 					});
 				}
