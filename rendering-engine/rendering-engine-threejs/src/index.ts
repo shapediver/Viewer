@@ -41,6 +41,9 @@ import {
 	VignetteEffect,
 	VignetteTechnique,
 } from "postprocessing";
+import {GodRaysManager} from "./managers/postprocessing/GodRaysManager";
+import {OutlineManager} from "./managers/postprocessing/OutlineManager";
+import {SelectiveBloomManager} from "./managers/postprocessing/SelectiveBloomManager";
 
 export {
 	RenderingEngine,
@@ -64,16 +67,19 @@ export {
 	EffectComposer,
 	FXAAEffect,
 	GodRaysEffect,
+	GodRaysManager,
 	GridEffect,
 	HueSaturationEffect,
 	KernelSize,
 	NoiseEffect,
 	OutlineEffect,
+	OutlineManager,
 	PixelationEffect,
 	PredicationMode,
 	Resolution,
 	ScanlineEffect,
 	SelectiveBloomEffect,
+	SelectiveBloomManager,
 	SepiaEffect,
 	SMAAEffect,
 	SMAAPreset,

@@ -1539,6 +1539,12 @@ export class PostProcessingManager implements IManager {
 				this._effectDefinitions.indexOf(effectToRemove),
 				1,
 			);
+
+		if (this._godRaysManagers[token]) delete this._godRaysManagers[token];
+		if (this._outlineManagers[token]) delete this._outlineManagers[token];
+		if (this._selectiveBloomManagers[token])
+			delete this._selectiveBloomManagers[token];
+
 		this.changeEffectPass();
 		return true;
 	}

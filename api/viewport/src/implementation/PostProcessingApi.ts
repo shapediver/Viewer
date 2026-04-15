@@ -1,9 +1,11 @@
 import {
 	Effect,
 	EffectComposer,
+	GodRaysManager,
+	OutlineManager,
 	RenderingEngine as RenderingEngineThreeJs,
+	SelectiveBloomManager,
 } from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	ANTI_ALIASING_TECHNIQUE,
@@ -107,10 +109,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 	}
 
 	public get godRaysEffects(): {
-		[key: string]: {
-			setLightSource(node: ITreeNode): void;
-			removeLightSource(): void;
-		};
+		[key: string]: GodRaysManager;
 	} {
 		return this.#renderingEngine.postProcessingManager.godRaysManagers;
 	}
@@ -135,21 +134,13 @@ export class PostProcessingApi implements IPostProcessingApi {
 	}
 
 	public get outlineEffects(): {
-		[key: string]: {
-			addSelection(node: ITreeNode): void;
-			removeSelection(node: ITreeNode): boolean;
-			clearSelection(): void;
-		};
+		[key: string]: OutlineManager;
 	} {
 		return this.#renderingEngine.postProcessingManager.outlineManagers;
 	}
 
 	public get selectiveBloomEffects(): {
-		[key: string]: {
-			addSelection(node: ITreeNode): void;
-			removeSelection(node: ITreeNode): boolean;
-			clearSelection(): void;
-		};
+		[key: string]: SelectiveBloomManager;
 	} {
 		return this.#renderingEngine.postProcessingManager
 			.selectiveBloomManagers;

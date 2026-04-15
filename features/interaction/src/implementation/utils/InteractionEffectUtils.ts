@@ -102,6 +102,11 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		const postProcessingEffect =
 			this.#viewport.postProcessing.outlineEffects[token];
 
-		if (postProcessingEffect) postProcessingEffect.removeSelection(node);
+		if (postProcessingEffect) {
+			postProcessingEffect.removeSelection(node);
+			if (postProcessingEffect.selectedNodes().length === 0) {
+				this.#viewport.postProcessing.removeEffect(token);
+			}
+		}
 	}
 }

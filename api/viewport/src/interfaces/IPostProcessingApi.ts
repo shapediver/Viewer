@@ -1,8 +1,10 @@
 import {
 	Effect,
 	EffectComposer,
+	GodRaysManager,
+	OutlineManager,
+	SelectiveBloomManager,
 } from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	IBloomEffectDefinition,
@@ -81,20 +83,7 @@ export interface IPostProcessingApi {
 	 * @see removeEffect
 	 */
 	godRaysEffects: {
-		[key: string]: {
-			/**
-			 * Set the light source for the god ray effect.
-			 * This light source is the geometry on which the god ray effect is applied.
-			 *
-			 * @param node
-			 */
-			setLightSource(node: ITreeNode): void;
-
-			/**
-			 * Remove the currently set light source.
-			 */
-			removeLightSource(): void;
-		};
+		[key: string]: GodRaysManager;
 	};
 
 	/**
@@ -116,26 +105,7 @@ export interface IPostProcessingApi {
 	 * @see removeEffect
 	 */
 	outlineEffects: {
-		[key: string]: {
-			/**
-			 * Add a node to the selection for the outline effect.
-			 *
-			 * @param node
-			 */
-			addSelection(node: ITreeNode): void;
-
-			/**
-			 * Remove a node from the selection for the outline effect.
-			 *
-			 * @param node
-			 */
-			removeSelection(node: ITreeNode): boolean;
-
-			/**
-			 * Clear all currently selected nodes.
-			 */
-			clearSelection(): void;
-		};
+		[key: string]: OutlineManager;
 	};
 
 	/**
@@ -148,26 +118,7 @@ export interface IPostProcessingApi {
 	 * @see removeEffect
 	 */
 	selectiveBloomEffects: {
-		[key: string]: {
-			/**
-			 * Add a node to the selection for the selective bloom effect.
-			 *
-			 * @param node
-			 */
-			addSelection(node: ITreeNode): void;
-
-			/**
-			 * Remove a node from the selection for the selective bloom effect.
-			 *
-			 * @param node
-			 */
-			removeSelection(node: ITreeNode): boolean;
-
-			/**
-			 * Clear all currently selected nodes.
-			 */
-			clearSelection(): void;
-		};
+		[key: string]: SelectiveBloomManager;
 	};
 
 	/**
