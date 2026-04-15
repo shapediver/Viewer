@@ -339,10 +339,7 @@ export class SelectManager extends AbstractInteractionManager {
 			) {
 				// case same node was clicked, only deselect
 				this.deactivateNode(event);
-			} else if (
-				!filteredIntersections.some((i) => i !== null) &&
-				this.#deselectOnEmpty
-			) {
+			} else if (!firstIntersection && this.#deselectOnEmpty) {
 				// case no node was clicked, only deselect when option is on
 				this.deactivateNode(event);
 			}
