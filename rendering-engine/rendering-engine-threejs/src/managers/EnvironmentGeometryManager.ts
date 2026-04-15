@@ -205,24 +205,12 @@ export class EnvironmentGeometryManager implements IManager {
 	 * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic.
 	 */
 	private evaluateGridMeasurements(sceneExtents: number) {
-		let divisions = 0.1;
-		let gridExtents = 1.0;
-		if (sceneExtents > 1) {
-			const tmp = Math.floor(sceneExtents).toString();
-			let temp = Math.pow(10, tmp.length - 1);
-			gridExtents = Math.max(Math.ceil(sceneExtents / temp) * temp, 1);
-			temp = temp / 10;
-			divisions = gridExtents / temp;
-		} else if (sceneExtents !== 0) {
-			const zeros =
-				1 - Math.floor(Math.log(sceneExtents) / Math.log(10)) - 2;
-			const r = sceneExtents.toFixed(zeros + 1);
-			const firstDigit = parseInt(r.substr(r.length - 1)) + 1;
-			let gridExtentsS = "0.";
-			for (let i = 0; i < zeros; ++i) gridExtentsS = gridExtentsS + "0";
-			gridExtents = parseFloat(gridExtentsS + firstDigit);
-			divisions = firstDigit * 10;
-		}
+		if (sceneExtents === 0) return {divisions: 0.1, gridExtents: 1.0};
+
+		const exponent = Math.floor(Math.log10(sceneExtents));
+		const temp = Math.pow(10, exponent);
+		const gridExtents = Math.ceil(sceneExtents / temp) * temp;
+		const divisions = gridExtents / (temp / 10);
 
 		return {divisions, gridExtents};
 	}
