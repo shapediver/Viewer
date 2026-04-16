@@ -28,6 +28,6 @@
 		"testEnvironment": "jsdom"
 	},
 	"devDependencies": {
-		"chromedriver": "145.0.1"
+		"chromedriver": "147.0.3"
 	}
 }
