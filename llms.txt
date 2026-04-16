@@ -1,9 +1,9 @@
-﻿# ShapeDiver Viewer
+# ShapeDiver Viewer
 
 The ShapeDiver Viewer is a comprehensive 3D visualization library built with TypeScript and WebGL. This is the main repository for the ShapeDiver Viewer, which produces the `@shapediver/viewer` npm package and its feature extensions.
 
-**Current Version**: 3.15.10
-**Generated**: 2026-02-27
+**Current Version**: 3.16.0-rc.58
+**Generated**: 2026-04-16
 
 ## Project Overview
 
@@ -18,32 +18,32 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
 ## Published NPM Packages
 
 ### Core Package
-- `@shapediver/viewer` (v3.15.10) - Complete API combining both viewport and session functionality
+- `@shapediver/viewer` (v3.16.0-rc.58) - Complete API combining both viewport and session functionality
   - **Combined Package** - Includes both IViewportApi and ISessionApi in one package
   - **Full Integration** - Use createViewport() and createSession() together
   - **Recommended** - Best choice for most applications requiring 3D visualization with ShapeDiver backend
 
 ### Specialized Core Packages
-- `@shapediver/viewer.session` (v3.15.10) - Session-only API for headless usage (server-side, Node.js applications)
+- `@shapediver/viewer.session` (v3.16.0-rc.58) - Session-only API for headless usage (server-side, Node.js applications)
   - **Server-Side Operations** - Run without browser/DOM dependencies
   - **Batch Processing** - Process multiple models programmatically
   - **API Integration** - Integrate ShapeDiver models into web services
   - **Export Automation** - Automated model generation and export workflows
-- `@shapediver/viewer.viewport` (v3.15.10) - Viewport-only API for hydra usage (rendering without ShapeDiver backend)
+- `@shapediver/viewer.viewport` (v3.16.0-rc.58) - Viewport-only API for hydra usage (rendering without ShapeDiver backend)
   - **External 3D Content** - Render GLTF and other formats
   - **Custom Rendering** - Use Three.js viewport without ShapeDiver backend
   - **Lightweight Integration** - Minimal dependencies for pure rendering
   - **Local Content** - Display locally stored or generated 3D models
 
 ### Feature Packages (Optional Add-ons)
-- `@shapediver/viewer.features.attribute-visualization` (v3.15.10) - attribute visualization features
+- `@shapediver/viewer.features.attribute-visualization` (v3.16.0-rc.58) - attribute visualization features
   - [Help Documentation](https://help.shapediver.com/doc/attribute-visualization)
-- `@shapediver/viewer.features.drawing-tools` (v3.15.10) - Drawing Tools feature
+- `@shapediver/viewer.features.drawing-tools` (v3.16.0-rc.58) - Drawing Tools feature
   - [Help Documentation](https://help.shapediver.com/doc/drawing-tools)
-- `@shapediver/viewer.features.gumballTransform` (v3.15.10) - GumballTransform feature
-  - [Help Documentation](https://help.shapediver.com/doc/gumballTransform)
-- `@shapediver/viewer.features.interaction` (v3.15.10) - interaction features
+- `@shapediver/viewer.features.interaction` (v3.16.0-rc.58) - interaction features
   - [Help Documentation](https://help.shapediver.com/doc/interactions-part-1)
+- `@shapediver/viewer.features.transformation-tools` (v3.16.0-rc.58) - Transformation Tools features
+  - [Help Documentation](https://help.shapediver.com/doc/transformation-tools)
 
 ## Documentation Links
 
@@ -82,11 +82,12 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
 - **ISelectionParameterApi** - Manage selection-based parameters with multiple choice options
 - **IDraggingParameterApi** - Support drag-and-drop interactions for 3D parameter control
 - **IDrawingParameterApi** - Enable drawing-based parameter input (lines, shapes, annotations)
-- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation
+- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation (translate, rotate, scale in world or local space)
+- **IRectangleTransformParameterApi** - 2D rectangular handle for object manipulation on a defined plane (translate, rotate, scale)
 - **IInteractionParameterApi** - General interaction-based parameter handling
 
 #### Sub-APIs for Advanced Control
-- **ICameraApi** - Camera positioning, movement, and projection settings
+- **ICameraApi** - Camera positioning, movement, and projection settings; supports new `initialAutoAdjust` option to automatically fit the camera to the scene on first load
 - **ILightApi** - Individual light control (ambient, directional, point, spot, hemisphere)
 - **ILightSceneApi** - Manage entire lighting setup and environment
 - **IPostProcessingApi** - Visual effects pipeline (bloom, depth of field, anti-aliasing, etc.)
@@ -100,6 +101,8 @@ The ShapeDiver Viewer is a powerful 3D visualization library that integrates wit
 #### Event System & Error Handling
 - **EVENTTYPE Constants** - Comprehensive event handling for user interactions
 - **Custom Events** - Scene updates, parameter changes, export completion
+- **EVENTTYPE_SESSION.SESSION_ERROR** - New event fired when a session-level error occurs; payload is `ISessionErrorEvent` which includes the originating `Error` object
+- **EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED** - Fired when a GumballTransform or RectangleTransform movement ends; payload includes `id`, `type`, `nodes`, and `transformations`
 - **Structured Errors** - Type-safe error handling with specific error types
 - **Type Guards** - Runtime type checking (isViewerError, isViewerSessionError, isViewerViewportError)
 
@@ -119,7 +122,7 @@ import { isViewerError, isViewerSessionError, isViewerViewportError } from "@sha
 import { createDrawingTools } from "@shapediver/viewer.features.drawing-tools";
 import { InteractionEngine, SelectManager, DragManager } from "@shapediver/viewer.features.interaction";
 import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
-import { GumballTransform } from "@shapediver/viewer.features.gumballTransform";
+import { GumballTransform, RectangleTransform } from "@shapediver/viewer.features.transformation-tools";
 ```
 
 ### 3D Rendering
@@ -253,8 +256,8 @@ npm install @shapediver/viewer.viewport
 # Install only the features you need
 npm install @shapediver/viewer.features.attribute-visualization
 npm install @shapediver/viewer.features.drawing-tools
-npm install @shapediver/viewer.features.gumballTransform
 npm install @shapediver/viewer.features.interaction
+npm install @shapediver/viewer.features.transformation-tools
 ```
 
 ### Complete Installation
@@ -263,8 +266,8 @@ npm install @shapediver/viewer.features.interaction
 npm install @shapediver/viewer \
             @shapediver/viewer.features.attribute-visualization \
             @shapediver/viewer.features.drawing-tools \
-            @shapediver/viewer.features.gumballTransform \
-            @shapediver/viewer.features.interaction
+            @shapediver/viewer.features.interaction \
+            @shapediver/viewer.features.transformation-tools
 ```
 
 ## Example Integrations
@@ -284,7 +287,7 @@ Based on the current examples in the repository:
 
 ### cdn
 - **Setup**: Basic example
-- **Features Used**: attribute-visualization, drawing-tools, gumballTransform, interaction
+- **Features Used**: attribute-visualization, drawing-tools, interaction, transformation-tools
 
 ### doc-version
 - **Setup**: Basic example
@@ -317,7 +320,7 @@ The viewer integrates seamlessly with the ShapeDiver platform:
 - **Ticket System**: Uses tickets for secure model access
 - **Model View URLs**: Points to ShapeDiver backend servers (e.g., `https://sdr8euc1.eu-central-1.shapediver.com`)
 - **Grasshopper Integration**: Direct connection to Grasshopper definitions
-- **App Builder**: Some features like GumballTransform are integrated with ShapeDiver App Builder
+- **App Builder**: Features like GumballTransform and RectangleTransform are integrated with ShapeDiver App Builder
 - **Platform Features**: Attribute visualization is already implemented on [shapediver.com/app](https://shapediver.com/app)
 
 ## Getting Started
@@ -329,4 +332,4 @@ For complete API documentation and interactive examples, visit:
 
 ---
 
-*This file was auto-generated on 2026-02-27 from repository analysis.*
+*This file was auto-generated on 2026-04-16 from repository analysis.*
