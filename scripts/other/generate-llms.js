@@ -1,6 +1,4 @@
-﻿#!/usr/bin/env node
-
-/**
+﻿/**
  * Auto-generate llms.txt for the ShapeDiver Viewer repository
  * This script is designed to run during the publishing process
  */
