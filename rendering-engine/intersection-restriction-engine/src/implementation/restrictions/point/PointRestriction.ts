@@ -46,9 +46,13 @@ export interface PointRestrictionProperties extends RestrictionPropertiesBase {
 	 */
 	wireframeColor?: string;
 	/**
+	 * If the wireframe should be rendered with depth test. (default: false)
+	 */
+	wireframeDepthTest?: boolean;
+	/**
 	 * The size of the wireframe point.
 	 */
-	wireframeSize?: number;
+	wireframePointSize?: number;
 }
 
 // #endregion Type aliases (1)
@@ -70,7 +74,8 @@ export class PointRestriction
 	#visualizationObject: THREE.Object3D = new THREE.Object3D();
 	#wireframe: boolean;
 	#wireframeColor: string;
-	#wireframeSize: number = 1;
+	#wireframeDepthTest: boolean;
+	#wireframePointSize: number = 1;
 
 	// #endregion Properties (8)
 
@@ -95,7 +100,10 @@ export class PointRestriction
 			properties.wireframeColor ??
 			settings.wireframeColor ??
 			(settings.points.color_1 as string);
-		this.#wireframeSize = properties.wireframeSize ?? 15;
+		this.#wireframePointSize = properties.wireframePointSize
+			? properties.wireframePointSize * this.#viewport.pointSize
+			: 10 * this.#viewport.pointSize;
+		this.#wireframeDepthTest = properties.wireframeDepthTest ?? false;
 
 		if (this.#wireframe) {
 			const geometry = new THREE.BufferGeometry();
@@ -108,14 +116,14 @@ export class PointRestriction
 			);
 
 			const height = this.#viewport.canvas.height;
-			const pointSize = this.#wireframeSize * (height / 1080);
+			const pointSize = this.#wireframePointSize * (height / 1080);
 
 			const material = new THREE.PointsMaterial({
 				color: new THREE.Color(this.#wireframeColor),
 				size: pointSize,
 				sizeAttenuation: false,
-				depthTest: false,
-				depthWrite: false,
+				depthTest: this.#wireframeDepthTest,
+				depthWrite: !this.#wireframeDepthTest,
 				transparent: true,
 				...(pointTexture instanceof THREE.Texture
 					? {map: pointTexture}

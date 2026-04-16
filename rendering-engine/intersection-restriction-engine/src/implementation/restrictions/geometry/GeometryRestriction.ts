@@ -1,10 +1,11 @@
-import {IViewportApi, sceneTree} from "@shapediver/viewer";
+import {IViewportApi, MaterialEngine, sceneTree} from "@shapediver/viewer";
 import {SDObject} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs/dist/objects/SDObject";
 import {Box} from "@shapediver/viewer.shared.math";
 import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	IGeometryData,
+	IMapData,
 	IRay,
 	ISceneEvent,
 	IVisualizationSettings,
@@ -21,6 +22,16 @@ import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 
+let pointTexture: Promise<THREE.Texture> | THREE.Texture =
+	MaterialEngine.instance
+		.loadMap("https://viewer.shapediver.com/v3/graphics/point_soft.png")
+		.then((mapData: IMapData | undefined) => {
+			pointTexture = new THREE.Texture(
+				mapData!.image as HTMLImageElement,
+			);
+			pointTexture.needsUpdate = true;
+			return pointTexture;
+		});
 // #region Type aliases (1)
 
 export interface GeometryRestrictionProperties
@@ -37,6 +48,14 @@ export interface GeometryRestrictionProperties
 	 * The color of the wireframe.
 	 */
 	wireframeColor?: string;
+	/**
+	 * If the wireframe should be rendered with depth test. (default: false)
+	 */
+	wireframeDepthTest?: boolean;
+	/**
+	 * The point size of the wireframe if the geometry contains points. (default: as defined in the viewport settings)
+	 */
+	wireframePointSize?: number;
 	/**
 	 * If the restriction should snap to vertices. (default: true)
 	 */
@@ -111,6 +130,8 @@ export class GeometryRestriction
 	#visualizationObject: THREE.Object3D = new THREE.Object3D();
 	#wireframe: boolean;
 	#wireframeColor: string;
+	#wireframeDepthTest: boolean;
+	#wireframePointSize: number;
 
 	// #endregion Properties (17)
 
@@ -134,6 +155,10 @@ export class GeometryRestriction
 			properties.wireframeColor ??
 			this.#settings.wireframeColor ??
 			(this.#settings.points.color_1 as string);
+		this.#wireframePointSize = properties.wireframePointSize
+			? properties.wireframePointSize * this.#viewport.pointSize
+			: 10 * this.#viewport.pointSize;
+		this.#wireframeDepthTest = properties.wireframeDepthTest ?? true;
 		this.#snapToVertices = properties.snapToVertices ?? true;
 		this.#snapToEdges = properties.snapToEdges ?? true;
 		this.#snapToFaces = properties.snapToFaces ?? true;
@@ -544,9 +569,12 @@ export class GeometryRestriction
 									color: new THREE.Color(
 										this.#wireframeColor,
 									),
+									depthTest: this.#wireframeDepthTest,
+									depthWrite: !this.#wireframeDepthTest,
 								}),
 							);
 							line.matrix.copy(object.matrixWorld);
+							line.renderOrder = 100;
 							line.matrixAutoUpdate = false;
 							this.#visualizationObject.add(line);
 						} else if (object instanceof THREE.Line) {
@@ -556,23 +584,36 @@ export class GeometryRestriction
 									color: new THREE.Color(
 										this.#wireframeColor,
 									),
+									depthTest: this.#wireframeDepthTest,
+									depthWrite: !this.#wireframeDepthTest,
 								}),
 							);
 							line.matrix.copy(object.matrixWorld);
+							line.renderOrder = 100;
 							line.matrixAutoUpdate = false;
 							this.#visualizationObject.add(line);
 						} else if (object instanceof THREE.Points) {
+							const height = this.#viewport.canvas.height;
+							const pointSize =
+								this.#wireframePointSize * (height / 1080);
 							const points = new THREE.Points(
 								object.geometry,
 								new THREE.PointsMaterial({
 									color: new THREE.Color(
 										this.#wireframeColor,
 									),
-									size: this.#settings.points.size_1,
-									sizeAttenuation: true,
+									size: pointSize,
+									sizeAttenuation: false,
+									depthTest: this.#wireframeDepthTest,
+									depthWrite: !this.#wireframeDepthTest,
+									transparent: true,
+									...(pointTexture instanceof THREE.Texture
+										? {map: pointTexture}
+										: {}),
 								}),
 							);
 							points.matrix.copy(object.matrixWorld);
+							points.renderOrder = 100;
 							points.matrixAutoUpdate = false;
 							this.#visualizationObject.add(points);
 						}

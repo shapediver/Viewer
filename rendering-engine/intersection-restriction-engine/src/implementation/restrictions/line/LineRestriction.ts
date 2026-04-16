@@ -46,6 +46,10 @@ export interface LineRestrictionProperties extends RestrictionPropertiesBase {
 	 * The color of the wireframe.
 	 */
 	wireframeColor?: string;
+	/**
+	 * If the wireframe should be rendered with depth test. (default: false)
+	 */
+	wireframeDepthTest?: boolean;
 }
 
 // #endregion Type aliases (1)
@@ -72,7 +76,7 @@ export class LineRestriction
 	#visualizationObject: THREE.Object3D = new THREE.Object3D();
 	#wireframe: boolean;
 	#wireframeColor: string;
-
+	#wireframeDepthTest: boolean;
 	// #endregion Properties (11)
 
 	// #region Constructors (1)
@@ -97,6 +101,7 @@ export class LineRestriction
 			properties.wireframeColor ??
 			settings.wireframeColor ??
 			(settings.points.color_1 as string);
+		this.#wireframeDepthTest = properties.wireframeDepthTest ?? false;
 
 		if (properties.point1Radius !== undefined) {
 			this.#point1Restriction = new PointRestriction(
@@ -109,6 +114,9 @@ export class LineRestriction
 					type: RESTRICTION_TYPE.POINT,
 					point: properties.point1,
 					radius: properties.point1Radius,
+					wireframe: properties.wireframe,
+					wireframeColor: properties.wireframeColor,
+					wireframeDepthTest: properties.wireframeDepthTest,
 				},
 			);
 		}
@@ -123,6 +131,9 @@ export class LineRestriction
 					type: RESTRICTION_TYPE.POINT,
 					point: properties.point2,
 					radius: properties.point2Radius,
+					wireframe: properties.wireframe,
+					wireframeColor: properties.wireframeColor,
+					wireframeDepthTest: properties.wireframeDepthTest,
 				},
 			);
 		}
@@ -162,9 +173,8 @@ export class LineRestriction
 				geometry,
 				new THREE.LineBasicMaterial({
 					color: new THREE.Color(this.#wireframeColor),
-					depthTest: false,
-					depthWrite: false,
-					transparent: true,
+					depthTest: this.#wireframeDepthTest,
+					depthWrite: !this.#wireframeDepthTest,
 				}),
 			);
 			line.matrixAutoUpdate = false;
