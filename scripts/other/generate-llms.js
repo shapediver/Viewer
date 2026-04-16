@@ -50,7 +50,7 @@ class LLMSGenerator {
 			"features/drawing-tools/package.json",
 			"features/interaction/package.json",
 			"features/attribute-visualization/package.json",
-			"features/gumballTransform/package.json",
+			"features/transformation-tools/package.json",
 		];
 
 		for (const pkgPath of packageJsonPaths) {
@@ -254,11 +254,12 @@ ${this.features
 - **ISelectionParameterApi** - Manage selection-based parameters with multiple choice options
 - **IDraggingParameterApi** - Support drag-and-drop interactions for 3D parameter control
 - **IDrawingParameterApi** - Enable drawing-based parameter input (lines, shapes, annotations)
-- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation
+- **IGumballTransformParameterApi** - 3D transformation gizmo for object manipulation (translate, rotate, scale in world or local space)
+- **IRectangleTransformParameterApi** - 2D rectangular handle for object manipulation on a defined plane (translate, rotate, scale)
 - **IInteractionParameterApi** - General interaction-based parameter handling
 
 #### Sub-APIs for Advanced Control
-- **ICameraApi** - Camera positioning, movement, and projection settings
+- **ICameraApi** - Camera positioning, movement, and projection settings; supports new \`initialAutoAdjust\` option to automatically fit the camera to the scene on first load
 - **ILightApi** - Individual light control (ambient, directional, point, spot, hemisphere)
 - **ILightSceneApi** - Manage entire lighting setup and environment
 - **IPostProcessingApi** - Visual effects pipeline (bloom, depth of field, anti-aliasing, etc.)
@@ -272,6 +273,8 @@ ${this.features
 #### Event System & Error Handling
 - **EVENTTYPE Constants** - Comprehensive event handling for user interactions
 - **Custom Events** - Scene updates, parameter changes, export completion
+- **EVENTTYPE_SESSION.SESSION_ERROR** - New event fired when a session-level error occurs; payload is \`ISessionErrorEvent\` which includes the originating \`Error\` object
+- **EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED** - Fired when a GumballTransform or RectangleTransform movement ends; payload includes \`id\`, \`type\`, \`nodes\`, and \`transformations\`
 - **Structured Errors** - Type-safe error handling with specific error types
 - **Type Guards** - Runtime type checking (isViewerError, isViewerSessionError, isViewerViewportError)
 
@@ -291,7 +294,7 @@ import { isViewerError, isViewerSessionError, isViewerViewportError } from "@sha
 import { createDrawingTools } from "@shapediver/viewer.features.drawing-tools";
 import { InteractionEngine, SelectManager, DragManager } from "@shapediver/viewer.features.interaction";
 import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
-import { GumballTransform } from "@shapediver/viewer.features.gumballTransform";
+import { GumballTransform, RectangleTransform } from "@shapediver/viewer.features.transformation-tools";
 \`\`\`
 
 ### 3D Rendering
@@ -479,7 +482,7 @@ The viewer integrates seamlessly with the ShapeDiver platform:
 - **Ticket System**: Uses tickets for secure model access
 - **Model View URLs**: Points to ShapeDiver backend servers (e.g., \`https://sdr8euc1.eu-central-1.shapediver.com\`)
 - **Grasshopper Integration**: Direct connection to Grasshopper definitions
-- **App Builder**: Some features like GumballTransform are integrated with ShapeDiver App Builder
+- **App Builder**: Features like GumballTransform and RectangleTransform are integrated with ShapeDiver App Builder
 - **Platform Features**: Attribute visualization is already implemented on [shapediver.com/app](https://shapediver.com/app)
 
 ## Getting Started
