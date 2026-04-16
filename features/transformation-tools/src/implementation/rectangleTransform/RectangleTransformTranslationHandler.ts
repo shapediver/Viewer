@@ -52,6 +52,7 @@ export class RectangleTransformTranslationHandler
 	#node!: ITreeNode;
 	#previousNode: ITreeNode | undefined;
 	#planeRestrictionToken: string | undefined;
+	#restrictions: RestrictionProperties[] | undefined;
 
 	constructor(
 		viewport: IViewportApi,
@@ -88,6 +89,7 @@ export class RectangleTransformTranslationHandler
 			this.currentPlaneRestriction(getLocalPoints()),
 		);
 
+		this.#restrictions = restrictions;
 		// add all other restrictions (e.g. snapping) configured for this handler
 		if (restrictions && restrictions.length > 0) {
 			restrictions.forEach((restriction) => {
@@ -337,19 +339,21 @@ export class RectangleTransformTranslationHandler
 		node.addData(geometryData);
 		const interactionData = new InteractionData({drag: true, hover: true});
 
-		// use the plane centroid in world space
-		// so the drag always starts from the centre of the rectangle.
-		// centroid is already in current LS (localPoints are up-to-date),
-		// so a plain LS→WS transform via the parent matrix is sufficient.
-		interactionData.dragOrigin = vec3.add(
-			vec3.create(),
-			vec3.fromValues(
-				M[0] * centroid[0] + M[4] * centroid[1] + M[12],
-				M[1] * centroid[0] + M[5] * centroid[1] + M[13],
-				M[2] * centroid[0] + M[6] * centroid[1] + M[14],
-			),
-			normalOffset,
-		);
+		if (this.#restrictions && this.#restrictions.length > 0) {
+			// use the plane centroid in world space
+			// so the drag always starts from the centre of the rectangle.
+			// centroid is already in current LS (localPoints are up-to-date),
+			// so a plain LS→WS transform via the parent matrix is sufficient.
+			interactionData.dragOrigin = vec3.add(
+				vec3.create(),
+				vec3.fromValues(
+					M[0] * centroid[0] + M[4] * centroid[1] + M[12],
+					M[1] * centroid[0] + M[5] * centroid[1] + M[13],
+					M[2] * centroid[0] + M[6] * centroid[1] + M[14],
+				),
+				normalOffset,
+			);
+		}
 
 		node.addData(interactionData);
 
