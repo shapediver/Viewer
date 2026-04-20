@@ -38,7 +38,7 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.1.0",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.3.2",
 		"@shapediver/sdk.sdtf-v1": "1.7.0",
 		"gl-matrix": "3.3.0",
 		"zod": "3.23.8"
