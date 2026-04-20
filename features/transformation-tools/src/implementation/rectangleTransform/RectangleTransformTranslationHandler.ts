@@ -74,20 +74,12 @@ export class RectangleTransformTranslationHandler
 		this.#onMove = onMove;
 		this.#onCommit = onCommit;
 
-		// Create the invisible draggable plane mesh covering the bounding rectangle
-		this.createPlaneNode(getLocalPoints());
-
 		// Set up the interaction engine with a hover + plane-restricted drag manager
 		this.#interactionEngine = new InteractionEngine(viewport);
 		this.#hoverManager = new HoverManager();
 		this.#dragManager = new DragManager();
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
-
-		// Add the initial plane restriction from the parentNode's current world matrix.
-		this.#planeRestrictionToken = this.#dragManager.addRestriction(
-			this.currentPlaneRestriction(getLocalPoints()),
-		);
 
 		this.#restrictions = restrictions;
 		// add all other restrictions (e.g. snapping) configured for this handler
@@ -96,6 +88,14 @@ export class RectangleTransformTranslationHandler
 				this.#dragManager.addRestriction(restriction);
 			});
 		}
+
+		// Add the initial plane restriction from the parentNode's current world matrix.
+		this.#planeRestrictionToken = this.#dragManager.addRestriction(
+			this.currentPlaneRestriction(getLocalPoints()),
+		);
+
+		// Create the invisible draggable plane mesh covering the bounding rectangle
+		this.createPlaneNode(getLocalPoints());
 
 		// Snapshot local points at drag start so all DRAG_MOVE deltas are
 		// computed relative to the committed state at the beginning of the drag
