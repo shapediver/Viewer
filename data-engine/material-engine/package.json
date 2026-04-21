@@ -38,7 +38,7 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.3.2",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.0",
 		"@shapediver/viewer.data-engine.shared-types": "3.16.2",
 		"@shapediver/viewer.shared.node-tree": "3.16.2",
 		"@shapediver/viewer.shared.services": "3.16.2",
