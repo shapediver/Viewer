@@ -39,7 +39,7 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.0",
-		"@shapediver/sdk.sdtf-v1": "1.7.0",
+		"@shapediver/sdk.sdtf-v1": "1.7.1",
 		"gl-matrix": "3.3.0",
 		"zod": "3.23.8"
 	},
