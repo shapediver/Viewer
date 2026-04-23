@@ -525,6 +525,24 @@ export class RectangleTransform
 			0,
 		);
 
+		// Clamp the initial bounding box up to uMin/vMin so the DT is never
+		// created in a constraint-violating state
+		// this can happen due to user error or floating point precision issues
+		const scalingCfg = this.settings?.scaling;
+		const SIZE_CONSTRAINT_EPSILON = 1e-5;
+		if (scalingCfg?.uMin != null && max[0] - min[0] < scalingCfg.uMin) {
+			const center = (min[0] + max[0]) / 2;
+			const half = scalingCfg.uMin / 2 - SIZE_CONSTRAINT_EPSILON;
+			min[0] = center - half;
+			max[0] = center + half;
+		}
+		if (scalingCfg?.vMin != null && max[1] - min[1] < scalingCfg.vMin) {
+			const center = (min[1] + max[1]) / 2;
+			const half = scalingCfg.vMin / 2 + SIZE_CONSTRAINT_EPSILON;
+			min[1] = center - half;
+			max[1] = center + half;
+		}
+
 		// Build the full 8-point conceptual array (corners + mids)
 		const initPoints: vec3[] = [
 			vec3.fromValues(min[0], min[1], 0), // C0

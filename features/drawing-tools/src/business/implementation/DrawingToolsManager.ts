@@ -316,6 +316,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			}
 
 			// now we check if our new point position would violate the size constraints and if yes, we clamp it to the valid range
+			// Tolerance for floating-point precision
+			const SIZE_CONSTRAINT_EPSILON = 1e-5;
 			const sizeAxes = ["x", "y", "z"] as const;
 			// The committed (pre-drag) position of the moving point, used to detect
 			// when an edge control has crossed to the other side of the opposite edge.
@@ -338,7 +340,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				if (
 					maxSize !== undefined &&
 					isFinite(maxSize) &&
-					newExtent > maxSize
+					newExtent > maxSize + SIZE_CONSTRAINT_EPSILON
 				) {
 					if (result[i] <= min[i]) result[i] = max[i] - maxSize;
 					else result[i] = min[i] + maxSize;
@@ -348,7 +350,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				if (
 					minSize !== undefined &&
 					isFinite(minSize) &&
-					newExtent < minSize
+					newExtent < minSize - SIZE_CONSTRAINT_EPSILON
 				) {
 					if (result[i] >= max[i]) {
 						if (
