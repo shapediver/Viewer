@@ -630,10 +630,33 @@ export abstract class TransformationToolsManager
 					);
 				}
 
-				threeJsObject.matrixAutoUpdate = false;
-				threeJsObject.matrix.copy(
-					new THREE.Matrix4().fromArray(matrix),
+				// `matrix` is now the new matrixId value — what updateObjectMatrices
+				// would commit. The Three.js SDObject's matrix must equal the full
+				// nodeMatrix that a scene-tree rebuild would produce:
+				//   nodeMatrix = [other transforms] × matrixId
+				// Since matrixId is always the last transformation appended to
+				// node.transformations, we recover [other transforms] by dividing out
+				// the currently-committed matrixId:
+				//   desired = node.nodeMatrix × inv(committedMatrixId) × matrix
+				// This preserves any transforms higher up in the node's transformation
+				// list (e.g. a scale/rotation applied by a parent node) that are baked
+				// into nodeMatrix but absent from `matrix` alone.
+				const committedTransform = node.transformations.find(
+					(t) => t.id === this.#matrixId,
 				);
+				const committedMatrix = committedTransform
+					? new THREE.Matrix4().fromArray(committedTransform.matrix)
+					: new THREE.Matrix4();
+				const nodeMatrixM4 = new THREE.Matrix4().fromArray(
+					node.nodeMatrix,
+				);
+				const newMatrixM4 = new THREE.Matrix4().fromArray(matrix);
+				const m4 = nodeMatrixM4
+					.multiply(committedMatrix.invert())
+					.multiply(newMatrixM4);
+
+				threeJsObject.matrixAutoUpdate = false;
+				threeJsObject.matrix.copy(m4);
 				threeJsObject.matrixWorldNeedsUpdate = true;
 			}
 		});
