@@ -1,6 +1,7 @@
 import {IRay} from "@shapediver/viewer.features.interaction";
 import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
+import {IEdgeControl} from "../../../../interfaces/controls/IEdgeControl";
 import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
@@ -89,6 +90,23 @@ export class MidPointInteractionHandler {
 			if (lineDistances) {
 				let firstIndex = lineDistances[0].index[0];
 				let secondIndex = lineDistances[0].index[1];
+
+				// Skip edges that already have an edge control defined
+				const controls = this.#drawingToolsManager.settings.controls;
+				if (controls) {
+					const hasEdgeControl = controls.some(
+						(c) =>
+							c.type === "edge" &&
+							(((<IEdgeControl>c).point1 === firstIndex &&
+								(<IEdgeControl>c).point2 === secondIndex) ||
+								((<IEdgeControl>c).point1 === secondIndex &&
+									(<IEdgeControl>c).point2 === firstIndex)),
+					);
+					if (hasEdgeControl) {
+						this.stopMidPointInsertion();
+						return;
+					}
+				}
 
 				if (
 					this.#midPointInsertionActive === true &&
