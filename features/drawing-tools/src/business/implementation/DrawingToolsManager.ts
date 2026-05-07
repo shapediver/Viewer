@@ -352,7 +352,12 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					isFinite(minSize) &&
 					newExtent < minSize - SIZE_CONSTRAINT_EPSILON
 				) {
-					if (result[i] >= max[i]) {
+					if (result[i] >= max[i] - SIZE_CONSTRAINT_EPSILON) {
+						// High-side case: the point is at or above max[i] (within epsilon
+						// to tolerate floating-point imprecision where result[i] and
+						// max[i] are computed from the same value via different paths and
+						// may differ by a sub-epsilon amount — e.g. when the dragged
+						// corner and a same-edge peer share the committed coordinate).
 						if (
 							originalPosition !== undefined &&
 							originalPosition[i] <= min[i]

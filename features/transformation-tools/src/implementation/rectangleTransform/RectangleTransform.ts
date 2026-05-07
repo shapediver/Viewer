@@ -532,7 +532,7 @@ export class RectangleTransform
 		const SIZE_CONSTRAINT_EPSILON = 1e-5;
 		if (scalingCfg?.uMin != null && max[0] - min[0] < scalingCfg.uMin) {
 			const center = (min[0] + max[0]) / 2;
-			const half = scalingCfg.uMin / 2 - SIZE_CONSTRAINT_EPSILON;
+			const half = scalingCfg.uMin / 2 + SIZE_CONSTRAINT_EPSILON;
 			min[0] = center - half;
 			max[0] = center + half;
 		}
