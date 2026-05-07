@@ -97,7 +97,7 @@ const matchNodeWithPatterns = (
 	strictNaming: boolean,
 ): string | undefined => {
 	let nodeData = getNodeData(node, strictNaming);
-	if (!nodeData || !nodeData.nodeName) {
+	if (!nodeData || !nodeData.nodeName || !patterns[nodeData.outputId]) {
 		const instanceNodeData = getInstanceNodeData(node, strictNaming);
 		if (instanceNodeData && (!nodeData || instanceNodeData.nodeName))
 			nodeData = instanceNodeData;
