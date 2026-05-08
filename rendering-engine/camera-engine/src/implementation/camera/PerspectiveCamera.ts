@@ -177,7 +177,7 @@ export class PerspectiveCamera
 		}
 
 		if (box.isEmpty())
-			return {position: vec3.create(), target: vec3.create()};
+			return {position: startingPosition, target: startingTarget};
 
 		const invalidInput =
 			startingPosition[0] === startingTarget[0] &&
@@ -190,11 +190,7 @@ export class PerspectiveCamera
 		);
 
 		// if the camera position and the target are the same, we set a corner position
-		if (
-			startingPosition[0] === startingTarget[0] &&
-			startingPosition[1] === startingTarget[1] &&
-			startingPosition[2] === startingTarget[2]
-		)
+		if (invalidInput)
 			startingPosition = vec3.fromValues(
 				target[0],
 				target[1] - 7.5,

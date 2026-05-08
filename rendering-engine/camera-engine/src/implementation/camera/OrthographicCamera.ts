@@ -239,7 +239,7 @@ export class OrthographicCamera
 		}
 
 		if (box.isEmpty())
-			return {position: vec3.create(), target: vec3.create()};
+			return {position: startingPosition, target: startingTarget};
 
 		const target = vec3.fromValues(
 			(box.max[0] + box.min[0]) / 2,
