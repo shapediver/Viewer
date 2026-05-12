@@ -45,7 +45,7 @@
 		"@shapediver/viewer.shared.types": "3.16.8",
 		"@types/ua-parser-js": "0.7.39",
 		"@types/uuid": "9.0.8",
-		"axios": "1.15.0",
+		"axios": "1.15.2",
 		"dompurify": "3.3.1",
 		"gl-matrix": "3.3.0",
 		"ua-parser-js": "0.7.41",

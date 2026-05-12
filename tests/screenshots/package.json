@@ -31,7 +31,7 @@
 		"@shapediver/viewer": "*",
 		"chromedriver": "147.0.3",
 		"gl-matrix": "3.3.0",
-		"jest-image-snapshot": "4.5.1",
+		"jest-image-snapshot": "6.5.2",
 		"selenium-webdriver": "4.8.1"
 	}
 }
