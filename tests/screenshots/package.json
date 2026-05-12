@@ -30,7 +30,7 @@
 	"devDependencies": {
 		"@shapediver/viewer": "*",
 		"chromedriver": "147.0.3",
-		"gl-matrix": "3.3.0",
+		"gl-matrix": "3.4.4",
 		"jest-image-snapshot": "6.5.2",
 		"selenium-webdriver": "4.8.1"
 	}

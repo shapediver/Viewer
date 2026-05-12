@@ -39,6 +39,6 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer.shared.build-data": "*",
-		"gl-matrix": "3.3.0"
+		"gl-matrix": "3.4.4"
 	}
 }

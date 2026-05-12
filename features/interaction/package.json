@@ -49,7 +49,7 @@
 		"@shapediver/viewer.shared.services": "3.16.8",
 		"@shapediver/viewer.shared.types": "3.16.8",
 		"detect-it": "4.0.1",
-		"gl-matrix": "3.3.0"
+		"gl-matrix": "3.4.4"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
