@@ -1,3 +1,7 @@
+declare const Buffer: {
+	from(str: string, encoding?: string): {toString(encoding?: string): string};
+};
+
 export const atobCustom = (str: string): string => {
 	if (typeof window !== "undefined" && window.atob) {
 		return window.atob(str);

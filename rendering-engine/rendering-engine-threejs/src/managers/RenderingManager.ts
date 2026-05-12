@@ -72,7 +72,8 @@ export class RenderingManager implements IManager {
 	private _sizeChanged: boolean = false;
 	private _softShadowRenderingActive: boolean = false;
 	private _softShadowRenderingDurationActive: number = 0;
-	private _softShadowRenderingTimeout: NodeJS.Timeout | null = null;
+	private _softShadowRenderingTimeout: ReturnType<typeof setTimeout> | null =
+		null;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _stats: any;
 	private _usingSwiftShader: boolean = false;

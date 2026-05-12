@@ -1004,8 +1004,9 @@ export class GLTFConverter {
 		if (node.transformations.length > 0) {
 			let matrix = node.nodeMatrix;
 			if (
-				node.nodeMatrix.filter(
-					(v) => isNaN(v) || v === Infinity || v === -Infinity,
+				Array.from(node.nodeMatrix).filter(
+					(v: number) =>
+						isNaN(v) || v === Infinity || v === -Infinity,
 				).length > 0
 			)
 				matrix = mat4.create();

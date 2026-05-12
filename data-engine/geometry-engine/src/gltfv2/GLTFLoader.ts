@@ -155,8 +155,9 @@ export class GLTFLoader {
 		this.validateVersionAndExtensions();
 
 		// Lazy load DRACO module and parallelize independent loaders
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const DRACO = require("./draco/draco_decoder.js");
+		const {default: DRACO} = (await import(
+			"./draco/draco_decoder.js"
+		)) as unknown as {default: new () => Promise<unknown>};
 		const dracoModulePromise = new DRACO();
 
 		this._bufferLoader = new BufferLoader(

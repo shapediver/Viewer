@@ -370,7 +370,7 @@ export class SessionEngineCore {
 					})[0];
 					return [
 						response.data as unknown as ArrayBuffer,
-						response.headers["content-type"],
+						response.headers["content-type"] as string,
 					];
 				},
 				downloadTexture: async (
@@ -385,7 +385,7 @@ export class SessionEngineCore {
 
 						return [
 							response.data as unknown as ArrayBuffer,
-							response.headers["content-type"],
+							response.headers["content-type"] as string,
 						];
 					} catch (e) {
 						throw await this._utilsManager.handleError(e);

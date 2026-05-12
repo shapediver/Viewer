@@ -7,7 +7,7 @@ export class CameraControlsEventDistribution
 {
 	// #region Properties (7)
 
-	private _zoomResizeTimeout: NodeJS.Timeout | undefined;
+	private _zoomResizeTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	protected _active = {
 		rotation: false,

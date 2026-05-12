@@ -14,8 +14,15 @@ export class ShapeDiverViewerUnknownError extends ShapeDiverViewerError {
 			"An unknown error occurred.",
 			message,
 		);
-		if (Error.captureStackTrace !== undefined)
-			Error.captureStackTrace(this, ShapeDiverViewerUnknownError);
+		if ("captureStackTrace" in Error)
+			(
+				Error as {
+					captureStackTrace: (
+						target: object,
+						constructorOpt?: Function,
+					) => void;
+				}
+			).captureStackTrace(this, ShapeDiverViewerUnknownError);
 	}
 }
 
@@ -156,7 +163,7 @@ export class ShapeDiverViewerArError extends ShapeDiverViewerError {
 export class ShapeDiverViewerValidationError extends ShapeDiverViewerError {
 	constructor(
 		public readonly message: string,
-		public readonly value: any,
+		public readonly value: unknown,
 		public readonly requestedType: string,
 		public readonly errorObject?: Error | unknown,
 	) {

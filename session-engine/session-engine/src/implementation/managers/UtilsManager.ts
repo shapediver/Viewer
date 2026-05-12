@@ -400,7 +400,7 @@ export class UtilsManager {
 			const arrayBuffer = response.data as unknown as ArrayBuffer;
 			return {
 				imageData: {
-					format: response.headers["content-type"],
+					format: response.headers["content-type"] as string,
 					size: arrayBuffer.byteLength,
 				},
 				arrayBuffer,

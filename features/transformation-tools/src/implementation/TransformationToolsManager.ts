@@ -278,7 +278,7 @@ export abstract class TransformationToolsManager
 				mat4.multiply(
 					finalMatrix,
 					placeholderMatrixWithoutInitialOffset,
-					mat4.invert(mat4.create(), this.#pivotOffset),
+					mat4.invert(mat4.create(), this.#pivotOffset)!,
 				);
 				return finalMatrix;
 			} else {
@@ -286,7 +286,7 @@ export abstract class TransformationToolsManager
 				mat4.multiply(
 					finalMatrix,
 					placeholderMatrixWithoutInitialOffset,
-					mat4.invert(mat4.create(), this.#pivotOffset),
+					mat4.invert(mat4.create(), this.#pivotOffset)!,
 				);
 				mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
 				return finalMatrix;
@@ -303,7 +303,7 @@ export abstract class TransformationToolsManager
 			mat4.multiply(
 				finalMatrix,
 				placeholderMatrixWithoutInitialOffset,
-				mat4.invert(mat4.create(), this.#pivotOffset),
+				mat4.invert(mat4.create(), this.#pivotOffset)!,
 			);
 			mat4.multiply(finalMatrix, finalMatrix, previousMatrix);
 			return finalMatrix;
@@ -549,14 +549,14 @@ export abstract class TransformationToolsManager
 			if (this.singleNode) {
 				mat4.multiply(
 					matrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
 				eventData.transformations.push(mat4.clone(matrix));
 				mat4.multiply(
 					matrix,
 					matrix,
-					mat4.invert(mat4.create(), this.initialTransform[i]),
+					mat4.invert(mat4.create(), this.initialTransform[i])!,
 				);
 			} else {
 				const eventDataMatrix = mat4.clone(matrix);
@@ -567,14 +567,14 @@ export abstract class TransformationToolsManager
 				);
 				mat4.multiply(
 					eventDataMatrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					eventDataMatrix,
 				);
 				eventData.transformations.push(eventDataMatrix);
 
 				mat4.multiply(
 					matrix,
-					mat4.invert(mat4.create(), this.instanceTransform[i]),
+					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
 			}
@@ -614,18 +614,18 @@ export abstract class TransformationToolsManager
 				if (this.singleNode) {
 					mat4.multiply(
 						matrix,
-						mat4.invert(mat4.create(), this.instanceTransform[i]),
+						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						matrix,
 					);
 					mat4.multiply(
 						matrix,
 						matrix,
-						mat4.invert(mat4.create(), this.initialTransform[i]),
+						mat4.invert(mat4.create(), this.initialTransform[i])!,
 					);
 				} else {
 					mat4.multiply(
 						matrix,
-						mat4.invert(mat4.create(), this.instanceTransform[i]),
+						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						matrix,
 					);
 				}

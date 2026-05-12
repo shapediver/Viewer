@@ -29,6 +29,7 @@
 		"testEnvironment": "jsdom"
 	},
 	"devDependencies": {
+		"@shapediver/viewer": "*",
 		"chromedriver": "147.0.3"
 	}
 }

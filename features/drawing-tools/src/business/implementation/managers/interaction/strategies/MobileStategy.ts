@@ -46,7 +46,7 @@ export class MobileStrategy implements IStrategy {
 				ray: IRay;
 		  }
 		| undefined;
-	#downPressTimeout: NodeJS.Timeout | undefined;
+	#downPressTimeout: ReturnType<typeof setTimeout> | undefined;
 	#hoveredPoint: number | undefined = undefined;
 
 	constructor(

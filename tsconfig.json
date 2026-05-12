@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"ignoreDeprecations": "6.0",
 		"composite": true,
 		"module": "commonjs",
 		"removeComments": false,
@@ -8,11 +9,13 @@
 		"declaration": true,
 		"declarationMap": true,
 		"target": "ES6",
+		"lib": ["ES2022", "DOM"],
 		"strict": true,
 		"outDir": "dist",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
-		"moduleResolution": "node"
+		"moduleResolution": "node",
+		"skipLibCheck": true
 	},
 	"include": ["./**/*.ts"],
 	"exclude": [
