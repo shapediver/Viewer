@@ -261,6 +261,13 @@ export class GLTFConverter {
 					const reader = new window.FileReader();
 					reader.readAsArrayBuffer(blob);
 					reader.onloadend = () => {
+						if (!reader.result) {
+							reject(
+								reader.error ??
+									new Error("FileReader result is null"),
+							);
+							return;
+						}
 						// Binary chunk.
 						const binaryChunk = this.getPaddedArrayBuffer(
 							<ArrayBuffer>reader.result,
@@ -598,6 +605,13 @@ export class GLTFConverter {
 					const reader = new window.FileReader();
 					reader.readAsArrayBuffer(blob);
 					reader.onloadend = () => {
+						if (!reader.result) {
+							reject(
+								reader.error ??
+									new Error("FileReader result is null"),
+							);
+							return;
+						}
 						const buffer = this.getPaddedArrayBuffer(
 							<ArrayBuffer>reader.result,
 						);
