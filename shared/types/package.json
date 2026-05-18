@@ -38,8 +38,8 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.0",
-		"@shapediver/sdk.sdtf-v1": "1.7.1",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.1",
+		"@shapediver/sdk.sdtf-v1": "1.7.2",
 		"gl-matrix": "3.4.4",
 		"zod": "4.4.3"
 	},
