@@ -91,6 +91,20 @@ export class AccessorLoader {
 			const target = this._content.bufferViews
 				? this._content.bufferViews[accessor.bufferView].target
 				: undefined;
+
+			const arrayLength = accessor.count * itemSize;
+			if (
+				!Number.isInteger(accessor.count) ||
+				accessor.count < 0 ||
+				arrayLength > 2 ** 32 - 1
+			) {
+				this._logger.error(
+					`AccessorLoader.load: Accessor ${accessorId} has invalid count (${accessor.count}) or exceeds buffer bounds. Skipping.`,
+				);
+				this._loaded[accessorId] = null;
+				continue;
+			}
+
 			let array;
 
 			if (byteStride && byteStride !== itemBytes) {
