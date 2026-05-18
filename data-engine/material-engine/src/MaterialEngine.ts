@@ -97,6 +97,7 @@ export class MaterialEngine {
 	public async createMaterialDataFromDefinition(
 		definition: IMaterialAbstractDataPropertiesDefinition,
 	): Promise<IMaterialAbstractData> {
+		if (!definition) return new MaterialStandardData({});
 		const materialType = definition.type || MATERIAL_TYPE.STANDARD;
 
 		const promises: Promise<MapData | undefined>[] = [];

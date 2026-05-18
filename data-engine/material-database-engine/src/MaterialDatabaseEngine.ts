@@ -137,6 +137,7 @@ export class MaterialDatabaseEngine {
 		if (!materialDatabaseData) return materialDatabase;
 
 		for (const key in materialDatabaseData) {
+			if (!materialDatabaseData[key]) continue;
 			if (this._materialDatabase[key]) {
 				if (
 					JSON.stringify(this._materialDatabase[key].definition) !==
