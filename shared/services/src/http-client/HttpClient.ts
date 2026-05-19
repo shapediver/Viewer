@@ -204,7 +204,15 @@ export class HttpClient {
 									},
 								});
 							})
-							.catch((e) => reject(e));
+							.catch(() => {
+								// if this fails (e.g., external URLs not belonging to this session), fall back to direct download
+								const axiosPromise = axios(
+									href,
+									Object.assign({method: "get"}, config),
+								);
+								axiosPromise.catch((e) => reject(e));
+								resolve(axiosPromise);
+							});
 					},
 				).catch(async (e) => {
 					throw await this.convertError(e);
