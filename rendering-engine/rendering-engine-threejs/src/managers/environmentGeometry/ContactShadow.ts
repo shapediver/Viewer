@@ -156,6 +156,14 @@ export class ContactShadow implements IEnvironmentGeometry {
 	}
 
 	public render() {
+		// three.js 0.162 does not guard against `gl.getProgramInfoLog` returning null,
+		// which Safari's WebGL implementation does for valid programs (fixed in r163+).
+		// Disable checkShaderErrors during shadow renders to avoid the crash when
+		// depth/blur shader programs are compiled for the first time.
+		const initialCheckShaderErrors =
+			this._renderingEngine.renderer.debug.checkShaderErrors;
+		this._renderingEngine.renderer.debug.checkShaderErrors = false;
+
 		const initialGridVisibility = this._renderingEngine.gridVisibility;
 		this._renderingEngine.gridVisibility = false;
 		const initialGroundPlaneVisibility =
@@ -239,6 +247,9 @@ export class ContactShadow implements IEnvironmentGeometry {
 			initialGroundPlaneVisibility;
 		this._renderingEngine.groundPlaneShadowVisibility =
 			initialGroundPlaneShadowVisibility;
+
+		this._renderingEngine.renderer.debug.checkShaderErrors =
+			initialCheckShaderErrors;
 	}
 
 	public updatePosition(position: vec3): void {
