@@ -83,7 +83,9 @@ export class GeometryEngine {
 						.get(url!, {
 							responseType: "arraybuffer",
 						})
-						.catch(reject)) as HttpResponse<ArrayBuffer> | undefined;
+						.catch(reject)) as
+						| HttpResponse<ArrayBuffer>
+						| undefined;
 					this._performanceEvaluator.endSection("loadGltf." + url);
 
 					if (!axiosResponse) return;
