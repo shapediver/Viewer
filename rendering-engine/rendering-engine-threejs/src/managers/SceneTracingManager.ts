@@ -2,8 +2,8 @@ import * as THREE from "three";
 
 import {
 	AbstractCamera,
-	OrthographicCamera,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	OrthographicCamera,
 } from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IntersectionEngine} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
@@ -80,15 +80,22 @@ export class SceneTracingManager implements IManager {
 			(obj: THREE.Object3D) => {
 				if (obj.userData.ignoreInRayTracingTest) return;
 				if (obj instanceof THREE.Mesh) {
-					const curIntersections =
-						this._raycaster.intersectObject(obj);
-					if (curIntersections.length)
-						if (
-							curIntersections[0].distance <
-							closestIntersectionDistance
-						)
-							closestIntersectionDistance =
-								curIntersections[0].distance;
+					try {
+						const curIntersections =
+							this._raycaster.intersectObject(obj);
+						if (curIntersections.length)
+							if (
+								curIntersections[0].distance <
+								closestIntersectionDistance
+							)
+								closestIntersectionDistance =
+									curIntersections[0].distance;
+					} catch {
+						// Three.js r162 does not null-check Triangle.getInterpolation,
+						// which returns null for degenerate (zero-area) triangles,
+						// causing "Cannot read properties of null (reading 'dot')".
+						// Skip any mesh that triggers this to keep anchor positions working.
+					}
 				}
 			},
 		);
