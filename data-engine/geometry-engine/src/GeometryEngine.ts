@@ -83,8 +83,10 @@ export class GeometryEngine {
 						.get(url!, {
 							responseType: "arraybuffer",
 						})
-						.catch(reject)) as HttpResponse<ArrayBuffer>;
+						.catch(reject)) as HttpResponse<ArrayBuffer> | undefined;
 					this._performanceEvaluator.endSection("loadGltf." + url);
+
+					if (!axiosResponse) return;
 
 					const magic = new TextDecoder().decode(
 						new Uint8Array(axiosResponse.data, 0, 4),
