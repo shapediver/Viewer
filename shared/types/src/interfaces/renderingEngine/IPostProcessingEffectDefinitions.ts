@@ -235,13 +235,18 @@ export interface INoiseEffectDefinition
 
 export interface IOutlineEffectDefinition
 	extends IPostProcessingEffectDefinition {
-	// #region Properties (16)
+	// #region Properties (17)
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
 		blendFunction?: number;
 		/** Whether the outline should be blurred. (default: false) */
 		blur?: boolean;
+		/** A depth bias in view-space units added to the depth comparison when xRay is false.
+		 *  Reduces z-fighting artifacts where co-planar or nearly co-planar geometry causes
+		 *  the outline halo to incorrectly bleed through adjacent surfaces. Tune to scene scale;
+		 *  a value of 0 disables the bias. (default: 0) */
+		depthBias?: number;
 		/** The edge strength. (default: 1.0) */
 		edgeStrength?: number;
 		/** The color of hidden edges. (default: #22090a) */
@@ -265,7 +270,7 @@ export interface IOutlineEffectDefinition
 	};
 
 	type: POST_PROCESSING_EFFECT_TYPE.OUTLINE;
-	// #endregion Properties (16)
+	// #endregion Properties (17)
 }
 
 export interface IPixelationEffectDefinition

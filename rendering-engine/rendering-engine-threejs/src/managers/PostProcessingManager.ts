@@ -637,9 +637,8 @@ export class PostProcessingManager implements IManager {
 						const separateObjects =
 							properties.separateObjects === true;
 
-						manager.configure(
-							separateObjects,
-							() => this.changeEffectPass(),
+						manager.configure(separateObjects, () =>
+							this.changeEffectPass(),
 						);
 
 						const effectOptions = {
@@ -677,6 +676,27 @@ export class PostProcessingManager implements IManager {
 							multisampling: properties.multisampling,
 						};
 
+						// Patches the depth comparison shader of an OutlineEffect to add a
+						// configurable bias, reducing z-fighting where co-planar geometry
+						// causes the halo to bleed through adjacent surfaces.
+						const applyDepthBias = (effect: OutlineEffect) => {
+							if (!properties.depthBias) return;
+							const eff = effect as unknown as {
+								maskPass: {
+									overrideMaterial: THREE.ShaderMaterial;
+								};
+							};
+							const maskMaterial = eff.maskPass?.overrideMaterial;
+							if (maskMaterial instanceof THREE.ShaderMaterial) {
+								maskMaterial.fragmentShader =
+									maskMaterial.fragmentShader.replace(
+										"(-vViewZ > -viewZ)",
+										`(-vViewZ > -viewZ + ${properties.depthBias.toFixed(6)})`,
+									);
+								maskMaterial.needsUpdate = true;
+							}
+						};
+
 						// Returns the next unused selection layer (1-9 are reserved).
 						const allocateLayer = () => {
 							let layer = 10;
@@ -708,6 +728,7 @@ export class PostProcessingManager implements IManager {
 									);
 									nodeEffect.selection.layer =
 										allocateLayer();
+									applyDepthBias(nodeEffect);
 									this._effects.push({
 										token,
 										effect: nodeEffect,
@@ -723,6 +744,7 @@ export class PostProcessingManager implements IManager {
 								effectOptions,
 							);
 							outlineEffect.selection.layer = allocateLayer();
+							applyDepthBias(outlineEffect);
 							this._effects.push({token, effect: outlineEffect});
 							manager.setEffect(outlineEffect);
 						}
@@ -1121,6 +1143,7 @@ export class PostProcessingManager implements IManager {
 				return {
 					blendFunction: BlendFunction.SCREEN,
 					blur: false,
+					depthBias: 0,
 					edgeStrength: 1.0,
 					hiddenEdgeColor: "#22090a",
 					kernelSize: KernelSize.VERY_SMALL,
