@@ -632,70 +632,100 @@ export class PostProcessingManager implements IManager {
 							._effectDefinitions[i]
 							.definition as IOutlineEffectDefinition;
 						const properties = definition.properties || {};
-						const outlineEffect = new OutlineEffect(
-							this._renderingEngine.scene,
-							this._renderingEngine.camera,
-							{
-								blendFunction:
-									properties.blendFunction !== undefined
-										? properties.blendFunction
-										: BlendFunction.SCREEN,
-								edgeStrength: properties.edgeStrength,
-								pulseSpeed: properties.pulseSpeed,
-								visibleEdgeColor: <number>(
-									(<unknown>(
-										new THREE.Color(
-											this._converter
-												.toHexColor(
-													properties.visibleEdgeColor,
-												)
-												.substring(0, 7),
-										)
-									))
-								),
-								hiddenEdgeColor: <number>(
-									(<unknown>(
-										new THREE.Color(
-											this._converter
-												.toHexColor(
-													properties.hiddenEdgeColor,
-												)
-												.substring(0, 7),
-										)
-									))
-								),
-								kernelSize: properties.kernelSize,
-								blur: properties.blur,
-								xRay: properties.xRay,
-								multisampling: properties.multisampling,
-							},
-						);
-						// if there are multiple outline effects
-						// we have to get the first unused selection layer
-						// starting from 10 (1-9 are reserved)
-						let layer = 10;
-						while (
-							Object.values(this._effects)
-								.filter(
-									(e) => e.effect instanceof OutlineEffect,
-								)
-								.some(
-									(o) =>
-										(o.effect as OutlineEffect).selection
-											.layer === layer,
-								)
-						) {
-							layer++;
-						}
-						outlineEffect.selection.layer = layer;
+						const token = this._effectDefinitions[i].token;
+						const manager = this._outlineManagers[token];
+						const separateObjects =
+							properties.separateObjects === true;
 
-						this._effects.push({
-							token: this._effectDefinitions[i].token,
-							effect: outlineEffect,
-						});
-						this._outlineManagers[
-							this._effectDefinitions[i].token
-						].setEffect(outlineEffect);
+						manager.configure(
+							separateObjects,
+							() => this.changeEffectPass(),
+						);
+
+						const effectOptions = {
+							blendFunction:
+								properties.blendFunction !== undefined
+									? properties.blendFunction
+									: BlendFunction.SCREEN,
+							edgeStrength: properties.edgeStrength,
+							pulseSpeed: properties.pulseSpeed,
+							visibleEdgeColor: <number>(
+								(<unknown>(
+									new THREE.Color(
+										this._converter
+											.toHexColor(
+												properties.visibleEdgeColor,
+											)
+											.substring(0, 7),
+									)
+								))
+							),
+							hiddenEdgeColor: <number>(
+								(<unknown>(
+									new THREE.Color(
+										this._converter
+											.toHexColor(
+												properties.hiddenEdgeColor,
+											)
+											.substring(0, 7),
+									)
+								))
+							),
+							kernelSize: properties.kernelSize,
+							blur: properties.blur,
+							xRay: properties.xRay,
+							multisampling: properties.multisampling,
+						};
+
+						// Returns the next unused selection layer (1-9 are reserved).
+						const allocateLayer = () => {
+							let layer = 10;
+							while (
+								this._effects
+									.filter(
+										(e) =>
+											e.effect instanceof OutlineEffect,
+									)
+									.some(
+										(o) =>
+											(o.effect as OutlineEffect)
+												.selection.layer === layer,
+									)
+							) {
+								layer++;
+							}
+							return layer;
+						};
+
+						if (separateObjects) {
+							const nodes = manager.selectedNodes();
+							const perNodeEffects = new Map(
+								nodes.map((node) => {
+									const nodeEffect = new OutlineEffect(
+										this._renderingEngine.scene,
+										this._renderingEngine.camera,
+										effectOptions,
+									);
+									nodeEffect.selection.layer =
+										allocateLayer();
+									this._effects.push({
+										token,
+										effect: nodeEffect,
+									});
+									return [node, nodeEffect] as const;
+								}),
+							);
+							manager.setPerNodeEffects(perNodeEffects);
+						} else {
+							const outlineEffect = new OutlineEffect(
+								this._renderingEngine.scene,
+								this._renderingEngine.camera,
+								effectOptions,
+							);
+							outlineEffect.selection.layer = allocateLayer();
+							this._effects.push({token, effect: outlineEffect});
+							manager.setEffect(outlineEffect);
+						}
 					}
 					break;
 

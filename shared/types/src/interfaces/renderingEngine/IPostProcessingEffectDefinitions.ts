@@ -235,7 +235,7 @@ export interface INoiseEffectDefinition
 
 export interface IOutlineEffectDefinition
 	extends IPostProcessingEffectDefinition {
-	// #region Properties (15)
+	// #region Properties (16)
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
@@ -254,6 +254,10 @@ export interface IOutlineEffectDefinition
 		pulseSpeed?: number;
 		/** The resolution that is used for the effect. (default: 480) */
 		resolution?: number;
+		/** Whether each selected node should be outlined separately instead of as a unified group.
+		 *  Prevents depth artifacts when objects are layered (e.g. one in front, one behind).
+		 *  Has a per-node performance cost. (default: false) */
+		separateObjects?: boolean;
 		/** The color of visible edges. (default: #ffffff) */
 		visibleEdgeColor?: Color;
 		/** Whether occluded parts of selected objects should be visible. (default: true) */
@@ -261,7 +265,7 @@ export interface IOutlineEffectDefinition
 	};
 
 	type: POST_PROCESSING_EFFECT_TYPE.OUTLINE;
-	// #endregion Properties (15)
+	// #endregion Properties (16)
 }
 
 export interface IPixelationEffectDefinition
