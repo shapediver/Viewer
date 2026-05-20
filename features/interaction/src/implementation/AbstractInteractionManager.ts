@@ -36,6 +36,7 @@ export abstract class AbstractInteractionManager
 	} = {};
 	#interactionEffect?: IInteractionEffect;
 	#interactionEffectUtils: IInteractionEffectUtils;
+	#occludeBySceneGeometry: boolean = false;
 	#viewport?: IViewportApi;
 
 	public abstract filter: IInteractionFilterOptions;
@@ -85,6 +86,14 @@ export abstract class AbstractInteractionManager
 
 	public set interactionEffect(value: IInteractionEffect | undefined) {
 		this.#interactionEffect = value;
+	}
+
+	public get occludeBySceneGeometry(): boolean {
+		return this.#occludeBySceneGeometry;
+	}
+
+	public set occludeBySceneGeometry(value: boolean) {
+		this.#occludeBySceneGeometry = value;
 	}
 
 	public get interactionEffectUtils(): IInteractionEffectUtils {

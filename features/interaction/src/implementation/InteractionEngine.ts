@@ -14,6 +14,7 @@ import {
 	FLAG_TYPE,
 	IIntersectionFilter,
 	IRay,
+	IRayTracingIntersection,
 	ISceneEvent,
 } from "@shapediver/viewer.shared.types";
 
@@ -270,8 +271,29 @@ export class InteractionEngine implements IInteractionEngine {
 				},
 			) || [];
 
-		for (const m in this.#managers)
-			this.#managers[m].onDown(event, ray, intersections);
+		const needsOcclusion = Object.values(this.#managers).some(
+			(m) => m.occludeBySceneGeometry,
+		);
+		const occluderDist = needsOcclusion
+			? this.#intersectionManager.closestSceneGeometryDistance(
+					ray,
+					this.#viewport.id,
+					this.#rayCasterParams,
+				)
+			: Infinity;
+		const EPSILON = 1e-4;
+		for (const m in this.#managers) {
+			const list =
+				this.#managers[m].occludeBySceneGeometry &&
+				occluderDist < Infinity
+					? intersections.filter(
+							(i) =>
+								(i as IRayTracingIntersection).distance <=
+								occluderDist + EPSILON,
+						)
+					: intersections;
+			this.#managers[m].onDown(event, ray, list);
+		}
 	}
 
 	/**
@@ -309,8 +331,29 @@ export class InteractionEngine implements IInteractionEngine {
 				},
 			) || [];
 
-		for (const m in this.#managers)
-			this.#managers[m].onEnd(event, ray, intersections, endState);
+		const needsOcclusionEnd = Object.values(this.#managers).some(
+			(m) => m.occludeBySceneGeometry,
+		);
+		const occluderDistEnd = needsOcclusionEnd
+			? this.#intersectionManager.closestSceneGeometryDistance(
+					ray,
+					this.#viewport.id,
+					this.#rayCasterParams,
+				)
+			: Infinity;
+		const EPSILON_END = 1e-4;
+		for (const m in this.#managers) {
+			const list =
+				this.#managers[m].occludeBySceneGeometry &&
+				occluderDistEnd < Infinity
+					? intersections.filter(
+							(i) =>
+								(i as IRayTracingIntersection).distance <=
+								occluderDistEnd + EPSILON_END,
+						)
+					: intersections;
+			this.#managers[m].onEnd(event, ray, list, endState);
+		}
 
 		if (this.#boxSelectionActive) {
 			this.#viewport.removeFlag(this.#cameraFreezeFlag!);
@@ -357,8 +400,29 @@ export class InteractionEngine implements IInteractionEngine {
 				},
 			) || [];
 
-		for (const m in this.#managers)
-			this.#managers[m].onMove(event, ray, intersections);
+		const needsOcclusionMove = Object.values(this.#managers).some(
+			(m) => m.occludeBySceneGeometry,
+		);
+		const occluderDistMove = needsOcclusionMove
+			? this.#intersectionManager.closestSceneGeometryDistance(
+					ray,
+					this.#viewport.id,
+					this.#rayCasterParams,
+				)
+			: Infinity;
+		const EPSILON_MOVE = 1e-4;
+		for (const m in this.#managers) {
+			const list =
+				this.#managers[m].occludeBySceneGeometry &&
+				occluderDistMove < Infinity
+					? intersections.filter(
+							(i) =>
+								(i as IRayTracingIntersection).distance <=
+								occluderDistMove + EPSILON_MOVE,
+						)
+					: intersections;
+			this.#managers[m].onMove(event, ray, list);
+		}
 	}
 
 	private updateIntersectionThresholds(): void {

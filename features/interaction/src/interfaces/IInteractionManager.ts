@@ -31,6 +31,12 @@ export interface IInteractionManager {
 	 */
 	readonly boxSelectionActive?: boolean;
 	/**
+	 * When true, intersections are filtered against all scene geometry so that
+	 * objects occluded by non-interactive solid geometry cannot be interacted with.
+	 * Default: false.
+	 */
+	occludeBySceneGeometry: boolean;
+	/**
 	 * The effect that is applied to the node once the effect (selection, hovering or dragging) is active.
 	 * If no interaction effect is applied, the effect will not be changed.
 	 */

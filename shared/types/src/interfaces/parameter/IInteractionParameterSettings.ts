@@ -43,6 +43,8 @@ export interface IInteractionParameterProps {
 	};
 	/** The mode to determine when the parameter is active. (default: 'default') */
 	activeMode?: "default" | "activeOnStart";
+	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */
+	occludeBySceneGeometry?: boolean;
 	// #endregion Properties (2)
 }
 
@@ -89,6 +91,7 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		.nullable()
 		.optional(),
 	activeMode: z.enum(["default", "activeOnStart"]).optional(),
+	occludeBySceneGeometry: optionalBoolean,
 });
 
 export const ISelectionParameterPropsJsonSchema = z

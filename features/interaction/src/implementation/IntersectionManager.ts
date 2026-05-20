@@ -74,6 +74,28 @@ export class IntersectionManager implements IIntersectionEngine {
 		}
 	}
 
+	/**
+	 * Returns the distance to the closest piece of scene geometry hit by the
+	 * ray, regardless of whether it has InteractionData. Used to occlude
+	 * interactive intersections that are behind solid non-interactive geometry.
+	 */
+	public closestSceneGeometryDistance(
+		ray: IRay,
+		viewportId: string,
+		rayCasterParams?: RaycasterParameters,
+	): number {
+		const hits = this._intersectionEngine.intersect(
+			ray,
+			viewportId,
+			undefined,
+			{
+				rayCasterParams,
+			},
+		);
+		if (hits.length === 0) return Infinity;
+		return (hits[0] as IRayTracingIntersection).distance;
+	}
+
 	private gatherGeometryData(node: ITreeNode): {[key: string]: GeometryData} {
 		const geometryData: {[key: string]: GeometryData} = {};
 		node.traverseData((d) => {
