@@ -571,6 +571,7 @@ export class GeometryRestriction
 									),
 									depthTest: this.#wireframeDepthTest,
 									depthWrite: !this.#wireframeDepthTest,
+									transparent: true,
 								}),
 							);
 							line.matrix.copy(object.matrixWorld);
@@ -586,6 +587,7 @@ export class GeometryRestriction
 									),
 									depthTest: this.#wireframeDepthTest,
 									depthWrite: !this.#wireframeDepthTest,
+									transparent: true,
 								}),
 							);
 							line.matrix.copy(object.matrixWorld);
