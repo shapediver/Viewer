@@ -12,3 +12,6 @@ documentation/releaseNotes.html
 documentation/breakingChangesGuide.html
 tests/general/src/credentials.ts
 tsconfig.tsbuildinfo
+tests/test-results/
+tests/playwright-report/
+tests/*.json

@@ -39,6 +39,7 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "*",
+		"@shapediver/viewer.data-engine.data-engine": "*",
 		"@shapediver/viewer.features.attribute-visualization": "*",
 		"@shapediver/viewer.features.drawing-tools": "*",
 		"@shapediver/viewer.features.transformation-tools": "*",

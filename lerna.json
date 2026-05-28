@@ -5,7 +5,7 @@
 		"session-engine/*",
 		"examples/*",
 		"rendering-engine/*",
-		"tests/*",
+		"tests",
 		"features/*",
 		"api/*",
 		"creation-control-center/*"

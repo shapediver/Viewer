@@ -3,9 +3,11 @@ import * as SDVAttributeVisualization from "@shapediver/viewer.features.attribut
 import * as SDVDrawingTools from "@shapediver/viewer.features.drawing-tools";
 import * as SDVInteractions from "@shapediver/viewer.features.interaction";
 import * as SDVTransformationTools from "@shapediver/viewer.features.transformation-tools";
+import * as GL_MATRIX from "gl-matrix";
 
 (<any>window).SDV = SDV;
 (<any>window).SDVInteractions = SDVInteractions;
 (<any>window).SDVAttributeVisualization = SDVAttributeVisualization;
 (<any>window).SDVDrawingTools = SDVDrawingTools;
 (<any>window).SDVTransformationTools = SDVTransformationTools;
+(<any>window).GL_MATRIX = GL_MATRIX;
