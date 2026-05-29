@@ -38,9 +38,9 @@
 		}
 	},
 	"dependencies": {
-		"@shapediver/viewer": "*",
-		"@shapediver/viewer.features.transformation-tools": "*",
-		"@shapediver/viewer.shared.demo-helper": "*",
+		"@shapediver/viewer": "3.17.0",
+		"@shapediver/viewer.features.transformation-tools": "3.17.0",
+		"@shapediver/viewer.shared.demo-helper": "3.17.0",
 		"gl-matrix": "3.4.4"
 	}
 }

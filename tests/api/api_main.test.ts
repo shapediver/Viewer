@@ -182,28 +182,32 @@ test.describe("API", () => {
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {
-				let done = false;
-				const finish = () => {
-					if (done) return;
-					done = true;
-					resolve();
-				};
 				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => finish(),
+					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
+					(e: any) => {
+						if (
+							e.type ===
+							(<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING
+						)
+							resolve();
+					},
 				);
 				viewer.environmentMap = SDV.ENVIRONMENT_MAP.PHOTO_STUDIO;
 				viewer.environmentMapAsBackground = true;
-				setTimeout(() => finish(), 3000);
 			});
-			await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+				SDV.viewports["myViewer"]!.render();
+			});
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationHDR_Default.png",
 		);
 
-		await page.waitForTimeout(1000);
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			await new Promise<void>((resolve) => {
@@ -301,23 +305,28 @@ test.describe("API", () => {
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {
-				let done = false;
-				const finish = () => {
-					if (done) return;
-					done = true;
-					resolve();
-				};
 				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => finish(),
+					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
+					(e: any) => {
+						if (
+							e.type ===
+							(<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING
+						)
+							resolve();
+					},
 				);
 				viewer.environmentMap =
 					SDV.ENVIRONMENT_MAP_CUBE.PIAZZA_SAN_MARCO;
 				viewer.environmentMapAsBackground = true;
-				setTimeout(() => finish(), 3000);
 			});
-			await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+				SDV.viewports["myViewer"]!.render();
+			});
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationLDR_Default.png",

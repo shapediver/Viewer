@@ -49,7 +49,7 @@
 		"testEnvironment": "jsdom"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.1",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
 		"@shapediver/viewer.api.general": "3.17.0",
 		"@shapediver/viewer.creation-control-center.session": "3.17.0",
 		"@shapediver/viewer.creation-control-center.viewport": "3.17.0",

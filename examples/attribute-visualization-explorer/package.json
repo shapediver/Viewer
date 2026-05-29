@@ -37,10 +37,10 @@
 		}
 	},
 	"dependencies": {
-		"@shapediver/viewer": "*",
-		"@shapediver/viewer.features.attribute-visualization": "*",
-		"@shapediver/viewer.features.interaction": "*",
-		"@shapediver/viewer.shared.demo-helper": "*",
+		"@shapediver/viewer": "3.17.0",
+		"@shapediver/viewer.features.attribute-visualization": "3.17.0",
+		"@shapediver/viewer.features.interaction": "3.17.0",
+		"@shapediver/viewer.shared.demo-helper": "3.17.0",
 		"gl-matrix": "3.4.4"
 	}
 }

@@ -1,14 +1,5 @@
 {
-	"packages": [
-		"shared/*",
-		"data-engine/*",
-		"session-engine/*",
-		"examples/*",
-		"rendering-engine/*",
-		"tests",
-		"features/*",
-		"api/*",
-		"creation-control-center/*"
-	],
-	"version": "independent"
+	"$schema": "node_modules/lerna/schemas/lerna-schema.json",
+	"version": "independent",
+	"npmClient": "pnpm"
 }

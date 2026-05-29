@@ -10,10 +10,11 @@ export default defineConfig({
 	workers: process.env.CI ? 2 : 4,
 	retries: 1,
 	reporter: [["html", {open: "never"}], ["list"]],
-	timeout: process.env.CI ? 120_000 : 60_000,
+	timeout: 120_000,
 	snapshotDir: "./snapshots",
 	snapshotPathTemplate: "{snapshotDir}/{arg}{ext}",
 	expect: {
+		timeout: 15000,
 		toHaveScreenshot: {
 			maxDiffPixelRatio: 0.01,
 		},

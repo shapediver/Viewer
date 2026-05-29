@@ -24,10 +24,10 @@ export const execPromise = (cmd: string): Promise<string> => {
 	});
 };
 
-export const getDirectories = async (source: string) =>
+export const getDirectories = async (source: string): Promise<string[]> =>
 	(await fs.promises.readdir(source, {withFileTypes: true}))
 		.filter((dirent) => dirent.isDirectory())
-		.map((dirent) => dirent.name);
+		.map((dirent) => dirent.name as string);
 
 export const deployToS3 = (
 	directoryPath: string,

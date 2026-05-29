@@ -25,8 +25,7 @@
 	"scripts": {
 		"check": "tsc --noEmit",
 		"build": "bash ../../scripts/building/build.sh",
-		"build-watch": "bash ../../scripts/building/build-watch.sh",
-		"build-dep": "bash ../../scripts/building/build-dep.sh"
+		"build-watch": "bash ../../scripts/building/build-watch.sh"
 	},
 	"bugs": {
 		"url": "https://github.com/shapediver/Viewer/issues"
@@ -38,8 +37,8 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.1",
-		"@shapediver/sdk.sdtf-v1": "1.7.2",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
+		"@shapediver/sdk.sdtf-v1": "1.7.3",
 		"@shapediver/viewer.data-engine.shared-types": "3.17.0",
 		"@shapediver/viewer.shared.build-data": "3.17.0",
 		"@shapediver/viewer.shared.node-tree": "3.17.0",

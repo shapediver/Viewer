@@ -6,6 +6,7 @@ lerna-debug.log
 .env
 .npmrc
 .vscode/
+.nx/
 docs
 api/api/package.json
 documentation/releaseNotes.html

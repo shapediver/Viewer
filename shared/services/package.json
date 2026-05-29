@@ -25,8 +25,7 @@
 	"scripts": {
 		"check": "tsc --noEmit",
 		"build": "bash ../../scripts/building/build.sh",
-		"build-watch": "bash ../../scripts/building/build-watch.sh",
-		"build-dep": "bash ../../scripts/building/build-dep.sh"
+		"build-watch": "bash ../../scripts/building/build-watch.sh"
 	},
 	"bugs": {
 		"url": "https://github.com/shapediver/Viewer/issues"
@@ -38,18 +37,16 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@ctrl/tinycolor": "3.6.1",
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.1",
+		"@ctrl/tinycolor": "4.2.0",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
 		"@shapediver/viewer.settings": "1.2.5",
 		"@shapediver/viewer.shared.build-data": "3.17.0",
 		"@shapediver/viewer.shared.types": "3.17.0",
-		"@types/ua-parser-js": "0.7.39",
-		"@types/uuid": "9.0.8",
-		"axios": "1.15.2",
-		"dompurify": "3.3.1",
+		"axios": "1.16.1",
+		"dompurify": "3.4.6",
 		"gl-matrix": "3.4.4",
-		"ua-parser-js": "0.7.41",
-		"uuid": "9.0.1"
+		"ua-parser-js": "2.0.10",
+		"uuid": "14.0.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
