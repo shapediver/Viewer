@@ -9,16 +9,22 @@ import {
 	sessionSettingsSchema,
 } from "../v5/Validator";
 
+const zNumOrInf = z.union([
+	z.number(),
+	z.literal(Infinity),
+	z.literal(-Infinity),
+]);
+
 export const generalSettingsSchema = z.object({
 	transformation: z.object({
-		scale: z.object({x: z.number(), y: z.number(), z: z.number()}),
-		translation: z.object({x: z.number(), y: z.number(), z: z.number()}),
-		rotation: z.object({x: z.number(), y: z.number(), z: z.number()}),
+		scale: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+		translation: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+		rotation: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
 	}),
 	blurWhenBusy: z.boolean(),
 	commitSettings: z.boolean(),
 	commitParameters: z.boolean(),
-	pointSize: z.number(),
+	pointSize: zNumOrInf,
 	showMessages: z.boolean(),
 	defaultMaterialColor: z.string().optional(),
 });
@@ -38,10 +44,10 @@ export const environmentGeometrySettingsSchema = z.object({
 	groundPlaneShadowColor: z.string(),
 	groundPlaneShadowVisibility: z.boolean(),
 	contactShadowVisibility: z.boolean().optional(),
-	contactShadowOpacity: z.number().optional(),
-	contactShadowBlur: z.number().optional(),
-	contactShadowHeight: z.number().optional(),
-	contactShadowDarkness: z.number().optional(),
+	contactShadowOpacity: zNumOrInf.optional(),
+	contactShadowBlur: zNumOrInf.optional(),
+	contactShadowHeight: zNumOrInf.optional(),
+	contactShadowDarkness: zNumOrInf.optional(),
 });
 
 const schema = z

@@ -14,7 +14,7 @@ describe("validationV1", () => {
 		const defaultsV1 = DefaultsV1();
 		expect(() => {
 			validateV1(defaultsV1);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 });
 
@@ -23,13 +23,13 @@ describe("validationV2", () => {
 		const defaultsV2 = DefaultsV2();
 		expect(() => {
 			validateV2(defaultsV2);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - empty", async () => {
 		expect(() => {
 			validateV2({});
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - malicious", async () => {
@@ -39,7 +39,7 @@ describe("validationV2", () => {
 		};
 		expect(() => {
 			validateV2(defaultsV2);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - missing", async () => {
@@ -47,7 +47,7 @@ describe("validationV2", () => {
 		delete (<any>defaultsV2.viewer.scene.render).ambientOcclusion;
 		expect(() => {
 			validateV2(defaultsV2);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -124,7 +124,7 @@ describe("validationV2", () => {
 		};
 		expect(() => {
 			validateV2(defaultsV2);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 });
 
@@ -133,13 +133,13 @@ describe("validationV3", () => {
 		const defaultsV3 = DefaultsV3();
 		expect(() => {
 			validateV3(defaultsV3);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - empty", async () => {
 		expect(() => {
 			validateV3({});
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - malicious", async () => {
@@ -149,7 +149,7 @@ describe("validationV3", () => {
 		};
 		expect(() => {
 			validateV3(defaultsV3);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - missing", async () => {
@@ -157,7 +157,7 @@ describe("validationV3", () => {
 		delete (<any>defaultsV3.rendering).ambientOcclusion;
 		expect(() => {
 			validateV3(defaultsV3);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - real cameras", async () => {
@@ -233,7 +233,7 @@ describe("validationV3", () => {
 		};
 		expect(() => {
 			validateV3(defaultsV3);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -296,7 +296,7 @@ describe("validationV3", () => {
 		};
 		expect(() => {
 			validateV3(defaultsV3);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 });
 
@@ -305,13 +305,13 @@ describe("validationV3.1", () => {
 		const defaultsV3_1 = DefaultsV3_1();
 		expect(() => {
 			validateV3_1(defaultsV3_1);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - empty", async () => {
 		expect(() => {
 			validateV3_1({});
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - malicious", async () => {
@@ -321,7 +321,7 @@ describe("validationV3.1", () => {
 		};
 		expect(() => {
 			validateV3_1(defaultsV3_1);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - missing", async () => {
@@ -329,7 +329,7 @@ describe("validationV3.1", () => {
 		delete (<any>defaultsV3_1.rendering).ambientOcclusion;
 		expect(() => {
 			validateV3_1(defaultsV3_1);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - real cameras", async () => {
@@ -405,7 +405,7 @@ describe("validationV3.1", () => {
 		};
 		expect(() => {
 			validateV3_1(defaultsV3_1);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -468,7 +468,7 @@ describe("validationV3.1", () => {
 		};
 		expect(() => {
 			validateV3_1(defaultsV3_1);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -1041,7 +1041,7 @@ describe("validationV3.1", () => {
 		};
 		expect(() => {
 			validate(obj);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -1371,6 +1371,6 @@ describe("validationV3.1", () => {
 
 		expect(() => {
 			validate(obj);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 });

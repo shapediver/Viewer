@@ -1,32 +1,33 @@
 packages:
-  - "shared/*"
-  - "data-engine/*"
-  - "session-engine/*"
-  - "examples/*"
-  - "rendering-engine/*"
-  - "tests"
-  - "features/*"
-  - "api/*"
-  - "creation-control-center/*"
+    - "shared/*"
+    - "data-engine/*"
+    - "session-engine/*"
+    - "examples/*"
+    - "rendering-engine/*"
+    - "tests"
+    - "features/*"
+    - "api/*"
+    - "creation-control-center/*"
 
 overrides:
-  path-to-regexp: "0.1.13"
-  picomatch: "^2.3.2"
-  semver: "^7.5.2"
-  ws: "^8.17.1"
-  tar: "^7.5.11"
-  parse-path: "^7.1.0"
-  parse-url: "^8.1.0"
-  form-data: "^2.5.5"
+    path-to-regexp: "0.1.13"
+    picomatch: "^2.3.2"
+    semver: "^7.5.2"
+    ws: "^8.17.1"
+    tar: "^7.5.11"
+    parse-path: "^7.1.0"
+    parse-url: "^8.1.0"
+    form-data: "^2.5.5"
 
 allowBuilds:
-  esbuild: true
-  nx: true
-  puppeteer: true
+    esbuild: true
+    nx: true
+    puppeteer: true
+    unrs-resolver: set this to true or false
 
 minimumReleaseAgeExclude:
-  - '@shapediver/sdk.geometry-api-sdk-v2@3.4.2'
-  - '@shapediver/sdk.sdtf-core@1.7.3'
-  - '@shapediver/sdk.sdtf-geometry@1.7.3'
-  - '@shapediver/sdk.sdtf-primitives@1.7.3'
-  - '@shapediver/sdk.sdtf-v1@1.7.3'
+    - "@shapediver/sdk.geometry-api-sdk-v2@3.4.2"
+    - "@shapediver/sdk.sdtf-core@1.7.3"
+    - "@shapediver/sdk.sdtf-geometry@1.7.3"
+    - "@shapediver/sdk.sdtf-primitives@1.7.3"
+    - "@shapediver/sdk.sdtf-v1@1.7.3"

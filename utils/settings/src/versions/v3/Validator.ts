@@ -1,8 +1,15 @@
-import {z} from "zod";
+﻿import {z} from "zod";
+
+const zNumOrInf = z.union([
+	z.number(),
+	z.literal(Infinity),
+	z.literal(-Infinity),
+]);
+const zNumOrInfPositive = z.union([z.number().positive(), z.literal(Infinity)]);
 
 const orbitControlsSchema = z.object({
-	autoRotationSpeed: z.number(),
-	damping: z.number(),
+	autoRotationSpeed: zNumOrInf,
+	damping: zNumOrInf,
 	enableAutoRotation: z.boolean(),
 	enableKeyPan: z.boolean(),
 	enablePan: z.boolean(),
@@ -10,202 +17,205 @@ const orbitControlsSchema = z.object({
 	enableZoom: z.boolean(),
 	input: z.object({
 		keys: z.object({
-			up: z.number(),
-			down: z.number(),
-			left: z.number(),
-			right: z.number(),
+			up: zNumOrInf,
+			down: zNumOrInf,
+			left: zNumOrInf,
+			right: zNumOrInf,
 		}),
 		mouse: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 		touch: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 	}),
-	keyPanSpeed: z.number(),
-	movementSmoothness: z.number(),
+	keyPanSpeed: zNumOrInf,
+	movementSmoothness: zNumOrInf,
 	restrictions: z.object({
 		position: z.object({
 			cube: z.object({
 				min: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 				max: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 			}),
 			sphere: z.object({
-				center: z.object({x: z.number(), y: z.number(), z: z.number()}),
-				radius: z.number().nullable(),
+				center: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+				radius: zNumOrInf.nullable(),
 			}),
 		}),
 		target: z.object({
 			cube: z.object({
 				min: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 				max: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 			}),
 			sphere: z.object({
-				center: z.object({x: z.number(), y: z.number(), z: z.number()}),
-				radius: z.number().nullable(),
+				center: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+				radius: zNumOrInf.nullable(),
 			}),
 		}),
 		rotation: z.object({
-			minPolarAngle: z.number(),
-			maxPolarAngle: z.number(),
-			minAzimuthAngle: z.number().nullable(),
-			maxAzimuthAngle: z.number().nullable(),
+			minPolarAngle: zNumOrInf,
+			maxPolarAngle: zNumOrInf,
+			minAzimuthAngle: zNumOrInf.nullable(),
+			maxAzimuthAngle: zNumOrInf.nullable(),
 		}),
 		zoom: z.object({
-			minDistance: z.number(),
-			maxDistance: z.number().nullable(),
+			minDistance: zNumOrInf,
+			maxDistance: zNumOrInf.nullable(),
 		}),
 	}),
-	rotationSpeed: z.number(),
-	panSpeed: z.number(),
-	zoomSpeed: z.number(),
+	rotationSpeed: zNumOrInf,
+	panSpeed: zNumOrInf,
+	zoomSpeed: zNumOrInf,
 });
 
 const orthographicControlsSchema = z.object({
-	damping: z.number(),
+	damping: zNumOrInf,
 	enableKeyPan: z.boolean(),
 	enablePan: z.boolean(),
 	enableZoom: z.boolean(),
 	input: z.object({
 		keys: z.object({
-			up: z.number(),
-			down: z.number(),
-			left: z.number(),
-			right: z.number(),
+			up: zNumOrInf,
+			down: zNumOrInf,
+			left: zNumOrInf,
+			right: zNumOrInf,
 		}),
 		mouse: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 		touch: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 	}),
-	keyPanSpeed: z.number(),
-	movementSmoothness: z.number(),
-	panSpeed: z.number(),
-	zoomSpeed: z.number(),
+	keyPanSpeed: zNumOrInf,
+	movementSmoothness: zNumOrInf,
+	panSpeed: zNumOrInf,
+	zoomSpeed: zNumOrInf,
 });
 
 const orthographicCameraSchema = z.object({
 	name: z.string().optional(),
 	type: z.string(),
 	autoAdjust: z.boolean(),
-	cameraMovementDuration: z.number(),
+	cameraMovementDuration: zNumOrInf,
 	controls: orthographicControlsSchema,
 	enableCameraControls: z.boolean(),
 	position: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
 	revertAtMouseUp: z.boolean(),
-	revertAtMouseUpDuration: z.number(),
+	revertAtMouseUpDuration: zNumOrInf,
 	target: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
-	zoomExtentsFactor: z.number().positive(),
+	zoomExtentsFactor: zNumOrInfPositive,
 });
 
 const perspectiveCameraSchema = z.object({
 	name: z.string().optional(),
 	type: z.string(),
 	autoAdjust: z.boolean(),
-	cameraMovementDuration: z.number(),
+	cameraMovementDuration: zNumOrInf,
 	controls: orbitControlsSchema,
 	enableCameraControls: z.boolean(),
-	fov: z.number().positive(),
+	fov: zNumOrInfPositive,
 	position: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
 	revertAtMouseUp: z.boolean(),
-	revertAtMouseUpDuration: z.number(),
+	revertAtMouseUpDuration: zNumOrInf,
 	target: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
-	zoomExtentsFactor: z.number().positive(),
+	zoomExtentsFactor: zNumOrInfPositive,
 });
 
 const cameraSchema = z.record(
+	z.string(),
 	z.union([perspectiveCameraSchema, orthographicCameraSchema]),
 );
 
 const ambientLightSchema = z.object({
-	color: z.union([z.number(), z.string()]),
-	intensity: z.number(),
+	color: z.union([zNumOrInf, z.string()]),
+	intensity: zNumOrInf,
 });
 
 const directionalLightSchema = z.object({
-	color: z.union([z.number(), z.string()]),
-	intensity: z.number(),
-	direction: z.object({x: z.number(), y: z.number(), z: z.number()}),
+	color: z.union([zNumOrInf, z.string()]),
+	intensity: zNumOrInf,
+	direction: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
 	castShadow: z.boolean(),
-	shadowMapResolution: z.number().optional(),
-	shadowMapBias: z.number().optional(),
+	shadowMapResolution: zNumOrInf.optional(),
+	shadowMapBias: zNumOrInf.optional(),
 });
 
 const hemisphereLightSchema = z.object({
-	skyColor: z.union([z.number(), z.string()]),
-	intensity: z.number(),
-	groundColor: z.union([z.number(), z.string()]),
+	skyColor: z.union([zNumOrInf, z.string()]),
+	intensity: zNumOrInf,
+	groundColor: z.union([zNumOrInf, z.string()]),
 });
 
 const pointLightSchema = z.object({
-	color: z.union([z.number(), z.string()]),
-	intensity: z.number(),
-	position: z.object({x: z.number(), y: z.number(), z: z.number()}),
-	distance: z.number(),
-	decay: z.number(),
+	color: z.union([zNumOrInf, z.string()]),
+	intensity: zNumOrInf,
+	position: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+	distance: zNumOrInf,
+	decay: zNumOrInf,
 });
 
 const spotLightSchema = z.object({
-	color: z.union([z.number(), z.string()]),
-	intensity: z.number(),
-	position: z.object({x: z.number(), y: z.number(), z: z.number()}),
-	target: z.object({x: z.number(), y: z.number(), z: z.number()}),
-	distance: z.number(),
-	decay: z.number(),
-	angle: z.number(),
-	penumbra: z.number(),
+	color: z.union([zNumOrInf, z.string()]),
+	intensity: zNumOrInf,
+	position: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+	target: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+	distance: zNumOrInf,
+	decay: zNumOrInf,
+	angle: zNumOrInf,
+	penumbra: zNumOrInf,
 });
 
 const lightSchema = z.record(
+	z.string(),
 	z.object({
 		name: z.string().optional(),
 		lights: z.record(
+			z.string(),
 			z.object({
 				name: z.string().optional(),
 				type: z.string(),
-				order: z.number().optional(),
+				order: zNumOrInf.optional(),
 				properties: z.union([
 					ambientLightSchema,
 					directionalLightSchema,
@@ -234,7 +244,7 @@ const schema = z
 			cameras: cameraSchema,
 		}),
 		environment: z.object({
-			clearAlpha: z.number(),
+			clearAlpha: zNumOrInf,
 			clearColor: z.string(),
 			map: z.union([z.string(), z.string().array()]),
 			mapAsBackground: z.boolean(),
@@ -246,22 +256,22 @@ const schema = z
 		}),
 		general: z.object({
 			transformation: z.object({
-				scale: z.object({x: z.number(), y: z.number(), z: z.number()}),
+				scale: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
 				translation: z.object({
-					x: z.number(),
-					y: z.number(),
-					z: z.number(),
+					x: zNumOrInf,
+					y: zNumOrInf,
+					z: zNumOrInf,
 				}),
 				rotation: z.object({
-					x: z.number(),
-					y: z.number(),
-					z: z.number(),
+					x: zNumOrInf,
+					y: zNumOrInf,
+					z: zNumOrInf,
 				}),
 			}),
 			blurWhenBusy: z.boolean(),
 			commitSettings: z.boolean(),
 			commitParameters: z.boolean(),
-			pointSize: z.number(),
+			pointSize: zNumOrInf,
 			showMessages: z.boolean(),
 		}),
 		light: z.object({
@@ -270,14 +280,18 @@ const schema = z
 		}),
 		rendering: z.object({
 			ambientOcclusion: z.boolean(),
-			ambientOcclusionIntensity: z.number().min(0),
-			beautyRenderDelay: z.number(),
-			beautyRenderBlendingDuration: z.number(),
+			ambientOcclusionIntensity: z.union([
+				z.number().min(0),
+				z.literal(Infinity),
+			]),
+			beautyRenderDelay: zNumOrInf,
+			beautyRenderBlendingDuration: zNumOrInf,
 			shadows: z.boolean(),
 		}),
 		session: z.record(
+			z.string(),
 			z.object({
-				order: z.number().optional(),
+				order: zNumOrInf.optional(),
 				displayname: z.string().optional(),
 				hidden: z.boolean().optional(),
 			}),

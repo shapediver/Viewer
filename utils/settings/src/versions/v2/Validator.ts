@@ -1,39 +1,45 @@
 import {z} from "zod";
 
+const zNumOrInf = z.union([
+	z.number(),
+	z.literal(Infinity),
+	z.literal(-Infinity),
+]);
+const zNumOrInfPositive = z.union([z.number().positive(), z.literal(Infinity)]);
+
 const lightSchema = z.object({
 	id: z.string(),
 	name: z.string().optional(),
 	type: z.string(),
-	order: z.number().optional(),
+	order: zNumOrInf.optional(),
 	properties: z.object({
-		color: z.union([z.number(), z.string()]).optional(),
+		color: z.union([zNumOrInf, z.string()]).optional(),
 		direction: z
-			.object({x: z.number(), y: z.number(), z: z.number()})
+			.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf})
 			.optional(),
 		position: z
-			.object({x: z.number(), y: z.number(), z: z.number()})
+			.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf})
 			.optional(),
-		target: z
-			.object({x: z.number(), y: z.number(), z: z.number()})
-			.optional(),
+		target: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}).optional(),
 		castShadow: z.boolean().optional(),
-		skyColor: z.union([z.number(), z.string()]).optional(),
-		groundColor: z.union([z.number(), z.string()]).optional(),
-		intensity: z.number().optional(),
-		distance: z.number().optional(),
-		angle: z.number().optional(),
-		penumbra: z.number().optional(),
-		decay: z.number().optional(),
-		shadowMapResolution: z.number().optional(),
-		shadowMapBias: z.number().optional(),
+		skyColor: z.union([zNumOrInf, z.string()]).optional(),
+		groundColor: z.union([zNumOrInf, z.string()]).optional(),
+		intensity: zNumOrInf.optional(),
+		distance: zNumOrInf.optional(),
+		angle: zNumOrInf.optional(),
+		penumbra: zNumOrInf.optional(),
+		decay: zNumOrInf.optional(),
+		shadowMapResolution: zNumOrInf.optional(),
+		shadowMapBias: zNumOrInf.optional(),
 	}),
 });
 
 const lightScenesSchema = z.record(
+	z.string(),
 	z.object({
 		id: z.string(),
 		name: z.string().optional(),
-		lights: z.record(lightSchema),
+		lights: z.record(z.string(), lightSchema),
 	}),
 );
 
@@ -54,23 +60,23 @@ const schema = z
 			})
 			.optional(),
 		defaultMaterial: z.object({
-			bumpAmplitude: z.number().optional(),
-			color: z.union([z.string(), z.number().array()]).optional(),
-			metalness: z.number().optional(),
-			roughness: z.number().optional(),
+			bumpAmplitude: zNumOrInf.optional(),
+			color: z.union([z.string(), zNumOrInf.array()]).optional(),
+			metalness: zNumOrInf.optional(),
+			roughness: zNumOrInf.optional(),
 		}),
 		parameters: z
 			.object({
 				controlOrder: z.string().array().optional(),
-				controlNames: z.record(z.string()).optional(),
+				controlNames: z.record(z.string(), z.string()).optional(),
 				parametersHidden: z.string().array().optional(),
 			})
 			.optional(),
 		viewer: z.object({
 			blurSceneWhenBusy: z.boolean(),
 			ignoreSuperseded: z.boolean().optional(),
-			loggingLevel: z.number().optional(),
-			messageLoggingLevel: z.number().optional(),
+			loggingLevel: zNumOrInf.optional(),
+			messageLoggingLevel: zNumOrInf.optional(),
 
 			viewerRuntimeId: z.string().optional(),
 			hasRestoredSettings: z.boolean().optional(),
@@ -83,53 +89,53 @@ const schema = z
 			scene: z.object({
 				show: z.boolean().optional(),
 				showSceneTransition: z.string().optional(),
-				duration: z.number().optional(),
+				duration: zNumOrInf.optional(),
 				fullscreen: z.boolean().optional(),
 				gridVisibility: z.boolean(),
-				groundPlaneReflectionThreshold: z.number().optional(),
+				groundPlaneReflectionThreshold: zNumOrInf.optional(),
 				groundPlaneReflectionVisibility: z.boolean().optional(),
 				groundPlaneVisibility: z.boolean(),
 
 				camera: z.object({
 					autoAdjust: z.boolean(),
-					cameraMovementDuration: z.number(),
+					cameraMovementDuration: zNumOrInf,
 					cameraTypes: z.object({
 						perspective: z.object({
 							default: z.object({
 								position: z.object({
-									x: z.number(),
-									y: z.number(),
-									z: z.number(),
+									x: zNumOrInf,
+									y: zNumOrInf,
+									z: zNumOrInf,
 								}),
 								target: z.object({
-									x: z.number(),
-									y: z.number(),
-									z: z.number(),
+									x: zNumOrInf,
+									y: zNumOrInf,
+									z: zNumOrInf,
 								}),
 							}),
-							fov: z.number(),
-							controls: z.number().optional(),
+							fov: zNumOrInf,
+							controls: zNumOrInf.optional(),
 						}),
 						orthographic: z.object({
 							default: z.object({
 								position: z.object({
-									x: z.number(),
-									y: z.number(),
-									z: z.number(),
+									x: zNumOrInf,
+									y: zNumOrInf,
+									z: zNumOrInf,
 								}),
 								target: z.object({
-									x: z.number(),
-									y: z.number(),
-									z: z.number(),
+									x: zNumOrInf,
+									y: zNumOrInf,
+									z: zNumOrInf,
 								}),
 							}),
 						}),
-						active: z.number(),
+						active: zNumOrInf,
 					}),
 					controls: z.object({
 						orbit: z.object({
-							autoRotationSpeed: z.number(),
-							damping: z.number(),
+							autoRotationSpeed: zNumOrInf,
+							damping: zNumOrInf,
 							enableAutoRotation: z.boolean(),
 							enableKeyPan: z.boolean(),
 							enablePan: z.boolean(),
@@ -137,49 +143,49 @@ const schema = z
 							enableZoom: z.boolean(),
 							input: z.object({
 								keys: z.object({
-									up: z.number(),
-									down: z.number(),
-									left: z.number(),
-									right: z.number(),
+									up: zNumOrInf,
+									down: zNumOrInf,
+									left: zNumOrInf,
+									right: zNumOrInf,
 								}),
 								mouse: z.object({
-									rotate: z.number(),
-									zoom: z.number(),
-									pan: z.number(),
+									rotate: zNumOrInf,
+									zoom: zNumOrInf,
+									pan: zNumOrInf,
 								}),
 								touch: z.object({
-									rotate: z.number(),
-									zoom: z.number(),
-									pan: z.number(),
+									rotate: zNumOrInf,
+									zoom: zNumOrInf,
+									pan: zNumOrInf,
 								}),
 							}),
-							keyPanSpeed: z.number(),
-							movementSmoothness: z.number(),
+							keyPanSpeed: zNumOrInf,
+							movementSmoothness: zNumOrInf,
 							restrictions: z.object({
 								position: z
 									.object({
 										cube: z
 											.object({
 												min: z.object({
-													x: z.number().nullable(),
-													y: z.number().nullable(),
-													z: z.number().nullable(),
+													x: zNumOrInf.nullable(),
+													y: zNumOrInf.nullable(),
+													z: zNumOrInf.nullable(),
 												}),
 												max: z.object({
-													x: z.number().nullable(),
-													y: z.number().nullable(),
-													z: z.number().nullable(),
+													x: zNumOrInf.nullable(),
+													y: zNumOrInf.nullable(),
+													z: zNumOrInf.nullable(),
 												}),
 											})
 											.optional(),
 										sphere: z
 											.object({
 												center: z.object({
-													x: z.number(),
-													y: z.number(),
-													z: z.number(),
+													x: zNumOrInf,
+													y: zNumOrInf,
+													z: zNumOrInf,
 												}),
-												radius: z.number().nullable(),
+												radius: zNumOrInf.nullable(),
 											})
 											.optional(),
 									})
@@ -189,82 +195,82 @@ const schema = z
 										cube: z
 											.object({
 												min: z.object({
-													x: z.number().nullable(),
-													y: z.number().nullable(),
-													z: z.number().nullable(),
+													x: zNumOrInf.nullable(),
+													y: zNumOrInf.nullable(),
+													z: zNumOrInf.nullable(),
 												}),
 												max: z.object({
-													x: z.number().nullable(),
-													y: z.number().nullable(),
-													z: z.number().nullable(),
+													x: zNumOrInf.nullable(),
+													y: zNumOrInf.nullable(),
+													z: zNumOrInf.nullable(),
 												}),
 											})
 											.optional(),
 										sphere: z
 											.object({
 												center: z.object({
-													x: z.number(),
-													y: z.number(),
-													z: z.number(),
+													x: zNumOrInf,
+													y: zNumOrInf,
+													z: zNumOrInf,
 												}),
-												radius: z.number().nullable(),
+												radius: zNumOrInf.nullable(),
 											})
 											.optional(),
 									})
 									.optional(),
 								rotation: z
 									.object({
-										minPolarAngle: z.number(),
-										maxPolarAngle: z.number(),
-										minAzimuthAngle: z.number().nullable(),
-										maxAzimuthAngle: z.number().nullable(),
+										minPolarAngle: zNumOrInf,
+										maxPolarAngle: zNumOrInf,
+										minAzimuthAngle: zNumOrInf.nullable(),
+										maxAzimuthAngle: zNumOrInf.nullable(),
 									})
 									.optional(),
 								zoom: z
 									.object({
-										minDistance: z.number(),
-										maxDistance: z.number().nullable(),
+										minDistance: zNumOrInf,
+										maxDistance: zNumOrInf.nullable(),
 									})
 									.optional(),
 							}),
-							rotationSpeed: z.number(),
-							panSpeed: z.number(),
-							zoomSpeed: z.number(),
+							rotationSpeed: zNumOrInf,
+							panSpeed: zNumOrInf,
+							zoomSpeed: zNumOrInf,
 						}),
 						fps: z.object({}),
 						orthographic: z.object({
-							damping: z.number(),
+							damping: zNumOrInf,
 							enableKeyPan: z.boolean(),
 							enablePan: z.boolean(),
 							enableZoom: z.boolean(),
 							input: z.object({
 								keys: z.object({
-									up: z.number(),
-									down: z.number(),
-									left: z.number(),
-									right: z.number(),
+									up: zNumOrInf,
+									down: zNumOrInf,
+									left: zNumOrInf,
+									right: zNumOrInf,
 								}),
 								mouse: z.object({
-									rotate: z.number(),
-									zoom: z.number(),
-									pan: z.number(),
+									rotate: zNumOrInf,
+									zoom: zNumOrInf,
+									pan: zNumOrInf,
 								}),
 								touch: z.object({
-									rotate: z.number(),
-									zoom: z.number(),
-									pan: z.number(),
+									rotate: zNumOrInf,
+									zoom: zNumOrInf,
+									pan: zNumOrInf,
 								}),
 							}),
-							keyPanSpeed: z.number(),
-							movementSmoothness: z.number(),
-							panSpeed: z.number(),
-							zoomSpeed: z.number(),
+							keyPanSpeed: zNumOrInf,
+							movementSmoothness: zNumOrInf,
+							panSpeed: zNumOrInf,
+							zoomSpeed: zNumOrInf,
 						}),
 					}),
 					enableCameraControls: z.boolean(),
 					revertAtMouseUp: z.boolean(),
-					revertAtMouseUpDuration: z.number(),
-					zoomExtentsFactor: z.number().positive(),
+					revertAtMouseUpDuration: zNumOrInf,
+					zoomExtentsFactor: zNumOrInfPositive,
 				}),
 				lights: z.object({
 					helper: z.boolean().optional(),
@@ -283,17 +289,17 @@ const schema = z
 				}),
 				render: z.object({
 					ambientOcclusion: z.boolean(),
-					beautyRenderDelay: z.number(),
-					beautyRenderBlendingDuration: z.number().optional(),
-					clearAlpha: z.number(),
+					beautyRenderDelay: zNumOrInf,
+					beautyRenderBlendingDuration: zNumOrInf.optional(),
+					clearAlpha: zNumOrInf,
 					clearColor: z.string(),
-					pointSize: z.number(),
+					pointSize: zNumOrInf,
 					shadows: z.boolean(),
 					sao: z.object({
-						samples: z.number().positive().optional(),
-						kernelRadius: z.number().positive().optional(),
-						intensity: z.number().positive().optional(),
-						standardDev: z.number().optional(),
+						samples: zNumOrInfPositive.optional(),
+						kernelRadius: zNumOrInfPositive.optional(),
+						intensity: zNumOrInfPositive.optional(),
+						standardDev: zNumOrInf.optional(),
 					}),
 				}),
 			}),

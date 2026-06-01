@@ -373,56 +373,56 @@ describe("validation", () => {
 		const defaultsV1 = DefaultsV1();
 		expect(() => {
 			validate(defaultsV1);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - wrong defaults 1", async () => {
 		const defaultsV1 = DefaultsV1();
 		expect(() => {
 			validate(defaultsV1, "2.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong defaults 2", async () => {
 		const defaultsV1 = DefaultsV1();
 		expect(() => {
 			validate(defaultsV1, "3.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong defaults 3", async () => {
 		const defaultsV2 = DefaultsV2();
 		expect(() => {
 			validate(defaultsV2, "1.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong defaults 4", async () => {
 		const defaultsV2 = DefaultsV2();
 		expect(() => {
 			validate(defaultsV2, "3.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong defaults 5", async () => {
 		const defaultsV3 = DefaultsV3();
 		expect(() => {
 			validate(defaultsV3, "1.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong defaults 6", async () => {
 		const defaultsV3 = DefaultsV3();
 		expect(() => {
 			validate(defaultsV3, "2.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - defaults", async () => {
 		const defaultsV2 = DefaultsV2();
 		expect(() => {
 			validate(defaultsV2);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - malicious", async () => {
@@ -432,7 +432,7 @@ describe("validation", () => {
 		};
 		expect(() => {
 			validate(defaultsV2);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - missing", async () => {
@@ -440,28 +440,28 @@ describe("validation", () => {
 		delete (<any>defaultsV2.viewer.scene.render).ambientOcclusion;
 		expect(() => {
 			validate(defaultsV2);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - wrong version", async () => {
 		const defaultsV2 = DefaultsV2();
 		expect(() => {
 			validate(defaultsV2, "1.0");
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - defaults", async () => {
 		const defaultsV3 = DefaultsV3();
 		expect(() => {
 			validate(defaultsV3);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - defaults 2", async () => {
 		const defaultsV3 = DefaultsV3();
 		expect(() => {
 			validate(defaultsV3, "3.0");
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 
 	it("validate - missing", async () => {
@@ -469,7 +469,7 @@ describe("validation", () => {
 		delete (<any>defaultsV3.rendering).ambientOcclusion;
 		expect(() => {
 			validate(defaultsV3);
-		}).toThrowError();
+		}).toThrow();
 	});
 
 	it("validate - real light scene", async () => {
@@ -532,6 +532,6 @@ describe("validation", () => {
 		};
 		expect(() => {
 			validate(defaultsV3);
-		}).not.toThrowError();
+		}).not.toThrow();
 	});
 });

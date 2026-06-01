@@ -1,38 +1,46 @@
 import {z} from "zod";
 
+const zNumOrInf = z.union([
+	z.number(),
+	z.literal(Infinity),
+	z.literal(-Infinity),
+]);
+const zNumOrInfPositive = z.union([z.number().positive(), z.literal(Infinity)]);
+
 const lightSchema = z
 	.object({
 		id: z.string().optional(),
 		name: z.string().optional(),
 		type: z.string().optional(),
 		properties: z.object({
-			color: z.union([z.number(), z.string()]).optional(),
+			color: z.union([zNumOrInf, z.string()]).optional(),
 			direction: z
-				.object({x: z.number(), y: z.number(), z: z.number()})
+				.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf})
 				.optional(),
 			position: z
-				.object({x: z.number(), y: z.number(), z: z.number()})
+				.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf})
 				.optional(),
 			target: z
-				.object({x: z.number(), y: z.number(), z: z.number()})
+				.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf})
 				.optional(),
 			castShadow: z.boolean().optional(),
-			skyColor: z.union([z.number(), z.string()]).optional(),
-			groundColor: z.union([z.number(), z.string()]).optional(),
-			intensity: z.number().optional(),
-			distance: z.number().optional(),
-			angle: z.number().optional(),
-			penumbra: z.number().optional(),
-			decay: z.number().optional(),
-			shadowMapResolution: z.number().optional(),
-			shadowMapBias: z.number().optional(),
+			skyColor: z.union([zNumOrInf, z.string()]).optional(),
+			groundColor: z.union([zNumOrInf, z.string()]).optional(),
+			intensity: zNumOrInf,
+			distance: zNumOrInf.optional(),
+			angle: zNumOrInf,
+			penumbra: zNumOrInf.optional(),
+			decay: zNumOrInf.optional(),
+			shadowMapResolution: zNumOrInf,
+			shadowMapBias: zNumOrInf,
 		}),
 	})
 	.optional();
 
-const lightsSchema = z.record(lightSchema);
+const lightsSchema = z.record(z.string(), lightSchema);
 
 const lightScenesSchema = z.record(
+	z.string(),
 	z.object({
 		id: z.string(),
 		name: z.string().optional(),
@@ -46,57 +54,57 @@ const schema = z
 		build_version: z.string().optional(),
 		settings_version: z.string().optional(),
 		ambientOcclusion: z.boolean().optional(),
-		autoRotateSpeed: z.number().optional(),
+		autoRotateSpeed: zNumOrInf,
 		backgroundColor: z.string().optional(),
-		bumpAmplitude: z.number().optional(),
+		bumpAmplitude: zNumOrInf,
 		camera: z
 			.object({
 				position: z
 					.object({
-						x: z.number().optional(),
-						y: z.number().optional(),
-						z: z.number().optional(),
+						x: zNumOrInf,
+						y: zNumOrInf,
+						z: zNumOrInf,
 					})
 					.optional(),
 				target: z
 					.object({
-						x: z.number().optional(),
-						y: z.number().optional(),
-						z: z.number().optional(),
+						x: zNumOrInf,
+						y: zNumOrInf,
+						z: zNumOrInf,
 					})
 					.optional(),
 			})
 			.optional(),
 		cameraAutoAdjust: z.boolean().optional(),
-		cameraMovementDuration: z.number().optional(),
+		cameraMovementDuration: zNumOrInf,
 		cameraOrtho: z
 			.object({
 				position: z
 					.object({
-						x: z.number().optional(),
-						y: z.number().optional(),
-						z: z.number().optional(),
+						x: zNumOrInf,
+						y: zNumOrInf,
+						z: zNumOrInf,
 					})
 					.optional(),
 				target: z
 					.object({
-						x: z.number().optional(),
-						y: z.number().optional(),
-						z: z.number().optional(),
+						x: zNumOrInf,
+						y: zNumOrInf,
+						z: zNumOrInf,
 					})
 					.optional(),
 			})
 			.optional(),
 		cameraRevertAtMouseUp: z.boolean().optional(),
-		clearAlpha: z.number().optional(),
+		clearAlpha: zNumOrInf,
 		clearColor: z.string().optional(),
 		commitParameters: z.boolean().optional(),
-		controlDamping: z.number().optional(),
-		controlNames: z.record(z.string()).optional(),
+		controlDamping: zNumOrInf,
+		controlNames: z.record(z.string(), z.string()).optional(),
 		controlOrder: z.string().array().optional(),
 		defaultMaterialColor: z.union([
 			z.string(),
-			z.number().array().optional(),
+			zNumOrInf.array().optional(),
 		]),
 		disablePan: z.boolean().optional(),
 		disableZoom: z.boolean().optional(),
@@ -104,21 +112,21 @@ const schema = z
 		enableRotation: z.boolean().optional(),
 		environmentMap: z.union([z.string(), z.string().array().optional()]),
 		environmentMapResolution: z.string().optional(),
-		fov: z.number().positive().optional(),
+		fov: zNumOrInfPositive.optional(),
 		lightScene: z.string().optional(),
 		lightScenes: lightScenesSchema.nullable().optional(),
-		panSpeed: z.number().optional(),
+		panSpeed: zNumOrInf,
 		parametersHidden: z.string().array().optional(),
-		pointSize: z.number().optional(),
-		revertAtMouseUpDuration: z.number().optional(),
-		rotateSpeed: z.number().optional(),
+		pointSize: zNumOrInf,
+		revertAtMouseUpDuration: zNumOrInf,
+		rotateSpeed: zNumOrInf,
 		showEnvironmentMap: z.boolean().optional(),
 		showGrid: z.boolean().optional(),
 		showGroundPlane: z.boolean().optional(),
 		showShadows: z.boolean().optional(),
 		topView: z.boolean().optional(),
-		zoomExtentFactor: z.number().optional(),
-		zoomSpeed: z.number().optional(),
+		zoomExtentFactor: zNumOrInf,
+		zoomSpeed: zNumOrInf,
 	})
 	.passthrough();
 

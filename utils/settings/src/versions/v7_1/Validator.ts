@@ -1,4 +1,4 @@
-import {z} from "zod";
+﻿import {z} from "zod";
 import {
 	arSettingsSchema,
 	environmentSettingsSchema,
@@ -16,9 +16,16 @@ import {
 	generalSettingsSchema,
 } from "../v7/Validator";
 
+const zNumOrInf = z.union([
+	z.number(),
+	z.literal(Infinity),
+	z.literal(-Infinity),
+]);
+const zNumOrInfPositive = z.union([z.number().positive(), z.literal(Infinity)]);
+
 const cameraControlsSchema = z.object({
-	autoRotationSpeed: z.number(),
-	damping: z.number(),
+	autoRotationSpeed: zNumOrInf,
+	damping: zNumOrInf,
 	enableAutoRotation: z.boolean(),
 	enableKeyPan: z.boolean(),
 	enablePan: z.boolean(),
@@ -26,116 +33,117 @@ const cameraControlsSchema = z.object({
 	enableZoom: z.boolean(),
 	input: z.object({
 		keys: z.object({
-			up: z.number(),
-			down: z.number(),
-			left: z.number(),
-			right: z.number(),
+			up: zNumOrInf,
+			down: zNumOrInf,
+			left: zNumOrInf,
+			right: zNumOrInf,
 		}),
 		mouse: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 		touch: z.object({
-			rotate: z.number(),
-			zoom: z.number(),
-			pan: z.number(),
+			rotate: zNumOrInf,
+			zoom: zNumOrInf,
+			pan: zNumOrInf,
 		}),
 	}),
-	keyPanSpeed: z.number(),
-	movementSmoothness: z.number(),
+	keyPanSpeed: zNumOrInf,
+	movementSmoothness: zNumOrInf,
 	restrictions: z.object({
 		position: z.object({
 			cube: z.object({
 				min: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 				max: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 			}),
 			sphere: z.object({
-				center: z.object({x: z.number(), y: z.number(), z: z.number()}),
-				radius: z.number().nullable(),
+				center: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+				radius: zNumOrInf.nullable(),
 			}),
 		}),
 		target: z.object({
 			cube: z.object({
 				min: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 				max: z.object({
-					x: z.number().nullable(),
-					y: z.number().nullable(),
-					z: z.number().nullable(),
+					x: zNumOrInf.nullable(),
+					y: zNumOrInf.nullable(),
+					z: zNumOrInf.nullable(),
 				}),
 			}),
 			sphere: z.object({
-				center: z.object({x: z.number(), y: z.number(), z: z.number()}),
-				radius: z.number().nullable(),
+				center: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
+				radius: zNumOrInf.nullable(),
 			}),
 		}),
 		rotation: z.object({
-			minPolarAngle: z.number(),
-			maxPolarAngle: z.number(),
-			minAzimuthAngle: z.number().nullable(),
-			maxAzimuthAngle: z.number().nullable(),
+			minPolarAngle: zNumOrInf,
+			maxPolarAngle: zNumOrInf,
+			minAzimuthAngle: zNumOrInf.nullable(),
+			maxAzimuthAngle: zNumOrInf.nullable(),
 		}),
 		zoom: z.object({
-			minDistance: z.number(),
-			maxDistance: z.number().nullable(),
+			minDistance: zNumOrInf,
+			maxDistance: zNumOrInf.nullable(),
 		}),
 	}),
-	rotationSpeed: z.number(),
-	panSpeed: z.number(),
-	zoomSpeed: z.number(),
+	rotationSpeed: zNumOrInf,
+	panSpeed: zNumOrInf,
+	zoomSpeed: zNumOrInf,
 	enableAzimuthRotation: z.boolean(),
 	enableObjectControls: z.boolean(),
 	enablePolarRotation: z.boolean(),
 	enableTurntableControls: z.boolean(),
 	objectControlsCenter: z.object({
-		x: z.number(),
-		y: z.number(),
-		z: z.number(),
+		x: zNumOrInf,
+		y: zNumOrInf,
+		z: zNumOrInf,
 	}),
-	turntableCenter: z.object({x: z.number(), y: z.number(), z: z.number()}),
+	turntableCenter: z.object({x: zNumOrInf, y: zNumOrInf, z: zNumOrInf}),
 });
 
 const generalCameraSchema = z.object({
 	name: z.string().optional(),
 	type: z.string(),
 	autoAdjust: z.boolean(),
-	cameraMovementDuration: z.number(),
+	cameraMovementDuration: zNumOrInf,
 	controls: cameraControlsSchema,
 	enableCameraControls: z.boolean(),
 	initialAutoAdjust: z.boolean(),
 	position: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
 	revertAtMouseUp: z.boolean(),
-	revertAtMouseUpDuration: z.number(),
+	revertAtMouseUpDuration: zNumOrInf,
 	target: z.object({
-		x: z.number().nullable(),
-		y: z.number().nullable(),
-		z: z.number().nullable(),
+		x: zNumOrInf.nullable(),
+		y: zNumOrInf.nullable(),
+		z: zNumOrInf.nullable(),
 	}),
-	zoomExtentsFactor: z.number().positive(),
-	sceneRotation: z.object({x: z.number(), y: z.number()}),
+	zoomExtentsFactor: zNumOrInfPositive,
+	sceneRotation: z.object({x: zNumOrInf, y: zNumOrInf}),
 });
 
 const perspectiveCameraSchema = generalCameraSchema.extend({
-	fov: z.number().positive(),
+	fov: zNumOrInfPositive,
 });
 
 export const cameraSchema = z.record(
+	z.string(),
 	z.union([perspectiveCameraSchema, generalCameraSchema]),
 );
 
