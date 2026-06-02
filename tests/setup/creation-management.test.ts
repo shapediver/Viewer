@@ -23,7 +23,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -35,6 +35,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -51,7 +53,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -64,6 +66,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -83,7 +87,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -96,6 +100,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -117,7 +123,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -130,6 +136,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -146,7 +154,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -160,6 +168,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -179,7 +189,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -193,6 +203,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -214,7 +226,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -228,6 +240,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -244,7 +258,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -259,6 +273,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -278,7 +294,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -293,6 +309,8 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -316,7 +334,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -329,6 +347,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -339,7 +359,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -353,6 +373,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -363,7 +385,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -377,6 +399,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -392,7 +416,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -406,6 +430,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -416,7 +442,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -431,6 +457,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -441,7 +469,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -456,6 +484,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -471,7 +501,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -486,6 +516,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -496,7 +528,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -512,6 +544,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -522,7 +556,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -538,6 +572,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -555,7 +591,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -568,6 +604,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -584,7 +622,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -598,6 +636,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -617,7 +657,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -631,6 +671,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -655,7 +697,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -669,6 +711,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -688,7 +732,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -703,6 +747,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -722,7 +768,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -737,6 +783,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -761,7 +809,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -776,6 +824,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -792,7 +842,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -808,6 +858,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -827,7 +879,7 @@ test.describe("Creation Management", () => {
 		await page.evaluate(
 			async ({ticket, modelViewUrl, logo}: any) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -843,6 +895,8 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -874,13 +928,15 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
 					),
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -902,7 +958,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -910,6 +966,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -934,7 +992,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -942,6 +1000,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1031,7 +1091,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1040,6 +1100,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1066,7 +1128,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1075,6 +1137,8 @@ test.describe("Creation Management", () => {
 					sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1096,7 +1160,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1106,6 +1170,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1130,7 +1196,7 @@ test.describe("Creation Management", () => {
 					ticket,
 					modelViewUrl,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1140,6 +1206,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1169,13 +1237,15 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
 					),
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1192,7 +1262,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1200,6 +1270,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1216,7 +1288,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1224,6 +1296,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1245,7 +1319,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1253,6 +1327,8 @@ test.describe("Creation Management", () => {
 					sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1269,7 +1345,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1278,6 +1354,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1294,7 +1372,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1303,6 +1381,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1324,7 +1404,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1333,6 +1413,8 @@ test.describe("Creation Management", () => {
 					sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1349,7 +1431,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1359,6 +1441,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1375,7 +1459,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					loadOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1385,6 +1469,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1408,13 +1494,15 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
 					),
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1437,7 +1525,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1445,6 +1533,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1470,7 +1560,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1478,6 +1568,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1508,7 +1600,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1516,11 +1608,14 @@ test.describe("Creation Management", () => {
 					sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
 						async () => resolve(),
 					);
+					SDV.viewports["myViewer"]!.render();
 				});
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
@@ -1538,7 +1633,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1547,6 +1642,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1572,7 +1669,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1581,6 +1678,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);
@@ -1611,7 +1710,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1620,6 +1719,8 @@ test.describe("Creation Management", () => {
 					sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1642,7 +1743,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1652,6 +1753,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.INSTANT,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -1677,7 +1780,7 @@ test.describe("Creation Management", () => {
 					modelViewUrl,
 					waitForOutputs: false,
 				});
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					id: "myViewer",
 					canvas: <HTMLCanvasElement>(
 						document.getElementById("canvas")
@@ -1687,6 +1790,8 @@ test.describe("Creation Management", () => {
 					visibility: SDV.VISIBILITY_MODE.MANUAL,
 					branding: {logo},
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 			},
 			{ticket: shelfTicket, modelViewUrl, logo},
 		);

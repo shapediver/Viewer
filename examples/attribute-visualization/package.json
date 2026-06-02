@@ -37,8 +37,8 @@
 		}
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.17.0",
-		"@shapediver/viewer.features.attribute-visualization": "3.17.0",
+		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.features.attribute-visualization": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }

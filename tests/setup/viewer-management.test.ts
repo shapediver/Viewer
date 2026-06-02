@@ -16,7 +16,7 @@ test.describe("Viewer Management", () => {
 	test("scenario 1", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -28,6 +28,8 @@ test.describe("Viewer Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -45,13 +47,15 @@ test.describe("Viewer Management", () => {
 
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
 				id: "myViewer",
 				canvas: <HTMLCanvasElement>document.getElementById("canvas"),
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -65,7 +69,7 @@ test.describe("Viewer Management", () => {
 	test("scenario 2", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -77,6 +81,8 @@ test.describe("Viewer Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 		}, shelfTicket);
 		await expect(page).toHaveScreenshot(name + "/2_2.png");
 

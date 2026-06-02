@@ -37,10 +37,10 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.data-engine.geometry-engine": "3.17.0",
-		"@shapediver/viewer.shared.build-data": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
+		"@shapediver/viewer.data-engine.geometry-engine": "workspace:*",
+		"@shapediver/viewer.shared.build-data": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
 		"gl-matrix": "3.4.4"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"

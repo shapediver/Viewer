@@ -48,15 +48,15 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
-		"@shapediver/viewer.api.general": "3.17.0",
-		"@shapediver/viewer.creation-control-center.session": "3.17.0",
-		"@shapediver/viewer.data-engine.gltf-converter": "3.17.0",
-		"@shapediver/viewer.data-engine.shared-types": "3.17.0",
-		"@shapediver/viewer.session-engine.session-engine": "3.17.0",
-		"@shapediver/viewer.shared.math": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0"
+		"@shapediver/viewer.api.general": "workspace:*",
+		"@shapediver/viewer.creation-control-center.session": "workspace:*",
+		"@shapediver/viewer.data-engine.gltf-converter": "workspace:*",
+		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
+		"@shapediver/viewer.session-engine.session-engine": "workspace:*",
+		"@shapediver/viewer.shared.math": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

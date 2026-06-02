@@ -1,4 +1,4 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1} from "../models.json";
@@ -24,6 +24,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			return {
 				defaultPosition: viewer.camera!.defaultPosition,
 				defaultTarget: viewer.camera!.defaultTarget,
@@ -51,6 +53,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			return {
 				defaultPosition: viewer.camera!.defaultPosition,
 				defaultTarget: viewer.camera!.defaultTarget,
@@ -69,14 +73,19 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {
+				duration: 0,
+			});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -102,6 +111,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			return {
 				defaultPosition: viewer.camera!.defaultPosition,
 				defaultTarget: viewer.camera!.defaultTarget,
@@ -120,14 +131,19 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {
+				duration: 0,
+			});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -144,14 +160,17 @@ test.describe("Camera", () => {
 		const r3: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.reset({});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.reset({duration: 0});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -177,6 +196,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			return {
 				defaultPosition: viewer.camera!.defaultPosition,
 				defaultTarget: viewer.camera!.defaultTarget,
@@ -195,14 +216,17 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {duration: 0});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -219,14 +243,17 @@ test.describe("Camera", () => {
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.zoomTo();
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.zoomTo(undefined, {duration: 0});
+			viewer.update();
+			await renderingP;
 		});
 		await expect(page).toHaveScreenshot(name + "/zoom_3.png");
 	});
@@ -242,6 +269,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			const camera = viewer.createOrthographicCamera(
 				"myOrthographicCamera",
 			);
@@ -282,6 +311,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			const camera = viewer.createOrthographicCamera(
 				"myOrthographicCamera",
 			);
@@ -313,14 +344,19 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {
+				duration: 0,
+			});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -346,6 +382,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			const camera = viewer.createOrthographicCamera(
 				"myOrthographicCamera",
 			);
@@ -377,14 +415,19 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {
+				duration: 0,
+			});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -401,14 +444,17 @@ test.describe("Camera", () => {
 		const r3: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.reset({});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.reset({duration: 0});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -434,6 +480,8 @@ test.describe("Camera", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			const camera = viewer.createOrthographicCamera(
 				"myOrthographicCamera",
 			);
@@ -465,14 +513,17 @@ test.describe("Camera", () => {
 		const r2: any = await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {duration: 0});
+			viewer.update();
+			await renderingP;
 			return {
 				position: viewer.camera!.position,
 				target: viewer.camera!.target,
@@ -489,14 +540,17 @@ test.describe("Camera", () => {
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			await viewer.camera!.zoomTo();
-			await new Promise<void>((resolve) => {
+			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				setTimeout(resolve, 5000);
 			});
+			await viewer.camera!.zoomTo(undefined, {duration: 0});
+			viewer.update();
+			await renderingP;
 		});
 		await expect(page).toHaveScreenshot(name + "/ortho_positioning.png");
 	});

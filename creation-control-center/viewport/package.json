@@ -37,13 +37,13 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.rendering-engine.rendering-engine": "3.17.0",
-		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "3.17.0",
-		"@shapediver/viewer.settings": "1.2.5",
-		"@shapediver/viewer.shared.math": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0"
+		"@shapediver/viewer.rendering-engine.rendering-engine": "workspace:*",
+		"@shapediver/viewer.rendering-engine.rendering-engine-threejs": "workspace:*",
+		"@shapediver/viewer.settings": "1.3.0",
+		"@shapediver/viewer.shared.math": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

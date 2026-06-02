@@ -38,12 +38,13 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
-		"@shapediver/viewer.data-engine.geometry-engine": "3.17.0",
-		"@shapediver/viewer.data-engine.shared-types": "3.17.0",
-		"@shapediver/viewer.shared.global-access-objects": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0"
+		"@shapediver/viewer.data-engine.geometry-engine": "workspace:*",
+		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
+		"@shapediver/viewer.shared.global-access-objects": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*",
+		"gl-matrix": "3.4.4"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

@@ -1,46 +1,46 @@
 {
-  "name": "@shapediver/viewer.rendering-engine.animation-frame-engine",
-  "version": "3.17.0",
-  "description": "",
-  "keywords": [],
-  "author": "Michael Oppitz <michael@shapediver.com>",
-  "license": "polyform-noncommercial-1.0.0",
-  "main": "dist/index.js",
-  "directories": {
-    "test": "__tests__"
-  },
-  "files": [
-    "package.json",
-    "dist/",
-    "README.md",
-    "LICENSE"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shapediver/Viewer.git"
-  },
-  "scripts": {
-    "check": "tsc --noEmit",
-    "build": "bash ../../scripts/building/build.sh",
-    "build-watch": "bash ../../scripts/building/build-watch.sh"
-  },
-  "bugs": {
-    "url": "https://github.com/shapediver/Viewer/issues"
-  },
-  "homepage": "https://github.com/shapediver/Viewer#readme",
-  "typings": "dist/index.d.ts",
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
-  "dependencies": {
-    "@shapediver/viewer.rendering-engine.animation-engine": "3.17.0",
-    "@shapediver/viewer.shared.services": "3.17.0",
-    "@tweenjs/tween.js": "25.0.0",
-    "gl-matrix": "3.4.4"
-  },
-  "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
+	"name": "@shapediver/viewer.rendering-engine.animation-frame-engine",
+	"version": "3.17.0",
+	"description": "",
+	"keywords": [],
+	"author": "Michael Oppitz <michael@shapediver.com>",
+	"license": "polyform-noncommercial-1.0.0",
+	"main": "dist/index.js",
+	"directories": {
+		"test": "__tests__"
+	},
+	"files": [
+		"package.json",
+		"dist/",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/shapediver/Viewer.git"
+	},
+	"scripts": {
+		"check": "tsc --noEmit",
+		"build": "bash ../../scripts/building/build.sh",
+		"build-watch": "bash ../../scripts/building/build-watch.sh"
+	},
+	"bugs": {
+		"url": "https://github.com/shapediver/Viewer/issues"
+	},
+	"homepage": "https://github.com/shapediver/Viewer#readme",
+	"typings": "dist/index.d.ts",
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node"
+	},
+	"dependencies": {
+		"@shapediver/viewer.rendering-engine.animation-engine": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@tweenjs/tween.js": "25.0.0",
+		"gl-matrix": "3.4.4"
+	},
+	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

@@ -38,8 +38,8 @@
 		}
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.17.0",
-		"@shapediver/viewer.data-engine.data-engine": "3.17.0",
+		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }

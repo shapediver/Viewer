@@ -27,6 +27,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -91,6 +93,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 				properties: {
@@ -155,6 +159,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION,
 			});
@@ -181,6 +187,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD,
 				properties: {
@@ -212,6 +220,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN,
 				properties: {angle: 1.57, scale: 1.0},
@@ -273,6 +283,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					blendFunction: SDV.BlendFunction.MULTIPLY,
@@ -303,6 +315,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					resolutionScale: 1,
@@ -346,6 +360,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {hue: 2, saturation: 0.5},
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION,
@@ -413,6 +429,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {granularity: 30.0},
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.PIXELATION,
@@ -440,6 +458,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					resolutionScale: 1,
@@ -481,6 +501,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					blendFunction: SDV.BlendFunction.OVERLAY,
@@ -599,6 +621,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {blendFunction: SDV.BlendFunction.NORMAL},
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.SEPIA,
@@ -626,6 +650,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					blendFunction: SDV.BlendFunction.NORMAL,
@@ -660,6 +686,8 @@ test.describe("Post-processing", () => {
 				ticket,
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.postProcessing.addEffect({
 				properties: {
 					blendFunction: SDV.BlendFunction.NORMAL,

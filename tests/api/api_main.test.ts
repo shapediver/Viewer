@@ -26,6 +26,8 @@ test.describe("API", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {
@@ -103,6 +105,8 @@ test.describe("API", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {
@@ -179,6 +183,8 @@ test.describe("API", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {
@@ -302,6 +308,8 @@ test.describe("API", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.groundPlaneVisibility = false;
 			viewer.gridVisibility = false;
 			await new Promise<void>((resolve) => {

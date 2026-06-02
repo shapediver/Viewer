@@ -1,4 +1,4 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1} from "../models.json";
@@ -27,6 +27,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -49,6 +51,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lightScene!.addAmbientLight({});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -72,6 +76,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lightScene!.addDirectionalLight({});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -95,6 +101,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lightScene!.addHemisphereLight({});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -118,6 +126,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lightScene!.addPointLight({});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -141,6 +151,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lightScene!.addSpotLight({});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -164,6 +176,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.createLightScene();
 			viewer.removeLightScene("default");
 			viewer.lightScene!.addAmbientLight({});
@@ -189,6 +203,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.createLightScene();
 			viewer.removeLightScene("default");
 			viewer.lightScene!.addDirectionalLight({});
@@ -214,6 +230,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.createLightScene();
 			viewer.removeLightScene("default");
 			viewer.lightScene!.addHemisphereLight({});
@@ -239,6 +257,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.createLightScene();
 			viewer.removeLightScene("default");
 			viewer.lightScene!.addPointLight({});
@@ -264,6 +284,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.createLightScene();
 			viewer.removeLightScene("default");
 			viewer.lightScene!.addSpotLight({});
@@ -289,6 +311,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -309,6 +333,8 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -339,9 +365,10 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lights = false;
-			viewer.environmentMap = "none";
-			await new Promise<void>((resolve) => {
+			const taskP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
 					(e) => {
@@ -354,6 +381,17 @@ test.describe("Lights", () => {
 					},
 				);
 			});
+			const renderingP = new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+				setTimeout(resolve, 3000);
+			});
+			viewer.environmentMap = "none";
+			await taskP;
+			await renderingP;
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(name + "/envMap_none.png");
 	});
@@ -369,9 +407,10 @@ test.describe("Lights", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lights = false;
-			viewer.environmentMap = "null";
-			await new Promise<void>((resolve) => {
+			const taskP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
 					(e) => {
@@ -384,6 +423,17 @@ test.describe("Lights", () => {
 					},
 				);
 			});
+			const renderingP = new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+				setTimeout(resolve, 3000);
+			});
+			viewer.environmentMap = "null";
+			await taskP;
+			await renderingP;
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(name + "/envMap_null.png");
 	});

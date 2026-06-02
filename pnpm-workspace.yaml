@@ -23,11 +23,7 @@ allowBuilds:
     esbuild: true
     nx: true
     puppeteer: true
-    unrs-resolver: set this to true or false
+    unrs-resolver: true
 
 minimumReleaseAgeExclude:
-    - "@shapediver/sdk.geometry-api-sdk-v2@3.4.2"
-    - "@shapediver/sdk.sdtf-core@1.7.3"
-    - "@shapediver/sdk.sdtf-geometry@1.7.3"
-    - "@shapediver/sdk.sdtf-primitives@1.7.3"
-    - "@shapediver/sdk.sdtf-v1@1.7.3"
+    - "@shapediver/*"

@@ -16,7 +16,7 @@ test.describe("General Management", () => {
 	test("close and reopen", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -28,6 +28,8 @@ test.describe("General Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 		}, shelfTicket);
 		await expect(page).toHaveScreenshot(name + "/1_2.png");
 
@@ -55,7 +57,7 @@ test.describe("General Management", () => {
 					},
 				);
 			});
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -67,6 +69,8 @@ test.describe("General Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await renderedAfterReopen;
 		}, shelfTicket);
 		await expect(page).toHaveScreenshot(name + "/1_2.png");

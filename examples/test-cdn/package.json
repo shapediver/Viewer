@@ -38,12 +38,12 @@
 		}
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.17.0",
-		"@shapediver/viewer.data-engine.data-engine": "3.17.0",
-		"@shapediver/viewer.features.attribute-visualization": "3.17.0",
-		"@shapediver/viewer.features.drawing-tools": "3.17.0",
-		"@shapediver/viewer.features.transformation-tools": "3.17.0",
-		"@shapediver/viewer.features.interaction": "3.17.0",
+		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
+		"@shapediver/viewer.features.attribute-visualization": "workspace:*",
+		"@shapediver/viewer.features.drawing-tools": "workspace:*",
+		"@shapediver/viewer.features.transformation-tools": "workspace:*",
+		"@shapediver/viewer.features.interaction": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }

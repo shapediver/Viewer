@@ -38,14 +38,14 @@
 	},
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
-		"@shapediver/viewer.data-engine.material-engine": "3.17.0",
-		"@shapediver/viewer.data-engine.shared-types": "3.17.0",
-		"@shapediver/viewer.rendering-engine.camera-engine": "3.17.0",
-		"@shapediver/viewer.rendering-engine.light-engine": "3.17.0",
-		"@shapediver/viewer.shared.build-data": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0",
+		"@shapediver/viewer.data-engine.material-engine": "workspace:*",
+		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
+		"@shapediver/viewer.rendering-engine.camera-engine": "workspace:*",
+		"@shapediver/viewer.rendering-engine.light-engine": "workspace:*",
+		"@shapediver/viewer.shared.build-data": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*",
 		"gl-matrix": "3.4.4"
 	},
 	"browser": {

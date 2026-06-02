@@ -35,7 +35,7 @@ export class UuidGenerator {
 	 * @param uuid the uuid to convert
 	 * @returns ArrayLike collection of 16 values
 	 */
-	public parse(uuid: string): ArrayLike<number> {
+	public parse(uuid: string): Uint8Array {
 		return parseUUID(uuid);
 	}
 
@@ -45,7 +45,7 @@ export class UuidGenerator {
 	 * @param uuid the array of bytes
 	 * @returns the converted uuid
 	 */
-	public stringify(uuid: ArrayLike<number>): string {
+	public stringify(uuid: Uint8Array): string {
 		return stringifyUUID(uuid);
 	}
 

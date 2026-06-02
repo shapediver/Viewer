@@ -25,6 +25,8 @@ test.describe("Attribute Visualization", () => {
 				id: "mySession",
 				loadSdtf: true,
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 			viewport.type = SDV.RENDERER_TYPE.ATTRIBUTES;
 			const attributeVisualizationEngine =
 				new SDVAV.AttributeVisualizationEngine(viewport);

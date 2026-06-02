@@ -18,7 +18,7 @@ test.describe("Viewer Restriction", () => {
 		await page.evaluate(
 			async ({ticket, ticket2}: {ticket: string; ticket2: string}) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					branding: {
 						logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 					},
@@ -38,6 +38,8 @@ test.describe("Viewer Restriction", () => {
 					ticket,
 					modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 				});
+				viewer.beautyRenderDelay = 100;
+				viewer.beautyRenderBlendingDuration = 100;
 				await new Promise<void>((resolve) => {
 					SDV.addListener(
 						SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,

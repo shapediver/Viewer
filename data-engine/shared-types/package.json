@@ -37,8 +37,8 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*",
 		"gl-matrix": "3.4.4"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"

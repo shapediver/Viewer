@@ -16,6 +16,7 @@ test.describe("Parameters", () => {
 	});
 
 	test("iteration", async ({page}) => {
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
@@ -27,12 +28,15 @@ test.describe("Parameters", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
+				SDV.viewports["myViewer"]!.render();
 			});
 		}, shelfTicket);
 
@@ -43,20 +47,23 @@ test.describe("Parameters", () => {
 				session.getParameterById(
 					"de76cade-0cea-47b1-879e-1a0b717910e1",
 				)!.value = i;
-				await session.customize();
-				await new Promise<void>((resolve) => {
-					SDV.addListener(
-						(<any>window).SDV.EVENTTYPE.RENDERING
-							.BEAUTY_RENDERING_FINISHED,
-						async () => resolve(),
-					);
-				});
+				await Promise.all([
+					new Promise<void>((resolve) => {
+						SDV.addListener(
+							(<any>window).SDV.EVENTTYPE.RENDERING
+								.BEAUTY_RENDERING_FINISHED,
+							async () => resolve(),
+						);
+					}),
+					session.customize(),
+				]);
 			}, i);
 			await expect(page).toHaveScreenshot(name + "/" + i + ".png");
 		}
 	});
 
 	test("undo", async ({page}) => {
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
@@ -68,6 +75,8 @@ test.describe("Parameters", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -84,14 +93,16 @@ test.describe("Parameters", () => {
 			session.getParameterById(
 				"de76cade-0cea-47b1-879e-1a0b717910e1",
 			)!.value = 2;
-			await session.customize();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.customize(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_2.png");
 
@@ -101,14 +112,16 @@ test.describe("Parameters", () => {
 			session.getParameterById(
 				"de76cade-0cea-47b1-879e-1a0b717910e1",
 			)!.value = 3;
-			await session.customize();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.customize(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_3.png");
 
@@ -118,14 +131,16 @@ test.describe("Parameters", () => {
 			session.getParameterById(
 				"de76cade-0cea-47b1-879e-1a0b717910e1",
 			)!.value = 4;
-			await session.customize();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.customize(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_4.png");
 
@@ -135,56 +150,64 @@ test.describe("Parameters", () => {
 			session.getParameterById(
 				"de76cade-0cea-47b1-879e-1a0b717910e1",
 			)!.value = 5;
-			await session.customize();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.customize(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_5.png");
 
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const session = SDV.sessions["mySession"]!;
-			await session.goBack();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.goBack(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_4.png");
 
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const session = SDV.sessions["mySession"]!;
-			await session.goBack();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.goBack(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_3.png");
 
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const session = SDV.sessions["mySession"]!;
-			await session.goForward();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.goForward(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_4.png");
 
@@ -194,14 +217,16 @@ test.describe("Parameters", () => {
 			session.getParameterById(
 				"de76cade-0cea-47b1-879e-1a0b717910e1",
 			)!.value = 2;
-			await session.customize();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.customize(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_2.png");
 
@@ -215,14 +240,16 @@ test.describe("Parameters", () => {
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const session = SDV.sessions["mySession"]!;
-			await session.goBack();
-			await new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.RENDERING
-						.BEAUTY_RENDERING_FINISHED,
-					async () => resolve(),
-				);
-			});
+			await Promise.all([
+				new Promise<void>((resolve) => {
+					SDV.addListener(
+						(<any>window).SDV.EVENTTYPE.RENDERING
+							.BEAUTY_RENDERING_FINISHED,
+						async () => resolve(),
+					);
+				}),
+				session.goBack(),
+			]);
 		});
 		await expect(page).toHaveScreenshot("undo/change_4.png");
 	});
@@ -242,6 +269,8 @@ test.describe("Parameters", () => {
 					"de76cade-0cea-47b1-879e-1a0b717910e1": "2",
 				},
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING

@@ -24,6 +24,8 @@ test.describe("Animation", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -68,6 +70,8 @@ test.describe("Animation", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -112,6 +116,8 @@ test.describe("Animation", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			viewer.beautyRenderDelay = 100;
+			viewer.beautyRenderBlendingDuration = 100;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,

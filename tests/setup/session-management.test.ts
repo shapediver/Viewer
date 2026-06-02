@@ -17,7 +17,7 @@ test.describe("Session Management", () => {
 	test("scenario 1", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -29,6 +29,8 @@ test.describe("Session Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			SDV.viewports["myViewer"].beautyRenderDelay = 100;
+			SDV.viewports["myViewer"].beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -51,6 +53,8 @@ test.describe("Session Management", () => {
 				ticket: ticket2,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			SDV.viewports["myViewer"].beautyRenderDelay = 100;
+			SDV.viewports["myViewer"].beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -65,7 +69,7 @@ test.describe("Session Management", () => {
 		await page.evaluate(
 			async ({ticket, ticket2}: {ticket: string; ticket2: string}) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					branding: {
 						logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 					},
@@ -117,7 +121,7 @@ test.describe("Session Management", () => {
 	test("scenario 3", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -129,6 +133,8 @@ test.describe("Session Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			SDV.viewports["myViewer"].beautyRenderDelay = 100;
+			SDV.viewports["myViewer"].beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -151,6 +157,8 @@ test.describe("Session Management", () => {
 				ticket: ticket2,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			SDV.viewports["myViewer"].beautyRenderDelay = 100;
+			SDV.viewports["myViewer"].beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -165,7 +173,7 @@ test.describe("Session Management", () => {
 		await page.evaluate(
 			async ({ticket, ticket2}: {ticket: string; ticket2: string}) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				await SDV.createViewport({
+				const viewer = await SDV.createViewport({
 					branding: {
 						logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 					},
@@ -217,7 +225,7 @@ test.describe("Session Management", () => {
 	test("scenario 5", async ({page}) => {
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-			await SDV.createViewport({
+			const viewer = await SDV.createViewport({
 				branding: {
 					logo: "https://viewer.shapediver.com/v3/graphics/logo.png",
 				},
@@ -230,6 +238,8 @@ test.describe("Session Management", () => {
 				ticket,
 				modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
 			});
+			SDV.viewports["myViewer"].beautyRenderDelay = 100;
+			SDV.viewports["myViewer"].beautyRenderBlendingDuration = 1;
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,

@@ -39,10 +39,10 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@shapediver/viewer": "3.17.0",
-		"@shapediver/viewer.shared.node-tree": "3.17.0",
-		"@shapediver/viewer.shared.services": "3.17.0",
-		"@shapediver/viewer.shared.types": "3.17.0",
+		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.shared.node-tree": "workspace:*",
+		"@shapediver/viewer.shared.services": "workspace:*",
+		"@shapediver/viewer.shared.types": "workspace:*",
 		"detect-it": "4.0.1",
 		"gl-matrix": "3.4.4"
 	},

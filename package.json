@@ -9,6 +9,7 @@
 		"@types/pako": "2.0.4",
 		"@typescript-eslint/eslint-plugin": "8.60.0",
 		"@typescript-eslint/parser": "8.60.0",
+		"axios": "1.16.1",
 		"dotenv": "17.4.2",
 		"eslint": "10.4.0",
 		"eslint-config-prettier": "10.1.8",

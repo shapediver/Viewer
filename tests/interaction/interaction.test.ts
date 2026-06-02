@@ -636,6 +636,8 @@ test.describe("Interaction", () => {
 				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
 				id: "mySession",
 			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
 
 			// Adjust lights for the large scene
 			const directionalLight = Object.values(

@@ -30,13 +30,15 @@ test.describe("Screenshots", () => {
 						modelViewUrl: string;
 					}) => {
 						const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-						await SDV.createViewport({
+						const viewer = await SDV.createViewport({
 							id: "myViewer",
 							canvas: <HTMLCanvasElement>(
 								document.getElementById("canvas")
 							),
 						});
 						await SDV.createSession({ticket, modelViewUrl});
+						viewer.beautyRenderDelay = 100;
+						viewer.beautyRenderBlendingDuration = 100;
 						await new Promise<void>((resolve) => {
 							SDV.addListener(
 								SDV.EVENTTYPE.RENDERING
