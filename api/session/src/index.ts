@@ -290,7 +290,7 @@ import {IRectangleTransformParameterApi} from "./interfaces/parameter/IRectangle
 import {ISelectionParameterApi} from "./interfaces/parameter/ISelectionParameterApi";
 import {createSession, sessions} from "./main";
 
-export type {
+export {
 	addListener,
 	AnimationData,
 	AttributeData,
