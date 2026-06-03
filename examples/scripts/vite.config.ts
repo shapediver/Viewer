@@ -22,7 +22,27 @@ export default defineConfig({
 			},
 		},
 	},
+	resolve: {
+		alias: {
+			"@shapediver/viewer": resolve(
+				__dirname,
+				"../../api/default/src/index.ts",
+			),
+			"@shapediver/viewer.shared.demo-helper": resolve(
+				__dirname,
+				"../../shared/demo-helper/src/index.ts",
+			),
+		},
+	},
+	optimizeDeps: {
+		include: [
+			"@shapediver/viewer",
+			"@shapediver/viewer.shared.demo-helper",
+		],
+	},
+
 	server: {
 		open: true,
+		port: 8000,
 	},
 });
