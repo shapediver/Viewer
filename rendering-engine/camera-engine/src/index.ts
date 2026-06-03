@@ -1,8 +1,8 @@
 import {
 	CAMERA_TYPE,
 	ICameraOptions,
-	OrthographicCameraProperties,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
+	OrthographicCameraProperties,
 	PerspectiveCameraProperties,
 } from "@shapediver/viewer.shared.types";
 import {AbstractCamera} from "./implementation/camera/AbstractCamera";
@@ -17,20 +17,23 @@ import {IPerspectiveCamera} from "./interfaces/camera/IPerspectiveCamera";
 import {ICameraControls} from "./interfaces/controls/ICameraControls";
 import {ICameraEngine} from "./interfaces/ICameraEngine";
 
-export {ICameraEngine, ICamera, ICameraControls};
 export {
-	CameraEngine,
 	AbstractCamera,
 	CAMERA_TYPE,
+	CameraEngine,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	ICameraOptions,
-};
-export {
-	PerspectiveCamera,
 	OrthographicCamera,
-	IPerspectiveCamera,
+	OrthographicCameraControls,
+	PerspectiveCamera,
+	PerspectiveCameraControls,
+};
+export type {
+	ICamera,
+	ICameraControls,
+	ICameraEngine,
+	ICameraOptions,
 	IOrthographicCamera,
+	IPerspectiveCamera,
 	OrthographicCameraProperties,
 	PerspectiveCameraProperties,
 };
-export {PerspectiveCameraControls, OrthographicCameraControls};

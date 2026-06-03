@@ -26,26 +26,24 @@ import {
 import {ILayer} from "./interfaces/ILayer";
 
 export {
-	INumberGradient,
+	ATTRIBUTE_VISUALIZATION,
+	AttributeVisualizationEngine,
+	AttributeVisualizationUtils,
+	getColorAt,
+	getColorSteps,
 	isGradient,
 	isNumberGradient,
 	isStringGradient,
-	IStringGradient,
+};
+export type {
 	Gradient,
-	getColorSteps,
-	getColorAt,
-};
-export {
-	IAttributeVisualizationEngine,
-	AttributeVisualizationEngine,
-	AttributeVisualizationUtils,
-};
-export {
-	ILayer,
 	IAttribute,
+	IAttributeVisualizationEngine,
 	IColorAttribute,
-	IStringAttribute,
-	INumberAttribute,
 	IDefaultAttribute,
+	ILayer,
+	INumberAttribute,
+	INumberGradient,
+	IStringAttribute,
+	IStringGradient,
 };
-export {ATTRIBUTE_VISUALIZATION};

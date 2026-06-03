@@ -10,14 +10,17 @@ import {
 } from "./ui/CustomUI";
 import {createUi, updateUi} from "./ui/ShapeDiverUI";
 
-export {StageManager, Stage, IStageData};
-export {createUi, updateUi};
 export {
 	createCustomUi,
+	createUi,
+	Stage,
+	StageManager,
 	updateCustomUi,
-	ISliderElement,
-	IDropdownElement,
-	IStringElement,
-	IBooleanElement,
-	IColorElement,
+	updateUi,
+	type IBooleanElement,
+	type IColorElement,
+	type IDropdownElement,
+	type ISliderElement,
+	type IStageData,
+	type IStringElement,
 };

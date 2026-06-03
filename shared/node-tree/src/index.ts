@@ -42,36 +42,40 @@ import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
 import {Tree} from "./implementation/Tree";
 import {TreeNode} from "./implementation/TreeNode";
 
-export {ITree, Tree};
-export {ITreeNode, TreeNode, ITransformation, ITreeNodeData};
-export {AbstractTreeNodeData};
 export {
 	AbstractMaterialData,
-	MaterialUnlitData,
+	AbstractTreeNodeData,
+	AnimationData,
+	AttributeData,
+	ChunkData,
+	CustomData,
+	GeometryData,
+	HTMLElementAnchorCustomData,
+	HTMLElementAnchorData,
+	HTMLElementAnchorImageData,
+	HTMLElementAnchorTextData,
+	InstanceData,
+	MapData,
+	MaterialBasicLineData,
+	MaterialGemData,
+	MaterialLambertData,
+	MaterialMultiPointData,
+	MaterialPhongData,
+	MaterialPointData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
-	MaterialGemData,
-	MaterialPointData,
-	MaterialMultiPointData,
-	MaterialBasicLineData,
-	MaterialLambertData,
-	MaterialPhongData,
 	MaterialStandardData,
-	MapData,
-};
-export {
-	AnimationData,
-	GeometryData,
-	AttributeData,
-	PrimitiveData,
+	MaterialUnlitData,
 	MaterialVariantsData,
+	PrimitiveData,
+	SDTFAttributeData,
+	SDTFAttributesData,
+	SDTFItemData,
+	SDTFOverviewData,
+	Tree,
+	TreeNode,
+	type ITransformation,
+	type ITree,
+	type ITreeNode,
+	type ITreeNodeData,
 };
-export {
-	HTMLElementAnchorCustomData,
-	HTMLElementAnchorTextData,
-	HTMLElementAnchorImageData,
-	HTMLElementAnchorData,
-};
-export {CustomData, InstanceData};
-export {SDTFOverviewData, SDTFAttributesData, SDTFAttributeData, SDTFItemData};
-export {ChunkData};

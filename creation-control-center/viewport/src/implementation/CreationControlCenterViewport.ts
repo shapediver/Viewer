@@ -24,9 +24,7 @@ import {
 import {ICreationControlCenterViewport} from "../interfaces/ICreationControlCenterViewport";
 import {ViewportGlobalAccessObject} from "./ViewportGlobalAccessObject";
 
-export class CreationControlCenterViewport
-	implements ICreationControlCenterViewport
-{
+export class CreationControlCenterViewport implements ICreationControlCenterViewport {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #sceneTree: ITree = Tree.instance;

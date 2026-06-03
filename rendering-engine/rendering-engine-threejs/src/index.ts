@@ -46,36 +46,33 @@ import {OutlineManager} from "./managers/postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./managers/postprocessing/SelectiveBloomManager";
 
 export {
-	RenderingEngine,
-	IThreejsData,
-	ThreejsData,
-	ENVIRONMENT_MAP,
-	ENVIRONMENT_MAP_CUBE,
-	ENVIRONMENT_MAP_EMPTY,
-};
-export {MultiPointsMaterial};
-export {PostProcessingManager};
-export {CSS2DObject, CSS2DRenderer};
-export {
 	BlendFunction,
 	BloomEffect,
 	ChromaticAberrationEffect,
+	CSS2DObject,
+	CSS2DRenderer,
 	DepthOfFieldEffect,
 	DotScreenEffect,
 	EdgeDetectionMode,
 	Effect,
 	EffectComposer,
+	ENVIRONMENT_MAP,
+	ENVIRONMENT_MAP_CUBE,
+	ENVIRONMENT_MAP_EMPTY,
 	FXAAEffect,
 	GodRaysEffect,
 	GodRaysManager,
 	GridEffect,
 	HueSaturationEffect,
 	KernelSize,
+	MultiPointsMaterial,
 	NoiseEffect,
 	OutlineEffect,
 	OutlineManager,
 	PixelationEffect,
+	PostProcessingManager,
 	PredicationMode,
+	RenderingEngine,
 	Resolution,
 	ScanlineEffect,
 	SelectiveBloomEffect,
@@ -84,9 +81,11 @@ export {
 	SMAAEffect,
 	SMAAPreset,
 	SSAOEffect,
+	ThreejsData,
 	TiltShiftEffect,
 	VignetteEffect,
 	VignetteTechnique,
+	type IThreejsData,
 };
 
 const textureUnifierInjector = new TextureUnifierInjector();

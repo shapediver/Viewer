@@ -13,15 +13,15 @@ import {Spherical} from "./implementation/Spherical";
 import {Triangle} from "./implementation/Triangle";
 
 export {
-	IBox,
-	ISphere,
-	ISpherical,
-	IPlane,
-	ITriangle,
-	IGeometry,
 	Box,
+	Plane,
 	Sphere,
 	Spherical,
-	Plane,
 	Triangle,
+	type IBox,
+	type IGeometry,
+	type IPlane,
+	type ISphere,
+	type ISpherical,
+	type ITriangle,
 };

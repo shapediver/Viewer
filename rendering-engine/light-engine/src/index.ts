@@ -15,19 +15,22 @@ import {IHemisphereLight} from "./interface/types/IHemisphereLight";
 import {IPointLight} from "./interface/types/IPointLight";
 import {ISpotLight} from "./interface/types/ISpotLight";
 
-export {ILightEngine, LightEngine, LIGHT_TYPE, ILightScene, LightScene, ILight};
-export {
-	IAmbientLight,
-	IDirectionalLight,
-	IHemisphereLight,
-	IPointLight,
-	ISpotLight,
-};
 export {
 	AbstractLight,
 	AmbientLight,
 	DirectionalLight,
 	HemisphereLight,
+	LIGHT_TYPE,
+	LightEngine,
+	LightScene,
 	PointLight,
 	SpotLight,
+	type IAmbientLight,
+	type IDirectionalLight,
+	type IHemisphereLight,
+	type ILight,
+	type ILightEngine,
+	type ILightScene,
+	type IPointLight,
+	type ISpotLight,
 };

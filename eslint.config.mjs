@@ -34,6 +34,7 @@ export default [
 		},
 		rules: {
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
+			"@typescript-eslint/consistent-type-exports": ["error", {fixMixedExportsWithInlineTypeSpecifier: false}],
 		},
 	},
 	// Ignore build outputs and dependencies

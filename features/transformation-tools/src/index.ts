@@ -11,12 +11,15 @@ import {
 import {IRectangleTransformEvent} from "./interfaces/rectangleTransform/IRectangleTransformEvents";
 import {updateTransformation} from "./updateTransformation";
 
-export {IGumballTransform, GumballTransform, IGumballTransformEvent};
 export {
-	IRectangleTransform,
+	GumballTransform,
 	RectangleTransform,
-	IRectangleTransformEvent,
-	RectangleTransformSettings,
+	updateTransformation,
+	type EventResponseMapping,
+	type IGumballTransform,
+	type IGumballTransformEvent,
+	type IRectangleTransform,
+	type IRectangleTransformEvent,
+	type ITransformationToolsEvent,
+	type RectangleTransformSettings,
 };
-export {EventResponseMapping, ITransformationToolsEvent};
-export {updateTransformation};
