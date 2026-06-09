@@ -7,7 +7,7 @@ export default defineConfig({
 	tsconfig: "./tsconfig.json",
 	forbidOnly: !!process.env.CI,
 	fullyParallel: true,
-	workers: process.env.CI ? 2 : 4,
+	workers: 2,
 	retries: 1,
 	reporter: [["html", {open: "never"}], ["list"]],
 	timeout: 90_000,
