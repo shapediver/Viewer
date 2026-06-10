@@ -53,6 +53,10 @@ export class LightLoader implements ILoader {
 		dataChild: SDObject,
 		boundingBox: IBox,
 	) {
+		if (!dataChild.children[0]) {
+			return;
+		}
+
 		const threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
 
 		if (light instanceof DirectionalLight) {
