@@ -1007,6 +1007,31 @@ export class GLTFConverter {
 		return this._meshCache[data.id + "_" + data.version];
 	}
 
+	private convertCombinedMesh(geometryDataList: IGeometryData[]): number {
+		if (!this._content.meshes) this._content.meshes = [];
+
+		const cacheKey = geometryDataList
+			.map((d) => d.id + "_" + d.version)
+			.join("|");
+
+		if (this._meshCache[cacheKey] !== undefined)
+			return this._meshCache[cacheKey];
+
+		const meshDef: IGLTF_v2_Mesh = {
+			primitives: [],
+		};
+
+		for (const geometryData of geometryDataList) {
+			meshDef.primitives?.push(
+				this.convertPrimitive(geometryData, geometryData.primitive),
+			);
+		}
+
+		this._content.meshes.push(meshDef);
+		this._meshCache[cacheKey] = this._content.meshes.length - 1;
+		return this._meshCache[cacheKey];
+	}
+
 	private async convertNode(node: ITreeNode): Promise<number> {
 		if (!this._content.nodes) this._content.nodes = [];
 		const nodeDef: IGLTF_v2_Node = {
@@ -1037,58 +1062,71 @@ export class GLTFConverter {
 			}
 		}
 
+		// Collect all geometry data from this node
+		const geometryDataList: GeometryData[] = [];
 		for (let i = 0; i < node.data.length; i++) {
 			if (node.data[i] instanceof GeometryData) {
-				const geometryData = <GeometryData>node.data[i];
+				geometryDataList.push(<GeometryData>node.data[i]);
+			}
 
-				let instanceMatrices: mat4[] | undefined;
-				// as this is a node that contains a mesh
-				// we check the parent node for instance matrices
-				if (node.parent) {
-					const instanceMatricesData = node.parent.data.find(
-						(d) => d instanceof InstanceData,
-					) as InstanceData;
-					if (
-						instanceMatricesData &&
-						instanceMatricesData.instanceMatrices &&
-						instanceMatricesData.instanceMatrices.length > 0
-					) {
-						instanceMatrices =
-							instanceMatricesData.instanceMatrices;
-					}
+			if (node.data[i] instanceof AnimationData)
+				this._animations.push(<AnimationData>node.data[i]);
+		}
+
+		if (geometryDataList.length > 0) {
+			let instanceMatrices: mat4[] | undefined;
+			// as this is a node that contains a mesh
+			// we check the parent node for instance matrices
+			if (node.parent) {
+				const instanceMatricesData = node.parent.data.find(
+					(d) => d instanceof InstanceData,
+				) as InstanceData;
+				if (
+					instanceMatricesData &&
+					instanceMatricesData.instanceMatrices &&
+					instanceMatricesData.instanceMatrices.length > 0
+				) {
+					instanceMatrices = instanceMatricesData.instanceMatrices;
 				}
+			}
+
+			// Filter for AR mode
+			const validGeometries = this._convertForAR
+				? geometryDataList.filter(
+						(g) =>
+							g.mode !== PRIMITIVE_MODE.POINTS &&
+							g.mode !== PRIMITIVE_MODE.LINES &&
+							g.mode !== PRIMITIVE_MODE.LINE_LOOP &&
+							g.mode !== PRIMITIVE_MODE.LINE_STRIP,
+					)
+				: geometryDataList;
+
+			if (validGeometries.length > 0) {
+				const meshIndex = this.convertCombinedMesh(validGeometries);
 
 				if (this._convertForAR) {
-					if (
-						geometryData.mode !== PRIMITIVE_MODE.POINTS &&
-						geometryData.mode !== PRIMITIVE_MODE.LINES &&
-						geometryData.mode !== PRIMITIVE_MODE.LINE_LOOP &&
-						geometryData.mode !== PRIMITIVE_MODE.LINE_STRIP
-					) {
-						if (instanceMatrices) {
-							if (!nodeDef.children) nodeDef.children = [];
-							const meshDef = this.convertMesh(geometryData);
+					if (instanceMatrices) {
+						if (!nodeDef.children) nodeDef.children = [];
 
-							// create intermediate nodes for each instance
-							for (let j = 0; j < instanceMatrices.length; j++) {
-								this._content.nodes.push({
-									name:
-										(node.displayName ?? node.name) +
-										"_instance_" +
-										j,
-									matrix: Array.from(instanceMatrices[j]),
-									mesh: meshDef,
-								});
-								nodeDef.children?.push(
-									this._content.nodes.length - 1,
-								);
-							}
-						} else {
-							nodeDef.mesh = this.convertMesh(geometryData);
+						// create intermediate nodes for each instance
+						for (let j = 0; j < instanceMatrices.length; j++) {
+							this._content.nodes.push({
+								name:
+									(node.displayName ?? node.name) +
+									"_instance_" +
+									j,
+								matrix: Array.from(instanceMatrices[j]),
+								mesh: meshIndex,
+							});
+							nodeDef.children?.push(
+								this._content.nodes.length - 1,
+							);
 						}
+					} else {
+						nodeDef.mesh = meshIndex;
 					}
 				} else {
-					nodeDef.mesh = this.convertMesh(geometryData);
+					nodeDef.mesh = meshIndex;
 
 					if (instanceMatrices) {
 						if (!nodeDef.extensions) nodeDef.extensions = {};
@@ -1114,9 +1152,6 @@ export class GLTFConverter {
 					}
 				}
 			}
-
-			if (node.data[i] instanceof AnimationData)
-				this._animations.push(<AnimationData>node.data[i]);
 		}
 
 		if (node.children.length > 0) nodeDef.children = [];
