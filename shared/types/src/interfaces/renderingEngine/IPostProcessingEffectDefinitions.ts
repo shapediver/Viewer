@@ -40,8 +40,7 @@ export interface IPostProcessingEffectDefinition {
 	// #endregion Properties (1)
 }
 
-export interface IBloomEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (10)
 
 	properties?: {
@@ -63,8 +62,7 @@ export interface IBloomEffectDefinition
 	// #endregion Properties (10)
 }
 
-export interface IChromaticAberrationEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IChromaticAberrationEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (5)
 
 	properties?: {
@@ -82,8 +80,7 @@ export interface IChromaticAberrationEffectDefinition
 	// #endregion Properties (5)
 }
 
-export interface IDepthOfFieldEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IDepthOfFieldEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (9)
 
 	properties?: {
@@ -101,8 +98,7 @@ export interface IDepthOfFieldEffectDefinition
 	// #endregion Properties (9)
 }
 
-export interface IDotScreenEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IDotScreenEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (4)
 
 	properties?: {
@@ -118,8 +114,7 @@ export interface IDotScreenEffectDefinition
 	// #endregion Properties (4)
 }
 
-export interface IGodRaysEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IGodRaysEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (13)
 
 	properties?: {
@@ -201,8 +196,7 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
 	// #endregion Properties (15)
 }
 
-export interface IHueSaturationEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IHueSaturationEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (4)
 
 	properties?: {
@@ -218,8 +212,7 @@ export interface IHueSaturationEffectDefinition
 	// #endregion Properties (4)
 }
 
-export interface INoiseEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface INoiseEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (3)
 
 	properties?: {
@@ -233,20 +226,14 @@ export interface INoiseEffectDefinition
 	// #endregion Properties (3)
 }
 
-export interface IOutlineEffectDefinition
-	extends IPostProcessingEffectDefinition {
-	// #region Properties (17)
+export interface IOutlineEffectDefinition extends IPostProcessingEffectDefinition {
+	// #region Properties (16)
 
 	properties?: {
 		/** The blend function of this effect. (default: BlendFunction.SCREEN) */
 		blendFunction?: number;
 		/** Whether the outline should be blurred. (default: false) */
 		blur?: boolean;
-		/** A depth bias in view-space units added to the depth comparison when xRay is false.
-		 *  Reduces z-fighting artifacts where co-planar or nearly co-planar geometry causes
-		 *  the outline halo to incorrectly bleed through adjacent surfaces. Tune to scene scale;
-		 *  a value of 0 disables the bias. (default: 0) */
-		depthBias?: number;
 		/** The edge strength. (default: 1.0) */
 		edgeStrength?: number;
 		/** The color of hidden edges. (default: #22090a) */
@@ -259,6 +246,11 @@ export interface IOutlineEffectDefinition
 		pulseSpeed?: number;
 		/** The resolution that is used for the effect. (default: 480) */
 		resolution?: number;
+		/** The resolution scale for the outline render targets.
+		 *  A value of 1 renders at full canvas resolution (× devicePixelRatio),
+		 *  0.5 at half resolution. Higher values reduce stair-stepping artifacts
+		 *  at the cost of GPU memory. (default: 1) */
+		resolutionScale?: number;
 		/** Whether each selected node should be outlined separately instead of as a unified group.
 		 *  Prevents depth artifacts when objects are layered (e.g. one in front, one behind).
 		 *  Has a per-node performance cost. (default: false) */
@@ -270,11 +262,10 @@ export interface IOutlineEffectDefinition
 	};
 
 	type: POST_PROCESSING_EFFECT_TYPE.OUTLINE;
-	// #endregion Properties (17)
+	// #endregion Properties (16)
 }
 
-export interface IPixelationEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IPixelationEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (2)
 
 	properties?: {
@@ -324,8 +315,7 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 	// #endregion Properties (15)
 }
 
-export interface IScanlineEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IScanlineEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (3)
 
 	properties?: {
@@ -339,8 +329,7 @@ export interface IScanlineEffectDefinition
 	// #endregion Properties (3)
 }
 
-export interface ISelectiveBloomEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface ISelectiveBloomEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (10)
 
 	properties?: {
@@ -364,8 +353,7 @@ export interface ISelectiveBloomEffectDefinition
 	// #endregion Properties (10)
 }
 
-export interface ISepiaEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface ISepiaEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (3)
 
 	properties?: {
@@ -377,8 +365,7 @@ export interface ISepiaEffectDefinition
 	// #endregion Properties (3)
 }
 
-export interface ITiltShiftEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface ITiltShiftEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (10)
 
 	properties?: {
@@ -400,8 +387,7 @@ export interface ITiltShiftEffectDefinition
 	// #endregion Properties (10)
 }
 
-export interface IVignetteEffectDefinition
-	extends IPostProcessingEffectDefinition {
+export interface IVignetteEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (5)
 
 	properties?: {

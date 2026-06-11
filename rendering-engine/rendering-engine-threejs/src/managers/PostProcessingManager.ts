@@ -674,26 +674,28 @@ export class PostProcessingManager implements IManager {
 							blur: properties.blur,
 							xRay: properties.xRay,
 							multisampling: properties.multisampling,
+							resolutionScale: properties.resolutionScale ?? 1,
+							resolutionX: properties.resolution ?? -1,
+							resolutionY: properties.resolution ?? -1,
 						};
 
-						// Patches the depth comparison shader of an OutlineEffect to add a
-						// configurable bias, reducing z-fighting where co-planar geometry
-						// causes the halo to bleed through adjacent surfaces.
-						const applyDepthBias = (effect: OutlineEffect) => {
-							if (!properties.depthBias) return;
-							const eff = effect as unknown as {
-								maskPass: {
-									overrideMaterial: THREE.ShaderMaterial;
+						// Replaces lowp precision qualifiers with highp in
+						// the outline shaders. The library defaults to lowp
+						// which on mobile/integrated GPUs is 8-10 bits per
+						// channel and amplifies edge-detection noise.
+						const upgradePrecision = (effect: OutlineEffect) => {
+							const oe = effect as unknown as {
+								outlinePass: {
+									fullscreenMaterial: THREE.ShaderMaterial;
 								};
 							};
-							const maskMaterial = eff.maskPass?.overrideMaterial;
-							if (maskMaterial instanceof THREE.ShaderMaterial) {
-								maskMaterial.fragmentShader =
-									maskMaterial.fragmentShader.replace(
-										"(-vViewZ > -viewZ)",
-										`(-vViewZ > -viewZ + ${properties.depthBias.toFixed(6)})`,
-									);
-								maskMaterial.needsUpdate = true;
+							const mat = oe.outlinePass?.fullscreenMaterial;
+							if (mat instanceof THREE.ShaderMaterial) {
+								mat.fragmentShader = mat.fragmentShader.replace(
+									/lowp /g,
+									"highp ",
+								);
+								mat.needsUpdate = true;
 							}
 						};
 
@@ -728,7 +730,7 @@ export class PostProcessingManager implements IManager {
 									);
 									nodeEffect.selection.layer =
 										allocateLayer();
-									applyDepthBias(nodeEffect);
+									upgradePrecision(nodeEffect);
 									this._effects.push({
 										token,
 										effect: nodeEffect,
@@ -744,7 +746,7 @@ export class PostProcessingManager implements IManager {
 								effectOptions,
 							);
 							outlineEffect.selection.layer = allocateLayer();
-							applyDepthBias(outlineEffect);
+							upgradePrecision(outlineEffect);
 							this._effects.push({token, effect: outlineEffect});
 							manager.setEffect(outlineEffect);
 						}
@@ -1143,7 +1145,6 @@ export class PostProcessingManager implements IManager {
 				return {
 					blendFunction: BlendFunction.SCREEN,
 					blur: false,
-					depthBias: 0,
 					edgeStrength: 1.0,
 					hiddenEdgeColor: "#22090a",
 					kernelSize: KernelSize.VERY_SMALL,
