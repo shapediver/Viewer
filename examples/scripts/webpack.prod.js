@@ -5,8 +5,6 @@ const common = require("./webpack.common.js");
 const fs = require("fs");
 const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
-const BundleAnalyzerPlugin =
-	require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = merge(common, {
 	mode: "production",
