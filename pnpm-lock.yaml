@@ -1316,6 +1316,9 @@ importers:
       '@shapediver/viewer.shared.types':
         specifier: workspace:*
         version: link:../types
+      '@types/ua-parser-js':
+        specifier: 0.7.39
+        version: 0.7.39
       axios:
         specifier: 1.16.1
         version: 1.16.1
@@ -2370,6 +2373,9 @@ packages:
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+
+  '@types/ua-parser-js@0.7.39':
+    resolution: {integrity: sha512-P/oDfpofrdtF5xw433SPALpdSchtJmY7nsJItf8h3KXqOslkbySh8zq4dSWXH2oTjRvJ5PczVEoCZPow6GicLg==}
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
@@ -6670,6 +6676,8 @@ snapshots:
 
   '@types/trusted-types@2.0.7':
     optional: true
+
+  '@types/ua-parser-js@0.7.39': {}
 
   '@types/unist@3.0.3': {}
 
