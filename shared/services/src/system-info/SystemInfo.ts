@@ -6,7 +6,7 @@ export class SystemInfo {
 	private readonly _isBrowser: boolean;
 	private readonly _isIframe: boolean;
 	private readonly _origin: string;
-	private readonly _parser: UAParser.UAParser;
+	private readonly _parser: UAParser;
 
 	private static _instance: SystemInfo;
 
@@ -15,7 +15,7 @@ export class SystemInfo {
 	// #region Constructors (1)
 
 	private constructor() {
-		this._parser = new UAParser.UAParser();
+		this._parser = new UAParser();
 		const isInternetExplorer =
 			typeof window !== "undefined" &&
 			window.navigator &&
