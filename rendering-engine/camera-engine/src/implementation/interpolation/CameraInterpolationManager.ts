@@ -9,6 +9,8 @@ import {CameraLinearInterpolation} from "./interpolationMethods/CameraLinearInte
 import {CameraMultipleInterpolation} from "./interpolationMethods/CameraMultipleInterpolation";
 import {CameraSphericalInterpolation} from "./interpolationMethods/CameraSphericalInterpolation";
 
+TWEEN.Tween.autoStartOnUpdate = true;
+
 export class CameraInterpolationManager {
 	// #region Properties (2)
 
@@ -28,6 +30,7 @@ export class CameraInterpolationManager {
 			onComplete: () => void,
 		) {
 			this._tween = new TWEEN.Tween(this._properties);
+			TWEEN.add(this._tween);
 			this._tween.easing(options.easing);
 			this._tween.to({delta: 1.0}, options.duration);
 

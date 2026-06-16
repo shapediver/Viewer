@@ -6,6 +6,8 @@ import {
 	IAnimationFrameEngine,
 } from "../interfaces/IAnimationFrameEngine";
 
+TWEEN.Tween.autoStartOnUpdate = true;
+
 export class AnimationFrameEngine implements IAnimationFrameEngine {
 	// #region Properties (5)
 

@@ -11,6 +11,8 @@ import * as TWEEN from "@tweenjs/tween.js";
 import {mat4, quat, vec3, vec4} from "gl-matrix";
 import {IAnimationEngine} from "../interfaces/IAnimationEngine";
 
+TWEEN.Tween.autoStartOnUpdate = true;
+
 export class AnimationEngine implements IManager, IAnimationEngine {
 	// #region Properties (3)
 
