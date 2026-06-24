@@ -270,11 +270,14 @@ export class GeometryState {
 
 		if (positionArrayLength < 1) return;
 
-		let indicesArrayLines = new Uint8Array((positionArrayLength - 1) * 2);
+		const segmentCount = positionArrayLength - 1;
+		let indicesArrayLines = new Uint8Array(segmentCount * 2);
 
-		// create indices array
-		for (let i = 0; i < positionArrayLength - 1; i++) {
-			indicesArrayLines.set([i, i + 1], i * 2);
+		// create indices array with direct writes (avoids temp [i, i+1] arrays per iteration)
+		for (let i = 0; i < segmentCount; i++) {
+			const offset = i * 2;
+			indicesArrayLines[offset] = i;
+			indicesArrayLines[offset + 1] = i + 1;
 		}
 
 		if (loop) {
@@ -282,11 +285,10 @@ export class GeometryState {
 			const tempIndicesArray = new Uint8Array(
 				indicesArrayLines.length + 2,
 			);
-			tempIndicesArray.set([
-				...indicesArrayLines,
-				positionArrayLength - 1,
-				0,
-			]);
+			tempIndicesArray.set(indicesArrayLines);
+			tempIndicesArray[indicesArrayLines.length] =
+				positionArrayLength - 1;
+			tempIndicesArray[indicesArrayLines.length + 1] = 0;
 			indicesArrayLines = tempIndicesArray;
 		}
 
@@ -572,6 +574,9 @@ export class GeometryState {
 		this.#positionArray = positionArray;
 		this.#metadataArray = metadataArray;
 		this.#positionIndexArray = this.createAndSetPositionIndexArray();
+		// Note: createAndSetPositionIndexArray() above already creates and assigns
+		// POSITION_INDEX AttributeData for both points and lines, so we only need
+		// to update the POSITION attribute here.
 
 		this.geometryDataPoints.primitive.attributes["POSITION"] =
 			new AttributeData(
@@ -593,18 +598,6 @@ export class GeometryState {
 				].normalized,
 				this.geometryDataPoints.primitive.attributes["POSITION"].count -
 					1,
-			);
-		this.#geometryDataPoints.primitive.attributes["POSITION_INDEX"] =
-			new AttributeData(
-				this.#positionIndexArray,
-				1,
-				1,
-				0,
-				1,
-				true,
-				this.#positionIndexArray.length,
-				[0],
-				[this.#positionIndexArray.length],
 			);
 		this.geometryDataPoints.updateVersion();
 		this.geometryDataPoints.primitive.updateVersion();
@@ -647,18 +640,7 @@ export class GeometryState {
 					this.geometryDataLines.primitive.attributes["POSITION"]
 						.count - 1,
 				);
-			this.geometryDataLines.primitive.attributes["POSITION_INDEX"] =
-				new AttributeData(
-					this.#positionIndexArray,
-					1,
-					1,
-					0,
-					1,
-					true,
-					this.#positionIndexArray.length,
-					[0],
-					[this.#positionIndexArray.length],
-				);
+			// Note: POSITION_INDEX for lines is already set by createAndSetPositionIndexArray()
 			this.geometryDataLines.updateVersion();
 			this.geometryDataLines.primitive.updateVersion();
 		}
@@ -692,16 +674,16 @@ export class GeometryState {
 
 		const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints
 			.convertedObject[this.#viewport.id] as THREE.Points;
-		for (let i = 0; i < this.#materialIndexArray.length; i++)
-			(
-				threeJsPointsGeometry.material as MultiPointsMaterial
-			).materialIndexDataTexture!.image.data[i] =
-				this.#materialIndexArray[i];
-		(
-			threeJsPointsGeometry.material as MultiPointsMaterial
-		).materialIndexDataTexture!.needsUpdate = true;
-		(threeJsPointsGeometry.material as MultiPointsMaterial).needsUpdate =
-			true;
+		const material =
+			threeJsPointsGeometry.material as MultiPointsMaterial;
+		const materialIndexDataTexture = material.materialIndexDataTexture;
+		const materialIndexData = materialIndexDataTexture?.image.data;
+		if (materialIndexDataTexture && materialIndexData) {
+			for (let i = 0; i < this.#materialIndexArray.length; i++)
+				materialIndexData[i] = this.#materialIndexArray[i];
+			materialIndexDataTexture.needsUpdate = true;
+			material.needsUpdate = true;
+		}
 
 		((
 			this.#geometryDataPoints.material as MaterialMultiPointData
@@ -720,9 +702,9 @@ export class GeometryState {
 		const positionIndexArray = new Float32Array(
 			this.#positionArray.length / 3,
 		);
-		// fill position index array with indices
+		// fill position index array with indices (direct write, avoids temp arrays from set([i], i))
 		for (let i = 0; i < positionIndexArray.length; i++) {
-			positionIndexArray.set([i], i);
+			positionIndexArray[i] = i;
 		}
 
 		this.#positionIndexArray = positionIndexArray;

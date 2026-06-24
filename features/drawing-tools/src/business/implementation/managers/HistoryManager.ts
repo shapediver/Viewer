@@ -16,6 +16,12 @@ export type HistoryState = {
 // #region Classes (1)
 
 export class HistoryManager {
+	// #region Constants (1)
+
+	static readonly MAX_HISTORY = 256;
+
+	// #endregion Constants (1)
+
 	// #region Properties (3)
 
 	#currentStateIndex: number = -1;
@@ -100,6 +106,9 @@ export class HistoryManager {
 	public recordState(state: HistoryState): void {
 		this.#history = this.#history.slice(0, this.#currentStateIndex + 1);
 		this.#history.push(state);
+		// Cap history to prevent unbounded memory growth over long sessions
+		if (this.#history.length > HistoryManager.MAX_HISTORY)
+			this.#history.shift();
 		this.#currentStateIndex = this.#history.length - 1;
 	}
 

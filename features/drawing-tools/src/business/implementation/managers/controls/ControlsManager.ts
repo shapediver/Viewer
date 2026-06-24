@@ -603,10 +603,13 @@ export class ControlsManager {
 
 		if (threeJsGeometry) {
 			const mat = threeJsGeometry.material as MultiPointsMaterial;
-			mat.materialIndexDataTexture!.image.data[controlIndex] =
-				materialIndex;
-			mat.materialIndexDataTexture!.needsUpdate = true;
-			mat.needsUpdate = true;
+			const materialIndexDataTexture = mat.materialIndexDataTexture;
+			const materialIndexData = materialIndexDataTexture?.image.data;
+			if (materialIndexDataTexture && materialIndexData) {
+				materialIndexData[controlIndex] = materialIndex;
+				materialIndexDataTexture.needsUpdate = true;
+				mat.needsUpdate = true;
+			}
 		}
 
 		(

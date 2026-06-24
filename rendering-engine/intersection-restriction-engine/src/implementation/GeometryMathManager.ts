@@ -3,13 +3,18 @@ import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 
 export class GeometryMathManager {
-	// #region Properties (3)
+	// #region Properties (6)
 
 	#localToWorldMatrix: mat4 = mat4.create();
 	readonly #settings: IVisualizationSettings;
 	readonly #viewport: IViewportApi;
 
-	// #endregion Properties (3)
+	// Scratch vec3s reused in closestPointOnLine to avoid per-frame allocation.
+	readonly #scratchLineDir: vec3 = vec3.create();
+	readonly #scratchV: vec3 = vec3.create();
+	readonly #scratchScale: vec3 = vec3.create();
+
+	// #endregion Properties (6)
 
 	// #region Constructors (1)
 
@@ -181,9 +186,9 @@ export class GeometryMathManager {
 	 * @param point
 	 */
 	public closestPointOnLine(start: vec3, end: vec3, point: vec3): vec3 {
-		const lineDir = vec3.sub(vec3.create(), end, start);
+		const lineDir = vec3.sub(this.#scratchLineDir, end, start);
 		// Vector from linePoint to point
-		const v = vec3.sub(vec3.create(), point, start);
+		const v = vec3.sub(this.#scratchV, point, start);
 
 		// Line direction dot product with itself
 		const dirDotDir = vec3.dot(lineDir, lineDir);
@@ -194,14 +199,12 @@ export class GeometryMathManager {
 		// Projection factor t
 		const t = vec3.dot(v, lineDir) / dirDotDir;
 
-		// Closest point on the line
-		const closestPoint = vec3.add(
+		// Closest point on the line (the returned vec3 is a new allocation the caller owns)
+		return vec3.add(
 			vec3.create(),
 			start,
-			vec3.scale(vec3.create(), lineDir, t),
+			vec3.scale(this.#scratchScale, lineDir, t),
 		);
-
-		return closestPoint;
 	}
 
 	/**

@@ -100,7 +100,7 @@ export class GeometryRestriction
 	extends AbstractRestriction
 	implements IRestriction
 {
-	// #region Properties (17)
+	// #region Properties (21)
 
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #rayCasterParams: THREE.RaycasterParameters = {
@@ -114,6 +114,7 @@ export class GeometryRestriction
 	readonly #raycaster = new THREE.Raycaster();
 	readonly #viewport: IViewportApi;
 
+	#eventListenerToken: string | undefined;
 	#geometryMathManager: GeometryMathManager;
 	#lineIntersectionPercentage: number = 0.025;
 	#nodes: ITreeNode[] = [];
@@ -133,7 +134,11 @@ export class GeometryRestriction
 	#wireframeDepthTest: boolean;
 	#wireframePointSize: number;
 
-	// #endregion Properties (17)
+	// Scratch objects reused across rayTrace() calls to avoid per-frame allocation.
+	#scratchVector3A: THREE.Vector3 = new THREE.Vector3();
+	#scratchVector3B: THREE.Vector3 = new THREE.Vector3();
+	#scratchVector3C: THREE.Vector3 = new THREE.Vector3();
+	#scratchIntersections: THREE.Intersection[] = [];
 
 	// #region Constructors (1)
 
@@ -169,7 +174,7 @@ export class GeometryRestriction
 		this.#sceneBoundingSphereRadius =
 			sceneTree.root.boundingBox.boundingSphere.radius;
 		this.updateIntersectionThresholds();
-		this.#eventEngine.addListener(
+		this.#eventListenerToken = this.#eventEngine.addListener(
 			EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE,
 			(e) => {
 				const event = e as ISceneEvent;
@@ -254,8 +259,8 @@ export class GeometryRestriction
 			ray.origin[2],
 		);
 
-		// intersect all nodes
-		let intersections: THREE.Intersection[] = [];
+		// intersect all nodes — push into reused scratch array instead of concat
+		this.#scratchIntersections.length = 0;
 		this.#nodes.forEach((node) => {
 			const threeJsObject = node.convertedObject[
 				this.#viewport.id
@@ -263,16 +268,18 @@ export class GeometryRestriction
 			if (threeJsObject) {
 				const currentIntersections =
 					this.#raycaster.intersectObject(threeJsObject);
-				intersections = intersections.concat(currentIntersections);
+				for (let k = 0; k < currentIntersections.length; k++) {
+					this.#scratchIntersections.push(currentIntersections[k]);
+				}
 			}
 		});
 
 		// sort
-		intersections.sort((a, b) => a.distance - b.distance);
+		this.#scratchIntersections.sort((a, b) => a.distance - b.distance);
 
 		// return first intersection
-		if (intersections.length > 0) {
-			const object = intersections[0].object as THREE.Mesh;
+		if (this.#scratchIntersections.length > 0) {
+			const object = this.#scratchIntersections[0].object as THREE.Mesh;
 
 			let geometryRestrictionIntersectionData:
 				| GeometryRestrictionIntersectionData
@@ -311,44 +318,44 @@ export class GeometryRestriction
 
 			if (
 				object instanceof THREE.Points &&
-				intersections[0].index !== undefined
+				this.#scratchIntersections[0].index !== undefined
 			) {
 				if (!this.#snapToVertices) return;
-				const vertex = new THREE.Vector3();
+				const vertex = this.#scratchVector3A;
 				vertex.fromBufferAttribute(
 					positionAttribute,
-					intersections[0].index,
+					this.#scratchIntersections[0].index,
 				);
 				object.localToWorld(vertex);
 
 				return this.constructRestrictionResult(
 					vec3.fromValues(vertex.x, vertex.y, vertex.z),
-					intersections[0].distance,
-					intersections[0].pointOnLine,
+					this.#scratchIntersections[0].distance,
+					this.#scratchIntersections[0].pointOnLine,
 					geometryRestrictionIntersectionData,
 				);
 			}
 
-			const intersectionPoint = intersections[0].point;
+			const intersectionPoint = this.#scratchIntersections[0].point;
 			const intersectionPointVec3 = vec3.fromValues(
 				intersectionPoint.x,
 				intersectionPoint.y,
 				intersectionPoint.z,
 			);
 
-			if (!intersections[0].face)
+			if (!this.#scratchIntersections[0].face)
 				return this.constructRestrictionResult(
 					intersectionPointVec3,
-					intersections[0].distance,
-					intersections[0].pointOnLine,
+					this.#scratchIntersections[0].distance,
+					this.#scratchIntersections[0].pointOnLine,
 					geometryRestrictionIntersectionData,
 				);
 
 			if (this.#snapToVertices === true || this.#snapToEdges === true) {
-				const vertexA = new THREE.Vector3();
+				const vertexA = this.#scratchVector3A;
 				vertexA.fromBufferAttribute(
 					positionAttribute,
-					intersections[0].face!.a,
+					this.#scratchIntersections[0].face!.a,
 				);
 				object.localToWorld(vertexA);
 				const vertexAVec3 = vec3.fromValues(
@@ -357,10 +364,10 @@ export class GeometryRestriction
 					vertexA.z,
 				);
 
-				const vertexB = new THREE.Vector3();
+				const vertexB = this.#scratchVector3B;
 				vertexB.fromBufferAttribute(
 					positionAttribute,
-					intersections[0].face!.b,
+					this.#scratchIntersections[0].face!.b,
 				);
 				object.localToWorld(vertexB);
 				const vertexBVec3 = vec3.fromValues(
@@ -369,10 +376,10 @@ export class GeometryRestriction
 					vertexB.z,
 				);
 
-				const vertexC = new THREE.Vector3();
+				const vertexC = this.#scratchVector3C;
 				vertexC.fromBufferAttribute(
 					positionAttribute,
-					intersections[0].face!.c,
+					this.#scratchIntersections[0].face!.c,
 				);
 				object.localToWorld(vertexC);
 				const vertexCVec3 = vec3.fromValues(
@@ -406,8 +413,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexAVec3,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -417,8 +424,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexBVec3,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -428,8 +435,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexCVec3,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					}
@@ -484,8 +491,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeAB,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -496,8 +503,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeBC,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -508,8 +515,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeCA,
-							intersections[0].distance,
-							intersections[0].pointOnLine,
+							this.#scratchIntersections[0].distance,
+							this.#scratchIntersections[0].pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					}
@@ -524,7 +531,7 @@ export class GeometryRestriction
 						intersectionPoint.y,
 						intersectionPoint.z,
 					),
-					intersections[0].distance,
+					this.#scratchIntersections[0].distance,
 					undefined,
 					geometryRestrictionIntersectionData,
 				);
@@ -532,6 +539,17 @@ export class GeometryRestriction
 		}
 
 		return;
+	}
+
+	/**
+	 * Removes the scene visualization AND cleans up EventEngine listener.
+	 */
+	public removeVisualization(): void {
+		if (this.#eventListenerToken) {
+			this.#eventEngine.removeListener(this.#eventListenerToken);
+			this.#eventListenerToken = undefined;
+		}
+		super.removeVisualization();
 	}
 
 	public updateNodes(nodes: ITreeNode[]) {

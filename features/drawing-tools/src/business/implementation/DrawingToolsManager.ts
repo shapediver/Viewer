@@ -42,7 +42,7 @@ import {InteractionManager} from "./managers/interaction/InteractionManager";
 import {TextVisualizationManager} from "./managers/TextVisualizationManager";
 
 export class DrawingToolsManager implements IDrawingToolsManager {
-	// #region Properties (18)
+	// #region Properties (21)
 
 	readonly #callbacks: Callbacks;
 	readonly #defaultTextures: DefaultTextures;
@@ -65,7 +65,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	#continuousRenderingFlag?: string;
 	#uuid = this.#uuidGenerator.create();
 
-	// #endregion Properties (17)
+	// Scratch vec3s reused across hot-path calls to avoid per-frame allocation.
+	#scratchVec3_constraintMin: vec3 = vec3.create();
+	#scratchVec3_constraintMax: vec3 = vec3.create();
+
+	// #endregion Properties (20)
 
 	// #region Constructors (1)
 
@@ -275,15 +279,13 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		const constraints = this.#settings.geometry.constraints;
 		if (!constraints) return proposedPosition;
 
-		const result = vec3.clone(proposedPosition);
-		// #geometryManager may not be assigned yet during GeometryState.init();
-		// safe fallback: derive pointCount from overrides when unavailable.
 		const geometryState = this.#geometryManager?.geometryState;
 		const pointCount =
 			geometryState?.getPointCount() ??
 			(overrides ? overrides.size + 1 : 0);
 
 		// Position constraints: clamp each axis to [min, max].
+		const result = vec3.clone(proposedPosition);
 		if (constraints.position) {
 			const posAxes = ["x", "y", "z"] as const;
 			for (let i = 0; i < 3; i++) {
@@ -294,28 +296,42 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 		// Size constraints: keep geometry extent within [minSize, maxSize].
 		if (constraints.size && pointCount > 0) {
-			// traverse all points and get the min and max on each axis
-			const min = vec3.fromValues(
-				Number.POSITIVE_INFINITY,
-				Number.POSITIVE_INFINITY,
-				Number.POSITIVE_INFINITY,
-			);
-			const max = vec3.fromValues(
-				Number.NEGATIVE_INFINITY,
-				Number.NEGATIVE_INFINITY,
-				Number.NEGATIVE_INFINITY,
-			);
+			// Scratch vec3s reused from instance to avoid allocation.
+			const min = this.#scratchVec3_constraintMin;
+			const max = this.#scratchVec3_constraintMax;
+			min[0] = min[1] = min[2] = Number.POSITIVE_INFINITY;
+			max[0] = max[1] = max[2] = Number.NEGATIVE_INFINITY;
+
+			// Prefer overrides when provided; fall back to geometryState.positionArray when available.
+			const posArray = geometryState?.positionArray;
 			for (let i = 0; i < pointCount; i++) {
 				if (i === pointIndex) continue;
-				const pos = overrides?.get(i) ?? geometryState?.getPosition(i);
-				if (!pos) continue;
-				for (let j = 0; j < 3; j++) {
-					min[j] = Math.min(min[j], pos[j]);
-					max[j] = Math.max(max[j], pos[j]);
-				}
+				const base = i * 3;
+				const overridePos = overrides?.get(i);
+				const px = overridePos
+					? overridePos[0]
+					: posArray
+						? (posArray[base] as number)
+						: Number.NaN;
+				const py = overridePos
+					? overridePos[1]
+					: posArray
+						? (posArray[base + 1] as number)
+						: Number.NaN;
+				const pz = overridePos
+					? overridePos[2]
+					: posArray
+						? (posArray[base + 2] as number)
+						: Number.NaN;
+				if (!isFinite(px)) continue;
+				min[0] = Math.min(min[0], px);
+				min[1] = Math.min(min[1], py);
+				min[2] = Math.min(min[2], pz);
+				max[0] = Math.max(max[0], px);
+				max[1] = Math.max(max[1], py);
+				max[2] = Math.max(max[2], pz);
 			}
 
-			// now we check if our new point position would violate the size constraints and if yes, we clamp it to the valid range
 			// Tolerance for floating-point precision
 			const SIZE_CONSTRAINT_EPSILON = 1e-5;
 			const sizeAxes = ["x", "y", "z"] as const;

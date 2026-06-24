@@ -489,6 +489,17 @@ export class PrimitiveData
 		);
 	}
 
+	public clearBoundingBoxCache(): void {
+		this.#boundingBoxes.length = 0;
+	}
+
+	public updateVersion(): void {
+		// Invalidate cached bounding boxes when the primitive version changes
+		// (e.g. when position attributes are replaced during a drawing update).
+		this.clearBoundingBoxCache();
+		super.updateVersion();
+	}
+
 	public computeBoundingBox(matrix: mat4): IBox {
 		const res = this.#boundingBoxes.find((b) =>
 			mat4.equals(matrix, b.matrix),
