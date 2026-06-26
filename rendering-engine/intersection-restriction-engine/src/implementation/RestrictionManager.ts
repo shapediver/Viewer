@@ -276,117 +276,23 @@ export class RestrictionManager implements IRestrictionManager {
 				b.distanceOriginToClosestIntersectionPointSquared!,
 		);
 
-		/**
-		 * We iterate over the results and check if the restriction with the higher priority has a radius
-		 * and if the hit of the restriction with the higher priority is within the radius of the restriction with the lower priority.
-		 *
-		 * If this is the case, we set the restriction with the higher priority as the hit restriction.
-		 */
-		let restrictionResult: RestrictionResult = restrictionResults[0];
-		for (const result of restrictionResults) {
-			// if the priority of the restriction is higher than the priority of the restriction that is currently hit
-			if (
-				result.restriction.priority >
-				restrictionResult.restriction.priority
-			) {
-				// check if the closest point of the restriction with the higher priority is within the radius of the restriction with the lower priority
-				const hitHigherPriority = result.closestIntersectionPoint;
-				if (
-					restrictionResult.restriction instanceof PointRestriction ||
-					restrictionResult.restriction instanceof LineRestriction
-				) {
-					if (
-						restrictionResult.restriction.isWithinRadius(
-							hitHigherPriority,
-						)
-					) {
-						restrictionResult = result;
-					}
-				}
-
-				// if there is a result for a geometry restriction,
-				// we prioritize this result over the other restrictions,
-				// as this always means it's within the radius
-				if (result.restriction instanceof GeometryRestriction) {
-					restrictionResult = result;
-				}
-			} else if (
-				result.restriction.priority ===
-				restrictionResult.restriction.priority
-			) {
-				// if the priority is the same, we check the distance id the type is a point or line restriction
-				if (
-					result.restriction instanceof PointRestriction ||
-					result.restriction instanceof LineRestriction
-				) {
-					if (
-						result.distanceClosestPointToTargetPointSquared <
-						restrictionResult.distanceClosestPointToTargetPointSquared
-					) {
-						restrictionResult = result;
-					}
-				}
+		const remainingRestrictionResults = [...restrictionResults];
+		let restrictionResult: RestrictionResult | undefined;
+		while (remainingRestrictionResults.length > 0) {
+			const candidateRestrictionResult =
+				this.selectRestrictionResult(remainingRestrictionResults);
+			if (!this.isRestrictionResultOccluded(candidateRestrictionResult, ray)) {
+				restrictionResult = candidateRestrictionResult;
+				break;
 			}
-		}
 
-		// if the restriction is hideable, we check if the closest restriction is actually hidden
-		if (restrictionResult.restriction.hideable) {
-			// create a filter to check if the node is hidden or is not fully opaque
-			const filter: IIntersectionFilter = (
-				node: ITreeNode,
-				geometryData?: IGeometryData,
-			) => {
-				if (node.visible === false) return false;
-				if (
-					geometryData &&
-					geometryData.material &&
-					geometryData.material.opacity < 1.0
-				)
-					return false;
-				return true;
-			};
-
-			// check if the closest restriction is actually hidden
-			const sceneRayTrace = this.#viewport.raytraceScene(
-				ray.origin,
-				ray.direction,
-				[filter],
+			remainingRestrictionResults.splice(
+				remainingRestrictionResults.indexOf(candidateRestrictionResult),
+				1,
 			);
-
-			if (sceneRayTrace.length > 0) {
-				const squaredDistanceSceneRayTrace =
-					sceneRayTrace[0].distance * sceneRayTrace[0].distance;
-				if (
-					squaredDistanceSceneRayTrace <
-					restrictionResult.distanceOriginToClosestIntersectionPointSquared
-				) {
-					// the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
-					if (
-						restrictionResult.restriction.type !==
-							RESTRICTION_TYPE.GEOMETRY ||
-						(restrictionResult.restriction.type ===
-							RESTRICTION_TYPE.GEOMETRY &&
-							(!restrictionResult.restrictionIntersectionData ||
-								!sceneRayTrace[0].data))
-					)
-						return;
-
-					const geometryRestrictionIntersectionData =
-						restrictionResult.restrictionIntersectionData as GeometryRestrictionIntersectionData;
-
-					// it is NOT the same geometry
-					if (
-						!(
-							geometryRestrictionIntersectionData.geometryData
-								.id === sceneRayTrace[0].data!.id &&
-							geometryRestrictionIntersectionData.geometryData
-								.version === sceneRayTrace[0].data!.version
-						)
-					)
-						return;
-				}
-			}
 		}
+
+		if (!restrictionResult) return;
 
 		// deactivate the visualization of all restrictions that are not hit
 		for (const restriction of Object.values(this.#restrictions)) {
@@ -447,7 +353,125 @@ export class RestrictionManager implements IRestrictionManager {
 
 	// #endregion Public Methods (6)
 
-	// #region Private Methods (6)
+	// #region Private Methods (8)
+
+	private selectRestrictionResult(
+		restrictionResults: RestrictionResult[],
+	): RestrictionResult {
+		/**
+		 * We iterate over the results and check if the restriction with the higher priority has a radius
+		 * and if the hit of the restriction with the higher priority is within the radius of the restriction with the lower priority.
+		 *
+		 * If this is the case, we set the restriction with the higher priority as the hit restriction.
+		 */
+		let restrictionResult: RestrictionResult = restrictionResults[0];
+		for (const result of restrictionResults) {
+			// if the priority of the restriction is higher than the priority of the restriction that is currently hit
+			if (
+				result.restriction.priority >
+				restrictionResult.restriction.priority
+			) {
+				// check if the closest point of the restriction with the higher priority is within the radius of the restriction with the lower priority
+				const hitHigherPriority = result.closestIntersectionPoint;
+				if (
+					restrictionResult.restriction instanceof PointRestriction ||
+					restrictionResult.restriction instanceof LineRestriction
+				) {
+					if (
+						restrictionResult.restriction.isWithinRadius(
+							hitHigherPriority,
+						)
+					) {
+						restrictionResult = result;
+					}
+				}
+
+				// if there is a result for a geometry restriction,
+				// we prioritize this result over the other restrictions,
+				// as this always means it's within the radius
+				if (result.restriction instanceof GeometryRestriction) {
+					restrictionResult = result;
+				}
+			} else if (
+				result.restriction.priority ===
+				restrictionResult.restriction.priority
+			) {
+				// if the priority is the same, we check the distance id the type is a point or line restriction
+				if (
+					result.restriction instanceof PointRestriction ||
+					result.restriction instanceof LineRestriction
+				) {
+					if (
+						result.distanceClosestPointToTargetPointSquared <
+						restrictionResult.distanceClosestPointToTargetPointSquared
+					) {
+						restrictionResult = result;
+					}
+				}
+			}
+		}
+
+		return restrictionResult;
+	}
+
+	private isRestrictionResultOccluded(
+		restrictionResult: RestrictionResult,
+		ray: IRay,
+	): boolean {
+		if (!restrictionResult.restriction.hideable) return false;
+
+		// create a filter to check if the node is hidden or is not fully opaque
+		const filter: IIntersectionFilter = (
+			node: ITreeNode,
+			geometryData?: IGeometryData,
+		) => {
+			if (node.visible === false) return false;
+			if (
+				geometryData &&
+				geometryData.material &&
+				geometryData.material.opacity < 1.0
+			)
+				return false;
+			return true;
+		};
+
+		// check if the closest restriction is actually hidden
+		const sceneRayTrace = this.#viewport.raytraceScene(
+			ray.origin,
+			ray.direction,
+			[filter],
+		);
+
+		if (sceneRayTrace.length === 0) return false;
+
+		const squaredDistanceSceneRayTrace =
+			sceneRayTrace[0].distance * sceneRayTrace[0].distance;
+		if (
+			squaredDistanceSceneRayTrace >=
+			restrictionResult.distanceOriginToClosestIntersectionPointSquared
+		)
+			return false;
+
+		// the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
+		if (
+			restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY ||
+			(restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY &&
+				(!restrictionResult.restrictionIntersectionData ||
+					!sceneRayTrace[0].data))
+		)
+			return true;
+
+		const geometryRestrictionIntersectionData =
+			restrictionResult.restrictionIntersectionData as GeometryRestrictionIntersectionData;
+
+		// it is NOT the same geometry
+		return !(
+			geometryRestrictionIntersectionData.geometryData.id ===
+				sceneRayTrace[0].data!.id &&
+			geometryRestrictionIntersectionData.geometryData.version ===
+				sceneRayTrace[0].data!.version
+		);
+	}
 
 	private onDown(event: PointerEvent, ray: IRay): void {
 		if (this.closed) return;
