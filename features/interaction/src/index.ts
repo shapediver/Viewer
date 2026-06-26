@@ -91,7 +91,10 @@ import {
 	IInteractionFilterOptions,
 	IInteractionManager,
 } from "./interfaces/IInteractionManager";
-import {IInteractionEffectUtils} from "./interfaces/utils/IInteractionEffectUtils";
+import {
+	IInteractionEffect,
+	IInteractionEffectUtils,
+} from "./interfaces/utils/IInteractionEffectUtils";
 
 export {
 	AbstractInteractionManager,
@@ -142,6 +145,7 @@ export {
 	type IHemisphereLightApi,
 	type IHoverEvent,
 	type IInteractionData,
+	type IInteractionEffect,
 	type IInteractionEffectUtils,
 	type IInteractionEngine,
 	type IInteractionFilterOptions,
