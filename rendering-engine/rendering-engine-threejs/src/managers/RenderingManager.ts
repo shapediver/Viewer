@@ -13,6 +13,7 @@ import {
 	EVENTTYPE,
 	EVENTTYPE_VIEWPORT,
 	Logger,
+	StateEngine,
 	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {
@@ -38,6 +39,7 @@ export class RenderingManager implements IManager {
 	private readonly _converter: Converter = Converter.instance;
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _logger: Logger = Logger.instance;
+	private readonly _stateEngine: StateEngine = StateEngine.instance;
 	private readonly _systemInfo: SystemInfo = SystemInfo.instance;
 	private readonly _tree: ITree = Tree.instance;
 
@@ -876,6 +878,21 @@ export class RenderingManager implements IManager {
 	}
 
 	private startAndStopRendering() {
+		const environmentMapLoaded =
+			this._stateEngine.viewportEngines[this._renderingEngine.id]
+				?.environmentMapLoaded;
+		const environmentMap = this._renderingEngine.environmentMap;
+		if (
+			environmentMap !== "null" &&
+			environmentMap !== "none" &&
+			this._renderingEngine.environmentMapLoader.environmentMap === null &&
+			environmentMapLoaded &&
+			environmentMapLoaded.resolved === false
+		) {
+			environmentMapLoaded.then(() => this.startAndStopRendering());
+			return;
+		}
+
 		this._activeRendering = true;
 		this.stopBeautyRenderCountdown();
 		this.startBeautyRenderCountdown();
