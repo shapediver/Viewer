@@ -747,9 +747,18 @@ importers:
       '@shapediver/viewer.shared.types':
         specifier: workspace:*
         version: link:../../shared/types
+      '@types/three':
+        specifier: 0.184.1
+        version: 0.184.1
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
+      postprocessing:
+        specifier: 6.39.1
+        version: 6.39.1(three@0.184.0)
+      three:
+        specifier: 0.184.0
+        version: 0.184.0
 
   examples/settings:
     dependencies:

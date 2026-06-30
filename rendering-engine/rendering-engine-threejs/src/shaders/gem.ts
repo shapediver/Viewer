@@ -5,6 +5,7 @@ varying vec3 vViewPosition;
 	varying vec3 vWorldPosition;
 #endif
 #include <common>
+#include <batching_pars_vertex>
 #include <uv_pars_vertex>
 #include <displacementmap_pars_vertex>
 #include <color_pars_vertex>
@@ -24,7 +25,9 @@ varying vec3 frag_normal;
 void main() {
 	#include <uv_vertex>
 	#include <color_vertex>
+	#include <morphinstance_vertex>
 	#include <morphcolor_vertex>
+	#include <batching_vertex>
 	#include <beginnormal_vertex>
 	#include <morphnormal_vertex>
 	#include <skinbase_vertex>
@@ -57,7 +60,7 @@ export const frag = `
 #define STANDARD
 #ifdef PHYSICAL
 	#define IOR
-	#define SPECULAR
+	#define USE_SPECULAR
 #endif
 
 // CUSTOM START
@@ -74,13 +77,13 @@ uniform float opacity;
 #ifdef IOR
 	uniform float ior;
 #endif
-#ifdef SPECULAR
+#ifdef USE_SPECULAR
 	uniform float specularIntensity;
 	uniform vec3 specularColor;
-	#ifdef USE_SPECULARINTENSITYMAP
+	#ifdef USE_SPECULAR_INTENSITYMAP
 		uniform sampler2D specularIntensityMap;
 	#endif
-	#ifdef USE_SPECULARCOLORMAP
+	#ifdef USE_SPECULAR_COLORMAP
 		uniform sampler2D specularColorMap;
 	#endif
 #endif
@@ -97,10 +100,10 @@ uniform float opacity;
 #ifdef USE_SHEEN
 	uniform vec3 sheenColor;
 	uniform float sheenRoughness;
-	#ifdef USE_SHEENCOLORMAP
+	#ifdef USE_SHEEN_COLORMAP
 		uniform sampler2D sheenColorMap;
 	#endif
-	#ifdef USE_SHEENROUGHNESSMAP
+	#ifdef USE_SHEEN_ROUGHNESSMAP
 		uniform sampler2D sheenRoughnessMap;
 	#endif
 #endif
@@ -113,6 +116,7 @@ varying vec3 vViewPosition;
 #include <map_pars_fragment>
 #include <alphamap_pars_fragment>
 #include <alphatest_pars_fragment>
+#include <alphahash_pars_fragment>
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
 #include <emissivemap_pars_fragment>
@@ -167,10 +171,10 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 	#if defined( ENVMAP_TYPE_CUBE_UV )
 		vec3 reflectVec = reflect( - viewDir, normal );
 		// Mixing the reflection with the normal is more accurate and keeps rough objects from gathering light from behind their tangent plane.
-		reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );
+		reflectVec = normalize( mix( reflectVec, normal, pow4( roughness ) ) );
 		reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-		vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );
-		return min(envMapColor.rgb * envMapIntensity, vec3(1.0));
+		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+		return envMapColor.rgb * envMapIntensity;
 	#else
 		return vec3( 0.0 );
 	#endif
@@ -191,13 +195,13 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 	// Calculate the view direction vector in world space
 	vec3 currentGeometryViewDir = normalize(normalMatrix * -viewDir);
 
-    vec3 currentGeometryClearcoatNormal;
+    vec3 currentGeometryClearcoatNormal = vec3( 0.0 );
 	
 	#ifdef USE_CLEARCOAT
         currentGeometryClearcoatNormal = clearcoatNormal;
     #endif
 
-	ReflectedLight rLight;
+	ReflectedLight rLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	IncidentLight dLight;
 
 	float temp = material.roughness;
@@ -216,7 +220,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
             getPointLightInfo( pointLight, currentGeometryPosition, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )
                 pointLightShadow = pointLightShadows[ i ];
-                dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowIntensity, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
             #endif
 		    RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
 		}
@@ -233,7 +237,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
             getSpotLightInfo( spotLight, currentGeometryPosition, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )
                 spotLightShadow = spotLightShadows[ i ];
-                dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowIntensity, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;
             #endif
             RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
         }
@@ -251,7 +255,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
             getDirectionalLightInfo( directionalLight, dLight );
             #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )
                 directionalLightShadow = directionalLightShadows[ i ];
-                dLight.color *= all( bvec2( dLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
             #endif
             RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
         }
@@ -291,7 +295,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 
     #if defined( RE_IndirectDiffuse )
         #ifdef USE_LIGHTMAP
-            vec4 lightMapTexel = texture2D( lightMap, vUv2 );
+            vec4 lightMapTexel = texture2D( lightMap, vLightMapUv );
             vec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;
             irradiance += lightMapIrradiance;
         #endif
@@ -359,7 +363,7 @@ vec3 normalLookUp(vec3 dir) {
 
 #ifdef USE_IMPURITYMAP
 	float impurityLookUp(vec3 dir) {
-		vec3 c = textureCube(impurityMap, dir.xy).rgb;
+		vec3 c = texture2D(impurityMap, dir.xy * 0.5 + 0.5).rgb;
 		return (c.x + c.y + c.z) / 3.0;
 	}
 #endif
@@ -419,6 +423,7 @@ void main() {
 	#include <color_fragment>
 	#include <alphamap_fragment>
 	#include <alphatest_fragment>
+	#include <alphahash_fragment>
 	#include <roughnessmap_fragment>
 	#include <metalnessmap_fragment>
 	#include <normal_fragment_begin>
@@ -436,13 +441,12 @@ void main() {
 	#include <transmission_fragment>
 	vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;
 	#ifdef USE_SHEEN
-		float sheenEnergyComp = 1.0 - 0.157 * max3( material.sheenColor );
-		outgoingLight = outgoingLight * sheenEnergyComp + sheenSpecular;
+		outgoingLight = outgoingLight + sheenSpecularDirect + sheenSpecularIndirect;
 	#endif
 	#ifdef USE_CLEARCOAT
-		float dotNVcc = saturate( dot( geometry.clearcoatNormal, geometry.viewDir ) );
+		float dotNVcc = saturate( dot( geometryClearcoatNormal, geometryViewDir ) );
 		vec3 Fcc = F_Schlick( material.clearcoatF0, material.clearcoatF90, dotNVcc );
-		outgoingLight = outgoingLight * ( 1.0 - material.clearcoat * Fcc ) + clearcoatSpecular * material.clearcoat;
+		outgoingLight = outgoingLight * ( 1.0 - material.clearcoat * Fcc ) + ( clearcoatSpecularDirect + clearcoatSpecularIndirect ) * material.clearcoat;
 	#endif
 	#include <opaque_fragment>
 

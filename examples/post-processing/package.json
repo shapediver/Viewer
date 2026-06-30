@@ -43,6 +43,9 @@
 		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
 		"@shapediver/viewer.features.interaction": "workspace:*",
 		"@shapediver/viewer.shared.demo-helper": "workspace:*",
-		"gl-matrix": "3.4.4"
+		"@types/three": "0.184.1",
+		"gl-matrix": "3.4.4",
+		"postprocessing": "6.39.1",
+		"three": "0.184.0"
 	}
 }
