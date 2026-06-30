@@ -274,7 +274,15 @@ export class GeometryLoader implements ILoader {
 					buffers.push(
 						this.loadAttribute(morphAttributeData[i], attributeId),
 					);
-				geometry.morphAttributes[attributeName] = buffers;
+				(
+					geometry.morphAttributes as Record<
+						string,
+						(
+							| THREE.BufferAttribute
+							| THREE.InterleavedBufferAttribute
+						)[]
+					>
+				)[attributeName] = buffers;
 			}
 
 			// we copy the uv coordinates into the second set of uv coordinates if there are none
@@ -302,7 +310,15 @@ export class GeometryLoader implements ILoader {
 								attributeId,
 							),
 						);
-					geometry.morphAttributes[attributeNameUV2] = buffers;
+					(
+						geometry.morphAttributes as Record<
+							string,
+							(
+								| THREE.BufferAttribute
+								| THREE.InterleavedBufferAttribute
+							)[]
+						>
+					)[attributeNameUV2] = buffers;
 				}
 			}
 		}
@@ -841,8 +857,8 @@ export class GeometryLoader implements ILoader {
 				bufferAttribute.array,
 				bufferAttribute.itemSize,
 				attributeId === "COLOR_0" ||
-				attributeId === "COLOR0" ||
-				attributeId === "COLOR"
+					attributeId === "COLOR0" ||
+					attributeId === "COLOR"
 					? true
 					: bufferAttribute.normalized,
 			);

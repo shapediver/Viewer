@@ -54,11 +54,11 @@
 		"@shapediver/viewer.shared.types": "workspace:*",
 		"@tweenjs/tween.js": "25.0.0",
 		"@types/stats.js": "0.17.4",
-		"@types/three": "0.162.0",
+		"@types/three": "0.184.1",
 		"gl-matrix": "3.4.4",
-		"postprocessing": "6.35.3",
+		"postprocessing": "6.39.1",
 		"stats.js": "0.17.0",
-		"three": "0.162.0"
+		"three": "0.184.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

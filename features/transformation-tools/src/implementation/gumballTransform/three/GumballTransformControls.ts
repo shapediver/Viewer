@@ -4,6 +4,7 @@ import {
 	Camera,
 	Intersection,
 	Object3D,
+	Object3DEventMap,
 	OrthographicCamera,
 	Quaternion,
 	Raycaster,
@@ -20,7 +21,11 @@ export enum TransformationType {
 	SCALE = "scale",
 }
 
-export class GumballTransformControls extends Object3D {
+interface GumballTransformControlsEventMap extends Object3DEventMap {
+	"dragging-changed": {value: boolean};
+}
+
+export class GumballTransformControls extends Object3D<GumballTransformControlsEventMap> {
 	private _axis: string | null = null;
 	private _camera: Camera;
 	private _cameraPosition: Vector3 = new Vector3();
@@ -157,7 +162,7 @@ export class GumballTransformControls extends Object3D {
 
 	public set dragging(value: boolean) {
 		this._dragging = value;
-		this.dispatchEvent({type: "dragging-changed", value} as any);
+		this.dispatchEvent({type: "dragging-changed", value});
 	}
 
 	public get enabled(): boolean {

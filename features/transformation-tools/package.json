@@ -47,9 +47,9 @@
 		"@shapediver/viewer.shared.node-tree": "workspace:*",
 		"@shapediver/viewer.shared.services": "workspace:*",
 		"@shapediver/viewer.shared.types": "workspace:*",
-		"@types/three": "0.162.0",
+		"@types/three": "0.184.1",
 		"gl-matrix": "3.4.4",
-		"three": "0.162.0"
+		"three": "0.184.0"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
