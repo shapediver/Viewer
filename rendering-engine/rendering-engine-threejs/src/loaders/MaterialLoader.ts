@@ -1,6 +1,6 @@
 import {
 	GeometryData,
-	type ITreeNodeData,
+	ITreeNodeData,
 	MaterialBasicLineData,
 	MaterialGemData,
 	MaterialLambertData,
@@ -11,28 +11,32 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
-	type IMapData,
-	type IMaterialAbstractData,
+	IMapData,
+	IMaterialAbstractData,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,
 	PRIMITIVE_MODE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat} from "gl-matrix";
 import * as THREE from "three";
-import {type ILoader} from "../interfaces/ILoader";
-import {GemMaterial, type GemMaterialParameters} from "../materials/GemMaterial";
-import {type MeshUnlitMaterialParameters} from "../materials/MeshUnlitMaterialParameters";
+import {ILoader} from "../interfaces/ILoader";
+import {GemMaterial, GemMaterialParameters} from "../materials/GemMaterial";
+import {MeshUnlitMaterialParameters} from "../materials/MeshUnlitMaterialParameters";
 import {
 	MultiPointsMaterial,
-	type MultiPointsMaterialParameters} from "../materials/MultiPointsMaterial";
+	MultiPointsMaterialParameters,
+} from "../materials/MultiPointsMaterial";
 import {
 	SpecularGlossinessMaterial,
-	type SpecularGlossinessMaterialParameters} from "../materials/SpecularGlossinessMaterial";
+	SpecularGlossinessMaterialParameters,
+} from "../materials/SpecularGlossinessMaterial";
 import {SDColor} from "../objects/SDColor";
 import {RenderingEngine} from "../RenderingEngine";
 import {getShadow, main} from "../shaders/PCSS";
@@ -2274,18 +2278,12 @@ export const adaptShaders = () => {
 		}
 	}
 
-	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
-	// older and newer three.js versions set up the background rotation matrix differently, so we patch both shader variants
+	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
+	// console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))
 	THREE.ShaderChunk.backgroundCube_frag =
 		THREE.ShaderChunk.backgroundCube_frag.replace(
 			"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
 			"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
-		).replace(
-			"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
-			`
-			vec3 rotatedBackgroundDir = backgroundRotation * vec3( -vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z );
-			vec4 texColor = textureCube( envMap, vec3( -rotatedBackgroundDir.x, rotatedBackgroundDir.y, rotatedBackgroundDir.z ) );
-			`,
 		);
 	THREE.ShaderLib.backgroundCube.fragmentShader =
 		THREE.ShaderChunk.backgroundCube_frag;
@@ -2323,6 +2321,7 @@ export const adaptShaders = () => {
 		);
 
 	// here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
+	// console.log(THREE.ShaderChunk.envmap_fragment, THREE.ShaderChunk.envmap_fragment.includes('vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );'));
 	THREE.ShaderChunk.envmap_fragment =
 		THREE.ShaderChunk.envmap_fragment.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );",
@@ -2331,16 +2330,6 @@ export const adaptShaders = () => {
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
         #else
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.zy ) );
-        #endif
-        `,
-		).replace(
-			"vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );",
-			`
-        #ifdef ENVMAP_TYPE_LDR
-            vec3 rotatedReflectVec = envMapRotation * vec3( -reflectVec.x, reflectVec.y, -reflectVec.z );
-            vec4 envColor = textureCube( envMap, vec3( -rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z ) );
-        #else
-            vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );
         #endif
         `,
 		);
