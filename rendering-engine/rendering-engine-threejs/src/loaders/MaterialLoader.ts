@@ -2278,12 +2278,18 @@ export const adaptShaders = () => {
 		}
 	}
 
-	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
-	// console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))
+	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
+	// older and newer three.js versions set up the background rotation matrix differently, so we patch both shader variants
 	THREE.ShaderChunk.backgroundCube_frag =
 		THREE.ShaderChunk.backgroundCube_frag.replace(
 			"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
 			"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
+		).replace(
+			"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
+			`
+			vec3 rotatedBackgroundDir = backgroundRotation * vec3( -vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z );
+			vec4 texColor = textureCube( envMap, vec3( -rotatedBackgroundDir.x, rotatedBackgroundDir.y, rotatedBackgroundDir.z ) );
+			`,
 		);
 	THREE.ShaderLib.backgroundCube.fragmentShader =
 		THREE.ShaderChunk.backgroundCube_frag;
@@ -2321,7 +2327,6 @@ export const adaptShaders = () => {
 		);
 
 	// here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-	// console.log(THREE.ShaderChunk.envmap_fragment, THREE.ShaderChunk.envmap_fragment.includes('vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );'));
 	THREE.ShaderChunk.envmap_fragment =
 		THREE.ShaderChunk.envmap_fragment.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );",
@@ -2330,6 +2335,16 @@ export const adaptShaders = () => {
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.y, -reflectVec.z ) );
         #else
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.zy ) );
+        #endif
+        `,
+		).replace(
+			"vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );",
+			`
+        #ifdef ENVMAP_TYPE_LDR
+            vec3 rotatedReflectVec = envMapRotation * vec3( -reflectVec.x, reflectVec.y, -reflectVec.z );
+            vec4 envColor = textureCube( envMap, vec3( -rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z ) );
+        #else
+            vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );
         #endif
         `,
 		);
