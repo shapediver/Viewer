@@ -1,4 +1,4 @@
-import {expect, test} from "@playwright/test";
+﻿import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1} from "../models.json";
@@ -10,7 +10,7 @@ const name = "api";
 test.describe("API", () => {
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"test-cdn/index.html",
+			"https://viewer.shapediver.com/v3/latest/test-cdn/index.html",
 		);
 	});
 
@@ -201,7 +201,6 @@ test.describe("API", () => {
 				);
 				viewer.environmentMap = SDV.ENVIRONMENT_MAP.PHOTO_STUDIO;
 				viewer.environmentMapAsBackground = true;
-				setTimeout(resolve, 30000);
 			});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -210,7 +209,6 @@ test.describe("API", () => {
 					() => resolve(),
 				);
 				SDV.viewports["myViewer"]!.render();
-				setTimeout(resolve, 30000);
 			});
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(
@@ -300,7 +298,7 @@ test.describe("API", () => {
 	});
 
 	test("envMapRotationLDR", async ({page}) => {
-		test.setTimeout(360_000);
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
@@ -330,7 +328,6 @@ test.describe("API", () => {
 				viewer.environmentMap =
 					SDV.ENVIRONMENT_MAP_CUBE.PIAZZA_SAN_MARCO;
 				viewer.environmentMapAsBackground = true;
-				setTimeout(resolve, 30000);
 			});
 			await new Promise<void>((resolve) => {
 				SDV.addListener(
@@ -339,64 +336,91 @@ test.describe("API", () => {
 					() => resolve(),
 				);
 				SDV.viewports["myViewer"]!.render();
-				setTimeout(resolve, 30000);
 			});
 		}, materialPresetsTicket);
-		const screenshotOptions = {animations: "allow" as const, timeout: 60_000};
-		const setEnvironmentMapRotation = async (rotation: number[]) => {
-			await page.evaluate(async (rotation: number[]) => {
-				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-				const viewport = SDV.viewports["myViewer"]!;
-				await new Promise<void>((resolve) => {
-					SDV.addListener(
-						(<any>window).SDV.EVENTTYPE.RENDERING
-							.BEAUTY_RENDERING_FINISHED,
-						() => resolve(),
-					);
-					viewport.environmentMapRotation = rotation;
-					viewport.render();
-					setTimeout(resolve, 15000);
-				});
-			}, rotation);
-		};
-
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationLDR_Default.png",
-			screenshotOptions,
 		);
 
-		await setEnvironmentMapRotation([0, -1, 0, 0]);
+		await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					async () => resolve(),
+				);
+				SDV.viewports["myViewer"]!.environmentMapRotation = [
+					0, -1, 0, 0,
+				];
+			});
+		});
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationLDR_-PI.png",
-			screenshotOptions,
 		);
 
-		await setEnvironmentMapRotation([
-			0, -0.7071067690849304, 0, 0.7071067690849304,
-		]);
+		await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					async () => resolve(),
+				);
+				SDV.viewports["myViewer"]!.environmentMapRotation = [
+					0, -0.7071067690849304, 0, 0.7071067690849304,
+				];
+			});
+		});
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationLDR_-PIhalf.png",
-			screenshotOptions,
 		);
 
-		await setEnvironmentMapRotation([0, 0, 0, 1]);
-		await expect(page).toHaveScreenshot(
-			name + "/envMapRotationLDR_0.png",
-			screenshotOptions,
-		);
+		await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					async () => resolve(),
+				);
+				SDV.viewports["myViewer"]!.environmentMapRotation = [
+					0, 0, 0, 1,
+				];
+			});
+		});
+		await expect(page).toHaveScreenshot(name + "/envMapRotationLDR_0.png");
 
-		await setEnvironmentMapRotation([
-			0, 0.7071067690849304, 0, 0.7071067690849304,
-		]);
+		await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					async () => resolve(),
+				);
+				SDV.viewports["myViewer"]!.environmentMapRotation = [
+					0, 0.7071067690849304, 0, 0.7071067690849304,
+				];
+			});
+		});
 		await expect(page).toHaveScreenshot(
 			name + "/envMapRotationLDR_PIhalf.png",
-			screenshotOptions,
 		);
 
-		await setEnvironmentMapRotation([0, 1, 0, 0]);
-		await expect(page).toHaveScreenshot(
-			name + "/envMapRotationLDR_PI.png",
-			screenshotOptions,
-		);
+		await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			await new Promise<void>((resolve) => {
+				SDV.addListener(
+					(<any>window).SDV.EVENTTYPE.RENDERING
+						.BEAUTY_RENDERING_FINISHED,
+					async () => resolve(),
+				);
+				SDV.viewports["myViewer"]!.environmentMapRotation = [
+					0, 1, 0, 0,
+				];
+			});
+		});
+		await expect(page).toHaveScreenshot(name + "/envMapRotationLDR_PI.png");
 	});
 });
