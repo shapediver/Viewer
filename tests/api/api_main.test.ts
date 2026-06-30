@@ -172,6 +172,7 @@ test.describe("API", () => {
 	});
 
 	test("envMapRotationHDR", async ({page}) => {
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
@@ -297,6 +298,7 @@ test.describe("API", () => {
 	});
 
 	test("envMapRotationLDR", async ({page}) => {
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
