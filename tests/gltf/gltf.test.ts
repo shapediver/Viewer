@@ -91,8 +91,15 @@ const test = base.extend<{}, {workerPage: Page}>({
 					SDV.sceneTree.addNode(currentNode);
 					SDV.sceneTree.root.updateVersion();
 					viewer.show = true;
-					await viewer.camera!.zoomTo(undefined, {duration: 0});
 					await renderingP;
+					await viewer.camera!.zoomTo(undefined, {duration: 0});
+					await new Promise<void>((resolve) => {
+						SDV.addListener(
+							SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+							() => resolve(),
+						);
+						viewer.render();
+					});
 				};
 			});
 
