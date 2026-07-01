@@ -1,4 +1,4 @@
-import {ISettings} from "./ISettings";
+import {type ISettings} from "./ISettings";
 
 export const Defaults: () => ISettings = () => {
 	return {

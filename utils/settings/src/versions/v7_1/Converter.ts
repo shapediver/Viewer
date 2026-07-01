@@ -1,8 +1,8 @@
-import {ICameraSettingsV7, versions} from "../..";
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ISettings as ISettingsV7} from "../v7/ISettings";
-import {ICameraSettings} from "./ICameraSettings";
-import {ISettings as ISettingsV7_1} from "./ISettings";
+import {type ICameraSettingsV7, type versions} from "../..";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type ISettings as ISettingsV7} from "../v7/ISettings";
+import {type ICameraSettings} from "./ICameraSettings";
+import {type ISettings as ISettingsV7_1} from "./ISettings";
 
 export const convertFromPrevious = (
 	s: IGlobalSettings,

@@ -1,4 +1,4 @@
-import {ISettings as ISettingsV3_1} from "../v3_1/ISettings";
+import {type ISettings as ISettingsV3_1} from "../v3_1/ISettings";
 
 export interface ISettings extends ISettingsV3_1 {
 	environmentGeometry: {

@@ -1,10 +1,10 @@
-import {versions} from "../..";
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {IPerspectiveCameraSettings} from "../v3/ICameraSettings";
+import {type versions} from "../..";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type IPerspectiveCameraSettings} from "../v3/ICameraSettings";
 import {Defaults as DefaultsV4_1} from "../v4_1/Defaults";
 import {ISettings as ISettingsV4_1} from "../v4_1/ISettings";
 import {Defaults as DefaultsV5} from "./Defaults";
-import {ISettings as ISettingsV5} from "./ISettings";
+import {type ISettings as ISettingsV5} from "./ISettings";
 
 export const convertFromPrevious = (
 	s: IGlobalSettings,

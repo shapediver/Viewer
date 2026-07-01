@@ -1,7 +1,7 @@
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ILightSceneSettings} from "../v3/ILightSceneSettings";
-import {IPostProcessingEffectsArray} from "../v4/IPostProcessingEffectSettings";
-import {ICameraSettings} from "./ICameraSettings";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type ILightSceneSettings} from "../v3/ILightSceneSettings";
+import {type IPostProcessingEffectsArray} from "../v4/IPostProcessingEffectSettings";
+import {type ICameraSettings} from "./ICameraSettings";
 
 export interface ISettings extends IGlobalSettings {
 	ar: {

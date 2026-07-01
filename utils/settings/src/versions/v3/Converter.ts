@@ -1,21 +1,19 @@
 import {v4} from "uuid";
-import {versions} from "../..";
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type versions} from "../..";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
 import {Defaults as DefaultsV2} from "../v2/Defaults";
-import {ISettings as ISettingsV2} from "../v2/ISettings";
+import {type ISettings as ISettingsV2} from "../v2/ISettings";
 import {Defaults as DefaultsV3} from "./Defaults";
 import {
-	IOrthographicCameraSettings,
-	IPerspectiveCameraSettings,
-} from "./ICameraSettings";
+	type IOrthographicCameraSettings,
+	type IPerspectiveCameraSettings} from "./ICameraSettings";
 import {
-	IAmbientLightProperties,
-	IDirectionalLightProperties,
-	IHemisphereLightProperties,
-	IPointLightProperties,
-	ISpotLightProperties,
-} from "./ILightSceneSettings";
-import {ISettings as ISettingsV3} from "./ISettings";
+	type IAmbientLightProperties,
+	type IDirectionalLightProperties,
+	type IHemisphereLightProperties,
+	type IPointLightProperties,
+	type ISpotLightProperties} from "./ILightSceneSettings";
+import {type ISettings as ISettingsV3} from "./ISettings";
 
 export const convertFromPrevious = (
 	s: IGlobalSettings,
