@@ -1,19 +1,17 @@
 import {SdtfPrimitiveTypeGuard} from "@shapediver/viewer";
 import {
 	ATTRIBUTE_VISUALIZATION,
-	IAttribute,
-	IAttributeVisualizationEngine,
-	IColorAttribute,
-	IDefaultAttribute,
-	INumberAttribute,
-	IStringAttribute,
-} from "@shapediver/viewer.features.attribute-visualization";
+	type IAttribute,
+	type IAttributeVisualizationEngine,
+	type IColorAttribute,
+	type IDefaultAttribute,
+	type INumberAttribute,
+	type IStringAttribute} from "@shapediver/viewer.features.attribute-visualization";
 import {
 	createCustomUi,
-	IBooleanElement,
-	IDropdownElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IBooleanElement,
+	type IDropdownElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 import {ICustomUiElement} from "@shapediver/viewer.shared.demo-helper/dist/ui/CustomUI";
 
 export const createAttributeVisualizationUi = (

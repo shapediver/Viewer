@@ -1,4 +1,4 @@
-import {ICanvas} from "./ICanvas";
+import {type ICanvas} from "./ICanvas";
 
 export interface ICanvasEngine {
 	createCanvasObject(

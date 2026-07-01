@@ -1,6 +1,6 @@
-import {IFileParameter} from "@shapediver/viewer.session-engine.session-engine";
+import {type IFileParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {Logger} from "@shapediver/viewer.shared.services";
-import {IFileParameterApi} from "../../interfaces/parameter/IFileParameterApi";
+import {type IFileParameterApi} from "../../interfaces/parameter/IFileParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class FileParameterApi

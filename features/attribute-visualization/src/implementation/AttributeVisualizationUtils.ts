@@ -1,18 +1,16 @@
 import {
 	MaterialStandardData,
-	MaterialUnlitData,
-} from "@shapediver/viewer.shared.node-tree";
+	MaterialUnlitData} from "@shapediver/viewer.shared.node-tree";
 import {Converter} from "@shapediver/viewer.shared.services";
 import {
 	ATTRIBUTE_VISUALIZATION,
-	Color,
-	Gradient,
-	IGradient,
-	IMaterialAbstractData,
-	INumberGradient,
-	ISDTFAttributeVisualizationData,
-	IStringGradient,
-} from "@shapediver/viewer.shared.types";
+	type Color,
+	type Gradient,
+	type IGradient,
+	type IMaterialAbstractData,
+	type INumberGradient,
+	type ISDTFAttributeVisualizationData,
+	type IStringGradient} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {isNumberGradient, isStringGradient} from "../interfaces/IGradient";
 

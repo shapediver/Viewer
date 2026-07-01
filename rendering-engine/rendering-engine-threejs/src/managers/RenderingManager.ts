@@ -3,25 +3,23 @@ import {AnimationFrameEngine} from "@shapediver/viewer.rendering-engine.animatio
 import {
 	CAMERA_TYPE,
 	PerspectiveCamera,
-	PerspectiveCameraControls,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+	PerspectiveCameraControls} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	EventEngine,
 	EVENTTYPE,
 	EVENTTYPE_VIEWPORT,
 	Logger,
-	SystemInfo,
-} from "@shapediver/viewer.shared.services";
+	StateEngine,
+	SystemInfo} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
-	ICameraEvent,
-	IViewportEvent,
+	type ICameraEvent,
+	type IViewportEvent,
 	RENDERER_TYPE,
-	SPINNER_POSITIONING,
-} from "@shapediver/viewer.shared.types";
+	SPINNER_POSITIONING} from "@shapediver/viewer.shared.types";
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {RenderingEngine} from "../RenderingEngine";
@@ -38,6 +36,7 @@ export class RenderingManager implements IManager {
 	private readonly _converter: Converter = Converter.instance;
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _logger: Logger = Logger.instance;
+	private readonly _stateEngine: StateEngine = StateEngine.instance;
 	private readonly _systemInfo: SystemInfo = SystemInfo.instance;
 	private readonly _tree: ITree = Tree.instance;
 
@@ -197,16 +196,21 @@ export class RenderingManager implements IManager {
 		if (renderer.extensions.has("WEBGL_debug_renderer_info")) {
 			const debugInfo = renderer.extensions.get(
 				"WEBGL_debug_renderer_info",
-			);
-			// const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-			const rendererInfo = context.getParameter(
-				debugInfo.UNMASKED_RENDERER_WEBGL,
-			);
-			if (rendererInfo === "Google SwiftShader") {
-				this._usingSwiftShader = true;
-				this._logger.warn(
-					"RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.",
+			) as {
+				UNMASKED_RENDERER_WEBGL: number;
+				UNMASKED_VENDOR_WEBGL: number;
+			} | null;
+			if (debugInfo) {
+				// const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+				const rendererInfo = context.getParameter(
+					debugInfo.UNMASKED_RENDERER_WEBGL,
 				);
+				if (rendererInfo === "Google SwiftShader") {
+					this._usingSwiftShader = true;
+					this._logger.warn(
+						"RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.",
+					);
+				}
 			}
 		}
 
@@ -217,7 +221,7 @@ export class RenderingManager implements IManager {
 		renderer.toneMapping = THREE.NoToneMapping;
 		renderer.shadowMap.enabled = true;
 		renderer.shadowMap.needsUpdate = true;
-		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		renderer.shadowMap.type = THREE.BasicShadowMap;
 		renderer.shadowMap.autoUpdate = false;
 		renderer.localClippingEnabled = true;
 		// Performance: Disable object sorting to save CPU cycles per frame
@@ -262,7 +266,7 @@ export class RenderingManager implements IManager {
 				1.0,
 			);
 
-			this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+			this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 			this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 			this._renderingEngine.materialLoader.updateMaterials();
 
@@ -332,7 +336,7 @@ export class RenderingManager implements IManager {
 	}
 
 	public resize(width: number, height: number) {
-		(this._width = width), (this._height = height);
+		((this._width = width), (this._height = height));
 		this._renderingEngine.materialLoader.assignPointSize(
 			this._renderingEngine.pointSize,
 		);
@@ -357,7 +361,7 @@ export class RenderingManager implements IManager {
 	// #region Private Methods (14)
 
 	private activateBeautyRenderShaders() {
-		this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 		this._renderingEngine.materialLoader.updateMaterials();
 	}
@@ -678,7 +682,7 @@ export class RenderingManager implements IManager {
 		height: number;
 	} {
 		if (
-			this._renderingEngine.renderer.pixelRatio !==
+			this._renderingEngine.renderer.getPixelRatio() !==
 			window.devicePixelRatio
 		) {
 			this._renderingEngine.renderer.setPixelRatio(
@@ -731,7 +735,7 @@ export class RenderingManager implements IManager {
 		this._softShadowRenderingTimeout = null;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
-		this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 		this._renderingEngine.materialLoader.updateSoftShadow(
 			this._lightSizeUVStart,
@@ -871,6 +875,21 @@ export class RenderingManager implements IManager {
 	}
 
 	private startAndStopRendering() {
+		const environmentMapLoaded =
+			this._stateEngine.viewportEngines[this._renderingEngine.id]
+				?.environmentMapLoaded;
+		const environmentMap = this._renderingEngine.environmentMap;
+		if (
+			environmentMap !== "null" &&
+			environmentMap !== "none" &&
+			this._renderingEngine.environmentMapLoader.environmentMap === null &&
+			environmentMapLoaded &&
+			environmentMapLoaded.resolved === false
+		) {
+			environmentMapLoaded.then(() => this.startAndStopRendering());
+			return;
+		}
+
 		this._activeRendering = true;
 		this.stopBeautyRenderCountdown();
 		this.startBeautyRenderCountdown();

@@ -1,4 +1,4 @@
-import {IEvent} from "@shapediver/viewer.shared.types";
+import {type IEvent} from "@shapediver/viewer.shared.types";
 
 export interface ICallback {
 	(event: IEvent): void;

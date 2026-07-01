@@ -1,6 +1,6 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 
-import {ILight} from "../ILight";
+import {type ILight} from "../ILight";
 
 export interface IHemisphereLight extends ILight {
 	groundColor: Color;

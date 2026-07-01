@@ -1,8 +1,8 @@
-import {IDirectionalLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IDirectionalLight} from "@shapediver/viewer.rendering-engine.light-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
-import {IViewportApi} from "../../../interfaces/IViewportApi";
-import {IDirectionalLightApi} from "../../../interfaces/lights/types/IDirectionalLightApi";
+import {type IViewportApi} from "../../../interfaces/IViewportApi";
+import {type IDirectionalLightApi} from "../../../interfaces/lights/types/IDirectionalLightApi";
 import {AbstractLightApi} from "../AbstractLightApi";
 
 export class DirectionalLightApi

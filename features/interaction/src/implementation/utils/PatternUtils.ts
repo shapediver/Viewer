@@ -1,12 +1,11 @@
 import {
 	ChunkData,
-	DraggingParameterValue,
+	type DraggingParameterValue,
 	ISessionApi,
-	ITreeNode,
+	type ITreeNode,
 	SessionApiData,
 	SessionData,
-	SessionOutputData,
-} from "@shapediver/viewer";
+	SessionOutputData} from "@shapediver/viewer";
 
 import {mat4, vec3} from "gl-matrix";
 

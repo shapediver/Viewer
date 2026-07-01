@@ -1,7 +1,7 @@
 import {ColorInput, TinyColor} from "@ctrl/tinycolor";
 import {vec3} from "gl-matrix";
 import {HttpClient} from "../http-client/HttpClient";
-import {HttpResponse} from "../http-client/HttpResponse";
+import {type HttpResponse} from "../http-client/HttpResponse";
 import {atobCustom, btoaCustom} from "../utilities/base64";
 
 export class Converter {

@@ -1,12 +1,11 @@
 import {
-	Color,
-	IMapData,
-	IMaterialAbstractData,
-	IMaterialAbstractDataProperties,
+	type Color,
+	type IMapData,
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE,
-} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export abstract class AbstractMaterialData

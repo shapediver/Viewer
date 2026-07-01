@@ -1,4 +1,4 @@
-import {ILightApi} from "../ILightApi";
+import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for an ambient light.

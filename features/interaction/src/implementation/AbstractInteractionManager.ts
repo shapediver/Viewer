@@ -1,26 +1,22 @@
 import {
-	IMaterialAbstractData,
-	ITreeNode,
-	IViewportApi,
-	Tree,
-} from "@shapediver/viewer";
+	type IMaterialAbstractData,
+	type ITreeNode,
+	type IViewportApi,
+	Tree} from "@shapediver/viewer";
 import {
 	EventEngine,
 	EVENTTYPE,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
-import {IIntersectionDefinition, IRay} from "@shapediver/viewer.shared.types";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
+import {type IIntersectionDefinition, type IRay} from "@shapediver/viewer.shared.types";
 
 import {INTERACTION_STATE} from "../interfaces/IInteractionEngine";
 import {
-	IInteractionFilterOptions,
-	IInteractionManager,
-} from "../interfaces/IInteractionManager";
+	type IInteractionFilterOptions,
+	type IInteractionManager} from "../interfaces/IInteractionManager";
 import {
-	IInteractionEffect,
-	IInteractionEffectUtils,
-	isMaterialData,
-} from "../interfaces/utils/IInteractionEffectUtils";
+	type IInteractionEffect,
+	type IInteractionEffectUtils,
+	isMaterialData} from "../interfaces/utils/IInteractionEffectUtils";
 import {InteractionData} from "./InteractionData";
 import {InteractionEffectUtils} from "./utils/InteractionEffectUtils";
 

@@ -1,5 +1,5 @@
-import {IDomEventListener} from "@shapediver/viewer";
-import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IDomEventListener} from "@shapediver/viewer";
+import {type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
 export interface ITransformationToolsManager extends IDomEventListener {
 	/**

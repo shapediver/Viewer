@@ -1,5 +1,5 @@
 import {EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
-import {ITransformationToolsEvent} from "./ITransformationToolsEvent";
+import {type ITransformationToolsEvent} from "./ITransformationToolsEvent";
 
 /**
  * Definition of the event response mapping for transform tools events.

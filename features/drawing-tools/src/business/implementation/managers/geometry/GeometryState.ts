@@ -3,35 +3,32 @@ import {
 	AttributeData,
 	EVENTTYPE_DRAWING_TOOLS,
 	GeometryData,
-	ITreeNode,
-	IViewportApi,
+	type ITreeNode,
+	type IViewportApi,
 	MapData,
 	MaterialBasicLineData,
 	MaterialEngine,
 	MaterialMultiPointData,
-	PrimitiveData,
-} from "@shapediver/viewer";
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	PrimitiveData} from "@shapediver/viewer";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {EventEngine, IEvent} from "@shapediver/viewer.shared.services";
+import {EventEngine, type IEvent} from "@shapediver/viewer.shared.services";
 import {
-	IGeometryData,
-	IMapData,
-	IMaterialBasicLineDataProperties,
-	IMaterialMultiPointDataProperties,
+	type IGeometryData,
+	type IMapData,
+	type IMaterialBasicLineDataProperties,
+	type IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
-	PRIMITIVE_MODE,
-} from "@shapediver/viewer.shared.types";
+	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
-import {IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
+import {type DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
+import {type IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
 import {
-	DefaultTextures,
+	type DefaultTextures,
 	MATERIAL_INDEX,
-	PointsData,
-	Settings,
-} from "../../../interfaces/IDrawingToolsManager";
+	type PointsData,
+	type Settings} from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {GeometryManager} from "./GeometryManager";
 export class GeometryState {

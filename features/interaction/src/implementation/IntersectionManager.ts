@@ -1,24 +1,21 @@
 import * as THREE from "three";
 
 import {
-	IIntersectionEngine,
+	type IIntersectionEngine,
 	IntersectionEngine,
 	RaycasterParameters,
-	SelectionBox,
-} from "@shapediver/viewer.rendering-engine.intersection-engine";
+	SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
 	GeometryData,
-	ITree,
-	ITreeNode,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITree,
+	type ITreeNode,
+	Tree} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
-	IIntersectionDefinition,
-	IIntersectionFilter,
-	IRay,
-	IRayTracingIntersection,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IIntersectionFilter,
+	type IRay,
+	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
 
 import {InteractionData} from "./InteractionData";
 

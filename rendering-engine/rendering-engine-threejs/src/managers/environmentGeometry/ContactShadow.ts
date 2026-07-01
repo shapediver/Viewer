@@ -4,7 +4,7 @@ import {HorizontalBlurShader} from "three/examples/jsm/shaders/HorizontalBlurSha
 import {VerticalBlurShader} from "three/examples/jsm/shaders/VerticalBlurShader.js";
 import {SDObject} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
-import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
+import {type IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
 export class ContactShadow implements IEnvironmentGeometry {
 	// #region Properties (16)

@@ -1,4 +1,4 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 
 export interface ILayer {
 	// #region Properties (2)

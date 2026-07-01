@@ -8,16 +8,15 @@ import {
 	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
 import {
-	ISettingsSections,
-	ITaskEventDescription,
-} from "@shapediver/viewer.shared.types";
+	type ISettingsSections,
+	type ITaskEventDescription} from "@shapediver/viewer.shared.types";
 
-import {IExport} from "./dto/IExport";
-import {IOutput} from "./dto/IOutput";
-import {IParameter} from "./dto/IParameter";
+import {type IExport} from "./dto/IExport";
+import {type IOutput} from "./dto/IOutput";
+import {type IParameter} from "./dto/IParameter";
 
 /**
  * Interface defining the Session Engine functionality.

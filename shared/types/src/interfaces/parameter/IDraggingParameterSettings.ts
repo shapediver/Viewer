@@ -1,8 +1,7 @@
 import {
-	IInteractionParameterProps,
-	InteractionEffect,
-} from "./IInteractionParameterSettings";
-import {RestrictionDefinition, Rotation} from "./IRestrictionSettings";
+	type IInteractionParameterProps,
+	type InteractionEffect} from "./IInteractionParameterSettings";
+import {type RestrictionDefinition, type Rotation} from "./IRestrictionSettings";
 
 // #region Type aliases (1)
 

@@ -1,26 +1,23 @@
 ﻿import * as THREE from "three";
 
-import {Box, IViewportApi, SessionApiData} from "@shapediver/viewer";
+import {Box, type IViewportApi, SessionApiData} from "@shapediver/viewer";
 import {
-	IRestrictionManager,
+	type IRestrictionManager,
 	RestrictionManager,
-	RestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
-import {ITransformationToolsEvent} from "../interfaces/events/ITransformationToolsEvent";
+import {type ITransformationToolsEvent} from "../interfaces/events/ITransformationToolsEvent";
 import {
-	ITransformationToolsManager,
-	SettingsOptional,
-} from "../interfaces/ITransformationToolsManager";
+	type ITransformationToolsManager,
+	type SettingsOptional} from "../interfaces/ITransformationToolsManager";
 
 export abstract class TransformationToolsManager
 	implements ITransformationToolsManager

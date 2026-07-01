@@ -1,10 +1,9 @@
 ﻿import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	InteractionParameterSettingsType,
-	IRectangleTransformParameterProps,
-} from "@shapediver/viewer.shared.types";
+	type InteractionParameterSettingsType,
+	type IRectangleTransformParameterProps} from "@shapediver/viewer.shared.types";
 
-import {IRectangleTransformParameter} from "../../../interfaces/dto/IInteractionParameter";
+import {type IRectangleTransformParameter} from "../../../interfaces/dto/IInteractionParameter";
 import {ParameterManager} from "../../managers/ParameterManager";
 import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";

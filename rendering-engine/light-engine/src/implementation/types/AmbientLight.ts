@@ -1,6 +1,6 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {LIGHT_TYPE} from "../../interface/ILight";
-import {IAmbientLight} from "../../interface/types/IAmbientLight";
+import {type IAmbientLight} from "../../interface/types/IAmbientLight";
 import {AbstractLight} from "../AbstractLight";
 
 export class AmbientLight extends AbstractLight implements IAmbientLight {

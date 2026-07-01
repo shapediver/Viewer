@@ -1,7 +1,7 @@
-import {IRay} from "@shapediver/viewer.features.interaction";
+import {type IRay} from "@shapediver/viewer.features.interaction";
 import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
-import {IEdgeControl} from "../../../../interfaces/controls/IEdgeControl";
+import {type IEdgeControl} from "../../../../interfaces/controls/IEdgeControl";
 import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";

@@ -1,10 +1,9 @@
 import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	InteractionParameterSettingsType,
-	ISelectionParameterProps,
-} from "@shapediver/viewer.shared.types";
+	type InteractionParameterSettingsType,
+	type ISelectionParameterProps} from "@shapediver/viewer.shared.types";
 
-import {ISelectionParameter} from "../../../interfaces/dto/IInteractionParameter";
+import {type ISelectionParameter} from "../../../interfaces/dto/IInteractionParameter";
 import {ParameterManager} from "../../managers/ParameterManager";
 import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";

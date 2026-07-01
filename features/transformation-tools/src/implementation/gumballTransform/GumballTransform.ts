@@ -1,11 +1,11 @@
 ﻿import * as THREE from "three";
 
-import {ITreeNode, IViewportApi, SystemInfo} from "@shapediver/viewer";
+import {type ITreeNode, type IViewportApi, SystemInfo} from "@shapediver/viewer";
 
 import {mat4} from "gl-matrix";
 
-import {IGumballTransform} from "../..";
-import {GumballTransformSettingsOptional} from "../../interfaces/gumballTransform/IGumballTransform";
+import {type IGumballTransform} from "../..";
+import {type GumballTransformSettingsOptional} from "../../interfaces/gumballTransform/IGumballTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
 import {GumballTransformControls} from "./three/GumballTransformControls";
 

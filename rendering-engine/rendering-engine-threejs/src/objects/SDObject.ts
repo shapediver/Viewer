@@ -1,4 +1,4 @@
-import {ISDObject} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ISDObject} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {mat4} from "gl-matrix";
 import * as THREE from "three";
 import {Object3D} from "three";

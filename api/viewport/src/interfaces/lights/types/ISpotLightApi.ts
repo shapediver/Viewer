@@ -1,5 +1,5 @@
 import {vec3} from "gl-matrix";
-import {ILightApi} from "../ILightApi";
+import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for a spot light.

@@ -1,5 +1,5 @@
-import {ISessionGlobalAccessObjectDefinition} from "./ISessionGlobalAccessObjectDefinition";
-import {IViewportGlobalAccessObjectDefinition} from "./IViewportGlobalAccessObjectDefinition";
+import {type ISessionGlobalAccessObjectDefinition} from "./ISessionGlobalAccessObjectDefinition";
+import {type IViewportGlobalAccessObjectDefinition} from "./IViewportGlobalAccessObjectDefinition";
 import {StatePromise} from "./StatePromise";
 
 export class StateEngine {

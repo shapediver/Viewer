@@ -11,15 +11,13 @@ import {
 	ShapeDiverViewerSessionError,
 	StateEngine,
 	StatePromise,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	ISettingsSections,
-	ITaskEvent,
-	SessionCreationDefinition,
-	TASK_TYPE,
-} from "@shapediver/viewer.shared.types";
-import {ICreationControlCenterSession} from "../interfaces/ICreationControlCenterSession";
+	type ISettingsSections,
+	type ITaskEvent,
+	type SessionCreationDefinition,
+	TASK_TYPE} from "@shapediver/viewer.shared.types";
+import {type ICreationControlCenterSession} from "../interfaces/ICreationControlCenterSession";
 import {SessionGlobalAccessObject} from "./SessionGlobalAccessObject";
 
 export class CreationControlCenterSession

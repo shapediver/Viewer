@@ -1,20 +1,18 @@
 import * as THREE from "three";
 
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {ThreejsData} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IRay} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
 import {
-	RestrictionMetaData,
-	RestrictionResult,
-} from "../../interfaces/IRestriction";
+	type RestrictionMetaData,
+	type RestrictionResult} from "../../interfaces/IRestriction";
 import {
-	ISnapRestriction,
-	SnapRestrictionProperties,
-} from "../../interfaces/ISnapRestriction";
+	type ISnapRestriction,
+	type SnapRestrictionProperties} from "../../interfaces/ISnapRestriction";
 
 export abstract class AbstractSnapRestriction implements ISnapRestriction {
 	readonly #id: string;

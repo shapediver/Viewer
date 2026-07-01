@@ -10,25 +10,23 @@ import {Parameter} from "./implementation/dto/Parameter";
 import {SessionData} from "./implementation/SessionData";
 import {SessionEngineFacade as SessionEngine} from "./implementation/SessionEngineFacade";
 import {SessionOutputData} from "./implementation/SessionOutputData";
-import {IExport} from "./interfaces/dto/IExport";
-import {IFileParameter} from "./interfaces/dto/IFileParameter";
+import {type IExport} from "./interfaces/dto/IExport";
+import {type IFileParameter} from "./interfaces/dto/IFileParameter";
 import {
-	IDraggingParameter,
-	IDrawingParameter,
-	IGumballTransformParameter,
-	IInteractionParameter,
-	IRectangleTransformParameter,
-	ISelectionParameter,
-} from "./interfaces/dto/IInteractionParameter";
+	type IDraggingParameter,
+	type IDrawingParameter,
+	type IGumballTransformParameter,
+	type IInteractionParameter,
+	type IRectangleTransformParameter,
+	type ISelectionParameter} from "./interfaces/dto/IInteractionParameter";
 import {
-	IOutput,
-	ResOutputChunk,
-	ResOutputContent,
-} from "./interfaces/dto/IOutput";
-import {IParameter} from "./interfaces/dto/IParameter";
-import {ISessionData} from "./interfaces/ISessionData";
-import {ISessionEngine} from "./interfaces/ISessionEngine";
-import {ISessionOutputData} from "./interfaces/ISessionOutputData";
+	type IOutput,
+	type ResOutputChunk,
+	type ResOutputContent} from "./interfaces/dto/IOutput";
+import {type IParameter} from "./interfaces/dto/IParameter";
+import {type ISessionData} from "./interfaces/ISessionData";
+import {type ISessionEngine} from "./interfaces/ISessionEngine";
+import {type ISessionOutputData} from "./interfaces/ISessionOutputData";
 
 export {
 	DraggingParameter,

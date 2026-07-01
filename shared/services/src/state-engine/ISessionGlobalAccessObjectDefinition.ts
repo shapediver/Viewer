@@ -2,7 +2,7 @@ import {
 	QueryGltfConversion,
 	ResBase,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
+import {type SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 import {SettingsEngine} from "../settings-engine/SettingsEngine";
 import {StatePromise} from "./StatePromise";
 

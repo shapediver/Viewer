@@ -7,12 +7,11 @@ import {
 	ResModelState,
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
-	ShapeDiverViewerSessionError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerSessionError} from "@shapediver/viewer.shared.services";
 
 import {SessionEngineCore} from "../SessionEngineCore";
 

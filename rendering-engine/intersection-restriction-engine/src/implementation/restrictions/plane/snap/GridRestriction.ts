@@ -1,20 +1,17 @@
-import {Box, ITreeNode, IViewportApi, sceneTree} from "@shapediver/viewer";
+import {Box, type ITreeNode, type IViewportApi, sceneTree} from "@shapediver/viewer";
 import {
 	EventEngine,
 	EVENTTYPE_SCENE,
-	IEvent,
-} from "@shapediver/viewer.shared.services";
-import {IRay, ISceneEvent} from "@shapediver/viewer.shared.types";
+	type IEvent} from "@shapediver/viewer.shared.services";
+import {type IRay, type ISceneEvent} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {
-	RestrictionMetaData,
-	RestrictionResult,
-} from "../../../../interfaces/IRestriction";
+	type RestrictionMetaData,
+	type RestrictionResult} from "../../../../interfaces/IRestriction";
 import {
-	ISnapRestriction,
-	SnapRestrictionProperties,
-} from "../../../../interfaces/ISnapRestriction";
+	type ISnapRestriction,
+	type SnapRestrictionProperties} from "../../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../../GeometryMathManager";
 import {AbstractSnapRestriction} from "../../AbstractSnapRestriction";
 import {PlaneRestriction} from "../PlaneRestriction";

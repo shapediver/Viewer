@@ -4,10 +4,9 @@ import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	Logger,
 	ShapeDiverViewerSessionError,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 
-import {IFileParameter} from "../../interfaces/dto/IFileParameter";
+import {type IFileParameter} from "../../interfaces/dto/IFileParameter";
 import {ParameterManager} from "../managers/ParameterManager";
 import {SessionEngineCore} from "../SessionEngineCore";
 import {Parameter} from "./Parameter";

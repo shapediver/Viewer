@@ -1,4 +1,4 @@
-import {IDomEventListener} from "@shapediver/viewer.shared.services";
+import {type IDomEventListener} from "@shapediver/viewer.shared.services";
 
 export interface ICameraControlsEventDistribution extends IDomEventListener {
 	// #region Public Methods (3)

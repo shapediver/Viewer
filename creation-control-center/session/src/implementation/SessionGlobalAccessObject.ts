@@ -4,11 +4,10 @@ import {
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {
-	ISessionGlobalAccessObjectDefinition,
+	type ISessionGlobalAccessObjectDefinition,
 	SettingsEngine,
-	StatePromise,
-} from "@shapediver/viewer.shared.services";
-import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
+	StatePromise} from "@shapediver/viewer.shared.services";
+import {type SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export class SessionGlobalAccessObject
 	implements ISessionGlobalAccessObjectDefinition

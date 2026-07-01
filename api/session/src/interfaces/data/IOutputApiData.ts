@@ -1,5 +1,5 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {IOutputApi} from "../IOutputApi";
+import {type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {type IOutputApi} from "../IOutputApi";
 
 export interface IOutputApiData extends ITreeNodeData {
 	// #region Properties (1)

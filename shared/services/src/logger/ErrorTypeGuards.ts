@@ -2,12 +2,10 @@
 import {
 	ShapeDiverGeometryBackendError,
 	ShapeDiverGeometryBackendRequestError,
-	ShapeDiverGeometryBackendResponseError,
-} from "./ShapeDiverBackendErrors";
+	ShapeDiverGeometryBackendResponseError} from "./ShapeDiverBackendErrors";
 import {
 	ShapeDiverViewerError,
-	ShapeDiverViewerErrorType,
-} from "./ShapeDiverError";
+	ShapeDiverViewerErrorType} from "./ShapeDiverError";
 import {
 	ShapeDiverViewerArError,
 	ShapeDiverViewerCameraError,
@@ -22,8 +20,7 @@ import {
 	ShapeDiverViewerUnknownError,
 	ShapeDiverViewerValidationError,
 	ShapeDiverViewerViewportError,
-	ShapeDiverViewerWebGLError,
-} from "./ShapeDiverViewerErrors";
+	ShapeDiverViewerWebGLError} from "./ShapeDiverViewerErrors";
 
 /** Type guard for all error types of the viewer package. */
 export function isViewerError(e: any): e is ShapeDiverViewerError {

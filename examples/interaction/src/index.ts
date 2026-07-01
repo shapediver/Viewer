@@ -6,23 +6,21 @@ import {
 	EVENTTYPE,
 	IParameterApi,
 	ISessionApi,
-	IViewportApi,
+	type IViewportApi,
 	MaterialStandardData,
 	removeListener,
-	VISIBILITY_MODE,
-} from "@shapediver/viewer";
+	VISIBILITY_MODE} from "@shapediver/viewer";
 import {
 	DragManager,
 	HoverManager,
-	IDragEvent,
+	type IDragEvent,
 	InteractionData,
 	InteractionEngine,
 	LineConstraint,
 	PlaneConstraint,
-	PointConstraint,
-} from "@shapediver/viewer.features.interaction";
+	PointConstraint} from "@shapediver/viewer.features.interaction";
 import {mat4, quat, vec3} from "gl-matrix";
-import {bottomShelf, ShelfDefinition, topShelf} from "./definition";
+import {bottomShelf, type ShelfDefinition, topShelf} from "./definition";
 
 (<any>window).SDV = SDV;
 

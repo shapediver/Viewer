@@ -4,17 +4,15 @@ import {
 	GodRaysManager,
 	OutlineManager,
 	RenderingEngine as RenderingEngineThreeJs,
-	SelectiveBloomManager,
-} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+	SelectiveBloomManager} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	ANTI_ALIASING_TECHNIQUE,
-	IPostProcessingEffectDefinition,
-	IPostProcessingEffectsArray,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer.shared.types";
-import {IPostProcessingApi} from "../interfaces/IPostProcessingApi";
-import {IViewportApi} from "../interfaces/IViewportApi";
+	type IPostProcessingEffectDefinition,
+	type IPostProcessingEffectsArray,
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer.shared.types";
+import {type IPostProcessingApi} from "../interfaces/IPostProcessingApi";
+import {type IViewportApi} from "../interfaces/IViewportApi";
 
 export class PostProcessingApi implements IPostProcessingApi {
 	// #region Properties (4)

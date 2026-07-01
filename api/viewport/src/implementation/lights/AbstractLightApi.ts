@@ -1,11 +1,10 @@
 import {
-	ILight,
-	LIGHT_TYPE,
-} from "@shapediver/viewer.rendering-engine.light-engine";
+	type ILight,
+	LIGHT_TYPE} from "@shapediver/viewer.rendering-engine.light-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {Color} from "@shapediver/viewer.shared.types";
-import {IViewportApi} from "../../interfaces/IViewportApi";
-import {ILightApi} from "../../interfaces/lights/ILightApi";
+import {type Color} from "@shapediver/viewer.shared.types";
+import {type IViewportApi} from "../../interfaces/IViewportApi";
+import {type ILightApi} from "../../interfaces/lights/ILightApi";
 
 export abstract class AbstractLightApi implements ILightApi {
 	// #region Properties (5)

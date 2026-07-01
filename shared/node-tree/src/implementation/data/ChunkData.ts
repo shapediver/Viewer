@@ -1,5 +1,5 @@
 import {ResOutputChunk} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {IChunkData} from "@shapediver/viewer.shared.types";
+import {type IChunkData} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class ChunkData extends AbstractTreeNodeData implements IChunkData {

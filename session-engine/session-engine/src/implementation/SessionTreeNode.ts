@@ -1,10 +1,9 @@
 import {
-	ITransformation,
-	ITreeNode,
-	ITreeNodeData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
-import {ISessionTreeNode} from "../interfaces/ISessionTreeNode";
+	type ITransformation,
+	type ITreeNode,
+	type ITreeNodeData,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ISessionTreeNode} from "../interfaces/ISessionTreeNode";
 
 export class SessionTreeNode extends TreeNode implements ISessionTreeNode {
 	// #region Properties (1)

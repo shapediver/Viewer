@@ -1,6 +1,6 @@
 ﻿import {z} from "zod";
-import {IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
-import {IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
+import {type IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
+import {type IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
 import {IDrawingParameterVisualizationSettingsJsonSchema} from "./IDrawingParametersSettings";
 
 // #region Type aliases (1)

@@ -1,7 +1,7 @@
-import {IViewportEvent} from "@shapediver/viewer";
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IViewportEvent} from "@shapediver/viewer";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
-import {PointsData} from "../IDrawingToolsManager";
+import {type PointsData} from "../IDrawingToolsManager";
 
 export interface IDrawingToolsEvent extends IViewportEvent {
 	controlIndex?: number;

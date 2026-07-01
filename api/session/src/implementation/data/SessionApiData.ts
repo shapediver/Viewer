@@ -1,6 +1,6 @@
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {ISessionApiData} from "../../interfaces/data/ISessionApiData";
-import {ISessionApi} from "../../interfaces/ISessionApi";
+import {type ISessionApiData} from "../../interfaces/data/ISessionApiData";
+import {type ISessionApi} from "../../interfaces/ISessionApi";
 
 export class SessionApiData
 	extends AbstractTreeNodeData

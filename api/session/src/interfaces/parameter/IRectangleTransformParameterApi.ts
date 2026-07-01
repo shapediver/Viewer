@@ -1,5 +1,5 @@
-import {IRectangleTransformParameterProps} from "@shapediver/viewer.shared.types";
-import {IInteractionParameterApi} from "./IInteractionParameterApi";
+import {type IRectangleTransformParameterProps} from "@shapediver/viewer.shared.types";
+import {type IInteractionParameterApi} from "./IInteractionParameterApi";
 
 export interface IRectangleTransformParameterApi
 	extends IInteractionParameterApi {

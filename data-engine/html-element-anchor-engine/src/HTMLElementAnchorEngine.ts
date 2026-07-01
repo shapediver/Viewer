@@ -1,22 +1,19 @@
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {IAnchor, ITag2D} from "@shapediver/viewer.data-engine.shared-types";
+import {type IAnchor, type ITag2D} from "@shapediver/viewer.data-engine.shared-types";
 import {Box} from "@shapediver/viewer.shared.math";
 import {
 	HTMLElementAnchorImageData,
 	HTMLElementAnchorTextData,
-	ITreeNode,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	InputValidator,
 	Logger,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
 import {
-	IAnchorDataImage,
-	IAnchorDataText,
-} from "@shapediver/viewer.shared.types";
+	type IAnchorDataImage,
+	type IAnchorDataText} from "@shapediver/viewer.shared.types";
 
 export class HTMLElementAnchorEngine {
 	// #region Properties (4)

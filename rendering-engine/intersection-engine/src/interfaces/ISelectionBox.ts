@@ -1,8 +1,7 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
-	IBoxSelectionIntersection,
-	IIntersectionFilter,
-} from "@shapediver/viewer.shared.types";
+	type IBoxSelectionIntersection,
+	type IIntersectionFilter} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec3} from "gl-matrix";
 

@@ -1,5 +1,5 @@
 import {vec3} from "gl-matrix";
-import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
+import {type IDragConstraint} from "../../interfaces/utils/IDragConstraint";
 
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.

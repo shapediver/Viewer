@@ -1,6 +1,6 @@
 import {vec2} from "gl-matrix";
-import {Color, SDImageBitmap} from "../../../types";
-import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
+import {type Color, type SDImageBitmap} from "../../../types";
+import {type ITreeNodeData} from "../../tree-node/ITreeNodeData";
 
 // #region Type aliases (2)
 

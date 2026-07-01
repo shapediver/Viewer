@@ -1,6 +1,6 @@
 import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ResOutputContent} from "@shapediver/viewer.session-engine.session-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ResOutputContent} from "@shapediver/viewer.session-engine.session-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 /**
  * The api for an output of a corresponding [session]{@link ISessionApi}.

@@ -1,6 +1,6 @@
-import {IMaterialAbstractData} from "@shapediver/viewer";
+import {type IMaterialAbstractData} from "@shapediver/viewer";
 
-import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
+import {type IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {SelectManager} from "./SelectManager";
 
 /**

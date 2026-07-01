@@ -1,5 +1,5 @@
-﻿import {RestrictionDefinition} from "../..";
-import {ISelectionParameterProps} from "./ISelectionParameterSettings";
+﻿import {type RestrictionDefinition} from "../..";
+import {type ISelectionParameterProps} from "./ISelectionParameterSettings";
 
 // #region Type aliases (1)
 

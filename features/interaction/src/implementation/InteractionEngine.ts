@@ -1,28 +1,24 @@
-import {IViewportApi, sceneTree} from "@shapediver/viewer";
+import {type IViewportApi, sceneTree} from "@shapediver/viewer";
 import {
 	RaycasterParameters,
-	SelectionBox,
-} from "@shapediver/viewer.rendering-engine.intersection-engine";
+	SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {Box} from "@shapediver/viewer.shared.math";
 import {
 	EventEngine,
 	EVENTTYPE,
 	ShapeDiverViewerInteractionError,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	FLAG_TYPE,
-	IIntersectionFilter,
-	IRay,
-	IRayTracingIntersection,
-	ISceneEvent,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionFilter,
+	type IRay,
+	type IRayTracingIntersection,
+	type ISceneEvent} from "@shapediver/viewer.shared.types";
 
 import {
-	IInteractionEngine,
-	INTERACTION_STATE,
-} from "../interfaces/IInteractionEngine";
-import {IInteractionManager} from "../interfaces/IInteractionManager";
+	type IInteractionEngine,
+	INTERACTION_STATE} from "../interfaces/IInteractionEngine";
+import {type IInteractionManager} from "../interfaces/IInteractionManager";
 import {IntersectionManager} from "./IntersectionManager";
 import {MultiSelectManager} from "./managers/MultiSelectManager";
 

@@ -5,22 +5,20 @@ import {
 	ResGetCachedOutputs,
 	ResOutput,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	Logger,
 	StateEngine,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	ITaskEvent,
-	ITaskEventDescription,
-	TASK_TYPE,
-} from "@shapediver/viewer.shared.types";
+	type ITaskEvent,
+	type ITaskEventDescription,
+	TASK_TYPE} from "@shapediver/viewer.shared.types";
 
-import {IOutput} from "../../interfaces/dto/IOutput";
-import {ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
+import {type IOutput} from "../../interfaces/dto/IOutput";
+import {type ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
 import {Output} from "../dto/Output";
 import {OutputDelayException} from "../OutputDelayException";
 import {OutputLoader} from "../OutputLoader";

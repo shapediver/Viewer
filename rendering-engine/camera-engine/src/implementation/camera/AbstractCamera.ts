@@ -1,21 +1,19 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {Box, IBox, Sphere} from "@shapediver/viewer.shared.math";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {Box, type IBox, Sphere} from "@shapediver/viewer.shared.math";
 import {
 	AbstractTreeNodeData,
-	ITreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	SettingsEngine,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
-import {CAMERA_TYPE, ICameraOptions} from "@shapediver/viewer.shared.types";
+	StateEngine} from "@shapediver/viewer.shared.services";
+import {CAMERA_TYPE, type ICameraOptions} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec2, vec3, vec4} from "gl-matrix";
 
-import {ICamera} from "../../interfaces/camera/ICamera";
-import {ICameraControls} from "../../interfaces/controls/ICameraControls";
+import {type ICamera} from "../../interfaces/camera/ICamera";
+import {type ICameraControls} from "../../interfaces/controls/ICameraControls";
 
 export abstract class AbstractCamera
 	extends AbstractTreeNodeData

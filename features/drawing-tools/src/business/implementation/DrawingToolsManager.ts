@@ -1,40 +1,36 @@
 import {
 	FLAG_TYPE,
-	ITreeNode,
-	IViewportApi,
+	type ITreeNode,
+	type IViewportApi,
 	sceneTree,
-	TreeNode,
-} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.features.interaction";
+	TreeNode} from "@shapediver/viewer";
+import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	EventManager,
 	GeometryMathManager,
-	IRestriction,
-	IRestrictionManager,
-	RayTraceResult,
-	RestrictionProperties,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IRestriction,
+	type IRestrictionManager,
+	type RayTraceResult,
+	type RestrictionProperties,
+	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
-	IEvent,
+	type IEvent,
 	ShapeDiverViewerDrawingToolsError,
 	SystemInfo,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {mat4, vec3} from "gl-matrix";
-import {IEdgeControl} from "../interfaces/controls/IEdgeControl";
-import {DrawingToolsEventResponseMapping} from "../interfaces/events/EventResponseMapping";
+import {type IEdgeControl} from "../interfaces/controls/IEdgeControl";
+import {type DrawingToolsEventResponseMapping} from "../interfaces/events/EventResponseMapping";
 import {
-	Callbacks,
-	DefaultTextures,
-	IDrawingToolsManager,
+	type Callbacks,
+	type DefaultTextures,
+	type IDrawingToolsManager,
 	MATERIAL_INDEX,
-	PointsData,
-	Settings,
-	SettingsOptional,
-} from "../interfaces/IDrawingToolsManager";
+	type PointsData,
+	type Settings,
+	type SettingsOptional} from "../interfaces/IDrawingToolsManager";
 import {GeometryManager} from "./managers/geometry/GeometryManager";
 import {GeometryState} from "./managers/geometry/GeometryState";
 import {HistoryManager} from "./managers/HistoryManager";

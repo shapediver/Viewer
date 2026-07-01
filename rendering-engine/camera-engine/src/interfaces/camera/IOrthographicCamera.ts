@@ -1,6 +1,6 @@
 import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
-import {ICameraControls} from "../controls/ICameraControls";
-import {ICamera} from "./ICamera";
+import {type ICameraControls} from "../controls/ICameraControls";
+import {type ICamera} from "./ICamera";
 
 // #region Interfaces (1)
 

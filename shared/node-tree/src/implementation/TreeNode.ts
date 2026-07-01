@@ -1,13 +1,11 @@
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	ObservableArray,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	ITransformation,
-	ITreeNode,
-	ITreeNodeData,
-} from "@shapediver/viewer.shared.types";
+	type ITransformation,
+	type ITreeNode,
+	type ITreeNodeData} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
 

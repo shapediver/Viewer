@@ -6,9 +6,9 @@ import {
 	ResExportDefinitionType,
 	ResExportResult,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {IExport} from "@shapediver/viewer.session-engine.session-engine";
+import {type IExport} from "@shapediver/viewer.session-engine.session-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {IExportApi} from "../interfaces/IExportApi";
+import {type IExportApi} from "../interfaces/IExportApi";
 
 export class ExportApi implements IExportApi {
 	// #region Properties (3)

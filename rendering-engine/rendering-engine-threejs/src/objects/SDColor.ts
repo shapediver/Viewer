@@ -1,4 +1,4 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {Color as ThreeColor} from "three";
 
 export class SDColor extends ThreeColor {

@@ -11,11 +11,10 @@ import {
 	EVENTTYPE,
 	InputValidator,
 	Logger,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
-import {ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
+import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
 
-import {IExport} from "../../interfaces/dto/IExport";
+import {type IExport} from "../../interfaces/dto/IExport";
 import {ExportManager} from "../managers/ExportManager";
 import {SessionEngineCore} from "../SessionEngineCore";
 

@@ -1,4 +1,4 @@
-import {IParameterApi} from "./IParameterApi";
+import {type IParameterApi} from "./IParameterApi";
 
 /**
  * The api for a file parameter of a corresponding [session]{@link ISessionApi}.

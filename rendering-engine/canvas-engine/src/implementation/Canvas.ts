@@ -1,4 +1,4 @@
-import {ICanvas} from "../interfaces/ICanvas";
+import {type ICanvas} from "../interfaces/ICanvas";
 
 export class Canvas implements ICanvas {
 	// #region Constructors (1)

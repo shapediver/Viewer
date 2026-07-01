@@ -1,29 +1,25 @@
 import {
 	ATTRIBUTE_VISUALIZATION,
-	Gradient,
-	INumberGradient,
-	IStringGradient,
-} from "@shapediver/viewer.shared.types";
+	type Gradient,
+	type INumberGradient,
+	type IStringGradient} from "@shapediver/viewer.shared.types";
 import {AttributeVisualizationEngine} from "./implementation/AttributeVisualizationEngine";
 import {
 	AttributeVisualizationUtils,
 	getColorAt,
-	getColorSteps,
-} from "./implementation/AttributeVisualizationUtils";
+	getColorSteps} from "./implementation/AttributeVisualizationUtils";
 import {
-	IAttribute,
-	IColorAttribute,
-	IDefaultAttribute,
-	INumberAttribute,
-	IStringAttribute,
-} from "./interfaces/IAttribute";
-import {IAttributeVisualizationEngine} from "./interfaces/IAttributeVisualizationEngine";
+	type IAttribute,
+	type IColorAttribute,
+	type IDefaultAttribute,
+	type INumberAttribute,
+	type IStringAttribute} from "./interfaces/IAttribute";
+import {type IAttributeVisualizationEngine} from "./interfaces/IAttributeVisualizationEngine";
 import {
 	isGradient,
 	isNumberGradient,
-	isStringGradient,
-} from "./interfaces/IGradient";
-import {ILayer} from "./interfaces/ILayer";
+	isStringGradient} from "./interfaces/IGradient";
+import {type ILayer} from "./interfaces/ILayer";
 
 export {
 	ATTRIBUTE_VISUALIZATION,

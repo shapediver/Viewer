@@ -8,20 +8,18 @@ import {
 	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
 import {
-	ISettingsSections,
-	ITaskEventDescription,
-} from "@shapediver/viewer.shared.types";
+	type ISettingsSections,
+	type ITaskEventDescription} from "@shapediver/viewer.shared.types";
 
-import {IExport} from "../interfaces/dto/IExport";
-import {IOutput} from "../interfaces/dto/IOutput";
-import {IParameter} from "../interfaces/dto/IParameter";
+import {type IExport} from "../interfaces/dto/IExport";
+import {type IOutput} from "../interfaces/dto/IOutput";
+import {type IParameter} from "../interfaces/dto/IParameter";
 import {
-	ISessionEngine,
-	ISessionEngineCreationDefinition,
-} from "../interfaces/ISessionEngine";
+	type ISessionEngine,
+	type ISessionEngineCreationDefinition} from "../interfaces/ISessionEngine";
 import {CustomizationManager} from "./managers/CustomizationManager";
 import {ExportManager} from "./managers/ExportManager";
 import {FileUploadManager} from "./managers/FileUploadManager";

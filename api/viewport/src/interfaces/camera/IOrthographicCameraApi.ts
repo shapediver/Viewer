@@ -1,5 +1,5 @@
 import {ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {ICameraApi} from "./ICameraApi";
+import {type ICameraApi} from "./ICameraApi";
 
 /**
  * The api for an orthographic camera.

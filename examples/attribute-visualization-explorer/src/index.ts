@@ -4,26 +4,23 @@ import {
 	createSession,
 	createViewport,
 	EVENTTYPE,
-	ITreeNode,
-	IViewportApi,
+	type ITreeNode,
+	type IViewportApi,
 	MaterialUnlitData,
 	RENDERER_TYPE,
 	sceneTree,
-	SDTFItemData,
-} from "@shapediver/viewer";
+	SDTFItemData} from "@shapediver/viewer";
 import {AttributeVisualizationEngine} from "@shapediver/viewer.features.attribute-visualization";
 import {
 	HoverManager,
 	InteractionData,
 	InteractionEngine,
-	ISelectEvent,
-	SelectManager,
-} from "@shapediver/viewer.features.interaction";
+	type ISelectEvent,
+	SelectManager} from "@shapediver/viewer.features.interaction";
 import {
 	createCustomUi,
 	createUi,
-	IBooleanElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IBooleanElement} from "@shapediver/viewer.shared.demo-helper";
 import {createAttributeVisualizationUi} from "./attributeVisualizationUi";
 
 let nodeInteractionDataPairs: {

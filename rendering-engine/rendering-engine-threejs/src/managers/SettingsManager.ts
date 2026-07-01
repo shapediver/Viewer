@@ -1,21 +1,19 @@
 import {CameraEngine} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {LightEngine} from "@shapediver/viewer.rendering-engine.light-engine";
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
 	Converter,
 	EventEngine,
 	EVENTTYPE_VIEWPORT,
 	SESSION_SETTINGS_MODE,
 	SettingsEngine,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
+	StateEngine} from "@shapediver/viewer.shared.services";
 import {
-	IViewportEvent,
-	IViewportSettingsSections,
+	type IViewportEvent,
+	type IViewportSettingsSections,
 	MATERIAL_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING,
-} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING} from "@shapediver/viewer.shared.types";
 
 import {RenderingEngine} from "..";
 import {PostProcessingManager} from "./PostProcessingManager";

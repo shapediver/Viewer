@@ -1,19 +1,16 @@
 import {
 	ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
 	ACCESSORTYPE_V1 as ACCESSORTYPE,
-	ISDGTF_v1,
-} from "@shapediver/viewer.data-engine.shared-types";
+	type ISDGTF_v1} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	AttributeData,
 	GeometryData,
-	ITreeNode,
+	type ITreeNode,
 	PrimitiveData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
 import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 

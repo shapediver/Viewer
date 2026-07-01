@@ -1,18 +1,17 @@
 import {
 	ACCESSORCOMPONENTSIZE_V2,
-	IGLTF_v2,
-	IGLTF_v2_Accessor,
-	IGLTF_v2_Animation,
-	IGLTF_v2_BufferView,
-	IGLTF_v2_Image,
-	IGLTF_v2_Material,
-	IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-	IGLTF_v2_Mesh,
-	IGLTF_v2_Node,
-	IGLTF_v2_Primitive,
-	IGLTF_v2_Scene,
-	IGLTF_v2_Texture,
-} from "@shapediver/viewer.data-engine.shared-types";
+	type IGLTF_v2,
+	type IGLTF_v2_Accessor,
+	type IGLTF_v2_Animation,
+	type IGLTF_v2_BufferView,
+	type IGLTF_v2_Image,
+	type IGLTF_v2_Material,
+	type IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+	type IGLTF_v2_Mesh,
+	type IGLTF_v2_Node,
+	type IGLTF_v2_Primitive,
+	type IGLTF_v2_Scene,
+	type IGLTF_v2_Texture} from "@shapediver/viewer.data-engine.shared-types";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
@@ -20,34 +19,31 @@ import {
 	AttributeData,
 	GeometryData,
 	InstanceData,
-	ITreeNode,
+	type ITreeNode,
 	MapData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	atobCustom,
 	Converter,
 	EventEngine,
 	EVENTTYPE,
 	Logger,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	IAnimationData,
-	IAttributeData,
-	IGeometryData,
-	IMapData,
-	IMaterialAbstractData,
-	IPrimitiveData,
-	ITaskEvent,
+	type IAnimationData,
+	type IAttributeData,
+	type IGeometryData,
+	type IMapData,
+	type IMaterialAbstractData,
+	type IPrimitiveData,
+	type ITaskEvent,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,
-	TASK_TYPE,
-} from "@shapediver/viewer.shared.types";
+	TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 
 // #region Classes (1)

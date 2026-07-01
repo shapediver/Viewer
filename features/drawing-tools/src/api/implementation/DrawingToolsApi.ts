@@ -1,29 +1,27 @@
-import {ITreeNode, IViewportApi} from "@shapediver/viewer";
+import {type ITreeNode, type IViewportApi} from "@shapediver/viewer";
 import {
 	CameraPlaneRestriction,
 	CameraPlaneRestrictionApi,
 	GeometryRestriction,
 	GeometryRestrictionApi,
-	IRestrictionApi,
+	type IRestrictionApi,
 	LineRestriction,
 	LineRestrictionApi,
 	PlaneRestriction,
 	PlaneRestrictionApi,
 	PointRestriction,
 	PointRestrictionApi,
-	RayTraceResult,
-	RestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RayTraceResult,
+	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
 import {DrawingToolsManager} from "../../business/implementation/DrawingToolsManager";
 import {
-	Callbacks,
-	DefaultTextures,
-	IDrawingToolsManager,
-	PointsData,
-	SettingsOptional,
-} from "../../business/interfaces/IDrawingToolsManager";
-import {IDrawingToolsApi} from "../interfaces/IDrawingToolsApi";
+	type Callbacks,
+	type DefaultTextures,
+	type IDrawingToolsManager,
+	type PointsData,
+	type SettingsOptional} from "../../business/interfaces/IDrawingToolsManager";
+import {type IDrawingToolsApi} from "../interfaces/IDrawingToolsApi";
 
 export class DrawingToolsApi implements IDrawingToolsApi {
 	// #region Properties (2)

@@ -8,15 +8,13 @@ import {
 	ISettings,
 	latestVersion,
 	validate,
-	versions,
-} from "@shapediver/viewer.settings";
+	type versions} from "@shapediver/viewer.settings";
 import {
 	Logger,
 	SettingsEngine,
 	ShapeDiverViewerSessionError,
-	ShapeDiverViewerSettingsError,
-} from "@shapediver/viewer.shared.services";
-import {ISettingsSections} from "@shapediver/viewer.shared.types";
+	ShapeDiverViewerSettingsError} from "@shapediver/viewer.shared.services";
+import {type ISettingsSections} from "@shapediver/viewer.shared.types";
 
 import {FileParameter} from "../dto/FileParameter";
 import {SessionEngineCore} from "../SessionEngineCore";

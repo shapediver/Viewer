@@ -1,13 +1,12 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {SDTFItemData} from "@shapediver/viewer.shared.node-tree";
 import {
-	Color,
-	ISDTFAttributeVisualizationData,
-	ISDTFOverview,
+	type Color,
+	type ISDTFAttributeVisualizationData,
+	type ISDTFOverview,
 	MATERIAL_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING,
-} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING} from "@shapediver/viewer.shared.types";
 import {quat} from "gl-matrix";
 import * as THREE from "three";
 

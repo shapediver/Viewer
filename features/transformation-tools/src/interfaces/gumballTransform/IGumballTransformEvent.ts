@@ -1,4 +1,4 @@
-﻿import {ITransformationToolsEvent} from "../events/ITransformationToolsEvent";
+﻿import {type ITransformationToolsEvent} from "../events/ITransformationToolsEvent";
 
 /**
  * Definition of the gumballTransform event.

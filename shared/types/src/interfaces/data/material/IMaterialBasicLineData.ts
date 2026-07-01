@@ -1,8 +1,7 @@
 import {
-	IMaterialAbstractData,
-	IMaterialAbstractDataProperties,
-	IMaterialAbstractDataPropertiesDefinition,
-} from "./IMaterialAbstractData";
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataProperties,
+	type IMaterialAbstractDataPropertiesDefinition} from "./IMaterialAbstractData";
 
 // #region Type aliases (2)
 

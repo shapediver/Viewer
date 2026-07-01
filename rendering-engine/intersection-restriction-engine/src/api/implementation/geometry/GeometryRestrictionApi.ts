@@ -1,4 +1,4 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {GeometryRestriction} from "../../../implementation/restrictions/geometry/GeometryRestriction";
 import {AbstractRestrictionApi} from "../AbstractRestrictionApi";
 

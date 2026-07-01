@@ -1,17 +1,16 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {IPerspectiveCameraSettings} from "@shapediver/viewer.settings";
-import {Box, IBox, Plane, Sphere} from "@shapediver/viewer.shared.math";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+import {Box, type IBox, Plane, Sphere} from "@shapediver/viewer.shared.math";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	DomEventEngine,
 	SettingsEngine,
-	ShapeDiverViewerCameraError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerCameraError} from "@shapediver/viewer.shared.services";
 import {CAMERA_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec2, vec3} from "gl-matrix";
-import {IPerspectiveCamera} from "../../interfaces/camera/IPerspectiveCamera";
-import {ICameraControls} from "../../interfaces/controls/ICameraControls";
+import {type IPerspectiveCamera} from "../../interfaces/camera/IPerspectiveCamera";
+import {type ICameraControls} from "../../interfaces/controls/ICameraControls";
 import {PerspectiveCameraControls} from "../controls/PerspectiveCameraControls";
 import {AbstractCamera} from "./AbstractCamera";
 

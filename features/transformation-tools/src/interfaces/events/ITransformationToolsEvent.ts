@@ -1,5 +1,5 @@
-﻿import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IViewportEvent} from "@shapediver/viewer.shared.types";
+﻿import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IViewportEvent} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
 

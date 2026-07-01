@@ -1,10 +1,9 @@
 import {ResParameter} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	IDraggingParameterProps,
-	InteractionParameterSettingsType,
-} from "@shapediver/viewer.shared.types";
+	type IDraggingParameterProps,
+	type InteractionParameterSettingsType} from "@shapediver/viewer.shared.types";
 
-import {IDraggingParameter} from "../../../interfaces/dto/IInteractionParameter";
+import {type IDraggingParameter} from "../../../interfaces/dto/IInteractionParameter";
 import {ParameterManager} from "../../managers/ParameterManager";
 import {SessionEngineCore} from "../../SessionEngineCore";
 import {Parameter} from "../Parameter";

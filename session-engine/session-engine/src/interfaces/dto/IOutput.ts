@@ -4,15 +4,14 @@ import {
 	ResOutputContent as ResOutputContentBackend,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	IAnchor,
-	IMaterialContentData,
-	IMaterialContentDataV1,
-	IMaterialContentDataV2,
-	IMaterialContentDataV3,
-	ITag2D,
-	ITag3D,
-} from "@shapediver/viewer.data-engine.shared-types";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type IAnchor,
+	type IMaterialContentData,
+	type IMaterialContentDataV1,
+	type IMaterialContentDataV2,
+	type IMaterialContentDataV3,
+	type ITag2D,
+	type ITag3D} from "@shapediver/viewer.data-engine.shared-types";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 // #region Interfaces (3)
 

@@ -1,5 +1,5 @@
-import {ITreeNode} from "../tree-node/ITreeNode";
-import {IEvent} from "./IEvent";
+import {type ITreeNode} from "../tree-node/ITreeNode";
+import {type IEvent} from "./IEvent";
 
 /**
  * Definition of the output event.

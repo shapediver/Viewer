@@ -1,15 +1,14 @@
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
 	AnimationData,
 	GeometryData,
-	ITree,
-	ITreeNode,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
-import {IAnimationData} from "@shapediver/viewer.shared.types";
+	type ITree,
+	type ITreeNode,
+	Tree} from "@shapediver/viewer.shared.node-tree";
+import {type IAnimationData} from "@shapediver/viewer.shared.types";
 import * as TWEEN from "@tweenjs/tween.js";
 import {mat4, quat, vec3, vec4} from "gl-matrix";
-import {IAnimationEngine} from "../interfaces/IAnimationEngine";
+import {type IAnimationEngine} from "../interfaces/IAnimationEngine";
 
 TWEEN.Tween.autoStartOnUpdate = true;
 

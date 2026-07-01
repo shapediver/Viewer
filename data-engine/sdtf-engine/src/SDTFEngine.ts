@@ -9,18 +9,16 @@ import {
 	ISdtfReadableNode,
 } from "@shapediver/sdk.sdtf-v1";
 import {
-	ITreeNode,
+	type ITreeNode,
 	SDTFAttributeData,
 	SDTFAttributesData,
 	SDTFItemData,
 	SDTFOverviewData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
-import {ISDTFOverview} from "@shapediver/viewer.shared.types";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
+import {type ISDTFOverview} from "@shapediver/viewer.shared.types";
 
 export class SDTFEngine {
 	// #region Properties (4)

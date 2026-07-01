@@ -1,10 +1,9 @@
 import {RenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
-	IViewportGlobalAccessObjectDefinition,
+	type IViewportGlobalAccessObjectDefinition,
 	SettingsEngine,
-	StatePromise,
-} from "@shapediver/viewer.shared.services";
-import {ViewportCreationDefinition} from "@shapediver/viewer.shared.types";
+	StatePromise} from "@shapediver/viewer.shared.services";
+import {type ViewportCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export class ViewportGlobalAccessObject
 	implements IViewportGlobalAccessObjectDefinition

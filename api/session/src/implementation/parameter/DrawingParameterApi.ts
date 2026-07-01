@@ -1,7 +1,7 @@
-import {IDrawingParameter} from "@shapediver/viewer.session-engine.session-engine";
+import {type IDrawingParameter} from "@shapediver/viewer.session-engine.session-engine";
 
-import {IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
-import {IDrawingParameterApi} from "../../interfaces/parameter/IDrawingParameterApi";
+import {type IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
+import {type IDrawingParameterApi} from "../../interfaces/parameter/IDrawingParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class DrawingParameterApi

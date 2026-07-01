@@ -1,31 +1,28 @@
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {
-	IGLTF_v2,
-	IGLTF_v2_Material,
-	IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-	ISHAPEDIVER_materials_preset,
-} from "@shapediver/viewer.data-engine.shared-types";
+	type IGLTF_v2,
+	type IGLTF_v2_Material,
+	type IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+	type ISHAPEDIVER_materials_preset} from "@shapediver/viewer.data-engine.shared-types";
 import {Converter} from "@shapediver/viewer.shared.services";
 import {
-	IMapData,
-	IMaterialAbstractData,
-	IMaterialAbstractDataProperties,
-	IMaterialSpecularGlossinessDataProperties,
-	IMaterialStandardDataProperties,
-	IMaterialUnlitDataProperties,
+	type IMapData,
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataProperties,
+	type IMaterialSpecularGlossinessDataProperties,
+	type IMaterialStandardDataProperties,
+	type IMaterialUnlitDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING,
-} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
 import {vec2} from "gl-matrix";
 
 import {
 	MapData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
-	MaterialUnlitData,
-} from "@shapediver/viewer.shared.node-tree";
+	MaterialUnlitData} from "@shapediver/viewer.shared.node-tree";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {TextureLoader} from "./TextureLoader";
 

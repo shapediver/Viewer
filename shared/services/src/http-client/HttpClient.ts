@@ -10,10 +10,9 @@ import {Logger} from "../logger/Logger";
 import {
 	ShapeDiverGeometryBackendError,
 	ShapeDiverGeometryBackendRequestError,
-	ShapeDiverGeometryBackendResponseError,
-} from "../logger/ShapeDiverBackendErrors";
+	ShapeDiverGeometryBackendResponseError} from "../logger/ShapeDiverBackendErrors";
 import {btoaCustom} from "../utilities/base64";
-import {HttpResponse} from "./HttpResponse";
+import {type HttpResponse} from "./HttpResponse";
 
 export class HttpClient {
 	// #region Properties (7)

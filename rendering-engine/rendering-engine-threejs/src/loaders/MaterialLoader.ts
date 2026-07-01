@@ -1,6 +1,6 @@
 import {
 	GeometryData,
-	ITreeNodeData,
+	type ITreeNodeData,
 	MaterialBasicLineData,
 	MaterialGemData,
 	MaterialLambertData,
@@ -11,32 +11,28 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
+	Tree} from "@shapediver/viewer.shared.node-tree";
 import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
-	IMapData,
-	IMaterialAbstractData,
+	type IMapData,
+	type IMaterialAbstractData,
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,
 	PRIMITIVE_MODE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING,
-} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
 import {mat4, quat} from "gl-matrix";
 import * as THREE from "three";
-import {ILoader} from "../interfaces/ILoader";
-import {GemMaterial, GemMaterialParameters} from "../materials/GemMaterial";
-import {MeshUnlitMaterialParameters} from "../materials/MeshUnlitMaterialParameters";
+import {type ILoader} from "../interfaces/ILoader";
+import {GemMaterial, type GemMaterialParameters} from "../materials/GemMaterial";
+import {type MeshUnlitMaterialParameters} from "../materials/MeshUnlitMaterialParameters";
 import {
 	MultiPointsMaterial,
-	MultiPointsMaterialParameters,
-} from "../materials/MultiPointsMaterial";
+	type MultiPointsMaterialParameters} from "../materials/MultiPointsMaterial";
 import {
 	SpecularGlossinessMaterial,
-	SpecularGlossinessMaterialParameters,
-} from "../materials/SpecularGlossinessMaterial";
+	type SpecularGlossinessMaterialParameters} from "../materials/SpecularGlossinessMaterial";
 import {SDColor} from "../objects/SDColor";
 import {RenderingEngine} from "../RenderingEngine";
 import {entry, main} from "../shaders/PCSS";

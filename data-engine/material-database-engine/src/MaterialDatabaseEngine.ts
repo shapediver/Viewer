@@ -2,19 +2,16 @@ import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {
 	GeometryData,
-	ITreeNode,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
-	Logger,
-} from "@shapediver/viewer.shared.services";
+	Logger} from "@shapediver/viewer.shared.services";
 import {
-	IMaterialAbstractData,
-	IMaterialGemDataPropertiesDefinition,
-	IMaterialStandardDataPropertiesDefinition,
-} from "@shapediver/viewer.shared.types";
+	type IMaterialAbstractData,
+	type IMaterialGemDataPropertiesDefinition,
+	type IMaterialStandardDataPropertiesDefinition} from "@shapediver/viewer.shared.types";
 
 export class MaterialDatabaseEngine {
 	private readonly _converter: Converter = Converter.instance;

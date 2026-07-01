@@ -1,8 +1,7 @@
 import {SdtfPrimitiveTypeGuard} from "@shapediver/sdk.sdtf-primitives";
 import {
-	ISDTFOverview,
-	ISDTFOverviewData,
-} from "@shapediver/viewer.shared.types";
+	type ISDTFOverview,
+	type ISDTFOverviewData} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export class SDTFOverviewData

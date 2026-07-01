@@ -1,6 +1,6 @@
 import {ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {ISessionOutputData} from "../interfaces/ISessionOutputData";
+import {type ISessionOutputData} from "../interfaces/ISessionOutputData";
 
 export class SessionOutputData
 	extends AbstractTreeNodeData

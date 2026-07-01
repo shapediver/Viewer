@@ -1,10 +1,9 @@
 import {Box} from "@shapediver/viewer.shared.math";
 import {
-	IAnchorDataImage,
-	IAnchorDataText,
-	IHTMLElementAnchorData,
-	IHTMLElementAnchorUpdateProperties,
-} from "@shapediver/viewer.shared.types";
+	type IAnchorDataImage,
+	type IAnchorDataText,
+	type IHTMLElementAnchorData,
+	type IHTMLElementAnchorUpdateProperties} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 

@@ -1,15 +1,14 @@
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {build_data} from "@shapediver/viewer.shared.build-data";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	HttpClient,
-	IEvent,
+	type IEvent,
 	InputValidator,
 	Logger,
 	LOGGING_LEVEL,
-	MainEventTypes,
-} from "@shapediver/viewer.shared.services";
+	type MainEventTypes} from "@shapediver/viewer.shared.services";
 
 // #region Interfaces (1)
 

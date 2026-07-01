@@ -1,6 +1,6 @@
-import {Color} from "../../../types";
-import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
-import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
+import {type Color} from "../../../types";
+import {type ITreeNodeData} from "../../tree-node/ITreeNodeData";
+import {type IMapData, type IMapDataPropertiesDefinition} from "./IMapData";
 
 // #region Type aliases (2)
 

@@ -1,7 +1,7 @@
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
 import {Box} from "@shapediver/viewer.shared.math";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -10,18 +10,16 @@ import {
 	SettingsEngine,
 	ShapeDiverViewerViewportError,
 	StateEngine,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	ISceneEvent,
-	ISessionEvent,
-	ITaskEvent,
-	IViewportSettingsSections,
+	type ISceneEvent,
+	type ISessionEvent,
+	type ITaskEvent,
+	type IViewportSettingsSections,
 	TASK_TYPE,
-	ViewportCreationDefinition,
-	VISIBILITY_MODE,
-} from "@shapediver/viewer.shared.types";
-import {ICreationControlCenterViewport} from "../interfaces/ICreationControlCenterViewport";
+	type ViewportCreationDefinition,
+	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
+import {type ICreationControlCenterViewport} from "../interfaces/ICreationControlCenterViewport";
 import {ViewportGlobalAccessObject} from "./ViewportGlobalAccessObject";
 
 export class CreationControlCenterViewport implements ICreationControlCenterViewport {

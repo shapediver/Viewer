@@ -1,47 +1,40 @@
-import {IViewportApi, sceneTree} from "@shapediver/viewer";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IViewportApi, sceneTree} from "@shapediver/viewer";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	IGeometryData,
-	IIntersectionFilter,
-	IRay,
-	IVisualizationSettings,
-} from "@shapediver/viewer.shared.types";
+	type IGeometryData,
+	type IIntersectionFilter,
+	type IRay,
+	type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {
-	DraggingRestrictionMetaData,
-	DrawingRestrictionMetaData,
-	IRestriction,
+	type DraggingRestrictionMetaData,
+	type DrawingRestrictionMetaData,
+	type IRestriction,
 	isDraggingRestriction,
-	RayTraceResult,
-	RestrictionProperties,
-	RestrictionResult,
+	type RayTraceResult,
+	type RestrictionProperties,
+	type RestrictionResult,
 	RESTRICTION_TYPE,
-	TransformationToolsRestrictionMetaData,
-} from "../interfaces/IRestriction";
-import {IRestrictionManager} from "../interfaces/IRestrictionManager";
+	type TransformationToolsRestrictionMetaData} from "../interfaces/IRestriction";
+import {type IRestrictionManager} from "../interfaces/IRestrictionManager";
 import {EventManager} from "./EventManager";
 import {GeometryMathManager} from "./GeometryMathManager";
 import {
 	CameraPlaneRestriction,
-	CameraPlaneRestrictionProperties,
-} from "./restrictions/camera_plane/CameraPlaneRestriction";
+	type CameraPlaneRestrictionProperties} from "./restrictions/camera_plane/CameraPlaneRestriction";
 import {
 	GeometryRestriction,
-	GeometryRestrictionIntersectionData,
-	GeometryRestrictionProperties,
-} from "./restrictions/geometry/GeometryRestriction";
+	type GeometryRestrictionIntersectionData,
+	type GeometryRestrictionProperties} from "./restrictions/geometry/GeometryRestriction";
 import {
 	LineRestriction,
-	LineRestrictionProperties,
-} from "./restrictions/line/LineRestriction";
+	type LineRestrictionProperties} from "./restrictions/line/LineRestriction";
 import {
 	PlaneRestriction,
-	PlaneRestrictionProperties,
-} from "./restrictions/plane/PlaneRestriction";
+	type PlaneRestrictionProperties} from "./restrictions/plane/PlaneRestriction";
 import {
 	PointRestriction,
-	PointRestrictionProperties,
-} from "./restrictions/point/PointRestriction";
+	type PointRestrictionProperties} from "./restrictions/point/PointRestriction";
 import {calculateDragMatrix} from "./restrictions/RestrictionsHelper";
 
 export class RestrictionManager implements IRestrictionManager {

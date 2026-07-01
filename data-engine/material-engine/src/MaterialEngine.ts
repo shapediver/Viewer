@@ -3,15 +3,14 @@ import {
 	ResOutputContent,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	IMaterialContentData,
-	IMaterialContentDataV1,
-	IMaterialContentDataV2,
-	IMaterialContentDataV3,
-	IPresetMaterialDefinition,
-	ITexture,
-} from "@shapediver/viewer.data-engine.shared-types";
+	type IMaterialContentData,
+	type IMaterialContentDataV1,
+	type IMaterialContentDataV2,
+	type IMaterialContentDataV3,
+	type IPresetMaterialDefinition,
+	type ITexture} from "@shapediver/viewer.data-engine.shared-types";
 import {
-	ITreeNode,
+	type ITreeNode,
 	MapData,
 	MaterialGemData,
 	MaterialLambertData,
@@ -19,39 +18,36 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
-	HttpResponse,
+	type HttpResponse,
 	Logger,
 	ShapeDiverGeometryBackendResponseError,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
 /* eslint-disable no-prototype-builtins */
 import {
-	IMapDataPropertiesDefinition,
-	IMaterialAbstractData,
-	IMaterialAbstractDataProperties,
-	IMaterialAbstractDataPropertiesDefinition,
-	IMaterialGemDataProperties,
-	IMaterialGemDataPropertiesDefinition,
-	IMaterialLambertDataProperties,
-	IMaterialLambertDataPropertiesDefinition,
-	IMaterialPhongDataProperties,
-	IMaterialPhongDataPropertiesDefinition,
-	IMaterialSpecularGlossinessDataProperties,
-	IMaterialSpecularGlossinessDataPropertiesDefinition,
-	IMaterialStandardDataProperties,
-	IMaterialStandardDataPropertiesDefinition,
-	IMaterialUnlitDataProperties,
-	IMaterialUnlitDataPropertiesDefinition,
+	type IMapDataPropertiesDefinition,
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataProperties,
+	type IMaterialAbstractDataPropertiesDefinition,
+	type IMaterialGemDataProperties,
+	type IMaterialGemDataPropertiesDefinition,
+	type IMaterialLambertDataProperties,
+	type IMaterialLambertDataPropertiesDefinition,
+	type IMaterialPhongDataProperties,
+	type IMaterialPhongDataPropertiesDefinition,
+	type IMaterialSpecularGlossinessDataProperties,
+	type IMaterialSpecularGlossinessDataPropertiesDefinition,
+	type IMaterialStandardDataProperties,
+	type IMaterialStandardDataPropertiesDefinition,
+	type IMaterialUnlitDataProperties,
+	type IMaterialUnlitDataPropertiesDefinition,
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING,
-} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec4} from "gl-matrix";
 

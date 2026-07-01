@@ -1,4 +1,4 @@
-import {ISessionEvent} from "./ISessionEvent";
+import {type ISessionEvent} from "./ISessionEvent";
 
 /**
  * Definition of the parameter event.

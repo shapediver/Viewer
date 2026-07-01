@@ -1,4 +1,4 @@
-import {Color, IInstanceData} from "@shapediver/viewer.shared.types";
+import {type Color, type IInstanceData} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 

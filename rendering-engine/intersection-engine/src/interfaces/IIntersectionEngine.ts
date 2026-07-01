@@ -1,8 +1,7 @@
 import {
-	IIntersectionDefinition,
-	IIntersectionFilter,
-	IRay,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IIntersectionFilter,
+	type IRay} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {SelectionBox} from "../implementation/SelectionBox";
 

@@ -3,23 +3,20 @@ import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objec
 import {
 	AbstractMaterialData,
 	GeometryData,
-	ITreeNode,
+	type ITreeNode,
 	Tree,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	IEvent,
-	PerformanceEvaluator,
-} from "@shapediver/viewer.shared.services";
+	type IEvent,
+	PerformanceEvaluator} from "@shapediver/viewer.shared.services";
 import {
-	IMaterialAbstractData,
-	ITaskEvent,
-	ITaskEventDescription,
-} from "@shapediver/viewer.shared.types";
+	type IMaterialAbstractData,
+	type ITaskEvent,
+	type ITaskEventDescription} from "@shapediver/viewer.shared.types";
 
-import {ISessionTreeNode} from "../interfaces/ISessionTreeNode";
+import {type ISessionTreeNode} from "../interfaces/ISessionTreeNode";
 import {OutputManager} from "./managers/OutputManager";
 import {OutputDelayException} from "./OutputDelayException";
 import {SessionOutputData} from "./SessionOutputData";

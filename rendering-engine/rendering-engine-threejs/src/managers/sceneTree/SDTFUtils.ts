@@ -1,16 +1,14 @@
 import {
 	GeometryData,
-	ITreeNode,
-	ITreeNodeData,
+	type ITreeNode,
+	type ITreeNodeData,
 	MaterialStandardData,
 	SDTFItemData,
-	SDTFOverviewData,
-} from "@shapediver/viewer.shared.node-tree";
+	SDTFOverviewData} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator} from "@shapediver/viewer.shared.services";
 import {
-	IMaterialAbstractData,
-	ISDTFOverview,
-} from "@shapediver/viewer.shared.types";
+	type IMaterialAbstractData,
+	type ISDTFOverview} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {RenderingEngine} from "../..";
 

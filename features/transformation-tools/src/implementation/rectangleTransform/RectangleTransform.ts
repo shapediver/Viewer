@@ -1,29 +1,25 @@
-import {Box, IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
+import {Box, type IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
 import {
-	IDrawingToolsEvent,
-	PlaneRestrictionProperties,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.features.drawing-tools";
-import {RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IDrawingToolsEvent,
+	type PlaneRestrictionProperties,
+	RESTRICTION_TYPE} from "@shapediver/viewer.features.drawing-tools";
+import {type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
-	ITransformation,
-	ITreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITransformation,
+	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS,
-} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
 
 import {mat4, vec3} from "gl-matrix";
 
 import {
-	IRectangleTransform,
-	RectangleTransformSettingsOptional,
-} from "../../interfaces/rectangleTransform/IRectangleTransform";
+	type IRectangleTransform,
+	type RectangleTransformSettingsOptional} from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
-import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
+import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {RectangleTransformRotationHandler} from "./RectangleTransformRotationHandler";
 import {RectangleTransformScalingHandler} from "./RectangleTransformScalingHandler";
 import {RectangleTransformTranslationHandler} from "./RectangleTransformTranslationHandler";

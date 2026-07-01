@@ -1,8 +1,8 @@
-import {IHemisphereLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IHemisphereLight} from "@shapediver/viewer.rendering-engine.light-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {Color} from "@shapediver/viewer.shared.types";
-import {IViewportApi} from "../../../interfaces/IViewportApi";
-import {IHemisphereLightApi} from "../../../interfaces/lights/types/IHemisphereLightApi";
+import {type Color} from "@shapediver/viewer.shared.types";
+import {type IViewportApi} from "../../../interfaces/IViewportApi";
+import {type IHemisphereLightApi} from "../../../interfaces/lights/types/IHemisphereLightApi";
 import {AbstractLightApi} from "../AbstractLightApi";
 
 export class HemisphereLightApi

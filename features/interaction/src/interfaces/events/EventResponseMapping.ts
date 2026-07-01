@@ -1,8 +1,8 @@
 import {EVENTTYPE_INTERACTION} from "@shapediver/viewer";
-import {IDragEvent} from "./IDragEvent";
-import {IHoverEvent} from "./IHoverEvent";
-import {IMultiSelectEvent} from "./IMultiSelectEvent";
-import {ISelectEvent} from "./ISelectEvent";
+import {type IDragEvent} from "./IDragEvent";
+import {type IHoverEvent} from "./IHoverEvent";
+import {type IMultiSelectEvent} from "./IMultiSelectEvent";
+import {type ISelectEvent} from "./ISelectEvent";
 
 /**
  * Definition of the event response mapping for interaction events.

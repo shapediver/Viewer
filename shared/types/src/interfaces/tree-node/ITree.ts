@@ -1,4 +1,4 @@
-import {ITreeNode} from "./ITreeNode";
+import {type ITreeNode} from "./ITreeNode";
 
 export interface ITree {
 	// #region Properties (1)

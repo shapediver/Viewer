@@ -1,5 +1,5 @@
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
 import {MATERIAL_INDEX} from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";

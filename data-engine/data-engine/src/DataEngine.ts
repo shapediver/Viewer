@@ -7,15 +7,13 @@ import {SDTFEngine} from "@shapediver/viewer.data-engine.sdtf-engine";
 import {Tag3dEngine} from "@shapediver/viewer.data-engine.tag3d-engine";
 import {
 	CustomData,
-	ITreeNode,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	ShapeDiverViewerDataProcessingError,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 

@@ -1,8 +1,8 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 
-import {ILight} from "./ILight";
+import {type ILight} from "./ILight";
 
 export interface ILightScene {
 	// #region Properties (4)

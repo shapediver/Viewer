@@ -1,15 +1,13 @@
 ﻿import * as SDV from "@shapediver/viewer";
 import {addListener, EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
 import {
-	EventResponseMapping,
-	RectangleTransform,
-} from "@shapediver/viewer.features.transformation-tools";
+	type EventResponseMapping,
+	RectangleTransform} from "@shapediver/viewer.features.transformation-tools";
 import {RectangleTransformSettingsOptional} from "@shapediver/viewer.features.transformation-tools/dist/interfaces/rectangleTransform/IRectangleTransform";
 import {
 	createCustomUi,
-	IBooleanElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IBooleanElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 import {RESTRICTION_TYPE} from "../../../rendering-engine/intersection-restriction-engine/dist";
 
 (<any>window).SDV = SDV;

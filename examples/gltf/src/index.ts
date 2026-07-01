@@ -4,12 +4,11 @@ import {
 	createViewport,
 	ENVIRONMENT_MAP,
 	EVENTTYPE,
-	ITaskEvent,
-	ITreeNode,
+	type ITaskEvent,
+	type ITreeNode,
 	sceneTree,
 	TASK_TYPE,
-	viewports,
-} from "@shapediver/viewer";
+	viewports} from "@shapediver/viewer";
 import {DataEngine} from "@shapediver/viewer.data-engine.data-engine";
 
 (<any>window).SDV = SDV;

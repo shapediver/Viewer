@@ -1,4 +1,4 @@
-import {IDrawingToolsApi} from "@shapediver/viewer.features.drawing-tools";
+import {type IDrawingToolsApi} from "@shapediver/viewer.features.drawing-tools";
 
 import {vec3} from "gl-matrix";
 

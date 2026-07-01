@@ -1,39 +1,34 @@
-import {IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
+import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
-	ICamera,
+	type ICamera,
 	OrthographicCamera,
-	PerspectiveCamera,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
+	PerspectiveCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
 	DirectionalLight,
-	ILight,
+	type ILight,
 	PointLight,
-	SpotLight,
-} from "@shapediver/viewer.rendering-engine.light-engine";
+	SpotLight} from "@shapediver/viewer.rendering-engine.light-engine";
 import {
 	AnimationData,
 	CustomData,
 	InstanceData,
-	ITreeNode,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	HttpClient,
-	HttpResponse,
+	type HttpResponse,
 	Logger,
 	PerformanceEvaluator,
 	ShapeDiverViewerDataProcessingError,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	Color,
-	IAnimationTrack,
-	ITaskEvent,
-	TASK_TYPE,
-} from "@shapediver/viewer.shared.types";
+	type Color,
+	type IAnimationTrack,
+	type ITaskEvent,
+	TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 
 import {AccessorLoader} from "./loaders/AccessorLoader";

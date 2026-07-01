@@ -1,18 +1,16 @@
 import {
 	GeometryData,
-	ITree,
-	ITreeNode,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITree,
+	type ITreeNode,
+	Tree} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
-	IIntersectionDefinition,
-	IIntersectionFilter,
-	IRay,
-	IRayTracingIntersection,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IIntersectionFilter,
+	type IRay,
+	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
-import {IIntersectionEngine} from "../interfaces/IIntersectionEngine";
+import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {

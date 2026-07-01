@@ -1,4 +1,4 @@
-import {IViewportEvent} from "./IViewportEvent";
+import {type IViewportEvent} from "./IViewportEvent";
 
 /**
  * Definition of the rendering event.

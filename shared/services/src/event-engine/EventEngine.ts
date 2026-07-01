@@ -1,12 +1,11 @@
 import {
 	EVENTTYPE,
-	IEvent,
-	MainEventTypes,
-} from "@shapediver/viewer.shared.types";
+	type IEvent,
+	type MainEventTypes} from "@shapediver/viewer.shared.types";
 import {Logger} from "../logger/Logger";
 import {UuidGenerator} from "../uuid-generator/UuidGenerator";
-import {ICallback} from "./interfaces/ICallback";
-import {IListener} from "./interfaces/IListener";
+import {type ICallback} from "./interfaces/ICallback";
+import {type IListener} from "./interfaces/IListener";
 
 export class EventEngine {
 	// #region Properties (4)

@@ -1,6 +1,6 @@
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {IOutputApiData} from "../../interfaces/data/IOutputApiData";
-import {IOutputApi} from "../../interfaces/IOutputApi";
+import {type IOutputApiData} from "../../interfaces/data/IOutputApiData";
+import {type IOutputApi} from "../../interfaces/IOutputApi";
 
 export class OutputApiData
 	extends AbstractTreeNodeData

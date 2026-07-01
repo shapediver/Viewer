@@ -1,7 +1,7 @@
 import {mat4} from "gl-matrix";
-import {IBox} from "../math/IBox";
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
-import {IMaterialAbstractData} from "./material/IMaterialAbstractData";
+import {type IBox} from "../math/IBox";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
 export enum PRIMITIVE_MODE {
 	POINTS = 0,

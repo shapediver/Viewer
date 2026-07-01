@@ -1,6 +1,6 @@
 import {mat4} from "gl-matrix";
-import {IBox} from "../math/IBox";
-import {ITreeNodeData} from "./ITreeNodeData";
+import {type IBox} from "../math/IBox";
+import {type ITreeNodeData} from "./ITreeNodeData";
 
 // #region Interfaces (2)
 

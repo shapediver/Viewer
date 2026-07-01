@@ -1,31 +1,28 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box} from "@shapediver/viewer.shared.math";
 import {
-	ITree,
-	ITreeNode,
+	type ITree,
+	type ITreeNode,
 	Tree,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	IEvent,
+	type IEvent,
 	Logger,
 	SettingsEngine,
 	ShapeDiverViewerCameraError,
 	StateEngine,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	CAMERA_TYPE,
-	ISceneEvent,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-} from "@shapediver/viewer.shared.types";
+	type ISceneEvent,
+	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
-import {ICamera} from "../interfaces/camera/ICamera";
-import {ICameraEngine} from "../interfaces/ICameraEngine";
+import {type ICamera} from "../interfaces/camera/ICamera";
+import {type ICameraEngine} from "../interfaces/ICameraEngine";
 import {AbstractCamera} from "./camera/AbstractCamera";
 import {OrthographicCamera} from "./camera/OrthographicCamera";
 import {PerspectiveCamera} from "./camera/PerspectiveCamera";

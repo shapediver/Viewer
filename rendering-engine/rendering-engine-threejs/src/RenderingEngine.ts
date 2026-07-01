@@ -3,24 +3,21 @@ import * as THREE from "three";
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
 import {
 	CameraEngine,
-	ICamera,
-	OrthographicCameraProperties,
-	PerspectiveCameraProperties,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type ICamera,
+	type OrthographicCameraProperties,
+	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	CanvasEngine,
-	ICanvas,
-} from "@shapediver/viewer.rendering-engine.canvas-engine";
+	type ICanvas} from "@shapediver/viewer.rendering-engine.canvas-engine";
 import {LightEngine} from "@shapediver/viewer.rendering-engine.light-engine";
-import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
-	ITree,
-	ITreeNode,
+	type ITree,
+	type ITreeNode,
 	MaterialBasicLineData,
 	MaterialPointData,
 	MaterialStandardData,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
+	Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	DomEventEngine,
@@ -33,29 +30,27 @@ import {
 	ShapeDiverViewerEnvironmentMapError,
 	StateEngine,
 	SystemInfo,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
-	Color,
+	type Color,
 	FLAG_TYPE,
-	IGeometryData,
-	IIntersectionFilter,
-	ISDTFAttributeVisualizationData,
-	ISDTFItemData,
-	ISDTFOverview,
-	IViewportEvent,
-	IViewportSettingsSections,
+	type IGeometryData,
+	type IIntersectionFilter,
+	type ISDTFAttributeVisualizationData,
+	type ISDTFItemData,
+	type ISDTFOverview,
+	type IViewportEvent,
+	type IViewportSettingsSections,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
-	ViewportCreationDefinition,
-	VISIBILITY_MODE,
-} from "@shapediver/viewer.shared.types";
+	type ViewportCreationDefinition,
+	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
 import {quat, vec3} from "gl-matrix";
-import {IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
+import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
 import {HTMLElementAnchorLoader} from "./loaders/HTMLElementAnchorLoader";

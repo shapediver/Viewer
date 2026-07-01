@@ -1,14 +1,14 @@
 import {mat4, vec3} from "gl-matrix";
 
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay} from "@shapediver/viewer.shared.types";
-import {CameraPlaneRestrictionProperties} from "../implementation/restrictions/camera_plane/CameraPlaneRestriction";
-import {GeometryRestrictionProperties} from "../implementation/restrictions/geometry/GeometryRestriction";
-import {LineRestrictionProperties} from "../implementation/restrictions/line/LineRestriction";
-import {PlaneRestrictionProperties} from "../implementation/restrictions/plane/PlaneRestriction";
-import {PointRestrictionProperties} from "../implementation/restrictions/point/PointRestriction";
-import {IDragAnchor} from "./IDragAnchor";
-import {ISnapRestriction} from "./ISnapRestriction";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IRay} from "@shapediver/viewer.shared.types";
+import {type CameraPlaneRestrictionProperties} from "../implementation/restrictions/camera_plane/CameraPlaneRestriction";
+import {type GeometryRestrictionProperties} from "../implementation/restrictions/geometry/GeometryRestriction";
+import {type LineRestrictionProperties} from "../implementation/restrictions/line/LineRestriction";
+import {type PlaneRestrictionProperties} from "../implementation/restrictions/plane/PlaneRestriction";
+import {type PointRestrictionProperties} from "../implementation/restrictions/point/PointRestriction";
+import {type IDragAnchor} from "./IDragAnchor";
+import {type ISnapRestriction} from "./ISnapRestriction";
 
 export enum RESTRICTION_TYPE {
 	PLANE = "plane",

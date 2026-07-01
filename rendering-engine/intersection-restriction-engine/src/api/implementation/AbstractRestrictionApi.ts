@@ -1,5 +1,5 @@
-import {IRestriction} from "../../interfaces/IRestriction";
-import {IRestrictionApi} from "../interfaces/IRestrictionApi";
+import {type IRestriction} from "../../interfaces/IRestriction";
+import {type IRestrictionApi} from "../interfaces/IRestrictionApi";
 
 export abstract class AbstractRestrictionApi implements IRestrictionApi {
 	// #region Properties (1)

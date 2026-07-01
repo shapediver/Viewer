@@ -6,7 +6,7 @@ import {
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {latestVersion} from "@shapediver/viewer.settings";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -14,10 +14,9 @@ import {
 	PerformanceEvaluator,
 	ShapeDiverViewerSessionError,
 	SystemInfo,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 
-import {ISessionEngineCreationDefinition} from "../interfaces/ISessionEngine";
+import {type ISessionEngineCreationDefinition} from "../interfaces/ISessionEngine";
 import {CustomizationManager} from "./managers/CustomizationManager";
 import {ExportManager} from "./managers/ExportManager";
 import {FileUploadManager} from "./managers/FileUploadManager";

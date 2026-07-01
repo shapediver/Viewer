@@ -1,10 +1,9 @@
 import {
-	IOrthographicCamera,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type IOrthographicCamera,
+	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {IOrthographicCameraApi} from "../../interfaces/camera/IOrthographicCameraApi";
-import {IViewportApi} from "../../interfaces/IViewportApi";
+import {type IOrthographicCameraApi} from "../../interfaces/camera/IOrthographicCameraApi";
+import {type IViewportApi} from "../../interfaces/IViewportApi";
 import {AbstractCameraApi} from "./AbstractCameraApi";
 
 export class OrthographicCameraApi

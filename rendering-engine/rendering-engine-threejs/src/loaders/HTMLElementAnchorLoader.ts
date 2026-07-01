@@ -1,10 +1,9 @@
 import {
 	HTMLElementAnchorData,
-	ITreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {BUSY_MODE_DISPLAY} from "@shapediver/viewer.shared.types";
 import {vec2, vec3} from "gl-matrix";
-import {ILoader} from "../interfaces/ILoader";
+import {type ILoader} from "../interfaces/ILoader";
 import {RenderingEngine} from "../RenderingEngine";
 
 export class HTMLElementAnchorLoader implements ILoader {

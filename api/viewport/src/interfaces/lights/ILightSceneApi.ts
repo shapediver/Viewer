@@ -1,12 +1,12 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {ILightApi} from "./ILightApi";
-import {IAmbientLightApi} from "./types/IAmbientLightApi";
-import {IDirectionalLightApi} from "./types/IDirectionalLightApi";
-import {IHemisphereLightApi} from "./types/IHemisphereLightApi";
-import {IPointLightApi} from "./types/IPointLightApi";
-import {ISpotLightApi} from "./types/ISpotLightApi";
+import {type ILightApi} from "./ILightApi";
+import {type IAmbientLightApi} from "./types/IAmbientLightApi";
+import {type IDirectionalLightApi} from "./types/IDirectionalLightApi";
+import {type IHemisphereLightApi} from "./types/IHemisphereLightApi";
+import {type IPointLightApi} from "./types/IPointLightApi";
+import {type ISpotLightApi} from "./types/ISpotLightApi";
 
 /**
  * The api for a light scene.

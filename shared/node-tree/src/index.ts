@@ -1,9 +1,8 @@
 import {
-	ITransformation,
-	ITree,
-	ITreeNode,
-	ITreeNodeData,
-} from "@shapediver/viewer.shared.types";
+	type ITransformation,
+	type ITree,
+	type ITreeNode,
+	type ITreeNodeData} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "./implementation/AbstractTreeNodeData";
 import {AnimationData} from "./implementation/data/AnimationData";
 import {ChunkData} from "./implementation/data/ChunkData";
@@ -11,14 +10,12 @@ import {CustomData} from "./implementation/data/CustomData";
 import {
 	AttributeData,
 	GeometryData,
-	PrimitiveData,
-} from "./implementation/data/GeometryData";
+	PrimitiveData} from "./implementation/data/GeometryData";
 import {
 	HTMLElementAnchorCustomData,
 	HTMLElementAnchorData,
 	HTMLElementAnchorImageData,
-	HTMLElementAnchorTextData,
-} from "./implementation/data/HTMLElementAnchorData";
+	HTMLElementAnchorTextData} from "./implementation/data/HTMLElementAnchorData";
 import {InstanceData} from "./implementation/data/InstanceData";
 import {AbstractMaterialData} from "./implementation/material/AbstractMaterialData";
 import {MapData} from "./implementation/material/MapData";
@@ -35,15 +32,13 @@ import {MaterialUnlitData} from "./implementation/material/MaterialUnlitData";
 import {MaterialVariantsData} from "./implementation/material/MaterialVariantsData";
 import {
 	SDTFAttributeData,
-	SDTFAttributesData,
-} from "./implementation/sdtf/SDTFAttributesData";
+	SDTFAttributesData} from "./implementation/sdtf/SDTFAttributesData";
 import {SDTFItemData} from "./implementation/sdtf/SDTFItemData";
 import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
 import {Tree} from "./implementation/Tree";
 import {TreeNode} from "./implementation/TreeNode";
 
-export {
-	AbstractMaterialData,
+export {AbstractMaterialData,
 	AbstractTreeNodeData,
 	AnimationData,
 	AttributeData,
@@ -73,9 +68,8 @@ export {
 	SDTFItemData,
 	SDTFOverviewData,
 	Tree,
-	TreeNode,
-	type ITransformation,
-	type ITree,
-	type ITreeNode,
-	type ITreeNodeData,
-};
+	TreeNode};
+export type {ITransformation,
+	ITree,
+	ITreeNode,
+	ITreeNodeData};

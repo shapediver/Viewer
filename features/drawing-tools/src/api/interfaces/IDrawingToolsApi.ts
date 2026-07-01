@@ -1,10 +1,9 @@
 import {
-	IRestrictionApi,
-	RayTraceResult,
-	RestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IRestrictionApi,
+	type RayTraceResult,
+	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
-import {PointsData} from "../../business/interfaces/IDrawingToolsManager";
+import {type PointsData} from "../../business/interfaces/IDrawingToolsManager";
 
 export interface IDrawingToolsApi {
 	// #region Properties (5)

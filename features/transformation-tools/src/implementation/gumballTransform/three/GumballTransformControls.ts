@@ -1,4 +1,4 @@
-﻿import {IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+﻿import {type IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 
 import {
 	Camera,

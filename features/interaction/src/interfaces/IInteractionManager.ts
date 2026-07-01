@@ -1,15 +1,13 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {
-	IIntersectionDefinition,
-	IIntersectionFilter,
-	IMaterialAbstractData,
-	IRay,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IIntersectionFilter,
+	type IMaterialAbstractData,
+	type IRay} from "@shapediver/viewer.shared.types";
 import {INTERACTION_STATE} from "./IInteractionEngine";
 import {
-	IInteractionEffect,
-	IInteractionEffectUtils,
-} from "./utils/IInteractionEffectUtils";
+	type IInteractionEffect,
+	type IInteractionEffectUtils} from "./utils/IInteractionEffectUtils";
 
 // #region Type aliases (1)
 

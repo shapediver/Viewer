@@ -4,16 +4,14 @@ import {
 	BlendFunction,
 	createSession,
 	createViewport,
-	IOutlineEffectDefinition,
+	type IOutlineEffectDefinition,
 	KernelSize,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {
-	IDragEvent,
+	type IDragEvent,
 	InteractionData,
 	InteractionEngine,
-	SelectManager,
-} from "@shapediver/viewer.features.interaction";
+	SelectManager} from "@shapediver/viewer.features.interaction";
 
 (<any>window).SDV = SDV;
 

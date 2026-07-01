@@ -1,6 +1,6 @@
 import {vec3} from "gl-matrix";
 
-import {IControl} from "./IControl";
+import {type IControl} from "./IControl";
 
 /**
  * A control point that is attached to an edge between two points.

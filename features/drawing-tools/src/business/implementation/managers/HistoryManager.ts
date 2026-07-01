@@ -1,7 +1,7 @@
-import {addListener, EVENTTYPE_DRAWING_TOOLS, IEvent} from "@shapediver/viewer";
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
-import {PointsData} from "../../interfaces/IDrawingToolsManager";
+import {addListener, EVENTTYPE_DRAWING_TOOLS, type IEvent} from "@shapediver/viewer";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
+import {type PointsData} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
 
 // #region Type aliases (1)

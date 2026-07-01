@@ -1,7 +1,7 @@
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 
-import {ICanvas} from "../interfaces/ICanvas";
-import {ICanvasEngine} from "../interfaces/ICanvasEngine";
+import {type ICanvas} from "../interfaces/ICanvas";
+import {type ICanvasEngine} from "../interfaces/ICanvasEngine";
 import {Canvas} from "./Canvas";
 
 export class CanvasEngine implements ICanvasEngine {

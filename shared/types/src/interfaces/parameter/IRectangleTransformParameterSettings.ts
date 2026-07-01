@@ -1,6 +1,6 @@
-import {RestrictionDefinition} from "../..";
-import {IPlaneRestrictionDefinition} from "./IRestrictionSettings";
-import {ISelectionParameterProps} from "./ISelectionParameterSettings";
+import {type RestrictionDefinition} from "../..";
+import {type IPlaneRestrictionDefinition} from "./IRestrictionSettings";
+import {type ISelectionParameterProps} from "./ISelectionParameterSettings";
 
 /**
  * Properties of a draggable object.

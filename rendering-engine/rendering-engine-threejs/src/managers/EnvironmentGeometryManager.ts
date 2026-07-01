@@ -1,12 +1,11 @@
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	Converter,
 	EventEngine,
-	EVENTTYPE,
-} from "@shapediver/viewer.shared.services";
+	EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {RenderingEngine} from "..";
 import {SDObject} from "../objects/SDObject";
 import {ContactShadow} from "./environmentGeometry/ContactShadow";

@@ -4,11 +4,10 @@ import {
 	DirectionalLight,
 	HemisphereLight,
 	PointLight,
-	SpotLight,
-} from "@shapediver/viewer.rendering-engine.light-engine";
-import {IBox, ISphere} from "@shapediver/viewer.shared.math";
+	SpotLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IBox, type ISphere} from "@shapediver/viewer.shared.math";
 import * as THREE from "three";
-import {ILoader} from "../interfaces/ILoader";
+import {type ILoader} from "../interfaces/ILoader";
 import {SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 

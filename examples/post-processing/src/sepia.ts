@@ -3,13 +3,11 @@ import {
 	BlendFunction,
 	createSession,
 	createViewport,
-	ISepiaEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	type ISepiaEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {
 	createCustomUi,
-	IDropdownElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IDropdownElement} from "@shapediver/viewer.shared.demo-helper";
 
 (<any>window).SDV = SDV;
 

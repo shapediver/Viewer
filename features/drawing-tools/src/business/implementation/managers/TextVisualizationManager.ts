@@ -1,20 +1,18 @@
 import {
 	addListener,
 	EVENTTYPE_DRAWING_TOOLS,
-	ITreeNode,
-	IViewportApi,
+	type ITreeNode,
+	type IViewportApi,
 	ThreejsData,
-	TreeNode,
-} from "@shapediver/viewer";
+	TreeNode} from "@shapediver/viewer";
 import {
 	CSS2DObject,
-	CSS2DRenderer,
-} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+	CSS2DRenderer} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {numberCleaner} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
-import {Settings} from "../../interfaces/IDrawingToolsManager";
+import {type DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
+import {type Settings} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
 
 export class TextVisualizationManager {

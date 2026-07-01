@@ -1,9 +1,9 @@
-import {IBox, ISphere} from "@shapediver/viewer.shared.math";
-import {ITreeNode, ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {type IBox, type ISphere} from "@shapediver/viewer.shared.math";
+import {type ITreeNode, type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {SettingsEngine} from "@shapediver/viewer.shared.services";
-import {CAMERA_TYPE, ICameraOptions} from "@shapediver/viewer.shared.types";
+import {CAMERA_TYPE, type ICameraOptions} from "@shapediver/viewer.shared.types";
 import {vec2, vec3} from "gl-matrix";
-import {ICameraControls} from "../controls/ICameraControls";
+import {type ICameraControls} from "../controls/ICameraControls";
 
 // #region Interfaces (2)
 

@@ -1,9 +1,8 @@
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
 import {
-	IViewportSettingsSections,
-	ViewportCreationDefinition,
-} from "@shapediver/viewer.shared.types";
+	type IViewportSettingsSections,
+	type ViewportCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export interface ICreationControlCenterViewport {
 	// #region Properties (2)

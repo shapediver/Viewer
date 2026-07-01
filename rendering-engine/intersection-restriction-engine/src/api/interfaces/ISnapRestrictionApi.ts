@@ -1,4 +1,4 @@
-import {IRestrictionApi} from "./IRestrictionApi";
+import {type IRestrictionApi} from "./IRestrictionApi";
 
 export interface ISnapRestrictionApi extends IRestrictionApi {
 	// #region Properties (2)

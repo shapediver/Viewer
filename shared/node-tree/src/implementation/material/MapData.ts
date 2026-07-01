@@ -1,10 +1,9 @@
 import {
-	Color,
-	IMapData,
-	SDImageBitmap,
+	type Color,
+	type IMapData,
+	type SDImageBitmap,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING,
-} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
 import {vec2} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 

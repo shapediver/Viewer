@@ -1,11 +1,10 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	HttpClient,
-	HttpResponse,
+	type HttpResponse,
 	Logger,
 	PerformanceEvaluator,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
 
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";

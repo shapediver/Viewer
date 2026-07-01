@@ -1,8 +1,8 @@
 import {z} from "zod";
 
-import {IMaterialBasicLineDataPropertiesDefinition} from "../data/material/IMaterialBasicLineData";
-import {IMaterialMultiPointDataPropertiesDefinition} from "../data/material/IMaterialMultiPointData";
-import {RestrictionDefinition} from "./IRestrictionSettings";
+import {type IMaterialBasicLineDataPropertiesDefinition} from "../data/material/IMaterialBasicLineData";
+import {type IMaterialMultiPointDataPropertiesDefinition} from "../data/material/IMaterialMultiPointData";
+import {type RestrictionDefinition} from "./IRestrictionSettings";
 
 export interface IControlSettings {}
 

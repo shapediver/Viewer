@@ -1,8 +1,7 @@
 import {ResErrorType} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	ShapeDiverViewerError,
-	ShapeDiverViewerErrorType,
-} from "./ShapeDiverError";
+	ShapeDiverViewerErrorType} from "./ShapeDiverError";
 
 export class ShapeDiverGeometryBackendRequestError extends ShapeDiverViewerError {
 	// #region Constructors (1)

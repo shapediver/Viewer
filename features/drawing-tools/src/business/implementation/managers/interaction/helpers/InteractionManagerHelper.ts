@@ -1,23 +1,20 @@
 import {addListener} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.features.interaction";
+import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	GeometryMathManager,
 	PlaneRestriction,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS,
-} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
 
 import {vec3} from "gl-matrix";
 
-import {DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
+import {type DrawingToolsEventResponseMapping} from "../../../../interfaces/events/EventResponseMapping";
 import {
-	AdjacencyEntry,
+	type AdjacencyEntry,
 	MATERIAL_INDEX,
-	Settings,
-} from "../../../../interfaces/IDrawingToolsManager";
+	type Settings} from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
