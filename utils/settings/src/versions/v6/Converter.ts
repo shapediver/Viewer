@@ -1,7 +1,7 @@
-import {versions} from "../..";
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ISettings as ISettingsV5} from "../v5/ISettings";
-import {ISettings as ISettingsV6} from "./ISettings";
+import {type versions} from "../..";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type ISettings as ISettingsV5} from "../v5/ISettings";
+import {type ISettings as ISettingsV6} from "./ISettings";
 
 export const convertFromPrevious = (
 	s: IGlobalSettings,

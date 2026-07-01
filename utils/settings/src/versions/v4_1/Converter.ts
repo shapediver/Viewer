@@ -1,7 +1,7 @@
-import {versions} from "../..";
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type versions} from "../..";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
 import {Defaults as DefaultsV4_0} from "../v4/Defaults";
-import {ISettings as ISettingsV4_0} from "../v4/ISettings";
+import {type ISettings as ISettingsV4_0} from "../v4/ISettings";
 import {Defaults as DefaultsV4_1} from "./Defaults";
 import {ISettings as ISettingsV4_1} from "./ISettings";
 

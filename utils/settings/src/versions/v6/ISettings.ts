@@ -1,5 +1,5 @@
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ISettings as ISettingsV5} from "../v5/ISettings";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type ISettings as ISettingsV5} from "../v5/ISettings";
 
 export interface ISettings extends IGlobalSettings {
 	ar: ISettingsV5["ar"];

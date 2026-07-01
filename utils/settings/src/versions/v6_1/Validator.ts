@@ -6,8 +6,7 @@ import {
 	lightSettingsSchema,
 	postProcessingSettingsSchema,
 	renderingSettingsSchema,
-	sessionSettingsSchema,
-} from "../v5/Validator";
+	sessionSettingsSchema} from "../v5/Validator";
 
 const zNumOrInf = z.union([
 	z.number(),

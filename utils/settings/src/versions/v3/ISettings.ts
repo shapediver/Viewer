@@ -1,6 +1,6 @@
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
-import {ICameraSettings} from "./ICameraSettings";
-import {ILightSceneSettings} from "./ILightSceneSettings";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type ICameraSettings} from "./ICameraSettings";
+import {type ILightSceneSettings} from "./ILightSceneSettings";
 
 export interface ISettings extends IGlobalSettings {
 	ar: {

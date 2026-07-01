@@ -6,13 +6,11 @@ import {
 	lightSettingsSchema,
 	postProcessingSettingsSchema,
 	renderingSettingsSchema,
-	sessionSettingsSchema,
-} from "../v5/Validator";
+	sessionSettingsSchema} from "../v5/Validator";
 import {
 	environmentGeometrySettingsSchema,
 	generalSettingsSchema,
-	materialSettingsSchema,
-} from "../v6_1/Validator";
+	materialSettingsSchema} from "../v6_1/Validator";
 
 export const cameraSettingsSchema = z.object({
 	cameraId: z.string(),

@@ -1,4 +1,4 @@
-import {IGlobalSettings} from "../../interfaces/IGlobalSettings";
+import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
 interface IAmbientLightProperties {
 	color: string | number;
 	intensity: number;

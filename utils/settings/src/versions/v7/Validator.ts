@@ -5,12 +5,10 @@ import {
 	lightSettingsSchema,
 	postProcessingSettingsSchema,
 	renderingSettingsSchema,
-	sessionSettingsSchema,
-} from "../v5/Validator";
+	sessionSettingsSchema} from "../v5/Validator";
 import {
 	environmentGeometrySettingsSchema,
-	materialSettingsSchema,
-} from "../v6_1/Validator";
+	materialSettingsSchema} from "../v6_1/Validator";
 import {cameraSettingsSchema} from "../v6_2/Validator";
 
 const zNumOrInf = z.union([

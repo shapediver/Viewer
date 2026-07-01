@@ -1,4 +1,4 @@
-import {ISettings as ISettingsV3_2} from "../v3_2/ISettings";
+import {type ISettings as ISettingsV3_2} from "../v3_2/ISettings";
 
 export interface ISettings extends ISettingsV3_2 {
 	rendering: {
