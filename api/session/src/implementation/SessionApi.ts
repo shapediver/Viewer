@@ -7,8 +7,7 @@
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	CreationControlCenterSession,
-	ICreationControlCenterSession,
-} from "@shapediver/viewer.creation-control-center.session";
+	type ICreationControlCenterSession} from "@shapediver/viewer.creation-control-center.session";
 import {GLTFConverter} from "@shapediver/viewer.data-engine.gltf-converter";
 import {
 	DraggingParameter,
@@ -17,20 +16,18 @@ import {
 	GumballTransformParameter,
 	RectangleTransformParameter,
 	SelectionParameter,
-	SessionEngine,
-} from "@shapediver/viewer.session-engine.session-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	InputValidator,
 	Logger,
 	ShapeDiverViewerSessionError,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
-import {ISettingsSections} from "@shapediver/viewer.shared.types";
-import {IExportApi} from "../interfaces/IExportApi";
-import {IOutputApi} from "../interfaces/IOutputApi";
-import {ISessionApi} from "../interfaces/ISessionApi";
-import {IParameterApi} from "../interfaces/parameter/IParameterApi";
+	StateEngine} from "@shapediver/viewer.shared.services";
+import {type ISettingsSections} from "@shapediver/viewer.shared.types";
+import {type IExportApi} from "../interfaces/IExportApi";
+import {type IOutputApi} from "../interfaces/IOutputApi";
+import {type ISessionApi} from "../interfaces/ISessionApi";
+import {type IParameterApi} from "../interfaces/parameter/IParameterApi";
 import {SessionApiData} from "./data/SessionApiData";
 import {ExportApi} from "./ExportApi";
 import {OutputApi} from "./OutputApi";

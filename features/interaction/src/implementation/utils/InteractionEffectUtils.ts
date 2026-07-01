@@ -1,12 +1,11 @@
-import {IViewportApi} from "@shapediver/viewer";
-import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IViewportApi} from "@shapediver/viewer";
+import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 
 import {
-	IInteractionEffect,
-	IInteractionEffectUtils,
-	isMaterialData,
-} from "../../interfaces/utils/IInteractionEffectUtils";
+	type IInteractionEffect,
+	type IInteractionEffectUtils,
+	isMaterialData} from "../../interfaces/utils/IInteractionEffectUtils";
 
 export class InteractionEffectUtils implements IInteractionEffectUtils {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;

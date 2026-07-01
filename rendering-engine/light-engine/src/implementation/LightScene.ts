@@ -1,10 +1,10 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 
-import {ILight} from "../interface/ILight";
-import {ILightScene} from "../interface/ILightScene";
+import {type ILight} from "../interface/ILight";
+import {type ILightScene} from "../interface/ILightScene";
 import {AbstractLight} from "./AbstractLight";
 import {AmbientLight} from "./types/AmbientLight";
 import {DirectionalLight} from "./types/DirectionalLight";

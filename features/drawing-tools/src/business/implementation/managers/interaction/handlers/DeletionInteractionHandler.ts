@@ -1,9 +1,8 @@
-import {IRay, IViewportApi} from "@shapediver/viewer.features.interaction";
+import {type IRay, type IViewportApi} from "@shapediver/viewer.features.interaction";
 import {GeometryMathManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS,
-} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {InteractionManager} from "../InteractionManager";
 

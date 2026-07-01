@@ -1,23 +1,20 @@
 import {showConsoleMessage} from "@shapediver/viewer.api.general";
 import {
 	CreationControlCenterViewport,
-	ICreationControlCenterViewport,
-} from "@shapediver/viewer.creation-control-center.viewport";
+	type ICreationControlCenterViewport} from "@shapediver/viewer.creation-control-center.viewport";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	InputValidator,
 	Logger,
 	SESSION_SETTINGS_MODE,
-	ShapeDiverViewerValidationError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerValidationError} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
 	SPINNER_POSITIONING,
-	ViewportCreationDefinition,
-	VISIBILITY_MODE,
-} from "@shapediver/viewer.shared.types";
+	type ViewportCreationDefinition,
+	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
 import {ViewportApi} from "./implementation/ViewportApi";
-import {IViewportApi} from "./interfaces/IViewportApi";
+import {type IViewportApi} from "./interfaces/IViewportApi";
 
 /**
  * The viewports that are currently being used.

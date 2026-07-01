@@ -1,10 +1,9 @@
-﻿import {IRectangleTransformParameter} from "@shapediver/viewer.session-engine.session-engine";
+﻿import {type IRectangleTransformParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {
-	InteractionParameterSettingsType,
-	IRectangleTransformParameterProps,
-} from "@shapediver/viewer.shared.types";
+	type InteractionParameterSettingsType,
+	type IRectangleTransformParameterProps} from "@shapediver/viewer.shared.types";
 
-import {IRectangleTransformParameterApi} from "../../interfaces/parameter/IRectangleTransformParameterApi";
+import {type IRectangleTransformParameterApi} from "../../interfaces/parameter/IRectangleTransformParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class RectangleTransformParameterApi

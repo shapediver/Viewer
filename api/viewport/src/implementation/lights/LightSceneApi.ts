@@ -1,24 +1,23 @@
 import {
-	IAmbientLight,
-	IDirectionalLight,
-	IHemisphereLight,
-	ILightScene,
-	IPointLight,
-	ISpotLight,
-	LIGHT_TYPE,
-} from "@shapediver/viewer.rendering-engine.light-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type IAmbientLight,
+	type IDirectionalLight,
+	type IHemisphereLight,
+	type ILightScene,
+	type IPointLight,
+	type ISpotLight,
+	LIGHT_TYPE} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {IViewportApi} from "../../interfaces/IViewportApi";
-import {ILightApi} from "../../interfaces/lights/ILightApi";
-import {ILightSceneApi} from "../../interfaces/lights/ILightSceneApi";
-import {IAmbientLightApi} from "../../interfaces/lights/types/IAmbientLightApi";
-import {IDirectionalLightApi} from "../../interfaces/lights/types/IDirectionalLightApi";
-import {IHemisphereLightApi} from "../../interfaces/lights/types/IHemisphereLightApi";
-import {IPointLightApi} from "../../interfaces/lights/types/IPointLightApi";
-import {ISpotLightApi} from "../../interfaces/lights/types/ISpotLightApi";
+import {type IViewportApi} from "../../interfaces/IViewportApi";
+import {type ILightApi} from "../../interfaces/lights/ILightApi";
+import {type ILightSceneApi} from "../../interfaces/lights/ILightSceneApi";
+import {type IAmbientLightApi} from "../../interfaces/lights/types/IAmbientLightApi";
+import {type IDirectionalLightApi} from "../../interfaces/lights/types/IDirectionalLightApi";
+import {type IHemisphereLightApi} from "../../interfaces/lights/types/IHemisphereLightApi";
+import {type IPointLightApi} from "../../interfaces/lights/types/IPointLightApi";
+import {type ISpotLightApi} from "../../interfaces/lights/types/ISpotLightApi";
 import {AmbientLightApi} from "./types/AmbientLightApi";
 import {DirectionalLightApi} from "./types/DirectionalLightApi";
 import {HemisphereLightApi} from "./types/HemisphereLightApi";

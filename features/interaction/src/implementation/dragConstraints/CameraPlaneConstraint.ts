@@ -1,5 +1,5 @@
 import {vec3} from "gl-matrix";
-import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
+import {type IDragConstraint} from "../../interfaces/utils/IDragConstraint";
 
 /**
  * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane parallel to the camera plane that passes through the origin of the node being dragged.

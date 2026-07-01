@@ -4,11 +4,10 @@ import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {
 	InputValidator,
 	Logger,
-	ShapeDiverViewerSessionError,
-} from "@shapediver/viewer.shared.services";
-import {SessionCreationDefinition} from "@shapediver/viewer.shared.types";
+	ShapeDiverViewerSessionError} from "@shapediver/viewer.shared.services";
+import {type SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 import {SessionApi} from "./implementation/SessionApi";
-import {ISessionApi} from "./interfaces/ISessionApi";
+import {type ISessionApi} from "./interfaces/ISessionApi";
 
 /**
  * The sessions that are currently being used.

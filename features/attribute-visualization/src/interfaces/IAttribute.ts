@@ -1,4 +1,4 @@
-import {Gradient, SDTF_TYPEHINT} from "@shapediver/viewer.shared.types";
+import {type Gradient, SDTF_TYPEHINT} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 export interface IAttribute {
 	key: string;

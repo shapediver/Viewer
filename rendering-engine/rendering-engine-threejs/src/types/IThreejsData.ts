@@ -1,4 +1,4 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import * as THREE from "three";
 
 export interface IThreejsData extends ITreeNodeData {

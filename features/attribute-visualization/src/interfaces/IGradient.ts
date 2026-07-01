@@ -1,5 +1,5 @@
-import {IGradient} from "@shapediver/viewer.shared.types";
-import {INumberGradient, IStringGradient} from "..";
+import {type IGradient} from "@shapediver/viewer.shared.types";
+import {type INumberGradient, type IStringGradient} from "..";
 
 // Type guard to check if it is a gradient
 export const isGradient = (

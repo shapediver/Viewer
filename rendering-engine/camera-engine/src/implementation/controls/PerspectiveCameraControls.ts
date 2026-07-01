@@ -1,4 +1,4 @@
-import {ICamera} from "../..";
+import {type ICamera} from "../..";
 import {AbstractCameraControls} from "./AbstractCameraControls";
 import {CameraControlsEventDistribution} from "./CameraControlsEventDistribution";
 import {CameraControlsLogic} from "./CameraControlsLogic";

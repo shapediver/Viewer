@@ -1,4 +1,4 @@
-import {IEvent} from "./IEvent";
+import {type IEvent} from "./IEvent";
 
 export interface ISessionErrorEvent extends ISessionEvent {
 	/**

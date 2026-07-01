@@ -1,8 +1,7 @@
 import * as SDV from "@shapediver/viewer";
 import {
 	createCustomUi,
-	IDropdownElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IDropdownElement} from "@shapediver/viewer.shared.demo-helper";
 (<any>window).SDV = SDV;
 
 (async () => {

@@ -1,5 +1,5 @@
 import {CAMERA_TYPE} from "@shapediver/viewer.shared.types";
-import {ICamera} from "./camera/ICamera";
+import {type ICamera} from "./camera/ICamera";
 
 // #region Interfaces (1)
 

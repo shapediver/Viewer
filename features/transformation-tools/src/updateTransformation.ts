@@ -1,4 +1,4 @@
-import {ITreeNode} from "@shapediver/viewer";
+import {type ITreeNode} from "@shapediver/viewer";
 
 import {mat4} from "gl-matrix";
 

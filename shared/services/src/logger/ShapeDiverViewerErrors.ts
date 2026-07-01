@@ -1,8 +1,7 @@
 import {ResExport, ResOutput} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	ShapeDiverViewerError,
-	ShapeDiverViewerErrorType,
-} from "./ShapeDiverError";
+	ShapeDiverViewerErrorType} from "./ShapeDiverError";
 
 export class ShapeDiverViewerUnknownError extends ShapeDiverViewerError {
 	constructor(

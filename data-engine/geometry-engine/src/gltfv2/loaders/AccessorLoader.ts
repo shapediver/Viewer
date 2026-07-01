@@ -1,8 +1,7 @@
 import {
 	ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
 	ACCESSORTYPE_V2 as ACCESSORTYPE,
-	IGLTF_v2,
-} from "@shapediver/viewer.data-engine.shared-types";
+	type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {AttributeData} from "@shapediver/viewer.shared.node-tree";
 import {Logger} from "@shapediver/viewer.shared.services";
 

@@ -1,6 +1,6 @@
 import {vec3} from "gl-matrix";
 
-import {ILight} from "../ILight";
+import {type ILight} from "../ILight";
 
 export interface IDirectionalLight extends ILight {
 	castShadow: boolean;

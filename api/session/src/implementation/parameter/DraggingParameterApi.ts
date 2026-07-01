@@ -1,10 +1,9 @@
-import {IDraggingParameter} from "@shapediver/viewer.session-engine.session-engine";
+import {type IDraggingParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {
-	IDraggingParameterProps,
-	InteractionParameterSettingsType,
-} from "@shapediver/viewer.shared.types";
+	type IDraggingParameterProps,
+	type InteractionParameterSettingsType} from "@shapediver/viewer.shared.types";
 
-import {IDraggingParameterApi} from "../../interfaces/parameter/IDraggingParameterApi";
+import {type IDraggingParameterApi} from "../../interfaces/parameter/IDraggingParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class DraggingParameterApi

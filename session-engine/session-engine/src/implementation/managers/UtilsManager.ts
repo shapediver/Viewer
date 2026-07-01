@@ -12,7 +12,7 @@
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
-import {ITree, ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
+import {type ITree, type ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	EventEngine,
@@ -23,16 +23,14 @@ import {
 	ShapeDiverViewerCustomizationError,
 	ShapeDiverViewerError,
 	ShapeDiverViewerSessionError,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
+	StateEngine} from "@shapediver/viewer.shared.services";
 import {
-	IInteractionParameterSettings,
-	ISessionErrorEvent,
-	ITaskEvent,
-	validateInteractionParameterSettings,
-} from "@shapediver/viewer.shared.types";
+	type IInteractionParameterSettings,
+	type ISessionErrorEvent,
+	type ITaskEvent,
+	validateInteractionParameterSettings} from "@shapediver/viewer.shared.types";
 
-import {IParameter} from "../../interfaces/dto/IParameter";
+import {type IParameter} from "../../interfaces/dto/IParameter";
 import {DraggingParameter} from "../dto/interaction/DraggingParameter";
 import {GumballTransformParameter} from "../dto/interaction/GumballTransformParameter";
 import {RectangleTransformParameter} from "../dto/interaction/RectangleTransformParameter";

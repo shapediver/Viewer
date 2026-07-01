@@ -1,5 +1,5 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {ISessionApi} from "../ISessionApi";
+import {type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {type ISessionApi} from "../ISessionApi";
 
 export interface ISessionApiData extends ITreeNodeData {
 	// #region Properties (1)

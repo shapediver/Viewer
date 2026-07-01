@@ -1,17 +1,15 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	DomEventEngine,
 	SESSION_SETTINGS_MODE,
-	SettingsEngine,
-} from "@shapediver/viewer.shared.services";
+	SettingsEngine} from "@shapediver/viewer.shared.services";
 import {
 	FLAG_TYPE,
-	IGeometryData,
-	IIntersectionFilter,
+	type IGeometryData,
+	type IIntersectionFilter,
 	RENDERER_TYPE,
-	ViewportCreationDefinition,
-	VISIBILITY_MODE,
-} from "@shapediver/viewer.shared.types";
+	type ViewportCreationDefinition,
+	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec3} from "gl-matrix";
 

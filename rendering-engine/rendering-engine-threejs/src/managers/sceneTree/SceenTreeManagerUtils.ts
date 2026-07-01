@@ -1,9 +1,8 @@
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
-	ITreeNode,
-	ITreeNodeData,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";

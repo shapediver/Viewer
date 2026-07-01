@@ -1,8 +1,7 @@
 import {
 	CAMERA_TYPE,
-	ICameraOptions,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IBox} from "@shapediver/viewer.shared.math";
+	type ICameraOptions} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IBox} from "@shapediver/viewer.shared.math";
 import {vec2, vec3} from "gl-matrix";
 
 /**

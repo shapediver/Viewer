@@ -1,4 +1,4 @@
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface ICustomData extends ITreeNodeData {
 	// #region Properties (1)

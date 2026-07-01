@@ -1,12 +1,11 @@
 import {ResComputationStatus} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	IOutput,
-	ResOutputChunk,
-	ResOutputContent,
-} from "@shapediver/viewer.session-engine.session-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type IOutput,
+	type ResOutputChunk,
+	type ResOutputContent} from "@shapediver/viewer.session-engine.session-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {IOutputApi} from "../interfaces/IOutputApi";
+import {type IOutputApi} from "../interfaces/IOutputApi";
 import {OutputApiData} from "./data/OutputApiData";
 
 export class OutputApi implements IOutputApi {

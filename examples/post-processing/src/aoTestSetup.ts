@@ -2,8 +2,7 @@ import * as SDV from "@shapediver/viewer";
 import {
 	createSession,
 	createViewport,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {mat4, vec3} from "gl-matrix";
 
 (<any>window).SDV = SDV;

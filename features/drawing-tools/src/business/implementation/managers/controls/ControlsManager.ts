@@ -4,45 +4,40 @@ import {
 	addListener,
 	AttributeData,
 	GeometryData,
-	ITreeNode,
-	IViewportApi,
+	type ITreeNode,
+	type IViewportApi,
 	MapData,
 	MaterialEngine,
 	MaterialMultiPointData,
 	PrimitiveData,
-	TreeNode,
-} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.features.interaction";
+	TreeNode} from "@shapediver/viewer";
+import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
-	DrawingRestrictionMetaData,
+	type DrawingRestrictionMetaData,
 	GeometryMathManager,
-	RayTraceResult,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
-	IEvent,
-} from "@shapediver/viewer.shared.services";
+	type IEvent} from "@shapediver/viewer.shared.services";
 import {
-	IGeometryData,
-	IMapData,
-	IMaterialMultiPointDataProperties,
+	type IGeometryData,
+	type IMapData,
+	type IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
-	PRIMITIVE_MODE,
-} from "@shapediver/viewer.shared.types";
+	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
-import {IControl} from "../../../interfaces/controls/IControl";
-import {IEdgeControl} from "../../../interfaces/controls/IEdgeControl";
-import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
-import {IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
+import {type IControl} from "../../../interfaces/controls/IControl";
+import {type IEdgeControl} from "../../../interfaces/controls/IEdgeControl";
+import {type DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
+import {type IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsEvent";
 import {
-	DefaultTextures,
+	type DefaultTextures,
 	MATERIAL_INDEX,
-	Settings,
-} from "../../../interfaces/IDrawingToolsManager";
+	type Settings} from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {EdgeControl} from "./EdgeControl";
 

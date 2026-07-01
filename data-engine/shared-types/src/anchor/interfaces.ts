@@ -1,8 +1,7 @@
 import {
-	Color,
-	IAnchorDataImage,
-	IAnchorDataText,
-} from "@shapediver/viewer.shared.types";
+	type Color,
+	type IAnchorDataImage,
+	type IAnchorDataText} from "@shapediver/viewer.shared.types";
 
 export enum TAG3D_JUSTIFICATION {
 	TOP_LEFT = "TL",

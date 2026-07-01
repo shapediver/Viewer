@@ -12,15 +12,13 @@ import {
 	InputValidator,
 	isValid,
 	Logger,
-	stringify,
-} from "@shapediver/viewer.shared.services";
+	stringify} from "@shapediver/viewer.shared.services";
 import {
-	ISessionEvent,
+	type ISessionEvent,
 	PARAMETER_TYPE,
-	PARAMETER_VISUALIZATION,
-} from "@shapediver/viewer.shared.types";
+	PARAMETER_VISUALIZATION} from "@shapediver/viewer.shared.types";
 
-import {IParameter} from "../../interfaces/dto/IParameter";
+import {type IParameter} from "../../interfaces/dto/IParameter";
 import {ParameterManager} from "../managers/ParameterManager";
 import {SessionEngineCore} from "../SessionEngineCore";
 

@@ -1,5 +1,5 @@
-import {ISnapRestriction} from "../../interfaces/ISnapRestriction";
-import {ISnapRestrictionApi} from "../interfaces/ISnapRestrictionApi";
+import {type ISnapRestriction} from "../../interfaces/ISnapRestriction";
+import {type ISnapRestrictionApi} from "../interfaces/ISnapRestrictionApi";
 
 export abstract class AbstractSnapRestrictionApi
 	implements ISnapRestrictionApi

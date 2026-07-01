@@ -2,136 +2,116 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
 
 import {
-	IAnimationData,
-	IAnimationTrack,
-} from "./interfaces/data/IAnimationData";
-import {IChunkData} from "./interfaces/data/IChunkData";
-import {ICustomData} from "./interfaces/data/ICustomData";
+	type IAnimationData,
+	type IAnimationTrack} from "./interfaces/data/IAnimationData";
+import {type IChunkData} from "./interfaces/data/IChunkData";
+import {type ICustomData} from "./interfaces/data/ICustomData";
 import {
-	IAttributeData,
-	IGeometryData,
-	IPrimitiveData,
-	PRIMITIVE_MODE,
-} from "./interfaces/data/IGeometryData";
+	type IAttributeData,
+	type IGeometryData,
+	type IPrimitiveData,
+	PRIMITIVE_MODE} from "./interfaces/data/IGeometryData";
 import {
-	IAnchorDataImage,
-	IAnchorDataText,
-	IHTMLElementAnchorData,
-	IHTMLElementAnchorUpdateProperties,
-} from "./interfaces/data/IHTMLElementAnchorData";
-import {IInstanceData} from "./interfaces/data/IInstanceData";
+	type IAnchorDataImage,
+	type IAnchorDataText,
+	type IHTMLElementAnchorData,
+	type IHTMLElementAnchorUpdateProperties} from "./interfaces/data/IHTMLElementAnchorData";
+import {type IInstanceData} from "./interfaces/data/IInstanceData";
 import {
-	IMapData,
-	IMapDataProperties,
-	IMapDataPropertiesDefinition,
+	type IMapData,
+	type IMapDataProperties,
+	type IMapDataPropertiesDefinition,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING,
-} from "./interfaces/data/material/IMapData";
+	TEXTURE_WRAPPING} from "./interfaces/data/material/IMapData";
 import {
-	IMaterialAbstractData,
-	IMaterialAbstractDataProperties,
-	IMaterialAbstractDataPropertiesDefinition,
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataProperties,
+	type IMaterialAbstractDataPropertiesDefinition,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
-	MATERIAL_TYPE,
-} from "./interfaces/data/material/IMaterialAbstractData";
+	MATERIAL_TYPE} from "./interfaces/data/material/IMaterialAbstractData";
 import {
-	IMaterialBasicLineData,
-	IMaterialBasicLineDataProperties,
-	IMaterialBasicLineDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialBasicLineData";
+	type IMaterialBasicLineData,
+	type IMaterialBasicLineDataProperties,
+	type IMaterialBasicLineDataPropertiesDefinition} from "./interfaces/data/material/IMaterialBasicLineData";
 import {
-	IMaterialGemData,
-	IMaterialGemDataProperties,
-	IMaterialGemDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialGemDataProperties";
+	type IMaterialGemData,
+	type IMaterialGemDataProperties,
+	type IMaterialGemDataPropertiesDefinition} from "./interfaces/data/material/IMaterialGemDataProperties";
 import {
-	IMaterialLambertData,
-	IMaterialLambertDataProperties,
-	IMaterialLambertDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialLambertData";
+	type IMaterialLambertData,
+	type IMaterialLambertDataProperties,
+	type IMaterialLambertDataPropertiesDefinition} from "./interfaces/data/material/IMaterialLambertData";
 import {
-	IMaterialMultiPointData,
-	IMaterialMultiPointDataProperties,
-	IMaterialMultiPointDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialMultiPointData";
+	type IMaterialMultiPointData,
+	type IMaterialMultiPointDataProperties,
+	type IMaterialMultiPointDataPropertiesDefinition} from "./interfaces/data/material/IMaterialMultiPointData";
 import {
-	IMaterialPhongData,
-	IMaterialPhongDataProperties,
-	IMaterialPhongDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialPhongData";
+	type IMaterialPhongData,
+	type IMaterialPhongDataProperties,
+	type IMaterialPhongDataPropertiesDefinition} from "./interfaces/data/material/IMaterialPhongData";
 import {
-	IMaterialPointData,
-	IMaterialPointDataProperties,
-	IMaterialPointDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialPointData";
+	type IMaterialPointData,
+	type IMaterialPointDataProperties,
+	type IMaterialPointDataPropertiesDefinition} from "./interfaces/data/material/IMaterialPointData";
 import {
-	IMaterialShadowData,
-	IMaterialShadowDataProperties,
-	IMaterialShadowDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialShadowData";
+	type IMaterialShadowData,
+	type IMaterialShadowDataProperties,
+	type IMaterialShadowDataPropertiesDefinition} from "./interfaces/data/material/IMaterialShadowData";
 import {
-	IMaterialSpecularGlossinessData,
-	IMaterialSpecularGlossinessDataProperties,
-	IMaterialSpecularGlossinessDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialSpecularGlossinessDataProperties";
+	type IMaterialSpecularGlossinessData,
+	type IMaterialSpecularGlossinessDataProperties,
+	type IMaterialSpecularGlossinessDataPropertiesDefinition} from "./interfaces/data/material/IMaterialSpecularGlossinessDataProperties";
 import {
-	IMaterialStandardData,
-	IMaterialStandardDataProperties,
-	IMaterialStandardDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialStandardData";
+	type IMaterialStandardData,
+	type IMaterialStandardDataProperties,
+	type IMaterialStandardDataPropertiesDefinition} from "./interfaces/data/material/IMaterialStandardData";
 import {
-	IMaterialUnlitData,
-	IMaterialUnlitDataProperties,
-	IMaterialUnlitDataPropertiesDefinition,
-} from "./interfaces/data/material/IMaterialUnlitData";
-import {IMaterialVariantsData} from "./interfaces/data/material/IMaterialVariantsData";
-import {EventResponseMapping} from "./interfaces/events/EventResponseMapping";
-import {ICameraEvent} from "./interfaces/events/ICameraEvent";
-import {IOutputEvent} from "./interfaces/events/IOutputEvent";
-import {IParameterEvent} from "./interfaces/events/IParameterEvent";
-import {IRenderingEvent} from "./interfaces/events/IRenderingEvent";
-import {ISceneEvent} from "./interfaces/events/ISceneEvent";
+	type IMaterialUnlitData,
+	type IMaterialUnlitDataProperties,
+	type IMaterialUnlitDataPropertiesDefinition} from "./interfaces/data/material/IMaterialUnlitData";
+import {type IMaterialVariantsData} from "./interfaces/data/material/IMaterialVariantsData";
+import {type EventResponseMapping} from "./interfaces/events/EventResponseMapping";
+import {type ICameraEvent} from "./interfaces/events/ICameraEvent";
+import {type IOutputEvent} from "./interfaces/events/IOutputEvent";
+import {type IParameterEvent} from "./interfaces/events/IParameterEvent";
+import {type IRenderingEvent} from "./interfaces/events/IRenderingEvent";
+import {type ISceneEvent} from "./interfaces/events/ISceneEvent";
 import {
-	ISessionErrorEvent,
-	ISessionEvent,
-} from "./interfaces/events/ISessionEvent";
+	type ISessionErrorEvent,
+	type ISessionEvent} from "./interfaces/events/ISessionEvent";
 import {
-	ITaskEvent,
-	ITaskEventDescription,
+	type ITaskEvent,
+	type ITaskEventDescription,
 	TASK_CATEGORY,
 	TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
 	TASK_TYPE,
-	TaskCategoryTypes,
-} from "./interfaces/events/ITaskEvent";
-import {IViewportEvent} from "./interfaces/events/IViewportEvent";
+	type TaskCategoryTypes} from "./interfaces/events/ITaskEvent";
+import {type IViewportEvent} from "./interfaces/events/IViewportEvent";
 import {
-	DraggingParameterValue,
-	IDraggableObject,
-	IDraggingParameterProps,
-} from "./interfaces/parameter/IDraggingParameterSettings";
+	type DraggingParameterValue,
+	type IDraggableObject,
+	type IDraggingParameterProps} from "./interfaces/parameter/IDraggingParameterSettings";
 import {
-	DrawingParameterValue,
+	type DrawingParameterValue,
 	IDrawingParameterJsonSchema,
-	IDrawingParameterSettings,
-	IVisualizationSettings,
-	validateDrawingParameterSettings,
-} from "./interfaces/parameter/IDrawingParametersSettings";
+	type IDrawingParameterSettings,
+	type IVisualizationSettings,
+	validateDrawingParameterSettings} from "./interfaces/parameter/IDrawingParametersSettings";
 import {
-	GumballTransformParameterValue,
-	IGumballTransformParameterProps,
-} from "./interfaces/parameter/IGumballTransformParameterSettings";
+	type GumballTransformParameterValue,
+	type IGumballTransformParameterProps} from "./interfaces/parameter/IGumballTransformParameterSettings";
 import {
 	IDraggingParameterJsonSchema,
 	IDraggingParameterPropsJsonSchema,
 	IGumballTransformParameterJsonSchema,
 	IGumballTransformParameterPropsJsonSchema,
 	IInteractionParameterJsonSchema,
-	IInteractionParameterProps,
-	IInteractionParameterSettings,
-	InteractionEffect,
-	InteractionParameterSettingsType,
+	type IInteractionParameterProps,
+	type IInteractionParameterSettings,
+	type InteractionEffect,
+	type InteractionParameterSettingsType,
 	IRectangleTransformParameterJsonSchema,
 	IRectangleTransformParameterPropsJsonSchema,
 	ISelectionParameterJsonSchema,
@@ -140,16 +120,13 @@ import {
 	validateGumballTransformParameterSettings,
 	validateInteractionParameterSettings,
 	validateRectangleTransformParameterSettings,
-	validateSelectionParameterSettings,
-} from "./interfaces/parameter/IInteractionParameterSettings";
+	validateSelectionParameterSettings} from "./interfaces/parameter/IInteractionParameterSettings";
 import {
-	RestrictionDefinition,
-	Rotation,
-} from "./interfaces/parameter/IRestrictionSettings";
+	type RestrictionDefinition,
+	type Rotation} from "./interfaces/parameter/IRestrictionSettings";
 import {
-	ISelectionParameterProps,
-	SelectionParameterValue,
-} from "./interfaces/parameter/ISelectionParameterSettings";
+	type ISelectionParameterProps,
+	type SelectionParameterValue} from "./interfaces/parameter/ISelectionParameterSettings";
 import {
 	BUSY_MODE_DISPLAY,
 	FLAG_TYPE,
@@ -157,45 +134,39 @@ import {
 	SPINNER_POSITIONING,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
-	VISIBILITY_MODE,
-} from "./interfaces/renderingEngine/enums";
+	VISIBILITY_MODE} from "./interfaces/renderingEngine/enums";
 import {
-	IBoxSelectionIntersection,
-	IIntersectionDefinition,
-	IRayTracingIntersection,
-} from "./interfaces/renderingEngine/IIntersection";
-import {IIntersectionFilter} from "./interfaces/renderingEngine/IIntersectionFilter";
-import {IRay} from "./interfaces/renderingEngine/IRay";
+	type IBoxSelectionIntersection,
+	type IIntersectionDefinition,
+	type IRayTracingIntersection} from "./interfaces/renderingEngine/IIntersection";
+import {type IIntersectionFilter} from "./interfaces/renderingEngine/IIntersectionFilter";
+import {type IRay} from "./interfaces/renderingEngine/IRay";
 import {
-	ISDTFAttributeData,
-	ISDTFAttributesData,
-} from "./interfaces/sdtf/ISDTFAttributesData";
-import {ISDTFAttributeVisualizationData} from "./interfaces/sdtf/ISDTFAttributeVisualizationData";
-import {ISDTFItemData} from "./interfaces/sdtf/ISDTFItemData";
+	type ISDTFAttributeData,
+	type ISDTFAttributesData} from "./interfaces/sdtf/ISDTFAttributesData";
+import {type ISDTFAttributeVisualizationData} from "./interfaces/sdtf/ISDTFAttributeVisualizationData";
+import {type ISDTFItemData} from "./interfaces/sdtf/ISDTFItemData";
 import {
-	ISDTFOverview,
-	ISDTFOverviewData,
-} from "./interfaces/sdtf/ISDTFOverviewData";
+	type ISDTFOverview,
+	type ISDTFOverviewData} from "./interfaces/sdtf/ISDTFOverviewData";
 import {
-	Color,
-	ISessionSettingsSections,
-	ISettingsSections,
-	IViewportSettingsSections,
+	type Color,
+	type ISessionSettingsSections,
+	type ISettingsSections,
+	type IViewportSettingsSections,
 	PARAMETER_TYPE,
 	PARAMETER_VISUALIZATION,
-	SDImageBitmap,
+	type SDImageBitmap,
 	SESSION_SETTINGS_MODE,
-	SessionCreationDefinition,
-	ViewportCreationDefinition,
-} from "./types";
+	type SessionCreationDefinition,
+	type ViewportCreationDefinition} from "./types";
 
 import {
 	ATTRIBUTE_VISUALIZATION,
-	Gradient,
-	IGradient,
-	INumberGradient,
-	IStringGradient,
-} from "./interfaces/attribute-visualization";
+	type Gradient,
+	type IGradient,
+	type INumberGradient,
+	type IStringGradient} from "./interfaces/attribute-visualization";
 import {
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
@@ -209,55 +180,50 @@ import {
 	EVENTTYPE_TASK,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
 	EVENTTYPE_VIEWPORT,
-	MainEventTypes,
-} from "./interfaces/events/EventTypes";
-import {IEvent} from "./interfaces/events/IEvent";
-import {IBox} from "./interfaces/math/IBox";
-import {IGeometry} from "./interfaces/math/IGeometry";
-import {IPlane} from "./interfaces/math/IPlane";
-import {ISphere} from "./interfaces/math/ISphere";
-import {ISpherical} from "./interfaces/math/ISpherical";
-import {ITriangle} from "./interfaces/math/ITriangle";
+	type MainEventTypes} from "./interfaces/events/EventTypes";
+import {type IEvent} from "./interfaces/events/IEvent";
+import {type IBox} from "./interfaces/math/IBox";
+import {type IGeometry} from "./interfaces/math/IGeometry";
+import {type IPlane} from "./interfaces/math/IPlane";
+import {type ISphere} from "./interfaces/math/ISphere";
+import {type ISpherical} from "./interfaces/math/ISpherical";
+import {type ITriangle} from "./interfaces/math/ITriangle";
 import {
-	IRectangleTransformParameterProps,
-	RectangleTransformParameterValue,
-} from "./interfaces/parameter/IRectangleTransformParameterSettings";
+	type IRectangleTransformParameterProps,
+	type RectangleTransformParameterValue} from "./interfaces/parameter/IRectangleTransformParameterSettings";
 import {
 	CAMERA_TYPE,
-	ICameraOptions,
+	type ICameraOptions,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	OrthographicCameraProperties,
-	PerspectiveCameraProperties,
-} from "./interfaces/renderingEngine/cameraTypes";
+	type OrthographicCameraProperties,
+	type PerspectiveCameraProperties} from "./interfaces/renderingEngine/cameraTypes";
 import {
 	ANTI_ALIASING_TECHNIQUE,
-	IBloomEffectDefinition,
-	IChromaticAberrationEffectDefinition,
-	IDepthOfFieldEffectDefinition,
-	IDotScreenEffectDefinition,
-	IGodRaysEffectDefinition,
-	IGridEffectDefinition,
-	IHBAOEffectDefinition,
-	IHueSaturationEffectDefinition,
-	INoiseEffectDefinition,
-	IOutlineEffectDefinition,
-	IPixelationEffectDefinition,
-	IPostProcessingEffectDefinition,
-	IPostProcessingEffectsArray,
-	IScanlineEffectDefinition,
-	ISelectiveBloomEffectDefinition,
-	ISepiaEffectDefinition,
-	ISSAOEffectDefinition,
-	ITiltShiftEffectDefinition,
-	IVignetteEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "./interfaces/renderingEngine/IPostProcessingEffectDefinitions";
-import {ITree} from "./interfaces/tree-node/ITree";
-import {ITransformation, ITreeNode} from "./interfaces/tree-node/ITreeNode";
-import {ITreeNodeData} from "./interfaces/tree-node/ITreeNodeData";
+	type IBloomEffectDefinition,
+	type IChromaticAberrationEffectDefinition,
+	type IDepthOfFieldEffectDefinition,
+	type IDotScreenEffectDefinition,
+	type IGodRaysEffectDefinition,
+	type IGridEffectDefinition,
+	type IHBAOEffectDefinition,
+	type IHueSaturationEffectDefinition,
+	type INoiseEffectDefinition,
+	type IOutlineEffectDefinition,
+	type IPixelationEffectDefinition,
+	type IPostProcessingEffectDefinition,
+	type IPostProcessingEffectsArray,
+	type IScanlineEffectDefinition,
+	type ISelectiveBloomEffectDefinition,
+	type ISepiaEffectDefinition,
+	type ISSAOEffectDefinition,
+	type ITiltShiftEffectDefinition,
+	type IVignetteEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE} from "./interfaces/renderingEngine/IPostProcessingEffectDefinitions";
+import {type ITree} from "./interfaces/tree-node/ITree";
+import {type ITransformation, type ITreeNode} from "./interfaces/tree-node/ITreeNode";
+import {type ITreeNodeData} from "./interfaces/tree-node/ITreeNodeData";
 
-export {
-	ANTI_ALIASING_TECHNIQUE,
+export {ANTI_ALIASING_TECHNIQUE,
 	ATTRIBUTE_VISUALIZATION,
 	BUSY_MODE_DISPLAY,
 	CAMERA_TYPE,
@@ -311,140 +277,139 @@ export {
 	validateInteractionParameterSettings,
 	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings,
-	VISIBILITY_MODE,
-	type Color,
-	type DraggingParameterValue,
-	type DrawingParameterValue,
-	type EventResponseMapping,
-	type Gradient,
-	type GumballTransformParameterValue,
-	type IAnchorDataImage,
-	type IAnchorDataText,
-	type IAnimationData,
-	type IAnimationTrack,
-	type IAttributeData,
-	type IBloomEffectDefinition,
-	type IBox,
-	type IBoxSelectionIntersection,
-	type ICameraEvent,
-	type ICameraOptions,
-	type IChromaticAberrationEffectDefinition,
-	type IChunkData,
-	type ICustomData,
-	type IDepthOfFieldEffectDefinition,
-	type IDotScreenEffectDefinition,
-	type IDraggableObject,
-	type IDraggingParameterProps,
-	type IDrawingParameterSettings,
-	type IEvent,
-	type IGeometry,
-	type IGeometryData,
-	type IGodRaysEffectDefinition,
-	type IGradient,
-	type IGridEffectDefinition,
-	type IGumballTransformParameterProps,
-	type IHBAOEffectDefinition,
-	type IHTMLElementAnchorData,
-	type IHTMLElementAnchorUpdateProperties,
-	type IHueSaturationEffectDefinition,
-	type IInstanceData,
-	type IInteractionParameterProps,
-	type IInteractionParameterSettings,
-	type IIntersectionDefinition,
-	type IIntersectionFilter,
-	type IMapData,
-	type IMapDataProperties,
-	type IMapDataPropertiesDefinition,
-	type IMaterialAbstractData,
-	type IMaterialAbstractDataProperties,
-	type IMaterialAbstractDataPropertiesDefinition,
-	type IMaterialBasicLineData,
-	type IMaterialBasicLineDataProperties,
-	type IMaterialBasicLineDataPropertiesDefinition,
-	type IMaterialGemData,
-	type IMaterialGemDataProperties,
-	type IMaterialGemDataPropertiesDefinition,
-	type IMaterialLambertData,
-	type IMaterialLambertDataProperties,
-	type IMaterialLambertDataPropertiesDefinition,
-	type IMaterialMultiPointData,
-	type IMaterialMultiPointDataProperties,
-	type IMaterialMultiPointDataPropertiesDefinition,
-	type IMaterialPhongData,
-	type IMaterialPhongDataProperties,
-	type IMaterialPhongDataPropertiesDefinition,
-	type IMaterialPointData,
-	type IMaterialPointDataProperties,
-	type IMaterialPointDataPropertiesDefinition,
-	type IMaterialShadowData,
-	type IMaterialShadowDataProperties,
-	type IMaterialShadowDataPropertiesDefinition,
-	type IMaterialSpecularGlossinessData,
-	type IMaterialSpecularGlossinessDataProperties,
-	type IMaterialSpecularGlossinessDataPropertiesDefinition,
-	type IMaterialStandardData,
-	type IMaterialStandardDataProperties,
-	type IMaterialStandardDataPropertiesDefinition,
-	type IMaterialUnlitData,
-	type IMaterialUnlitDataProperties,
-	type IMaterialUnlitDataPropertiesDefinition,
-	type IMaterialVariantsData,
-	type INoiseEffectDefinition,
-	type InteractionEffect,
-	type InteractionParameterSettingsType,
-	type INumberGradient,
-	type IOutlineEffectDefinition,
-	type IOutputEvent,
-	type IParameterEvent,
-	type IPixelationEffectDefinition,
-	type IPlane,
-	type IPostProcessingEffectDefinition,
-	type IPostProcessingEffectsArray,
-	type IPrimitiveData,
-	type IRay,
-	type IRayTracingIntersection,
-	type IRectangleTransformParameterProps,
-	type IRenderingEvent,
-	type IScanlineEffectDefinition,
-	type ISceneEvent,
-	type ISDTFAttributeData,
-	type ISDTFAttributesData,
-	type ISDTFAttributeVisualizationData,
-	type ISDTFItemData,
-	type ISDTFOverview,
-	type ISDTFOverviewData,
-	type ISelectionParameterProps,
-	type ISelectiveBloomEffectDefinition,
-	type ISepiaEffectDefinition,
-	type ISessionErrorEvent,
-	type ISessionEvent,
-	type ISessionSettingsSections,
-	type ISettingsSections,
-	type ISphere,
-	type ISpherical,
-	type ISSAOEffectDefinition,
-	type IStringGradient,
-	type ITaskEvent,
-	type ITaskEventDescription,
-	type ITiltShiftEffectDefinition,
-	type ITransformation,
-	type ITree,
-	type ITreeNode,
-	type ITreeNodeData,
-	type ITriangle,
-	type IViewportEvent,
-	type IViewportSettingsSections,
-	type IVignetteEffectDefinition,
-	type IVisualizationSettings,
-	type MainEventTypes,
-	type OrthographicCameraProperties,
-	type PerspectiveCameraProperties,
-	type RectangleTransformParameterValue,
-	type RestrictionDefinition,
-	type Rotation,
-	type SDImageBitmap,
-	type SelectionParameterValue,
-	type SessionCreationDefinition,
-	type TaskCategoryTypes,
-	type ViewportCreationDefinition,
-};
+	VISIBILITY_MODE};
+export type {Color,
+	DraggingParameterValue,
+	DrawingParameterValue,
+	EventResponseMapping,
+	Gradient,
+	GumballTransformParameterValue,
+	IAnchorDataImage,
+	IAnchorDataText,
+	IAnimationData,
+	IAnimationTrack,
+	IAttributeData,
+	IBloomEffectDefinition,
+	IBox,
+	IBoxSelectionIntersection,
+	ICameraEvent,
+	ICameraOptions,
+	IChromaticAberrationEffectDefinition,
+	IChunkData,
+	ICustomData,
+	IDepthOfFieldEffectDefinition,
+	IDotScreenEffectDefinition,
+	IDraggableObject,
+	IDraggingParameterProps,
+	IDrawingParameterSettings,
+	IEvent,
+	IGeometry,
+	IGeometryData,
+	IGodRaysEffectDefinition,
+	IGradient,
+	IGridEffectDefinition,
+	IGumballTransformParameterProps,
+	IHBAOEffectDefinition,
+	IHTMLElementAnchorData,
+	IHTMLElementAnchorUpdateProperties,
+	IHueSaturationEffectDefinition,
+	IInstanceData,
+	IInteractionParameterProps,
+	IInteractionParameterSettings,
+	IIntersectionDefinition,
+	IIntersectionFilter,
+	IMapData,
+	IMapDataProperties,
+	IMapDataPropertiesDefinition,
+	IMaterialAbstractData,
+	IMaterialAbstractDataProperties,
+	IMaterialAbstractDataPropertiesDefinition,
+	IMaterialBasicLineData,
+	IMaterialBasicLineDataProperties,
+	IMaterialBasicLineDataPropertiesDefinition,
+	IMaterialGemData,
+	IMaterialGemDataProperties,
+	IMaterialGemDataPropertiesDefinition,
+	IMaterialLambertData,
+	IMaterialLambertDataProperties,
+	IMaterialLambertDataPropertiesDefinition,
+	IMaterialMultiPointData,
+	IMaterialMultiPointDataProperties,
+	IMaterialMultiPointDataPropertiesDefinition,
+	IMaterialPhongData,
+	IMaterialPhongDataProperties,
+	IMaterialPhongDataPropertiesDefinition,
+	IMaterialPointData,
+	IMaterialPointDataProperties,
+	IMaterialPointDataPropertiesDefinition,
+	IMaterialShadowData,
+	IMaterialShadowDataProperties,
+	IMaterialShadowDataPropertiesDefinition,
+	IMaterialSpecularGlossinessData,
+	IMaterialSpecularGlossinessDataProperties,
+	IMaterialSpecularGlossinessDataPropertiesDefinition,
+	IMaterialStandardData,
+	IMaterialStandardDataProperties,
+	IMaterialStandardDataPropertiesDefinition,
+	IMaterialUnlitData,
+	IMaterialUnlitDataProperties,
+	IMaterialUnlitDataPropertiesDefinition,
+	IMaterialVariantsData,
+	INoiseEffectDefinition,
+	InteractionEffect,
+	InteractionParameterSettingsType,
+	INumberGradient,
+	IOutlineEffectDefinition,
+	IOutputEvent,
+	IParameterEvent,
+	IPixelationEffectDefinition,
+	IPlane,
+	IPostProcessingEffectDefinition,
+	IPostProcessingEffectsArray,
+	IPrimitiveData,
+	IRay,
+	IRayTracingIntersection,
+	IRectangleTransformParameterProps,
+	IRenderingEvent,
+	IScanlineEffectDefinition,
+	ISceneEvent,
+	ISDTFAttributeData,
+	ISDTFAttributesData,
+	ISDTFAttributeVisualizationData,
+	ISDTFItemData,
+	ISDTFOverview,
+	ISDTFOverviewData,
+	ISelectionParameterProps,
+	ISelectiveBloomEffectDefinition,
+	ISepiaEffectDefinition,
+	ISessionErrorEvent,
+	ISessionEvent,
+	ISessionSettingsSections,
+	ISettingsSections,
+	ISphere,
+	ISpherical,
+	ISSAOEffectDefinition,
+	IStringGradient,
+	ITaskEvent,
+	ITaskEventDescription,
+	ITiltShiftEffectDefinition,
+	ITransformation,
+	ITree,
+	ITreeNode,
+	ITreeNodeData,
+	ITriangle,
+	IViewportEvent,
+	IViewportSettingsSections,
+	IVignetteEffectDefinition,
+	IVisualizationSettings,
+	MainEventTypes,
+	OrthographicCameraProperties,
+	PerspectiveCameraProperties,
+	RectangleTransformParameterValue,
+	RestrictionDefinition,
+	Rotation,
+	SDImageBitmap,
+	SelectionParameterValue,
+	SessionCreationDefinition,
+	TaskCategoryTypes,
+	ViewportCreationDefinition};

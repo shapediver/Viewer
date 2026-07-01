@@ -1,9 +1,9 @@
-import {IRestriction} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay, IViewportEvent} from "@shapediver/viewer.shared.types";
+import {type IRestriction} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IRay, type IViewportEvent} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
-import {IDragAnchor} from "../../implementation/InteractionData";
-import {IInteractionManager} from "../IInteractionManager";
+import {type IDragAnchor} from "../../implementation/InteractionData";
+import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the drag event.

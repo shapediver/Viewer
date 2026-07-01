@@ -2,62 +2,57 @@ import {QueryGltfConversion} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {sceneTree} from "@shapediver/viewer.api.general";
 import {
 	CreationControlCenterViewport,
-	ICreationControlCenterViewport,
-} from "@shapediver/viewer.creation-control-center.viewport";
+	type ICreationControlCenterViewport} from "@shapediver/viewer.creation-control-center.viewport";
 import {GLTFConverter} from "@shapediver/viewer.data-engine.gltf-converter";
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
 import {
 	CAMERA_TYPE,
-	IOrthographicCamera,
-	IPerspectiveCamera,
-	OrthographicCameraProperties,
-	PerspectiveCameraProperties,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
+	type IOrthographicCamera,
+	type IPerspectiveCamera,
+	type OrthographicCameraProperties,
+	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {
 	GeometryData,
-	ITreeNode,
+	type ITreeNode,
 	MaterialBasicLineData,
 	MaterialPointData,
 	MaterialStandardData,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
-	IDomEventListener,
+	type IDomEventListener,
 	InputValidator,
 	Logger,
 	SESSION_SETTINGS_MODE,
 	ShapeDiverViewerArError,
 	ShapeDiverViewerValidationError,
 	StateEngine,
-	SystemInfo,
-} from "@shapediver/viewer.shared.services";
+	SystemInfo} from "@shapediver/viewer.shared.services";
 import {
-	Color,
+	type Color,
 	FLAG_TYPE,
-	IAnimationData,
-	IGeometryData,
-	IIntersectionFilter,
-	ISDTFAttributeVisualizationData,
-	ISDTFItemData,
-	ISDTFOverview,
+	type IAnimationData,
+	type IGeometryData,
+	type IIntersectionFilter,
+	type ISDTFAttributeVisualizationData,
+	type ISDTFItemData,
+	type ISDTFOverview,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING,
-} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 import * as QRCode from "qrcode";
 import * as THREE from "three";
-import {ICameraApi} from "../interfaces/camera/ICameraApi";
-import {IOrthographicCameraApi} from "../interfaces/camera/IOrthographicCameraApi";
-import {IPerspectiveCameraApi} from "../interfaces/camera/IPerspectiveCameraApi";
-import {IPostProcessingApi} from "../interfaces/IPostProcessingApi";
-import {IViewportApi} from "../interfaces/IViewportApi";
-import {ILightSceneApi} from "../interfaces/lights/ILightSceneApi";
+import {type ICameraApi} from "../interfaces/camera/ICameraApi";
+import {type IOrthographicCameraApi} from "../interfaces/camera/IOrthographicCameraApi";
+import {type IPerspectiveCameraApi} from "../interfaces/camera/IPerspectiveCameraApi";
+import {type IPostProcessingApi} from "../interfaces/IPostProcessingApi";
+import {type IViewportApi} from "../interfaces/IViewportApi";
+import {type ILightSceneApi} from "../interfaces/lights/ILightSceneApi";
 import {OrthographicCameraApi} from "./camera/OrthographicCameraApi";
 import {PerspectiveCameraApi} from "./camera/PerspectiveCameraApi";
 import {LightSceneApi} from "./lights/LightSceneApi";

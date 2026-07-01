@@ -1,40 +1,36 @@
 import {
-	OrthographicCameraProperties,
-	PerspectiveCameraProperties,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
+	type OrthographicCameraProperties,
+	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ISettings} from "@shapediver/viewer.settings";
 import {
-	ITreeNode,
+	type ITreeNode,
 	MaterialBasicLineData,
 	MaterialPointData,
-	MaterialStandardData,
-} from "@shapediver/viewer.shared.node-tree";
+	MaterialStandardData} from "@shapediver/viewer.shared.node-tree";
 import {
-	IDomEventListener,
-	SESSION_SETTINGS_MODE,
-} from "@shapediver/viewer.shared.services";
+	type IDomEventListener,
+	SESSION_SETTINGS_MODE} from "@shapediver/viewer.shared.services";
 import {
-	Color,
+	type Color,
 	FLAG_TYPE,
-	IAnimationData,
-	IGeometryData,
-	IIntersectionFilter,
-	ISDTFAttributeVisualizationData,
-	ISDTFItemData,
-	ISDTFOverview,
+	type IAnimationData,
+	type IGeometryData,
+	type IIntersectionFilter,
+	type ISDTFAttributeVisualizationData,
+	type ISDTFItemData,
+	type ISDTFOverview,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING,
-} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING} from "@shapediver/viewer.shared.types";
 import {quat, vec3} from "gl-matrix";
 import * as THREE from "three";
-import {ICameraApi} from "./camera/ICameraApi";
-import {IOrthographicCameraApi} from "./camera/IOrthographicCameraApi";
-import {IPerspectiveCameraApi} from "./camera/IPerspectiveCameraApi";
-import {IPostProcessingApi} from "./IPostProcessingApi";
-import {ILightSceneApi} from "./lights/ILightSceneApi";
+import {type ICameraApi} from "./camera/ICameraApi";
+import {type IOrthographicCameraApi} from "./camera/IOrthographicCameraApi";
+import {type IPerspectiveCameraApi} from "./camera/IPerspectiveCameraApi";
+import {type IPostProcessingApi} from "./IPostProcessingApi";
+import {type ILightSceneApi} from "./lights/ILightSceneApi";
 
 /**
  * The api for viewports.

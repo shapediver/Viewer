@@ -1,6 +1,6 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {LIGHT_TYPE} from "../../interface/ILight";
-import {IHemisphereLight} from "../../interface/types/IHemisphereLight";
+import {type IHemisphereLight} from "../../interface/types/IHemisphereLight";
 import {AbstractLight} from "../AbstractLight";
 
 export class HemisphereLight extends AbstractLight implements IHemisphereLight {

@@ -1,5 +1,5 @@
-﻿import {IGumballTransformParameterProps} from "@shapediver/viewer.shared.types";
-import {IInteractionParameterApi} from "./IInteractionParameterApi";
+﻿import {type IGumballTransformParameterProps} from "@shapediver/viewer.shared.types";
+import {type IInteractionParameterApi} from "./IInteractionParameterApi";
 
 export interface IGumballTransformParameterApi
 	extends IInteractionParameterApi {

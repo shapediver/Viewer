@@ -1,4 +1,4 @@
-import {IMaterialVariantsData} from "@shapediver/viewer.shared.types";
+import {type IMaterialVariantsData} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 import {GeometryData} from "../data/GeometryData";
 

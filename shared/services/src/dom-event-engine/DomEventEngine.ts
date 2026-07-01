@@ -1,5 +1,5 @@
 import {UuidGenerator} from "../uuid-generator/UuidGenerator";
-import {IDomEventListener} from "./IDomEventListener";
+import {type IDomEventListener} from "./IDomEventListener";
 
 export class DomEventEngine {
 	// #region Properties (15)

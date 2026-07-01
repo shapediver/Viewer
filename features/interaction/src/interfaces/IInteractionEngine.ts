@@ -1,5 +1,5 @@
-import {IDomEventListener} from "@shapediver/viewer.shared.services";
-import {IInteractionManager} from "./IInteractionManager";
+import {type IDomEventListener} from "@shapediver/viewer.shared.services";
+import {type IInteractionManager} from "./IInteractionManager";
 
 export enum INTERACTION_STATE {
 	/** The event enum for mousedown and touchstart. */

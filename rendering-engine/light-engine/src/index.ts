@@ -6,17 +6,16 @@ import {DirectionalLight} from "./implementation/types/DirectionalLight";
 import {HemisphereLight} from "./implementation/types/HemisphereLight";
 import {PointLight} from "./implementation/types/PointLight";
 import {SpotLight} from "./implementation/types/SpotLight";
-import {ILight, LIGHT_TYPE} from "./interface/ILight";
-import {ILightEngine} from "./interface/ILightEngine";
-import {ILightScene} from "./interface/ILightScene";
-import {IAmbientLight} from "./interface/types/IAmbientLight";
-import {IDirectionalLight} from "./interface/types/IDirectionalLight";
-import {IHemisphereLight} from "./interface/types/IHemisphereLight";
-import {IPointLight} from "./interface/types/IPointLight";
-import {ISpotLight} from "./interface/types/ISpotLight";
+import {type ILight, LIGHT_TYPE} from "./interface/ILight";
+import {type ILightEngine} from "./interface/ILightEngine";
+import {type ILightScene} from "./interface/ILightScene";
+import {type IAmbientLight} from "./interface/types/IAmbientLight";
+import {type IDirectionalLight} from "./interface/types/IDirectionalLight";
+import {type IHemisphereLight} from "./interface/types/IHemisphereLight";
+import {type IPointLight} from "./interface/types/IPointLight";
+import {type ISpotLight} from "./interface/types/ISpotLight";
 
-export {
-	AbstractLight,
+export {AbstractLight,
 	AmbientLight,
 	DirectionalLight,
 	HemisphereLight,
@@ -24,13 +23,12 @@ export {
 	LightEngine,
 	LightScene,
 	PointLight,
-	SpotLight,
-	type IAmbientLight,
-	type IDirectionalLight,
-	type IHemisphereLight,
-	type ILight,
-	type ILightEngine,
-	type ILightScene,
-	type IPointLight,
-	type ISpotLight,
-};
+	SpotLight};
+export type {IAmbientLight,
+	IDirectionalLight,
+	IHemisphereLight,
+	ILight,
+	ILightEngine,
+	ILightScene,
+	IPointLight,
+	ISpotLight};

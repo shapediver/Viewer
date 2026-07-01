@@ -1,5 +1,5 @@
 import {vec3} from "gl-matrix";
-import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
+import {type IDragConstraint} from "../../interfaces/utils/IDragConstraint";
 
 /**
  * The line constraint is used for dragging and allows the specification of a line along which objects can be dragged.

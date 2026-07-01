@@ -1,5 +1,5 @@
-import {IViewportApi, SystemInfo} from "@shapediver/viewer";
-import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
+import {type IViewportApi, SystemInfo} from "@shapediver/viewer";
+import {type IRay, type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 
 export class GeometryMathManager {

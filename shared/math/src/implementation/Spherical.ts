@@ -1,4 +1,4 @@
-import {ISpherical} from "@shapediver/viewer.shared.types";
+import {type ISpherical} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 
 export class Spherical implements ISpherical {

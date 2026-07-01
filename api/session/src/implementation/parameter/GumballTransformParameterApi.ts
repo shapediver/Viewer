@@ -1,7 +1,7 @@
-﻿import {IGumballTransformParameter} from "@shapediver/viewer.session-engine.session-engine";
+﻿import {type IGumballTransformParameter} from "@shapediver/viewer.session-engine.session-engine";
 
-import {IGumballTransformParameterProps} from "@shapediver/viewer.shared.types";
-import {IGumballTransformParameterApi} from "../../interfaces/parameter/IGumballTransformParameterApi";
+import {type IGumballTransformParameterProps} from "@shapediver/viewer.shared.types";
+import {type IGumballTransformParameterApi} from "../../interfaces/parameter/IGumballTransformParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class GumballTransformParameterApi

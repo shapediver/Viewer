@@ -1,5 +1,5 @@
 import {EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer";
-import {IDrawingToolsEvent} from "./IDrawingToolsEvent";
+import {type IDrawingToolsEvent} from "./IDrawingToolsEvent";
 
 export type DrawingToolsEventResponseMapping = {
 	[EVENTTYPE_DRAWING_TOOLS.CANCEL]: IDrawingToolsEvent;

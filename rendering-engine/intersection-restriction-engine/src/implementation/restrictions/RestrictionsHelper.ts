@@ -1,5 +1,5 @@
 import {mat4, vec3} from "gl-matrix";
-import {IDragAnchor} from "../../interfaces/IDragAnchor";
+import {type IDragAnchor} from "../../interfaces/IDragAnchor";
 
 export const calculateDragMatrix = (
 	snapPoint: vec3,

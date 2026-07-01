@@ -6,16 +6,15 @@ import {
 	EVENTTYPE_SCENE,
 	EVENTTYPE_SESSION,
 	EVENTTYPE_TASK,
-	EVENTTYPE_VIEWPORT,
-} from "./EventTypes";
-import {ICameraEvent} from "./ICameraEvent";
-import {IOutputEvent} from "./IOutputEvent";
-import {IParameterEvent} from "./IParameterEvent";
-import {IRenderingEvent} from "./IRenderingEvent";
-import {ISceneEvent} from "./ISceneEvent";
-import {ISessionErrorEvent, ISessionEvent} from "./ISessionEvent";
-import {ITaskEvent} from "./ITaskEvent";
-import {IViewportEvent} from "./IViewportEvent";
+	EVENTTYPE_VIEWPORT} from "./EventTypes";
+import {type ICameraEvent} from "./ICameraEvent";
+import {type IOutputEvent} from "./IOutputEvent";
+import {type IParameterEvent} from "./IParameterEvent";
+import {type IRenderingEvent} from "./IRenderingEvent";
+import {type ISceneEvent} from "./ISceneEvent";
+import {type ISessionErrorEvent, type ISessionEvent} from "./ISessionEvent";
+import {type ITaskEvent} from "./ITaskEvent";
+import {type IViewportEvent} from "./IViewportEvent";
 
 /**
  * Definition of the event response mapping.

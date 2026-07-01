@@ -1,24 +1,22 @@
-import {addListener, IViewportApi} from "@shapediver/viewer";
-import {IRay} from "@shapediver/viewer.features.interaction";
+import {addListener, type IViewportApi} from "@shapediver/viewer";
+import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	GeometryMathManager,
-	IRestrictionManager,
+	type IRestrictionManager,
 	RestrictionManager,
-	RestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EVENTTYPE_DRAWING_TOOLS,
-	IEvent,
-	SystemInfo,
-} from "@shapediver/viewer.shared.services";
-import {DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
+	type IEvent,
+	SystemInfo} from "@shapediver/viewer.shared.services";
+import {type DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {ControlsManager} from "../controls/ControlsManager";
 import {DeletionInteractionHandler} from "./handlers/DeletionInteractionHandler";
 import {InsertionInteractionHandler} from "./handlers/InsertionInteractionHandler";
 import {MidPointInteractionHandler} from "./handlers/MidPointInteractionHandler";
 import {InteractionManagerHelper} from "./helpers/InteractionManagerHelper";
-import {IStrategy} from "./interfaces/IStrategy";
+import {type IStrategy} from "./interfaces/IStrategy";
 import {DesktopStrategy} from "./strategies/DesktopStrategy";
 import {MobileStrategy} from "./strategies/MobileStategy";
 

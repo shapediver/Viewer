@@ -1,5 +1,5 @@
-import {Color} from "@shapediver/viewer.shared.types";
-import {ILightApi} from "../ILightApi";
+import {type Color} from "@shapediver/viewer.shared.types";
+import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for an hemisphere light.

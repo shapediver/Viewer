@@ -3,27 +3,24 @@ import * as THREE from "three";
 import {AbstractCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
-	DirectionalLight,
-} from "@shapediver/viewer.rendering-engine.light-engine";
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+	DirectionalLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	HTMLElementAnchorData,
 	InstanceData,
-	ITree,
-	ITreeNode,
-	ITreeNodeData,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
-import {ISDTFOverview, RENDERER_TYPE} from "@shapediver/viewer.shared.types";
+	type ITree,
+	type ITreeNode,
+	type ITreeNodeData,
+	Tree} from "@shapediver/viewer.shared.node-tree";
+import {type ISDTFOverview, RENDERER_TYPE} from "@shapediver/viewer.shared.types";
 
 import {
 	EventEngine,
 	EVENTTYPE,
 	PerformanceEvaluator,
-	StateEngine,
-} from "@shapediver/viewer.shared.services";
+	StateEngine} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 
 import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";

@@ -1,4 +1,5 @@
 import {CreationControlCenterViewport} from "./implementation/CreationControlCenterViewport";
-import {ICreationControlCenterViewport} from "./interfaces/ICreationControlCenterViewport";
+import {type ICreationControlCenterViewport} from "./interfaces/ICreationControlCenterViewport";
 
-export {CreationControlCenterViewport, type ICreationControlCenterViewport};
+export {CreationControlCenterViewport};
+export type {ICreationControlCenterViewport};

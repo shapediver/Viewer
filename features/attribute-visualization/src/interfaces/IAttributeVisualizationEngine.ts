@@ -1,9 +1,8 @@
 import {
-	IMaterialAbstractData,
-	ISDTFOverview,
-} from "@shapediver/viewer.shared.types";
-import {IAttribute} from "./IAttribute";
-import {ILayer} from "./ILayer";
+	type IMaterialAbstractData,
+	type ISDTFOverview} from "@shapediver/viewer.shared.types";
+import {type IAttribute} from "./IAttribute";
+import {type ILayer} from "./ILayer";
 
 export interface IAttributeVisualizationEngine {
 	// #region Properties (3)

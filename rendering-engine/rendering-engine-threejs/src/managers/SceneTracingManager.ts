@@ -3,20 +3,17 @@ import * as THREE from "three";
 import {
 	AbstractCamera,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	OrthographicCamera,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
+	OrthographicCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {IntersectionEngine} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
-	IConvert3Dto2DResult,
-	IManager,
-} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type IConvert3Dto2DResult,
+	type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {ShapeDiverViewerViewportError} from "@shapediver/viewer.shared.services";
 import {
-	IGeometryData,
-	IIntersectionFilter,
-	IRayTracingIntersection,
-} from "@shapediver/viewer.shared.types";
+	type IGeometryData,
+	type IIntersectionFilter,
+	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec3} from "gl-matrix";
 

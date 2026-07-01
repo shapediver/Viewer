@@ -1,9 +1,8 @@
 ﻿import * as SDV from "@shapediver/viewer";
 import {addListener, EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
 import {
-	EventResponseMapping,
-	GumballTransform,
-} from "@shapediver/viewer.features.transformation-tools";
+	type EventResponseMapping,
+	GumballTransform} from "@shapediver/viewer.features.transformation-tools";
 
 (<any>window).SDV = SDV;
 

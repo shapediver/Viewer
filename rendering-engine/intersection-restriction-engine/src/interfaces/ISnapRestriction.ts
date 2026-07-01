@@ -1,6 +1,6 @@
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IRay} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {RestrictionMetaData, RestrictionResult} from "./IRestriction";
+import {type RestrictionMetaData, type RestrictionResult} from "./IRestriction";
 
 // #region Type aliases (1)
 

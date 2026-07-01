@@ -4,7 +4,7 @@ import {
 	ResOutput,
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -12,17 +12,15 @@ import {
 	Logger,
 	PerformanceEvaluator,
 	StateEngine,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	IOutputEvent,
-	ITaskEvent,
-	ITaskEventDescription,
+	type IOutputEvent,
+	type ITaskEvent,
+	type ITaskEventDescription,
 	TASK_CATEGORY,
-	TASK_TYPE,
-} from "@shapediver/viewer.shared.types";
+	TASK_TYPE} from "@shapediver/viewer.shared.types";
 
-import {ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
+import {type ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
 import {SessionData} from "../SessionData";
 import {SessionEngineCore} from "../SessionEngineCore";
 import {SessionTreeNode} from "../SessionTreeNode";

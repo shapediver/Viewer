@@ -1,8 +1,8 @@
-import {RaycasterParameters} from "three";
 import {IntersectionEngine} from "./implementation/IntersectionEngine";
 import {SelectionBox} from "./implementation/SelectionBox";
-import {IIntersectionEngine} from "./interfaces/IIntersectionEngine";
-import {ISelectionBox} from "./interfaces/ISelectionBox";
+import {type IIntersectionEngine} from "./interfaces/IIntersectionEngine";
+import {type ISelectionBox} from "./interfaces/ISelectionBox";
+import {type RaycasterParameters} from "three";
 
-export {IntersectionEngine, RaycasterParameters, SelectionBox};
-export type {IIntersectionEngine, ISelectionBox};
+export {IntersectionEngine, SelectionBox};
+export type {IIntersectionEngine, ISelectionBox, RaycasterParameters};

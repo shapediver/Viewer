@@ -1,7 +1,7 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {LIGHT_TYPE} from "../../interface/ILight";
-import {IDirectionalLight} from "../../interface/types/IDirectionalLight";
+import {type IDirectionalLight} from "../../interface/types/IDirectionalLight";
 import {AbstractLight} from "../AbstractLight";
 
 export class DirectionalLight

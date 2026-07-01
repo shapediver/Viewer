@@ -1,10 +1,9 @@
-import {ISelectionParameter} from "@shapediver/viewer.session-engine.session-engine";
+import {type ISelectionParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {
-	InteractionParameterSettingsType,
-	ISelectionParameterProps,
-} from "@shapediver/viewer.shared.types";
+	type InteractionParameterSettingsType,
+	type ISelectionParameterProps} from "@shapediver/viewer.shared.types";
 
-import {ISelectionParameterApi} from "../../interfaces/parameter/ISelectionParameterApi";
+import {type ISelectionParameterApi} from "../../interfaces/parameter/ISelectionParameterApi";
 import {ParameterApi} from "./ParameterApi";
 
 export class SelectionParameterApi

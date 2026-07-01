@@ -1,5 +1,5 @@
 import {vec2} from "gl-matrix";
-import {Color} from "../../types";
+import {type Color} from "../../types";
 
 export enum POST_PROCESSING_EFFECT_TYPE {
 	BLOOM = "bloom",

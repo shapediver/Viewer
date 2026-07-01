@@ -3,14 +3,13 @@ import {
 	Converter,
 	EventEngine,
 	EVENTTYPE,
-	SettingsEngine,
-} from "@shapediver/viewer.shared.services";
-import {ICameraOptions} from "@shapediver/viewer.shared.types";
+	SettingsEngine} from "@shapediver/viewer.shared.services";
+import {type ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
-import {ICamera} from "../../interfaces/camera/ICamera";
-import {ICameraControls} from "../../interfaces/controls/ICameraControls";
-import {ICameraControlsEventDistribution} from "../../interfaces/controls/ICameraControlsEventDistribution";
-import {ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
+import {type ICamera} from "../../interfaces/camera/ICamera";
+import {type ICameraControls} from "../../interfaces/controls/ICameraControls";
+import {type ICameraControlsEventDistribution} from "../../interfaces/controls/ICameraControlsEventDistribution";
+import {type ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
 import {CameraInterpolationManager} from "../interpolation/CameraInterpolationManager";
 
 export abstract class AbstractCameraControls implements ICameraControls {

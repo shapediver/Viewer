@@ -1,5 +1,5 @@
-import {ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+import {type Color} from "@shapediver/viewer.shared.types";
 
 export enum LIGHT_TYPE {
 	AMBIENT = "ambient",

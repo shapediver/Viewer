@@ -1,5 +1,5 @@
-import {ICameraControls} from "../controls/ICameraControls";
-import {ICamera} from "./ICamera";
+import {type ICameraControls} from "../controls/ICameraControls";
+import {type ICamera} from "./ICamera";
 
 export interface IPerspectiveCamera extends ICamera {
 	// #region Properties (2)

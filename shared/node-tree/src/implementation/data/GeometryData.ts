@@ -1,11 +1,10 @@
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
-	IAttributeData,
-	IGeometryData,
-	IMaterialAbstractData,
-	IPrimitiveData,
-	PRIMITIVE_MODE,
-} from "@shapediver/viewer.shared.types";
+	type IAttributeData,
+	type IGeometryData,
+	type IMaterialAbstractData,
+	type IPrimitiveData,
+	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 

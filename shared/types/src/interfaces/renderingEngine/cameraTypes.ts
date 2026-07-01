@@ -1,5 +1,5 @@
 import {vec2, vec3} from "gl-matrix";
-import {IBox} from "../math/IBox";
+import {type IBox} from "../math/IBox";
 
 export enum CAMERA_TYPE {
 	PERSPECTIVE = "perspective",

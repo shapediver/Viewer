@@ -1,5 +1,5 @@
 import {ResOutput, ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 export class GlobalAccessObjects {
 	// #region Properties (3)

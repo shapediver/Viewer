@@ -1,7 +1,6 @@
 ﻿import {
-	ITransformationToolsManager,
-	Settings,
-} from "../ITransformationToolsManager";
+	type ITransformationToolsManager,
+	type Settings} from "../ITransformationToolsManager";
 
 export interface IGumballTransform extends ITransformationToolsManager {}
 

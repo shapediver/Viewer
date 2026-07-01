@@ -4,17 +4,16 @@ import {
 	EventEngine,
 	EVENTTYPE,
 	HttpClient,
-	HttpResponse,
+	type HttpResponse,
 	ShapeDiverViewerEnvironmentMapError,
 	StateEngine,
 	StatePromise,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import * as THREE from "three";
 
-import {ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
+import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
 import {RenderingEngine} from "..";
-import {ILoader} from "../interfaces/ILoader";
+import {type ILoader} from "../interfaces/ILoader";
 import {assignEnvironmentMapForThreeJsData} from "../managers/sceneTree/ThreeJsDataUtils";
 import {RGBELoader} from "../three/loaders/RGBELoader";
 

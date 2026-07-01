@@ -1,4 +1,4 @@
-import {IAnimationData} from "@shapediver/viewer.shared.types";
+import {type IAnimationData} from "@shapediver/viewer.shared.types";
 
 export interface IAnimationEngine {
 	// #region Properties (1)

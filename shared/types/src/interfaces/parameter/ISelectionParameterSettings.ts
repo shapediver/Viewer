@@ -1,7 +1,6 @@
 import {
-	IInteractionParameterProps,
-	InteractionEffect,
-} from "./IInteractionParameterSettings";
+	type IInteractionParameterProps,
+	type InteractionEffect} from "./IInteractionParameterSettings";
 
 // #region Type aliases (1)
 

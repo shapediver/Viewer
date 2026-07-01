@@ -1,25 +1,22 @@
 import {
 	addListener,
-	IMaterialAbstractData,
-	IViewportApi,
-	removeListener,
-} from "@shapediver/viewer";
-import {ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
+	type IMaterialAbstractData,
+	type IViewportApi,
+	removeListener} from "@shapediver/viewer";
+import {type ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	Logger,
-} from "@shapediver/viewer.shared.services";
+	Logger} from "@shapediver/viewer.shared.services";
 import {
-	IIntersectionDefinition,
-	IRay,
-	IRayTracingIntersection,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IRay,
+	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
 
-import {IHoverEvent} from "../../interfaces/events/IHoverEvent";
+import {type IHoverEvent} from "../../interfaces/events/IHoverEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
-import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
-import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
+import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {type IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 

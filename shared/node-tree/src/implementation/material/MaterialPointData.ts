@@ -1,10 +1,9 @@
 import {
-	IMaterialPointData,
-	IMaterialPointDataProperties,
+	type IMaterialPointData,
+	type IMaterialPointDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE,
-} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialPointData

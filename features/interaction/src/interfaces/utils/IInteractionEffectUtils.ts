@@ -1,6 +1,6 @@
-import {IOutlineEffectDefinition, IViewportApi} from "@shapediver/viewer";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IMaterialAbstractData} from "@shapediver/viewer.shared.types";
+import {type IOutlineEffectDefinition, type IViewportApi} from "@shapediver/viewer";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IMaterialAbstractData} from "@shapediver/viewer.shared.types";
 
 export type IInteractionEffect =
 	| IMaterialAbstractData

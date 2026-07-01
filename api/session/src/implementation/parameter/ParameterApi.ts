@@ -2,13 +2,12 @@ import {
 	CommonsGroup,
 	ResStructureType,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {IParameter} from "@shapediver/viewer.session-engine.session-engine";
+import {type IParameter} from "@shapediver/viewer.session-engine.session-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	PARAMETER_TYPE,
-	PARAMETER_VISUALIZATION,
-} from "@shapediver/viewer.shared.types";
-import {IParameterApi} from "../../interfaces/parameter/IParameterApi";
+	PARAMETER_VISUALIZATION} from "@shapediver/viewer.shared.types";
+import {type IParameterApi} from "../../interfaces/parameter/IParameterApi";
 
 export class ParameterApi<T> implements IParameterApi<T> {
 	// #region Properties (3)

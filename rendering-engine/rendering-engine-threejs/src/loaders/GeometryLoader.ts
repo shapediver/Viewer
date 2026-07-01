@@ -2,23 +2,20 @@ import {
 	AttributeData,
 	GeometryData,
 	InstanceData,
-	MaterialGemData,
-} from "@shapediver/viewer.shared.node-tree";
+	MaterialGemData} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
-	ShapeDiverViewerDataProcessingError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
 import {
-	IAttributeData,
-	IMaterialAbstractData,
-	IPrimitiveData,
+	type IAttributeData,
+	type IMaterialAbstractData,
+	type IPrimitiveData,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,
-	RENDERER_TYPE,
-} from "@shapediver/viewer.shared.types";
+	RENDERER_TYPE} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
-import {ILoader} from "../interfaces/ILoader";
+import {type ILoader} from "../interfaces/ILoader";
 import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
 

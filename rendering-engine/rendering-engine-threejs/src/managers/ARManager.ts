@@ -1,12 +1,11 @@
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
 	EventEngine,
 	EVENTTYPE,
 	ShapeDiverViewerArError,
 	SystemInfo,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
-import {ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
+import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
 
 import {RenderingEngine} from "..";
 

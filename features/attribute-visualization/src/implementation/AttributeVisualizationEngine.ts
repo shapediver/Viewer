@@ -1,34 +1,30 @@
 /* eslint-disable no-case-declarations */
 import {
 	addListener,
-	ITreeNode,
-	IViewportApi,
-	sceneTree,
-} from "@shapediver/viewer";
+	type ITreeNode,
+	type IViewportApi,
+	sceneTree} from "@shapediver/viewer";
 import {
 	MaterialGemData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	SDTFItemData,
-} from "@shapediver/viewer.shared.node-tree";
+	SDTFItemData} from "@shapediver/viewer.shared.node-tree";
 import {EVENTTYPE, UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	IMaterialAbstractData,
-	ISDTFItemData,
-	ISDTFOverview,
-	SdtfPrimitiveTypeGuard,
-} from "@shapediver/viewer.shared.types";
+	type IMaterialAbstractData,
+	type ISDTFItemData,
+	type ISDTFOverview,
+	SdtfPrimitiveTypeGuard} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {
-	IAttribute,
-	IDefaultAttribute,
-	INumberAttribute,
-	IStringAttribute,
-} from "../interfaces/IAttribute";
-import {IAttributeVisualizationEngine} from "../interfaces/IAttributeVisualizationEngine";
-import {ILayer} from "../interfaces/ILayer";
+	type IAttribute,
+	type IDefaultAttribute,
+	type INumberAttribute,
+	type IStringAttribute} from "../interfaces/IAttribute";
+import {type IAttributeVisualizationEngine} from "../interfaces/IAttributeVisualizationEngine";
+import {type ILayer} from "../interfaces/ILayer";
 import {AttributeVisualizationUtils} from "./AttributeVisualizationUtils";
 
 /** Shared identity matrix — never mutate this. */

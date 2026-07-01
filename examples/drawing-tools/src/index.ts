@@ -1,21 +1,19 @@
 import * as SDV from "@shapediver/viewer";
-import {IDirectionalLightApi, LIGHT_TYPE} from "@shapediver/viewer";
+import {type IDirectionalLightApi, LIGHT_TYPE} from "@shapediver/viewer";
 import {
 	createDrawingTools,
-	IDrawingToolsApi,
-	IDrawingToolsEvent,
-	IEdgeControl,
-	PointsData,
-	RayTraceResult,
+	type IDrawingToolsApi,
+	type IDrawingToolsEvent,
+	type IEdgeControl,
+	type PointsData,
+	type RayTraceResult,
 	RESTRICTION_TYPE,
-	Settings,
-} from "@shapediver/viewer.features.drawing-tools";
+	Settings} from "@shapediver/viewer.features.drawing-tools";
 import {
 	createCustomUi,
-	IBooleanElement,
-	IDropdownElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IBooleanElement,
+	type IDropdownElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 (<any>window).SDV = SDV;
 
 // ─── Helper: status log overlay ────────────────────────────────────────────

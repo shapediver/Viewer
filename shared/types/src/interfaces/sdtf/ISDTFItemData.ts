@@ -1,6 +1,6 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
-import {ISDTFAttributeData} from "./ISDTFAttributesData";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type ISDTFAttributeData} from "./ISDTFAttributesData";
 
 export interface ISDTFItemData extends ITreeNodeData {
 	// #region Properties (3)

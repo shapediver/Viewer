@@ -1,13 +1,12 @@
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IRay} from "@shapediver/viewer.shared.types";
 
 import {quat, vec3} from "gl-matrix";
 
 import {
-	ApplyConstraintsFn,
-	GetPositionFn,
-	MoveTemporaryFn,
-} from "../../../interfaces/controls/IControl";
-import {IEdgeControl} from "../../../interfaces/controls/IEdgeControl";
+	type ApplyConstraintsFn,
+	type GetPositionFn,
+	type MoveTemporaryFn} from "../../../interfaces/controls/IControl";
+import {type IEdgeControl} from "../../../interfaces/controls/IEdgeControl";
 
 /**
  * Runtime representation of an edge control point.

@@ -10,11 +10,10 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {TASK_CATEGORY, TASK_TYPE} from "@shapediver/viewer.shared.types";
 
-import {IExport} from "../../interfaces/dto/IExport";
+import {type IExport} from "../../interfaces/dto/IExport";
 import {Export} from "../dto/Export";
 import {SessionEngineCore} from "../SessionEngineCore";
 

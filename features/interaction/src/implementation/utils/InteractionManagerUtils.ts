@@ -1,16 +1,15 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {RestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {Logger} from "@shapediver/viewer.shared.services";
-import {IIntersectionFilter} from "@shapediver/viewer.shared.types";
+import {type IIntersectionFilter} from "@shapediver/viewer.shared.types";
 
-import {IInteractionTypes} from "../../interfaces/IInteractionData";
+import {type IInteractionTypes} from "../../interfaces/IInteractionData";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
-import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {
-	IInteractionEffect,
-	IInteractionEffectUtils,
-} from "../../interfaces/utils/IInteractionEffectUtils";
+	type IInteractionEffect,
+	type IInteractionEffectUtils} from "../../interfaces/utils/IInteractionEffectUtils";
 import {InteractionData} from "../InteractionData";
 
 export class InteractionManagerUtils {

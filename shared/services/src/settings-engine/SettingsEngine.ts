@@ -3,8 +3,7 @@ import {
 	ISettings,
 	latestVersion,
 	previousVersion,
-	validate,
-} from "@shapediver/viewer.settings";
+	validate} from "@shapediver/viewer.settings";
 import {ShapeDiverViewerSettingsError} from "../logger/ShapeDiverViewerErrors";
 import {Defaults} from "./defaults/Defaults";
 import {FurnitureDefaults} from "./defaults/FurnitureDefaults";

@@ -1,6 +1,6 @@
-import {IAmbientLight} from "@shapediver/viewer.rendering-engine.light-engine";
-import {IViewportApi} from "../../../interfaces/IViewportApi";
-import {IAmbientLightApi} from "../../../interfaces/lights/types/IAmbientLightApi";
+import {type IAmbientLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IViewportApi} from "../../../interfaces/IViewportApi";
+import {type IAmbientLightApi} from "../../../interfaces/lights/types/IAmbientLightApi";
 import {AbstractLightApi} from "../AbstractLightApi";
 
 export class AmbientLightApi

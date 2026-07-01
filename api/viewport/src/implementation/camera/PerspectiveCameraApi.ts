@@ -1,7 +1,7 @@
-import {IPerspectiveCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IPerspectiveCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
-import {IPerspectiveCameraApi} from "../../interfaces/camera/IPerspectiveCameraApi";
-import {IViewportApi} from "../../interfaces/IViewportApi";
+import {type IPerspectiveCameraApi} from "../../interfaces/camera/IPerspectiveCameraApi";
+import {type IViewportApi} from "../../interfaces/IViewportApi";
 import {AbstractCameraApi} from "./AbstractCameraApi";
 
 export class PerspectiveCameraApi

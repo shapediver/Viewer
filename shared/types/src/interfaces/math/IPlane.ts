@@ -1,6 +1,6 @@
 import {mat4, vec3} from "gl-matrix";
 
-import {IGeometry} from "./IGeometry";
+import {type IGeometry} from "./IGeometry";
 
 export interface IPlane extends IGeometry {
 	constant: number;

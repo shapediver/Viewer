@@ -5,11 +5,11 @@ import {
 	ResGetModelState,
 	ResModelState,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {ISettingsSections} from "@shapediver/viewer.shared.types";
-import {IExportApi} from "./IExportApi";
-import {IOutputApi} from "./IOutputApi";
-import {IParameterApi} from "./parameter/IParameterApi";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ISettingsSections} from "@shapediver/viewer.shared.types";
+import {type IExportApi} from "./IExportApi";
+import {type IOutputApi} from "./IOutputApi";
+import {type IParameterApi} from "./parameter/IParameterApi";
 
 /**
  * The api for sessions.

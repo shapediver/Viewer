@@ -1,15 +1,13 @@
-import {IRay, IViewportApi} from "@shapediver/viewer.features.interaction";
+import {type IRay, type IViewportApi} from "@shapediver/viewer.features.interaction";
 import {
 	GeometryMathManager,
-	IRestrictionManager,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {vec3} from "gl-matrix";
 import {
 	MATERIAL_INDEX,
-	Settings,
-} from "../../../../interfaces/IDrawingToolsManager";
+	type Settings} from "../../../../interfaces/IDrawingToolsManager";
 
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";

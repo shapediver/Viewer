@@ -1,9 +1,8 @@
-import {Color} from "../../../types";
-import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
+import {type Color} from "../../../types";
+import {type IMapData, type IMapDataPropertiesDefinition} from "./IMapData";
 import {
-	IMaterialAbstractData,
-	IMaterialAbstractDataPropertiesGeneric,
-} from "./IMaterialAbstractData";
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataPropertiesGeneric} from "./IMaterialAbstractData";
 
 export type IMaterialPhongDataProperties = Partial<
 	IMaterialPhongDataPropertiesGeneric<IMapData>

@@ -1,15 +1,14 @@
-import {IMapData, IViewportApi, MaterialEngine} from "@shapediver/viewer";
+import {type IMapData, type IViewportApi, MaterialEngine} from "@shapediver/viewer";
 import {
 	createDrawingTools,
-	IDrawingToolsApi,
-	IDrawingToolsEvent,
-} from "@shapediver/viewer.features.drawing-tools";
+	type IDrawingToolsApi,
+	type IDrawingToolsEvent} from "@shapediver/viewer.features.drawing-tools";
 import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {mat4, vec3} from "gl-matrix";
-import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
-import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
+import {type RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
+import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 
 const rotationDefaultTextures: {[key: string]: Promise<IMapData> | IMapData} =
 	{};

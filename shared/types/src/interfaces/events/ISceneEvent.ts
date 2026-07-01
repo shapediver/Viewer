@@ -1,5 +1,5 @@
 import {vec3} from "gl-matrix";
-import {IViewportEvent} from "./IViewportEvent";
+import {type IViewportEvent} from "./IViewportEvent";
 
 /**
  * Definition of the scene event.

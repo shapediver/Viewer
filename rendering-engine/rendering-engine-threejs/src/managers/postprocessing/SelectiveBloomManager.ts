@@ -1,4 +1,4 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {SelectiveBloomEffect} from "postprocessing";
 import * as THREE from "three";
 import {RenderingEngine} from "../../RenderingEngine";

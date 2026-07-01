@@ -1,8 +1,8 @@
-import {ISpotLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type ISpotLight} from "@shapediver/viewer.rendering-engine.light-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
-import {IViewportApi} from "../../../interfaces/IViewportApi";
-import {ISpotLightApi} from "../../../interfaces/lights/types/ISpotLightApi";
+import {type IViewportApi} from "../../../interfaces/IViewportApi";
+import {type ISpotLightApi} from "../../../interfaces/lights/types/ISpotLightApi";
 import {AbstractLightApi} from "../AbstractLightApi";
 
 export class SpotLightApi extends AbstractLightApi implements ISpotLightApi {

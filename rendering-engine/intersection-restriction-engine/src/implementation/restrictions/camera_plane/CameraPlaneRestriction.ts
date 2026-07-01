@@ -1,14 +1,13 @@
-import {ITreeNode, IViewportApi} from "@shapediver/viewer";
-import {IPlane, Plane} from "@shapediver/viewer.shared.math";
-import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
+import {type ITreeNode, type IViewportApi} from "@shapediver/viewer";
+import {type IPlane, Plane} from "@shapediver/viewer.shared.math";
+import {type IRay, type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {
-	IRestriction,
-	RestrictionMetaData,
-	RestrictionPropertiesBase,
-	RestrictionResult,
-} from "../../../interfaces/IRestriction";
-import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
+	type IRestriction,
+	type RestrictionMetaData,
+	type RestrictionPropertiesBase,
+	type RestrictionResult} from "../../../interfaces/IRestriction";
+import {type ISnapRestriction} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 

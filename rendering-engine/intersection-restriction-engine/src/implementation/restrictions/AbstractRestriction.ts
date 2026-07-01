@@ -1,17 +1,16 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {ThreejsData} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
-import {ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IRay} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {
-	IRestriction,
-	RestrictionMetaData,
-	RestrictionProperties,
-	RestrictionResult,
-	RESTRICTION_TYPE,
-} from "../../interfaces/IRestriction";
-import {ISnapRestriction} from "../../interfaces/ISnapRestriction";
+	type IRestriction,
+	type RestrictionMetaData,
+	type RestrictionProperties,
+	type RestrictionResult,
+	RESTRICTION_TYPE} from "../../interfaces/IRestriction";
+import {type ISnapRestriction} from "../../interfaces/ISnapRestriction";
 
 export abstract class AbstractRestriction implements IRestriction {
 	// #region Properties (12)

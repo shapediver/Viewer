@@ -1,19 +1,17 @@
 import {
 	CAMERA_TYPE,
-	ICamera,
-	ICameraOptions,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {Box, IBox} from "@shapediver/viewer.shared.math";
+	type ICamera,
+	type ICameraOptions} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	InputValidator,
 	Logger,
-	ShapeDiverViewerValidationError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerValidationError} from "@shapediver/viewer.shared.services";
 
 import {vec2, vec3} from "gl-matrix";
 
-import {ICameraApi} from "../../interfaces/camera/ICameraApi";
-import {IViewportApi} from "../../interfaces/IViewportApi";
+import {type ICameraApi} from "../../interfaces/camera/ICameraApi";
+import {type IViewportApi} from "../../interfaces/IViewportApi";
 
 export abstract class AbstractCameraApi implements ICameraApi {
 	readonly #camera: ICamera;

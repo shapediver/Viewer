@@ -1,4 +1,4 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {OutlineEffect} from "postprocessing";
 import * as THREE from "three";
 import {RenderingEngine} from "../../RenderingEngine";

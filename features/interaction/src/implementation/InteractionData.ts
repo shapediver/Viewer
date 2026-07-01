@@ -3,9 +3,8 @@ import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
 
 import {
-	IInteractionData,
-	IInteractionTypes,
-} from "../interfaces/IInteractionData";
+	type IInteractionData,
+	type IInteractionTypes} from "../interfaces/IInteractionData";
 
 export interface IDragAnchor {
 	/** The id of the anchor */

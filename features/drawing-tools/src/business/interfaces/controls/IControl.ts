@@ -1,4 +1,4 @@
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IRay} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 
 export type GetPositionFn = (index: number) => vec3;

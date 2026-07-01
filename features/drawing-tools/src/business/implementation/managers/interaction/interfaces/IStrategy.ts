@@ -1,4 +1,4 @@
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IRay} from "@shapediver/viewer.shared.types";
 
 export interface IStrategy {
 	cameraFreezeFlag: string;

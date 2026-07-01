@@ -1,10 +1,9 @@
-import {IViewportApi} from "@shapediver/viewer";
-import {RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IViewportApi} from "@shapediver/viewer";
+import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
-	ShapeDiverViewerDrawingToolsError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDrawingToolsError} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";

@@ -1,55 +1,51 @@
 import {
-	IMapData,
-	ITreeNode,
-	IViewportApi,
-	MaterialEngine,
-} from "@shapediver/viewer";
+	type IMapData,
+	type ITreeNode,
+	type IViewportApi,
+	MaterialEngine} from "@shapediver/viewer";
 import {
 	AngularRestrictionApi,
-	AngularRestrictionProperties,
+	type AngularRestrictionProperties,
 	AxisRestrictionApi,
-	AxisRestrictionProperties,
+	type AxisRestrictionProperties,
 	CameraPlaneRestrictionApi,
-	CameraPlaneRestrictionProperties,
-	DraggingRestrictionMetaData,
-	DrawingRestrictionMetaData,
+	type CameraPlaneRestrictionProperties,
+	type DraggingRestrictionMetaData,
+	type DrawingRestrictionMetaData,
 	GeometryRestrictionApi,
-	GeometryRestrictionProperties,
+	type GeometryRestrictionProperties,
 	GridRestrictionApi,
-	GridRestrictionProperties,
-	IRestriction,
-	IRestrictionApi,
-	ISnapRestriction,
-	ISnapRestrictionApi,
+	type GridRestrictionProperties,
+	type IRestriction,
+	type IRestrictionApi,
+	type ISnapRestriction,
+	type ISnapRestrictionApi,
 	LineRestrictionApi,
-	LineRestrictionProperties,
+	type LineRestrictionProperties,
 	PlaneRestrictionApi,
-	PlaneRestrictionProperties,
+	type PlaneRestrictionProperties,
 	PointRestrictionApi,
-	PointRestrictionProperties,
-	RayTraceResult,
+	type PointRestrictionProperties,
+	type RayTraceResult,
 	RESTRICTION_TYPE,
-	RestrictionMetaData,
-	RestrictionProperties,
-	RestrictionPropertiesBase,
-	SnapRestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {RestrictionDefinition} from "@shapediver/viewer.shared.types";
+	type RestrictionMetaData,
+	type RestrictionProperties,
+	type RestrictionPropertiesBase,
+	type SnapRestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
-import {IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
-import {IControl} from "./business/interfaces/controls/IControl";
-import {IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
-import {DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
-import {IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
+import {type IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
+import {type IControl} from "./business/interfaces/controls/IControl";
+import {type IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
+import {type DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
+import {type IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
 import {
-	AdjacencyEntry,
-	Callbacks,
-	PointsData,
-	SettingsOptional,
-} from "./business/interfaces/IDrawingToolsManager";
+	type AdjacencyEntry,
+	type Callbacks,
+	type PointsData,
+	type SettingsOptional} from "./business/interfaces/IDrawingToolsManager";
 
-export {
-	AngularRestrictionApi,
+export {AngularRestrictionApi,
 	AxisRestrictionApi,
 	CameraPlaneRestrictionApi,
 	DrawingToolsApi,
@@ -58,37 +54,36 @@ export {
 	LineRestrictionApi,
 	PlaneRestrictionApi,
 	PointRestrictionApi,
-	RESTRICTION_TYPE,
-	type AdjacencyEntry,
-	type AngularRestrictionProperties,
-	type AxisRestrictionProperties,
-	type Callbacks,
-	type CameraPlaneRestrictionProperties,
-	type DraggingRestrictionMetaData,
-	type DrawingRestrictionMetaData,
-	type DrawingToolsEventResponseMapping,
-	type GeometryRestrictionProperties,
-	type GridRestrictionProperties,
-	type IControl,
-	type IDrawingToolsApi,
-	type IDrawingToolsEvent,
-	type IEdgeControl,
-	type IRestriction,
-	type IRestrictionApi,
-	type ISnapRestriction,
-	type ISnapRestrictionApi,
-	type LineRestrictionProperties,
-	type PlaneRestrictionProperties,
-	type PointRestrictionProperties,
-	type PointsData,
-	type RayTraceResult,
-	type RestrictionDefinition,
-	type RestrictionMetaData,
-	type RestrictionProperties,
-	type RestrictionPropertiesBase,
-	type SettingsOptional as Settings,
-	type SnapRestrictionProperties,
-};
+	RESTRICTION_TYPE};
+export type {AdjacencyEntry,
+	AngularRestrictionProperties,
+	AxisRestrictionProperties,
+	Callbacks,
+	CameraPlaneRestrictionProperties,
+	DraggingRestrictionMetaData,
+	DrawingRestrictionMetaData,
+	DrawingToolsEventResponseMapping,
+	GeometryRestrictionProperties,
+	GridRestrictionProperties,
+	IControl,
+	IDrawingToolsApi,
+	IDrawingToolsEvent,
+	IEdgeControl,
+	IRestriction,
+	IRestrictionApi,
+	ISnapRestriction,
+	ISnapRestrictionApi,
+	LineRestrictionProperties,
+	PlaneRestrictionProperties,
+	PointRestrictionProperties,
+	PointsData,
+	RayTraceResult,
+	RestrictionDefinition,
+	RestrictionMetaData,
+	RestrictionProperties,
+	RestrictionPropertiesBase,
+	SettingsOptional as Settings,
+	SnapRestrictionProperties};
 
 const defaultTextures: {[key: string]: Promise<IMapData> | IMapData} = {};
 

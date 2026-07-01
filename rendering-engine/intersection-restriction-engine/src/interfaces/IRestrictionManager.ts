@@ -1,12 +1,11 @@
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IRay} from "@shapediver/viewer.shared.types";
 import {
-	DraggingRestrictionMetaData,
-	DrawingRestrictionMetaData,
-	IRestriction,
-	RayTraceResult,
-	RestrictionProperties,
-	TransformationToolsRestrictionMetaData,
-} from "./IRestriction";
+	type DraggingRestrictionMetaData,
+	type DrawingRestrictionMetaData,
+	type IRestriction,
+	type RayTraceResult,
+	type RestrictionProperties,
+	type TransformationToolsRestrictionMetaData} from "./IRestriction";
 
 export interface IRestrictionManager {
 	// #region Properties (2)

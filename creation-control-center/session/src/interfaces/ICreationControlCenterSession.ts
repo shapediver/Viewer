@@ -1,9 +1,8 @@
 import {ResBase} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {SessionEngine} from "@shapediver/viewer.session-engine.session-engine";
 import {
-	ISettingsSections,
-	SessionCreationDefinition,
-} from "@shapediver/viewer.shared.types";
+	type ISettingsSections,
+	type SessionCreationDefinition} from "@shapediver/viewer.shared.types";
 
 export interface ICreationControlCenterSession {
 	// #region Properties (2)

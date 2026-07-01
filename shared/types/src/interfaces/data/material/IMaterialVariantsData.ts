@@ -1,5 +1,5 @@
-import {ITreeNodeData} from "../../tree-node/ITreeNodeData";
-import {IGeometryData} from "../IGeometryData";
+import {type ITreeNodeData} from "../../tree-node/ITreeNodeData";
+import {type IGeometryData} from "../IGeometryData";
 
 export interface IMaterialVariantsData extends ITreeNodeData {
 	// #region Properties (3)

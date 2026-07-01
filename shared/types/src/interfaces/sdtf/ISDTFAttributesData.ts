@@ -1,5 +1,5 @@
 import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface ISDTFAttributeData {
 	// #region Properties (2)

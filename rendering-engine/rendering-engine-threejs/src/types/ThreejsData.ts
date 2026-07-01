@@ -1,6 +1,6 @@
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 import * as THREE from "three";
-import {IThreejsData} from "./IThreejsData";
+import {type IThreejsData} from "./IThreejsData";
 
 export class ThreejsData extends AbstractTreeNodeData implements IThreejsData {
 	// #region Properties (1)

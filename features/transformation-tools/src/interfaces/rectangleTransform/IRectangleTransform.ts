@@ -1,11 +1,9 @@
 import {
-	IVisualizationSettings,
-	PlaneRestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IVisualizationSettings,
+	type PlaneRestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
-	ITransformationToolsManager,
-	Settings,
-} from "../ITransformationToolsManager";
+	type ITransformationToolsManager,
+	type Settings} from "../ITransformationToolsManager";
 
 export interface IRectangleTransform extends ITransformationToolsManager {}
 

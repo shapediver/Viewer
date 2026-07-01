@@ -1,6 +1,6 @@
 import {mat4, vec3} from "gl-matrix";
-import {IGeometry} from "./IGeometry";
-import {ISphere} from "./ISphere";
+import {type IGeometry} from "./IGeometry";
+import {type ISphere} from "./ISphere";
 
 export interface IBox extends IGeometry {
 	// #region Properties (3)

@@ -1,14 +1,13 @@
 import {
-	IRestriction,
-	IVisualizationSettings,
-	RayTraceResult,
-	RestrictionProperties,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {IMapData} from "@shapediver/viewer.shared.types";
+	type IRestriction,
+	type IVisualizationSettings,
+	type RayTraceResult,
+	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IMapData} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
-import {IControl} from "./controls/IControl";
+import {type IControl} from "./controls/IControl";
 
 export enum MATERIAL_INDEX {
 	DEFAULT = 0,

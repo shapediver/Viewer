@@ -1,17 +1,15 @@
-import {ITreeNode, IViewportApi, sceneTree} from "@shapediver/viewer";
+import {type ITreeNode, type IViewportApi, sceneTree} from "@shapediver/viewer";
 import {CSS2DObject} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {numberCleaner} from "@shapediver/viewer.shared.services";
-import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
+import {type IRay, type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {
 	isDrawingRestriction,
-	RestrictionMetaData,
-	RestrictionResult,
-} from "../../../../interfaces/IRestriction";
+	type RestrictionMetaData,
+	type RestrictionResult} from "../../../../interfaces/IRestriction";
 import {
-	ISnapRestriction,
-	SnapRestrictionProperties,
-} from "../../../../interfaces/ISnapRestriction";
+	type ISnapRestriction,
+	type SnapRestrictionProperties} from "../../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../../GeometryMathManager";
 import {AbstractSnapRestriction} from "../../AbstractSnapRestriction";
 import {PlaneRestriction} from "../PlaneRestriction";

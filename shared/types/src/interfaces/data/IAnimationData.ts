@@ -1,6 +1,6 @@
 import {vec3} from "gl-matrix";
-import {ITransformation, ITreeNode} from "../tree-node/ITreeNode";
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type ITransformation, type ITreeNode} from "../tree-node/ITreeNode";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface IAnimationTrack {
 	// #region Properties (6)

@@ -1,48 +1,43 @@
 import {
 	FLAG_TYPE,
-	IGeometryData,
-	IMaterialAbstractData,
-	IViewportApi,
-} from "@shapediver/viewer";
+	type IGeometryData,
+	type IMaterialAbstractData,
+	type IViewportApi} from "@shapediver/viewer";
 import {
-	LineRestrictionProperties,
-	PlaneRestrictionProperties,
-	PointRestrictionProperties,
-	RayTraceResult,
+	type LineRestrictionProperties,
+	type PlaneRestrictionProperties,
+	type PointRestrictionProperties,
+	type RayTraceResult,
 	RestrictionManager,
-	RestrictionProperties,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RestrictionProperties,
+	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
-	ITransformation,
-	ITreeNode,
-	Tree,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITransformation,
+	type ITreeNode,
+	Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	Logger,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
-	IIntersectionDefinition,
-	IRay,
-	IRayTracingIntersection,
-} from "@shapediver/viewer.shared.types";
+	type IIntersectionDefinition,
+	type IRay,
+	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
-import {IDragEvent} from "../../interfaces/events/IDragEvent";
+import {type IDragEvent} from "../../interfaces/events/IDragEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
-import {IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
-import {IDragConstraint} from "../../interfaces/utils/IDragConstraint";
-import {IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
+import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
+import {type IDragConstraint} from "../../interfaces/utils/IDragConstraint";
+import {type IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {CameraPlaneConstraint} from "../dragConstraints/CameraPlaneConstraint";
 import {LineConstraint} from "../dragConstraints/LineConstraint";
 import {PlaneConstraint} from "../dragConstraints/PlaneConstraint";
 import {PointConstraint} from "../dragConstraints/PointConstraint";
-import {IDragAnchor} from "../InteractionData";
+import {type IDragAnchor} from "../InteractionData";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */

@@ -253,8 +253,8 @@ importers:
         specifier: workspace:*
         version: link:../../rendering-engine/rendering-engine-threejs
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
@@ -295,8 +295,8 @@ importers:
         specifier: workspace:*
         version: link:../../session-engine/session-engine
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
@@ -316,8 +316,8 @@ importers:
         specifier: workspace:*
         version: link:../../rendering-engine/rendering-engine-threejs
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.math':
         specifier: workspace:*
         version: link:../../shared/math
@@ -1012,8 +1012,8 @@ importers:
         specifier: workspace:*
         version: link:../rendering-engine
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.math':
         specifier: workspace:*
         version: link:../../shared/math
@@ -1117,8 +1117,8 @@ importers:
         specifier: workspace:*
         version: link:../rendering-engine
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.node-tree':
         specifier: workspace:*
         version: link:../../shared/node-tree
@@ -1228,8 +1228,8 @@ importers:
         specifier: workspace:*
         version: link:../../data-engine/shared-types
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
@@ -1317,8 +1317,8 @@ importers:
         specifier: 3.4.2
         version: 3.4.2
       '@shapediver/viewer.settings':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.3.1
+        version: 1.3.1
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../build-data
@@ -2186,8 +2186,8 @@ packages:
     resolution: {integrity: sha512-eaymGF67keXLlO/4uXXx9Zo5OWeyFMBcj5Tg/3CpOCWBLDvCf9Bkjn8uJNbA71qsWKpnDT86HjF6Zrjjzq0YLQ==, tarball: https://npm.pkg.github.com/download/@shapediver/sdk.sdtf-v1/1.7.3/5eaf05830c772f6fd080d684021aa4b447141a7f}
     hasBin: true
 
-  '@shapediver/viewer.settings@1.3.0':
-    resolution: {integrity: sha512-h5CtGDz94A97uEn2efE8U0lJ3Ah1sm4/RWEs/Yr6q3ShpljUKrbN4vQN9/qNNpj+OmnmifI5HLsy4+T8u+B1sg==, tarball: https://npm.pkg.github.com/download/@shapediver/viewer.settings/1.3.0/9706f25f97e775b2bc86321a436a0d1eedc24bb7}
+  '@shapediver/viewer.settings@1.3.1':
+    resolution: {integrity: sha512-FvZa0fpbh7yLpgI4QwQCWKCBm9o6iE2RmYJmiBQrrHyBCFf2sNRIkj6Rl256VPCh2JvfCyEdUUr3S6/imXI9vA==, tarball: https://npm.pkg.github.com/download/@shapediver/viewer.settings/1.3.1/22adc5ed4ed89877dcd1b5cec30c5df3c67f9afb}
 
   '@shapediver/viewer.utils.mime-type@1.1.0':
     resolution: {integrity: sha512-KssQEsaUYiLkMCtbW/vd0CxjmP/8REAUejKL+fvjOrp1Z98MED31wYPeVbOXstFOtrCOdhMGM6mFIN2I4DMzfw==, tarball: https://npm.pkg.github.com/download/@shapediver/viewer.utils.mime-type/1.1.0/9bb9eb82ce3b2c71836a370d50aa570abcc65ec6}
@@ -6452,7 +6452,7 @@ snapshots:
       - debug
       - supports-color
 
-  '@shapediver/viewer.settings@1.3.0':
+  '@shapediver/viewer.settings@1.3.1':
     dependencies:
       uuid: 14.0.0
       zod: 4.4.3

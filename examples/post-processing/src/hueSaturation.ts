@@ -3,13 +3,11 @@ import {
 	BlendFunction,
 	createSession,
 	createViewport,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {
 	createCustomUi,
-	IDropdownElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IDropdownElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 
 (<any>window).SDV = SDV;
 

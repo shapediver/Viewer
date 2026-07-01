@@ -1,21 +1,19 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {IOrthographicCameraSettings} from "@shapediver/viewer.settings";
-import {Box, IBox, Sphere} from "@shapediver/viewer.shared.math";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+import {Box, type IBox, Sphere} from "@shapediver/viewer.shared.math";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	DomEventEngine,
 	Logger,
 	SettingsEngine,
-	ShapeDiverViewerCameraError,
-} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerCameraError} from "@shapediver/viewer.shared.services";
 import {
 	CAMERA_TYPE,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-} from "@shapediver/viewer.shared.types";
+	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
-import {IOrthographicCamera} from "../../interfaces/camera/IOrthographicCamera";
-import {ICameraControls} from "../../interfaces/controls/ICameraControls";
+import {type IOrthographicCamera} from "../../interfaces/camera/IOrthographicCamera";
+import {type ICameraControls} from "../../interfaces/controls/ICameraControls";
 import {OrthographicCameraControls} from "../controls/OrthographicCameraControls";
 import {AbstractCamera} from "./AbstractCamera";
 

@@ -1,22 +1,20 @@
-﻿import {IViewportApi} from "@shapediver/viewer";
+﻿import {type IViewportApi} from "@shapediver/viewer";
 import {
-	AdjacencyEntry,
+	type AdjacencyEntry,
 	createDrawingTools,
-	IControl,
-	IDrawingToolsApi,
-	PlaneRestrictionProperties,
-} from "@shapediver/viewer.features.drawing-tools";
+	type IControl,
+	type IDrawingToolsApi,
+	type PlaneRestrictionProperties} from "@shapediver/viewer.features.drawing-tools";
 import {RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 
 import {vec3} from "gl-matrix";
 
-import {RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
-import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
+import {type RectangleTransformSettings} from "../../interfaces/rectangleTransform/IRectangleTransform";
+import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {
-	PointVisibilityConfig,
-	RectangleTransformPointsMapping,
-} from "./RectangleTransformPointsMapping";
+	type PointVisibilityConfig,
+	RectangleTransformPointsMapping} from "./RectangleTransformPointsMapping";
 
 export class RectangleTransformScalingHandler
 	implements IRectangleTransformHandler

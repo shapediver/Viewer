@@ -1,7 +1,7 @@
 import {ResBase} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {AbstractTreeNodeData} from "@shapediver/viewer.shared.node-tree";
 
-import {ISessionData} from "../interfaces/ISessionData";
+import {type ISessionData} from "../interfaces/ISessionData";
 
 export class SessionData extends AbstractTreeNodeData implements ISessionData {
 	#instance: boolean = false;

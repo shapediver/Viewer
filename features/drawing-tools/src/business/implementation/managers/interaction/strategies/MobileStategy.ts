@@ -1,21 +1,19 @@
-import {FLAG_TYPE, IRay} from "@shapediver/viewer.shared.types";
+import {FLAG_TYPE, type IRay} from "@shapediver/viewer.shared.types";
 
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {
 	GeometryMathManager,
-	IRestrictionManager,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS,
-} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {DeletionInteractionHandler} from "../handlers/DeletionInteractionHandler";
 import {InteractionManagerHelper} from "../helpers/InteractionManagerHelper";
 import {InteractionManager} from "../InteractionManager";
-import {IStrategy} from "../interfaces/IStrategy";
+import {type IStrategy} from "../interfaces/IStrategy";
 
 export class MobileStrategy implements IStrategy {
 	// Maps uuid → {distance, cancel} for any DT that has started a control drag

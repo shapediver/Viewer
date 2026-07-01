@@ -1,24 +1,22 @@
-import {IViewportApi, MaterialEngine, sceneTree} from "@shapediver/viewer";
+import {type IViewportApi, MaterialEngine, sceneTree} from "@shapediver/viewer";
 import {SDObject} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs/dist/objects/SDObject";
 import {Box} from "@shapediver/viewer.shared.math";
-import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
-	IGeometryData,
-	IMapData,
-	IRay,
-	ISceneEvent,
-	IVisualizationSettings,
-} from "@shapediver/viewer.shared.types";
+	type IGeometryData,
+	type IMapData,
+	type IRay,
+	type ISceneEvent,
+	type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {
-	IRestriction,
-	RestrictionMetaData,
-	RestrictionPropertiesBase,
-	RestrictionResult,
-} from "../../../interfaces/IRestriction";
-import {ISnapRestriction} from "../../../interfaces/ISnapRestriction";
+	type IRestriction,
+	type RestrictionMetaData,
+	type RestrictionPropertiesBase,
+	type RestrictionResult} from "../../../interfaces/IRestriction";
+import {type ISnapRestriction} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 

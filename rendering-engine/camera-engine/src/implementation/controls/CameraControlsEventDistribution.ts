@@ -1,6 +1,6 @@
-import {ICameraControls} from "../../interfaces/controls/ICameraControls";
-import {ICameraControlsEventDistribution} from "../../interfaces/controls/ICameraControlsEventDistribution";
-import {ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
+import {type ICameraControls} from "../../interfaces/controls/ICameraControls";
+import {type ICameraControlsEventDistribution} from "../../interfaces/controls/ICameraControlsEventDistribution";
+import {type ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
 
 export class CameraControlsEventDistribution
 	implements ICameraControlsEventDistribution

@@ -4,20 +4,17 @@ import {
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
 	ChunkData,
-	ITreeNode,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	InputValidator,
 	Logger,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 
 import {
-	IOutput,
-	ResOutputChunk,
-	ResOutputContent,
-} from "../../interfaces/dto/IOutput";
+	type IOutput,
+	type ResOutputChunk,
+	type ResOutputContent} from "../../interfaces/dto/IOutput";
 import {OutputManager} from "../managers/OutputManager";
 import {SessionEngineCore} from "../SessionEngineCore";
 

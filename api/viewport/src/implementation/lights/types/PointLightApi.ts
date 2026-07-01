@@ -1,8 +1,8 @@
-import {IPointLight} from "@shapediver/viewer.rendering-engine.light-engine";
+import {type IPointLight} from "@shapediver/viewer.rendering-engine.light-engine";
 import {InputValidator, Logger} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
-import {IViewportApi} from "../../../interfaces/IViewportApi";
-import {IPointLightApi} from "../../../interfaces/lights/types/IPointLightApi";
+import {type IViewportApi} from "../../../interfaces/IViewportApi";
+import {type IPointLightApi} from "../../../interfaces/lights/types/IPointLightApi";
 import {AbstractLightApi} from "../AbstractLightApi";
 
 export class PointLightApi extends AbstractLightApi implements IPointLightApi {

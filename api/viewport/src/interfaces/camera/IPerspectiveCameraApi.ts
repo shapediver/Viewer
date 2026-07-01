@@ -1,4 +1,4 @@
-import {ICameraApi} from "./ICameraApi";
+import {type ICameraApi} from "./ICameraApi";
 
 /**
  * The api for a perspective camera.

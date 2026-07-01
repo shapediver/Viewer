@@ -2,13 +2,11 @@ import * as SDV from "@shapediver/viewer";
 import {
 	createSession,
 	createViewport,
-	IPixelationEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	type IPixelationEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {
 	createCustomUi,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 
 (<any>window).SDV = SDV;
 

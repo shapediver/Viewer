@@ -1,7 +1,7 @@
-import {ITreeNode} from "@shapediver/viewer.shared.node-tree";
-import {IRay, IViewportEvent} from "@shapediver/viewer.shared.types";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {type IRay, type IViewportEvent} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
-import {IInteractionManager} from "../IInteractionManager";
+import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the select event.

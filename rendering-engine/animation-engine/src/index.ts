@@ -1,4 +1,5 @@
 import {AnimationEngine} from "./implementation/AnimationEngine";
-import {IAnimationEngine} from "./interfaces/IAnimationEngine";
+import {type IAnimationEngine} from "./interfaces/IAnimationEngine";
 
-export {AnimationEngine, type IAnimationEngine};
+export {AnimationEngine};
+export type {IAnimationEngine};

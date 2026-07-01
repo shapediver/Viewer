@@ -7,8 +7,7 @@ import {
 	BUSY_MODE_DISPLAY,
 	FLAG_TYPE,
 	SPINNER_POSITIONING,
-	VISIBILITY_MODE,
-} from "./interfaces/renderingEngine/enums";
+	VISIBILITY_MODE} from "./interfaces/renderingEngine/enums";
 
 export type Color = string | number | number[] | vec3 | vec4;
 

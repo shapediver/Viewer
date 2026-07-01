@@ -1,7 +1,7 @@
 import {vec2, vec3} from "gl-matrix";
-import {Color} from "../../types";
-import {IBox} from "../math/IBox";
-import {ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type Color} from "../../types";
+import {type IBox} from "../math/IBox";
+import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
 
 export interface IAnchorDataImage {
 	// #region Properties (6)

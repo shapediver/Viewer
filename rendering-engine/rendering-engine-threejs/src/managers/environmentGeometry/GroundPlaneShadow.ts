@@ -1,11 +1,11 @@
 import {MaterialShadowData} from "@shapediver/viewer.shared.node-tree";
 import {Converter} from "@shapediver/viewer.shared.services";
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {RenderingEngine} from "../..";
 import {SDObject} from "../../objects/SDObject";
-import {IEnvironmentGeometry} from "./IEnvironmentGeometry";
+import {type IEnvironmentGeometry} from "./IEnvironmentGeometry";
 
 export class GroundPlaneShadow implements IEnvironmentGeometry {
 	// #region Properties (4)

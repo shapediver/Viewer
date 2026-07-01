@@ -1,10 +1,9 @@
-import {IViewportApi} from "@shapediver/viewer";
+import {type IViewportApi} from "@shapediver/viewer";
 import {SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
 	GeometryMathManager,
-	IRestrictionManager,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {FLAG_TYPE, IRay} from "@shapediver/viewer.shared.types";
+	type IRestrictionManager} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {FLAG_TYPE, type IRay} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
@@ -14,7 +13,7 @@ import {InsertionInteractionHandler} from "../handlers/InsertionInteractionHandl
 import {MidPointInteractionHandler} from "../handlers/MidPointInteractionHandler";
 import {InteractionManagerHelper} from "../helpers/InteractionManagerHelper";
 import {InteractionManager} from "../InteractionManager";
-import {IStrategy} from "../interfaces/IStrategy";
+import {type IStrategy} from "../interfaces/IStrategy";
 
 /**
  * ## Quick Reference - Main Event Flow:

@@ -12,7 +12,7 @@ import {
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {ShapeDiverViewerSessionError} from "@shapediver/viewer.shared.services";
 
-import {IFileParameter} from "../../interfaces/dto/IFileParameter";
+import {type IFileParameter} from "../../interfaces/dto/IFileParameter";
 import {FileParameter} from "../dto/FileParameter";
 import {SessionEngineCore} from "../SessionEngineCore";
 

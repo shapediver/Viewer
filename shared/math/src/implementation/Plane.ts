@@ -1,6 +1,6 @@
 import {mat3, mat4, vec3} from "gl-matrix";
 
-import {IPlane} from "@shapediver/viewer.shared.types";
+import {type IPlane} from "@shapediver/viewer.shared.types";
 
 export class Plane implements IPlane {
 	private _normal: vec3 = vec3.fromValues(1, 0, 0);

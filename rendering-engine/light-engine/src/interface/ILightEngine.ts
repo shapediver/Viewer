@@ -1,4 +1,4 @@
-import {ILightScene} from "./ILightScene";
+import {type ILightScene} from "./ILightScene";
 
 export interface ILightEngine {
 	// #region Properties (1)

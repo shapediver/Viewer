@@ -1,8 +1,7 @@
-import {IMapData, IMapDataPropertiesDefinition} from "./IMapData";
+import {type IMapData, type IMapDataPropertiesDefinition} from "./IMapData";
 import {
-	IMaterialAbstractData,
-	IMaterialAbstractDataPropertiesGeneric,
-} from "./IMaterialAbstractData";
+	type IMaterialAbstractData,
+	type IMaterialAbstractDataPropertiesGeneric} from "./IMaterialAbstractData";
 
 // #region Type aliases (2)
 

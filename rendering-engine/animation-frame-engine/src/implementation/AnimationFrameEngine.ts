@@ -2,9 +2,8 @@ import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-eng
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import * as TWEEN from "@tweenjs/tween.js";
 import {
-	AnimationFrameCallback,
-	IAnimationFrameEngine,
-} from "../interfaces/IAnimationFrameEngine";
+	type AnimationFrameCallback,
+	type IAnimationFrameEngine} from "../interfaces/IAnimationFrameEngine";
 
 TWEEN.Tween.autoStartOnUpdate = true;
 

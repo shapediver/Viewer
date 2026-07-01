@@ -1,27 +1,24 @@
-import {IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
 	IAmbientLightProperties,
 	IDirectionalLightProperties,
 	IHemisphereLightProperties,
 	ILightSceneSettings,
 	IPointLightProperties,
-	ISpotLightProperties,
-} from "@shapediver/viewer.settings";
+	ISpotLightProperties} from "@shapediver/viewer.settings";
 import {
-	ITree,
-	ITreeNode,
+	type ITree,
+	type ITreeNode,
 	Tree,
-	TreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	SettingsEngine,
-	UuidGenerator,
-} from "@shapediver/viewer.shared.services";
+	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import {LIGHT_TYPE} from "../interface/ILight";
-import {ILightEngine} from "../interface/ILightEngine";
-import {ILightScene} from "../interface/ILightScene";
+import {type ILightEngine} from "../interface/ILightEngine";
+import {type ILightScene} from "../interface/ILightScene";
 import {AbstractLight} from "./AbstractLight";
 import {LightScene} from "./LightScene";
 import {AmbientLight} from "./types/AmbientLight";

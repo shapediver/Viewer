@@ -1,4 +1,4 @@
-import {ICallback} from "./ICallback";
+import {type ICallback} from "./ICallback";
 
 export interface IListener {
 	// #region Properties (2)

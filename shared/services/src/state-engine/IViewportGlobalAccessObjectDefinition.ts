@@ -1,7 +1,6 @@
 import {
 	SESSION_SETTINGS_MODE,
-	ViewportCreationDefinition,
-} from "@shapediver/viewer.shared.types";
+	type ViewportCreationDefinition} from "@shapediver/viewer.shared.types";
 import {SettingsEngine} from "../settings-engine/SettingsEngine";
 import {StatePromise} from "./StatePromise";
 

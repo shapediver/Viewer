@@ -1,40 +1,34 @@
 import {
 	CAMERA_TYPE,
-	ICameraApi,
-	IOrthographicCameraApi,
-	ITreeNode,
-	IViewportApi,
-	ORTHOGRAPHIC_CAMERA_DIRECTION,
-} from "@shapediver/viewer";
-import {IPlane, Plane} from "@shapediver/viewer.shared.math";
-import {IRay, IVisualizationSettings} from "@shapediver/viewer.shared.types";
+	type ICameraApi,
+	type IOrthographicCameraApi,
+	type ITreeNode,
+	type IViewportApi,
+	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer";
+import {type IPlane, Plane} from "@shapediver/viewer.shared.math";
+import {type IRay, type IVisualizationSettings} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 import {
-	IRestriction,
+	type IRestriction,
 	isDraggingRestriction,
 	isDrawingRestriction,
-	RestrictionMetaData,
-	RestrictionPropertiesBase,
-	RestrictionResult,
-} from "../../../interfaces/IRestriction";
+	type RestrictionMetaData,
+	type RestrictionPropertiesBase,
+	type RestrictionResult} from "../../../interfaces/IRestriction";
 import {
-	ISnapRestriction,
-	SnapRestrictionProperties,
-} from "../../../interfaces/ISnapRestriction";
+	type ISnapRestriction,
+	type SnapRestrictionProperties} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 import {
 	AngularRestriction,
-	AngularRestrictionProperties,
-} from "./snap/AngularRestriction";
+	type AngularRestrictionProperties} from "./snap/AngularRestriction";
 import {
 	AxisRestriction,
-	AxisRestrictionProperties,
-} from "./snap/AxisRestriction";
+	type AxisRestrictionProperties} from "./snap/AxisRestriction";
 import {
 	GridRestriction,
-	GridRestrictionProperties,
-} from "./snap/GridRestriction";
+	type GridRestrictionProperties} from "./snap/GridRestriction";
 
 // #region Type aliases (1)
 

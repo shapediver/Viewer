@@ -1,8 +1,7 @@
 import {
-	IAnimationData,
-	IAnimationTrack,
-	ITreeNode,
-} from "@shapediver/viewer.shared.types";
+	type IAnimationData,
+	type IAnimationTrack,
+	type ITreeNode} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 import {GeometryData} from "./GeometryData";

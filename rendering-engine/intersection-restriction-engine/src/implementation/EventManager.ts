@@ -1,6 +1,6 @@
-import {IViewportApi} from "@shapediver/viewer";
-import {IDomEventListener} from "@shapediver/viewer.shared.services";
-import {IRay} from "@shapediver/viewer.shared.types";
+import {type IViewportApi} from "@shapediver/viewer";
+import {type IDomEventListener} from "@shapediver/viewer.shared.services";
+import {type IRay} from "@shapediver/viewer.shared.types";
 
 // #region Type aliases (1)
 

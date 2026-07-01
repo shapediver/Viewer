@@ -3,13 +3,12 @@ import {TextureUnifierInjector} from "./injectors/TextureUnifierInjector";
 import {
 	ENVIRONMENT_MAP,
 	ENVIRONMENT_MAP_CUBE,
-	ENVIRONMENT_MAP_EMPTY,
-} from "./loaders/EnvironmentMapLoader";
+	ENVIRONMENT_MAP_EMPTY} from "./loaders/EnvironmentMapLoader";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {MultiPointsMaterial} from "./materials/MultiPointsMaterial";
 import {RenderingEngine} from "./RenderingEngine";
 import {CSS2DObject, CSS2DRenderer} from "./three/CSS2DRenderer";
-import {IThreejsData} from "./types/IThreejsData";
+import {type IThreejsData} from "./types/IThreejsData";
 import {ThreejsData} from "./types/ThreejsData";
 
 import {
@@ -45,8 +44,7 @@ import {GodRaysManager} from "./managers/postprocessing/GodRaysManager";
 import {OutlineManager} from "./managers/postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./managers/postprocessing/SelectiveBloomManager";
 
-export {
-	BlendFunction,
+export {BlendFunction,
 	BloomEffect,
 	ChromaticAberrationEffect,
 	CSS2DObject,
@@ -84,9 +82,8 @@ export {
 	ThreejsData,
 	TiltShiftEffect,
 	VignetteEffect,
-	VignetteTechnique,
-	type IThreejsData,
-};
+	VignetteTechnique};
+export type {IThreejsData};
 
 const textureUnifierInjector = new TextureUnifierInjector();
 GlobalAccessObjects.instance.combineTextures =

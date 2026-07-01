@@ -2,14 +2,12 @@ import * as SDV from "@shapediver/viewer";
 import {
 	createSession,
 	createViewport,
-	IHBAOEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE,
-} from "@shapediver/viewer";
+	type IHBAOEffectDefinition,
+	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer";
 import {
 	createCustomUi,
-	IColorElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IColorElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 
 (<any>window).SDV = SDV;
 

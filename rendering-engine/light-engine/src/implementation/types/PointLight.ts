@@ -1,7 +1,7 @@
-import {Color} from "@shapediver/viewer.shared.types";
+import {type Color} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {LIGHT_TYPE} from "../../interface/ILight";
-import {IPointLight} from "../../interface/types/IPointLight";
+import {type IPointLight} from "../../interface/types/IPointLight";
 import {AbstractLight} from "../AbstractLight";
 
 export class PointLight extends AbstractLight implements IPointLight {

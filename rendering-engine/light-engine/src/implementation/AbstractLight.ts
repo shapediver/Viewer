@@ -1,10 +1,9 @@
 import {
 	AbstractTreeNodeData,
-	ITreeNode,
-} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
-import {Color} from "@shapediver/viewer.shared.types";
-import {ILight, LIGHT_TYPE} from "../interface/ILight";
+import {type Color} from "@shapediver/viewer.shared.types";
+import {type ILight, LIGHT_TYPE} from "../interface/ILight";
 
 export abstract class AbstractLight
 	extends AbstractTreeNodeData

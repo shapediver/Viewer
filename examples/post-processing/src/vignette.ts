@@ -3,15 +3,13 @@ import {
 	BlendFunction,
 	createSession,
 	createViewport,
-	IVignetteEffectDefinition,
+	type IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
-	VignetteTechnique,
-} from "@shapediver/viewer";
+	VignetteTechnique} from "@shapediver/viewer";
 import {
 	createCustomUi,
-	IDropdownElement,
-	ISliderElement,
-} from "@shapediver/viewer.shared.demo-helper";
+	type IDropdownElement,
+	type ISliderElement} from "@shapediver/viewer.shared.demo-helper";
 
 (<any>window).SDV = SDV;
 

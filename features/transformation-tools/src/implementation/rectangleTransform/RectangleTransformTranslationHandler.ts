@@ -1,29 +1,26 @@
-import {IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
+import {type IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
 import {
 	DragManager,
 	HoverManager,
-	IDragEvent,
-	IHoverEvent,
+	type IDragEvent,
+	type IHoverEvent,
 	InteractionData,
-	InteractionEngine,
-} from "@shapediver/viewer.features.interaction";
+	InteractionEngine} from "@shapediver/viewer.features.interaction";
 import {
-	RestrictionProperties,
-	RESTRICTION_TYPE,
-} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RestrictionProperties,
+	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	AttributeData,
 	GeometryData,
-	ITreeNode,
+	type ITreeNode,
 	MaterialStandardData,
-	PrimitiveData,
-} from "@shapediver/viewer.shared.node-tree";
+	PrimitiveData} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {MATERIAL_ALPHA, PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
-import {IRectangleTransformHandler} from "./IRectangleTransformHandler";
+import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 
 const PLANE_Z_OFFSET = 0.1;
 
