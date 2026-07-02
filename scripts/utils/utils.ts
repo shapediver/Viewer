@@ -5,10 +5,90 @@ import pako from "pako";
 
 const {exec} = require("child_process");
 const recursiveReadSync = require("recursive-readdir-sync");
-const s3 = new S3({maxAttempts: 5, region: "us-east-1"});
 const readline = require("readline");
+
+// ---- Default S3 config (used by legacy functions) ----
+const s3 = new S3({maxAttempts: 5, region: "us-east-1"});
 const bucketName = "shapediverviewer";
 const prefixLatest = "v3/latest";
+
+// ---- Shared helpers ----
+
+/**
+ * Determine Content-Type for a file based on its extension.
+ */
+export function getContentType(filePath: string): string {
+	if (filePath.endsWith(".js") || filePath.endsWith(".js.map"))
+		return "text/javascript";
+	if (filePath.endsWith(".html")) return "text/html";
+	if (filePath.endsWith(".css")) return "text/css";
+	if (filePath.endsWith(".png")) return "image/png";
+	return "text/plain";
+}
+
+/**
+ * Determine cache-control header based on deployment type.
+ */
+export function getCacheControl(
+	name?: string,
+	prefix?: string,
+): string {
+	if (name && name.startsWith("test")) {
+		// test examples: no browser cache, CDN cache for 1 week
+		return "max-age=0, s-maxage=608400, must-revalidate";
+	}
+	if (prefix && prefix.includes("demos")) {
+		// demos: no browser cache, CDN cache for 1 week
+		return "max-age=0, s-maxage=608400, must-revalidate";
+	}
+	// default: browser cache 1 hour, CDN cache 1 week
+	return "max-age=3600, s-maxage=608400, must-revalidate";
+}
+
+/**
+ * Upload a single file to S3 with gzip compression and public-read ACL.
+ */
+export function uploadFileToS3(
+	filePath: string,
+	key: string,
+	bucket: string = bucketName,
+	cacheControl?: string,
+) {
+	s3.putObject(
+		{
+			Bucket: bucket,
+			Key: key,
+			Body: pako.gzip(fs.readFileSync(filePath)),
+			ACL: "public-read",
+			ContentType: getContentType(filePath),
+			CacheControl: cacheControl || getCacheControl(),
+			ContentEncoding: "gzip",
+		},
+		(err) => {
+			if (err) console.log(err);
+		},
+	);
+}
+
+/**
+ * Upload all files from a directory to S3 under a given key prefix.
+ */
+export function uploadDirectoryToS3(
+	directoryPath: string,
+	keyPrefix: string,
+	bucket: string = bucketName,
+	cacheControl?: string,
+) {
+	const fileContents = <string[]>recursiveReadSync(directoryPath);
+	fileContents.map(function (f) {
+		const key =
+			keyPrefix +
+			f.substring(directoryPath.length, f.length).replace(/\\/g, "/");
+		uploadFileToS3(f, key, bucket, cacheControl);
+	});
+}
+
+// ---- Legacy functions (kept for backward compatibility) ----
 
 export const execPromise = (cmd: string): Promise<string> => {
 	return new Promise((resolve, reject) => {
@@ -41,43 +121,14 @@ export const deployToS3 = (
 export const deployToS3Latest = (directoryPath: string, name?: string) => {
 	const fileContents = <string[]>recursiveReadSync(directoryPath);
 
-	let cacheControl: string;
-	if (name && name.startsWith("test")) {
-		// case 1, it is one of the test examples
-		cacheControl = "max-age=0, s-maxage=608400, must-revalidate";
-	} else {
-		// case 2, it is a public release
-		cacheControl = "max-age=3600, s-maxage=608400, must-revalidate";
-	}
+	const cacheControl = getCacheControl(name);
 
 	// deploy under latest prefix
-	fileContents.map(function (f, cb) {
+	fileContents.map(function (f) {
 		const key =
 			(name ? prefixLatest + "/" + name : prefixLatest) +
 			f.substring(directoryPath.length, f.length).replace(/\\/g, "/");
-		s3.putObject(
-			{
-				Bucket: bucketName,
-				Key: key,
-				Body: pako.gzip(fs.readFileSync(f)),
-				ACL: "public-read",
-				ContentType:
-					f.endsWith(".js") || f.endsWith(".js.map")
-						? "text/javascript"
-						: f.endsWith(".html")
-							? "text/html"
-							: f.endsWith(".css")
-								? "text/css"
-								: f.endsWith(".png")
-									? "image/png"
-									: "text/plain",
-				CacheControl: cacheControl,
-				ContentEncoding: "gzip",
-			},
-			(err) => {
-				if (err) console.log(err);
-			},
-		);
+		uploadFileToS3(f, key, bucketName, cacheControl);
 	});
 };
 
@@ -86,51 +137,17 @@ export const deployToS3Folder = (
 	name?: string,
 	prefix?: string,
 ) => {
+	if (!prefix) return;
+
+	const cacheControl = getCacheControl(name, prefix);
 	const fileContents = <string[]>recursiveReadSync(directoryPath);
 
-	let cacheControl: string;
-	if (name && name.startsWith("test")) {
-		// case 1, it is one of the test examples
-		cacheControl = "max-age=0, s-maxage=608400, must-revalidate";
-	} else if (prefix && prefix.includes("demos")) {
-		// case 2, the example is deployed under the demos folder
-		cacheControl = "max-age=0, s-maxage=608400, must-revalidate";
-	} else {
-		// case 3, it is a public release
-		cacheControl = "max-age=86400, s-maxage=608400, must-revalidate";
-	}
-
-	// deploy under specified prefix
-	if (prefix) {
-		fileContents.map(function (f, cb) {
-			const key =
-				(name ? prefix + "/" + name : prefix) +
-				f.substring(directoryPath.length, f.length).replace(/\\/g, "/");
-			s3.putObject(
-				{
-					Bucket: bucketName,
-					Key: key,
-					Body: pako.gzip(fs.readFileSync(f)),
-					ACL: "public-read",
-					ContentType:
-						f.endsWith(".js") || f.endsWith(".js.map")
-							? "text/javascript"
-							: f.endsWith(".html")
-								? "text/html"
-								: f.endsWith(".css")
-									? "text/css"
-									: f.endsWith(".png")
-										? "image/png"
-										: "text/plain",
-					CacheControl: cacheControl,
-					ContentEncoding: "gzip",
-				},
-				(err) => {
-					if (err) console.log(err);
-				},
-			);
-		});
-	}
+	fileContents.map(function (f) {
+		const key =
+			(name ? prefix + "/" + name : prefix) +
+			f.substring(directoryPath.length, f.length).replace(/\\/g, "/");
+		uploadFileToS3(f, key, bucketName, cacheControl);
+	});
 };
 
 export const readAnswer = async (question: string): Promise<string> => {
