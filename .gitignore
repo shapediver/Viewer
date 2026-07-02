@@ -7,6 +7,7 @@ lerna-debug.log
 .npmrc
 .vscode/
 .nx/
+.pi-subagents/
 docs
 api/api/package.json
 documentation/releaseNotes.html

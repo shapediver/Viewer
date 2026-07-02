@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.examples.test-cdn",
-	"version": "0.0.0",
+	"version": "3.19.0",
 	"private": true,
 	"description": "",
 	"keywords": [],
@@ -42,8 +42,8 @@
 		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
 		"@shapediver/viewer.features.attribute-visualization": "workspace:*",
 		"@shapediver/viewer.features.drawing-tools": "workspace:*",
-		"@shapediver/viewer.features.transformation-tools": "workspace:*",
 		"@shapediver/viewer.features.interaction": "workspace:*",
+		"@shapediver/viewer.features.transformation-tools": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }

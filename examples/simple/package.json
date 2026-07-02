@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.examples.simple",
-	"version": "0.0.0",
+	"version": "3.19.0",
 	"private": true,
 	"description": "",
 	"keywords": [],
@@ -38,8 +38,8 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "workspace:*",
-		"@shapediver/viewer.features.transformation-tools": "workspace:*",
 		"@shapediver/viewer.features.interaction": "workspace:*",
+		"@shapediver/viewer.features.transformation-tools": "workspace:*",
 		"@shapediver/viewer.shared.demo-helper": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}

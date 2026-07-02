@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.examples.gem",
-	"version": "0.0.0",
+	"version": "3.19.0",
 	"private": true,
 	"description": "",
 	"keywords": [],
@@ -38,9 +38,9 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
 		"@shapediver/viewer.shared.services": "workspace:*",
 		"@shapediver/viewer.shared.types": "workspace:*",
-		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.examples.drawing-tools",
-	"version": "0.0.0",
+	"version": "3.19.0",
 	"private": true,
 	"description": "",
 	"keywords": [],
@@ -38,12 +38,12 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
+		"@shapediver/viewer.features.drawing-tools": "workspace:*",
+		"@shapediver/viewer.features.interaction": "workspace:*",
+		"@shapediver/viewer.shared.demo-helper": "workspace:*",
 		"@shapediver/viewer.shared.services": "workspace:*",
 		"@shapediver/viewer.shared.types": "workspace:*",
-		"@shapediver/viewer.shared.demo-helper": "workspace:*",
-		"@shapediver/viewer.data-engine.data-engine": "workspace:*",
-		"@shapediver/viewer.features.interaction": "workspace:*",
-		"@shapediver/viewer.features.drawing-tools": "workspace:*",
 		"gl-matrix": "3.4.4"
 	}
 }
