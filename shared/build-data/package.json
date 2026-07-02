@@ -23,6 +23,7 @@
 		"url": "git+https://github.com/shapediver/Viewer.git"
 	},
 	"scripts": {
+		"prebuild": "ts-node -T ../../scripts/release/generate-build-data.ts",
 		"check": "tsc --noEmit",
 		"build": "bash ../../scripts/building/build.sh",
 		"build-watch": "bash ../../scripts/building/build-watch.sh"

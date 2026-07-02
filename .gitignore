@@ -16,3 +16,6 @@ tests/general/src/credentials.ts
 tsconfig.tsbuildinfo
 tests/test-results/
 tests/playwright-report/
+
+# Generated at build time from env/git metadata (not committed)
+shared/build-data/src/build_data.ts
