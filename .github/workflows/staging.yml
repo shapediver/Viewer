@@ -41,8 +41,7 @@ jobs:
           node-version: 24.12.0
           cache: pnpm
           package-manager-cache: false
-          scope: "@shapediver"
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
 
       - name: Pin npm
         run: npm i -g npm@11.6.2
@@ -55,8 +54,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Configure git user
         run: |
@@ -119,6 +116,13 @@ jobs:
           else
             echo "No version changes to commit."
           fi
+
+      - name: Setup Node.js for GitHub Packages publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          scope: "@shapediver"
+          registry-url: https://npm.pkg.github.com
 
       - name: Publish GitHub Packages (next)
         run: npx ts-node -T scripts/publish/publish-github.ts --tag next --yes

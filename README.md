@@ -286,6 +286,8 @@ Target environments:
 ### GitHub Packages
 Handled in workflows via GitHub Actions auth and `setup-node` registry configuration.
 
+For CI installs, workspace-managed `@shapediver/viewer*` packages are linked locally by pnpm/lerna, while external `@shapediver/*` packages outside the workspace (for example `utils/*` packages published independently) are installed from npmjs.org. GitHub Packages is used only for publish steps.
+
 ### npm
 The intended production setup is **npm Trusted Publishing** using:
 - workflow file: `release.yml`
