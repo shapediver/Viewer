@@ -13,7 +13,7 @@ test.describe("Creation Management", () => {
 
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"https://viewer.shapediver.com/v3/latest/test-cdn/index.html",
+			"/test-cdn/index.html",
 		);
 	});
 

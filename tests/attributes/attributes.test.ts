@@ -7,7 +7,7 @@ const name = "attributes";
 test.describe("Attribute Visualization", () => {
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"https://viewer.shapediver.com/v3/latest/test-cdn/index.html",
+			"/test-cdn/index.html",
 		);
 
 		await page.evaluate(async () => {

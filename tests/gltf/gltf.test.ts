@@ -41,7 +41,7 @@ const test = base.extend<{}, {workerPage: Page}>({
 			const page = await context.newPage();
 
 			await page.goto(
-				"https://viewer.shapediver.com/v3/latest/test-cdn/index.html",
+				"/test-cdn/index.html",
 			);
 
 			await page.evaluate(async () => {

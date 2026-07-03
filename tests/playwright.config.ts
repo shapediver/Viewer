@@ -1,5 +1,35 @@
 import {defineConfig, devices} from "@playwright/test";
 
+function resolveViewerTestBaseUrl(): string {
+	const explicit = process.env.VIEWER_TEST_BASE_URL?.trim();
+	if (explicit) return explicit.replace(/\/$/, "");
+
+	const target = (
+		process.env.VIEWER_TEST_ENV ||
+		process.env.GITHUB_ENVIRONMENT ||
+		process.env.GITHUB_REF_NAME ||
+		"production"
+	)
+		.trim()
+		.toLowerCase();
+
+	switch (target) {
+		case "development":
+			return "https://viewer.shapediver.com/v3/development";
+		case "staging":
+			return "https://viewer.shapediver.com/v3/staging";
+		case "production":
+		case "latest":
+		case "main":
+		default:
+			return "https://viewer.shapediver.com/v3/latest";
+	}
+}
+
+const viewerTestBaseUrl = resolveViewerTestBaseUrl();
+
+console.log(`[playwright] VIEWER_TEST_BASE_URL = ${viewerTestBaseUrl}`);
+
 export default defineConfig({
 	globalSetup: require.resolve("./globalSetup"),
 	testDir: ".",
@@ -20,6 +50,7 @@ export default defineConfig({
 		},
 	},
 	use: {
+		baseURL: viewerTestBaseUrl,
 		viewport: {width: 1280, height: 720},
 		deviceScaleFactor: 1,
 		trace: process.env.CI ? "retain-on-failure" : "off",

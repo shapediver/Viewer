@@ -1,4 +1,4 @@
-import {expect, test} from "@playwright/test";
+﻿import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1} from "../models.json";
@@ -12,7 +12,7 @@ test.describe("Lights", () => {
 
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"https://viewer.shapediver.com/v3/latest/test-cdn/index.html",
+			"/test-cdn/index.html",
 		);
 	});
 
