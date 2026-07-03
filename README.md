@@ -2,99 +2,323 @@
 
 # Viewer
 
-This Repository is the main repository for the Shapediver Viewer.
+This repository is the main monorepo for the ShapeDiver Viewer.
+The primary published package is `@shapediver/viewer`, with many supporting internal/public packages built and released from the same repository.
 
-The end product is the package `@shapediver/viewer` which is the api.
-If you are not from the ShapeDiver organization and are part if the development, see the documentation on it [here](https://viewer.shapediver.com/v3/latest/api/index.html).
+If you are consuming the public viewer API, see the hosted docs:
+- https://viewer.shapediver.com/v3/latest/api/index.html
 
-The setup is built on `lerna` which is a package that is build for handling javascript monorepos. I extended some functionality and made created some further custom scripts for creating packages and building them. But trust me, there is no magic involved, mostly just creating a nice project setup.
+---
 
-## 1. Setup
+## Toolchain
 
-### Node / NPM
+This repo is pinned to the following toolchain:
 
-You need to install a specific version of node (15.14.0) and npm (7.7.6). You can do this in any way you want to, but in the following steps we will explain how to do this with nvm.
+- **Node**: `24.12.0`
+- **npm**: `11.6.2`
+- **pnpm**: `11.3.0`
 
-First of all, download nvm ([windows](https://github.com/coreybutler/nvm-windows)/[unix](https://github.com/nvm-sh/nvm)/[mac](https://github.com/nvm-sh/nvm)).
-Once installed, just use the commands
+Repo helpers:
+- `.nvmrc` → `24.12.0`
+- `package.json` → `packageManager: pnpm@11.3.0`
 
-`nvm install 15.14.0`
+### Setup
 
-and
-
-`nvm use 15.14.0`
-
-This will install node (15.14.0) and the corresponding npm version (7.7.6).
-
-### GIT
-
-Make sure to have GIT installed on your system.
-Set the `script-shell` of npm to bash via
-
-`npm config set script-shell "PATH\TO\Git\bin\bash.exe"`
-
-### Installing
-
-Just call `npm run init`
-
-## 2. Creating Packages and Libraries
-
-In the root of the project, call `npm run create-package`. You will be prompted to add a scope and a name. Inside this call a `lerna` command is executed first and then some smaller file changes are done after.
-Your package name will be `@shapediver/viewer.SCOPE.NAME`.
-
-## 3. Bootstrapping
-
-One great feature of `lerna` is bootstrapping. As we have multiple packages, the either rely on each other or have the same dependencies, installing the dependencies per package doesn't make sense. Also, bootstrapping checks for circular dependencies, which makes our life that much easier.
-
-Therefore there are two scripts (one for normal dependencies, one for devDependencies) that use `lerna` and will make your life easier. I will just explain the script for normal dependencies, but the script for devDependencies works just the same. (just replace `add-dependency` with `add-devDependency` in the examples below)
-
-### Example 1 - adding an external dependency
-
-Let's say we want to add the package `three` to a specific package `a_package`.
-Then the only thing we have to do is call `npm run add-dependency three @shapediver/viewer.test.a_package` in the root folder.
-This installs the package in the root and links it to `a_package`.
-
-In case you want `three` in all packages and libs you can call `npm run add-dependency three`.
-
-### Example 2 - adding an internal dependency
-
-Now I want to add `a_package` to `another_package` (both are part of this repository).
-This works just similarly with `npm run add-dependency @shapediver/viewer.test.a_package @shapediver/viewer.test.another_package`.
-
-## 4. Building
-
-In the main package.json, there is only one build script, please see the specific packages for further build tasks.
-
-| Usage           | Description                           |
-| --------------- | ------------------------------------- |
-| `npm run build` | Builds each package. (folder: `dist`) |
-
-## 5. Testing
-
-Call `npm run test` to test all packages or `npm run test` in a package to just test that single package.
-Testing is configured via jest and should be fairly easy to use.
-
-## 6. Publishing
-
-Publishing can only be done for the whole repository at once, to keep the versioning simple. We publish to github packages, where you can see the all packages of the whole organization here: https://github.com/orgs/shapediver/packages
-Naturally, please be smart with the naming of packages.
-
-First, if you haven't already, create an access token on github. An explanation can be seen [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token). You need permissions for `repo`, `write:packages`, `read:packages` and `delete:packages`.
-
-Then create on the root of this repository a `.npmrc` file, if there isn't one already and add the following.
+1. Install Node `24.12.0`
+2. Ensure npm is `11.6.2`
+3. Ensure pnpm is `11.3.0`
+4. Install dependencies:
 
 ```bash
-//npm.pkg.github.com/:_authToken=TOKEN
-registry=https://npm.pkg.github.com/shapediver
-@shapediver:registry=https://npm.pkg.github.com/
+pnpm install --frozen-lockfile
 ```
 
-Here just, replace `TOKEN` with you access token that you just created.
+### Bash shell on Windows
 
-Afterwards, just call `npm run publish` and follow the prompts.
+Some package scripts still rely on bash-based helpers.
+If you are on Windows, make sure npm uses a bash-compatible shell, for example:
 
-## 6. FAQ
+```bash
+npm config set script-shell "PATH\\TO\\Git\\bin\\bash.exe"
+```
 
-- I add a dependency, but in the typescript file, it still shows me an error. What is up with that?
+---
 
-The VSCode typescript language server has some issues, just restart it or VSCode in general.
+## Workspace structure
+
+The repo uses:
+- **pnpm workspaces**
+- **lerna** (fixed-version mode)
+
+Main workspace groups include:
+- `api/*`
+- `creation-control-center/*`
+- `data-engine/*`
+- `features/*`
+- `rendering-engine/*`
+- `session-engine/*`
+- `shared/*`
+- `examples/*`
+- `tests`
+
+The `utils/*` packages are intentionally outside the main release workflow scope.
+
+---
+
+## Common commands
+
+### Build
+
+```bash
+pnpm build
+```
+
+Builds the main viewer package and its workspace dependencies.
+
+### Type checks
+
+```bash
+pnpm check
+```
+
+### Build test assets
+
+```bash
+pnpm build-tests
+```
+
+### Build examples
+
+```bash
+pnpm build-examples
+```
+
+### Generate docs
+
+```bash
+pnpm doc
+```
+
+---
+
+## Testing
+
+### Full Playwright run
+
+```bash
+pnpm test
+```
+
+### Install Playwright browser
+
+```bash
+pnpm test-install
+```
+
+### UI mode
+
+```bash
+pnpm test-ui
+```
+
+### Update snapshots
+
+```bash
+pnpm test-update
+```
+
+### Smaller regression subset
+
+```bash
+pnpm test-samples-only
+```
+
+This currently runs:
+- animation
+- api
+- attributes
+- camera
+- interaction
+- parameters
+
+### Environment-aware test target
+
+The Playwright configuration now resolves the target base URL from the workflow or environment:
+
+- `development` → `https://viewer.shapediver.com/v3/development`
+- `staging` → `https://viewer.shapediver.com/v3/staging`
+- `production` / `latest` → `https://viewer.shapediver.com/v3/latest`
+
+You can also override explicitly:
+
+```bash
+VIEWER_TEST_BASE_URL=https://viewer.shapediver.com/v3/staging pnpm test
+```
+
+---
+
+## Version / release helper scripts
+
+### Build metadata
+
+```bash
+pnpm generate-build-data
+```
+
+### Compute next versions
+
+```bash
+pnpm version:dev
+pnpm version:next
+pnpm version:release:patch
+pnpm version:release:minor
+pnpm version:release:major
+```
+
+### Apply a version to all lerna-managed packages
+
+```bash
+pnpm version:apply -- --version 3.20.0-dev.1 --channel dev --yes
+```
+
+### S3 deployment helpers
+
+```bash
+pnpm deploy:s3 -- --channel dev --version 3.20.0-dev.1 --source-dir ./dist --dry-run
+pnpm deploy:promote-latest -- --from-version 3.20.0 --dry-run
+```
+
+### Publishing helpers
+
+```bash
+pnpm publish:github -- --tag dev --dry-run
+pnpm publish:npm -- --dry-run
+```
+
+### Local release helper
+
+```bash
+pnpm publish:viewer
+```
+
+This is the local interactive wrapper around the new release scripts.
+It is intended for controlled local releases and follows the same high-level sequence as the production workflow:
+- compute version
+- version packages
+- generate build data
+- build
+- deploy versioned assets
+- test
+- publish
+- promote latest
+- commit and tag
+
+The legacy alias `pnpm publish-viewer` still works but delegates to the normalized path.
+
+---
+
+## Script naming conventions
+
+Normalized script names use colon-separated prefixes:
+- `publish:*` — publishing scripts
+- `deploy:*` — deployment scripts
+- `test:*` — test orchestration scripts
+- `version:*` — version computation scripts
+
+Legacy hyphenated aliases are preserved for backward compatibility:
+- `publish-viewer` → `publish:viewer`
+- `deploy-example` → `deploy:example`
+- `deploy-tests` → `deploy:tests`
+- `deploy-and-test` → `test:deploy-and-test`
+- `deploy-and-test-samples-only` → `test:deploy-and-test-samples-only`
+
+---
+
+## GitHub Actions release model
+
+This repository is **push-driven**.
+There is no standalone generic CI workflow.
+Validation is built into the release/deployment workflows.
+
+### Channels
+
+#### development
+- branch: `development`
+- package tag: `dev`
+- test target: `v3/development`
+- publishes to: **GitHub Packages only**
+
+#### staging
+- branch: `staging`
+- package tag: `next`
+- test target: `v3/staging`
+- publishes to: **GitHub Packages only**
+
+#### release
+- branch: `main`
+- package tag: `latest`
+- deploy target: `v3/<version>` then `v3/latest`
+- publishes to:
+  - **GitHub Packages**
+  - **npm**
+
+### Workflows
+
+- `.github/workflows/development.yml`
+- `.github/workflows/staging.yml`
+- `.github/workflows/release.yml`
+- `.github/workflows/validate-tests.yml`
+
+### Validation-only workflow
+
+`validate-tests.yml` exists to run the build/deploy/test path **without** committing or publishing.
+It is intended for reporting test results per suite.
+
+Target environments:
+- `development` — builds and deploys test assets to the development target, then runs per-suite Playwright tests
+- `staging` — builds and deploys test assets to the staging target, then runs per-suite Playwright tests
+- `production` — tests the current `v3/latest` deployment **without deploying any new assets**
+
+---
+
+## Publishing auth
+
+### GitHub Packages
+Handled in workflows via GitHub Actions auth and `setup-node` registry configuration.
+
+### npm
+The intended production setup is **npm Trusted Publishing** using:
+- workflow file: `release.yml`
+- environment: `production`
+
+**Local one-time setup:** Create a local (untracked) `trust.sh` script to configure npm trusted publishers for the release-managed packages. This file is intentionally excluded from version control and should be run once locally after `release.yml` is deployed to GitHub.
+
+See your local `trust.sh` for the package list and publisher configuration. The script requires `npm` CLI `11.5.1+` and Node `22.14.0+`. The `npm trust` subcommand is included in npm 11+.
+
+### AWS / S3
+Deployment uses AWS OIDC via the `AWS_ROLE_ARN` secret and GitHub environments.
+
+---
+
+## Notes
+
+- `shared/build-data/src/build_data.ts` is generated at build time and is not committed.
+- Example packages are private and are not published by the main workflows.
+- The `utils/*` packages are not part of the main lerna release workflow.
+
+---
+
+## FAQ
+
+### Why do tests use deployed URLs instead of localhost?
+Because the current Playwright suite is deployment-oriented and validates the built viewer as served from environment-specific URLs.
+
+### Why is `latest` only updated from release?
+To avoid non-production branches mutating the stable public channel.
+
+### Why are there separate development / staging / release workflows?
+Because each channel has different rules for:
+- version naming
+- target paths
+- publishing destinations
+- approval requirements

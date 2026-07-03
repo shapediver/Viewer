@@ -91,8 +91,8 @@ function main() {
 		}
 	}
 
-	// Set registry to GitHub Packages
-	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=project");
+	// Set registry to GitHub Packages without mutating tracked project files
+	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
 
 	// Publish
 	const output = run(

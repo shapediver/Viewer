@@ -5,6 +5,7 @@
  *
  * Usage:
  *   npx ts-node -T scripts/deploy/deploy-s3.ts --channel dev --version 3.19.0-dev.1 --source-dir ./dist
+ *   npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version 3.19.0 --source-dir ./docs --target-name api
  *   npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version 3.19.0 --source-dir ./dist --test-cdn
  *   npx ts-node -T scripts/deploy/deploy-s3.ts --channel next --version 3.19.0-next.1 --source-dir ./dist --dry-run
  *   npx ts-node -T scripts/deploy/deploy-s3.ts --channel dev --version 3.19.0-dev.1 --source-dir ./dist --yes
@@ -13,6 +14,7 @@
  *   --channel      dev | next | release  (required)
  *   --version      x.y.z or prerelease   (required)
  *   --source-dir   path to built assets   (required)
+ *   --target-name  optional subpath under the version root (e.g. api, cdn, gltf)
  *   --test-cdn     flag: deploy as test-cdn instead of main assets
  *   --dry-run      flag: show target paths without uploading
  *   --yes          flag: skip confirmation prompt
@@ -26,6 +28,7 @@ interface DeployArgs {
 	channel: string;
 	version: string;
 	sourceDir: string;
+	targetName?: string;
 	isTestCdn: boolean;
 	dryRun: boolean;
 	silent: boolean;
@@ -37,6 +40,7 @@ function parseArgs(): DeployArgs {
 		channel: "",
 		version: "",
 		sourceDir: "",
+		targetName: undefined,
 		isTestCdn: false,
 		dryRun: false,
 		silent: false,
@@ -46,6 +50,7 @@ function parseArgs(): DeployArgs {
 		if (args[i] === "--channel" && args[i + 1]) result.channel = args[++i];
 		else if (args[i] === "--version" && args[i + 1]) result.version = args[++i];
 		else if (args[i] === "--source-dir" && args[i + 1]) result.sourceDir = args[++i];
+		else if (args[i] === "--target-name" && args[i + 1]) result.targetName = args[++i];
 		else if (args[i] === "--test-cdn") result.isTestCdn = true;
 		else if (args[i] === "--dry-run") result.dryRun = true;
 		else if (args[i] === "--yes") result.silent = true;
@@ -59,7 +64,7 @@ function parseArgs(): DeployArgs {
 }
 
 function main() {
-	const {channel, version, sourceDir, isTestCdn, dryRun, silent} = parseArgs();
+	const {channel, version, sourceDir, targetName, isTestCdn, dryRun, silent} = parseArgs();
 	const cfg = getChannel(channel);
 
 	// Resolve the source directory to an absolute path
@@ -74,6 +79,7 @@ function main() {
 		targetBucket = cfg.testS3Bucket ?? cfg.s3Bucket;
 	} else {
 		targetPrefix = getS3DeployPrefix(channel, version);
+		if (targetName) targetPrefix = `${targetPrefix}/${targetName}`;
 		targetBucket = cfg.s3Bucket;
 	}
 
@@ -84,13 +90,14 @@ function main() {
 		console.log(`  Source:     ${resolvedSource}`);
 		console.log(`  Target:     s3://${targetBucket}/${targetPrefix}/`);
 		console.log(`  Type:       ${isTestCdn ? "test-cdn" : "main assets"}`);
+		if (targetName) console.log(`  Target:     ${targetName}`);
 		console.log("");
 	}
 
 	if (dryRun) {
 		console.log("[dry-run] No files uploaded. Would deploy to:");
 		console.log(`  s3://${targetBucket}/${targetPrefix}/`);
-		console.log(JSON.stringify({channel, version, prefix: targetPrefix, bucket: targetBucket, dryRun: true}));
+		console.log(JSON.stringify({channel, version, prefix: targetPrefix, bucket: targetBucket, targetName, dryRun: true}));
 		return;
 	}
 
@@ -111,7 +118,7 @@ function main() {
 		console.log(`\nDeploy complete: s3://${targetBucket}/${targetPrefix}/`);
 	}
 
-	console.log(JSON.stringify({channel, version, prefix: targetPrefix, bucket: targetBucket, dryRun: false}));
+	console.log(JSON.stringify({channel, version, prefix: targetPrefix, bucket: targetBucket, targetName, dryRun: false}));
 }
 
 main();

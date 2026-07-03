@@ -1,0 +1,164 @@
+name: validate-tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: Target environment to validate
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
+concurrency:
+  group: validate-tests-${{ inputs.target_env }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+    env:
+      VIEWER_TEST_ENV: ${{ inputs.target_env }}
+    outputs:
+      target_env: ${{ steps.meta.outputs.target_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          package-manager-cache: false
+          scope: "@shapediver"
+          registry-url: https://npm.pkg.github.com
+
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
+
+      - name: Show tool versions
+        run: |
+          node -v
+          npm -v
+          pnpm -v
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Generate build data
+        shell: bash
+        run: |
+          BUILD_VERSION="validation-${GITHUB_SHA::8}" \
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          GITHUB_SHA="${{ github.sha }}" \
+          GITHUB_REF_NAME="${{ github.ref_name }}" \
+          npx ts-node -T scripts/release/generate-build-data.ts
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Build test assets
+        run: pnpm build-tests
+
+      - name: Configure AWS credentials
+        if: inputs.target_env != 'production'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Deploy test assets for selected env
+        if: inputs.target_env != 'production'
+        run: npm run deploy-tests
+        env:
+          VIEWER_TEST_ENV: ${{ inputs.target_env }}
+
+      - name: Capture target env
+        id: meta
+        run: echo "target_env=${{ inputs.target_env }}" >> "$GITHUB_OUTPUT"
+
+  test-suites:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.target_env }}
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - animation
+          - api
+          - attributes
+          - camera
+          - gltf
+          - interaction
+          - lights
+          - parameters
+          - postprocessing
+          - screenshots
+          - setup
+    env:
+      VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          package-manager-cache: false
+          scope: "@shapediver"
+          registry-url: https://npm.pkg.github.com
+
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Install Playwright browser
+        run: npm run test-install
+
+      - name: Run Playwright suite
+        run: npx playwright test --config tests/playwright.config.ts tests/${{ matrix.suite }}
+        env:
+          VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
+
+      - name: Upload suite artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validate-${{ needs.prepare.outputs.target_env }}-${{ matrix.suite }}
+          if-no-files-found: ignore
+          path: |
+            tests/playwright-report/
+            tests/test-results/
+            **/*.log

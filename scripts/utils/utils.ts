@@ -7,10 +7,9 @@ const {exec} = require("child_process");
 const recursiveReadSync = require("recursive-readdir-sync");
 const readline = require("readline");
 
-// ---- Default S3 config (used by legacy functions) ----
+// ---- Default S3 config ----
 const s3 = new S3({maxAttempts: 5, region: "us-east-1"});
 const bucketName = "shapediverviewer";
-const prefixLatest = "v3/latest";
 
 // ---- Shared helpers ----
 
@@ -88,7 +87,7 @@ export function uploadDirectoryToS3(
 	});
 }
 
-// ---- Legacy functions (kept for backward compatibility) ----
+// ---- Shared helpers (used by deploy/test scripts) ----
 
 export const execPromise = (cmd: string): Promise<string> => {
 	return new Promise((resolve, reject) => {
@@ -108,29 +107,6 @@ export const getDirectories = async (source: string): Promise<string[]> =>
 	(await fs.promises.readdir(source, {withFileTypes: true}))
 		.filter((dirent) => dirent.isDirectory())
 		.map((dirent) => dirent.name as string);
-
-export const deployToS3 = (
-	directoryPath: string,
-	name?: string,
-	prefix?: string,
-) => {
-	deployToS3Latest(directoryPath, name);
-	deployToS3Folder(directoryPath, name, prefix);
-};
-
-export const deployToS3Latest = (directoryPath: string, name?: string) => {
-	const fileContents = <string[]>recursiveReadSync(directoryPath);
-
-	const cacheControl = getCacheControl(name);
-
-	// deploy under latest prefix
-	fileContents.map(function (f) {
-		const key =
-			(name ? prefixLatest + "/" + name : prefixLatest) +
-			f.substring(directoryPath.length, f.length).replace(/\\/g, "/");
-		uploadFileToS3(f, key, bucketName, cacheControl);
-	});
-};
 
 export const deployToS3Folder = (
 	directoryPath: string,

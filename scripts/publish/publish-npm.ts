@@ -14,8 +14,9 @@
  *   --dry-run  show what would be published without actually publishing
  *
  * Auth:
- *   Requires NPM_TOKEN env var in CI (or ~/.npmrc locally)
- *   Registry is switched to npmjs.org during publish, then restored to GitHub Packages.
+ *   Intended to run under npm Trusted Publishing in GitHub Actions (OIDC).
+ *   Local manual publish can still use your existing npm auth setup.
+ *   Registry is switched in user config during publish, then restored to GitHub Packages.
  */
 
 import {execSync} from "child_process";
@@ -81,8 +82,8 @@ function main() {
 		}
 	}
 
-	// Switch to npm registry
-	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=project");
+	// Switch to npm registry without mutating tracked project files
+	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=user");
 
 	// Publish
 	const output = run(
@@ -91,8 +92,8 @@ function main() {
 
 	if (!silent) console.log(output);
 
-	// Restore GitHub Packages registry
-	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=project");
+	// Restore GitHub Packages registry in user config
+	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
 
 	console.log(JSON.stringify({published: true}));
 }
