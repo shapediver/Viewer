@@ -279,9 +279,14 @@ Validation is built into the release/deployment workflows.
 
 - `.github/workflows/development.yml`
 - `.github/workflows/staging.yml`
+- `.github/workflows/full-tests.yml`
 - `.github/workflows/release.yml`
 
-Each workflow now runs a small smoke check against `test-cdn` before starting the full Playwright suite. This catches broken or stale deployments early with a single focused error instead of hundreds of cascading test failures.
+Development and staging workflows run a small smoke check against `test-cdn` before starting the sharded `test-samples-only` Playwright subset (`tests/animation`, `tests/api`, `tests/attributes`, `tests/camera`, `tests/interaction`, and `tests/parameters`). This catches broken or stale deployments early and keeps push-driven channel deployments reasonably fast while still exercising core viewer behavior.
+
+`full-tests.yml` runs nightly on `main` and can also be triggered manually. It checks the exact commit SHA for a successful `viewer/full-playwright` commit status. If that status already exists, the workflow skips. Otherwise it builds the current commit, deploys the test CDN to `v3/latest/test-cdn`, runs the full sharded Playwright suite against `v3/latest`, and records `viewer/full-playwright` on that exact source commit.
+
+`release.yml` uses the same exact-commit status gate. A production release checks `viewer/full-playwright` on the source commit being released. If full tests already passed for that SHA, the expensive Playwright suite is skipped; if not, the release workflow deploys `v3/latest/test-cdn`, runs the full suite, records the status, and only then continues publishing/promoting `latest`. The release commit/tag created by the workflow is intentionally after this gate; the certified commit is the source commit that triggered the release.
 
 ---
 

@@ -20,16 +20,44 @@ permissions:
     contents: write
     packages: write
     id-token: write
+    statuses: write
 
 concurrency:
-    group: release-${{ github.ref }}
+    group: full-playwright-latest-test-cdn
     cancel-in-progress: false
 
 jobs:
-    release:
+    check-full-tests:
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        outputs:
+            full_tests_done: ${{ steps.check.outputs.full_tests_done }}
+
+        steps:
+            - name: Check full Playwright status for this commit
+              id: check
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  COUNT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/statuses" \
+                    --jq '[.[] | select(.context == "viewer/full-playwright" and .state == "success")] | length')
+
+                  if [[ "$COUNT" -gt 0 ]]; then
+                    echo "full_tests_done=true" >> "$GITHUB_OUTPUT"
+                    echo "Full Playwright suite already passed for ${GITHUB_SHA}."
+                  else
+                    echo "full_tests_done=false" >> "$GITHUB_OUTPUT"
+                    echo "Full Playwright suite has not passed for ${GITHUB_SHA}; release will run it."
+                  fi
+
+    prepare:
+        needs: check-full-tests
         if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         environment: production
+        outputs:
+            version: ${{ steps.version.outputs.version }}
 
         steps:
             - name: Checkout
@@ -141,51 +169,19 @@ jobs:
               env:
                   VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ steps.version.outputs.version }}
 
-            - name: Run Playwright tests against versioned release
-              run: npm test
+            - name: Deploy latest test-cdn for full Playwright
+              if: needs.check-full-tests.outputs.full_tests_done != 'true'
+              run: npm run deploy-tests
               env:
-                  VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ steps.version.outputs.version }}
+                  VIEWER_TEST_ENV: production
 
-            - name: Setup Node.js for GitHub Packages publish
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 24.12.0
-                  scope: "@shapediver"
-                  registry-url: https://npm.pkg.github.com
-
-            - name: Publish GitHub Packages (latest)
-              run: npx ts-node -T scripts/publish/publish-github.ts --tag latest --yes
+            - name: Smoke test latest test-cdn for full Playwright
+              if: needs.check-full-tests.outputs.full_tests_done != 'true'
+              run: npm run test:smoke-cdn
               env:
-                  NODE_AUTH_TOKEN: ${{ github.token }}
+                  VIEWER_TEST_ENV: production
 
-            - name: Publish npm (latest)
-              run: npx ts-node -T scripts/publish/publish-npm.ts --yes
-
-            - name: Promote latest
-              run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ steps.version.outputs.version }}" --yes
-
-            - name: Commit version bump and push
-              shell: bash
-              run: |
-                  git add -A
-                  git commit -m "chore(release): release ${{ steps.version.outputs.version }}"
-                  git push origin HEAD:main
-
-            - name: Create release tag and push
-              shell: bash
-              run: |
-                  git tag -a "viewer@${{ steps.version.outputs.version }}" -m "deployed viewer version ${{ steps.version.outputs.version }}"
-                  git push origin "viewer@${{ steps.version.outputs.version }}"
-
-            - name: Publish GitHub release
-              uses: softprops/action-gh-release@v2
-              with:
-                  tag_name: viewer@${{ steps.version.outputs.version }}
-                  name: Viewer ${{ steps.version.outputs.version }}
-                  generate_release_notes: true
-                  body: ${{ inputs.release_notes }}
-
-            - name: Collect failure artifacts
+            - name: Collect prepare failure artifacts
               if: failure()
               shell: bash
               run: |
@@ -204,12 +200,261 @@ jobs:
                     cp -R tests/test-results .github-artifacts/failure/tests/
                   fi
 
-            - name: Upload failure artifacts
+            - name: Upload prepare failure artifacts
               if: failure()
               timeout-minutes: 5
               uses: actions/upload-artifact@v4
               with:
-                  name: release-failure-artifacts
+                  name: release-prepare-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/
+
+    playwright:
+        needs:
+            - check-full-tests
+            - prepare
+        if: github.ref == 'refs/heads/main' && needs.check-full-tests.outputs.full_tests_done != 'true'
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - shard: 1/4
+                      shard_name: 1-of-4
+                    - shard: 2/4
+                      shard_name: 2-of-4
+                    - shard: 3/4
+                      shard_name: 3-of-4
+                    - shard: 4/4
+                      shard_name: 4-of-4
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
+
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install Playwright browser
+              run: npm run test-install
+
+            - name: Run Playwright shard ${{ matrix.shard }} against latest test-cdn
+              run: npx playwright test --config tests/playwright.config.ts --shard=${{ matrix.shard }}
+              env:
+                  VIEWER_TEST_ENV: production
+
+            - name: Collect shard failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload shard failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-playwright-shard-${{ matrix.shard_name }}-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/
+
+    record-full-test-status:
+        needs:
+            - check-full-tests
+            - prepare
+            - playwright
+        if: always() && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Record full Playwright status
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  if [[ "${{ needs.check-full-tests.outputs.full_tests_done }}" == "true" ]]; then
+                    echo "Full Playwright suite was already recorded for ${GITHUB_SHA}."
+                    exit 0
+                  fi
+
+                  if [[ "${{ needs.prepare.result }}" == "success" && "${{ needs.playwright.result }}" == "success" ]]; then
+                    STATE="success"
+                    DESCRIPTION="Full Playwright suite passed"
+                  else
+                    STATE="failure"
+                    DESCRIPTION="Full Playwright suite failed"
+                  fi
+
+                  gh api "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+                    -f state="$STATE" \
+                    -f context="viewer/full-playwright" \
+                    -f description="$DESCRIPTION" \
+                    -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+                  [[ "$STATE" == "success" ]]
+
+    finalize:
+        needs:
+            - prepare
+            - playwright
+            - record-full-test-status
+        if: >-
+            always() &&
+            github.ref == 'refs/heads/main' &&
+            needs.prepare.result == 'success' &&
+            (needs.playwright.result == 'success' || needs.playwright.result == 'skipped') &&
+            needs.record-full-test-status.result == 'success'
+        runs-on: ubuntu-latest
+        environment: production
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
+
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Typecheck workflow scripts
+              run: npm run check:scripts
+
+            - name: Configure git user
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Version packages (no tag yet)
+              run: |
+                  npx lerna version "${{ needs.prepare.outputs.version }}" \
+                    --yes \
+                    --no-private \
+                    --exact \
+                    --force-publish \
+                    --no-git-tag-version \
+                    --no-push
+
+            - name: Generate build data
+              shell: bash
+              run: |
+                  BUILD_VERSION="${{ needs.prepare.outputs.version }}" \
+                  BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  GITHUB_SHA="${{ github.sha }}" \
+                  GITHUB_REF_NAME="main" \
+                  npx ts-node -T scripts/release/generate-build-data.ts
+
+            - name: Build packages
+              run: pnpm build
+
+            - name: Setup Node.js for GitHub Packages publish
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  scope: "@shapediver"
+                  registry-url: https://npm.pkg.github.com
+
+            - name: Publish GitHub Packages (latest)
+              run: npx ts-node -T scripts/publish/publish-github.ts --tag latest --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ github.token }}
+
+            - name: Publish npm (latest)
+              run: npx ts-node -T scripts/publish/publish-npm.ts --yes
+
+            - name: Promote latest
+              run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ needs.prepare.outputs.version }}" --yes
+
+            - name: Commit version bump and push
+              shell: bash
+              run: |
+                  git add -A
+                  git commit -m "chore(release): release ${{ needs.prepare.outputs.version }}"
+                  git push origin HEAD:main
+
+            - name: Create release tag and push
+              shell: bash
+              run: |
+                  git tag -a "viewer@${{ needs.prepare.outputs.version }}" -m "deployed viewer version ${{ needs.prepare.outputs.version }}"
+                  git push origin "viewer@${{ needs.prepare.outputs.version }}"
+
+            - name: Publish GitHub release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: viewer@${{ needs.prepare.outputs.version }}
+                  name: Viewer ${{ needs.prepare.outputs.version }}
+                  generate_release_notes: true
+                  body: ${{ inputs.release_notes }}
+
+            - name: Collect finalize failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -f lerna-debug.log ]]; then
+                    cp lerna-debug.log .github-artifacts/failure/
+                  fi
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload finalize failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-finalize-failure-artifacts
                   if-no-files-found: ignore
                   compression-level: 0
                   path: .github-artifacts/failure/

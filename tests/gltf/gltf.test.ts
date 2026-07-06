@@ -17,6 +17,19 @@ const modelsJson: any[] = fs.existsSync(modelsJsonPath)
 
 const name = "gltf";
 
+const gltfSampleModelsBaseUrl = (
+	process.env.GLTF_SAMPLE_MODELS_BASE_URL ??
+	"https://viewer.shapediver.com/v3/glTF-Sample-Models/2.0"
+).replace(/\/$/, "");
+
+function getGltfSampleModelUrl(
+	modelName: string,
+	variant: string,
+	variantFilename: string,
+): string {
+	return `${gltfSampleModelsBaseUrl}/${modelName}/${variant}/${variantFilename}`;
+}
+
 /**
  * Worker-scoped fixture: the browser context and page are created once per Playwright worker
  * and reused across all gltf tests assigned to that worker. This eliminates the ~7s
@@ -120,24 +133,16 @@ test.describe("glTF", () => {
 			const testName = `${variant}_${modelJson.name}`;
 			const modelName = modelJson.name;
 			const variantFilename = modelJson.variants[variant];
+			const modelUrl = getGltfSampleModelUrl(
+				modelName,
+				variant,
+				variantFilename,
+			);
 
 			test(testName, async ({workerPage}) => {
-				await workerPage.evaluate(
-					async ({
-						modelName,
-						variant,
-						variantFilename,
-					}: {
-						modelName: string;
-						variant: string;
-						variantFilename: string;
-					}) => {
-						await (<any>window).addGLTF(
-							`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/${modelName}/${variant}/${variantFilename}`,
-						);
-					},
-					{modelName, variant, variantFilename},
-				);
+				await workerPage.evaluate(async (uri: string) => {
+					await (<any>window).addGLTF(uri);
+				}, modelUrl);
 
 				// Use animations:"allow" so toHaveScreenshot does not patch requestAnimationFrame,
 				// which would break the rendering loop for subsequent tests on the same shared page.
