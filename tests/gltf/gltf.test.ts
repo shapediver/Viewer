@@ -1,4 +1,4 @@
-﻿import {Page, test as base, expect} from "@playwright/test";
+import {Page, test as base, expect} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -41,7 +41,7 @@ const test = base.extend<{}, {workerPage: Page}>({
 			const page = await context.newPage();
 
 			await page.goto(
-				"/test-cdn/index.html",
+				"test-cdn/index.html",
 			);
 
 			await page.evaluate(async () => {

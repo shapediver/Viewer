@@ -1,4 +1,4 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1} from "../models.json";
@@ -9,7 +9,7 @@ const name = "viewer_closing";
 test.describe("Viewer Management", () => {
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"/test-cdn/index.html",
+			"test-cdn/index.html",
 		);
 	});
 

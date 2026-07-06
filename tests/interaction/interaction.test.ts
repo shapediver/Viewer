@@ -1,11 +1,11 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 
 const name = "interaction";
 
 test.describe("Interaction", () => {
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"/test-cdn/index.html",
+			"test-cdn/index.html",
 		);
 
 		// Inject the #bottom and #top overlay buttons used by the test interactions

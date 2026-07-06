@@ -1,4 +1,4 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 import * as ShapeDiverViewerAttributeVisualization from "@shapediver/viewer.features.attribute-visualization";
 
@@ -7,7 +7,7 @@ const name = "attributes";
 test.describe("Attribute Visualization", () => {
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"/test-cdn/index.html",
+			"test-cdn/index.html",
 		);
 
 		await page.evaluate(async () => {

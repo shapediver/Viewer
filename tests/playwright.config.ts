@@ -1,8 +1,12 @@
 import {defineConfig, devices} from "@playwright/test";
 
+function withTrailingSlash(url: string): string {
+	return url.endsWith("/") ? url : `${url}/`;
+}
+
 function resolveViewerTestBaseUrl(): string {
 	const explicit = process.env.VIEWER_TEST_BASE_URL?.trim();
-	if (explicit) return explicit.replace(/\/$/, "");
+	if (explicit) return withTrailingSlash(explicit);
 
 	const target = (
 		process.env.VIEWER_TEST_ENV ||
@@ -15,14 +19,14 @@ function resolveViewerTestBaseUrl(): string {
 
 	switch (target) {
 		case "development":
-			return "https://viewer.shapediver.com/v3/development";
+			return withTrailingSlash("https://viewer.shapediver.com/v3/development");
 		case "staging":
-			return "https://viewer.shapediver.com/v3/staging";
+			return withTrailingSlash("https://viewer.shapediver.com/v3/staging");
 		case "production":
 		case "latest":
 		case "main":
 		default:
-			return "https://viewer.shapediver.com/v3/latest";
+			return withTrailingSlash("https://viewer.shapediver.com/v3/latest");
 	}
 }
 

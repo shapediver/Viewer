@@ -1,4 +1,4 @@
-﻿import {expect, test} from "@playwright/test";
+import {expect, test} from "@playwright/test";
 import * as ShapeDiverViewer from "@shapediver/viewer";
 
 import {sdeuc1, sdr7euc1} from "../models.json";
@@ -10,7 +10,7 @@ test.describe("Screenshots", () => {
 
 	test.beforeEach(async ({page}) => {
 		await page.goto(
-			"/test-cdn/index.html",
+			"test-cdn/index.html",
 		);
 	});
 
