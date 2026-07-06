@@ -79,7 +79,11 @@ Builds the main viewer package and its workspace dependencies.
 
 ```bash
 pnpm check
+pnpm check:scripts
 ```
+
+- `pnpm check` validates workspace packages
+- `pnpm check:scripts` typechecks the workflow/release/deploy helper scripts under `scripts/`
 
 ### Build test assets
 
@@ -114,6 +118,14 @@ pnpm test
 ```bash
 pnpm test-install
 ```
+
+### Smoke check deployed test-cdn
+
+```bash
+pnpm test:smoke-cdn
+```
+
+This opens the deployed `test-cdn` page and verifies that `window.SDV.createViewport` is available before the full Playwright suite runs.
 
 ### UI mode
 
@@ -268,17 +280,8 @@ Validation is built into the release/deployment workflows.
 - `.github/workflows/development.yml`
 - `.github/workflows/staging.yml`
 - `.github/workflows/release.yml`
-- `.github/workflows/validate-tests.yml`
 
-### Validation-only workflow
-
-`validate-tests.yml` exists to run the build/deploy/test path **without** committing or publishing.
-It is intended for reporting test results per suite.
-
-Target environments:
-- `development` — builds and deploys test assets to the development target, then runs per-suite Playwright tests
-- `staging` — builds and deploys test assets to the staging target, then runs per-suite Playwright tests
-- `production` — tests the current `v3/latest` deployment **without deploying any new assets**
+Each workflow now runs a small smoke check against `test-cdn` before starting the full Playwright suite. This catches broken or stale deployments early with a single focused error instead of hundreds of cascading test failures.
 
 ---
 
