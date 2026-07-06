@@ -132,42 +132,12 @@ jobs:
             - name: Build test assets
               run: pnpm build-tests
 
-            - name: Build examples
-              run: pnpm build-examples
-
-            - name: Build docs
-              run: pnpm doc
-
-            - name: Configure AWS credentials
+            - name: Configure AWS credentials for full Playwright test-cdn
+              if: needs.check-full-tests.outputs.full_tests_done != 'true'
               uses: aws-actions/configure-aws-credentials@v4
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
                   aws-region: us-east-1
-
-            - name: Deploy docs (versioned)
-              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./docs --target-name api --yes
-
-            - name: Deploy CDN example (versioned)
-              run: |
-                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --target-name cdn --yes
-                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --yes
-
-            - name: Deploy glTF example (versioned)
-              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/gltf/dist --target-name gltf --yes
-
-            - name: Deploy main pages (versioned)
-              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/main-pages --yes
-
-            - name: Deploy test-cdn (versioned)
-              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/test-cdn/dist --test-cdn --yes
-
-            - name: Install Playwright browser
-              run: npm run test-install
-
-            - name: Smoke test deployed versioned test-cdn
-              run: npm run test:smoke-cdn
-              env:
-                  VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ steps.version.outputs.version }}
 
             - name: Deploy latest test-cdn for full Playwright
               if: needs.check-full-tests.outputs.full_tests_done != 'true'
@@ -390,6 +360,46 @@ jobs:
 
             - name: Build packages
               run: pnpm build
+
+            - name: Build test assets
+              run: pnpm build-tests
+
+            - name: Build examples
+              run: pnpm build-examples
+
+            - name: Build docs
+              run: pnpm doc
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: us-east-1
+
+            - name: Deploy docs (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./docs --target-name api --yes
+
+            - name: Deploy CDN example (versioned)
+              run: |
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./examples/cdn/dist --target-name cdn --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./examples/cdn/dist --yes
+
+            - name: Deploy glTF example (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./examples/gltf/dist --target-name gltf --yes
+
+            - name: Deploy main pages (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./examples/main-pages --yes
+
+            - name: Deploy test-cdn (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ needs.prepare.outputs.version }}" --source-dir ./examples/test-cdn/dist --test-cdn --yes
+
+            - name: Install Playwright browser
+              run: npm run test-install
+
+            - name: Smoke test deployed versioned test-cdn
+              run: npm run test:smoke-cdn
+              env:
+                  VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ needs.prepare.outputs.version }}
 
             - name: Setup Node.js for GitHub Packages publish
               uses: actions/setup-node@v4
