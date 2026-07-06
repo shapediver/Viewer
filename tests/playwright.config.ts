@@ -41,7 +41,7 @@ export default defineConfig({
 	tsconfig: "./tsconfig.json",
 	forbidOnly: !!process.env.CI,
 	fullyParallel: true,
-	workers: 2,
+	workers: process.env.GITHUB_ACTIONS ? 1 : 2,
 	retries: 1,
 	reporter: [["html", {open: "never"}], ["list"]],
 	timeout: 90_000,
