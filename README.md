@@ -261,6 +261,7 @@ Validation is built into the release/deployment workflows.
 - publishes to:
   - **GitHub Packages**
   - **npm**
+  - **GitHub Releases** (auto-generated notes, with required manual notes prepended)
 
 ### Workflows
 
