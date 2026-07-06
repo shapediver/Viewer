@@ -1,142 +1,159 @@
 name: staging
 
 on:
-  push:
-    branches:
-      - staging
-  workflow_dispatch:
+    push:
+        branches:
+            - staging
+    workflow_dispatch:
 
 permissions:
-  contents: write
-  packages: write
-  id-token: write
+    contents: write
+    packages: write
+    id-token: write
 
 concurrency:
-  group: staging-${{ github.ref }}
-  cancel-in-progress: true
+    group: staging-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  staging:
-    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
-    runs-on: ubuntu-latest
-    environment: staging
+    staging:
+        if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
+        runs-on: ubuntu-latest
+        environment: staging
 
-    env:
-      VIEWER_TEST_ENV: staging
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.3.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          cache: pnpm
-          package-manager-cache: false
-          registry-url: https://registry.npmjs.org
-
-      - name: Pin npm
-        run: npm i -g npm@11.6.2
-
-      - name: Show tool versions
-        run: |
-          node -v
-          npm -v
-          pnpm -v
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Configure git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Compute next version
-        id: version
-        shell: bash
-        run: |
-          VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel next --yes)
-          VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Computed version: $VERSION"
-
-      - name: Version packages
-        run: npx ts-node -T scripts/release/version-packages.ts --version "${{ steps.version.outputs.version }}" --channel next --yes
-
-      - name: Generate build data
-        shell: bash
-        run: |
-          BUILD_VERSION="${{ steps.version.outputs.version }}" \
-          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          GITHUB_SHA="$(git rev-parse HEAD)" \
-          GITHUB_REF_NAME="staging" \
-          npx ts-node -T scripts/release/generate-build-data.ts
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Build test assets
-        run: pnpm build-tests
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Deploy test assets to staging
-        run: npm run deploy-tests
         env:
-          VIEWER_TEST_ENV: staging
+            VIEWER_TEST_ENV: staging
 
-      - name: Install Playwright browser
-        run: npm run test-install
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Run Playwright tests against staging
-        run: npm test
-        env:
-          VIEWER_TEST_ENV: staging
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
 
-      - name: Commit and push version bump
-        shell: bash
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git add -A
-            git commit -m "chore(release): bump next version to ${{ steps.version.outputs.version }} [skip ci]"
-            git push origin HEAD:staging
-          else
-            echo "No version changes to commit."
-          fi
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
 
-      - name: Setup Node.js for GitHub Packages publish
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          scope: "@shapediver"
-          registry-url: https://npm.pkg.github.com
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
 
-      - name: Publish GitHub Packages (next)
-        run: npx ts-node -T scripts/publish/publish-github.ts --tag next --yes
-        env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+            - name: Show tool versions
+              run: |
+                  node -v
+                  npm -v
+                  pnpm -v
 
-      - name: Upload failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: staging-failure-artifacts
-          if-no-files-found: ignore
-          path: |
-            lerna-debug.log
-            tests/playwright-report/
-            tests/test-results/
-            **/*.log
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Configure git user
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Compute next version
+              id: version
+              shell: bash
+              run: |
+                  VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel next --yes)
+                  VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "Computed version: $VERSION"
+
+            - name: Version packages
+              run: npx ts-node -T scripts/release/version-packages.ts --version "${{ steps.version.outputs.version }}" --channel next --yes
+
+            - name: Generate build data
+              shell: bash
+              run: |
+                  BUILD_VERSION="${{ steps.version.outputs.version }}" \
+                  BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  GITHUB_SHA="$(git rev-parse HEAD)" \
+                  GITHUB_REF_NAME="staging" \
+                  npx ts-node -T scripts/release/generate-build-data.ts
+
+            - name: Build packages
+              run: pnpm build
+
+            - name: Build test assets
+              run: pnpm build-tests
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: us-east-1
+
+            - name: Deploy test assets to staging
+              run: npm run deploy-tests
+              env:
+                  VIEWER_TEST_ENV: staging
+
+            - name: Install Playwright browser
+              run: npm run test-install
+
+            - name: Run Playwright tests against staging
+              run: npm test
+              env:
+                  VIEWER_TEST_ENV: staging
+
+            - name: Commit and push version bump
+              shell: bash
+              run: |
+                  if [[ -n "$(git status --porcelain)" ]]; then
+                    git add -A
+                    git commit -m "chore(release): bump next version to ${{ steps.version.outputs.version }} [skip ci]"
+                    git push origin HEAD:staging
+                  else
+                    echo "No version changes to commit."
+                  fi
+
+            - name: Setup Node.js for GitHub Packages publish
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  scope: "@shapediver"
+                  registry-url: https://npm.pkg.github.com
+
+            - name: Publish GitHub Packages (next)
+              run: npx ts-node -T scripts/publish/publish-github.ts --tag next --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ github.token }}
+
+            - name: Collect failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -f lerna-debug.log ]]; then
+                    cp lerna-debug.log .github-artifacts/failure/
+                  fi
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@v4
+              with:
+                  name: staging-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/

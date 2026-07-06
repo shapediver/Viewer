@@ -1,158 +1,172 @@
 name: validate-tests
 
 on:
-  workflow_dispatch:
-    inputs:
-      target_env:
-        description: Target environment to validate
-        required: true
-        type: choice
-        options:
-          - development
-          - staging
-          - production
+    workflow_dispatch:
+        inputs:
+            target_env:
+                description: Target environment to validate
+                required: true
+                type: choice
+                options:
+                    - development
+                    - staging
+                    - production
 
 permissions:
-  contents: read
-  packages: read
-  id-token: write
+    contents: read
+    packages: read
+    id-token: write
 
 concurrency:
-  group: validate-tests-${{ inputs.target_env }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: validate-tests-${{ inputs.target_env }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.target_env }}
-    env:
-      VIEWER_TEST_ENV: ${{ inputs.target_env }}
-    outputs:
-      target_env: ${{ steps.meta.outputs.target_env }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.3.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          cache: pnpm
-          package-manager-cache: false
-          registry-url: https://registry.npmjs.org
-
-      - name: Pin npm
-        run: npm i -g npm@11.6.2
-
-      - name: Show tool versions
-        run: |
-          node -v
-          npm -v
-          pnpm -v
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate build data
-        shell: bash
-        run: |
-          BUILD_VERSION="validation-${GITHUB_SHA::8}" \
-          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          GITHUB_SHA="${{ github.sha }}" \
-          GITHUB_REF_NAME="${{ github.ref_name }}" \
-          npx ts-node -T scripts/release/generate-build-data.ts
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Build test assets
-        run: pnpm build-tests
-
-      - name: Configure AWS credentials
-        if: inputs.target_env != 'production'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Deploy test assets for selected env
-        if: inputs.target_env != 'production'
-        run: npm run deploy-tests
+    prepare:
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.target_env }}
         env:
-          VIEWER_TEST_ENV: ${{ inputs.target_env }}
+            VIEWER_TEST_ENV: ${{ inputs.target_env }}
+        outputs:
+            target_env: ${{ steps.meta.outputs.target_env }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Capture target env
-        id: meta
-        run: echo "target_env=${{ inputs.target_env }}" >> "$GITHUB_OUTPUT"
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
 
-  test-suites:
-    needs: prepare
-    runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.target_env }}
-    strategy:
-      fail-fast: false
-      matrix:
-        suite:
-          - animation
-          - api
-          - attributes
-          - camera
-          - gltf
-          - interaction
-          - lights
-          - parameters
-          - postprocessing
-          - screenshots
-          - setup
-    env:
-      VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.3.0
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          cache: pnpm
-          package-manager-cache: false
-          registry-url: https://registry.npmjs.org
+            - name: Show tool versions
+              run: |
+                  node -v
+                  npm -v
+                  pnpm -v
 
-      - name: Pin npm
-        run: npm i -g npm@11.6.2
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Generate build data
+              shell: bash
+              run: |
+                  BUILD_VERSION="validation-${GITHUB_SHA::8}" \
+                  BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  GITHUB_SHA="${{ github.sha }}" \
+                  GITHUB_REF_NAME="${{ github.ref_name }}" \
+                  npx ts-node -T scripts/release/generate-build-data.ts
 
-      - name: Install Playwright browser
-        run: npm run test-install
+            - name: Build packages
+              run: pnpm build
 
-      - name: Run Playwright suite
-        run: npx playwright test --config tests/playwright.config.ts tests/${{ matrix.suite }}
+            - name: Build test assets
+              run: pnpm build-tests
+
+            - name: Configure AWS credentials
+              if: inputs.target_env != 'production'
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: us-east-1
+
+            - name: Deploy test assets for selected env
+              if: inputs.target_env != 'production'
+              run: npm run deploy-tests
+              env:
+                  VIEWER_TEST_ENV: ${{ inputs.target_env }}
+
+            - name: Capture target env
+              id: meta
+              run: echo "target_env=${{ inputs.target_env }}" >> "$GITHUB_OUTPUT"
+
+    test-suites:
+        needs: prepare
+        runs-on: ubuntu-latest
+        environment: ${{ needs.prepare.outputs.target_env }}
+        strategy:
+            fail-fast: false
+            matrix:
+                suite:
+                    - animation
+                    - api
+                    - attributes
+                    - camera
+                    - gltf
+                    - interaction
+                    - lights
+                    - parameters
+                    - postprocessing
+                    - screenshots
+                    - setup
         env:
-          VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
+            VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Upload suite artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: validate-${{ needs.prepare.outputs.target_env }}-${{ matrix.suite }}
-          if-no-files-found: ignore
-          path: |
-            tests/playwright-report/
-            tests/test-results/
-            **/*.log
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
+
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install Playwright browser
+              run: npm run test-install
+
+            - name: Run Playwright suite
+              run: npx playwright test --config tests/playwright.config.ts tests/${{ matrix.suite }}
+              env:
+                  VIEWER_TEST_ENV: ${{ needs.prepare.outputs.target_env }}
+
+            - name: Collect suite artifacts
+              if: always()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/validate
+                  mkdir -p .github-artifacts/validate/tests
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/validate/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/validate/tests/
+                  fi
+
+            - name: Upload suite artifacts
+              if: always()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@v4
+              with:
+                  name: validate-${{ needs.prepare.outputs.target_env }}-${{ matrix.suite }}
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/validate/

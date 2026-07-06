@@ -1,178 +1,195 @@
 name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: Release increment type
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+    workflow_dispatch:
+        inputs:
+            release_type:
+                description: Release increment type
+                required: true
+                type: choice
+                options:
+                    - patch
+                    - minor
+                    - major
 
 permissions:
-  contents: write
-  packages: write
-  id-token: write
+    contents: write
+    packages: write
+    id-token: write
 
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  release:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
+    release:
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        environment: production
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.3.0
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.3.0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          cache: pnpm
-          package-manager-cache: false
-          registry-url: https://registry.npmjs.org
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+                  package-manager-cache: false
+                  registry-url: https://registry.npmjs.org
 
-      - name: Pin npm
-        run: npm i -g npm@11.6.2
+            - name: Pin npm
+              run: npm i -g npm@11.6.2
 
-      - name: Show tool versions
-        run: |
-          node -v
-          npm -v
-          pnpm -v
+            - name: Show tool versions
+              run: |
+                  node -v
+                  npm -v
+                  pnpm -v
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Configure git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            - name: Configure git user
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Compute release version
-        id: version
-        shell: bash
-        run: |
-          VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel release --release-type "${{ inputs.release_type }}" --yes)
-          VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Computed version: $VERSION"
+            - name: Compute release version
+              id: version
+              shell: bash
+              run: |
+                  VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel release --release-type "${{ inputs.release_type }}" --yes)
+                  VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "Computed version: $VERSION"
 
-      - name: Version packages (no tag yet)
-        run: |
-          npx lerna version "${{ steps.version.outputs.version }}" \
-            --yes \
-            --no-private \
-            --exact \
-            --force-publish \
-            --no-git-tag-version \
-            --no-push
+            - name: Version packages (no tag yet)
+              run: |
+                  npx lerna version "${{ steps.version.outputs.version }}" \
+                    --yes \
+                    --no-private \
+                    --exact \
+                    --force-publish \
+                    --no-git-tag-version \
+                    --no-push
 
-      - name: Generate build data
-        shell: bash
-        run: |
-          BUILD_VERSION="${{ steps.version.outputs.version }}" \
-          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          GITHUB_SHA="${{ github.sha }}" \
-          GITHUB_REF_NAME="main" \
-          npx ts-node -T scripts/release/generate-build-data.ts
+            - name: Generate build data
+              shell: bash
+              run: |
+                  BUILD_VERSION="${{ steps.version.outputs.version }}" \
+                  BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  GITHUB_SHA="${{ github.sha }}" \
+                  GITHUB_REF_NAME="main" \
+                  npx ts-node -T scripts/release/generate-build-data.ts
 
-      - name: Build packages
-        run: pnpm build
+            - name: Build packages
+              run: pnpm build
 
-      - name: Build test assets
-        run: pnpm build-tests
+            - name: Build test assets
+              run: pnpm build-tests
 
-      - name: Build examples
-        run: pnpm build-examples
+            - name: Build examples
+              run: pnpm build-examples
 
-      - name: Build docs
-        run: pnpm doc
+            - name: Build docs
+              run: pnpm doc
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: us-east-1
 
-      - name: Deploy docs (versioned)
-        run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./docs --target-name api --yes
+            - name: Deploy docs (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./docs --target-name api --yes
 
-      - name: Deploy CDN example (versioned)
-        run: |
-          npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --target-name cdn --yes
-          npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --yes
+            - name: Deploy CDN example (versioned)
+              run: |
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --target-name cdn --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/cdn/dist --yes
 
-      - name: Deploy glTF example (versioned)
-        run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/gltf/dist --target-name gltf --yes
+            - name: Deploy glTF example (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/gltf/dist --target-name gltf --yes
 
-      - name: Deploy main pages (versioned)
-        run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/main-pages --yes
+            - name: Deploy main pages (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/main-pages --yes
 
-      - name: Deploy test-cdn (versioned)
-        run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/test-cdn/dist --test-cdn --yes
+            - name: Deploy test-cdn (versioned)
+              run: npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version "${{ steps.version.outputs.version }}" --source-dir ./examples/test-cdn/dist --test-cdn --yes
 
-      - name: Install Playwright browser
-        run: npm run test-install
+            - name: Install Playwright browser
+              run: npm run test-install
 
-      - name: Run Playwright tests against versioned release
-        run: npm test
-        env:
-          VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ steps.version.outputs.version }}
+            - name: Run Playwright tests against versioned release
+              run: npm test
+              env:
+                  VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ steps.version.outputs.version }}
 
-      - name: Setup Node.js for GitHub Packages publish
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          scope: "@shapediver"
-          registry-url: https://npm.pkg.github.com
+            - name: Setup Node.js for GitHub Packages publish
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.12.0
+                  scope: "@shapediver"
+                  registry-url: https://npm.pkg.github.com
 
-      - name: Publish GitHub Packages (latest)
-        run: npx ts-node -T scripts/publish/publish-github.ts --tag latest --yes
-        env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+            - name: Publish GitHub Packages (latest)
+              run: npx ts-node -T scripts/publish/publish-github.ts --tag latest --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ github.token }}
 
-      - name: Publish npm (latest)
-        run: npx ts-node -T scripts/publish/publish-npm.ts --yes
+            - name: Publish npm (latest)
+              run: npx ts-node -T scripts/publish/publish-npm.ts --yes
 
-      - name: Promote latest
-        run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ steps.version.outputs.version }}" --yes
+            - name: Promote latest
+              run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ steps.version.outputs.version }}" --yes
 
-      - name: Commit version bump and push
-        shell: bash
-        run: |
-          git add -A
-          git commit -m "chore(release): release ${{ steps.version.outputs.version }}"
-          git push origin HEAD:main
+            - name: Commit version bump and push
+              shell: bash
+              run: |
+                  git add -A
+                  git commit -m "chore(release): release ${{ steps.version.outputs.version }}"
+                  git push origin HEAD:main
 
-      - name: Create release tag and push
-        shell: bash
-        run: |
-          git tag -a "viewer@${{ steps.version.outputs.version }}" -m "deployed viewer version ${{ steps.version.outputs.version }}"
-          git push origin "viewer@${{ steps.version.outputs.version }}"
+            - name: Create release tag and push
+              shell: bash
+              run: |
+                  git tag -a "viewer@${{ steps.version.outputs.version }}" -m "deployed viewer version ${{ steps.version.outputs.version }}"
+                  git push origin "viewer@${{ steps.version.outputs.version }}"
 
-      - name: Upload failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-failure-artifacts
-          if-no-files-found: ignore
-          path: |
-            lerna-debug.log
-            tests/playwright-report/
-            tests/test-results/
-            **/*.log
+            - name: Collect failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -f lerna-debug.log ]]; then
+                    cp lerna-debug.log .github-artifacts/failure/
+                  fi
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/
