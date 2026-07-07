@@ -27,12 +27,13 @@ jobs:
             VIEWER_TEST_ENV: staging
 
         steps:
-            - name: Get GitHub App token
+            - name: Create GitHub App token
               id: app-token
-              uses: tibdex/github-app-token@v2
+              uses: actions/create-github-app-token@v3
               with:
-                  app_id: ${{ secrets.BOT_APP_ID }}
-                  private_key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  client-id: "${{ vars.BOT_APP_CLIENT_ID || secrets.BOT_APP_CLIENT_ID }}"
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  permission-contents: write
 
             - name: Checkout
               uses: actions/checkout@v4
@@ -69,9 +70,14 @@ jobs:
               run: npm run check:scripts
 
             - name: Configure git user
+              shell: bash
               run: |
-                  git config user.name "Release Bot"
-                  git config user.email "[EMAIL]"
+                  APP_SLUG="${{ steps.app-token.outputs.app-slug }}"
+                  USER_ID="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
+                  git config user.name "${APP_SLUG}[bot]"
+                  git config user.email "${USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
             - name: Compute next version
               id: version
@@ -236,12 +242,13 @@ jobs:
             VIEWER_TEST_ENV: staging
 
         steps:
-            - name: Get GitHub App token
+            - name: Create GitHub App token
               id: app-token
-              uses: tibdex/github-app-token@v2
+              uses: actions/create-github-app-token@v3
               with:
-                  app_id: ${{ secrets.BOT_APP_ID }}
-                  private_key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  client-id: "${{ vars.BOT_APP_CLIENT_ID || secrets.BOT_APP_CLIENT_ID }}"
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  permission-contents: write
 
             - name: Checkout
               uses: actions/checkout@v4
@@ -272,9 +279,14 @@ jobs:
               run: npm run check:scripts
 
             - name: Configure git user
+              shell: bash
               run: |
-                  git config user.name "Release Bot"
-                  git config user.email "[EMAIL]"
+                  APP_SLUG="${{ steps.app-token.outputs.app-slug }}"
+                  USER_ID="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
+                  git config user.name "${APP_SLUG}[bot]"
+                  git config user.email "${USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
             - name: Version packages
               run: npx ts-node -T scripts/release/version-packages.ts --version "${{ needs.prepare.outputs.version }}" --channel next --yes
