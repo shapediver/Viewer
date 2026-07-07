@@ -60,10 +60,18 @@ jobs:
             version: ${{ steps.version.outputs.version }}
 
         steps:
+            - name: Get GitHub App token
+              id: app-token
+              uses: tibdex/github-app-token@v2
+              with:
+                  app_id: ${{ secrets.BOT_APP_ID }}
+                  private_key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
             - name: Checkout
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  token: ${{ steps.app-token.outputs.token }}
 
             - name: Validate release notes
               if: inputs.release_type != 'patch' && inputs.release_notes == ''
@@ -101,8 +109,8 @@ jobs:
 
             - name: Configure git user
               run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git config user.name "Release Bot"
+                  git config user.email "[EMAIL]"
 
             - name: Compute release version
               id: version
@@ -321,10 +329,18 @@ jobs:
         environment: production
 
         steps:
+            - name: Get GitHub App token
+              id: app-token
+              uses: tibdex/github-app-token@v2
+              with:
+                  app_id: ${{ secrets.BOT_APP_ID }}
+                  private_key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
             - name: Checkout
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  token: ${{ steps.app-token.outputs.token }}
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
@@ -350,8 +366,8 @@ jobs:
 
             - name: Configure git user
               run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git config user.name "Release Bot"
+                  git config user.email "[EMAIL]"
 
             - name: Version packages (no tag yet)
               run: |

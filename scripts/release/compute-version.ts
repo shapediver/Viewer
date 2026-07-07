@@ -149,6 +149,17 @@ function computeVersion(current: string, channel: string, releaseType?: string):
 
 	// dev or next channel
 	const suffix = channel; // "dev" or "next"
+	const explicitCounter = process.env.RELEASE_PRERELEASE_COUNTER;
+	if (explicitCounter) {
+		const counter = parseInt(explicitCounter, 10);
+		if (!Number.isInteger(counter) || counter <= 0) {
+			throw new Error(
+				`Invalid RELEASE_PRERELEASE_COUNTER: "${explicitCounter}". Must be a positive integer.`,
+			);
+		}
+		return `${parsed.major}.${parsed.minor}.${parsed.patch}-${suffix}.${counter}`;
+	}
+
 	const isSamePrerelease = parsed.prerelease === suffix;
 
 	if (isSamePrerelease) {
