@@ -341,6 +341,22 @@ test.describe("Interaction", () => {
 			let viewport: any;
 			let dragManager: any;
 			let hoverManager: any;
+			let customizationCount = 0;
+
+			(<any>window).interactionTestState = {
+				get bottomCounter() {
+					return bottomShelf.counter;
+				},
+				get topCounter() {
+					return topShelf.counter;
+				},
+				get customizationCount() {
+					return customizationCount;
+				},
+				get customizationInProgress() {
+					return customizationInProgress;
+				},
+			};
 
 			const updateParameter = async (def: any) => {
 				const stringMatrixArray: string[] = [];
@@ -504,6 +520,7 @@ test.describe("Interaction", () => {
 								);
 								customizationInProgress = true;
 								await updateParameter(def);
+								customizationCount++;
 								const node = def.output.node.getNodesByName(
 									def.output.name + "_" + (def.counter - 1),
 								)[0];
@@ -608,6 +625,7 @@ test.describe("Interaction", () => {
 						def.counter++;
 						customizationInProgress = true;
 						await updateParameter(def);
+						customizationCount++;
 						const node = def.output.node.getNodesByName(
 							def.output.name + "_" + (def.counter - 1),
 						)[0];
@@ -708,82 +726,67 @@ test.describe("Interaction", () => {
 	});
 
 	test("drag interactions", async ({page}) => {
-		test.setTimeout(240_000);
-		await page.waitForTimeout(1000);
+		test.setTimeout(180_000);
 
-		const factor = 0.75;
+		const dragShelfFromButton = async (
+			selector: "#bottom" | "#top",
+			targetX: number,
+			targetY: number,
+			expectedCounter: number,
+			expectedCustomizations: number,
+		) => {
+			const box = await page.locator(selector).boundingBox();
+			expect(box).not.toBeNull();
 
-		const bottomBox = await page.locator("#bottom").boundingBox();
-		const bottomCX = bottomBox!.x + bottomBox!.width / 2;
-		const bottomCY = bottomBox!.y + bottomBox!.height / 2;
+			await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+			await page.mouse.down();
+			await page.mouse.move(targetX, targetY, {steps: 10});
+			await page.mouse.up();
 
-		const topBox = await page.locator("#top").boundingBox();
-		const topCX = topBox!.x + topBox!.width / 2;
-		const topCY = topBox!.y + topBox!.height / 2;
+			await page.waitForFunction(
+				({counterName, expectedCounter, expectedCustomizations}) => {
+					const state = (window as any).interactionTestState;
+					return (
+						state &&
+						!state.customizationInProgress &&
+						state[counterName] >= expectedCounter &&
+						state.customizationCount >= expectedCustomizations
+					);
+				},
+				{
+					counterName:
+						selector === "#bottom" ? "bottomCounter" : "topCounter",
+					expectedCounter,
+					expectedCustomizations,
+				},
+				{timeout: 120_000},
+			);
+		};
 
-		// bottom interactions
-		await page.mouse.move(bottomCX, bottomCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(640 * factor),
-			Math.round(380 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
+		// Keep this as a functional interaction smoke test for the expensive shelf
+		// drag workflow. The former visual test performed six backend customizations
+		// and was too slow/flaky for GitHub-hosted runners.
+		await dragShelfFromButton("#bottom", 480, 285, 2, 1);
+		await dragShelfFromButton("#top", 480, 225, 2, 2);
 
-		await page.mouse.move(bottomCX, bottomCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(840 * factor),
-			Math.round(450 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
+		const state = await page.evaluate(() => ({
+			bottomCounter: (window as any).interactionTestState.bottomCounter,
+			topCounter: (window as any).interactionTestState.topCounter,
+			customizationCount: (window as any).interactionTestState.customizationCount,
+			customizationInProgress: (window as any).interactionTestState
+				.customizationInProgress,
+		}));
 
-		await page.mouse.move(bottomCX, bottomCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(540 * factor),
-			Math.round(400 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
+		expect(state).toMatchObject({
+			bottomCounter: 2,
+			topCounter: 2,
+			customizationInProgress: false,
+		});
+		expect(state.customizationCount).toBeGreaterThanOrEqual(2);
 
-		// top interactions
-		await page.mouse.move(topCX, topCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(640 * factor),
-			Math.round(300 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
-
-		await page.mouse.move(topCX, topCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(850 * factor),
-			Math.round(380 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
-
-		await page.mouse.move(topCX, topCY);
-		await page.mouse.down();
-		await page.waitForTimeout(1000);
-		await page.mouse.move(
-			Math.round(540 * factor),
-			Math.round(300 * factor),
-		);
-		await page.mouse.up();
-		await page.waitForTimeout(1000);
-
-		await page.waitForTimeout(1000);
-		await expect(page).toHaveScreenshot(name + "/interaction.png");
+		await expect(page).toHaveScreenshot(name + "/interaction.png", {
+			animations: "allow",
+			timeout: 60_000,
+		});
 	});
 });

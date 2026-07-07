@@ -44,7 +44,8 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	fullyParallel: true,
 	workers: process.env.GITHUB_ACTIONS ? 1 : 2,
-	retries: 1,
+	retries: process.env.CI ? 1 : 0,
+	maxFailures: process.env.GITHUB_ACTIONS ? 1 : undefined,
 	reporter: [["html", {open: "never"}], ["list"]],
 	timeout: testTimeout,
 	snapshotDir: "./snapshots",
@@ -61,7 +62,7 @@ export default defineConfig({
 		deviceScaleFactor: 1,
 		actionTimeout: 60_000,
 		navigationTimeout: 60_000,
-		trace: process.env.CI ? "retain-on-failure" : "off",
+		trace: process.env.CI ? "on-first-retry" : "off",
 	},
 	projects: [
 		{

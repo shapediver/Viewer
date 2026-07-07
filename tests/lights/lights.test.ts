@@ -368,19 +368,6 @@ test.describe("Lights", () => {
 			viewer.beautyRenderDelay = 100;
 			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lights = false;
-			const taskP = new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
-					(e) => {
-						const taskEvent = e as any;
-						if (
-							taskEvent.type ===
-							(<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING
-						)
-							resolve();
-					},
-				);
-			});
 			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -390,7 +377,7 @@ test.describe("Lights", () => {
 				setTimeout(resolve, 3000);
 			});
 			viewer.environmentMap = "none";
-			await taskP;
+			viewer.render();
 			await renderingP;
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(name + "/envMap_none.png");
@@ -410,19 +397,6 @@ test.describe("Lights", () => {
 			viewer.beautyRenderDelay = 100;
 			viewer.beautyRenderBlendingDuration = 100;
 			viewer.lights = false;
-			const taskP = new Promise<void>((resolve) => {
-				SDV.addListener(
-					(<any>window).SDV.EVENTTYPE.TASK.TASK_END,
-					(e) => {
-						const taskEvent = e as any;
-						if (
-							taskEvent.type ===
-							(<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING
-						)
-							resolve();
-					},
-				);
-			});
 			const renderingP = new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
@@ -432,7 +406,7 @@ test.describe("Lights", () => {
 				setTimeout(resolve, 3000);
 			});
 			viewer.environmentMap = "null";
-			await taskP;
+			viewer.render();
 			await renderingP;
 		}, materialPresetsTicket);
 		await expect(page).toHaveScreenshot(name + "/envMap_null.png");

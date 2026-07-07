@@ -282,7 +282,7 @@ Validation is built into the release/deployment workflows.
 - `.github/workflows/full-tests.yml`
 - `.github/workflows/release.yml`
 
-Development and staging workflows run a small smoke check against `test-cdn` before starting the sharded `test-samples-only` Playwright subset (`tests/animation`, `tests/api`, `tests/attributes`, `tests/camera`, and `tests/parameters`). This catches broken or stale deployments early and keeps push-driven channel deployments reasonably fast while still exercising core viewer behavior. The long-running drag interaction screenshot test is left to the full nightly/release suite instead of the fast development/staging subset.
+Development and staging workflows run a small smoke check against `test-cdn` before starting the sharded `test-samples-only` Playwright subset (`tests/animation`, `tests/api`, `tests/attributes`, `tests/camera`, and `tests/parameters`). This catches broken or stale deployments early and keeps push-driven channel deployments reasonably fast while still exercising core viewer behavior. The drag interaction test is left to the full nightly/release suite instead of the fast development/staging subset.
 
 `full-tests.yml` runs nightly on `main` and can also be triggered manually. It checks the exact commit SHA for a successful `viewer/full-playwright` commit status. If that status already exists, the workflow skips. Otherwise it builds the current commit, deploys the test CDN to `v3/latest/test-cdn`, runs the full sharded Playwright suite against `v3/latest`, and records `viewer/full-playwright` on that exact source commit.
 

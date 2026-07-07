@@ -36,16 +36,19 @@ test.describe("Screenshots", () => {
 								document.getElementById("canvas")
 							),
 						});
-						await SDV.createSession({ticket, modelViewUrl});
 						viewer.beautyRenderDelay = 100;
 						viewer.beautyRenderBlendingDuration = 100;
-						await new Promise<void>((resolve) => {
+						const renderingP = new Promise<void>((resolve) => {
 							SDV.addListener(
 								SDV.EVENTTYPE.RENDERING
 									.BEAUTY_RENDERING_FINISHED,
-								async () => resolve(),
+								() => resolve(),
 							);
+							setTimeout(resolve, 30000);
 						});
+						await SDV.createSession({ticket, modelViewUrl});
+						viewer.render();
+						await renderingP;
 					},
 					{ticket: modelTicket, modelViewUrl: backend},
 				);

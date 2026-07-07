@@ -12,8 +12,8 @@ on:
                     - minor
                     - major
             release_notes:
-                description: Manual release notes to prepend to the generated GitHub release notes
-                required: true
+                description: Manual release notes to prepend to the generated GitHub release notes. Required for minor/major releases; optional for patch releases.
+                required: false
                 type: string
 
 permissions:
@@ -64,6 +64,12 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+
+            - name: Validate release notes
+              if: inputs.release_type != 'patch' && inputs.release_notes == ''
+              run: |
+                  echo "release_notes is required for minor and major releases." >&2
+                  exit 1
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
@@ -187,17 +193,25 @@ jobs:
         if: github.ref == 'refs/heads/main' && needs.check-full-tests.outputs.full_tests_done != 'true'
         runs-on: ubuntu-latest
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
                 include:
-                    - shard: 1/4
-                      shard_name: 1-of-4
-                    - shard: 2/4
-                      shard_name: 2-of-4
-                    - shard: 3/4
-                      shard_name: 3-of-4
-                    - shard: 4/4
-                      shard_name: 4-of-4
+                    - shard: 1/8
+                      shard_name: 1-of-8
+                    - shard: 2/8
+                      shard_name: 2-of-8
+                    - shard: 3/8
+                      shard_name: 3-of-8
+                    - shard: 4/8
+                      shard_name: 4-of-8
+                    - shard: 5/8
+                      shard_name: 5-of-8
+                    - shard: 6/8
+                      shard_name: 6-of-8
+                    - shard: 7/8
+                      shard_name: 7-of-8
+                    - shard: 8/8
+                      shard_name: 8-of-8
 
         steps:
             - name: Checkout
