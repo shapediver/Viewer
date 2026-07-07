@@ -321,8 +321,7 @@ export class GumballTransform
 		// we register the CAMERA_FREEZE whenever the dragging happens
 		this.#gumballTransformControls.addEventListener(
 			"dragging-changed",
-			(event: unknown) =>
-				this.toggleCameraFreeze((event as {value: boolean}).value),
+			(event) => this.toggleCameraFreeze(event.value),
 		);
 	}
 

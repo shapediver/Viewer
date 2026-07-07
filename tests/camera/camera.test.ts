@@ -243,17 +243,16 @@ test.describe("Camera", () => {
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			const renderingP = new Promise<void>((resolve) => {
+			await viewer.camera!.zoomTo(undefined, {duration: 0});
+			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
 				setTimeout(resolve, 5000);
+				viewer.update();
 			});
-			await viewer.camera!.zoomTo(undefined, {duration: 0});
-			viewer.update();
-			await renderingP;
 		});
 		await expect(page).toHaveScreenshot(name + "/zoom_3.png");
 	});
@@ -540,17 +539,16 @@ test.describe("Camera", () => {
 		await page.evaluate(async () => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = SDV.viewports["myViewer"]!;
-			const renderingP = new Promise<void>((resolve) => {
+			await viewer.camera!.zoomTo(undefined, {duration: 0});
+			await new Promise<void>((resolve) => {
 				SDV.addListener(
 					(<any>window).SDV.EVENTTYPE.RENDERING
 						.BEAUTY_RENDERING_FINISHED,
 					async () => resolve(),
 				);
 				setTimeout(resolve, 5000);
+				viewer.update();
 			});
-			await viewer.camera!.zoomTo(undefined, {duration: 0});
-			viewer.update();
-			await renderingP;
 		});
 		await expect(page).toHaveScreenshot(name + "/ortho_positioning.png");
 	});

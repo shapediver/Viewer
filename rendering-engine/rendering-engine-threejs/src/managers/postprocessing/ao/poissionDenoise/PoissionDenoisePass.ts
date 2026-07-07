@@ -23,6 +23,8 @@ const finalFragmentShader = fragmentShader.replace(
 	sampleBlueNoise,
 );
 
+type TextureDimensions = {height: number; width: number};
+
 const defaultPoissonBlurOptions = {
 	iterations: 1,
 	radius: 12,
@@ -240,7 +242,8 @@ export class PoissionDenoisePass extends Pass {
 			noiseTexture !== null &&
 			noiseTexture instanceof Texture
 		) {
-			const {width, height} = (noiseTexture as Texture).source.data;
+			const {width, height} = noiseTexture.source
+				.data as TextureDimensions;
 
 			(
 				this.fullscreenMaterial as ShaderMaterial
