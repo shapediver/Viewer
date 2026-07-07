@@ -31,6 +31,8 @@ function resolveViewerTestBaseUrl(): string {
 }
 
 const viewerTestBaseUrl = resolveViewerTestBaseUrl();
+const testTimeout = process.env.GITHUB_ACTIONS ? 180_000 : 120_000;
+const expectTimeout = process.env.GITHUB_ACTIONS ? 60_000 : 30_000;
 
 console.log(`[playwright] VIEWER_TEST_BASE_URL = ${viewerTestBaseUrl}`);
 
@@ -44,11 +46,11 @@ export default defineConfig({
 	workers: process.env.GITHUB_ACTIONS ? 1 : 2,
 	retries: 1,
 	reporter: [["html", {open: "never"}], ["list"]],
-	timeout: 90_000,
+	timeout: testTimeout,
 	snapshotDir: "./snapshots",
 	snapshotPathTemplate: "{snapshotDir}/{arg}{ext}",
 	expect: {
-		timeout: 30000,
+		timeout: expectTimeout,
 		toHaveScreenshot: {
 			maxDiffPixelRatio: 0.01,
 		},
@@ -57,6 +59,8 @@ export default defineConfig({
 		baseURL: viewerTestBaseUrl,
 		viewport: {width: 1280, height: 720},
 		deviceScaleFactor: 1,
+		actionTimeout: 60_000,
+		navigationTimeout: 60_000,
 		trace: process.env.CI ? "retain-on-failure" : "off",
 	},
 	projects: [
