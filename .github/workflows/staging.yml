@@ -83,12 +83,11 @@ jobs:
               id: version
               shell: bash
               run: |
+                  export RELEASE_PRERELEASE_COUNTER="${{ github.run_number }}"
                   VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel next --yes)
                   VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
                   echo "version=$VERSION" >> "$GITHUB_OUTPUT"
                   echo "Computed version: $VERSION"
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
 
             - name: Version packages
               run: npx ts-node -T scripts/release/version-packages.ts --version "${{ steps.version.outputs.version }}" --channel next --yes
