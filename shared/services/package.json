@@ -43,8 +43,8 @@
 		"@shapediver/viewer.shared.build-data": "workspace:*",
 		"@shapediver/viewer.shared.types": "workspace:*",
 		"@types/ua-parser-js": "0.7.39",
-		"axios": "1.16.1",
-		"dompurify": "3.4.6",
+		"axios": "1.18.1",
+		"dompurify": "3.4.11",
 		"gl-matrix": "3.4.4",
 		"ua-parser-js": "1.0.39",
 		"uuid": "14.0.0"
