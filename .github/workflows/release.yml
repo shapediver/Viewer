@@ -347,6 +347,7 @@ jobs:
                   repositories: |
                     Viewer
                     Newsfeed
+                    ViewerExamples
                   permission-contents: write
 
             - name: Checkout
@@ -530,6 +531,18 @@ jobs:
                     -f branch="development"
 
                   echo "Created newsfeed entry: ${FILENAME}"
+
+            - name: Trigger ViewerExamples deployment
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  VERSION="${{ needs.prepare.outputs.version }}"
+                  gh api "repos/shapediver/ViewerExamples/dispatches" \
+                    --method POST \
+                    -f event_type="viewer-release" \
+                    -f client_payload[version]="${VERSION}"
+                  echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
 
             - name: Collect finalize failure artifacts
               if: failure()
