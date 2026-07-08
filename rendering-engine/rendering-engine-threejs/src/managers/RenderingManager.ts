@@ -3,10 +3,9 @@ import {AnimationFrameEngine} from "@shapediver/viewer.rendering-engine.animatio
 import {
 	CAMERA_TYPE,
 	PerspectiveCamera,
-	PerspectiveCameraControls,
-} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
-import {ITree, Tree} from "@shapediver/viewer.shared.node-tree";
+	PerspectiveCameraControls} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	EventEngine,
@@ -14,15 +13,13 @@ import {
 	EVENTTYPE_VIEWPORT,
 	Logger,
 	StateEngine,
-	SystemInfo,
-} from "@shapediver/viewer.shared.services";
+	SystemInfo} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
-	ICameraEvent,
-	IViewportEvent,
+	type ICameraEvent,
+	type IViewportEvent,
 	RENDERER_TYPE,
-	SPINNER_POSITIONING,
-} from "@shapediver/viewer.shared.types";
+	SPINNER_POSITIONING} from "@shapediver/viewer.shared.types";
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {RenderingEngine} from "../RenderingEngine";
