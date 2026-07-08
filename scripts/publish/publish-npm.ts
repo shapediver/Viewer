@@ -85,9 +85,9 @@ function main() {
 	// Switch to npm registry without mutating tracked project files
 	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=user");
 
-	// Publish
+	// Publish with provenance for npm Trusted Publishing (OIDC)
 	const output = run(
-		"npx lerna publish from-package --yes --no-private --dist-tag latest",
+		"npx lerna publish from-package --yes --no-private --dist-tag latest --provenance",
 	);
 
 	if (!silent) console.log(output);
