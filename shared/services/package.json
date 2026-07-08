@@ -47,7 +47,7 @@
 		"dompurify": "3.4.11",
 		"gl-matrix": "3.4.4",
 		"ua-parser-js": "1.0.39",
-		"uuid": "14.0.0"
+		"uuid": "14.0.1"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }
