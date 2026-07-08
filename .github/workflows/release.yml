@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
         inputs:
             release_type:
-                description: Release increment type
+                description: Release increment type. If the current package version is a prerelease, its stable base version is released, e.g. 3.19.0-dev.18 -> 3.19.0.
                 required: true
                 type: choice
                 options:
@@ -13,6 +13,10 @@ on:
                     - major
             release_notes:
                 description: Manual release notes to prepend to the generated GitHub release notes. Required for minor/major releases; optional for patch releases.
+                required: false
+                type: string
+            codename:
+                description: Codename for the release (e.g. Raspberry). Optional, but recommended for minor/major releases to match the newsfeed format.
                 required: false
                 type: string
 
@@ -341,6 +345,10 @@ jobs:
               with:
                   client-id: "${{ vars.BOT_APP_CLIENT_ID || secrets.BOT_APP_CLIENT_ID }}"
                   private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  repositories: |
+                    Viewer
+                    Newsfeed
                   permission-contents: write
 
             - name: Checkout
@@ -481,6 +489,50 @@ jobs:
                   name: Viewer ${{ needs.prepare.outputs.version }}
                   generate_release_notes: true
                   body: ${{ inputs.release_notes }}
+
+            - name: Create newsfeed entry
+              if: inputs.release_type != 'patch'
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  VERSION="${{ needs.prepare.outputs.version }}"
+                  CODENAME="${{ inputs.codename }}"
+                  MINOR="$(echo "${VERSION}" | cut -d. -f1,2)"
+                  DATE="$(date -u +%Y-%m-%d)"
+                  GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
+                  FILENAME="viewer-release-${VERSION}.md"
+
+                  if [[ -n "${CODENAME}" ]]; then
+                    DESC="ShapeDiver Viewer version ${MINOR} (${CODENAME}) has been released."
+                  else
+                    DESC="ShapeDiver Viewer version ${MINOR} has been released."
+                  fi
+
+                  cat > "/tmp/${FILENAME}" << EOF
+                  ---
+                  title: "Viewer Release ${MINOR}"
+                  description: "${DESC}"
+                  pubDate: ${DATE}
+                  category: release-notes
+                  tags:
+                    - Viewer
+                  author: "Michael Oppitz"
+                  externalUrl: "${GITHUB_URL}"
+                  ---
+
+                  The ShapeDiver Viewer version ${MINOR} has been released and is available via npm and CDN. Read the full [Viewer ${MINOR} release notes](${GITHUB_URL}).
+                  EOF
+
+                  CONTENT="$(base64 -w0 "/tmp/${FILENAME}")"
+
+                  gh api "repos/shapediver/Newsfeed/contents/src/content/news/${FILENAME}" \
+                    --method PUT \
+                    -f message="Add viewer release ${MINOR} newsfeed entry" \
+                    -f content="${CONTENT}" \
+                    -f branch="development"
+
+                  echo "Created newsfeed entry: ${FILENAME}"
 
             - name: Collect finalize failure artifacts
               if: failure()

@@ -124,7 +124,12 @@ function computeVersion(current: string, channel: string, releaseType?: string):
 	const parsed = parseVersion(current);
 
 	if (channel === "release") {
-		// Always bump from the base version (strip prerelease first)
+		// If the current version is a prerelease, publish its stable base version.
+		// This matches the previous release flow, e.g. 3.18.0-rc.2 -> 3.18.0.
+		if (parsed.prerelease) {
+			return `${parsed.major}.${parsed.minor}.${parsed.patch}`;
+		}
+
 		let major = parsed.major;
 		let minor = parsed.minor;
 		let patch = parsed.patch;
@@ -149,6 +154,9 @@ function computeVersion(current: string, channel: string, releaseType?: string):
 
 	// dev or next channel
 	const suffix = channel; // "dev" or "next"
+	const prereleaseBase = parsed.prerelease
+		? {major: parsed.major, minor: parsed.minor, patch: parsed.patch}
+		: {major: parsed.major, minor: parsed.minor + 1, patch: 0};
 	const explicitCounter = process.env.RELEASE_PRERELEASE_COUNTER;
 	if (explicitCounter) {
 		const counter = parseInt(explicitCounter, 10);
@@ -157,7 +165,7 @@ function computeVersion(current: string, channel: string, releaseType?: string):
 				`Invalid RELEASE_PRERELEASE_COUNTER: "${explicitCounter}". Must be a positive integer.`,
 			);
 		}
-		return `${parsed.major}.${parsed.minor}.${parsed.patch}-${suffix}.${counter}`;
+		return `${prereleaseBase.major}.${prereleaseBase.minor}.${prereleaseBase.patch}-${suffix}.${counter}`;
 	}
 
 	const isSamePrerelease = parsed.prerelease === suffix;
@@ -167,8 +175,8 @@ function computeVersion(current: string, channel: string, releaseType?: string):
 		return `${parsed.major}.${parsed.minor}.${parsed.patch}-${suffix}.${parsed.counter + 1}`;
 	}
 
-	// Different suffix (or no prerelease): start at .1
-	return `${parsed.major}.${parsed.minor}.${parsed.patch}-${suffix}.1`;
+	// Different suffix: keep the same base. Stable release: start next minor prerelease.
+	return `${prereleaseBase.major}.${prereleaseBase.minor}.${prereleaseBase.patch}-${suffix}.1`;
 }
 
 function main() {
