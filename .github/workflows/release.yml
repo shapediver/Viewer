@@ -415,15 +415,7 @@ jobs:
               with:
                   client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
                   private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  repositories: |
-                    Viewer
-                    Newsfeed
-                    ViewerExamples
-                    AppBuilderSdk
-                    ShapeDiverPlatformFrontend
                   permission-contents: write
-                  permission-pull-requests: write
 
             - name: Checkout
               uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -584,7 +576,7 @@ jobs:
               if: inputs.release_type != 'patch'
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
                   VERSION: ${{ needs.prepare.outputs.version }}
                   CODENAME: ${{ inputs.codename }}
               run: |
@@ -627,7 +619,7 @@ jobs:
             - name: Trigger ViewerExamples deployment
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   gh api "repos/shapediver/ViewerExamples/dispatches" \
@@ -640,7 +632,7 @@ jobs:
               continue-on-error: true
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
