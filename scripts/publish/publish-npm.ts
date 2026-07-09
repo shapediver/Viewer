@@ -85,9 +85,12 @@ function main() {
 	// Switch to npm registry without mutating tracked project files
 	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=user");
 
-	// Publish with provenance for npm Trusted Publishing (OIDC)
+	// Publish with provenance for npm Trusted Publishing (OIDC).
+	// Lerna v9 does not accept --provenance as a CLI argument, but npm does
+	// honor NPM_CONFIG_PROVENANCE when Lerna invokes npm publish internally.
+	process.env.NPM_CONFIG_PROVENANCE = "true";
 	const output = run(
-		"npx lerna publish from-package --yes --no-private --dist-tag latest --provenance",
+		"npx lerna publish from-package --yes --no-private --dist-tag latest",
 	);
 
 	if (!silent) console.log(output);
