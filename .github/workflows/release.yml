@@ -11,8 +11,8 @@ on:
                     - patch
                     - minor
                     - major
-            release_notes:
-                description: Manual release notes to prepend to the generated GitHub release notes. Use the template at .github/RELEASE_NOTES_TEMPLATE.md. Required for minor/major releases; optional for patch releases.
+            release_notes_file:
+                description: Path to a committed Markdown release notes file, e.g. .github/release-notes/3.19.0.md. Required for minor/major releases; optional for patch releases.
                 required: false
                 type: string
             codename:
@@ -82,10 +82,28 @@ jobs:
                   token: ${{ steps.app-token.outputs.token }}
 
             - name: Validate release notes
-              if: inputs.release_type != 'patch' && inputs.release_notes == ''
+              shell: bash
+              env:
+                  RELEASE_TYPE: ${{ inputs.release_type }}
+                  RELEASE_NOTES_FILE: ${{ inputs.release_notes_file }}
               run: |
-                  echo "release_notes is required for minor and major releases." >&2
-                  exit 1
+                  if [[ -z "${RELEASE_NOTES_FILE}" ]]; then
+                    if [[ "${RELEASE_TYPE}" != "patch" ]]; then
+                      echo "release_notes_file is required for minor and major releases." >&2
+                      exit 1
+                    fi
+                    exit 0
+                  fi
+
+                  if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
+                    echo "release_notes_file does not exist: ${RELEASE_NOTES_FILE}" >&2
+                    exit 1
+                  fi
+
+                  if [[ "${RELEASE_TYPE}" != "patch" && ! -s "${RELEASE_NOTES_FILE}" ]]; then
+                    echo "release_notes_file must not be empty for minor and major releases." >&2
+                    exit 1
+                  fi
 
             - name: Setup pnpm
               uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
@@ -209,6 +227,10 @@ jobs:
               run: npm run deploy-tests
               env:
                   VIEWER_TEST_ENV: production
+
+            - name: Install Playwright browser
+              if: needs.check-full-tests.outputs.full_tests_done != 'true'
+              run: npm run test-install
 
             - name: Smoke test latest test-cdn for full Playwright
               if: needs.check-full-tests.outputs.full_tests_done != 'true'
@@ -398,7 +420,10 @@ jobs:
                     Viewer
                     Newsfeed
                     ViewerExamples
+                    AppBuilderSdk
+                    ShapeDiverPlatformFrontend
                   permission-contents: write
+                  permission-pull-requests: write
 
             - name: Checkout
               uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -500,6 +525,12 @@ jobs:
               env:
                   VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ needs.prepare.outputs.version }}
 
+            - name: Commit version bump locally
+              shell: bash
+              run: |
+                  git add -A
+                  git commit -m "chore(release): release ${{ needs.prepare.outputs.version }}"
+
             - name: Setup Node.js for GitHub Packages publish
               uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
@@ -518,22 +549,28 @@ jobs:
             - name: Promote latest
               run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ needs.prepare.outputs.version }}" --yes
 
-            - name: Commit version bump and push
+            - name: Push release commit and tag
               shell: bash
               env:
                   PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
               run: |
-                  git add -A
-                  git commit -m "chore(release): release ${{ needs.prepare.outputs.version }}"
                   git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
-
-            - name: Create release tag and push
-              shell: bash
-              env:
-                  PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
-              run: |
                   git tag -a "viewer@${{ needs.prepare.outputs.version }}" -m "deployed viewer version ${{ needs.prepare.outputs.version }}"
                   git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "viewer@${{ needs.prepare.outputs.version }}"
+
+            - name: Prepare GitHub release notes
+              id: release-notes
+              shell: bash
+              env:
+                  RELEASE_NOTES_FILE: ${{ inputs.release_notes_file }}
+              run: |
+                  NOTES_FILE="${RUNNER_TEMP}/viewer-release-notes.md"
+                  if [[ -n "${RELEASE_NOTES_FILE}" ]]; then
+                    cp "${RELEASE_NOTES_FILE}" "${NOTES_FILE}"
+                  else
+                    : > "${NOTES_FILE}"
+                  fi
+                  echo "body_path=${NOTES_FILE}" >> "${GITHUB_OUTPUT}"
 
             - name: Publish GitHub release
               uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
@@ -541,7 +578,7 @@ jobs:
                   tag_name: viewer@${{ needs.prepare.outputs.version }}
                   name: Viewer ${{ needs.prepare.outputs.version }}${{ inputs.codename && format(' - {0}', inputs.codename) || '' }}
                   generate_release_notes: true
-                  body: ${{ inputs.release_notes }}
+                  body_path: ${{ steps.release-notes.outputs.body_path }}
 
             - name: Create newsfeed entry
               if: inputs.release_type != 'patch'
@@ -628,9 +665,15 @@ jobs:
                     }
                     echo "Default branch: ${DEFAULT_BRANCH}"
 
+                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
+                    if [[ -n "${PR_EXISTS}" ]]; then
+                      echo "PR already exists: ${PR_EXISTS}"
+                      continue
+                    fi
+
                     BRANCH_EXISTS=$(gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --jq '.ref' 2>/dev/null || echo "")
                     if [[ -n "${BRANCH_EXISTS}" ]]; then
-                      echo "Branch ${BRANCH_NAME} already exists; deleting it."
+                      echo "Branch ${BRANCH_NAME} already exists without an open PR; deleting it."
                       gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --method DELETE || echo "Failed to delete old branch."
                     fi
 
@@ -646,11 +689,16 @@ jobs:
                     }
                     echo "Created branch ${BRANCH_NAME}"
 
-                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
-                    if [[ -n "${PR_EXISTS}" ]]; then
-                      echo "PR already exists: ${PR_EXISTS}"
+                    MARKER_CONTENT=$(printf '# Viewer %s release\n\n%s\n\nUpdate @shapediver/viewer dependencies to %s and test compatibility.\n' "${VERSION}" "${GITHUB_URL}" "${VERSION}" | base64 -w0)
+                    gh api "repos/${FULL_REPO}/contents/.github/viewer-release-${VERSION}.md" \
+                      --method PUT \
+                      -f message="chore: add Viewer ${VERSION} release marker" \
+                      -f content="${MARKER_CONTENT}" \
+                      -f branch="${BRANCH_NAME}" || {
+                      echo "Failed to create marker file; skipping PR creation."
                       continue
-                    fi
+                    }
+                    echo "Created marker file for ${VERSION}"
 
                     PR_URL=$(gh api "repos/${FULL_REPO}/pulls" --method POST \
                       -f title="${PR_TITLE}" \
