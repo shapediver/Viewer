@@ -7,7 +7,6 @@ import {
 	PerspectiveCamera,
 	Scene,
 	ShaderMaterial,
-	Texture,
 	Vector2,
 	WebGLRenderer,
 	WebGLRenderTarget,
@@ -15,8 +14,6 @@ import {
 import {PoissionDenoisePass} from "../poissionDenoise/PoissionDenoisePass";
 import {basic as vertexShader} from "../utils/shader/basic";
 import {sampleBlueNoise} from "../utils/shader/sampleBlueNoise";
-
-type TextureDimensions = {height: number; width: number};
 
 // a general AO pass that can be used for any AO algorithm
 class AOPass extends Pass {
@@ -106,9 +103,7 @@ class AOPass extends Pass {
 	// #region Public Methods (2)
 
 	public render(renderer: WebGLRenderer) {
-		const spp = Number(
-			(this.fullscreenMaterial as ShaderMaterial).defines?.spp ?? 0,
-		);
+		const spp = +(this.fullscreenMaterial as ShaderMaterial).defines.spp;
 
 		(this.fullscreenMaterial as ShaderMaterial).uniforms.frame.value =
 			((this.fullscreenMaterial as ShaderMaterial).uniforms.frame.value +
@@ -129,9 +124,8 @@ class AOPass extends Pass {
 
 		const noiseTexture = (this.fullscreenMaterial as ShaderMaterial)
 			.uniforms.blueNoiseTexture.value;
-		if (noiseTexture instanceof Texture) {
-			const {width, height} = noiseTexture.source
-				.data as TextureDimensions;
+		if (noiseTexture) {
+			const {width, height} = noiseTexture.source.data;
 
 			(
 				this.fullscreenMaterial as ShaderMaterial
@@ -145,8 +139,8 @@ class AOPass extends Pass {
 					this.fullscreenMaterial as ShaderMaterial
 				).uniforms.blueNoiseTexture.value =
 					PoissionDenoisePass.blueNoiseTexture;
-				const {width, height} = PoissionDenoisePass.blueNoiseTexture
-					.source.data as TextureDimensions;
+				const {width, height} =
+					PoissionDenoisePass.blueNoiseTexture.source.data;
 
 				(
 					this.fullscreenMaterial as ShaderMaterial

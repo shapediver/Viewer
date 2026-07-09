@@ -274,8 +274,8 @@ importers:
         specifier: 1.5.6
         version: 1.5.6
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
@@ -283,8 +283,8 @@ importers:
         specifier: 1.5.4
         version: 1.5.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   creation-control-center/session:
     dependencies:
@@ -886,14 +886,14 @@ importers:
         specifier: workspace:*
         version: link:../../shared/types
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   features/interaction:
     dependencies:
@@ -922,8 +922,8 @@ importers:
         specifier: workspace:*
         version: link:../../shared/types
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       detect-it:
         specifier: 4.0.1
         version: 4.0.1
@@ -931,8 +931,8 @@ importers:
         specifier: 3.4.4
         version: 3.4.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   features/transformation-tools:
     dependencies:
@@ -961,14 +961,14 @@ importers:
         specifier: workspace:*
         version: link:../../shared/types
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   rendering-engine/animation-engine:
     dependencies:
@@ -1066,8 +1066,8 @@ importers:
         specifier: workspace:*
         version: link:../../shared/types
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       detect-it:
         specifier: 4.0.1
         version: 4.0.1
@@ -1075,8 +1075,8 @@ importers:
         specifier: 3.4.4
         version: 3.4.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   rendering-engine/intersection-restriction-engine:
     dependencies:
@@ -1102,14 +1102,14 @@ importers:
         specifier: workspace:*
         version: link:../../shared/types
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   rendering-engine/light-engine:
     dependencies:
@@ -1204,20 +1204,20 @@ importers:
         specifier: 0.17.4
         version: 0.17.4
       '@types/three':
-        specifier: 0.184.1
-        version: 0.184.1
+        specifier: 0.162.0
+        version: 0.162.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
       postprocessing:
-        specifier: 6.39.1
-        version: 6.39.1(three@0.184.0)
+        specifier: 6.35.3
+        version: 6.35.3(three@0.162.0)
       stats.js:
         specifier: 0.17.0
         version: 0.17.0
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.162.0
+        version: 0.162.0
 
   session-engine/session-engine:
     dependencies:
@@ -2380,6 +2380,9 @@ packages:
   '@types/stats.js@0.17.4':
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
 
+  '@types/three@0.162.0':
+    resolution: {integrity: sha512-0j5yZcVukVIhrhSIC7+LmBPkkMoMuEJ1AfYBZfgNytdYqYREMuiyXWhYOMeZLBElTEAlJIZn7r2W3vqTIgjWlg==}
+
   '@types/three@0.184.1':
     resolution: {integrity: sha512-6q4VdiqVsrTRqmk62/BnlcAvIrnDM0zf2ZDVKI5kZiniWrSaOHaQzmbp+BNzoggc/8tgW412pL//wZIxu2PPTA==}
 
@@ -2910,6 +2913,7 @@ packages:
   conventional-changelog-core@5.0.1:
     resolution: {integrity: sha512-Rvi5pH+LvgsqGwZPZ3Cq/tz4ty7mjijhr3qR4m9IBXNbxGGYgTVVO+duXzz9aArmHxFtwZ+LRkrNIMDQzgoY4A==}
     engines: {node: '>=14'}
+    deprecated: Deprecated and no longer maintained. Please use conventional-changelog instead.
 
   conventional-changelog-preset-loader@3.0.0:
     resolution: {integrity: sha512-qy9XbdSLmVnwnvzEisjxdDiLA4OmV3o8db+Zdg4WiFw14fP3B6XNz98X0swPPpkTd/pc1K7+adKgEDM1JCUMiA==}
@@ -3309,6 +3313,9 @@ packages:
       picomatch:
         optional: true
 
+  fflate@0.6.10:
+    resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
+
   fflate@0.8.3:
     resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
 
@@ -3424,7 +3431,7 @@ packages:
   git-raw-commits@3.0.0:
     resolution: {integrity: sha512-b5OHmZ3vAgGrDn/X0kS+9qCfNKWe4K/jFnhwzVWWg0/k5eLa3060tZShrRg8Dja5kPc+YjS0Gc6y7cRr44Lpjw==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -3434,7 +3441,7 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-up@7.0.0:
@@ -3996,6 +4003,9 @@ packages:
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
+  meshoptimizer@0.18.1:
+    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
+
   meshoptimizer@1.1.1:
     resolution: {integrity: sha512-oRFNWJRDA/WTrVj7NWvqa5HqE1t9MYDj2VaWirQCzCCrAd2GHrqR/sQezCxiWATPNlKTcRaPRHPJwIRoPBAp5g==}
 
@@ -4452,6 +4462,12 @@ packages:
   postcss-selector-parser@7.1.1:
     resolution: {integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==}
     engines: {node: '>=4'}
+
+  postprocessing@6.35.3:
+    resolution: {integrity: sha512-PH0/gqVYpp+vZjmSAohG/xH0u9FpbjfCGsFMsmsZVd8XXSmqJUR7b5C9ZFE/iMrWhe+tiTOFN9WvcEdjLI8LYQ==}
+    engines: {node: '>= 0.13.2'}
+    peerDependencies:
+      three: '>= 0.152.0 < 0.164.0'
 
   postprocessing@6.39.1:
     resolution: {integrity: sha512-R2dG2zy+BAx3USl5EHw+PvnrlbT5PKnZVp3se0HCR0pWH8WQdh742yNG4YWOsq6c0bFpffk0Gd2RqPeoP/wKng==}
@@ -4974,6 +4990,9 @@ packages:
     engines: {node: '>=10.18'}
     peerDependencies:
       tslib: ^2
+
+  three@0.162.0:
+    resolution: {integrity: sha512-xfCYj4RnlozReCmUd+XQzj6/5OjDNHBy5nT6rVwrOKGENAvpXe2z1jL+DZYaMu4/9pNsjH/4Os/VvS9IrH7IOQ==}
 
   three@0.184.0:
     resolution: {integrity: sha512-wtTRjG92pM5eUg/KuUnHsqSAlPM296brTOcLgMRqEeylYTh/CdtvKUvCyyCQTzFuStieWxvZb8mVTMvdPyUpxg==}
@@ -6682,6 +6701,14 @@ snapshots:
 
   '@types/stats.js@0.17.4': {}
 
+  '@types/three@0.162.0':
+    dependencies:
+      '@tweenjs/tween.js': 23.1.3
+      '@types/stats.js': 0.17.4
+      '@types/webxr': 0.5.24
+      fflate: 0.6.10
+      meshoptimizer: 0.18.1
+
   '@types/three@0.184.1':
     dependencies:
       '@dimforge/rapier3d-compat': 0.12.0
@@ -7684,6 +7711,8 @@ snapshots:
     optionalDependencies:
       picomatch: 2.3.2
 
+  fflate@0.6.10: {}
+
   fflate@0.8.3: {}
 
   figures@3.2.0:
@@ -8456,6 +8485,8 @@ snapshots:
 
   merge-stream@2.0.0: {}
 
+  meshoptimizer@0.18.1: {}
+
   meshoptimizer@1.1.1: {}
 
   methods@1.1.2: {}
@@ -9058,6 +9089,10 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
+  postprocessing@6.35.3(three@0.162.0):
+    dependencies:
+      three: 0.162.0
+
   postprocessing@6.39.1(three@0.184.0):
     dependencies:
       three: 0.184.0
@@ -9575,6 +9610,8 @@ snapshots:
   thingies@2.6.0(tslib@2.8.1):
     dependencies:
       tslib: 2.8.1
+
+  three@0.162.0: {}
 
   three@0.184.0: {}
 
