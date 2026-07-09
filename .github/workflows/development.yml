@@ -117,6 +117,7 @@ jobs:
                     '{attachments:[{color:"#1d9bf0",blocks:[{type:"section",text:{type:"mrkdwn",text:":rocket: *Deployment started*"}},{type:"section",fields:[{type:"mrkdwn",text:"*Status:*\nIn progress"},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Version:*\n`" + $version + "`")},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl,style:"primary"}]}]}]}')"
 
                   curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
+
             - name: Version packages
               run: npx ts-node -T scripts/release/version-packages.ts --version "${{ steps.version.outputs.version }}" --channel dev --yes
 
