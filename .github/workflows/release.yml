@@ -12,11 +12,11 @@ on:
                     - minor
                     - major
             release_notes:
-                description: Manual release notes to prepend to the generated GitHub release notes. Required for minor/major releases; optional for patch releases.
+                description: Manual release notes to prepend to the generated GitHub release notes. Use the template at .github/RELEASE_NOTES_TEMPLATE.md. Required for minor/major releases; optional for patch releases.
                 required: false
                 type: string
             codename:
-                description: Codename for the release (e.g. Raspberry). Optional, but recommended for minor/major releases to match the newsfeed format.
+                description: Release codename (e.g. Strawberry). Enter just the name, not the full "Viewer X.Y.Z - Codename" format. Optional, but recommended for minor/major releases.
                 required: false
                 type: string
 
@@ -535,7 +535,7 @@ jobs:
               uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
               with:
                   tag_name: viewer@${{ needs.prepare.outputs.version }}
-                  name: Viewer ${{ needs.prepare.outputs.version }}
+                  name: Viewer ${{ needs.prepare.outputs.version }}${{ inputs.codename && format(' - {0}', inputs.codename) || '' }}
                   generate_release_notes: true
                   body: ${{ inputs.release_notes }}
 
