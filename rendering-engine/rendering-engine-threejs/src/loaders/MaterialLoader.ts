@@ -35,7 +35,7 @@ import {
 	type SpecularGlossinessMaterialParameters} from "../materials/SpecularGlossinessMaterial";
 import {SDColor} from "../objects/SDColor";
 import {RenderingEngine} from "../RenderingEngine";
-import {getShadow, main} from "../shaders/PCSS";
+import {entry, main} from "../shaders/PCSS";
 import {ENVIRONMENT_MAP_TYPE} from "./EnvironmentMapLoader";
 
 // #region Type aliases (6)
@@ -2224,54 +2224,23 @@ enum GEOMETRY_MATERIAL_TYPE {
 
 // #region Variables (1)
 
-const replaceShaderFunction = (
-	shader: string,
-	signature: string,
-	replacement: string,
-): string => {
-	const start = shader.lastIndexOf(signature);
-	if (start === -1) return shader;
-
-	const bodyStart = shader.indexOf("{", start);
-	if (bodyStart === -1) return shader;
-
-	let depth = 0;
-	for (let i = bodyStart; i < shader.length; i++) {
-		if (shader[i] === "{") depth++;
-		else if (shader[i] === "}") {
-			depth--;
-			if (depth === 0) {
-				return (
-					shader.substring(0, start) +
-					replacement +
-					shader.substring(i + 1)
-				);
-			}
-		}
-	}
-
-	return shader;
-};
-
 export const adaptShaders = () => {
 	let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
 	if (!shader.includes("PCSS implementation")) {
-		const getShadowSignature =
-			"float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowIntensity, float shadowBias, float shadowRadius, vec4 shadowCoord )";
-		const adaptedShader = replaceShaderFunction(
-			shader,
-			getShadowSignature,
-			getShadow,
+		shader = shader.replace(
+			"#ifdef USE_SHADOWMAP",
+			"#ifdef USE_SHADOWMAP" + main,
 		);
-
-		if (adaptedShader !== shader) {
-			shader = adaptedShader.replace(
-				"#ifdef USE_SHADOWMAP",
-				"#ifdef USE_SHADOWMAP" + main,
-			);
-			THREE.ShaderChunk.shadowmap_pars_fragment = shader;
-		}
+		shader = shader.replace(
+			shader.substr(
+				shader.indexOf("#if defined( SHADOWMAP_TYPE_PCF )"),
+				shader.indexOf("#elif defined( SHADOWMAP_TYPE_PCF_SOFT )") -
+					shader.indexOf("#if defined( SHADOWMAP_TYPE_PCF )"),
+			),
+			"#if defined( SHADOWMAP_TYPE_PCF )\n" + entry,
+		);
 	}
+	THREE.ShaderChunk.shadowmap_pars_fragment = shader;
 
 	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
 	// older and newer three.js versions set up the background rotation matrix differently, so we patch both shader variants
