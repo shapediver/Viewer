@@ -595,6 +595,73 @@ jobs:
                     -f client_payload[version]="${VERSION}"
                   echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
 
+            - name: Create pull requests for downstream repos
+              continue-on-error: true
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  VERSION="${{ needs.prepare.outputs.version }}"
+                  GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
+                  BRANCH_NAME="chore/viewer-release-${VERSION}"
+                  PR_TITLE="chore: update Viewer dependency to ${VERSION}"
+
+                  # Build PR body with actual newlines
+                  PR_BODY=""
+                  PR_BODY+="A new Viewer version **${VERSION}** has been released."
+                  PR_BODY+=$'\n\n'
+                  PR_BODY+="[Viewer ${VERSION} release notes](${GITHUB_URL})"
+                  PR_BODY+=$'\n\n'
+                  PR_BODY+="Update the @shapediver/viewer dependency version to **${VERSION}** and test compatibility."
+
+                  for REPO in AppBuilderSdk ShapeDiverPlatformFrontend; do
+                    FULL_REPO="shapediver/${REPO}"
+                    echo "--- Processing ${FULL_REPO} ---"
+
+                    DEFAULT_BRANCH=$(gh api "repos/${FULL_REPO}" --jq '.default_branch' 2>/dev/null) || {
+                      echo "Could not fetch ${FULL_REPO}; skipping."
+                      continue
+                    }
+                    echo "Default branch: ${DEFAULT_BRANCH}"
+
+                    BRANCH_EXISTS=$(gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --jq '.ref' 2>/dev/null || echo "")
+                    if [[ -n "${BRANCH_EXISTS}" ]]; then
+                      echo "Branch ${BRANCH_NAME} already exists; deleting it."
+                      gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --method DELETE || echo "Failed to delete old branch."
+                    fi
+
+                    BASE_SHA=$(gh api "repos/${FULL_REPO}/git/refs/heads/${DEFAULT_BRANCH}" --jq '.object.sha' 2>/dev/null) || {
+                      echo "Could not get base SHA; skipping."
+                      continue
+                    }
+                    gh api "repos/${FULL_REPO}/git/refs" --method POST \
+                      -f ref="refs/heads/${BRANCH_NAME}" \
+                      -f sha="${BASE_SHA}" || {
+                      echo "Failed to create branch; skipping."
+                      continue
+                    }
+                    echo "Created branch ${BRANCH_NAME}"
+
+                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
+                    if [[ -n "${PR_EXISTS}" ]]; then
+                      echo "PR already exists: ${PR_EXISTS}"
+                      continue
+                    fi
+
+                    PR_URL=$(gh api "repos/${FULL_REPO}/pulls" --method POST \
+                      -f title="${PR_TITLE}" \
+                      -f body="${PR_BODY}" \
+                      -f head="${BRANCH_NAME}" \
+                      -f base="${DEFAULT_BRANCH}" \
+                      --jq '.html_url' 2>/dev/null) || {
+                      echo "Failed to create PR for ${FULL_REPO}."
+                      continue
+                    }
+                    echo "Created PR: ${PR_URL}"
+                  done
+
+                  echo "All downstream PRs processed."
+
             - name: Notify Slack
               if: always()
               continue-on-error: true
