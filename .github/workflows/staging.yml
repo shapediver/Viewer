@@ -7,9 +7,7 @@ on:
     workflow_dispatch:
 
 permissions:
-    contents: write
-    packages: write
-    id-token: write
+    contents: read
 
 concurrency:
     group: staging-${{ github.ref }}
@@ -19,6 +17,9 @@ jobs:
     prepare:
         if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
         environment: staging
         outputs:
             version: ${{ steps.version.outputs.version }}
@@ -29,25 +30,26 @@ jobs:
         steps:
             - name: Create GitHub App token
               id: app-token
-              uses: actions/create-github-app-token@v3
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
               with:
-                  client-id: "${{ vars.BOT_APP_CLIENT_ID || secrets.BOT_APP_CLIENT_ID }}"
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
                   private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
                   permission-contents: write
 
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
               with:
                   fetch-depth: 0
+                  persist-credentials: false
                   token: ${{ steps.app-token.outputs.token }}
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
               with:
                   version: 11.3.0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v5
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
                   node-version: 24.12.0
                   cache: pnpm
@@ -82,11 +84,39 @@ jobs:
               id: version
               shell: bash
               run: |
-                  export RELEASE_PRERELEASE_COUNTER="${{ github.run_number }}"
                   VERSION_JSON=$(npx ts-node -T scripts/release/compute-version.ts --channel next --yes)
                   VERSION=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$VERSION_JSON")
                   echo "version=$VERSION" >> "$GITHUB_OUTPUT"
                   echo "Computed version: $VERSION"
+
+            - name: Notify Slack deployment started
+              continue-on-error: true
+              shell: bash
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  WORKFLOW: ${{ github.workflow }}
+                  BRANCH: ${{ github.ref_name }}
+                  SHA: ${{ github.sha }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+                    echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
+                    exit 0
+                  fi
+
+                  SHORT_SHA="${SHA:0:7}"
+                  PAYLOAD="$(jq -cn \
+                    --arg workflow "$WORKFLOW" \
+                    --arg version "$VERSION" \
+                    --arg branch "$BRANCH" \
+                    --arg commitUrl "$COMMIT_URL" \
+                    --arg shortSha "$SHORT_SHA" \
+                    --arg runUrl "$RUN_URL" \
+                    '{attachments:[{color:"#1d9bf0",blocks:[{type:"section",text:{type:"mrkdwn",text:":rocket: *Deployment started*"}},{type:"section",fields:[{type:"mrkdwn",text:"*Status:*\nIn progress"},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Version:*\n`" + $version + "`")},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl,style:"primary"}]}]}]}')"
+
+                  curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
 
             - name: Version packages
               run: npx ts-node -T scripts/release/version-packages.ts --version "${{ steps.version.outputs.version }}" --channel next --yes
@@ -107,7 +137,7 @@ jobs:
               run: pnpm build-tests
 
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v4
+              uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
                   aws-region: us-east-1
@@ -147,7 +177,7 @@ jobs:
             - name: Upload prepare failure artifacts
               if: failure()
               timeout-minutes: 5
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: staging-prepare-failure-artifacts
                   if-no-files-found: ignore
@@ -157,6 +187,8 @@ jobs:
     playwright:
         needs: prepare
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
         strategy:
             fail-fast: true
             matrix:
@@ -175,17 +207,18 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
               with:
                   fetch-depth: 0
+                  persist-credentials: false
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
               with:
                   version: 11.3.0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v5
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
                   node-version: 24.12.0
                   cache: pnpm
@@ -223,7 +256,7 @@ jobs:
             - name: Upload shard failure artifacts
               if: failure()
               timeout-minutes: 5
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: staging-playwright-shard-${{ matrix.shard_name }}-failure-artifacts
                   if-no-files-found: ignore
@@ -235,6 +268,9 @@ jobs:
             - prepare
             - playwright
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            packages: write
 
         env:
             VIEWER_TEST_ENV: staging
@@ -242,25 +278,26 @@ jobs:
         steps:
             - name: Create GitHub App token
               id: app-token
-              uses: actions/create-github-app-token@v3
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
               with:
-                  client-id: "${{ vars.BOT_APP_CLIENT_ID || secrets.BOT_APP_CLIENT_ID }}"
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
                   private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
                   permission-contents: write
 
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
               with:
                   fetch-depth: 0
+                  persist-credentials: false
                   token: ${{ steps.app-token.outputs.token }}
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
               with:
                   version: 11.3.0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v5
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
                   node-version: 24.12.0
                   cache: pnpm
@@ -302,17 +339,19 @@ jobs:
 
             - name: Commit and push version bump
               shell: bash
+              env:
+                  PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
               run: |
                   if [[ -n "$(git status --porcelain)" ]]; then
                     git add -A
                     git commit -m "chore(release): bump next version to ${{ needs.prepare.outputs.version }} [skip ci]"
-                    git push origin HEAD:staging
+                    git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:staging
                   else
                     echo "No version changes to commit."
                   fi
 
             - name: Setup Node.js for GitHub Packages publish
-              uses: actions/setup-node@v5
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
                   node-version: 24.12.0
                   scope: "@shapediver"
@@ -322,6 +361,61 @@ jobs:
               run: npx ts-node -T scripts/publish/publish-github.ts --tag next --yes
               env:
                   NODE_AUTH_TOKEN: ${{ github.token }}
+
+            - name: Notify Slack
+              if: always()
+              continue-on-error: true
+              shell: bash
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  STATUS: ${{ job.status }}
+                  WORKFLOW: ${{ github.workflow }}
+                  BRANCH: ${{ github.ref_name }}
+                  SHA: ${{ github.sha }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+              run: |
+                  if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+                    echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
+                    exit 0
+                  fi
+
+                  case "$STATUS" in
+                    success)
+                      COLOR="#36a64f"
+                      EMOJI=":white_check_mark:"
+                      STATUS_LABEL="Succeeded"
+                      ;;
+                    failure)
+                      COLOR="#cc0000"
+                      EMOJI=":x:"
+                      STATUS_LABEL="Failed"
+                      ;;
+                    cancelled)
+                      COLOR="#808080"
+                      EMOJI=":warning:"
+                      STATUS_LABEL="Cancelled"
+                      ;;
+                    *)
+                      COLOR="#808080"
+                      EMOJI=":warning:"
+                      STATUS_LABEL="$STATUS"
+                      ;;
+                  esac
+
+                  SHORT_SHA="${SHA:0:7}"
+                  PAYLOAD="$(jq -cn \
+                    --arg color "$COLOR" \
+                    --arg emoji "$EMOJI" \
+                    --arg statusLabel "$STATUS_LABEL" \
+                    --arg workflow "$WORKFLOW" \
+                    --arg branch "$BRANCH" \
+                    --arg commitUrl "$COMMIT_URL" \
+                    --arg shortSha "$SHORT_SHA" \
+                    --arg runUrl "$RUN_URL" \
+                    '{attachments:[{color:$color,blocks:[{type:"section",text:{type:"mrkdwn",text:($emoji + " *Deployment finished*")}},{type:"section",fields:[{type:"mrkdwn",text:("*Status:*\n" + $statusLabel)},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl}]}]}]}')"
+
+                  curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
 
             - name: Collect finalize failure artifacts
               if: failure()
@@ -345,7 +439,7 @@ jobs:
             - name: Upload finalize failure artifacts
               if: failure()
               timeout-minutes: 5
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: staging-finalize-failure-artifacts
                   if-no-files-found: ignore
