@@ -560,8 +560,14 @@ jobs:
               env:
                   NPM_CONFIG_USERCONFIG: ${{ steps.npmjs-npmrc.outputs.path }}
 
-            - name: Promote latest
-              run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ needs.prepare.outputs.version }}" --yes
+            - name: Deploy latest
+              run: |
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./docs --target-name api --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/cdn/dist --target-name cdn --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/cdn/dist --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/gltf/dist --target-name gltf --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/main-pages --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/test-cdn/dist --test-cdn --yes
 
             - name: Push release commit and tag
               shell: bash
