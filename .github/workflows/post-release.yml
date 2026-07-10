@@ -40,8 +40,8 @@ jobs:
                     exit 1
                   fi
 
-            - name: Create cross-repo GitHub App token
-              id: cross-repo-token
+            - name: Create cross-repo contents GitHub App token
+              id: cross-repo-contents-token
               uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
               with:
                   client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
@@ -50,6 +50,17 @@ jobs:
                   repositories: |
                       Newsfeed
                       ViewerExamples
+                  permission-contents: write
+
+            - name: Create downstream pull-request GitHub App token
+              id: downstream-pr-token
+              continue-on-error: true
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
                       AppBuilderSdk
                       ShapeDiverPlatformFrontend
                   permission-contents: write
@@ -59,7 +70,7 @@ jobs:
               if: inputs.release_type != 'patch'
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
                   VERSION: ${{ inputs.version }}
                   CODENAME: ${{ inputs.codename }}
               run: |
@@ -113,7 +124,7 @@ jobs:
             - name: Trigger ViewerExamples deployment
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
                   VERSION: ${{ inputs.version }}
               run: |
                   gh api "repos/shapediver/ViewerExamples/dispatches" \
@@ -123,10 +134,11 @@ jobs:
                   echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
 
             - name: Create pull requests for downstream repos
+              if: steps.downstream-pr-token.outcome == 'success'
               continue-on-error: true
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.downstream-pr-token.outputs.token }}
                   VERSION: ${{ inputs.version }}
               run: |
                   GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"

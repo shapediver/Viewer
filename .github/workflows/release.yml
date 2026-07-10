@@ -597,6 +597,7 @@ jobs:
                   git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "viewer@${{ needs.prepare.outputs.version }}"
 
             - name: Prepare GitHub release notes
+              if: inputs.release_type != 'patch'
               id: release-notes
               shell: bash
               env:
@@ -611,6 +612,7 @@ jobs:
                   echo "body_path=${NOTES_FILE}" >> "${GITHUB_OUTPUT}"
 
             - name: Publish GitHub release
+              if: inputs.release_type != 'patch'
               uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
               with:
                   tag_name: viewer@${{ needs.prepare.outputs.version }}
@@ -618,8 +620,8 @@ jobs:
                   generate_release_notes: true
                   body_path: ${{ steps.release-notes.outputs.body_path }}
 
-            - name: Create cross-repo GitHub App token
-              id: cross-repo-token
+            - name: Create cross-repo contents GitHub App token
+              id: cross-repo-contents-token
               uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
               with:
                   client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
@@ -628,6 +630,17 @@ jobs:
                   repositories: |
                       Newsfeed
                       ViewerExamples
+                  permission-contents: write
+
+            - name: Create downstream pull-request GitHub App token
+              id: downstream-pr-token
+              continue-on-error: true
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
                       AppBuilderSdk
                       ShapeDiverPlatformFrontend
                   permission-contents: write
@@ -637,7 +650,7 @@ jobs:
               if: inputs.release_type != 'patch'
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
                   VERSION: ${{ needs.prepare.outputs.version }}
                   CODENAME: ${{ inputs.codename }}
               run: |
@@ -680,7 +693,7 @@ jobs:
             - name: Trigger ViewerExamples deployment
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   gh api "repos/shapediver/ViewerExamples/dispatches" \
@@ -690,10 +703,11 @@ jobs:
                   echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
 
             - name: Create pull requests for downstream repos
+              if: steps.downstream-pr-token.outcome == 'success'
               continue-on-error: true
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.downstream-pr-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
