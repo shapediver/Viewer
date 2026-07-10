@@ -19,6 +19,11 @@ on:
                 description: Release codename (e.g. Strawberry). Enter just the name, not the full "Viewer X.Y.Z - Codename" format. Optional, but recommended for minor/major releases.
                 required: false
                 type: string
+            skip_tests:
+                description: Skip the release full Playwright gate for emergency patch releases. Use only when the exact commit was validated separately.
+                required: false
+                type: boolean
+                default: false
 
 permissions:
     contents: read
@@ -42,7 +47,14 @@ jobs:
               shell: bash
               env:
                   GH_TOKEN: ${{ github.token }}
+                  SKIP_TESTS: ${{ inputs.skip_tests }}
               run: |
+                  if [[ "${SKIP_TESTS}" == "true" ]]; then
+                    echo "full_tests_done=true" >> "$GITHUB_OUTPUT"
+                    echo "Release full Playwright gate skipped by workflow_dispatch input."
+                    exit 0
+                  fi
+
                   COUNT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/statuses" \
                     --jq '[.[] | select(.context == "viewer/full-playwright" and .state == "success")] | length')
 
@@ -368,7 +380,13 @@ jobs:
               shell: bash
               env:
                   GH_TOKEN: ${{ github.token }}
+                  SKIP_TESTS: ${{ inputs.skip_tests }}
               run: |
+                  if [[ "${SKIP_TESTS}" == "true" ]]; then
+                    echo "Full Playwright status recording skipped by workflow_dispatch input."
+                    exit 0
+                  fi
+
                   if [[ "${{ needs.check-full-tests.outputs.full_tests_done }}" == "true" ]]; then
                     echo "Full Playwright suite was already recorded for ${GITHUB_SHA}."
                     exit 0
