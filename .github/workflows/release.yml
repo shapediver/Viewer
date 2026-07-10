@@ -535,8 +535,30 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ github.token }}
 
+            - name: Setup Node.js for npm publish
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  scope: "@shapediver"
+                  registry-url: https://registry.npmjs.org
+
+            - name: Configure npm registry for npmjs publish
+              id: npmjs-npmrc
+              shell: bash
+              run: |
+                  NPMJS_NPMRC="${RUNNER_TEMP}/npmjs.npmrc"
+                  npm config delete always-auth --location=user || true
+                  cat > "${NPMJS_NPMRC}" <<'EOF'
+                  registry=https://registry.npmjs.org/
+                  @shapediver:registry=https://registry.npmjs.org/
+                  EOF
+                  echo "path=${NPMJS_NPMRC}" >> "${GITHUB_OUTPUT}"
+                  npm --userconfig "${NPMJS_NPMRC}" config get @shapediver:registry
+
             - name: Publish npm (latest)
               run: npx ts-node -T scripts/publish/publish-npm.ts --yes
+              env:
+                  NPM_CONFIG_USERCONFIG: ${{ steps.npmjs-npmrc.outputs.path }}
 
             - name: Promote latest
               run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ needs.prepare.outputs.version }}" --yes
