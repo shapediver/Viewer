@@ -600,11 +600,26 @@ jobs:
                   generate_release_notes: true
                   body_path: ${{ steps.release-notes.outputs.body_path }}
 
+            - name: Create cross-repo GitHub App token
+              id: cross-repo-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
+                      Newsfeed
+                      ViewerExamples
+                      AppBuilderSdk
+                      ShapeDiverPlatformFrontend
+                  permission-contents: write
+                  permission-pull-requests: write
+
             - name: Create newsfeed entry
               if: inputs.release_type != 'patch'
               shell: bash
               env:
-                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
                   VERSION: ${{ needs.prepare.outputs.version }}
                   CODENAME: ${{ inputs.codename }}
               run: |
@@ -647,7 +662,7 @@ jobs:
             - name: Trigger ViewerExamples deployment
               shell: bash
               env:
-                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   gh api "repos/shapediver/ViewerExamples/dispatches" \
@@ -660,7 +675,7 @@ jobs:
               continue-on-error: true
               shell: bash
               env:
-                  GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+                  GH_TOKEN: ${{ steps.cross-repo-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
