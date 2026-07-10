@@ -8,7 +8,8 @@ import {
 	InputValidator,
 	Logger,
 	LOGGING_LEVEL,
-	type MainEventTypes} from "@shapediver/viewer.shared.services";
+	type MainEventTypes,
+} from "@shapediver/viewer.shared.services";
 
 // #region Interfaces (1)
 
@@ -205,7 +206,7 @@ export const sceneTree: ITree = Tree.instance;
 /**
  * The version of the viewer.
  */
-export const version: string = build_data.build_version.replace("3.", "");
+export const version: string = build_data.build_version;
 export const showConsoleMessage = () => {
 	if (createdConsoleMessage === true) return;
 	createdConsoleMessage = true;
@@ -218,13 +219,11 @@ export const showConsoleMessage = () => {
  ___/ // / / // /_/ // /_/ //  __// /_/ // / | |/ //  __// /    
 /____//_/ /_/ \\__,_// .___/ \\___//_____//_/  |___/ \\___//_/     
                    /_/                                          
-ShapeDiver Viewer 3, Version ${build_data.build_version.replace("3.", "")}
+ShapeDiver Viewer 3, Version ${build_data.build_version}
 Visit us at https://shapediver.com/ and find out more!
 `);
 	} else {
-		console.log(
-			`ShapeDiver Viewer 3, Version ${build_data.build_version.replace("3.", "")}`,
-		);
+		console.log(`ShapeDiver Viewer 3, Version ${build_data.build_version}`);
 	}
 };
 /**

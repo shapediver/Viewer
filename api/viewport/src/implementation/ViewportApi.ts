@@ -2,7 +2,8 @@ import {QueryGltfConversion} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {sceneTree} from "@shapediver/viewer.api.general";
 import {
 	CreationControlCenterViewport,
-	type ICreationControlCenterViewport} from "@shapediver/viewer.creation-control-center.viewport";
+	type ICreationControlCenterViewport,
+} from "@shapediver/viewer.creation-control-center.viewport";
 import {GLTFConverter} from "@shapediver/viewer.data-engine.gltf-converter";
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
 import {
@@ -10,7 +11,8 @@ import {
 	type IOrthographicCamera,
 	type IPerspectiveCamera,
 	type OrthographicCameraProperties,
-	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type PerspectiveCameraProperties,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {ISettings} from "@shapediver/viewer.settings";
@@ -21,7 +23,8 @@ import {
 	MaterialBasicLineData,
 	MaterialPointData,
 	MaterialStandardData,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	type IDomEventListener,
 	InputValidator,
@@ -30,7 +33,8 @@ import {
 	ShapeDiverViewerArError,
 	ShapeDiverViewerValidationError,
 	StateEngine,
-	SystemInfo} from "@shapediver/viewer.shared.services";
+	SystemInfo,
+} from "@shapediver/viewer.shared.services";
 import {
 	type Color,
 	FLAG_TYPE,
@@ -43,7 +47,8 @@ import {
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 import * as QRCode from "qrcode";
 import * as THREE from "three";
@@ -1358,7 +1363,7 @@ export class ViewportApi implements IViewportApi {
 
 		const sceneId = response.gltf!.sceneId!;
 
-		const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace("3.", "")}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier!)}&id=${encodeURIComponent(sceneId)}`;
+		const link = `https://viewer.shapediver.com/v3/${build_data.build_version}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier!)}&id=${encodeURIComponent(sceneId)}`;
 		if (qrCode === false) {
 			return link;
 		} else {
