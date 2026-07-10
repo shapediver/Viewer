@@ -25,6 +25,7 @@ import * as path from "path";
 
 const NPM_REGISTRY = "https://registry.npmjs.org/";
 const GITHUB_PACKAGES_REGISTRY = "https://npm.pkg.github.com";
+const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Release-managed Viewer packages. Deliberately excludes private examples/tests
 // and independently-published utils packages.
@@ -77,6 +78,7 @@ function runFile(command: string, args: string[], cwd?: string): string {
 			encoding: "utf8",
 			stdio: "pipe",
 			env: process.env,
+			shell: process.platform === "win32",
 		}).trim();
 	} catch (e: any) {
 		const rendered = [command, ...args].join(" ");
@@ -162,7 +164,7 @@ function sortPackagesByLocalDependencies(packages: PublishablePackage[]): Publis
 
 function isAlreadyPublished(pkg: PublishablePackage): boolean {
 	try {
-		const publishedVersion = runFile("npm", [
+		const publishedVersion = runFile(NPM_BIN, [
 			"view",
 			`${pkg.name}@${pkg.version}`,
 			"version",
@@ -175,17 +177,33 @@ function isAlreadyPublished(pkg: PublishablePackage): boolean {
 	}
 }
 
-function publishPackage(pkg: PublishablePackage): string {
-	return runFile("npm", [
+function packagePath(pkg: PublishablePackage): string {
+	return path.resolve(pkg.dir);
+}
+
+function dryRunPackage(pkg: PublishablePackage): string {
+	return runFile(NPM_BIN, [
 		"publish",
-		pkg.dir,
+		"--dry-run",
 		"--access",
 		"public",
 		"--tag",
 		"latest",
 		"--registry",
 		NPM_REGISTRY,
-	]);
+	], packagePath(pkg));
+}
+
+function publishPackage(pkg: PublishablePackage): string {
+	return runFile(NPM_BIN, [
+		"publish",
+		"--access",
+		"public",
+		"--tag",
+		"latest",
+		"--registry",
+		NPM_REGISTRY,
+	], packagePath(pkg));
 }
 
 function main() {
@@ -202,7 +220,10 @@ function main() {
 	if (dryRun) {
 		if (!silent) {
 			console.log(`Would publish ${packages.length} packages to npm with tag "latest":`);
-			for (const pkg of packages) console.log(`  ${pkg.name}@${pkg.version} (${pkg.dir})`);
+		}
+		for (const pkg of packages) {
+			if (!silent) console.log(`  ${pkg.name}@${pkg.version} (${pkg.dir})`);
+			dryRunPackage(pkg);
 		}
 		console.log(JSON.stringify({packageCount: packages.length, dryRun: true}));
 		return;
