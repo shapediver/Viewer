@@ -1,7 +1,7 @@
 /**
  * publish-npm.ts
  *
- * Publishes packages to the npm registry with the latest dist-tag.
+ * Publishes Viewer packages to the npm registry with the latest dist-tag.
  * Restores the GitHub Packages registry after publishing.
  *
  * Usage:
@@ -19,11 +19,35 @@
  *   Registry is switched in user config during publish, then restored to GitHub Packages.
  */
 
-import {execSync} from "child_process";
+import {execFileSync, execSync} from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+
+const NPM_REGISTRY = "https://registry.npmjs.org/";
+const GITHUB_PACKAGES_REGISTRY = "https://npm.pkg.github.com";
+
+// Release-managed Viewer packages. Deliberately excludes private examples/tests
+// and independently-published utils packages.
+const PACKAGE_ROOTS = [
+	"api",
+	"creation-control-center",
+	"data-engine",
+	"features",
+	"rendering-engine",
+	"session-engine",
+	"shared",
+];
 
 interface PublishArgs {
 	silent: boolean;
 	dryRun: boolean;
+}
+
+interface PublishablePackage {
+	name: string;
+	version: string;
+	dir: string;
+	dependencies: string[];
 }
 
 function parseArgs(): PublishArgs {
@@ -46,29 +70,141 @@ function run(cmd: string): string {
 	}
 }
 
+function runFile(command: string, args: string[], cwd?: string): string {
+	try {
+		return execFileSync(command, args, {
+			cwd,
+			encoding: "utf8",
+			stdio: "pipe",
+			env: process.env,
+		}).trim();
+	} catch (e: any) {
+		const rendered = [command, ...args].join(" ");
+		const stderr = e.stderr?.toString?.() || e.message;
+		throw new Error(`Command failed: ${rendered}\n${stderr}`);
+	}
+}
+
+function readPackageJson(packagePath: string): any {
+	return JSON.parse(fs.readFileSync(packagePath, "utf8"));
+}
+
+function collectDependencyNames(pkg: any): string[] {
+	const dependencyBlocks = [
+		pkg.dependencies,
+		pkg.peerDependencies,
+		pkg.optionalDependencies,
+	];
+	return dependencyBlocks.flatMap((deps) => (deps ? Object.keys(deps) : []));
+}
+
+function discoverPackages(): PublishablePackage[] {
+	const packages: PublishablePackage[] = [];
+
+	function walk(dir: string) {
+		if (!fs.existsSync(dir)) return;
+
+		for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+			if (entry.name === "node_modules" || entry.name === "dist") continue;
+
+			const entryPath = path.join(dir, entry.name);
+			if (entry.isDirectory()) {
+				walk(entryPath);
+				continue;
+			}
+
+			if (entry.name !== "package.json") continue;
+
+			const pkg = readPackageJson(entryPath);
+			if (!pkg.name || pkg.private) continue;
+			if (!pkg.name.startsWith("@shapediver/viewer")) continue;
+
+			packages.push({
+				name: pkg.name,
+				version: pkg.version,
+				dir: path.dirname(entryPath),
+				dependencies: collectDependencyNames(pkg),
+			});
+		}
+	}
+
+	for (const root of PACKAGE_ROOTS) walk(root);
+
+	return sortPackagesByLocalDependencies(packages);
+}
+
+function sortPackagesByLocalDependencies(packages: PublishablePackage[]): PublishablePackage[] {
+	const byName = new Map(packages.map((pkg) => [pkg.name, pkg]));
+	const visited = new Set<string>();
+	const visiting = new Set<string>();
+	const result: PublishablePackage[] = [];
+
+	function visit(pkg: PublishablePackage) {
+		if (visited.has(pkg.name)) return;
+		if (visiting.has(pkg.name)) return;
+
+		visiting.add(pkg.name);
+		for (const dependency of pkg.dependencies) {
+			const localDependency = byName.get(dependency);
+			if (localDependency) visit(localDependency);
+		}
+		visiting.delete(pkg.name);
+		visited.add(pkg.name);
+		result.push(pkg);
+	}
+
+	for (const pkg of packages.sort((a, b) => a.name.localeCompare(b.name))) {
+		visit(pkg);
+	}
+
+	return result;
+}
+
+function isAlreadyPublished(pkg: PublishablePackage): boolean {
+	try {
+		const publishedVersion = runFile("npm", [
+			"view",
+			`${pkg.name}@${pkg.version}`,
+			"version",
+			"--registry",
+			NPM_REGISTRY,
+		]);
+		return publishedVersion === pkg.version;
+	} catch {
+		return false;
+	}
+}
+
+function publishPackage(pkg: PublishablePackage): string {
+	return runFile("npm", [
+		"publish",
+		pkg.dir,
+		"--access",
+		"public",
+		"--tag",
+		"latest",
+		"--registry",
+		NPM_REGISTRY,
+	]);
+}
+
 function main() {
 	const {silent, dryRun} = parseArgs();
+	const packages = discoverPackages();
 
 	if (!silent) {
 		console.log(`\n=== Publish to npm ===`);
 		if (dryRun) console.log(`  Mode: dry-run`);
+		console.log(`  Packages: ${packages.length}`);
 		console.log("");
 	}
 
 	if (dryRun) {
-		const raw = run("npx lerna list --all --json --loglevel=error 2>&1");
-		const packages = JSON.parse(raw);
-		const publishable = packages.filter((p: any) => !p.private);
-
 		if (!silent) {
-			console.log(
-				`Would publish ${publishable.length} packages to npm with tag "latest":`,
-			);
-			for (const p of publishable) {
-				console.log(`  ${p.name}@${p.version}`);
-			}
+			console.log(`Would publish ${packages.length} packages to npm with tag "latest":`);
+			for (const pkg of packages) console.log(`  ${pkg.name}@${pkg.version} (${pkg.dir})`);
 		}
-		console.log(JSON.stringify({packageCount: publishable.length, dryRun: true}));
+		console.log(JSON.stringify({packageCount: packages.length, dryRun: true}));
 		return;
 	}
 
@@ -82,23 +218,31 @@ function main() {
 		}
 	}
 
-	// Switch to npm registry without mutating tracked project files
+	// Switch to npm registry without mutating tracked project files.
 	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=user");
 
-	// Publish via npm Trusted Publishing (OIDC).
-	// npm generates provenance automatically for trusted publishing.
-	// Lerna publishes packages in parallel by default; serialize publishing so each
-	// package can complete its own npm OIDC exchange reliably.
-	const output = run(
-		"npx lerna publish from-package --yes --no-private --dist-tag latest --registry https://registry.npmjs.org/ --concurrency 1",
-	);
+	const published: string[] = [];
+	const skipped: string[] = [];
 
-	if (!silent) console.log(output);
+	try {
+		for (const pkg of packages) {
+			if (isAlreadyPublished(pkg)) {
+				if (!silent) console.log(`Skipping already published ${pkg.name}@${pkg.version}`);
+				skipped.push(`${pkg.name}@${pkg.version}`);
+				continue;
+			}
 
-	// Restore GitHub Packages registry in user config
-	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
+			if (!silent) console.log(`Publishing ${pkg.name}@${pkg.version}`);
+			const output = publishPackage(pkg);
+			if (!silent && output) console.log(output);
+			published.push(`${pkg.name}@${pkg.version}`);
+		}
+	} finally {
+		// Restore GitHub Packages registry in user config.
+		run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
+	}
 
-	console.log(JSON.stringify({published: true}));
+	console.log(JSON.stringify({published, skipped, packageCount: packages.length}));
 }
 
 main();
