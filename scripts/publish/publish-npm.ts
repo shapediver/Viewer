@@ -170,6 +170,7 @@ function isAlreadyPublished(pkg: PublishablePackage): boolean {
 			"version",
 			"--registry",
 			NPM_REGISTRY,
+			`--@shapediver:registry=${NPM_REGISTRY}`,
 		]);
 		return publishedVersion === pkg.version;
 	} catch {
@@ -191,6 +192,7 @@ function dryRunPackage(pkg: PublishablePackage): string {
 		"latest",
 		"--registry",
 		NPM_REGISTRY,
+		`--@shapediver:registry=${NPM_REGISTRY}`,
 	], packagePath(pkg));
 }
 
@@ -203,6 +205,7 @@ function publishPackage(pkg: PublishablePackage): string {
 		"latest",
 		"--registry",
 		NPM_REGISTRY,
+		`--@shapediver:registry=${NPM_REGISTRY}`,
 	], packagePath(pkg));
 }
 
