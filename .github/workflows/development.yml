@@ -363,13 +363,58 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ github.token }}
 
+            - name: Collect finalize failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -f lerna-debug.log ]]; then
+                    cp lerna-debug.log .github-artifacts/failure/
+                  fi
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload finalize failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: development-finalize-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/
+
+    notify:
+        needs:
+            - prepare
+            - playwright
+            - finalize
+        if: >-
+            always() &&
+            (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        environment: development
+
+        steps:
             - name: Notify Slack
               if: always()
               continue-on-error: true
               shell: bash
               env:
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                  STATUS: ${{ job.status }}
+                  PREPARE_RESULT: ${{ needs.prepare.result }}
+                  PLAYWRIGHT_RESULT: ${{ needs.playwright.result }}
+                  FINALIZE_RESULT: ${{ needs.finalize.result }}
                   WORKFLOW: ${{ github.workflow }}
                   BRANCH: ${{ github.ref_name }}
                   SHA: ${{ github.sha }}
@@ -379,6 +424,14 @@ jobs:
                   if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
                     echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
                     exit 0
+                  fi
+
+                  if [[ "${PREPARE_RESULT}" == "success" && "${PLAYWRIGHT_RESULT}" == "success" && "${FINALIZE_RESULT}" == "success" ]]; then
+                    STATUS="success"
+                  elif [[ "${PREPARE_RESULT}" == "cancelled" || "${PLAYWRIGHT_RESULT}" == "cancelled" || "${FINALIZE_RESULT}" == "cancelled" ]]; then
+                    STATUS="cancelled"
+                  else
+                    STATUS="failure"
                   fi
 
                   case "$STATUS" in
@@ -417,32 +470,3 @@ jobs:
                     '{attachments:[{color:$color,blocks:[{type:"section",text:{type:"mrkdwn",text:($emoji + " *Deployment finished*")}},{type:"section",fields:[{type:"mrkdwn",text:("*Status:*\n" + $statusLabel)},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl}]}]}]}')"
 
                   curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
-
-            - name: Collect finalize failure artifacts
-              if: failure()
-              shell: bash
-              run: |
-                  rm -rf .github-artifacts/failure
-                  mkdir -p .github-artifacts/failure/tests
-
-                  if [[ -f lerna-debug.log ]]; then
-                    cp lerna-debug.log .github-artifacts/failure/
-                  fi
-
-                  if [[ -d tests/playwright-report ]]; then
-                    cp -R tests/playwright-report .github-artifacts/failure/tests/
-                  fi
-
-                  if [[ -d tests/test-results ]]; then
-                    cp -R tests/test-results .github-artifacts/failure/tests/
-                  fi
-
-            - name: Upload finalize failure artifacts
-              if: failure()
-              timeout-minutes: 5
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: development-finalize-failure-artifacts
-                  if-no-files-found: ignore
-                  compression-level: 0
-                  path: .github-artifacts/failure/

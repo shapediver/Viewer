@@ -274,7 +274,7 @@ jobs:
                   [[ "$STATE" == "success" ]]
 
             - name: Notify Slack
-              if: always()
+              if: always() && needs.check-full-tests.outputs.full_tests_done != 'true'
               continue-on-error: true
               shell: bash
               env:
