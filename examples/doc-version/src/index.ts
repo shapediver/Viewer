@@ -8,5 +8,5 @@ import {build_data} from "@shapediver/viewer.shared.build-data";
 	p.style.fontSize = "20px";
 
 	document.body.appendChild(p);
-	p.innerText = `${build_data.build_version.replace("3.", "")}`;
+	p.innerText = `${build_data.build_version}`;
 })();

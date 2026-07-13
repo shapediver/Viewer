@@ -100,7 +100,7 @@ jobs:
               run: pnpm build-tests
 
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+              uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
                   aws-region: us-east-1
@@ -274,7 +274,7 @@ jobs:
                   [[ "$STATE" == "success" ]]
 
             - name: Notify Slack
-              if: always()
+              if: always() && needs.check-full-tests.outputs.full_tests_done != 'true'
               continue-on-error: true
               shell: bash
               env:

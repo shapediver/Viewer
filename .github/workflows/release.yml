@@ -11,12 +11,12 @@ on:
                     - patch
                     - minor
                     - major
-            release_notes:
-                description: Manual release notes to prepend to the generated GitHub release notes. Required for minor/major releases; optional for patch releases.
+            release_notes_file:
+                description: Path to a committed Markdown release notes file, e.g. .github/release-notes/3.19.0.md. Required for minor/major releases; optional for patch releases.
                 required: false
                 type: string
             codename:
-                description: Codename for the release (e.g. Raspberry). Optional, but recommended for minor/major releases to match the newsfeed format.
+                description: Release codename (e.g. Strawberry). Enter just the name, not the full "Viewer X.Y.Z - Codename" format. Optional, but recommended for minor/major releases.
                 required: false
                 type: string
 
@@ -82,10 +82,28 @@ jobs:
                   token: ${{ steps.app-token.outputs.token }}
 
             - name: Validate release notes
-              if: inputs.release_type != 'patch' && inputs.release_notes == ''
+              shell: bash
+              env:
+                  RELEASE_TYPE: ${{ inputs.release_type }}
+                  RELEASE_NOTES_FILE: ${{ inputs.release_notes_file }}
               run: |
-                  echo "release_notes is required for minor and major releases." >&2
-                  exit 1
+                  if [[ -z "${RELEASE_NOTES_FILE}" ]]; then
+                    if [[ "${RELEASE_TYPE}" != "patch" ]]; then
+                      echo "release_notes_file is required for minor and major releases." >&2
+                      exit 1
+                    fi
+                    exit 0
+                  fi
+
+                  if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
+                    echo "release_notes_file does not exist: ${RELEASE_NOTES_FILE}" >&2
+                    exit 1
+                  fi
+
+                  if [[ "${RELEASE_TYPE}" != "patch" && ! -s "${RELEASE_NOTES_FILE}" ]]; then
+                    echo "release_notes_file must not be empty for minor and major releases." >&2
+                    exit 1
+                  fi
 
             - name: Setup pnpm
               uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
@@ -100,7 +118,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
 
             - name: Pin npm
-              run: npm i -g npm@11.6.2
+              run: npm i -g npm@11.18.0
 
             - name: Show tool versions
               run: |
@@ -199,7 +217,7 @@ jobs:
 
             - name: Configure AWS credentials for full Playwright test-cdn
               if: needs.check-full-tests.outputs.full_tests_done != 'true'
-              uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+              uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
                   aws-region: us-east-1
@@ -209,6 +227,10 @@ jobs:
               run: npm run deploy-tests
               env:
                   VIEWER_TEST_ENV: production
+
+            - name: Install Playwright browser
+              if: needs.check-full-tests.outputs.full_tests_done != 'true'
+              run: npm run test-install
 
             - name: Smoke test latest test-cdn for full Playwright
               if: needs.check-full-tests.outputs.full_tests_done != 'true'
@@ -292,7 +314,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
 
             - name: Pin npm
-              run: npm i -g npm@11.6.2
+              run: npm i -g npm@11.18.0
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
@@ -380,6 +402,10 @@ jobs:
             (needs.playwright.result == 'success' || needs.playwright.result == 'skipped') &&
             needs.record-full-test-status.result == 'success'
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            packages: write
+            id-token: write
         environment: production
 
         steps:
@@ -389,11 +415,6 @@ jobs:
               with:
                   client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
                   private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  repositories: |
-                    Viewer
-                    Newsfeed
-                    ViewerExamples
                   permission-contents: write
 
             - name: Checkout
@@ -416,7 +437,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
 
             - name: Pin npm
-              run: npm i -g npm@11.6.2
+              run: npm i -g npm@11.18.0
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
@@ -466,7 +487,7 @@ jobs:
               run: pnpm doc
 
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+              uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
                   aws-region: us-east-1
@@ -496,6 +517,12 @@ jobs:
               env:
                   VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/${{ needs.prepare.outputs.version }}
 
+            - name: Commit version bump locally
+              shell: bash
+              run: |
+                  git add -A
+                  git commit -m "chore(release): release ${{ needs.prepare.outputs.version }}"
+
             - name: Setup Node.js for GitHub Packages publish
               uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
               with:
@@ -508,42 +535,147 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ github.token }}
 
+            - name: Setup Node.js for npm publish
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  scope: "@shapediver"
+                  registry-url: https://registry.npmjs.org
+
+            - name: Configure npm registry for npmjs publish
+              id: npmjs-npmrc
+              shell: bash
+              run: |
+                  NPMJS_NPMRC="${RUNNER_TEMP}/npmjs.npmrc"
+                  npm config delete always-auth --location=user || true
+                  cat > "${NPMJS_NPMRC}" <<'EOF'
+                  registry=https://registry.npmjs.org/
+                  @shapediver:registry=https://registry.npmjs.org/
+                  EOF
+                  echo "path=${NPMJS_NPMRC}" >> "${GITHUB_OUTPUT}"
+                  npm --userconfig "${NPMJS_NPMRC}" config get @shapediver:registry
+
             - name: Publish npm (latest)
               run: npx ts-node -T scripts/publish/publish-npm.ts --yes
+              env:
+                  NPM_CONFIG_USERCONFIG: ${{ steps.npmjs-npmrc.outputs.path }}
 
-            - name: Promote latest
-              run: npx ts-node -T scripts/deploy/promote-latest.ts --from-version "${{ needs.prepare.outputs.version }}" --yes
+            - name: Deploy latest
+              run: |
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./docs --target-name api --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/cdn/dist --target-name cdn --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/cdn/dist --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/gltf/dist --target-name gltf --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/main-pages --yes
+                  npx ts-node -T scripts/deploy/deploy-s3.ts --channel release --version latest --source-dir ./examples/test-cdn/dist --test-cdn --yes
 
-            - name: Commit version bump and push
+            - name: Push release commit and tag
               shell: bash
               env:
                   PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
               run: |
-                  git add -A
-                  git commit -m "chore(release): release ${{ needs.prepare.outputs.version }}"
                   git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
-
-            - name: Create release tag and push
-              shell: bash
-              env:
-                  PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
-              run: |
                   git tag -a "viewer@${{ needs.prepare.outputs.version }}" -m "deployed viewer version ${{ needs.prepare.outputs.version }}"
                   git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "viewer@${{ needs.prepare.outputs.version }}"
 
+            - name: Prepare GitHub release notes
+              if: inputs.release_type != 'patch'
+              id: release-notes
+              shell: bash
+              env:
+                  RELEASE_NOTES_FILE: ${{ inputs.release_notes_file }}
+              run: |
+                  NOTES_FILE="${RUNNER_TEMP}/viewer-release-notes.md"
+                  if [[ -n "${RELEASE_NOTES_FILE}" ]]; then
+                    cp "${RELEASE_NOTES_FILE}" "${NOTES_FILE}"
+                  else
+                    : > "${NOTES_FILE}"
+                  fi
+                  echo "body_path=${NOTES_FILE}" >> "${GITHUB_OUTPUT}"
+
             - name: Publish GitHub release
+              if: inputs.release_type != 'patch'
               uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
               with:
                   tag_name: viewer@${{ needs.prepare.outputs.version }}
-                  name: Viewer ${{ needs.prepare.outputs.version }}
+                  name: Viewer ${{ needs.prepare.outputs.version }}${{ inputs.codename && format(' - {0}', inputs.codename) || '' }}
                   generate_release_notes: true
-                  body: ${{ inputs.release_notes }}
+                  body_path: ${{ steps.release-notes.outputs.body_path }}
+
+            - name: Collect finalize failure artifacts
+              if: failure()
+              shell: bash
+              run: |
+                  rm -rf .github-artifacts/failure
+                  mkdir -p .github-artifacts/failure/tests
+
+                  if [[ -f lerna-debug.log ]]; then
+                    cp lerna-debug.log .github-artifacts/failure/
+                  fi
+
+                  if [[ -d tests/playwright-report ]]; then
+                    cp -R tests/playwright-report .github-artifacts/failure/tests/
+                  fi
+
+                  if [[ -d tests/test-results ]]; then
+                    cp -R tests/test-results .github-artifacts/failure/tests/
+                  fi
+
+            - name: Upload finalize failure artifacts
+              if: failure()
+              timeout-minutes: 5
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: release-finalize-failure-artifacts
+                  if-no-files-found: ignore
+                  compression-level: 0
+                  path: .github-artifacts/failure/
+
+    post-release:
+        needs:
+            - prepare
+            - finalize
+        if: >-
+            always() &&
+            github.ref == 'refs/heads/main' &&
+            needs.finalize.result == 'success'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        environment: production
+
+        steps:
+            - name: Create cross-repo contents GitHub App token
+              id: cross-repo-contents-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
+                      Newsfeed
+                      ViewerExamples
+                  permission-contents: write
+
+            - name: Create downstream pull-request GitHub App token
+              id: downstream-pr-token
+              continue-on-error: true
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
+                      AppBuilderSdk
+                      ShapeDiverPlatformFrontend
+                  permission-contents: write
+                  permission-pull-requests: write
 
             - name: Create newsfeed entry
               if: inputs.release_type != 'patch'
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
                   VERSION: ${{ needs.prepare.outputs.version }}
                   CODENAME: ${{ inputs.codename }}
               run: |
@@ -586,7 +718,7 @@ jobs:
             - name: Trigger ViewerExamples deployment
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   gh api "repos/shapediver/ViewerExamples/dispatches" \
@@ -596,10 +728,11 @@ jobs:
                   echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
 
             - name: Create pull requests for downstream repos
+              if: steps.downstream-pr-token.outcome == 'success'
               continue-on-error: true
               shell: bash
               env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  GH_TOKEN: ${{ steps.downstream-pr-token.outputs.token }}
               run: |
                   VERSION="${{ needs.prepare.outputs.version }}"
                   GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
@@ -624,9 +757,15 @@ jobs:
                     }
                     echo "Default branch: ${DEFAULT_BRANCH}"
 
+                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
+                    if [[ -n "${PR_EXISTS}" ]]; then
+                      echo "PR already exists: ${PR_EXISTS}"
+                      continue
+                    fi
+
                     BRANCH_EXISTS=$(gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --jq '.ref' 2>/dev/null || echo "")
                     if [[ -n "${BRANCH_EXISTS}" ]]; then
-                      echo "Branch ${BRANCH_NAME} already exists; deleting it."
+                      echo "Branch ${BRANCH_NAME} already exists without an open PR; deleting it."
                       gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --method DELETE || echo "Failed to delete old branch."
                     fi
 
@@ -642,11 +781,16 @@ jobs:
                     }
                     echo "Created branch ${BRANCH_NAME}"
 
-                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
-                    if [[ -n "${PR_EXISTS}" ]]; then
-                      echo "PR already exists: ${PR_EXISTS}"
+                    MARKER_CONTENT=$(printf '# Viewer %s release\n\n%s\n\nUpdate @shapediver/viewer dependencies to %s and test compatibility.\n' "${VERSION}" "${GITHUB_URL}" "${VERSION}" | base64 -w0)
+                    gh api "repos/${FULL_REPO}/contents/.github/viewer-release-${VERSION}.md" \
+                      --method PUT \
+                      -f message="chore: add Viewer ${VERSION} release marker" \
+                      -f content="${MARKER_CONTENT}" \
+                      -f branch="${BRANCH_NAME}" || {
+                      echo "Failed to create marker file; skipping PR creation."
                       continue
-                    fi
+                    }
+                    echo "Created marker file for ${VERSION}"
 
                     PR_URL=$(gh api "repos/${FULL_REPO}/pulls" --method POST \
                       -f title="${PR_TITLE}" \
@@ -662,13 +806,28 @@ jobs:
 
                   echo "All downstream PRs processed."
 
+
+    notify:
+        needs:
+            - prepare
+            - finalize
+            - post-release
+        if: always() && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        environment: production
+
+        steps:
             - name: Notify Slack
               if: always()
               continue-on-error: true
               shell: bash
               env:
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                  STATUS: ${{ job.status }}
+                  PREPARE_RESULT: ${{ needs.prepare.result }}
+                  FINALIZE_RESULT: ${{ needs.finalize.result }}
+                  POST_RELEASE_RESULT: ${{ needs['post-release'].result }}
                   WORKFLOW: ${{ github.workflow }}
                   BRANCH: ${{ github.ref_name }}
                   SHA: ${{ github.sha }}
@@ -678,6 +837,14 @@ jobs:
                   if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
                     echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
                     exit 0
+                  fi
+
+                  if [[ "${PREPARE_RESULT}" == "success" && "${FINALIZE_RESULT}" == "success" && "${POST_RELEASE_RESULT}" == "success" ]]; then
+                    STATUS="success"
+                  elif [[ "${PREPARE_RESULT}" == "cancelled" || "${FINALIZE_RESULT}" == "cancelled" || "${POST_RELEASE_RESULT}" == "cancelled" ]]; then
+                    STATUS="cancelled"
+                  else
+                    STATUS="failure"
                   fi
 
                   case "$STATUS" in
@@ -716,32 +883,3 @@ jobs:
                     '{attachments:[{color:$color,blocks:[{type:"section",text:{type:"mrkdwn",text:($emoji + " *Deployment finished*")}},{type:"section",fields:[{type:"mrkdwn",text:("*Status:*\n" + $statusLabel)},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl}]}]}]}')"
 
                   curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
-
-            - name: Collect finalize failure artifacts
-              if: failure()
-              shell: bash
-              run: |
-                  rm -rf .github-artifacts/failure
-                  mkdir -p .github-artifacts/failure/tests
-
-                  if [[ -f lerna-debug.log ]]; then
-                    cp lerna-debug.log .github-artifacts/failure/
-                  fi
-
-                  if [[ -d tests/playwright-report ]]; then
-                    cp -R tests/playwright-report .github-artifacts/failure/tests/
-                  fi
-
-                  if [[ -d tests/test-results ]]; then
-                    cp -R tests/test-results .github-artifacts/failure/tests/
-                  fi
-
-            - name: Upload finalize failure artifacts
-              if: failure()
-              timeout-minutes: 5
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: release-finalize-failure-artifacts
-                  if-no-files-found: ignore
-                  compression-level: 0
-                  path: .github-artifacts/failure/

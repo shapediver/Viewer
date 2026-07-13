@@ -11,7 +11,8 @@ import {
 	type IGLTF_v2_Node,
 	type IGLTF_v2_Primitive,
 	type IGLTF_v2_Scene,
-	type IGLTF_v2_Texture} from "@shapediver/viewer.data-engine.shared-types";
+	type IGLTF_v2_Texture,
+} from "@shapediver/viewer.data-engine.shared-types";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
@@ -24,14 +25,16 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	atobCustom,
 	Converter,
 	EventEngine,
 	EVENTTYPE,
 	Logger,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IAnimationData,
 	type IAttributeData,
@@ -43,7 +46,8 @@ import {
 	MATERIAL_ALPHA,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,
-	TASK_TYPE} from "@shapediver/viewer.shared.types";
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 
 // #region Classes (1)
@@ -84,7 +88,7 @@ export class GLTFConverter {
 	private _content: IGLTF_v2 = {
 		asset: {
 			copyright: "2025 (c) ShapeDiver",
-			generator: "ShapeDiverViewer@" + build_data.build_version,
+			generator: "ShapeDiverViewer@" + "3." + build_data.build_version,
 			version: "2.0",
 			extensions: {},
 		},
@@ -1502,7 +1506,8 @@ export class GLTFConverter {
 		this._content = {
 			asset: {
 				copyright: "2025 (c) ShapeDiver",
-				generator: "ShapeDiverViewer@" + build_data.build_version,
+				generator:
+					"ShapeDiverViewer@" + "3." + build_data.build_version,
 				version: "2.0",
 				extensions: {},
 			},

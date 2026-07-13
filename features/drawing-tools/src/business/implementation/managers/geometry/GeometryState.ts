@@ -578,16 +578,21 @@ export class GeometryState {
 		this.geometryDataPoints.primitive.attributes["POSITION"] =
 			new AttributeData(
 				this.#positionArray,
-				this.geometryDataPoints.primitive.attributes["POSITION"]
-					.itemSize,
-				this.geometryDataPoints.primitive.attributes["POSITION"]
-					.itemBytes,
-				this.geometryDataPoints.primitive.attributes["POSITION"]
-					.byteOffset,
-				this.geometryDataPoints.primitive.attributes["POSITION"]
-					.elementBytes,
-				this.geometryDataPoints.primitive.attributes["POSITION"]
-					.normalized,
+				this.geometryDataPoints.primitive.attributes[
+					"POSITION"
+				].itemSize,
+				this.geometryDataPoints.primitive.attributes[
+					"POSITION"
+				].itemBytes,
+				this.geometryDataPoints.primitive.attributes[
+					"POSITION"
+				].byteOffset,
+				this.geometryDataPoints.primitive.attributes[
+					"POSITION"
+				].elementBytes,
+				this.geometryDataPoints.primitive.attributes[
+					"POSITION"
+				].normalized,
 				this.geometryDataPoints.primitive.attributes["POSITION"].count -
 					1,
 			);
@@ -614,16 +619,21 @@ export class GeometryState {
 			this.geometryDataLines.primitive.attributes["POSITION"] =
 				new AttributeData(
 					this.#positionArray,
-					this.geometryDataLines.primitive.attributes["POSITION"]
-						.itemSize,
-					this.geometryDataLines.primitive.attributes["POSITION"]
-						.itemBytes,
-					this.geometryDataLines.primitive.attributes["POSITION"]
-						.byteOffset,
-					this.geometryDataLines.primitive.attributes["POSITION"]
-						.elementBytes,
-					this.geometryDataLines.primitive.attributes["POSITION"]
-						.normalized,
+					this.geometryDataLines.primitive.attributes[
+						"POSITION"
+					].itemSize,
+					this.geometryDataLines.primitive.attributes[
+						"POSITION"
+					].itemBytes,
+					this.geometryDataLines.primitive.attributes[
+						"POSITION"
+					].byteOffset,
+					this.geometryDataLines.primitive.attributes[
+						"POSITION"
+					].elementBytes,
+					this.geometryDataLines.primitive.attributes[
+						"POSITION"
+					].normalized,
 					this.geometryDataLines.primitive.attributes["POSITION"]
 						.count - 1,
 				);
@@ -661,7 +671,8 @@ export class GeometryState {
 
 		const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints
 			.convertedObject[this.#viewport.id] as THREE.Points;
-		const material = threeJsPointsGeometry.material as MultiPointsMaterial;
+		const material =
+			threeJsPointsGeometry.material as MultiPointsMaterial;
 		const materialIndexDataTexture = material.materialIndexDataTexture;
 		const materialIndexData = materialIndexDataTexture?.image.data;
 		if (materialIndexDataTexture && materialIndexData) {
@@ -671,13 +682,13 @@ export class GeometryState {
 			material.needsUpdate = true;
 		}
 
-		(((
+		((
 			this.#geometryDataPoints.material as MaterialMultiPointData
 		).materialIndexDataMap = new MapData(new Image(), {
 			asData: true,
 			data: this.#materialIndexArray,
 		})),
-			this.#geometryDataPoints.material!.updateVersion());
+			this.#geometryDataPoints.material!.updateVersion();
 	}
 
 	// #endregion Public Methods (17)

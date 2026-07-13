@@ -60,20 +60,13 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
 
 		const lightPhysicalFragmentChunk = [
 			"PhysicalMaterial material;",
-			"material.diffuseColor = diffuseColor.rgb * ( 1.0 - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );",
-			"material.diffuseContribution = material.diffuseColor;",
-			"material.metalness = 0.0;",
-			"vec3 dxy = max( abs( dFdx( nonPerturbedNormal ) ), abs( dFdy( nonPerturbedNormal ) ) );",
+			"material.diffuseColor = diffuseColor.rgb * ( 1. - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );",
+			"vec3 dxy = max( abs( dFdx( nonPerturbedNormal  ) ), abs( dFdy( nonPerturbedNormal ) ) );",
 			"float geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );",
 			"material.roughness = max( 1.0 - glossinessFactor, 0.0525 ); // 0.0525 corresponds to the base mip of a 256 cubemap.",
 			"material.roughness += geometryRoughness;",
 			"material.roughness = min( material.roughness, 1.0 );",
 			"material.specularColor = specularFactor;",
-			"material.specularColorBlended = specularFactor;",
-			"material.specularF90 = 1.0;",
-			"#ifdef USE_DISPERSION",
-			"\tmaterial.dispersion = dispersion;",
-			"#endif",
 		].join("\n");
 
 		const uniforms: {[key: string]: {value: any}} = {
@@ -136,11 +129,9 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
 					uniforms.specularMap2.value = v;
 
 					if (v) {
-						this.defines.USE_SPECULARMAP2 = "";
-						this.defines.USE_UV = "";
+						this.defines.USE_SPECULARMAP2 = ""; // USE_UV is set by the renderer for specular maps
 					} else {
 						delete this.defines.USE_SPECULARMAP2;
-						delete this.defines.USE_UV;
 					}
 				},
 			},

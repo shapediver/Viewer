@@ -11,18 +11,18 @@ import {
 	ShapeDiverViewerSessionError,
 	StateEngine,
 	StatePromise,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type ISettingsSections,
 	type ITaskEvent,
 	type SessionCreationDefinition,
-	TASK_TYPE} from "@shapediver/viewer.shared.types";
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 import {type ICreationControlCenterSession} from "../interfaces/ICreationControlCenterSession";
 import {SessionGlobalAccessObject} from "./SessionGlobalAccessObject";
 
-export class CreationControlCenterSession
-	implements ICreationControlCenterSession
-{
+export class CreationControlCenterSession implements ICreationControlCenterSession {
 	// #region Properties (8)
 
 	readonly #eventEngine: EventEngine = EventEngine.instance;
@@ -253,7 +253,7 @@ export class CreationControlCenterSession
 				ticket: properties.ticket,
 				modelViewUrl: properties.modelViewUrl,
 				excludeViewports: properties.excludeViewports,
-				buildVersion: build_data.build_version,
+				buildVersion: "3." + build_data.build_version,
 				buildDate: build_data.build_date,
 				jwtToken: properties.jwtToken,
 				allowOutputLoading:
@@ -570,7 +570,7 @@ export class CreationControlCenterSession
 		const session = this.sessionEngines[sessionId];
 
 		session.settingsEngine.settings.build_version =
-			build_data.build_version;
+			"3." + build_data.build_version;
 		session.settingsEngine.settings.build_date = build_data.build_date;
 		session.settingsEngine.settings.settings_version = latestVersion;
 

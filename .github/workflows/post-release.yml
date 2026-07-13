@@ -1,0 +1,260 @@
+name: Post-release automation
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Released Viewer version, e.g. 3.19.0"
+                required: true
+                type: string
+            release_type:
+                description: "Release type; patch skips Newsfeed entry"
+                required: true
+                type: choice
+                default: minor
+                options:
+                    - patch
+                    - minor
+                    - major
+            codename:
+                description: "Optional release codename, e.g. Strawberry"
+                required: false
+                type: string
+
+permissions:
+    contents: read
+
+jobs:
+    post-release:
+        name: Post-release automation
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Validate inputs
+              shell: bash
+              env:
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "::error::version must be a stable semver version like 3.19.0"
+                    exit 1
+                  fi
+
+            - name: Create cross-repo contents GitHub App token
+              id: cross-repo-contents-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
+                      Newsfeed
+                      ViewerExamples
+                  permission-contents: write
+
+            - name: Create downstream pull-request GitHub App token
+              id: downstream-pr-token
+              continue-on-error: true
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+              with:
+                  client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+                  owner: shapediver
+                  repositories: |
+                      AppBuilderSdk
+                      ShapeDiverPlatformFrontend
+                  permission-contents: write
+                  permission-pull-requests: write
+
+            - name: Create newsfeed entry
+              if: inputs.release_type != 'patch'
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
+                  VERSION: ${{ inputs.version }}
+                  CODENAME: ${{ inputs.codename }}
+              run: |
+                  MINOR="$(echo "${VERSION}" | cut -d. -f1,2)"
+                  DATE="$(date -u +%Y-%m-%d)"
+                  GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
+                  FILENAME="viewer-release-${VERSION}.md"
+                  TARGET_PATH="src/content/news/${FILENAME}"
+
+                  if [[ -n "${CODENAME}" ]]; then
+                    DESC="ShapeDiver Viewer version ${MINOR} (${CODENAME}) has been released."
+                  else
+                    DESC="ShapeDiver Viewer version ${MINOR} has been released."
+                  fi
+
+                  cat > "/tmp/${FILENAME}" << EOF
+                  ---
+                  title: "Viewer Release ${MINOR}"
+                  description: "${DESC}"
+                  pubDate: ${DATE}
+                  category: release-notes
+                  tags:
+                    - Viewer
+                  author: "Michael Oppitz"
+                  externalUrl: "${GITHUB_URL}"
+                  ---
+
+                  The ShapeDiver Viewer version ${MINOR} has been released and is available via npm and CDN. Read the full [Viewer ${MINOR} release notes](${GITHUB_URL}).
+                  EOF
+
+                  CONTENT="$(base64 -w0 "/tmp/${FILENAME}")"
+                  EXISTING_SHA="$(gh api "repos/shapediver/Newsfeed/contents/${TARGET_PATH}?ref=development" --jq '.sha' 2>/dev/null || true)"
+
+                  if [[ -n "${EXISTING_SHA}" ]]; then
+                    gh api "repos/shapediver/Newsfeed/contents/${TARGET_PATH}" \
+                      --method PUT \
+                      -f message="Update viewer release ${MINOR} newsfeed entry" \
+                      -f content="${CONTENT}" \
+                      -f branch="development" \
+                      -f sha="${EXISTING_SHA}"
+                    echo "Updated newsfeed entry: ${FILENAME}"
+                  else
+                    gh api "repos/shapediver/Newsfeed/contents/${TARGET_PATH}" \
+                      --method PUT \
+                      -f message="Add viewer release ${MINOR} newsfeed entry" \
+                      -f content="${CONTENT}" \
+                      -f branch="development"
+                    echo "Created newsfeed entry: ${FILENAME}"
+                  fi
+
+            - name: Trigger ViewerExamples deployment
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.cross-repo-contents-token.outputs.token }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  gh api "repos/shapediver/ViewerExamples/dispatches" \
+                    --method POST \
+                    -f event_type="viewer-release" \
+                    -f client_payload[version]="${VERSION}"
+                  echo "Dispatched viewer-release event (${VERSION}) to ViewerExamples."
+
+            - name: Create pull requests for downstream repos
+              if: steps.downstream-pr-token.outcome == 'success'
+              continue-on-error: true
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.downstream-pr-token.outputs.token }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  GITHUB_URL="https://github.com/shapediver/Viewer/releases/tag/viewer@${VERSION}"
+                  BRANCH_NAME="chore/viewer-release-${VERSION}"
+                  PR_TITLE="chore: update Viewer dependency to ${VERSION}"
+
+                  PR_BODY=""
+                  PR_BODY+="A new Viewer version **${VERSION}** has been released."
+                  PR_BODY+=$'\n\n'
+                  PR_BODY+="[Viewer ${VERSION} release notes](${GITHUB_URL})"
+                  PR_BODY+=$'\n\n'
+                  PR_BODY+="Update the @shapediver/viewer dependency version to **${VERSION}** and test compatibility."
+
+                  for REPO in AppBuilderSdk ShapeDiverPlatformFrontend; do
+                    FULL_REPO="shapediver/${REPO}"
+                    echo "--- Processing ${FULL_REPO} ---"
+
+                    DEFAULT_BRANCH=$(gh api "repos/${FULL_REPO}" --jq '.default_branch' 2>/dev/null) || {
+                      echo "Could not fetch ${FULL_REPO}; skipping."
+                      continue
+                    }
+                    echo "Default branch: ${DEFAULT_BRANCH}"
+
+                    PR_EXISTS=$(gh api "repos/${FULL_REPO}/pulls?head=shapediver:${BRANCH_NAME}&state=open" --jq '.[0].html_url' 2>/dev/null || echo "")
+                    if [[ -n "${PR_EXISTS}" ]]; then
+                      echo "PR already exists: ${PR_EXISTS}"
+                      continue
+                    fi
+
+                    BRANCH_EXISTS=$(gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --jq '.ref' 2>/dev/null || echo "")
+                    if [[ -n "${BRANCH_EXISTS}" ]]; then
+                      echo "Branch ${BRANCH_NAME} already exists without an open PR; deleting it."
+                      gh api "repos/${FULL_REPO}/git/refs/heads/${BRANCH_NAME}" --method DELETE || echo "Failed to delete old branch."
+                    fi
+
+                    BASE_SHA=$(gh api "repos/${FULL_REPO}/git/refs/heads/${DEFAULT_BRANCH}" --jq '.object.sha' 2>/dev/null) || {
+                      echo "Could not get base SHA; skipping."
+                      continue
+                    }
+                    gh api "repos/${FULL_REPO}/git/refs" --method POST \
+                      -f ref="refs/heads/${BRANCH_NAME}" \
+                      -f sha="${BASE_SHA}" || {
+                      echo "Failed to create branch; skipping."
+                      continue
+                    }
+                    echo "Created branch ${BRANCH_NAME}"
+
+                    MARKER_CONTENT=$(printf '# Viewer %s release\n\n%s\n\nUpdate @shapediver/viewer dependencies to %s and test compatibility.\n' "${VERSION}" "${GITHUB_URL}" "${VERSION}" | base64 -w0)
+                    gh api "repos/${FULL_REPO}/contents/.github/viewer-release-${VERSION}.md" \
+                      --method PUT \
+                      -f message="chore: add Viewer ${VERSION} release marker" \
+                      -f content="${MARKER_CONTENT}" \
+                      -f branch="${BRANCH_NAME}" || {
+                      echo "Failed to create marker file; skipping PR creation."
+                      continue
+                    }
+                    echo "Created marker file for ${VERSION}"
+
+                    PR_URL=$(gh api "repos/${FULL_REPO}/pulls" --method POST \
+                      -f title="${PR_TITLE}" \
+                      -f body="${PR_BODY}" \
+                      -f head="${BRANCH_NAME}" \
+                      -f base="${DEFAULT_BRANCH}" \
+                      --jq '.html_url' 2>/dev/null) || {
+                      echo "Failed to create PR for ${FULL_REPO}."
+                      continue
+                    }
+                    echo "Created PR: ${PR_URL}"
+                  done
+
+                  echo "All downstream PRs processed."
+
+            - name: Notify Slack
+              if: always()
+              continue-on-error: true
+              shell: bash
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  STATUS: ${{ job.status }}
+                  VERSION: ${{ inputs.version }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+                    echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
+                    exit 0
+                  fi
+
+                  if [[ "${STATUS}" == "success" ]]; then
+                    COLOR="#36a64f"
+                    EMOJI=":white_check_mark:"
+                    STATUS_LABEL="Succeeded"
+                  else
+                    COLOR="#cc0000"
+                    EMOJI=":x:"
+                    STATUS_LABEL="Failed"
+                  fi
+
+                  payload=$(jq -n \
+                    --arg text "${EMOJI} Viewer post-release automation ${STATUS_LABEL}" \
+                    --arg color "${COLOR}" \
+                    --arg version "${VERSION}" \
+                    --arg status "${STATUS_LABEL}" \
+                    --arg run_url "${RUN_URL}" \
+                    '{
+                      text: $text,
+                      attachments: [{
+                        color: $color,
+                        fields: [
+                          {title: "Version", value: $version, short: true},
+                          {title: "Status", value: $status, short: true}
+                        ],
+                        actions: [{type: "button", text: "Open run", url: $run_url}]
+                      }]
+                    }')
+
+                  curl --fail --silent --show-error --max-time 15 \
+                    -H "Content-Type: application/json" \
+                    -d "${payload}" \
+                    "${SLACK_WEBHOOK_URL}"

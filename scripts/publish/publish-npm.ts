@@ -2,7 +2,7 @@
  * publish-npm.ts
  *
  * Publishes packages to the npm registry with the latest dist-tag.
- * Restores the GitHub Packages registry after publishing.
+ * Registry selection is owned by the workflow npm config and explicit CLI flags.
  *
  * Usage:
  *   npx ts-node -T scripts/publish/publish-npm.ts
@@ -16,10 +16,11 @@
  * Auth:
  *   Intended to run under npm Trusted Publishing in GitHub Actions (OIDC).
  *   Local manual publish can still use your existing npm auth setup.
- *   Registry is switched in user config during publish, then restored to GitHub Packages.
  */
 
 import {execSync} from "child_process";
+
+const NPM_REGISTRY = "https://registry.npmjs.org/";
 
 interface PublishArgs {
 	silent: boolean;
@@ -40,7 +41,17 @@ function parseArgs(): PublishArgs {
 
 function run(cmd: string): string {
 	try {
-		return execSync(cmd, {encoding: "utf8", stdio: "pipe"}).trim();
+		return execSync(cmd, {
+			encoding: "utf8",
+			stdio: "pipe",
+			env: {
+				...process.env,
+				npm_config_registry: NPM_REGISTRY,
+				npm_config_webpack_registry: NPM_REGISTRY,
+				"npm_config_@shapediver:registry": NPM_REGISTRY,
+			},
+			maxBuffer: 100 * 1024 * 1024,
+		}).trim();
 	} catch (e: any) {
 		throw new Error(`Command failed: ${cmd}\n${e.stderr || e.message}`);
 	}
@@ -56,14 +67,12 @@ function main() {
 	}
 
 	if (dryRun) {
-		const raw = run("npx lerna list --all --json --loglevel=error 2>&1");
+		const raw = run("npx lerna list --all --json --loglevel=error");
 		const packages = JSON.parse(raw);
 		const publishable = packages.filter((p: any) => !p.private);
 
 		if (!silent) {
-			console.log(
-				`Would publish ${publishable.length} packages to npm with tag "latest":`,
-			);
+			console.log(`Would publish ${publishable.length} packages to npm with tag \"latest\":`);
 			for (const p of publishable) {
 				console.log(`  ${p.name}@${p.version}`);
 			}
@@ -82,19 +91,11 @@ function main() {
 		}
 	}
 
-	// Switch to npm registry without mutating tracked project files
-	run("pnpm config set @shapediver:registry https://registry.npmjs.org/ --location=user");
-
-	// Publish with provenance for npm Trusted Publishing (OIDC)
 	const output = run(
-		"npx lerna publish from-package --yes --no-private --dist-tag latest --provenance",
+		"npx lerna publish from-package --yes --no-private --dist-tag latest --registry https://registry.npmjs.org/ --concurrency 1",
 	);
 
 	if (!silent) console.log(output);
-
-	// Restore GitHub Packages registry in user config
-	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
-
 	console.log(JSON.stringify({published: true}));
 }
 
