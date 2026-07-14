@@ -1496,6 +1496,7 @@ export class ViewportApi implements IViewportApi {
 		quality?: number,
 		resolution?: {width: number; height: number},
 		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+		includeHtml?: boolean,
 	): Promise<string> {
 		const scope = "getScreenshotAdvanced";
 		this.#inputValidator.validateAndError(
@@ -1534,12 +1535,19 @@ export class ViewportApi implements IViewportApi {
 			"object",
 			false,
 		);
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			includeHtml,
+			"boolean",
+			false,
+		);
 		this.update("getScreenshotAdvanced");
-		return this.#renderingEngine.getScreenshotAdvanced(
+		return (this.#renderingEngine.getScreenshotAdvanced as any)(
 			type,
 			quality,
 			resolution,
 			camera,
+			includeHtml,
 		);
 	}
 

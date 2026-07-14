@@ -1111,6 +1111,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		encoderOptions?: number,
 		resolution?: {width: number; height: number},
 		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+		includeHtml: boolean = true,
 	): Promise<string> {
 		const busyModeFlag = this.addFlag(FLAG_TYPE.BUSY_MODE);
 		// if a resolution is provided, we temporarily disable the rendering of the viewer
@@ -1128,6 +1129,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		const current = this._renderingManager.getScreenshot();
 		const img = new Image();
 		img.src = current;
+		img.dataset.sdvScreenshotOverlay = "true";
 		img.style.position = "absolute";
 		img.style.top = "0%";
 		img.style.left = "0%";
@@ -1219,10 +1221,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				},
 			);
 		});
-		const screenshot = this._renderingManager.getScreenshot(
-			type,
-			encoderOptions,
-		);
+		const screenshot = includeHtml
+			? await this._renderingManager.getScreenshotWithHtml(
+					type,
+					encoderOptions,
+					this._renderingManager.getScreenshot("image/png", 1),
+				)
+			: this._renderingManager.getScreenshot(type, encoderOptions);
 		// sometimes the screenshot is not ready immediately (even though it should be)
 		await new Promise((resolve) => setTimeout(resolve, 0));
 

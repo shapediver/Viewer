@@ -540,12 +540,14 @@ export interface IViewportApi {
 	 * @param quality The quality of the screenshot, default is 1.
 	 * @param resolution The resolution of the screenshot, default is the current canvas size.
 	 * @param camera The camera that should be used for the screenshot, default is the current camera.
+	 * @param includeHtml Include HTML elements rendered inside the viewport, such as HTML anchors and text tags. Default is true. Pass false to disable.
 	 */
 	getScreenshotAdvanced(
 		type?: string,
 		quality?: number,
 		resolution?: {width: number; height: number},
 		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+		includeHtml?: boolean,
 	): Promise<string>;
 	/**
 	 * Get the current settings object of this viewport.

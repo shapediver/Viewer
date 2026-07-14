@@ -254,6 +254,28 @@ export class RenderingManager implements IManager {
 		);
 	}
 
+	public async getScreenshotWithHtml(
+		type: string = "image/png",
+		encoderOptions: number = 1,
+		canvasDataUrl?: string,
+	): Promise<string> {
+		const canvasScreenshot =
+			canvasDataUrl || this.getScreenshot("image/png", 1);
+
+		try {
+			return await this.rasterizeCanvasParent(
+				canvasScreenshot,
+				type,
+				encoderOptions,
+			);
+		} catch (e) {
+			this._logger.warn(
+				`RenderingManager.getScreenshotWithHtml: Could not include HTML elements in the screenshot. Returning the canvas screenshot instead. ${e instanceof Error ? e.message : String(e)}`,
+			);
+			return this.getScreenshot(type, encoderOptions);
+		}
+	}
+
 	public init(): void {
 		try {
 			this._renderingEngine.materialLoader.updateSoftShadow(
@@ -668,6 +690,132 @@ export class RenderingManager implements IManager {
 			);
 
 		this._stats.end();
+	}
+
+	private async rasterizeCanvasParent(
+		canvasDataUrl: string,
+		type: string,
+		encoderOptions: number,
+	): Promise<string> {
+		const canvas = this._renderingEngine.renderer.domElement;
+		const anchorContainer =
+			this._renderingEngine.htmlElementAnchorLoader.parentDiv;
+
+		await new Promise<void>((resolve) =>
+			requestAnimationFrame(() => resolve()),
+		);
+
+		const canvasRect = canvas.getBoundingClientRect();
+		const width = Math.max(1, Math.ceil(canvasRect.width));
+		const height = Math.max(1, Math.ceil(canvasRect.height));
+		const pixelRatio = window.devicePixelRatio || 1;
+		const outputCanvas = document.createElement("canvas");
+		outputCanvas.width = Math.max(1, Math.round(width * pixelRatio));
+		outputCanvas.height = Math.max(1, Math.round(height * pixelRatio));
+
+		const context = outputCanvas.getContext("2d");
+		if (!context) return this.getScreenshot(type, encoderOptions);
+
+		const image = await this.loadImage(canvasDataUrl);
+		context.scale(pixelRatio, pixelRatio);
+		context.drawImage(image, 0, 0, width, height);
+		this.drawTextAnchorsToCanvas(context, canvasRect, anchorContainer);
+
+		return outputCanvas.toDataURL(type, encoderOptions);
+	}
+
+	private drawTextAnchorsToCanvas(
+		context: CanvasRenderingContext2D,
+		canvasRect: DOMRect,
+		anchorContainer: HTMLDivElement,
+	): void {
+		const textAnchors = Array.from(
+			anchorContainer.querySelectorAll(".sdv-anchor-text"),
+		) as HTMLElement[];
+
+		for (const textAnchor of textAnchors) {
+			const computedStyle = window.getComputedStyle(textAnchor);
+			if (
+				computedStyle.display === "none" ||
+				computedStyle.visibility === "hidden" ||
+				computedStyle.opacity === "0"
+			)
+				continue;
+
+			const text = textAnchor.innerText || textAnchor.textContent || "";
+			if (!text.trim()) continue;
+
+			const textRect = textAnchor.getBoundingClientRect();
+			let x = textRect.left - canvasRect.left;
+			const y = textRect.top - canvasRect.top;
+			let textAlign: CanvasTextAlign = "left";
+
+			switch (computedStyle.textAlign) {
+				case "center":
+					x += textRect.width / 2;
+					textAlign = "center";
+					break;
+				case "right":
+				case "end":
+					x += textRect.width;
+					textAlign = "right";
+					break;
+				case "left":
+				case "start":
+				default:
+					textAlign = "left";
+			}
+
+			const lineHeight = this.getCanvasLineHeight(
+				computedStyle,
+				textRect,
+			);
+			const font =
+				computedStyle.font && computedStyle.font !== ""
+					? computedStyle.font
+					: `${computedStyle.fontStyle} ${computedStyle.fontVariant} ${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+			context.save();
+			context.font = font;
+			context.fillStyle = computedStyle.color || "#000000";
+			context.textAlign = textAlign;
+			context.textBaseline = "top";
+			context.globalAlpha = parseFloat(computedStyle.opacity || "1");
+
+			const lines = text.split(/\r?\n/);
+			for (let i = 0; i < lines.length; i++) {
+				context.fillText(lines[i], x, y + i * lineHeight);
+			}
+
+			context.restore();
+		}
+	}
+
+	private getCanvasLineHeight(
+		computedStyle: CSSStyleDeclaration,
+		textRect: DOMRect,
+	): number {
+		const parsedLineHeight = parseFloat(computedStyle.lineHeight);
+		if (Number.isFinite(parsedLineHeight)) return parsedLineHeight;
+
+		const parsedFontSize = parseFloat(computedStyle.fontSize);
+		if (Number.isFinite(parsedFontSize)) return parsedFontSize * 1.2;
+
+		return Math.max(textRect.height, 1);
+	}
+
+	private loadImage(src: string): Promise<HTMLImageElement> {
+		return new Promise((resolve, reject) => {
+			const image = new Image();
+			image.onload = () => resolve(image);
+			image.onerror = () =>
+				reject(
+					new Error(
+						"RenderingManager.loadImage: Failed to load image.",
+					),
+				);
+			image.src = src;
+		});
 	}
 
 	private calculateSize(): {
