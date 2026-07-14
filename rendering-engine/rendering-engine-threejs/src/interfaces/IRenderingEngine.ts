@@ -2,11 +2,13 @@ import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.renderi
 import {SDTFItemData} from "@shapediver/viewer.shared.node-tree";
 import {
 	type Color,
+	ENVIRONMENT_MAP_PBR_MODE,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFOverview,
 	MATERIAL_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 import {quat} from "gl-matrix";
 import * as THREE from "three";
 
@@ -24,6 +26,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	environmentMapBlurriness: number;
 	environmentMapForUnlitMaterials: boolean;
 	environmentMapIntensity: number;
+	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
 	environmentMapResolution: string;
 	environmentMapRotation: quat;
 	gridColor: Color;

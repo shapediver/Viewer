@@ -11,9 +11,11 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
+	ENVIRONMENT_MAP_PBR_MODE,
 	type IMapData,
 	type IMaterialAbstractData,
 	MATERIAL_ALPHA,
@@ -21,18 +23,24 @@ import {
 	MATERIAL_TYPE,
 	PRIMITIVE_MODE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat} from "gl-matrix";
 import * as THREE from "three";
 import {type ILoader} from "../interfaces/ILoader";
-import {GemMaterial, type GemMaterialParameters} from "../materials/GemMaterial";
+import {
+	GemMaterial,
+	type GemMaterialParameters,
+} from "../materials/GemMaterial";
 import {type MeshUnlitMaterialParameters} from "../materials/MeshUnlitMaterialParameters";
 import {
 	MultiPointsMaterial,
-	type MultiPointsMaterialParameters} from "../materials/MultiPointsMaterial";
+	type MultiPointsMaterialParameters,
+} from "../materials/MultiPointsMaterial";
 import {
 	SpecularGlossinessMaterial,
-	type SpecularGlossinessMaterialParameters} from "../materials/SpecularGlossinessMaterial";
+	type SpecularGlossinessMaterialParameters,
+} from "../materials/SpecularGlossinessMaterial";
 import {SDColor} from "../objects/SDColor";
 import {RenderingEngine} from "../RenderingEngine";
 import {entry, main} from "../shaders/PCSS";
@@ -115,6 +123,8 @@ export class MaterialLoader implements ILoader {
 	private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
 	private _envMapIntensity: number = 1;
 	private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
+	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
+		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
 	private _lightSizeUV: number = 0.025;
@@ -317,6 +327,26 @@ export class MaterialLoader implements ILoader {
 		}
 	}
 
+	private assignEnvironmentMapPbrModeToMaterial = (
+		material: THREE.Material,
+		mode: ENVIRONMENT_MAP_PBR_MODE,
+	): void => {
+		if (!(material instanceof THREE.MeshStandardMaterial)) return;
+
+		const materialWithDefines = material as THREE.MeshStandardMaterial & {
+			defines: {[key: string]: string};
+		};
+		materialWithDefines.defines = materialWithDefines.defines || {};
+
+		if (mode === ENVIRONMENT_MAP_PBR_MODE.LEGACY) {
+			materialWithDefines.defines[ENVIRONMENT_MAP_PBR_MODE.LEGACY] = "";
+		} else {
+			delete materialWithDefines.defines[ENVIRONMENT_MAP_PBR_MODE.LEGACY];
+		}
+
+		material.needsUpdate = true;
+	};
+
 	public assignDefaultMaterial() {
 		for (const cacheKey in this._materialCache) {
 			if (this._materialCache[cacheKey].materialData === null) {
@@ -342,6 +372,10 @@ export class MaterialLoader implements ILoader {
 				} else {
 					material.copy(new THREE.MeshPhysicalMaterial(properties));
 				}
+				this.assignEnvironmentMapPbrModeToMaterial(
+					material,
+					this._environmentMapPbrMode,
+				);
 				material.needsUpdate = true;
 			}
 		}
@@ -492,6 +526,16 @@ export class MaterialLoader implements ILoader {
 					material.needsUpdate = true;
 				}
 			}
+		}
+	}
+
+	public assignEnvironmentMapPbrMode(value: ENVIRONMENT_MAP_PBR_MODE) {
+		this._environmentMapPbrMode = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				value,
+			);
 		}
 	}
 
@@ -883,6 +927,11 @@ export class MaterialLoader implements ILoader {
 
 		if (materialSettings && materialSettings.useVertexColors)
 			material.vertexColors = true;
+
+		this.assignEnvironmentMapPbrModeToMaterial(
+			material,
+			this._environmentMapPbrMode,
+		);
 
 		if (
 			materialData instanceof MaterialStandardData ||
@@ -2241,6 +2290,31 @@ export const adaptShaders = () => {
 		);
 	}
 	THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+
+	if (
+		!THREE.ShaderChunk.envmap_physical_pars_fragment.includes(
+			ENVIRONMENT_MAP_PBR_MODE.LEGACY,
+		)
+	) {
+		const legacyEnvironmentMapPbrMix = `
+			#ifdef ${ENVIRONMENT_MAP_PBR_MODE.LEGACY}
+				float sdvEnvironmentMapPbrMix = roughness * roughness;
+			#else
+				float sdvEnvironmentMapPbrMix = roughness * roughness * roughness * roughness;
+			#endif
+			reflectVec = normalize( mix( reflectVec, normal, sdvEnvironmentMapPbrMix ) );`;
+
+		THREE.ShaderChunk.envmap_physical_pars_fragment =
+			THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+				"reflectVec = normalize( mix( reflectVec, normal, pow4( roughness ) ) );",
+				legacyEnvironmentMapPbrMix,
+			);
+		THREE.ShaderChunk.envmap_physical_pars_fragment =
+			THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+				"reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );",
+				legacyEnvironmentMapPbrMix,
+			);
+	}
 
 	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component and inverse the rotation in the case of a LDR environment map
 	// console.log(THREE.ShaderChunk.backgroundCube_frag.includes('vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );'))

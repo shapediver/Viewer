@@ -8,7 +8,8 @@ import {
 	ShapeDiverViewerEnvironmentMapError,
 	StateEngine,
 	StatePromise,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import * as THREE from "three";
 
 import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";

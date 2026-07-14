@@ -3,7 +3,8 @@ import {TextureUnifierInjector} from "./injectors/TextureUnifierInjector";
 import {
 	ENVIRONMENT_MAP,
 	ENVIRONMENT_MAP_CUBE,
-	ENVIRONMENT_MAP_EMPTY} from "./loaders/EnvironmentMapLoader";
+	ENVIRONMENT_MAP_EMPTY,
+} from "./loaders/EnvironmentMapLoader";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {MultiPointsMaterial} from "./materials/MultiPointsMaterial";
 import {RenderingEngine} from "./RenderingEngine";
@@ -11,6 +12,7 @@ import {CSS2DObject, CSS2DRenderer} from "./three/CSS2DRenderer";
 import {type IThreejsData} from "./types/IThreejsData";
 import {ThreejsData} from "./types/ThreejsData";
 
+import {ENVIRONMENT_MAP_PBR_MODE} from "@shapediver/viewer.shared.types";
 import {
 	BlendFunction,
 	BloomEffect,
@@ -44,7 +46,8 @@ import {GodRaysManager} from "./managers/postprocessing/GodRaysManager";
 import {OutlineManager} from "./managers/postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./managers/postprocessing/SelectiveBloomManager";
 
-export {BlendFunction,
+export {
+	BlendFunction,
 	BloomEffect,
 	ChromaticAberrationEffect,
 	CSS2DObject,
@@ -57,6 +60,7 @@ export {BlendFunction,
 	ENVIRONMENT_MAP,
 	ENVIRONMENT_MAP_CUBE,
 	ENVIRONMENT_MAP_EMPTY,
+	ENVIRONMENT_MAP_PBR_MODE,
 	FXAAEffect,
 	GodRaysEffect,
 	GodRaysManager,
@@ -82,7 +86,8 @@ export {BlendFunction,
 	ThreejsData,
 	TiltShiftEffect,
 	VignetteEffect,
-	VignetteTechnique};
+	VignetteTechnique,
+};
 export type {IThreejsData};
 
 const textureUnifierInjector = new TextureUnifierInjector();

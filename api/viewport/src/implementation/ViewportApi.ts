@@ -37,6 +37,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IAnimationData,
 	type IGeometryData,
@@ -564,6 +565,29 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("environmentMapIntensity");
+	}
+
+	public get environmentMapPbrMode(): ENVIRONMENT_MAP_PBR_MODE {
+		return (
+			this.#renderingEngine.environmentMapPbrMode ||
+			ENVIRONMENT_MAP_PBR_MODE.LEGACY
+		);
+	}
+
+	public set environmentMapPbrMode(value: ENVIRONMENT_MAP_PBR_MODE) {
+		const scope = "environmentMapPbrMode";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			Object.values(ENVIRONMENT_MAP_PBR_MODE),
+		);
+		this.#renderingEngine.environmentMapPbrMode = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("environmentMapPbrMode");
 	}
 
 	public get environmentMapResolution(): string {

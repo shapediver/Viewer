@@ -1,4 +1,4 @@
-// #region Enums (7)
+// #region Enums (8)
 
 /**
  * Modes used to indicate that a viewport is busy.
@@ -33,6 +33,13 @@ export enum RENDERER_TYPE {
 	STANDARD = "standard",
 	/** A basic version of the rendering engine */
 	ATTRIBUTES = "attributes",
+}
+
+export enum ENVIRONMENT_MAP_PBR_MODE {
+	/** Use the legacy three.js r162 environment-map roughness mixing for PBR materials. */
+	LEGACY = "legacy",
+	/** Use the current three.js environment-map roughness mixing for PBR materials. */
+	MODERN = "modern",
 }
 
 export enum SPINNER_POSITIONING {
