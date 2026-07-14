@@ -634,6 +634,77 @@ export class GLTFConverter {
 		});
 	}
 
+	private normalizeImageMimeType(mimeType?: string): string | undefined {
+		if (!mimeType) return undefined;
+
+		const normalizedMimeType = mimeType.toLowerCase();
+		if (normalizedMimeType === "image/jpg") return "image/jpeg";
+		return normalizedMimeType;
+	}
+
+	private isARSupportedImageMimeType(mimeType?: string): boolean {
+		switch (this.normalizeImageMimeType(mimeType)) {
+		case "image/jpeg":
+		case "image/png":
+		case "image/bmp":
+		case "image/gif":
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	private pushBlobImagePromise(imageDef: IGLTF_v2_Image, blob: Blob): void {
+		this._promises.push(
+			new Promise<void>((resolve, reject) => {
+				try {
+					this.convertBufferViewImage(blob)
+						.then((bufferViewIndex) => {
+							imageDef.bufferView = bufferViewIndex;
+							resolve();
+						})
+						.catch(reject);
+				} catch (e) {
+					reject(e);
+				}
+			}),
+		);
+	}
+
+	private pushCanvasImagePromise(
+		imageDef: IGLTF_v2_Image,
+		canvas: HTMLCanvasElement,
+		mimeType: string,
+	): void {
+		imageDef.mimeType = mimeType;
+		this._promises.push(
+			new Promise<void>((resolve, reject) => {
+				try {
+					canvas.toBlob(async (blob) => {
+						try {
+							if (!blob) {
+								reject(
+									new Error(
+										"Canvas toBlob returned null.",
+									),
+								);
+								return;
+							}
+							const bufferViewIndex =
+								await this.convertBufferViewImage(blob);
+							imageDef.bufferView = bufferViewIndex;
+							resolve();
+						} catch (e) {
+							reject(e);
+						}
+					}, mimeType);
+				} catch (e) {
+					reject(e);
+				}
+			}),
+		);
+	}
+
 	private convertImage(data: IMapData): number | undefined {
 		if (!this._content.images) this._content.images = [];
 		if (data.image instanceof ArrayBuffer) return;
@@ -658,79 +729,46 @@ export class GLTFConverter {
 		}
 
 		if (data.blob) {
-			imageDef.mimeType = data.blob.type;
-			this._promises.push(
-				new Promise<void>((resolve, reject) => {
-					try {
-						this.convertBufferViewImage(data.blob!).then(
-							(bufferViewIndex) => {
-								imageDef.bufferView = bufferViewIndex;
-								resolve();
-							},
-						);
-					} catch (e) {
-						reject(e);
-					}
-				}),
-			);
+			const mimeType =
+				this.normalizeImageMimeType(data.blob.type) ?? data.blob.type;
+			if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+				imageDef.mimeType = mimeType;
+				this.pushBlobImagePromise(imageDef, data.blob);
+			} else {
+				ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+				this.pushCanvasImagePromise(imageDef, canvas, "image/png");
+			}
 		} else if (data.image instanceof HTMLImageElement) {
-			let mimeType = "image/png";
-			if (
-				data.image.src.endsWith(".jpg") ||
-				data.image.src.includes("image/jpeg")
-			)
-				mimeType = "image/jpeg";
-
-			imageDef.mimeType = mimeType;
-
 			const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
 			if (DATA_URI_REGEX.test(data.image.src)) {
 				const byteString = atobCustom(data.image.src.split(",")[1]);
-				const mimeType = data.image.src
-					.split(",")[0]
-					.split(":")[1]
-					.split(";")[0];
+				const mimeType =
+					this.normalizeImageMimeType(
+						data.image.src.split(",")[0].split(":")[1].split(";")[0],
+					) ?? "image/png";
 				const ab = new ArrayBuffer(byteString.length);
 				const ia = new Uint8Array(ab);
 				for (let i = 0; i < byteString.length; i++)
 					ia[i] = byteString.charCodeAt(i);
-				const blob = new Blob([ab], {type: mimeType});
-				this._promises.push(
-					new Promise<void>((resolve, reject) => {
-						try {
-							this.convertBufferViewImage(blob!)
-								.then((bufferViewIndex) => {
-									imageDef.bufferView = bufferViewIndex;
-									resolve();
-								})
-								.catch(reject);
-						} catch (e) {
-							reject(e);
-						}
-					}),
-				);
+				if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+					imageDef.mimeType = mimeType;
+					const blob = new Blob([ab], {type: mimeType});
+					this.pushBlobImagePromise(imageDef, blob);
+				} else {
+					ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+					this.pushCanvasImagePromise(imageDef, canvas, "image/png");
+				}
 			} else {
+				let mimeType = "image/png";
+				if (
+					data.image.src.endsWith(".jpg") ||
+					data.image.src.endsWith(".jpeg") ||
+					data.image.src.includes("image/jpeg")
+				)
+					mimeType = "image/jpeg";
+
 				ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
-				this._promises.push(
-					new Promise<void>((resolve, reject) => {
-						try {
-							canvas.toBlob(async (blob) => {
-								try {
-									const bufferViewIndex =
-										await this.convertBufferViewImage(
-											blob!,
-										);
-									imageDef.bufferView = bufferViewIndex;
-									resolve();
-								} catch (e) {
-									reject(e);
-								}
-							}, mimeType);
-						} catch (e) {
-							reject(e);
-						}
-					}),
-				);
+				this.pushCanvasImagePromise(imageDef, canvas, mimeType);
 			}
 		} else {
 			// convert to blob
@@ -739,24 +777,7 @@ export class GLTFConverter {
 			bitmapCanvas.height = data.image.height;
 			const bitmapCtx = bitmapCanvas.getContext("2d")!;
 			bitmapCtx.drawImage(data.image, 0, 0);
-			this._promises.push(
-				new Promise<void>((resolve, reject) => {
-					try {
-						bitmapCanvas.toBlob(async (blob) => {
-							try {
-								const bufferViewIndex =
-									await this.convertBufferViewImage(blob!);
-								imageDef.bufferView = bufferViewIndex;
-								resolve();
-							} catch (e) {
-								reject(e);
-							}
-						}, "image/png");
-					} catch (e) {
-						reject(e);
-					}
-				}),
-			);
+			this.pushCanvasImagePromise(imageDef, bitmapCanvas, "image/png");
 		}
 
 		this._content.images.push(imageDef);
