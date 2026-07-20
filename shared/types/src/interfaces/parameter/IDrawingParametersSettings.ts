@@ -1,4 +1,4 @@
-import {z} from "zod";
+import {z} from "../../zod";
 
 import {type IMaterialBasicLineDataPropertiesDefinition} from "../data/material/IMaterialBasicLineData";
 import {type IMaterialMultiPointDataPropertiesDefinition} from "../data/material/IMaterialMultiPointData";

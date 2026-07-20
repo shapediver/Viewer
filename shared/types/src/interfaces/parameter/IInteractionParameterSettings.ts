@@ -1,4 +1,4 @@
-﻿import {z} from "zod";
+import {z} from "../../zod";
 import {type IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
 import {type IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
 import {IDrawingParameterVisualizationSettingsJsonSchema} from "./IDrawingParametersSettings";
