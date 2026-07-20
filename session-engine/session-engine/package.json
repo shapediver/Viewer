@@ -39,7 +39,7 @@
 	"dependencies": {
 		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
 		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
-		"@shapediver/viewer.settings": "1.3.1",
+		"@shapediver/viewer.settings": "1.3.2",
 		"@shapediver/viewer.shared.build-data": "workspace:*",
 		"@shapediver/viewer.shared.global-access-objects": "workspace:*",
 		"@shapediver/viewer.shared.node-tree": "workspace:*",
