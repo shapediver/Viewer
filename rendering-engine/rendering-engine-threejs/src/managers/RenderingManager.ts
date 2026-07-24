@@ -221,7 +221,7 @@ export class RenderingManager implements IManager {
 		renderer.toneMapping = THREE.NoToneMapping;
 		renderer.shadowMap.enabled = true;
 		renderer.shadowMap.needsUpdate = true;
-		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		renderer.shadowMap.type = THREE.BasicShadowMap;
 		renderer.shadowMap.autoUpdate = false;
 		renderer.localClippingEnabled = true;
 		// Performance: Disable object sorting to save CPU cycles per frame
@@ -288,7 +288,7 @@ export class RenderingManager implements IManager {
 				1.0,
 			);
 
-			this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+			this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 			this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 			this._renderingEngine.materialLoader.updateMaterials();
 
@@ -383,7 +383,7 @@ export class RenderingManager implements IManager {
 	// #region Private Methods (14)
 
 	private activateBeautyRenderShaders() {
-		this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 		this._renderingEngine.materialLoader.updateMaterials();
 	}
@@ -883,7 +883,7 @@ export class RenderingManager implements IManager {
 		this._softShadowRenderingTimeout = null;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
-		this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 		this._renderingEngine.materialLoader.updateSoftShadow(
 			this._lightSizeUVStart,
