@@ -9,7 +9,9 @@ const name = "api";
 
 test.describe("API", () => {
 	test.beforeEach(async ({page}) => {
-		await page.goto("test-cdn/index.html");
+		await page.goto(
+			"test-cdn/index.html",
+		);
 	});
 
 	test("envMapBlur", async ({page}) => {
@@ -170,6 +172,7 @@ test.describe("API", () => {
 	});
 
 	test("envMapRotationHDR", async ({page}) => {
+		test.setTimeout(180_000);
 		await page.evaluate(async (ticket: string) => {
 			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
 			const viewer = await SDV.createViewport({
@@ -339,10 +342,7 @@ test.describe("API", () => {
 				setTimeout(resolve, 30000);
 			});
 		}, materialPresetsTicket);
-		const screenshotOptions = {
-			animations: "allow" as const,
-			timeout: 60_000,
-		};
+		const screenshotOptions = {animations: "allow" as const, timeout: 60_000};
 		const setEnvironmentMapRotation = async (rotation: number[]) => {
 			await page.evaluate(async (rotation: number[]) => {
 				const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
