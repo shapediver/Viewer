@@ -196,16 +196,21 @@ export class RenderingManager implements IManager {
 		if (renderer.extensions.has("WEBGL_debug_renderer_info")) {
 			const debugInfo = renderer.extensions.get(
 				"WEBGL_debug_renderer_info",
-			);
-			// const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-			const rendererInfo = context.getParameter(
-				debugInfo.UNMASKED_RENDERER_WEBGL,
-			);
-			if (rendererInfo === "Google SwiftShader") {
-				this._usingSwiftShader = true;
-				this._logger.warn(
-					"RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.",
+			) as {
+				UNMASKED_RENDERER_WEBGL: number;
+				UNMASKED_VENDOR_WEBGL: number;
+			} | null;
+			if (debugInfo) {
+				// const vendor = context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+				const rendererInfo = context.getParameter(
+					debugInfo.UNMASKED_RENDERER_WEBGL,
 				);
+				if (rendererInfo === "Google SwiftShader") {
+					this._usingSwiftShader = true;
+					this._logger.warn(
+						"RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.",
+					);
+				}
 			}
 		}
 
@@ -353,7 +358,7 @@ export class RenderingManager implements IManager {
 	}
 
 	public resize(width: number, height: number) {
-		(this._width = width), (this._height = height);
+		((this._width = width), (this._height = height));
 		this._renderingEngine.materialLoader.assignPointSize(
 			this._renderingEngine.pointSize,
 		);
@@ -825,7 +830,7 @@ export class RenderingManager implements IManager {
 		height: number;
 	} {
 		if (
-			this._renderingEngine.renderer.pixelRatio !==
+			this._renderingEngine.renderer.getPixelRatio() !==
 			window.devicePixelRatio
 		) {
 			this._renderingEngine.renderer.setPixelRatio(

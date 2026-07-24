@@ -907,6 +907,7 @@ export class MaterialLoader implements ILoader {
 					material instanceof SpecularGlossinessMaterial ||
 					material instanceof THREE.MeshPhysicalMaterial
 				) {
+					material.defines ??= {};
 					material.defines[
 						"ENVMAP_TYPE_" + this._envMapType.toUpperCase()
 					] = "";
