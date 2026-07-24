@@ -37,6 +37,26 @@ export default [
 			"@typescript-eslint/consistent-type-exports": ["error", {fixMixedExportsWithInlineTypeSpecifier: false}],
 		},
 	},
+	// Zod must be imported through local package wrappers so jitless is configured
+	// before schemas are created. Direct imports can trigger CSP unsafe-eval reports.
+	{
+		files: ["**/*.ts"],
+		ignores: ["shared/types/src/zod.ts", "utils/settings/src/zod.ts"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					paths: [
+						{
+							name: "zod",
+							message:
+								"Import Zod from the package-local zod wrapper so jitless is configured before schemas are created.",
+						},
+					],
+				},
+			],
+		},
+	},
 	// Ignore build outputs and dependencies
 	{
 		ignores: [

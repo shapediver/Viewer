@@ -1,18 +1,22 @@
 import {
 	type OrthographicCameraProperties,
-	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type PerspectiveCameraProperties,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {ISettings} from "@shapediver/viewer.settings";
 import {
 	type ITreeNode,
 	MaterialBasicLineData,
 	MaterialPointData,
-	MaterialStandardData} from "@shapediver/viewer.shared.node-tree";
+	MaterialStandardData,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	type IDomEventListener,
-	SESSION_SETTINGS_MODE} from "@shapediver/viewer.shared.services";
+	SESSION_SETTINGS_MODE,
+} from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IAnimationData,
 	type IGeometryData,
@@ -23,7 +27,8 @@ import {
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 import {quat, vec3} from "gl-matrix";
 import * as THREE from "three";
 import {type ICameraApi} from "./camera/ICameraApi";
@@ -224,6 +229,10 @@ export interface IViewportApi {
 	 * Scales how much the environment map effects the materials. (default: 1)
 	 */
 	environmentMapIntensity: number;
+	/**
+	 * The PBR environment-map shader mode. Defaults to the legacy three.js r162 behavior for backwards compatibility.
+	 */
+	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
 	/**
 	 * The environment map resolution that is used for preset cube maps.
 	 * @see {@link environmentMap}
@@ -540,12 +549,14 @@ export interface IViewportApi {
 	 * @param quality The quality of the screenshot, default is 1.
 	 * @param resolution The resolution of the screenshot, default is the current canvas size.
 	 * @param camera The camera that should be used for the screenshot, default is the current camera.
+	 * @param includeHtml Include HTML elements rendered inside the viewport, such as HTML anchors and text tags. Default is true. Pass false to disable.
 	 */
 	getScreenshotAdvanced(
 		type?: string,
 		quality?: number,
 		resolution?: {width: number; height: number},
 		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+		includeHtml?: boolean,
 	): Promise<string>;
 	/**
 	 * Get the current settings object of this viewport.

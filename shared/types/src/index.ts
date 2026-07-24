@@ -129,6 +129,7 @@ import {
 	type SelectionParameterValue} from "./interfaces/parameter/ISelectionParameterSettings";
 import {
 	BUSY_MODE_DISPLAY,
+	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
@@ -260,6 +261,7 @@ export {ANTI_ALIASING_TECHNIQUE,
 	POST_PROCESSING_EFFECT_TYPE,
 	PRIMITIVE_MODE,
 	RENDERER_TYPE,
+	ENVIRONMENT_MAP_PBR_MODE,
 	SdtfTypeHintName as SDTF_TYPEHINT,
 	SdtfPrimitiveTypeGuard,
 	SESSION_SETTINGS_MODE,

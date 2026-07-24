@@ -1,4 +1,4 @@
-import {z} from "zod";
+import {z} from "../../zod";
 
 import {type IMaterialBasicLineDataPropertiesDefinition} from "../data/material/IMaterialBasicLineData";
 import {type IMaterialMultiPointDataPropertiesDefinition} from "../data/material/IMaterialMultiPointData";
@@ -42,7 +42,9 @@ export interface IDrawingParameterSettings {
 			snapToFaces?: boolean;
 		};
 		/** The mode to determine when the parameter is active. (default: 'default') */
-		activeMode?: "default" | "activeOnStart";
+		activeMode?: "default" | "activeOnStart" | "alwaysActive";
+		/** The presentation of the drawing tool. (default: 'toolbar') */
+		presentation?: "widget" | "toolbar";
 	};
 	behavior?: {
 		/**
@@ -431,7 +433,10 @@ export const IDrawingParameterJsonSchema = z.object({
 				})
 				.nullable()
 				.optional(),
-			activeMode: z.enum(["default", "activeOnStart"]).optional(),
+			activeMode: z
+				.enum(["default", "activeOnStart", "alwaysActive"])
+				.optional(),
+			presentation: z.enum(["widget", "toolbar"]).optional(),
 		})
 		.nullable()
 		.optional(),

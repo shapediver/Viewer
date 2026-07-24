@@ -1,4 +1,4 @@
-﻿import {z} from "zod";
+import {z} from "../../zod";
 import {type IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
 import {type IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
 import {IDrawingParameterVisualizationSettingsJsonSchema} from "./IDrawingParametersSettings";
@@ -42,9 +42,11 @@ export interface IInteractionParameterProps {
 		activeText?: string;
 	};
 	/** The mode to determine when the parameter is active. (default: 'default') */
-	activeMode?: "default" | "activeOnStart";
+	activeMode?: "default" | "activeOnStart" | "alwaysActive";
 	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */
 	occludeBySceneGeometry?: boolean;
+	/** The presentation of the interaction parameter. (default: 'toolbar') */
+	presentation?: "widget" | "toolbar";
 	// #endregion Properties (2)
 }
 
@@ -90,8 +92,9 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		})
 		.nullable()
 		.optional(),
-	activeMode: z.enum(["default", "activeOnStart"]).optional(),
+	activeMode: z.enum(["default", "activeOnStart", "alwaysActive"]).optional(),
 	occludeBySceneGeometry: optionalBoolean,
+	presentation: z.enum(["widget", "toolbar"]).optional(),
 });
 
 export const ISelectionParameterPropsJsonSchema = z

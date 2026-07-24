@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.rendering-engine.camera-engine",
-	"version": "3.20.0-next.8",
+	"version": "3.20.0-dev.36",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -38,7 +38,7 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer.rendering-engine.rendering-engine": "workspace:*",
-		"@shapediver/viewer.settings": "1.3.1",
+		"@shapediver/viewer.settings": "1.3.2",
 		"@shapediver/viewer.shared.math": "workspace:*",
 		"@shapediver/viewer.shared.node-tree": "workspace:*",
 		"@shapediver/viewer.shared.services": "workspace:*",

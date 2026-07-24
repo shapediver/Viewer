@@ -5,10 +5,12 @@ import {
 	CameraEngine,
 	type ICamera,
 	type OrthographicCameraProperties,
-	type PerspectiveCameraProperties} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type PerspectiveCameraProperties,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	CanvasEngine,
-	type ICanvas} from "@shapediver/viewer.rendering-engine.canvas-engine";
+	type ICanvas,
+} from "@shapediver/viewer.rendering-engine.canvas-engine";
 import {LightEngine} from "@shapediver/viewer.rendering-engine.light-engine";
 import {type IConvert3Dto2DResult} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {
@@ -17,7 +19,8 @@ import {
 	MaterialBasicLineData,
 	MaterialPointData,
 	MaterialStandardData,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	DomEventEngine,
@@ -30,10 +33,12 @@ import {
 	ShapeDiverViewerEnvironmentMapError,
 	StateEngine,
 	SystemInfo,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
 	type Color,
+	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IGeometryData,
 	type IIntersectionFilter,
@@ -48,7 +53,8 @@ import {
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
 	type ViewportCreationDefinition,
-	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
+	VISIBILITY_MODE,
+} from "@shapediver/viewer.shared.types";
 import {quat, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
@@ -145,6 +151,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _environmentMapBlurriness: number = 0;
 	private _environmentMapForUnlitMaterials: boolean = false;
 	private _environmentMapIntensity: number = 1;
+	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
+		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapResolution: string = "1024";
 	private _environmentMapRotation: quat = quat.create();
 	private _gridVisibility: boolean = true;
@@ -580,6 +588,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.environmentMapIntensity,
 			this.environmentMapRotation,
 		);
+	}
+
+	public get environmentMapPbrMode(): ENVIRONMENT_MAP_PBR_MODE {
+		return this._environmentMapPbrMode;
+	}
+
+	public set environmentMapPbrMode(value: ENVIRONMENT_MAP_PBR_MODE) {
+		this._environmentMapPbrMode = value;
+		this._materialLoader.assignEnvironmentMapPbrMode(value);
 	}
 
 	public get environmentMapLoader(): EnvironmentMapLoader {
@@ -1111,6 +1128,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		encoderOptions?: number,
 		resolution?: {width: number; height: number},
 		camera?: OrthographicCameraProperties | PerspectiveCameraProperties,
+		includeHtml: boolean = true,
 	): Promise<string> {
 		const busyModeFlag = this.addFlag(FLAG_TYPE.BUSY_MODE);
 		// if a resolution is provided, we temporarily disable the rendering of the viewer
@@ -1128,6 +1146,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		const current = this._renderingManager.getScreenshot();
 		const img = new Image();
 		img.src = current;
+		img.dataset.sdvScreenshotOverlay = "true";
 		img.style.position = "absolute";
 		img.style.top = "0%";
 		img.style.left = "0%";
@@ -1219,10 +1238,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				},
 			);
 		});
-		const screenshot = this._renderingManager.getScreenshot(
-			type,
-			encoderOptions,
-		);
+		const screenshot = includeHtml
+			? await this._renderingManager.getScreenshotWithHtml(
+					type,
+					encoderOptions,
+					this._renderingManager.getScreenshot("image/png", 1),
+				)
+			: this._renderingManager.getScreenshot(type, encoderOptions);
 		// sometimes the screenshot is not ready immediately (even though it should be)
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
