@@ -1,5 +1,9 @@
 import {type IViewportApi} from "@shapediver/viewer";
-import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	GeometryData,
+	type ITreeNode,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 
 import {
@@ -102,7 +106,12 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				removeEffect(node.children[i]);
 			}
 		};
-		removeEffect(node);
+		// Material-effect tokens are generated per application. Outputs can be
+		// replaced while an interaction is active, in which case the same token may
+		// already be attached to live replacement geometry outside `node`'s old
+		// subtree. Remove that unique token from the complete live tree so a late
+		// computation cannot leave a stale interaction material behind.
+		Tree.instance.root.traverse(removeEffect);
 
 		if (!this.#viewport) return;
 		const postProcessingEffect =

@@ -5,6 +5,12 @@ on:
         branches:
             - development
     workflow_dispatch:
+        inputs:
+            skip_tests:
+                description: Skip Playwright and smoke tests for this deployment (or use [skip tests] in a push commit message)
+                required: false
+                default: false
+                type: boolean
 
 permissions:
     contents: read
@@ -135,6 +141,7 @@ jobs:
               run: pnpm build
 
             - name: Build test assets
+              if: inputs.skip_tests != true && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip tests]'))
               run: pnpm build-tests
 
             - name: Configure AWS credentials
@@ -144,14 +151,17 @@ jobs:
                   aws-region: us-east-1
 
             - name: Deploy test assets to development
+              if: inputs.skip_tests != true && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip tests]'))
               run: npm run deploy-tests
               env:
                   VIEWER_TEST_ENV: development
 
             - name: Install Playwright browser
+              if: inputs.skip_tests != true && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip tests]'))
               run: npm run test-install
 
             - name: Smoke test deployed development test-cdn
+              if: inputs.skip_tests != true && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip tests]'))
               run: npm run test:smoke-cdn
               env:
                   VIEWER_TEST_ENV: development
@@ -187,6 +197,7 @@ jobs:
 
     playwright:
         needs: prepare
+        if: inputs.skip_tests != true && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip tests]'))
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -268,6 +279,10 @@ jobs:
         needs:
             - prepare
             - playwright
+        if: >-
+            always() &&
+            needs.prepare.result == 'success' &&
+            (needs.playwright.result == 'success' || needs.playwright.result == 'skipped')
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -426,7 +441,7 @@ jobs:
                     exit 0
                   fi
 
-                  if [[ "${PREPARE_RESULT}" == "success" && "${PLAYWRIGHT_RESULT}" == "success" && "${FINALIZE_RESULT}" == "success" ]]; then
+                  if [[ "${PREPARE_RESULT}" == "success" && ( "${PLAYWRIGHT_RESULT}" == "success" || "${PLAYWRIGHT_RESULT}" == "skipped" ) && "${FINALIZE_RESULT}" == "success" ]]; then
                     STATUS="success"
                   elif [[ "${PREPARE_RESULT}" == "cancelled" || "${PLAYWRIGHT_RESULT}" == "cancelled" || "${FINALIZE_RESULT}" == "cancelled" ]]; then
                     STATUS="cancelled"
