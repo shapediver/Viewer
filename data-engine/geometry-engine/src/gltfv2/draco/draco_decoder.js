@@ -138151,3 +138151,5 @@ else if (typeof define === "function" && define["amd"])
 	});
 else if (typeof exports === "object")
 	exports["DracoDecoderModule"] = DracoDecoderModule;
+
+export default DracoDecoderModule;

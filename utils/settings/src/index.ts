@@ -150,7 +150,7 @@ import {
 	convertFromPrevious as convertFromPreviousV4_1,
 	convertToPrevious as convertToPreviousV4_1} from "./versions/v4_1/Converter";
 import {Defaults as DefaultsV4_1} from "./versions/v4_1/Defaults";
-import {ISettings as ISettingsV4_1} from "./versions/v4_1/ISettings";
+import {type ISettings as ISettingsV4_1} from "./versions/v4_1/ISettings";
 import {validate as validateV4_1} from "./versions/v4_1/Validator";
 
 import {
@@ -278,7 +278,8 @@ export {DefaultsV1,
 	DefaultsV4_0,
 	DefaultsV4_1,
 	DefaultsV5,
-	ISettingsV4_1};
+	};
+export type {ISettingsV4_1};
 export type {IAmbientLightPropertiesV3,
 	IAmbientLightPropertiesV3_1,
 	IAmbientLightPropertiesV3_2,
