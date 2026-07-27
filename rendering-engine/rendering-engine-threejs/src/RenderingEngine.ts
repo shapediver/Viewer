@@ -1179,6 +1179,25 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// new camera
 		let newCamera: ICamera | undefined;
 
+		// Camera API properties backed by controls are forwarded for temporary
+		// screenshot cameras. Position and target exist on both objects and must
+		// remain camera properties because their setters also update the controls.
+		const isControlsProperty = (target: ICamera, key: string) =>
+			key in target.controls && !(key in target);
+		const getCameraProperty = (target: ICamera, key: string) =>
+			isControlsProperty(target, key)
+				? (target.controls as any)[key]
+				: (target as any)[key];
+		const setCameraProperty = (
+			target: ICamera,
+			key: string,
+			value: any,
+		) => {
+			if (isControlsProperty(target, key))
+				(target.controls as any)[key] = value;
+			else (target as any)[key] = value;
+		};
+
 		// change the camera if requested
 		if (camera) {
 			if (camera.name) {
@@ -1196,20 +1215,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 					id: this._cameraEngine.camera!.id,
 					properties: {},
 				};
-				Object.keys(this._cameraEngine.camera!).forEach((key) => {
-					if (key !== "name") {
-						originalCameraProperties!.properties[key] = (
-							this._cameraEngine.camera as any
-						)[key];
-
-						if (
-							(camera as Record<string, any>)[key] !== undefined
-						) {
-							// @ts-ignore
-							this._cameraEngine.camera[key] = (
-								camera as Record<string, any>
-							)[key];
-						}
+				Object.keys(camera).forEach((key) => {
+					if (key !== "name" && key !== "type") {
+						originalCameraProperties!.properties[key] =
+							getCameraProperty(this._cameraEngine.camera!, key);
+						setCameraProperty(
+							this._cameraEngine.camera!,
+							key,
+							(camera as Record<string, any>)[key],
+						);
 					}
 				});
 			} else if (camera.type) {
@@ -1221,8 +1235,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				// assign the properties
 				Object.keys(camera).forEach((key) => {
 					if (key !== "type") {
-						// @ts-ignore
-						(newCamera as any)[key] = (camera as any)[key];
+						setCameraProperty(
+							newCamera!,
+							key,
+							(camera as Record<string, any>)[key],
+						);
 					}
 				});
 			}
@@ -1268,9 +1285,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				) {
 					Object.keys(originalCameraProperties.properties).forEach(
 						(key) => {
-							// @ts-ignore
-							(this._cameraEngine.camera as any)[key] =
-								originalCameraProperties!.properties[key];
+							setCameraProperty(
+								this._cameraEngine.camera!,
+								key,
+								originalCameraProperties!.properties[key],
+							);
 						},
 					);
 				}
