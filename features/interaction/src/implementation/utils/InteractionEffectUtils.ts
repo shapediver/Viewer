@@ -81,11 +81,18 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			for (let i = 0; i < node.data.length; i++) {
 				if (node.data[i] instanceof GeometryData) {
 					const geometryData = <GeometryData>node.data[i];
-					const index = geometryData.effectMaterials.findIndex(
-						(e) => e.token === token,
-					);
-					if (index !== -1) {
+					let removed = false;
+					for (
+						let index = geometryData.effectMaterials.length - 1;
+						index >= 0;
+						index--
+					) {
+						if (geometryData.effectMaterials[index].token !== token)
+							continue;
 						geometryData.effectMaterials.splice(index, 1);
+						removed = true;
+					}
+					if (removed) {
 						this.#viewport?.updateGeometryData(geometryData);
 					}
 				}
