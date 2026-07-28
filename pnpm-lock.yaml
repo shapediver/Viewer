@@ -103,8 +103,8 @@ importers:
   api/default:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -181,8 +181,8 @@ importers:
   api/session:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -214,8 +214,8 @@ importers:
   api/viewport:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -289,8 +289,8 @@ importers:
   creation-control-center/session:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.session-engine.session-engine':
         specifier: workspace:*
         version: link:../../session-engine/session-engine
@@ -334,8 +334,8 @@ importers:
   data-engine/data-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
@@ -373,8 +373,8 @@ importers:
   data-engine/geometry-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
@@ -430,8 +430,8 @@ importers:
   data-engine/html-element-anchor-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -454,8 +454,8 @@ importers:
   data-engine/material-database-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
@@ -481,8 +481,8 @@ importers:
   data-engine/material-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -502,8 +502,8 @@ importers:
   data-engine/sdtf-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -544,8 +544,8 @@ importers:
   data-engine/tag3d-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
@@ -1222,8 +1222,8 @@ importers:
   session-engine/session-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../../data-engine/shared-types
@@ -1263,8 +1263,8 @@ importers:
   shared/global-access-objects:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../../data-engine/shared-types
@@ -1287,8 +1287,8 @@ importers:
   shared/node-tree:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -1314,8 +1314,8 @@ importers:
         specifier: 4.2.0
         version: 4.2.0
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/viewer.settings':
         specifier: 1.3.2
         version: 1.3.2
@@ -1347,8 +1347,8 @@ importers:
   shared/types:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.7.0
+        version: 3.7.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -2170,8 +2170,8 @@ packages:
       proxy-agent:
         optional: true
 
-  '@shapediver/sdk.geometry-api-sdk-v2@3.4.2':
-    resolution: {integrity: sha512-BPoehzHZC4TBV3wJ0Nqok6ZrntqUbKhRJP99GNL1uqMMCJ+j9otdt8u8LcV4MuQQ4t2cSXkqzKRmpistoNoQOw==}
+  '@shapediver/sdk.geometry-api-sdk-v2@3.7.0':
+    resolution: {integrity: sha512-9jZ1Jqzvwad7ceWZkScYUvFUK64FY0jlt4jj7VRahUWf2DTtcjTP5rOoJ1dh8mRBAjN9NbrHWw4/eLutb31xYg==}
 
   '@shapediver/sdk.sdtf-core@1.7.3':
     resolution: {integrity: sha512-DhMZVbLw8ZNV5SWKofgZEENxTLnOjrr2VWlAYrqFBlfzFbkGUu/UWMoCaxmwhp2RNBLHmGFGvFr4H0ZOxAkclg==}
@@ -2379,9 +2379,6 @@ packages:
 
   '@types/stats.js@0.17.4':
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
-
-  '@types/three@0.162.0':
-    resolution: {integrity: sha512-0j5yZcVukVIhrhSIC7+LmBPkkMoMuEJ1AfYBZfgNytdYqYREMuiyXWhYOMeZLBElTEAlJIZn7r2W3vqTIgjWlg==}
 
   '@types/three@0.184.1':
     resolution: {integrity: sha512-6q4VdiqVsrTRqmk62/BnlcAvIrnDM0zf2ZDVKI5kZiniWrSaOHaQzmbp+BNzoggc/8tgW412pL//wZIxu2PPTA==}
@@ -3313,9 +3310,6 @@ packages:
       picomatch:
         optional: true
 
-  fflate@0.6.10:
-    resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
-
   fflate@0.8.3:
     resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
 
@@ -4003,9 +3997,6 @@ packages:
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
-  meshoptimizer@0.18.1:
-    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
-
   meshoptimizer@1.1.1:
     resolution: {integrity: sha512-oRFNWJRDA/WTrVj7NWvqa5HqE1t9MYDj2VaWirQCzCCrAd2GHrqR/sQezCxiWATPNlKTcRaPRHPJwIRoPBAp5g==}
 
@@ -4462,12 +4453,6 @@ packages:
   postcss-selector-parser@7.1.1:
     resolution: {integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==}
     engines: {node: '>=4'}
-
-  postprocessing@6.35.3:
-    resolution: {integrity: sha512-PH0/gqVYpp+vZjmSAohG/xH0u9FpbjfCGsFMsmsZVd8XXSmqJUR7b5C9ZFE/iMrWhe+tiTOFN9WvcEdjLI8LYQ==}
-    engines: {node: '>= 0.13.2'}
-    peerDependencies:
-      three: '>= 0.152.0 < 0.164.0'
 
   postprocessing@6.39.1:
     resolution: {integrity: sha512-R2dG2zy+BAx3USl5EHw+PvnrlbT5PKnZVp3se0HCR0pWH8WQdh742yNG4YWOsq6c0bFpffk0Gd2RqPeoP/wKng==}
@@ -4990,9 +4975,6 @@ packages:
     engines: {node: '>=10.18'}
     peerDependencies:
       tslib: ^2
-
-  three@0.162.0:
-    resolution: {integrity: sha512-xfCYj4RnlozReCmUd+XQzj6/5OjDNHBy5nT6rVwrOKGENAvpXe2z1jL+DZYaMu4/9pNsjH/4Os/VvS9IrH7IOQ==}
 
   three@0.184.0:
     resolution: {integrity: sha512-wtTRjG92pM5eUg/KuUnHsqSAlPM296brTOcLgMRqEeylYTh/CdtvKUvCyyCQTzFuStieWxvZb8mVTMvdPyUpxg==}
@@ -6445,9 +6427,9 @@ snapshots:
       modern-tar: 0.7.6
       yargs: 17.7.2
 
-  '@shapediver/sdk.geometry-api-sdk-v2@3.4.2':
+  '@shapediver/sdk.geometry-api-sdk-v2@3.7.0':
     dependencies:
-      axios: 1.16.1
+      axios: 1.18.1
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -6700,14 +6682,6 @@ snapshots:
       '@types/node': 25.9.1
 
   '@types/stats.js@0.17.4': {}
-
-  '@types/three@0.162.0':
-    dependencies:
-      '@tweenjs/tween.js': 23.1.3
-      '@types/stats.js': 0.17.4
-      '@types/webxr': 0.5.24
-      fflate: 0.6.10
-      meshoptimizer: 0.18.1
 
   '@types/three@0.184.1':
     dependencies:
@@ -7711,8 +7685,6 @@ snapshots:
     optionalDependencies:
       picomatch: 2.3.2
 
-  fflate@0.6.10: {}
-
   fflate@0.8.3: {}
 
   figures@3.2.0:
@@ -8485,8 +8457,6 @@ snapshots:
 
   merge-stream@2.0.0: {}
 
-  meshoptimizer@0.18.1: {}
-
   meshoptimizer@1.1.1: {}
 
   methods@1.1.2: {}
@@ -9089,10 +9059,6 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postprocessing@6.35.3(three@0.162.0):
-    dependencies:
-      three: 0.162.0
-
   postprocessing@6.39.1(three@0.184.0):
     dependencies:
       three: 0.184.0
@@ -9610,8 +9576,6 @@ snapshots:
   thingies@2.6.0(tslib@2.8.1):
     dependencies:
       tslib: 2.8.1
-
-  three@0.162.0: {}
 
   three@0.184.0: {}
 

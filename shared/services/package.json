@@ -38,7 +38,7 @@
 	},
 	"dependencies": {
 		"@ctrl/tinycolor": "4.2.0",
-		"@shapediver/sdk.geometry-api-sdk-v2": "3.4.2",
+		"@shapediver/sdk.geometry-api-sdk-v2": "3.7.0",
 		"@shapediver/viewer.settings": "1.3.2",
 		"@shapediver/viewer.shared.build-data": "workspace:*",
 		"@shapediver/viewer.shared.types": "workspace:*",
