@@ -41,6 +41,11 @@ export interface IInteractionParameterProps {
 		/** The text when the parameter is inactive. */
 		activeText?: string;
 	};
+	/** Which buttons are available for the interaction parameter. */
+	buttons?: {
+		/** When true, the clear button is available to reset the parameter. (default: true) */
+		clear?: boolean;
+	};
 	/** The mode to determine when the parameter is active. (default: 'default') */
 	activeMode?: "default" | "activeOnStart" | "alwaysActive";
 	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */
@@ -89,6 +94,12 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 			inactiveTitle: z.string().nullable().optional(),
 			activeTitle: z.string().nullable().optional(),
 			activeText: z.string().nullable().optional(),
+		})
+		.nullable()
+		.optional(),
+	buttons: z
+		.object({
+			clear: optionalBoolean,
 		})
 		.nullable()
 		.optional(),

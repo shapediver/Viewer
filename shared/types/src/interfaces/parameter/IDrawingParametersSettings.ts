@@ -41,6 +41,11 @@ export interface IDrawingParameterSettings {
 			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
 			snapToFaces?: boolean;
 		};
+		/** Which buttons are available for the interaction parameter. */
+		buttons?: {
+			/** When true, the clear button is available to reset the parameter. (default: true) */
+			clear?: boolean;
+		};
 		/** The mode to determine when the parameter is active. (default: 'default') */
 		activeMode?: "default" | "activeOnStart" | "alwaysActive";
 		/** The presentation of the drawing tool. (default: 'toolbar') */
@@ -430,6 +435,12 @@ export const IDrawingParameterJsonSchema = z.object({
 					snapToVertices: optionalBoolean,
 					snapToEdges: optionalBoolean,
 					snapToFaces: optionalBoolean,
+				})
+				.nullable()
+				.optional(),
+			buttons: z
+				.object({
+					clear: optionalBoolean,
 				})
 				.nullable()
 				.optional(),
