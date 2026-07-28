@@ -127,7 +127,7 @@ export class NormalPass extends Pass {
 			resolutionY,
 			resolutionScale,
 		));
-		resolution.addEventListener("change", (e) =>
+		(resolution as any).addEventListener("change", () =>
 			this.setSize(resolution.baseWidth, resolution.baseHeight),
 		);
 	}

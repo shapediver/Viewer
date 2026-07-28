@@ -269,7 +269,7 @@ export class RenderPass extends Pass {
 		stencilTest: boolean,
 	) {
 		const materialsNotRenderer: Object3D[] = [];
-		this.scene.traverse(function (object) {
+		this.scene.traverse(function (object: Object3D) {
 			if (object.visible === true) {
 				if (object instanceof Mesh && object.material) {
 					if (
