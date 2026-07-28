@@ -9,11 +9,13 @@ import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	type IInteractionEffect,
 	type IInteractionEffectUtils,
-	isMaterialData} from "../../interfaces/utils/IInteractionEffectUtils";
+	isMaterialData,
+} from "../../interfaces/utils/IInteractionEffectUtils";
 
 export class InteractionEffectUtils implements IInteractionEffectUtils {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
+	readonly #materialEffectGeometries = new Map<string, Set<GeometryData>>();
 	#viewport?: IViewportApi;
 
 	public get viewport(): IViewportApi | undefined {
@@ -39,10 +41,13 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 		if (!effect) return token;
 
 		if (isMaterialData(effect)) {
+			const affectedGeometries = new Set<GeometryData>();
 			const applyEffect = (node: ITreeNode) => {
 				for (let i = 0; i < node.data.length; i++) {
 					if (node.data[i] instanceof GeometryData) {
 						const geometryData = <GeometryData>node.data[i];
+						if (affectedGeometries.has(geometryData)) continue;
+						affectedGeometries.add(geometryData);
 						geometryData.effectMaterials.push({
 							material: effect,
 							token,
@@ -56,6 +61,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				}
 			};
 			applyEffect(node);
+			this.#materialEffectGeometries.set(token, affectedGeometries);
 		} else {
 			if (!this.#viewport) return token;
 			const stringified = JSON.stringify(effect);
@@ -81,37 +87,24 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 	 * @param token
 	 */
 	public removeInteractionEffect(node: ITreeNode, token: string) {
-		const removeEffect = (node: ITreeNode) => {
-			for (let i = 0; i < node.data.length; i++) {
-				if (node.data[i] instanceof GeometryData) {
-					const geometryData = <GeometryData>node.data[i];
-					let removed = false;
-					for (
-						let index = geometryData.effectMaterials.length - 1;
-						index >= 0;
-						index--
-					) {
-						if (geometryData.effectMaterials[index].token !== token)
-							continue;
-						geometryData.effectMaterials.splice(index, 1);
-						removed = true;
-					}
-					if (removed) {
-						this.#viewport?.updateGeometryData(geometryData);
-					}
-				}
+		const geometries =
+			this.#materialEffectGeometries.get(token) ??
+			this.gatherGeometries(Tree.instance.root);
+		geometries.forEach((geometryData) => {
+			let removed = false;
+			for (
+				let index = geometryData.effectMaterials.length - 1;
+				index >= 0;
+				index--
+			) {
+				if (geometryData.effectMaterials[index].token !== token)
+					continue;
+				geometryData.effectMaterials.splice(index, 1);
+				removed = true;
 			}
-
-			for (let i = 0; i < node.children.length; i++) {
-				removeEffect(node.children[i]);
-			}
-		};
-		// Material-effect tokens are generated per application. Outputs can be
-		// replaced while an interaction is active, in which case the same token may
-		// already be attached to live replacement geometry outside `node`'s old
-		// subtree. Remove that unique token from the complete live tree so a late
-		// computation cannot leave a stale interaction material behind.
-		Tree.instance.root.traverse(removeEffect);
+			if (removed) this.#viewport?.updateGeometryData(geometryData);
+		});
+		this.#materialEffectGeometries.delete(token);
 
 		if (!this.#viewport) return;
 		const postProcessingEffect =
@@ -123,5 +116,13 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				this.#viewport.postProcessing.removeEffect(token);
 			}
 		}
+	}
+
+	private gatherGeometries(node: ITreeNode): Set<GeometryData> {
+		const geometries = new Set<GeometryData>();
+		node.traverseData((data) => {
+			if (data instanceof GeometryData) geometries.add(data);
+		});
+		return geometries;
 	}
 }

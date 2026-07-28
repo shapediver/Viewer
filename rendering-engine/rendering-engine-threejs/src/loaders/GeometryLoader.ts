@@ -48,6 +48,7 @@ export class GeometryLoader implements ILoader {
 			counter: number;
 		};
 	} = {};
+	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
 	private _logger: Logger = Logger.instance;
 	private _primitiveCache: {
 		[key: string]: {
@@ -375,18 +376,42 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
-		cached.obj.material = this._renderingEngine.materialLoader.load(
+		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
 		);
 
-		// Clear instance colors when in ATTRIBUTES mode to prevent them
-		// from multiplying with the attribute material color
-		if (cached.obj instanceof THREE.InstancedMesh) {
-			if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-				cached.obj.instanceColor = null;
+		const geometryObjects = this._geometryObjects.get(geometry) ?? [
+			cached.obj,
+		];
+		geometryObjects.forEach((geometryObject) => {
+			geometryObject.material = material;
+
+			// Clear instance colors when in ATTRIBUTES mode to prevent them
+			// from multiplying with the attribute material color.
+			if (geometryObject instanceof THREE.InstancedMesh) {
+				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+					geometryObject.instanceColor = null;
+				}
 			}
+		});
+	}
+
+	/**
+	 * Associate a tree's geometry data with the exact rendered object created for
+	 * it. Geometry cache entries can be reused by multiple tree nodes, but their
+	 * interaction materials are instance-specific.
+	 */
+	public registerGeometryObject(
+		geometry: GeometryData,
+		object: THREE.Object3D,
+	): void {
+		let geometryObjects = this._geometryObjects.get(geometry);
+		if (!geometryObjects) {
+			geometryObjects = new Set();
+			this._geometryObjects.set(geometry, geometryObjects);
 		}
+		geometryObjects.add(object as GeometryType);
 	}
 
 	public removeFromGeometryCache(id: string) {

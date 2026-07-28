@@ -140,6 +140,10 @@ export class SceneTreeManager implements IManager {
 						) {
 							dataChild = dataChild.clone() as typeof dataChild;
 						}
+						this._renderingEngine.geometryLoader.registerGeometryObject(
+							treeNodeData as GeometryData,
+							dataChild,
+						);
 
 						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
 						dataChild.userData.SDid = treeNodeData.id;
