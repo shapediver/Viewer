@@ -1,14 +1,22 @@
-import {addListener, type IViewportApi} from "@shapediver/viewer";
+import {
+	addListener,
+	EVENTTYPE,
+	type ICameraEvent,
+	type IViewportApi,
+	removeListener,
+} from "@shapediver/viewer";
 import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	GeometryMathManager,
 	type IRestrictionManager,
 	RestrictionManager,
-	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EVENTTYPE_DRAWING_TOOLS,
 	type IEvent,
-	SystemInfo} from "@shapediver/viewer.shared.services";
+	SystemInfo,
+} from "@shapediver/viewer.shared.services";
 import {type DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {ControlsManager} from "../controls/ControlsManager";
@@ -25,6 +33,7 @@ export class InteractionManager {
 
 	readonly #deletionInteractionHandler: DeletionInteractionHandler;
 	readonly #drawingToolsManager: DrawingToolsManager;
+	readonly #eventListenerTokens: string[] = [];
 	readonly #geometryMathManager: GeometryMathManager;
 	readonly #insertionInteractionHandler: InsertionInteractionHandler;
 	readonly #interactionManagerHelper: InteractionManagerHelper;
@@ -32,6 +41,7 @@ export class InteractionManager {
 	readonly #restrictionManager: IRestrictionManager;
 	readonly #viewport: IViewportApi;
 
+	#cameraMoving: boolean = false;
 	#controlsManager?: ControlsManager;
 	#strategy: IStrategy;
 
@@ -78,34 +88,56 @@ export class InteractionManager {
 			this,
 		);
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (
-				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
-			)
-				return;
-			if (event.index !== undefined) {
-				this.addPoint(event.index);
-			} else if (event.indices !== undefined) {
-				event.indices.forEach((index) => this.addPoint(index));
-			}
-		});
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
+				if (
+					event.drawingToolsId !==
+					this.#drawingToolsManager.parentNode.id
+				)
+					return;
+				if (event.index !== undefined) {
+					this.addPoint(event.index);
+				} else if (event.indices !== undefined) {
+					event.indices.forEach((index) => this.addPoint(index));
+				}
+			}),
+		);
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (
-				event.drawingToolsId !== this.#drawingToolsManager.parentNode.id
-			)
-				return;
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
+				if (
+					event.drawingToolsId !==
+					this.#drawingToolsManager.parentNode.id
+				)
+					return;
 
-			if (event.index !== undefined) {
-				this.addPoint(event.index);
-			} else if (event.indices !== undefined) {
-				event.indices.forEach((index) => this.addPoint(index));
-			}
-		});
+				if (event.index !== undefined) {
+					this.addPoint(event.index);
+				} else if (event.indices !== undefined) {
+					event.indices.forEach((index) => this.addPoint(index));
+				}
+			}),
+		);
+
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE.CAMERA.CAMERA_START, (e: IEvent) => {
+				const event = e as ICameraEvent;
+				if (event.viewportId !== this.#viewport.id) return;
+
+				this.#cameraMoving = true;
+				this.#insertionInteractionHandler.pauseInsertion();
+			}),
+			addListener(EVENTTYPE.CAMERA.CAMERA_END, (e: IEvent) => {
+				const event = e as ICameraEvent;
+				if (event.viewportId !== this.#viewport.id) return;
+
+				this.#cameraMoving = false;
+			}),
+		);
 
 		this.#strategy = SystemInfo.instance.isMobile
 			? new MobileStrategy(this.#drawingToolsManager, this)
@@ -158,6 +190,8 @@ export class InteractionManager {
 	}
 
 	public close(): void {
+		this.#eventListenerTokens.forEach((token) => removeListener(token));
+		this.#eventListenerTokens.length = 0;
 		if (this.#strategy.cameraFreezeFlag)
 			this.#viewport.removeFlag(this.#strategy.cameraFreezeFlag);
 
@@ -192,6 +226,7 @@ export class InteractionManager {
 	 */
 	public onMove(event: PointerEvent, ray: IRay): void {
 		if (this.#drawingToolsManager.closed) return;
+		if (this.#cameraMoving) return;
 
 		this.#strategy.onMove(event, ray);
 	}

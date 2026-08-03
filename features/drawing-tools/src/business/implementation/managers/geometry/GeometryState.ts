@@ -9,7 +9,9 @@ import {
 	MaterialBasicLineData,
 	MaterialEngine,
 	MaterialMultiPointData,
-	PrimitiveData} from "@shapediver/viewer";
+	PrimitiveData,
+	removeListener,
+} from "@shapediver/viewer";
 import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {EventEngine, type IEvent} from "@shapediver/viewer.shared.services";
@@ -19,7 +21,8 @@ import {
 	type IMaterialBasicLineDataProperties,
 	type IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
-	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
+	PRIMITIVE_MODE,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {type DrawingToolsEventResponseMapping} from "../../../interfaces/events/EventResponseMapping";
@@ -28,7 +31,8 @@ import {
 	type DefaultTextures,
 	MATERIAL_INDEX,
 	type PointsData,
-	type Settings} from "../../../interfaces/IDrawingToolsManager";
+	type Settings,
+} from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {GeometryManager} from "./GeometryManager";
 export class GeometryState {
@@ -36,6 +40,7 @@ export class GeometryState {
 
 	readonly #drawingToolsId: string;
 	readonly #drawingToolsManager: DrawingToolsManager;
+	readonly #eventListenerTokens: string[] = [];
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #geometryManager: GeometryManager;
 	readonly #parentNode: ITreeNode;
@@ -72,65 +77,73 @@ export class GeometryState {
 
 		this.#defaultTextures = drawingToolsManager.defaultTextures;
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
-			if (event.drawingToolsId !== this.#parentNode.id) return;
-			if (event.temporary === false) {
-				if (event.index !== undefined) {
-					// shift the temporary indices
-					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-						i > event.index! ? i + 1 : i,
-					);
-				} else if (event.indices !== undefined) {
-					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
-						let shift = 0;
-						for (const index of event.indices!) {
-							if (i > index) shift++;
-						}
-						return i + shift;
-					});
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.ADDED, (e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.ADDED];
+				if (event.drawingToolsId !== this.#parentNode.id) return;
+				if (event.temporary === false) {
+					if (event.index !== undefined) {
+						// shift the temporary indices
+						this.#temporaryIndices = this.#temporaryIndices.map(
+							(i) => (i > event.index! ? i + 1 : i),
+						);
+					} else if (event.indices !== undefined) {
+						this.#temporaryIndices = this.#temporaryIndices.map(
+							(i) => {
+								let shift = 0;
+								for (const index of event.indices!) {
+									if (i > index) shift++;
+								}
+								return i + shift;
+							},
+						);
+					}
+				} else if (event.temporary === true) {
+					if (event.index !== undefined) {
+						this.#temporaryIndices.push(event.index!);
+					} else if (event.indices !== undefined) {
+						this.#temporaryIndices.push(...event.indices!);
+					}
 				}
-			} else if (event.temporary === true) {
-				if (event.index !== undefined) {
-					this.#temporaryIndices.push(event.index!);
-				} else if (event.indices !== undefined) {
-					this.#temporaryIndices.push(...event.indices!);
-				}
-			}
-		});
+			}),
+		);
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
-			if (event.drawingToolsId !== this.#parentNode.id) return;
-			if (event.temporary === false) {
-				if (event.index !== undefined) {
-					// shift the temporary indices
-					this.#temporaryIndices = this.#temporaryIndices.map((i) =>
-						i > event.index! ? i - 1 : i,
-					);
-				} else if (event.indices !== undefined) {
-					this.#temporaryIndices = this.#temporaryIndices.map((i) => {
-						let shift = 0;
-						for (const index of event.indices!) {
-							if (i > index) shift++;
-						}
-						return i - shift;
-					});
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.REMOVED, (e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.REMOVED];
+				if (event.drawingToolsId !== this.#parentNode.id) return;
+				if (event.temporary === false) {
+					if (event.index !== undefined) {
+						// shift the temporary indices
+						this.#temporaryIndices = this.#temporaryIndices.map(
+							(i) => (i > event.index! ? i - 1 : i),
+						);
+					} else if (event.indices !== undefined) {
+						this.#temporaryIndices = this.#temporaryIndices.map(
+							(i) => {
+								let shift = 0;
+								for (const index of event.indices!) {
+									if (i > index) shift++;
+								}
+								return i - shift;
+							},
+						);
+					}
+				} else if (event.temporary === true) {
+					if (event.index !== undefined) {
+						this.#temporaryIndices = this.#temporaryIndices.filter(
+							(i) => i !== event.index!,
+						);
+					} else if (event.indices !== undefined) {
+						this.#temporaryIndices = this.#temporaryIndices.filter(
+							(i) => !event.indices!.includes(i),
+						);
+					}
 				}
-			} else if (event.temporary === true) {
-				if (event.index !== undefined) {
-					this.#temporaryIndices = this.#temporaryIndices.filter(
-						(i) => i !== event.index!,
-					);
-				} else if (event.indices !== undefined) {
-					this.#temporaryIndices = this.#temporaryIndices.filter(
-						(i) => !event.indices!.includes(i),
-					);
-				}
-			}
-		});
+			}),
+		);
 	}
 
 	// #endregion Constructors (1)
@@ -240,6 +253,8 @@ export class GeometryState {
 	}
 
 	public close() {
+		this.#eventListenerTokens.forEach((token) => removeListener(token));
+		this.#eventListenerTokens.length = 0;
 		this.#parentNode.removeData(this.#geometryDataPoints);
 
 		if (this.#geometryDataLines)

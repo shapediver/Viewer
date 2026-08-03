@@ -10,23 +10,28 @@ import {
 	MaterialEngine,
 	MaterialMultiPointData,
 	PrimitiveData,
-	TreeNode} from "@shapediver/viewer";
+	removeListener,
+	TreeNode,
+} from "@shapediver/viewer";
 import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	type DrawingRestrictionMetaData,
 	GeometryMathManager,
-	type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type RayTraceResult,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {MultiPointsMaterial} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
-	type IEvent} from "@shapediver/viewer.shared.services";
+	type IEvent,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IGeometryData,
 	type IMapData,
 	type IMaterialMultiPointDataProperties,
 	MATERIAL_ALPHA,
-	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
+	PRIMITIVE_MODE,
+} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
@@ -37,7 +42,8 @@ import {type IDrawingToolsEvent} from "../../../interfaces/events/IDrawingToolsE
 import {
 	type DefaultTextures,
 	MATERIAL_INDEX,
-	type Settings} from "../../../interfaces/IDrawingToolsManager";
+	type Settings,
+} from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {EdgeControl} from "./EdgeControl";
 
@@ -46,6 +52,7 @@ export class ControlsManager {
 	readonly #defaultTextures: DefaultTextures;
 	readonly #drawingToolsId: string;
 	readonly #drawingToolsManager: DrawingToolsManager;
+	readonly #eventListenerTokens: string[] = [];
 	readonly #eventEngine = EventEngine.instance;
 	readonly #geometryMathManager: GeometryMathManager;
 	readonly #geometryNodeId: string;
@@ -161,6 +168,8 @@ export class ControlsManager {
 	}
 
 	public close(): void {
+		this.#eventListenerTokens.forEach((token) => removeListener(token));
+		this.#eventListenerTokens.length = 0;
 		const parent = this.#drawingToolsManager.parentNode;
 		parent.removeChild(this.#parentNode);
 		parent.updateVersion();
@@ -521,24 +530,31 @@ export class ControlsManager {
 	private setupEventListeners(): void {
 		// When a real point is moved (temporary or permanent), refresh any
 		// controls that reference it as point1 or point2.
-		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
-			if (event.drawingToolsId !== this.#geometryNodeId) return;
-			if (event.index !== undefined) {
-				this.updateControlsForPoint(event.index);
-			}
-		});
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
+				if (event.drawingToolsId !== this.#geometryNodeId) return;
+				if (event.index !== undefined) {
+					this.updateControlsForPoint(event.index);
+				}
+			}),
+		);
 
 		// Full refresh on any permanent geometry change (e.g. undo/redo).
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-			if (event.drawingToolsId !== this.#drawingToolsId) return;
-			if (event.temporary) return;
-			if (this.#isDraggingControl) return;
-			this.updateAllControls();
-		});
+		this.#eventListenerTokens.push(
+			addListener(
+				EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
+				(e: IEvent) => {
+					const event =
+						e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+					if (event.drawingToolsId !== this.#drawingToolsId) return;
+					if (event.temporary) return;
+					if (this.#isDraggingControl) return;
+					this.updateAllControls();
+				},
+			),
+		);
 	}
 
 	private updateAllControls(): void {

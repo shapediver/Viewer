@@ -1,4 +1,9 @@
-import {addListener, EVENTTYPE_DRAWING_TOOLS, type IEvent} from "@shapediver/viewer";
+import {
+	addListener,
+	EVENTTYPE_DRAWING_TOOLS,
+	removeListener,
+	type IEvent,
+} from "@shapediver/viewer";
 import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {type DrawingToolsEventResponseMapping} from "../../interfaces/events/EventResponseMapping";
 import {type PointsData} from "../../interfaces/IDrawingToolsManager";
@@ -26,6 +31,7 @@ export class HistoryManager {
 
 	#currentStateIndex: number = -1;
 	#drawingToolsManager: DrawingToolsManager;
+	#eventListenerToken: string;
 	#history: HistoryState[] = [];
 
 	// #endregion Properties (3)
@@ -35,44 +41,48 @@ export class HistoryManager {
 	constructor(drawingToolsManager: DrawingToolsManager) {
 		this.#drawingToolsManager = drawingToolsManager;
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e: IEvent) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
-			if (
-				event.temporary === false &&
-				event.points !== undefined &&
-				event.metaData !== undefined &&
-				event.fromHistory !== true &&
-				event.recordHistory !== false
-			) {
-				/**
-				 * DO SOME CHECKS TO ENSURE THAT THE STATE IS CORRECT
-				 */
-				// 1. within number of points
-				if (
-					this.#drawingToolsManager.geometryState.checkNumberOfPoints(
-						event.points.length,
-					) === false
-				)
+		this.#eventListenerToken = addListener(
+			EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
+			(e: IEvent) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+				if (event.drawingToolsId !== this.#drawingToolsManager.uuid)
 					return;
-				// 2. closed loop if it should be closed
 				if (
-					this.#drawingToolsManager.settings.geometry.close ===
-						true &&
-					this.#drawingToolsManager.geometryState.closeLoop ===
-						false &&
-					this.#drawingToolsManager.settings.geometry.autoClose ===
-						false
-				)
-					return;
+					event.temporary === false &&
+					event.points !== undefined &&
+					event.metaData !== undefined &&
+					event.fromHistory !== true &&
+					event.recordHistory !== false
+				) {
+					/**
+					 * DO SOME CHECKS TO ENSURE THAT THE STATE IS CORRECT
+					 */
+					// 1. within number of points
+					if (
+						this.#drawingToolsManager.geometryState.checkNumberOfPoints(
+							event.points.length,
+						) === false
+					)
+						return;
+					// 2. closed loop if it should be closed
+					if (
+						this.#drawingToolsManager.settings.geometry.close ===
+							true &&
+						this.#drawingToolsManager.geometryState.closeLoop ===
+							false &&
+						this.#drawingToolsManager.settings.geometry
+							.autoClose === false
+					)
+						return;
 
-				this.recordState({
-					points: event.points,
-					metaData: event.metaData,
-				});
-			}
-		});
+					this.recordState({
+						points: event.points,
+						metaData: event.metaData,
+					});
+				}
+			},
+		);
 	}
 
 	// #endregion Constructors (1)
@@ -95,6 +105,7 @@ export class HistoryManager {
 	}
 
 	public close(): void {
+		removeListener(this.#eventListenerToken);
 		this.#currentStateIndex = -1;
 		this.#history = [];
 	}

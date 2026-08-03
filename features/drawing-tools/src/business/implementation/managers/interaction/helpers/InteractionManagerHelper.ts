@@ -1,12 +1,14 @@
-import {addListener} from "@shapediver/viewer";
+import {addListener, removeListener} from "@shapediver/viewer";
 import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	GeometryMathManager,
 	PlaneRestriction,
-	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	RESTRICTION_TYPE,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS,
+} from "@shapediver/viewer.shared.services";
 
 import {vec3} from "gl-matrix";
 
@@ -14,13 +16,15 @@ import {type DrawingToolsEventResponseMapping} from "../../../../interfaces/even
 import {
 	type AdjacencyEntry,
 	MATERIAL_INDEX,
-	type Settings} from "../../../../interfaces/IDrawingToolsManager";
+	type Settings,
+} from "../../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../../DrawingToolsManager";
 import {GeometryState} from "../../geometry/GeometryState";
 import {InteractionManager} from "../InteractionManager";
 
 export class InteractionManagerHelper {
 	readonly #drawingToolsManager: DrawingToolsManager;
+	readonly #eventListenerToken: string;
 	readonly #eventEngine = EventEngine.instance;
 	readonly #geometryMathManager: GeometryMathManager;
 	readonly #geometryState: GeometryState;
@@ -51,12 +55,16 @@ export class InteractionManagerHelper {
 			this.#drawingToolsManager.geometryMathManager;
 		this.#settings = this.#drawingToolsManager.settings;
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
-			this.removeAllSelectedPoints();
-		});
+		this.#eventListenerToken = addListener(
+			EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
+			(e) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+				if (event.drawingToolsId !== this.#drawingToolsManager.uuid)
+					return;
+				this.removeAllSelectedPoints();
+			},
+		);
 	}
 
 	public get dragging(): boolean {
@@ -303,6 +311,7 @@ export class InteractionManagerHelper {
 	}
 
 	public close(): void {
+		removeListener(this.#eventListenerToken);
 		this.#selectedPointIndices = [];
 		this.#hoveredPoint = undefined;
 		this.#draggedPoint = undefined;
@@ -333,8 +342,7 @@ export class InteractionManagerHelper {
 
 	public moveSelectedPoints(ray: IRay): vec3 | undefined {
 		if (this.#selectedPointIndices.length > 0 && this.#dragging) {
-			this.#drawingToolsManager.restrictionManager.showRestrictionVisualization =
-				true;
+			this.#drawingToolsManager.restrictionManager.showRestrictionVisualization = true;
 
 			const rayTraceResult =
 				this.#drawingToolsManager.restrictionManager.rayTrace(ray, {

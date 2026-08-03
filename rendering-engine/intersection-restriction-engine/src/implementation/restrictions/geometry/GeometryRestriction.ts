@@ -1,21 +1,26 @@
 import {type IViewportApi, MaterialEngine, sceneTree} from "@shapediver/viewer";
 import {SDObject} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs/dist/objects/SDObject";
 import {Box} from "@shapediver/viewer.shared.math";
-import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {
+	GeometryData,
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	type IGeometryData,
 	type IMapData,
 	type IRay,
 	type ISceneEvent,
-	type IVisualizationSettings} from "@shapediver/viewer.shared.types";
+	type IVisualizationSettings,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {
 	type IRestriction,
 	type RestrictionMetaData,
 	type RestrictionPropertiesBase,
-	type RestrictionResult} from "../../../interfaces/IRestriction";
+	type RestrictionResult,
+} from "../../../interfaces/IRestriction";
 import {type ISnapRestriction} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
@@ -32,8 +37,7 @@ let pointTexture: Promise<THREE.Texture> | THREE.Texture =
 		});
 // #region Type aliases (1)
 
-export interface GeometryRestrictionProperties
-	extends RestrictionPropertiesBase {
+export interface GeometryRestrictionProperties extends RestrictionPropertiesBase {
 	/**
 	 * The nodes to restrict the interaction to.
 	 */
@@ -264,11 +268,11 @@ export class GeometryRestriction
 				this.#viewport.id
 			] as THREE.Object3D;
 			if (threeJsObject) {
-				const currentIntersections =
-					this.#raycaster.intersectObject(threeJsObject);
-				for (let k = 0; k < currentIntersections.length; k++) {
-					this.#scratchIntersections.push(currentIntersections[k]);
-				}
+				this.#raycaster.intersectObject(
+					threeJsObject,
+					true,
+					this.#scratchIntersections,
+				);
 			}
 		});
 

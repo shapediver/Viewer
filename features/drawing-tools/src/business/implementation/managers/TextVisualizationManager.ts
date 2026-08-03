@@ -1,13 +1,16 @@
 import {
 	addListener,
 	EVENTTYPE_DRAWING_TOOLS,
+	removeListener,
+	ThreejsData,
+	TreeNode,
 	type ITreeNode,
 	type IViewportApi,
-	ThreejsData,
-	TreeNode} from "@shapediver/viewer";
+} from "@shapediver/viewer";
 import {
 	CSS2DObject,
-	CSS2DRenderer} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+	CSS2DRenderer,
+} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {numberCleaner} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
@@ -16,13 +19,18 @@ import {type Settings} from "../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../DrawingToolsManager";
 
 export class TextVisualizationManager {
-	// #region Properties (14)
+	// #region Properties (15)
 
 	readonly #drawingToolsManager: DrawingToolsManager;
+	readonly #distanceLabelIndicesByPoint: Map<number, number[]> = new Map();
+	readonly #eventListenerTokens: string[] = [];
 	readonly #labelRenderer: CSS2DRenderer;
 	readonly #parentNode: ITreeNode;
 	readonly #settings: Settings;
 	readonly #viewport: IViewportApi;
+	readonly #postRenderingCallback: NonNullable<
+		IViewportApi["postRenderingCallback"]
+	>;
 	readonly #visualizationNode: TreeNode = new TreeNode(
 		"TextVisualizationNode",
 	);
@@ -37,7 +45,7 @@ export class TextVisualizationManager {
 	#showPointLabels: boolean = true;
 	#showPointerPosition: boolean = true;
 
-	// #endregion Properties (14)
+	// #endregion Properties (15)
 
 	// #region Constructors (1)
 
@@ -77,7 +85,7 @@ export class TextVisualizationManager {
 			this.#pointerPositionField,
 		);
 
-		this.#viewport.postRenderingCallback = (
+		this.#postRenderingCallback = (
 			renderer: THREE.WebGLRenderer,
 			scene: THREE.Scene,
 			camera: THREE.Camera,
@@ -107,6 +115,7 @@ export class TextVisualizationManager {
 			}
 			this.#labelRenderer.render(scene, camera);
 		};
+		this.#viewport.postRenderingCallback = this.#postRenderingCallback;
 
 		this.#object3D = new THREE.Object3D();
 		this.#positionObject3D = new THREE.Object3D();
@@ -139,25 +148,35 @@ export class TextVisualizationManager {
 		this.createPointLabels();
 		this.createDistanceLabels();
 
-		addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
-			if (event.drawingToolsId !== this.#drawingToolsManager.uuid) return;
-			this.createPointLabels();
-			this.createDistanceLabels();
-		});
-
-		addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e) => {
-			const event =
-				e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
-			if (
-				event.drawingToolsId !==
-				this.#drawingToolsManager.geometryManager.parentNode.id
-			)
-				return;
-			this.createPointLabels();
-			this.createDistanceLabels();
-		});
+		this.#eventListenerTokens.push(
+			addListener(EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED, (e) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED];
+				if (event.drawingToolsId !== this.#drawingToolsManager.uuid)
+					return;
+				this.createPointLabels();
+				this.createDistanceLabels();
+			}),
+			addListener(EVENTTYPE_DRAWING_TOOLS.MOVED, (e) => {
+				const event =
+					e as DrawingToolsEventResponseMapping[EVENTTYPE_DRAWING_TOOLS.MOVED];
+				if (
+					event.drawingToolsId !==
+					this.#drawingToolsManager.geometryManager.parentNode.id
+				)
+					return;
+				// Temporary moves only update the converted Three.js geometry. Update
+				// the distance labels connected to the moved point from that live
+				// buffer instead of rebuilding every point and distance label.
+				if (event.temporary) {
+					if (event.index !== undefined)
+						this.#updateTemporaryDistanceLabels(event.index);
+					return;
+				}
+				this.createPointLabels();
+				this.createDistanceLabels();
+			}),
+		);
 	}
 
 	// #endregion Constructors (1)
@@ -206,6 +225,12 @@ export class TextVisualizationManager {
 	// #region Public Methods (4)
 
 	public close(): void {
+		this.#eventListenerTokens.forEach((token) => removeListener(token));
+		this.#eventListenerTokens.length = 0;
+		if (
+			this.#viewport.postRenderingCallback === this.#postRenderingCallback
+		)
+			this.#viewport.postRenderingCallback = undefined;
 		this.#viewport.canvas.parentElement!.removeChild(
 			this.#labelRenderer.domElement,
 		);
@@ -218,127 +243,86 @@ export class TextVisualizationManager {
 
 	public createDistanceLabels(): void {
 		if (!this.#showDistanceLabels) return;
-		this.#distanceObject3D.remove(...this.#distanceObject3D.children);
 
 		const positionArray = this.#drawingToolsManager.positionArray;
 		const indicesArrayLines = this.#drawingToolsManager.indicesArrayLines;
+		this.#distanceLabelIndicesByPoint.clear();
+		const labelCount =
+			indicesArrayLines && positionArray.length > 3
+				? indicesArrayLines.length / 2
+				: 0;
+		this.#setLabelCount(
+			this.#distanceObject3D,
+			labelCount,
+			"distance-label",
+		);
 
-		if (!indicesArrayLines || positionArray.length <= 3) return;
+		if (!indicesArrayLines) return;
 
 		for (let i = 0; i < indicesArrayLines.length; i += 2) {
-			// calculate the midpoint of the line
 			const firstIndex = indicesArrayLines[i];
 			const secondIndex = indicesArrayLines[i + 1];
-			const firstPoint = vec3.fromValues(
-				positionArray.at(firstIndex * 3)!,
-				positionArray.at(firstIndex * 3 + 1)!,
-				positionArray.at(firstIndex * 3 + 2)!,
-			);
-			const secondPoint = vec3.fromValues(
-				positionArray.at(secondIndex * 3)!,
-				positionArray.at(secondIndex * 3 + 1)!,
-				positionArray.at(secondIndex * 3 + 2)!,
-			);
-			const midPoint = vec3.add(vec3.create(), firstPoint, secondPoint);
-			vec3.scale(midPoint, midPoint, 0.5);
-
-			const text = document.createElement("div");
-			text.className = "label";
-			text.style.marginTop = "1em";
-
-			const child = document.createElement("div");
-			child.className = "distance-label";
-
-			// check if there is already a style tag in the head that defined the style for the point label
-			// if not, create one
-			let styleExists = false;
-			document.head.querySelectorAll("style").forEach((style) => {
-				if (style.textContent?.includes(".distance-label")) {
-					styleExists = true;
-					return;
-				}
-			});
-
-			if (!styleExists) {
-				const style = document.createElement("style");
-				style.textContent = `
-                    .distance-label {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        color: white;
-                        background-color: ${this.#settings.visualization.points.color_1}80;
-                        border-radius: 5px;
-                        font-size: 16px;
-                        text-align: center;
-                        padding: 0px 2px;
-                    }
-                `;
-				document.head.appendChild(style);
+			const labelIndex = i / 2;
+			const firstLabels =
+				this.#distanceLabelIndicesByPoint.get(firstIndex) ?? [];
+			if (firstLabels.length === 0)
+				this.#distanceLabelIndicesByPoint.set(firstIndex, firstLabels);
+			firstLabels.push(labelIndex);
+			if (secondIndex !== firstIndex) {
+				const secondLabels =
+					this.#distanceLabelIndicesByPoint.get(secondIndex) ?? [];
+				if (secondLabels.length === 0)
+					this.#distanceLabelIndicesByPoint.set(
+						secondIndex,
+						secondLabels,
+					);
+				secondLabels.push(labelIndex);
 			}
-
-			child.textContent = this.#formatValue(
-				vec3.distance(firstPoint, secondPoint),
+			const firstOffset = firstIndex * 3;
+			const secondOffset = secondIndex * 3;
+			const dx = positionArray[firstOffset] - positionArray[secondOffset];
+			const dy =
+				positionArray[firstOffset + 1] -
+				positionArray[secondOffset + 1];
+			const dz =
+				positionArray[firstOffset + 2] -
+				positionArray[secondOffset + 2];
+			const label = this.#distanceObject3D.children[
+				labelIndex
+			] as CSS2DObject;
+			label.position.set(
+				(positionArray[firstOffset] + positionArray[secondOffset]) *
+					0.5,
+				(positionArray[firstOffset + 1] +
+					positionArray[secondOffset + 1]) *
+					0.5,
+				(positionArray[firstOffset + 2] +
+					positionArray[secondOffset + 2]) *
+					0.5,
 			);
-			text.appendChild(child);
-
-			const label = new CSS2DObject(text);
-			label.position.set(midPoint[0], midPoint[1], midPoint[2]);
-			this.#distanceObject3D.add(label);
+			label.element.firstElementChild!.textContent = this.#formatValue(
+				Math.hypot(dx, dy, dz),
+			);
 		}
 	}
 
 	public createPointLabels(): void {
 		if (!this.#showPointLabels) return;
-		this.#positionObject3D.remove(...this.#positionObject3D.children);
 
 		const positionArray = this.#drawingToolsManager.positionArray;
+		this.#setLabelCount(
+			this.#positionObject3D,
+			positionArray.length / 3,
+			"point-label",
+		);
 		for (let i = 0; i < positionArray.length; i += 3) {
-			const text = document.createElement("div");
-			text.className = "label";
-			text.style.marginTop = "1em";
-
-			const child = document.createElement("div");
-			child.className = "point-label";
-
-			// check if there is already a style tag in the head that defined the style for the point label
-			// if not, create one
-			let styleExists = false;
-			document.head.querySelectorAll("style").forEach((style) => {
-				if (style.textContent?.includes(".point-label")) {
-					styleExists = true;
-					return;
-				}
-			});
-
-			if (!styleExists) {
-				const style = document.createElement("style");
-				style.textContent = `
-                    .point-label {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        color: white;
-                        background-color: ${this.#settings.visualization.points.color_1}80;
-                        border-radius: 5px;
-                        font-size: 16px;
-                        text-align: center;
-                        padding: 0px 2px;
-                    }
-                `;
-				document.head.appendChild(style);
-			}
-
-			child.textContent = `[${this.#formatValue(positionArray[i])}, ${this.#formatValue(positionArray[i + 1])}, ${this.#formatValue(positionArray[i + 2])}]`;
-			text.appendChild(child);
-
-			const label = new CSS2DObject(text);
+			const label = this.#positionObject3D.children[i / 3] as CSS2DObject;
+			label.element.firstElementChild!.textContent = `[${this.#formatValue(positionArray[i])}, ${this.#formatValue(positionArray[i + 1])}, ${this.#formatValue(positionArray[i + 2])}]`;
 			label.position.set(
 				positionArray[i],
 				positionArray[i + 1],
 				positionArray[i + 2],
 			);
-			this.#positionObject3D.add(label);
 		}
 	}
 
@@ -354,7 +338,98 @@ export class TextVisualizationManager {
 
 	// #endregion Public Methods (4)
 
-	// #region Private Methods (2)
+	// #region Private Methods (5)
+
+	#createLabel(className: "distance-label" | "point-label"): CSS2DObject {
+		this.#ensureLabelStyle(className);
+		const text = document.createElement("div");
+		text.className = "label";
+		text.style.marginTop = "1em";
+		const child = document.createElement("div");
+		child.className = className;
+		text.appendChild(child);
+		return new CSS2DObject(text);
+	}
+
+	#ensureLabelStyle(className: "distance-label" | "point-label"): void {
+		if (
+			[...document.head.querySelectorAll("style")].some((style) =>
+				style.textContent?.includes(`.${className}`),
+			)
+		)
+			return;
+
+		const style = document.createElement("style");
+		style.textContent = `
+            .${className} {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                background-color: ${this.#settings.visualization.points.color_1}80;
+                border-radius: 5px;
+                font-size: 16px;
+                text-align: center;
+                padding: 0px 2px;
+            }
+        `;
+		document.head.appendChild(style);
+	}
+
+	#setLabelCount(
+		parent: THREE.Object3D,
+		count: number,
+		className: "distance-label" | "point-label",
+	): void {
+		while (parent.children.length < count)
+			parent.add(this.#createLabel(className));
+		if (parent.children.length > count)
+			parent.remove(...parent.children.slice(count));
+	}
+
+	#updateTemporaryDistanceLabels(movedIndex: number): void {
+		if (!this.#showDistanceLabels) return;
+
+		const indicesArrayLines = this.#drawingToolsManager.indicesArrayLines;
+		if (!indicesArrayLines) return;
+
+		const points = this.#drawingToolsManager.geometryState
+			.geometryDataPoints.convertedObject?.[this.#viewport.id] as
+			| THREE.Points
+			| undefined;
+		const positionAttribute = points?.geometry.getAttribute("position");
+		if (!positionAttribute) return;
+
+		const labelIndices = this.#distanceLabelIndicesByPoint.get(movedIndex);
+		if (!labelIndices) return;
+
+		for (const labelIndex of labelIndices) {
+			const i = labelIndex * 2;
+			const firstIndex = indicesArrayLines[i];
+			const secondIndex = indicesArrayLines[i + 1];
+
+			const label = this.#distanceObject3D.children[labelIndex] as
+				| CSS2DObject
+				| undefined;
+			if (!label) continue;
+
+			const x1 = positionAttribute.getX(firstIndex);
+			const y1 = positionAttribute.getY(firstIndex);
+			const z1 = positionAttribute.getZ(firstIndex);
+			const x2 = positionAttribute.getX(secondIndex);
+			const y2 = positionAttribute.getY(secondIndex);
+			const z2 = positionAttribute.getZ(secondIndex);
+
+			label.position.set(
+				(x1 + x2) * 0.5,
+				(y1 + y2) * 0.5,
+				(z1 + z2) * 0.5,
+			);
+			label.element.firstElementChild!.textContent = this.#formatValue(
+				Math.hypot(x1 - x2, y1 - y2, z1 - z2),
+			);
+		}
+	}
 
 	#formatValue(value: number): string {
 		const displayUnit = this.#settings.general.displayUnit;
@@ -418,5 +493,5 @@ export class TextVisualizationManager {
 		return neg + (parts.length > 0 ? parts.join(" ") : "0");
 	}
 
-	// #endregion Private Methods (2)
+	// #endregion Private Methods (4)
 }

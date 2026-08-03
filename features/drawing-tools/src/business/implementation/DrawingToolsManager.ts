@@ -3,7 +3,8 @@ import {
 	type ITreeNode,
 	type IViewportApi,
 	sceneTree,
-	TreeNode} from "@shapediver/viewer";
+	TreeNode,
+} from "@shapediver/viewer";
 import {type IRay} from "@shapediver/viewer.features.interaction";
 import {
 	EventManager,
@@ -11,15 +12,17 @@ import {
 	type IRestriction,
 	type IRestrictionManager,
 	type RayTraceResult,
+	RESTRICTION_TYPE,
 	type RestrictionProperties,
-	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
 	type IEvent,
 	ShapeDiverViewerDrawingToolsError,
 	SystemInfo,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {mat4, vec3} from "gl-matrix";
 import {type IEdgeControl} from "../interfaces/controls/IEdgeControl";
 import {type DrawingToolsEventResponseMapping} from "../interfaces/events/EventResponseMapping";
@@ -30,7 +33,8 @@ import {
 	MATERIAL_INDEX,
 	type PointsData,
 	type Settings,
-	type SettingsOptional} from "../interfaces/IDrawingToolsManager";
+	type SettingsOptional,
+} from "../interfaces/IDrawingToolsManager";
 import {GeometryManager} from "./managers/geometry/GeometryManager";
 import {GeometryState} from "./managers/geometry/GeometryState";
 import {HistoryManager} from "./managers/HistoryManager";
@@ -57,8 +61,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	readonly #viewport: IViewportApi;
 
 	#closed: boolean = false;
-	#paused: boolean = false;
 	#continuousRenderingFlag?: string;
+	#eventListenerToken?: string;
+	#paused: boolean = false;
 	#uuid = this.#uuidGenerator.create();
 
 	// Scratch vec3s reused across hot-path calls to avoid per-frame allocation.
@@ -113,7 +118,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		if (sceneTree.root.boundingBox.isEmpty()) this.#viewport.show = true;
 
 		// add listener for geometry changes, if autoUpdate is enabled the drawing tool will update automatically
-		this.#eventEngine.addListener(
+		this.#eventListenerToken = this.#eventEngine.addListener(
 			EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 			(e: IEvent) => {
 				const event =
@@ -499,10 +504,15 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public close(): void {
 		if (this.#closed) return;
+		if (this.#eventListenerToken) {
+			this.#eventEngine.removeListener(this.#eventListenerToken);
+			this.#eventListenerToken = undefined;
+		}
 		if (this.#continuousRenderingFlag)
 			this.#viewport.removeFlag(this.#continuousRenderingFlag);
 		this.#eventManager.close();
 		this.#geometryMathManager.close();
+		this.#historyManager.close();
 		this.#geometryManager.close();
 		this.#interactionManager.close();
 		this.#textVisualizationManager.close();
