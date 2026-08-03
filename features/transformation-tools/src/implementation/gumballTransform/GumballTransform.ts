@@ -1,6 +1,10 @@
 ﻿import * as THREE from "three";
 
-import {type ITreeNode, type IViewportApi, SystemInfo} from "@shapediver/viewer";
+import {
+	type ITreeNode,
+	type IViewportApi,
+	SystemInfo,
+} from "@shapediver/viewer";
 
 import {mat4} from "gl-matrix";
 
@@ -317,6 +321,7 @@ export class GumballTransform
 			(obj) => (obj.userData.ignoreInRayTracingTest = true),
 		);
 		this.viewport.threeJsCoreObjects.scene.add(this.parentObject);
+		this.captureInitialWorldMatrices();
 
 		// we register the CAMERA_FREEZE whenever the dragging happens
 		this.#gumballTransformControls.addEventListener(
@@ -344,6 +349,7 @@ export class GumballTransform
 			);
 
 			this.deactivatePivotDragging();
+			this.captureInitialWorldMatrices();
 		} else {
 			this.updateObjectMatrices();
 		}

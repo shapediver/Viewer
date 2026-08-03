@@ -2,22 +2,26 @@ import {Box, type IViewportApi, sceneTree, TreeNode} from "@shapediver/viewer";
 import {
 	type IDrawingToolsEvent,
 	type PlaneRestrictionProperties,
-	RESTRICTION_TYPE} from "@shapediver/viewer.features.drawing-tools";
+	RESTRICTION_TYPE,
+} from "@shapediver/viewer.features.drawing-tools";
 import {type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {Plane} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	type ITransformation,
-	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
-	EVENTTYPE_DRAWING_TOOLS} from "@shapediver/viewer.shared.services";
+	EVENTTYPE_DRAWING_TOOLS,
+} from "@shapediver/viewer.shared.services";
 
 import {mat4, vec3} from "gl-matrix";
 
 import {
 	type IRectangleTransform,
-	type RectangleTransformSettingsOptional} from "../../interfaces/rectangleTransform/IRectangleTransform";
+	type RectangleTransformSettingsOptional,
+} from "../../interfaces/rectangleTransform/IRectangleTransform";
 import {TransformationToolsManager} from "../TransformationToolsManager";
 import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {RectangleTransformRotationHandler} from "./RectangleTransformRotationHandler";
@@ -382,6 +386,7 @@ export class RectangleTransform
 			this.#initialTransformationMatrix,
 			initialTransformationMatrix,
 		);
+		this.captureInitialWorldMatrices();
 
 		// Compute initial world orientation+scale (no geometry-center offset).
 		// initialWorldOrient = initialTransformationMatrix × translation(-initialOffset)

@@ -4,12 +4,17 @@ import {Box, type IViewportApi, SessionApiData} from "@shapediver/viewer";
 import {
 	type IRestrictionManager,
 	RestrictionManager,
-	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type RestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	GeometryData,
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {FLAG_TYPE} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
@@ -17,11 +22,10 @@ import {mat4, vec3} from "gl-matrix";
 import {type ITransformationToolsEvent} from "../interfaces/events/ITransformationToolsEvent";
 import {
 	type ITransformationToolsManager,
-	type SettingsOptional} from "../interfaces/ITransformationToolsManager";
+	type SettingsOptional,
+} from "../interfaces/ITransformationToolsManager";
 
-export abstract class TransformationToolsManager
-	implements ITransformationToolsManager
-{
+export abstract class TransformationToolsManager implements ITransformationToolsManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
@@ -39,6 +43,8 @@ export abstract class TransformationToolsManager
 	#continuousRenderingFlag?: string;
 	#continuousShadowMapUpdateFlag?: string;
 	#initialOffset: vec3 = vec3.create();
+	#initialObjectWorldMatrices: (THREE.Matrix4 | undefined)[] = [];
+	#initialPlaceholderWorldMatrix?: THREE.Matrix4;
 	#initialTransform: mat4[] = [];
 	#instanceTransform: mat4[] = [];
 	#pivotOffset: mat4 = mat4.create();
@@ -526,6 +532,22 @@ export abstract class TransformationToolsManager
 		}
 	}
 
+	protected captureInitialWorldMatrices(): void {
+		this.#initialPlaceholderWorldMatrix = new THREE.Matrix4().fromArray(
+			this.transformationToolsPlaceholderMatrix,
+		);
+
+		this.#initialObjectWorldMatrices = this.nodes.map((node) => {
+			const threeJsObject = node.convertedObject[this.viewport.id] as
+				| THREE.Object3D
+				| undefined;
+			if (!threeJsObject) return;
+
+			threeJsObject.updateWorldMatrix(true, false);
+			return threeJsObject.matrixWorld.clone();
+		});
+	}
+
 	protected updateObjectMatrices(): void {
 		const eventData: ITransformationToolsEvent = {
 			viewportId: this.viewport.id,
@@ -536,14 +558,36 @@ export abstract class TransformationToolsManager
 			type: this.type,
 		};
 
+		const targetLocalObjectMatrices =
+			this.calculateTargetLocalObjectMatrices();
+		const localTransformationMatrices = this.nodes.map((node, i) =>
+			targetLocalObjectMatrices?.[i]
+				? this.calculateLocalTransformationMatrix(
+						node,
+						targetLocalObjectMatrices[i]!,
+					)
+				: undefined,
+		);
+
 		this.nodes.forEach((node, i) => {
-			const matrix = this.getMatrix(
-				this.previousTransformationToolsMatrix[i],
-				this.instanceTransform[i],
-			);
+			const localTransformationMatrix = localTransformationMatrices[i];
+			const matrix = localTransformationMatrix
+				? mat4.clone(localTransformationMatrix)
+				: this.getMatrix(
+						this.previousTransformationToolsMatrix[i],
+						this.instanceTransform[i],
+					);
 
 			eventData.nodes.push(node);
-			if (this.singleNode) {
+			if (localTransformationMatrix) {
+				eventData.transformations.push(
+					mat4.multiply(
+						mat4.create(),
+						matrix,
+						this.initialTransform[i],
+					),
+				);
+			} else if (this.singleNode) {
 				mat4.multiply(
 					matrix,
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
@@ -599,10 +643,21 @@ export abstract class TransformationToolsManager
 	}
 
 	protected updateObjects() {
+		const targetLocalObjectMatrices =
+			this.calculateTargetLocalObjectMatrices();
+
 		this.nodes.forEach((node, i) => {
 			const threeJsObject: THREE.Object3D | undefined = node
 				.convertedObject[this.viewport.id] as THREE.Object3D;
 			if (threeJsObject) {
+				const targetLocalObjectMatrix = targetLocalObjectMatrices?.[i];
+				if (targetLocalObjectMatrix) {
+					threeJsObject.matrixAutoUpdate = false;
+					threeJsObject.matrix.copy(targetLocalObjectMatrix);
+					threeJsObject.matrixWorldNeedsUpdate = true;
+					return;
+				}
+
 				const matrix = this.getMatrix(
 					this.previousTransformationToolsMatrix![i] as mat4,
 					this.instanceTransform[i],
@@ -657,6 +712,102 @@ export abstract class TransformationToolsManager
 				threeJsObject.matrixWorldNeedsUpdate = true;
 			}
 		});
+	}
+
+	private calculateLocalTransformationMatrix(
+		node: ITreeNode,
+		targetLocalObjectMatrix: THREE.Matrix4,
+	): mat4 | undefined {
+		const committedTransformation = node.transformations.find(
+			(transformation) => transformation.id === this.#matrixId,
+		);
+		const committedMatrix = committedTransformation
+			? new THREE.Matrix4().fromArray(committedTransformation.matrix)
+			: new THREE.Matrix4();
+		const committedMatrixInverse = this.invertMatrix(committedMatrix);
+		if (!committedMatrixInverse) return;
+
+		const baseMatrix = new THREE.Matrix4()
+			.fromArray(node.nodeMatrix)
+			.multiply(committedMatrixInverse);
+		const baseMatrixInverse = this.invertMatrix(baseMatrix);
+		if (!baseMatrixInverse) return;
+
+		const localTransformationMatrix = baseMatrixInverse.multiply(
+			targetLocalObjectMatrix,
+		);
+		return mat4.fromValues(...localTransformationMatrix.toArray());
+	}
+
+	private calculateTargetLocalObjectMatrices():
+		| (THREE.Matrix4 | undefined)[]
+		| undefined {
+		if (!this.#initialPlaceholderWorldMatrix) return;
+
+		const initialPlaceholderWorldMatrixInverse = this.invertMatrix(
+			this.#initialPlaceholderWorldMatrix,
+		);
+		if (!initialPlaceholderWorldMatrixInverse) return;
+
+		const worldDelta = new THREE.Matrix4()
+			.fromArray(this.transformationToolsPlaceholderMatrix)
+			.multiply(initialPlaceholderWorldMatrixInverse);
+		const targetWorldMatrices = this.#initialObjectWorldMatrices.map(
+			(initialObjectWorldMatrix) =>
+				initialObjectWorldMatrix
+					? worldDelta.clone().multiply(initialObjectWorldMatrix)
+					: undefined,
+		);
+		const selectedObjectWorldMatrices = new Map<
+			THREE.Object3D,
+			THREE.Matrix4
+		>();
+
+		this.nodes.forEach((node, i) => {
+			const threeJsObject = node.convertedObject[this.viewport.id] as
+				| THREE.Object3D
+				| undefined;
+			const targetWorldMatrix = targetWorldMatrices[i];
+			if (threeJsObject && targetWorldMatrix)
+				selectedObjectWorldMatrices.set(
+					threeJsObject,
+					targetWorldMatrix,
+				);
+		});
+
+		return this.nodes.map((node, i) => {
+			const threeJsObject = node.convertedObject[this.viewport.id] as
+				| THREE.Object3D
+				| undefined;
+			const targetWorldMatrix = targetWorldMatrices[i];
+			if (!threeJsObject || !targetWorldMatrix) return;
+
+			let parentWorldMatrix = new THREE.Matrix4();
+			if (threeJsObject.parent) {
+				const selectedParentWorldMatrix =
+					selectedObjectWorldMatrices.get(threeJsObject.parent);
+				if (selectedParentWorldMatrix) {
+					parentWorldMatrix = selectedParentWorldMatrix;
+				} else {
+					threeJsObject.parent.updateWorldMatrix(true, false);
+					parentWorldMatrix = threeJsObject.parent.matrixWorld;
+				}
+			}
+
+			const parentWorldMatrixInverse =
+				this.invertMatrix(parentWorldMatrix);
+			if (!parentWorldMatrixInverse) return;
+
+			return parentWorldMatrixInverse.multiply(targetWorldMatrix);
+		});
+	}
+
+	private invertMatrix(matrix: THREE.Matrix4): THREE.Matrix4 | undefined {
+		const determinant = matrix.determinant();
+		if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-12)
+			return;
+
+		return matrix.clone().invert();
 	}
 
 	private keyPressCheck(key: string): boolean {
