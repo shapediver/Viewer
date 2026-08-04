@@ -417,8 +417,14 @@ export class InstanceGroupManager {
 		const group = this._groups.get(instanceHash);
 		if (!group) return;
 
+		(group.defaultMesh.material as THREE.Material).dispose();
 		group.defaultMesh.material = material;
 		group.defaultMesh.material.needsUpdate = true;
+		group.effectMeshes.forEach((mesh) => {
+			(mesh.material as THREE.Material).dispose();
+			mesh.material = material.clone();
+			(mesh.material as THREE.Material).needsUpdate = true;
+		});
 	}
 
 	public getDefaultMesh(

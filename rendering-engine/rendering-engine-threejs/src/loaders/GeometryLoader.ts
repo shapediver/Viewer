@@ -101,10 +101,16 @@ export class GeometryLoader implements ILoader {
 		geometry: GeometryData,
 	): THREE.Object3D {
 		// Resolve material for the instanced batch
-		const incomingMaterialData =
-			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
-				? geometry.attributeMaterial
-				: geometry.material;
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
 
 		// We need the primitive geometry (BufferGeometry) – load / retrieve it
 		const primitiveCacheKey =
