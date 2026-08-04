@@ -59,6 +59,7 @@ import {quat, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
+import {InstanceGroupManager} from "./managers/InstanceGroupManager";
 import {HTMLElementAnchorLoader} from "./loaders/HTMLElementAnchorLoader";
 import {LightLoader} from "./loaders/LightLoader";
 import {adaptShaders, MaterialLoader} from "./loaders/MaterialLoader";
@@ -111,6 +112,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _flagManager: FlagManager;
 	private readonly _geometryLoader: GeometryLoader;
+	private readonly _instanceGroupManager: InstanceGroupManager;
 	private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
 	private readonly _id: string;
 	private readonly _lightEngine: LightEngine;
@@ -260,6 +262,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// loaders
 		this._environmentMapLoader = new EnvironmentMapLoader(this);
 		this._materialLoader = new MaterialLoader(this);
+		this._instanceGroupManager = new InstanceGroupManager(this);
 		this._geometryLoader = new GeometryLoader(this);
 		this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
 		this._lightLoader = new LightLoader(this);
@@ -636,6 +639,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public get pulseEffectManager(): PulseEffectManager {
 		return this._pulseEffectManager;
+	}
+
+	public get instanceGroupManager(): InstanceGroupManager {
+		return this._instanceGroupManager;
+	}
 	}
 
 	public get gridColor(): Color {

@@ -19,6 +19,16 @@ export const removeData = (
 
 	switch (true) {
 		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
+			// Instanced-geometry placeholder: delegate removal to InstanceGroupManager
+			if (dataObject.userData.isInstanced) {
+				const instanceNode = dataObject.userData
+					.instanceNode as ITreeNode | undefined;
+				if (instanceNode)
+					renderingEngine.instanceGroupManager.removeNode(
+						instanceNode,
+					);
+				break;
+			}
 			dataObject.traverse((o) => {
 				if (dataObject.id !== o.id && o.userData.removed === true)
 					return;
