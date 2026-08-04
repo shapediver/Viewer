@@ -278,6 +278,7 @@ import {type IDraggingParameterApi} from "./interfaces/parameter/IDraggingParame
 import {type IDrawingParameterApi} from "./interfaces/parameter/IDrawingParameterApi";
 import {type IFileParameterApi} from "./interfaces/parameter/IFileParameterApi";
 import {type IGumballTransformParameterApi} from "./interfaces/parameter/IGumballTransformParameterApi";
+import {type IInteractionParameterApi} from "./interfaces/parameter/IInteractionParameterApi";
 import {type IParameterApi} from "./interfaces/parameter/IParameterApi";
 import {type IRectangleTransformParameterApi} from "./interfaces/parameter/IRectangleTransformParameterApi";
 import {type ISelectionParameterApi} from "./interfaces/parameter/ISelectionParameterApi";
@@ -516,6 +517,7 @@ export type {DraggingParameterValue,
 	IOutputApi,
 	IOutputApiData,
 	IOutputEvent,
+	IInteractionParameterApi,
 	IParameterApi,
 	IParameterEvent,
 	IPrimitiveData,

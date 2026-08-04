@@ -313,6 +313,7 @@ import {
 import {type ICameraApi} from "./interfaces/camera/ICameraApi";
 import {type IOrthographicCameraApi} from "./interfaces/camera/IOrthographicCameraApi";
 import {type IPerspectiveCameraApi} from "./interfaces/camera/IPerspectiveCameraApi";
+import {type IPostProcessingApi} from "./interfaces/IPostProcessingApi";
 import {type IViewportApi} from "./interfaces/IViewportApi";
 import {type ILightApi} from "./interfaces/lights/ILightApi";
 import {type ILightSceneApi} from "./interfaces/lights/ILightSceneApi";
@@ -588,6 +589,7 @@ export type {DraggingParameterValue,
 	IPerspectiveCameraApi,
 	IPixelationEffectDefinition,
 	IPointLightApi,
+	IPostProcessingApi,
 	IPostProcessingEffectDefinition,
 	IPrimitiveData,
 	IRectangleTransformParameterProps,

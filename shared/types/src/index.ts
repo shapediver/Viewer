@@ -97,6 +97,7 @@ import {
 	type DrawingParameterValue,
 	IDrawingParameterJsonSchema,
 	type IDrawingParameterSettings,
+	type IControlSettings,
 	type IVisualizationSettings,
 	validateDrawingParameterSettings} from "./interfaces/parameter/IDrawingParametersSettings";
 import {
@@ -122,6 +123,12 @@ import {
 	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings} from "./interfaces/parameter/IInteractionParameterSettings";
 import {
+	type ICameraPlaneRestrictionDefinition,
+	type IGeometryRestrictionDefinition,
+	type ILineRestrictionDefinition,
+	type IPlaneRestrictionDefinition,
+	type IPointRestrictionDefinition,
+	type IRestrictionDefinition,
 	type RestrictionDefinition,
 	type Rotation} from "./interfaces/parameter/IRestrictionSettings";
 import {
@@ -298,6 +305,7 @@ export type {Color,
 	ICameraOptions,
 	IChromaticAberrationEffectDefinition,
 	IChunkData,
+	IControlSettings,
 	ICustomData,
 	IDepthOfFieldEffectDefinition,
 	IDotScreenEffectDefinition,
@@ -404,6 +412,12 @@ export type {Color,
 	IViewportSettingsSections,
 	IVignetteEffectDefinition,
 	IVisualizationSettings,
+	ICameraPlaneRestrictionDefinition,
+	IGeometryRestrictionDefinition,
+	ILineRestrictionDefinition,
+	IPlaneRestrictionDefinition,
+	IPointRestrictionDefinition,
+	IRestrictionDefinition,
 	MainEventTypes,
 	OrthographicCameraProperties,
 	PerspectiveCameraProperties,
