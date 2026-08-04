@@ -164,6 +164,7 @@ export class OutlineManager {
 			}
 			this._outlineEffect.selection.set(objects);
 		}
+		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
 	public selectedNodes(): ITreeNode[] {

@@ -6,7 +6,7 @@ import {RenderingEngine} from "../RenderingEngine";
 interface InstanceGroup {
 	instanceHash: string;
 	defaultMesh: THREE.InstancedMesh;
-	effectMeshes: Map<string, THREE.InstancedMesh>; // effectKey → mesh
+	effectMeshes: Map<string, THREE.InstancedMesh>; // sorted effect-key combination → mesh
 
 	// Default mesh slot tracking
 	nodeToIndex: Map<string, number>; // nodeId → slot index in defaultMesh
@@ -22,6 +22,7 @@ interface InstanceGroup {
 
 	// Effects each node participates in.
 	nodeEffects: Map<string, Set<string>>; // nodeId → effect keys
+	nodeEffectMeshKeys: Map<string, string>; // nodeId → effectMeshes key
 }
 
 /**
@@ -30,8 +31,8 @@ interface InstanceGroup {
  * Each group of primitives sharing the same geometry hash is represented by
  * one or more THREE.InstancedMesh objects:
  *  - defaultMesh: contains all instances that have no active post-processing effect
- *  - effectMeshes: lazily-created meshes that contain instances which participate
- *    in a specific post-processing effect (outline, bloom, …)
+ *  - effectMeshes: lazily-created meshes partitioned by the complete set of
+ *    post-processing effects an instance participates in (outline, bloom, …)
  *
  * All InstancedMeshes are direct children of `instancedRoot`, which must be
  * added to the THREE scene by the owner (RenderingEngine / SceneTreeManager).
@@ -100,6 +101,7 @@ export class InstanceGroupManager {
 				nodeVisible: new Map(),
 				nextColorIndex: 0,
 				nodeEffects: new Map(),
+				nodeEffectMeshKeys: new Map(),
 			};
 			this._groups.set(instanceHash, group);
 			this.instancedRoot.add(instancedMesh);
@@ -153,9 +155,9 @@ export class InstanceGroupManager {
 
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
-		(
-			group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[]
-		)[idx] = node;
+		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
+			idx
+		] = node;
 		group.count++;
 		group.defaultMesh.count = group.count;
 
@@ -191,7 +193,7 @@ export class InstanceGroupManager {
 		this._nodeToHash.delete(nodeId);
 
 		// Dispose empty groups
-		if (group.count === 0) {
+		if (group.nodeMatrices.size === 0) {
 			this._disposeGroup(group);
 			this._groups.delete(instanceHash);
 			return true;
@@ -200,9 +202,8 @@ export class InstanceGroupManager {
 	}
 
 	/**
-	 * Move a node's instance from the default mesh to a dedicated effect mesh.
-	 * Creates the effect mesh lazily. Returns it so it can be added to the
-	 * post-processing effect's selection set.
+	 * Add an effect to a node. Each node is held by exactly one mesh, keyed by
+	 * its complete effect set, so combining effects never renders it twice.
 	 */
 	public addToEffect(
 		node: ITreeNode,
@@ -215,74 +216,19 @@ export class InstanceGroupManager {
 		const group = this._groups.get(instanceHash);
 		if (!group) return null;
 
-		// Already in an effect mesh
 		const nodeEffects = group.nodeEffects.get(nodeId);
 		if (nodeEffects?.has(effectKey))
-			return group.effectMeshes.get(effectKey) ?? null;
-
-		// Lazily create effect mesh (shares geometry, but different material instance)
-		let effectMesh = group.effectMeshes.get(effectKey);
-		if (!effectMesh) {
-			// Clone the material so effect passes can override it independently
-			const effectMaterial = (
-				group.defaultMesh.material as THREE.Material
-			).clone();
-			effectMesh = new THREE.InstancedMesh(
-				group.defaultMesh.geometry,
-				effectMaterial,
-				8,
-			);
-			effectMesh.count = 0;
-			effectMesh.frustumCulled = false;
-			effectMesh.matrixAutoUpdate = false;
-			effectMesh.userData.instanceHash = instanceHash;
-			effectMesh.userData.effectKey = effectKey;
-			effectMesh.userData.instanceNodes = [] as (ITreeNode | undefined)[];
-			group.effectMeshes.set(effectKey, effectMesh);
-			this.instancedRoot.add(effectMesh);
-		}
-
-		// Remove from the default mesh only when entering the first effect.
-		if (!nodeEffects || nodeEffects.size === 0)
-			this._removeFromDefault(group, nodeId);
-
-		// Add to effect mesh
-		const matrix = this._getVisibleMatrix(group, nodeId);
-		const color = group.nodeColors.get(nodeId)!;
-		const effectIdx = effectMesh.count;
-
-		if (effectIdx >= effectMesh.instanceMatrix.count)
-			this._growMeshBuffers(effectMesh);
-
-		const tempMatrix = new THREE.Matrix4();
-		tempMatrix.fromArray(matrix);
-		effectMesh.setMatrixAt(effectIdx, tempMatrix);
-
-		if (effectMesh.instanceColor)
-			effectMesh.setColorAt(
-				effectIdx,
-				new THREE.Color().setRGB(color[0], color[1], color[2]),
-			);
-
-		effectMesh.count++;
-		(
-			effectMesh.userData.instanceNodes as (ITreeNode | undefined)[]
-		)[effectIdx] = node;
-
-		effectMesh.instanceMatrix.needsUpdate = true;
-		if (effectMesh.instanceColor)
-			effectMesh.instanceColor.needsUpdate = true;
+			return this._getEffectMesh(group, nodeId) ?? null;
 
 		const effects = nodeEffects ?? new Set<string>();
 		effects.add(effectKey);
 		group.nodeEffects.set(nodeId, effects);
-
-		return effectMesh;
+		this._moveToEffectMesh(group, node, nodeId, effects);
+		return this._getEffectMesh(group, nodeId) ?? null;
 	}
 
 	/**
-	 * Move a node's instance back from an effect mesh to the default mesh.
-	 * Disposes the effect mesh if it becomes empty.
+	 * Remove one effect from a node and move it to the matching remaining batch.
 	 */
 	public removeFromEffect(node: ITreeNode, effectKey: string): void {
 		const nodeId = node.id;
@@ -295,58 +241,13 @@ export class InstanceGroupManager {
 		const nodeEffects = group.nodeEffects.get(nodeId);
 		if (!nodeEffects?.has(effectKey)) return;
 
-		const effectMesh = group.effectMeshes.get(effectKey);
-		if (!effectMesh) return;
-
-		// Find position in effect mesh
-		const instanceNodes = effectMesh.userData.instanceNodes as (
-			| ITreeNode
-			| undefined
-		)[];
-		const effectIdx = instanceNodes.indexOf(node);
-		if (effectIdx === -1) return;
-
-		// Swap-and-pop from effect mesh
-		const lastEffectIdx = effectMesh.count - 1;
-		if (effectIdx !== lastEffectIdx) {
-			const lastNode = instanceNodes[lastEffectIdx]!;
-			const lastMatrix = this._getVisibleMatrix(group, lastNode.id);
-			const lastColor = group.nodeColors.get(lastNode.id)!;
-
-			const tempMatrix = new THREE.Matrix4();
-			tempMatrix.fromArray(lastMatrix);
-			effectMesh.setMatrixAt(effectIdx, tempMatrix);
-
-			if (effectMesh.instanceColor)
-				effectMesh.setColorAt(
-					effectIdx,
-					new THREE.Color().setRGB(
-						lastColor[0],
-						lastColor[1],
-						lastColor[2],
-					),
-				);
-
-			instanceNodes[effectIdx] = lastNode;
-		}
-
-		effectMesh.count--;
-		instanceNodes[lastEffectIdx] = undefined;
-		effectMesh.instanceMatrix.needsUpdate = true;
-		if (effectMesh.instanceColor)
-			effectMesh.instanceColor.needsUpdate = true;
-
 		nodeEffects.delete(effectKey);
 		if (nodeEffects.size === 0) {
 			group.nodeEffects.delete(nodeId);
+			this._removeFromEffectMesh(group, nodeId);
 			this._addBackToDefault(group, nodeId, node);
-		}
-
-		// Remove empty effect meshes
-		if (effectMesh.count === 0) {
-			this.instancedRoot.remove(effectMesh);
-			(effectMesh.material as THREE.Material).dispose();
-			group.effectMeshes.delete(effectKey);
+		} else {
+			this._moveToEffectMesh(group, node, nodeId, nodeEffects);
 		}
 	}
 
@@ -394,17 +295,8 @@ export class InstanceGroupManager {
 		if (defaultIndex !== undefined)
 			group.defaultMesh.setMatrixAt(defaultIndex, matrix4);
 
-		const effectKeys = group.nodeEffects.get(nodeId);
-		effectKeys?.forEach((effectKey) => {
-			const effectMesh = group.effectMeshes.get(effectKey);
-			const effectNodes = effectMesh?.userData.instanceNodes as
-				| (ITreeNode | undefined)[]
-				| undefined;
-			const effectIndex = effectNodes?.findIndex((n) => n?.id === nodeId) ?? -1;
-			if (effectMesh && effectIndex >= 0)
-				effectMesh.setMatrixAt(effectIndex, matrix4);
-			if (effectMesh) effectMesh.instanceMatrix.needsUpdate = true;
-		});
+		const effectMesh = this._getEffectMesh(group, nodeId);
+		if (effectMesh) this._setMeshMatrix(effectMesh, nodeId, matrix4);
 
 		group.defaultMesh.instanceMatrix.needsUpdate = true;
 	}
@@ -434,6 +326,15 @@ export class InstanceGroupManager {
 		return instanceHash
 			? this._groups.get(instanceHash)?.defaultMesh
 			: undefined;
+	}
+
+	/** Return the current, single effect mesh containing this node. */
+	public getEffectMeshForNode(
+		nodeId: string,
+	): THREE.InstancedMesh | undefined {
+		const instanceHash = this._nodeToHash.get(nodeId);
+		const group = instanceHash ? this._groups.get(instanceHash) : undefined;
+		return group ? this._getEffectMesh(group, nodeId) : undefined;
 	}
 
 	/** Returns all active InstancedMeshes (default + effect) for a node. */
@@ -497,12 +398,9 @@ export class InstanceGroupManager {
 		group.defaultMesh.count = group.count;
 		group.nodeToIndex.delete(nodeId);
 		group.indexToNode.delete(lastIdx);
-		(
-			group.defaultMesh.userData.instanceNodes as (
-				| ITreeNode
-				| undefined
-			)[]
-		)[lastIdx] = undefined;
+		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
+			lastIdx
+		] = undefined;
 
 		group.defaultMesh.instanceMatrix.needsUpdate = true;
 		if (group.defaultMesh.instanceColor)
@@ -533,12 +431,9 @@ export class InstanceGroupManager {
 
 		group.nodeToIndex.set(nodeId, newIdx);
 		group.indexToNode.set(newIdx, node);
-		(
-			group.defaultMesh.userData.instanceNodes as (
-				| ITreeNode
-				| undefined
-			)[]
-		)[newIdx] = node;
+		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
+			newIdx
+		] = node;
 		group.count++;
 		group.defaultMesh.count = group.count;
 
@@ -560,23 +455,140 @@ export class InstanceGroupManager {
 			group.defaultMesh.instanceMatrix.needsUpdate = true;
 		}
 
-		const effectKeys = group.nodeEffects.get(nodeId);
-		effectKeys?.forEach((effectKey) => {
-			const effectMesh = group.effectMeshes.get(effectKey);
-			if (effectMesh) {
-				const instanceNodes = effectMesh.userData.instanceNodes as (
-					| ITreeNode
-					| undefined
-				)[];
-				const effectIdx = instanceNodes.indexOf(node);
-				if (effectIdx !== -1) {
-					const tempMatrix = new THREE.Matrix4();
-					tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
-					effectMesh.setMatrixAt(effectIdx, tempMatrix);
-					effectMesh.instanceMatrix.needsUpdate = true;
-				}
-			}
-		});
+		const effectMesh = this._getEffectMesh(group, nodeId);
+		if (effectMesh) {
+			const tempMatrix = new THREE.Matrix4();
+			tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
+			this._setMeshMatrix(effectMesh, nodeId, tempMatrix);
+		}
+	}
+
+	private _moveToEffectMesh(
+		group: InstanceGroup,
+		node: ITreeNode,
+		nodeId: string,
+		effects: Set<string>,
+	): void {
+		if (group.nodeEffectMeshKeys.has(nodeId))
+			this._removeFromEffectMesh(group, nodeId);
+		else this._removeFromDefault(group, nodeId);
+
+		const effectMesh = this._getOrCreateEffectMesh(group, effects);
+		const effectIdx = effectMesh.count;
+		if (effectIdx >= effectMesh.instanceMatrix.count)
+			this._growMeshBuffers(effectMesh);
+
+		const matrix = new THREE.Matrix4().fromArray(
+			this._getVisibleMatrix(group, nodeId),
+		);
+		effectMesh.setMatrixAt(effectIdx, matrix);
+		const color = group.nodeColors.get(nodeId)!;
+		if (effectMesh.instanceColor)
+			effectMesh.setColorAt(
+				effectIdx,
+				new THREE.Color().setRGB(color[0], color[1], color[2]),
+			);
+
+		effectMesh.count++;
+		(effectMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
+			effectIdx
+		] = node;
+		effectMesh.instanceMatrix.needsUpdate = true;
+		if (effectMesh.instanceColor)
+			effectMesh.instanceColor.needsUpdate = true;
+		group.nodeEffectMeshKeys.set(nodeId, this._getEffectMeshKey(effects));
+	}
+
+	private _removeFromEffectMesh(group: InstanceGroup, nodeId: string): void {
+		const meshKey = group.nodeEffectMeshKeys.get(nodeId);
+		if (!meshKey) return;
+		const effectMesh = group.effectMeshes.get(meshKey);
+		if (!effectMesh) return;
+
+		const instanceNodes = effectMesh.userData.instanceNodes as (
+			| ITreeNode
+			| undefined
+		)[];
+		const effectIdx = instanceNodes.findIndex(
+			(node) => node?.id === nodeId,
+		);
+		if (effectIdx === -1) return;
+		const lastEffectIdx = effectMesh.count - 1;
+		if (effectIdx !== lastEffectIdx) {
+			const lastNode = instanceNodes[lastEffectIdx]!;
+			const matrix = new THREE.Matrix4().fromArray(
+				this._getVisibleMatrix(group, lastNode.id),
+			);
+			effectMesh.setMatrixAt(effectIdx, matrix);
+			const color = group.nodeColors.get(lastNode.id)!;
+			if (effectMesh.instanceColor)
+				effectMesh.setColorAt(
+					effectIdx,
+					new THREE.Color().setRGB(color[0], color[1], color[2]),
+				);
+			instanceNodes[effectIdx] = lastNode;
+		}
+
+		effectMesh.count--;
+		instanceNodes[lastEffectIdx] = undefined;
+		effectMesh.instanceMatrix.needsUpdate = true;
+		if (effectMesh.instanceColor)
+			effectMesh.instanceColor.needsUpdate = true;
+		group.nodeEffectMeshKeys.delete(nodeId);
+
+		if (effectMesh.count === 0) {
+			this.instancedRoot.remove(effectMesh);
+			(effectMesh.material as THREE.Material).dispose();
+			group.effectMeshes.delete(meshKey);
+		}
+	}
+
+	private _getOrCreateEffectMesh(
+		group: InstanceGroup,
+		effects: Set<string>,
+	): THREE.InstancedMesh {
+		const meshKey = this._getEffectMeshKey(effects);
+		let effectMesh = group.effectMeshes.get(meshKey);
+		if (effectMesh) return effectMesh;
+
+		effectMesh = new THREE.InstancedMesh(
+			group.defaultMesh.geometry,
+			(group.defaultMesh.material as THREE.Material).clone(),
+			8,
+		);
+		effectMesh.count = 0;
+		effectMesh.frustumCulled = false;
+		effectMesh.matrixAutoUpdate = false;
+		effectMesh.userData.instanceHash = group.instanceHash;
+		effectMesh.userData.effectKeys = [...effects].sort();
+		effectMesh.userData.instanceNodes = [] as (ITreeNode | undefined)[];
+		group.effectMeshes.set(meshKey, effectMesh);
+		this.instancedRoot.add(effectMesh);
+		return effectMesh;
+	}
+
+	private _getEffectMesh(
+		group: InstanceGroup,
+		nodeId: string,
+	): THREE.InstancedMesh | undefined {
+		const meshKey = group.nodeEffectMeshKeys.get(nodeId);
+		return meshKey ? group.effectMeshes.get(meshKey) : undefined;
+	}
+
+	private _getEffectMeshKey(effects: Set<string>): string {
+		return [...effects].sort().join("|");
+	}
+
+	private _setMeshMatrix(
+		mesh: THREE.InstancedMesh,
+		nodeId: string,
+		matrix: THREE.Matrix4,
+	): void {
+		const nodes = mesh.userData.instanceNodes as (ITreeNode | undefined)[];
+		const index = nodes.findIndex((node) => node?.id === nodeId);
+		if (index === -1) return;
+		mesh.setMatrixAt(index, matrix);
+		mesh.instanceMatrix.needsUpdate = true;
 	}
 
 	private _growMeshBuffers(mesh: THREE.InstancedMesh): void {
@@ -600,8 +612,7 @@ export class InstanceGroupManager {
 		}
 
 		// Grow the instanceNodes array too
-		if (!mesh.userData.instanceNodes)
-			mesh.userData.instanceNodes = [];
+		if (!mesh.userData.instanceNodes) mesh.userData.instanceNodes = [];
 	}
 
 	private _getVisibleMatrix(

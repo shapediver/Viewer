@@ -83,6 +83,7 @@ export class SelectiveBloomManager {
 				}
 			});
 		}
+		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
 	// #endregion Public Methods (5)
