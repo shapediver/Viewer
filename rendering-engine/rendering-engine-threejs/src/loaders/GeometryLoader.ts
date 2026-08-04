@@ -130,9 +130,11 @@ export class GeometryLoader implements ILoader {
 			useMorphTargets: false,
 			useMorphNormals: false,
 		};
-		const material = this._renderingEngine.materialLoader.load(
-			incomingMaterialData || geometry,
-			materialSettings,
+		const material = this.createInstancedMaterial(
+			this._renderingEngine.materialLoader.load(
+				incomingMaterialData || geometry,
+				materialSettings,
+			),
 		);
 		material.needsUpdate = false;
 
@@ -406,18 +408,20 @@ export class GeometryLoader implements ILoader {
 			if (!instanceMesh) return;
 
 			const attributes = instanceMesh.geometry.attributes;
-			const material = this._renderingEngine.materialLoader.load(
-				incomingMaterialData || geometry,
-				{
-					mode: geometry.mode,
-					useVertexTangents: attributes.tangent !== undefined,
-					useVertexColors:
-						attributes.color !== undefined &&
-						this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-					useFlatShading: attributes.normal === undefined,
-					useMorphTargets: false,
-					useMorphNormals: false,
-				},
+			const material = this.createInstancedMaterial(
+				this._renderingEngine.materialLoader.load(
+					incomingMaterialData || geometry,
+					{
+						mode: geometry.mode,
+						useVertexTangents: attributes.tangent !== undefined,
+						useVertexColors:
+							attributes.color !== undefined &&
+							this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+						useFlatShading: attributes.normal === undefined,
+						useMorphTargets: false,
+						useMorphNormals: false,
+					},
+				),
 			);
 			this._renderingEngine.instanceGroupManager.updateMaterial(
 				geometry.instanceHash,
@@ -479,6 +483,16 @@ export class GeometryLoader implements ILoader {
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);
+	}
+
+	private createInstancedMaterial(material: THREE.Material): THREE.Material {
+		const instanceMaterial = material.clone();
+		if (
+			"color" in instanceMaterial &&
+			instanceMaterial.color instanceof THREE.Color
+		)
+			instanceMaterial.color.setRGB(1, 1, 1);
+		return instanceMaterial;
 	}
 
 	public removeFromGeometryCache(id: string) {

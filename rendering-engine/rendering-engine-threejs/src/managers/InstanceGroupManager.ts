@@ -16,7 +16,9 @@ interface InstanceGroup {
 	// Per-node data for reconstruction after swap
 	nodeMatrices: Map<string, Float32Array>; // nodeId → flat column-major mat4
 	nodeColors: Map<string, [number, number, number]>; // nodeId → RGB
+	nodeColorIndices: Map<string, number>; // nodeId → source color index
 	nodeVisible: Map<string, boolean>; // nodeId → effective visibility
+	nextColorIndex: number;
 
 	// Which effect each node is in (if any)
 	nodeEffect: Map<string, string>; // nodeId → effectKey
@@ -94,7 +96,9 @@ export class InstanceGroupManager {
 				count: 0,
 				nodeMatrices: new Map(),
 				nodeColors: new Map(),
+				nodeColorIndices: new Map(),
 				nodeVisible: new Map(),
+				nextColorIndex: 0,
 				nodeEffect: new Map(),
 			};
 			this._groups.set(instanceHash, group);
@@ -111,9 +115,14 @@ export class InstanceGroupManager {
 
 		this._nodeToHash.set(nodeId, instanceHash);
 
-		// Resolve color: first entry in instanceColors that corresponds to this node,
-		// or white as fallback.
-		const colorRaw = geometry.instanceColors[group.count] ?? [1, 1, 1, 1];
+		// Keep the source color index independent from active mesh slots. Slots
+		// change when instances move to effects or are removed.
+		let colorIndex = group.nodeColorIndices.get(nodeId);
+		if (colorIndex === undefined) {
+			colorIndex = group.nextColorIndex++;
+			group.nodeColorIndices.set(nodeId, colorIndex);
+		}
+		const colorRaw = geometry.instanceColors[colorIndex] ?? [1, 1, 1, 1];
 		const rgb: [number, number, number] = [
 			Array.isArray(colorRaw) ? (colorRaw[0] as number) : 1,
 			Array.isArray(colorRaw) ? (colorRaw[1] as number) : 1,
@@ -176,6 +185,7 @@ export class InstanceGroupManager {
 		this._removeFromDefault(group, nodeId);
 		group.nodeMatrices.delete(nodeId);
 		group.nodeColors.delete(nodeId);
+		group.nodeColorIndices.delete(nodeId);
 		group.nodeVisible.delete(nodeId);
 		this._nodeToHash.delete(nodeId);
 
