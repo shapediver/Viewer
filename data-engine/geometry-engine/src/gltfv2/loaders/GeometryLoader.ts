@@ -192,7 +192,7 @@ export class GeometryLoader {
 
 		const geometryHash =
 			this._hashCreator.createMurmurHash(instanceContent);
-		const instanceHash = this._urlHash
+		const instanceHash = this._urlHash !== undefined
 			? this._urlHash + "_" + geometryHash
 			: geometryHash + "";
 

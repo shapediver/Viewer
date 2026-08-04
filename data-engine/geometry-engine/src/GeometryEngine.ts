@@ -205,7 +205,6 @@ export class GeometryEngine {
 						gltfHeader,
 						gltfBaseUrl,
 						taskEventId,
-						urlHash,
 					);
 				} else {
 					promise = new GLTF_v2Loader().load(
