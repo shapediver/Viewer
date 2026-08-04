@@ -137,7 +137,23 @@ export class GeometryLoader {
 	private canPrimitiveBeInstanced(primitive: IGLTF_v2_Primitive): {
 		instanceHash: string;
 		instance?: GeometryData;
-	} {
+	} | undefined {
+		// InstancedMesh is currently only safe for static triangle primitives.
+		// Morph targets, skinning, and material variants require per-node state
+		// that the instance-group renderer does not provide yet.
+		if ((primitive.mode ?? 4) !== 4) return;
+		if (primitive.targets && primitive.targets.length > 0) return;
+		if (
+			primitive.attributes.JOINTS_0 !== undefined ||
+			primitive.attributes.WEIGHTS_0 !== undefined
+		)
+			return;
+		if (
+			primitive.extensions &&
+			primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]
+		)
+			return;
+
 		let materialContent = "";
 		if (
 			primitive.material !== undefined &&
@@ -212,8 +228,7 @@ export class GeometryLoader {
 	): GeometryData | undefined {
 		const primitive = primitives[index];
 
-		const {instanceHash, instance} =
-			this.canPrimitiveBeInstanced(primitive);
+		const instancing = this.canPrimitiveBeInstanced(primitive);
 
 		let material = null;
 		if (primitive.material || primitive.material === 0)
@@ -221,12 +236,20 @@ export class GeometryLoader {
 
 		// Check cache first - important for scenes with many instances of same mesh
 		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
-		if (this._loaded[cacheKey])
-			return this.addInstance(this._loaded[cacheKey], cacheKey, material);
+		if (this._loaded[cacheKey]) {
+			if (instancing)
+				return this.addInstance(
+					this._loaded[cacheKey],
+					cacheKey,
+					material,
+				);
+			return this._loaded[cacheKey];
+		}
 
 		// check if there is already an instance with the same geometry and material and if so
 		// mark it as instantiable and return it
-		if (instance) return this.addInstance(instance, cacheKey, material);
+		if (instancing?.instance)
+			return this.addInstance(instancing.instance, cacheKey, material);
 
 		const attributes: {
 			[key: string]: AttributeData;
@@ -460,7 +483,7 @@ export class GeometryLoader {
 		}
 
 		geometryData.morphWeights = weights;
-		geometryData.instanceHash = instanceHash;
+		geometryData.instanceHash = instancing?.instanceHash;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
 
 		return geometryData;
