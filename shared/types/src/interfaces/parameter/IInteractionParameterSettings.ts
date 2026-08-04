@@ -52,8 +52,6 @@ export interface IInteractionParameterProps {
 	occludeBySceneGeometry?: boolean;
 	/** The presentation of the interaction parameter. (default: 'toolbar') */
 	presentation?: "widget" | "toolbar";
-	/** If true, the interaction parameter is automatically cleared after a parameter update. (default: false) */
-	autoClear?: boolean;
 	// #endregion Properties (2)
 }
 
@@ -108,7 +106,6 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 	activeMode: z.enum(["default", "activeOnStart", "alwaysActive"]).optional(),
 	occludeBySceneGeometry: optionalBoolean,
 	presentation: z.enum(["widget", "toolbar"]).optional(),
-	autoClear: optionalBoolean,
 });
 
 export const ISelectionParameterPropsJsonSchema = z
