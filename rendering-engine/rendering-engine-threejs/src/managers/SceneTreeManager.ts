@@ -358,6 +358,10 @@ export class SceneTreeManager implements IManager {
 		convertedObject.visible = isVisible;
 		convertedObject.applyTransformation(treeNode.nodeMatrix);
 		this._renderingEngine.instanceGroupManager.updateNode(treeNode);
+		this._renderingEngine.instanceGroupManager.setNodeVisible(
+			treeNode.id,
+			isVisibleInHierarchy,
+		);
 	}
 
 	public updateSceneTree(rootTreeNode: ITreeNode): void {

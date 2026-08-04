@@ -16,6 +16,7 @@ interface InstanceGroup {
 	// Per-node data for reconstruction after swap
 	nodeMatrices: Map<string, Float32Array>; // nodeId → flat column-major mat4
 	nodeColors: Map<string, [number, number, number]>; // nodeId → RGB
+	nodeVisible: Map<string, boolean>; // nodeId → effective visibility
 
 	// Which effect each node is in (if any)
 	nodeEffect: Map<string, string>; // nodeId → effectKey
@@ -93,6 +94,7 @@ export class InstanceGroupManager {
 				count: 0,
 				nodeMatrices: new Map(),
 				nodeColors: new Map(),
+				nodeVisible: new Map(),
 				nodeEffect: new Map(),
 			};
 			this._groups.set(instanceHash, group);
@@ -121,6 +123,7 @@ export class InstanceGroupManager {
 		const matrix = new Float32Array(node.worldMatrix);
 		group.nodeMatrices.set(nodeId, matrix);
 		group.nodeColors.set(nodeId, rgb);
+		group.nodeVisible.set(nodeId, true);
 
 		// Grow buffers if needed
 		if (group.count >= group.defaultMesh.instanceMatrix.count) {
@@ -173,6 +176,7 @@ export class InstanceGroupManager {
 		this._removeFromDefault(group, nodeId);
 		group.nodeMatrices.delete(nodeId);
 		group.nodeColors.delete(nodeId);
+		group.nodeVisible.delete(nodeId);
 		this._nodeToHash.delete(nodeId);
 
 		// Dispose empty groups
@@ -230,7 +234,7 @@ export class InstanceGroupManager {
 		this._removeFromDefault(group, nodeId);
 
 		// Add to effect mesh
-		const matrix = group.nodeMatrices.get(nodeId)!;
+		const matrix = this._getVisibleMatrix(group, nodeId);
 		const color = group.nodeColors.get(nodeId)!;
 		const effectIdx = effectMesh.count;
 
@@ -290,7 +294,7 @@ export class InstanceGroupManager {
 		const lastEffectIdx = effectMesh.count - 1;
 		if (effectIdx !== lastEffectIdx) {
 			const lastNode = instanceNodes[lastEffectIdx]!;
-			const lastMatrix = group.nodeMatrices.get(lastNode.id)!;
+			const lastMatrix = this._getVisibleMatrix(group, lastNode.id);
 			const lastColor = group.nodeColors.get(lastNode.id)!;
 
 			const tempMatrix = new THREE.Matrix4();
@@ -359,6 +363,35 @@ export class InstanceGroupManager {
 		this._refreshNodeMatrix(group, node);
 	}
 
+	/** Set effective visibility for one registered instance. */
+	public setNodeVisible(nodeId: string, visible: boolean): void {
+		const instanceHash = this._nodeToHash.get(nodeId);
+		if (!instanceHash) return;
+		const group = this._groups.get(instanceHash);
+		if (!group) return;
+
+		group.nodeVisible.set(nodeId, visible);
+		const matrix = this._getVisibleMatrix(group, nodeId);
+		const matrix4 = new THREE.Matrix4().fromArray(matrix);
+		const defaultIndex = group.nodeToIndex.get(nodeId);
+		if (defaultIndex !== undefined)
+			group.defaultMesh.setMatrixAt(defaultIndex, matrix4);
+
+		const effectKey = group.nodeEffect.get(nodeId);
+		if (effectKey !== undefined) {
+			const effectMesh = group.effectMeshes.get(effectKey);
+			const effectNodes = effectMesh?.userData.instanceNodes as
+				| (ITreeNode | undefined)[]
+				| undefined;
+			const effectIndex = effectNodes?.findIndex((n) => n?.id === nodeId) ?? -1;
+			if (effectMesh && effectIndex >= 0)
+				effectMesh.setMatrixAt(effectIndex, matrix4);
+			if (effectMesh) effectMesh.instanceMatrix.needsUpdate = true;
+		}
+
+		group.defaultMesh.instanceMatrix.needsUpdate = true;
+	}
+
 	/** Replace the shared material used by the non-effect instances in a group. */
 	public updateMaterial(
 		instanceHash: string | undefined,
@@ -402,7 +435,7 @@ export class InstanceGroupManager {
 		const lastIdx = group.count - 1;
 		if (index !== lastIdx) {
 			const lastNode = group.indexToNode.get(lastIdx)!;
-			const lastMatrix = group.nodeMatrices.get(lastNode.id)!;
+			const lastMatrix = this._getVisibleMatrix(group, lastNode.id);
 			const lastColor = group.nodeColors.get(lastNode.id)!;
 
 			const tempMatrix = new THREE.Matrix4();
@@ -450,7 +483,7 @@ export class InstanceGroupManager {
 		nodeId: string,
 		node: ITreeNode,
 	): void {
-		const matrix = group.nodeMatrices.get(nodeId)!;
+		const matrix = this._getVisibleMatrix(group, nodeId);
 		const color = group.nodeColors.get(nodeId)!;
 		const newIdx = group.count;
 
@@ -491,7 +524,7 @@ export class InstanceGroupManager {
 		const idx = group.nodeToIndex.get(nodeId);
 		if (idx !== undefined) {
 			const tempMatrix = new THREE.Matrix4();
-			tempMatrix.fromArray(matrix);
+			tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
 			group.defaultMesh.setMatrixAt(idx, tempMatrix);
 			group.defaultMesh.instanceMatrix.needsUpdate = true;
 		}
@@ -507,7 +540,7 @@ export class InstanceGroupManager {
 				const effectIdx = instanceNodes.indexOf(node);
 				if (effectIdx !== -1) {
 					const tempMatrix = new THREE.Matrix4();
-					tempMatrix.fromArray(matrix);
+					tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
 					effectMesh.setMatrixAt(effectIdx, tempMatrix);
 					effectMesh.instanceMatrix.needsUpdate = true;
 				}
@@ -538,6 +571,17 @@ export class InstanceGroupManager {
 		// Grow the instanceNodes array too
 		if (!mesh.userData.instanceNodes)
 			mesh.userData.instanceNodes = [];
+	}
+
+	private _getVisibleMatrix(
+		group: InstanceGroup,
+		nodeId: string,
+	): Float32Array {
+		if (group.nodeVisible.get(nodeId) !== false)
+			return group.nodeMatrices.get(nodeId)!;
+
+		const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
+		return new Float32Array(hidden.elements);
 	}
 
 	// #endregion Private Methods (4)
