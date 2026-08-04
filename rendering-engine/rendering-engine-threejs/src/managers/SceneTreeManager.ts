@@ -406,11 +406,13 @@ export class SceneTreeManager implements IManager {
 					oldObj,
 					this._renderingEngine.id,
 				);
-			this._scene.add(this._mainConvertedObject);				// Ensure the instanced-mesh root container is in the scene
-				if (!this._scene.getObjectByName("instancedRoot"))
-					this._scene.add(
-						this._renderingEngine.instanceGroupManager.instancedRoot,
-					);		}
+			this._scene.add(this._mainConvertedObject);
+			// Ensure the instanced-mesh root container is in the scene.
+			if (!this._scene.getObjectByName("instancedRoot"))
+				this._scene.add(
+					this._renderingEngine.instanceGroupManager.instancedRoot,
+				);
+		}
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
 		this.updateNode(rootTreeNode, this._mainConvertedObject);
