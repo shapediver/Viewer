@@ -256,8 +256,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 			ray.origin[2],
 		);
 
-		// For instanced geometry: use geometry.convertedObject (the InstancedMesh)
-		// rather than the SDObject, and map instanceId back to the correct node.
+		// For instanced geometry: use geometry.convertedObject (the default
+		// InstancedMesh) to find every batch in its group, then map instanceId back
+		// to the correct node. Instances with post-processing effects live in a
+		// separate batch from the default mesh.
 		const instantiableGeometry = Object.values(geometryData).find(
 			(g) => g.instantiable,
 		);
@@ -267,37 +269,40 @@ export class IntersectionEngine implements IIntersectionEngine {
 			] as THREE.InstancedMesh | undefined;
 			if (!instancedMesh) return;
 
-			// Skip if we already raycasted this mesh in the current intersect() call
-			if (this._processedInstancedMeshes.has(instancedMesh)) return;
-			this._processedInstancedMeshes.add(instancedMesh);
-
-			const intersectionThree = this._raycaster.intersectObject(
-				instancedMesh,
-				false,
-			);
-			if (intersectionThree.length === 0) return;
-
-			const instanceNodes = instancedMesh.userData.instanceNodes as
-				| (ITreeNode | undefined)[]
+			const instanceHash = instancedMesh.userData.instanceHash as
+				| string
 				| undefined;
+			const groupMeshes = instancedMesh.parent?.children.filter(
+				(child): child is THREE.InstancedMesh =>
+					child instanceof THREE.InstancedMesh &&
+					child.userData.instanceHash === instanceHash,
+			) ?? [instancedMesh];
 
-			let intersections = intersectionThree.map((i) => {
-				const hitNode =
-					i.instanceId !== undefined && instanceNodes
-						? (instanceNodes[i.instanceId] ?? node)
-						: node;
-				return {
-					distance: i.distance,
-					point: [i.point.x, i.point.y, i.point.z] as [
-						number,
-						number,
-						number,
-					],
-					node: hitNode,
-					geometryData: instantiableGeometry,
-					type: "RayTracingIntersection" as const,
-				} as IRayTracingIntersection;
+			let intersections = groupMeshes.flatMap((mesh) => {
+				if (this._processedInstancedMeshes.has(mesh)) return [];
+				this._processedInstancedMeshes.add(mesh);
+				const instanceNodes = mesh.userData.instanceNodes as
+					| (ITreeNode | undefined)[]
+					| undefined;
+				return this._raycaster.intersectObject(mesh, false).map((i) => {
+					const hitNode =
+						i.instanceId !== undefined && instanceNodes
+							? (instanceNodes[i.instanceId] ?? node)
+							: node;
+					return {
+						distance: i.distance,
+						point: [i.point.x, i.point.y, i.point.z] as [
+							number,
+							number,
+							number,
+						],
+						node: hitNode,
+						geometryData: instantiableGeometry,
+						type: "RayTracingIntersection" as const,
+					} as IRayTracingIntersection;
+				});
 			});
+			if (intersections.length === 0) return;
 
 			if (filterCriteria) {
 				intersections = intersections.filter((i) => {
