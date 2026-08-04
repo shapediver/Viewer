@@ -1,0 +1,192 @@
+name: Full tests preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-tests-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: tests
+
+    env:
+      VIEWER_TEST_PREFIX: v3/test-runs/${{ github.run_id }}
+      VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/test-runs/${{ github.run_id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 11.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck workflow scripts
+        run: npm run check:scripts
+
+      - name: Generate build data
+        shell: bash
+        run: |
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          GITHUB_SHA="${{ github.sha }}" \
+          GITHUB_REF_NAME="${{ github.ref_name }}" \
+          npx ts-node -T scripts/release/generate-build-data.ts
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Build test assets
+        run: pnpm build-tests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Deploy isolated preview test-cdn
+        run: npm run deploy-tests
+
+      - name: Install Playwright browser
+        run: npm run test-install
+
+      - name: Smoke test preview test-cdn
+        run: npm run test:smoke-cdn
+
+      - name: Collect prepare failure artifacts
+        if: failure()
+        shell: bash
+        run: |
+          rm -rf .github-artifacts/failure
+          mkdir -p .github-artifacts/failure/tests
+
+          if [[ -f lerna-debug.log ]]; then
+            cp lerna-debug.log .github-artifacts/failure/
+          fi
+
+          if [[ -d tests/playwright-report ]]; then
+            cp -R tests/playwright-report .github-artifacts/failure/tests/
+          fi
+
+          if [[ -d tests/test-results ]]; then
+            cp -R tests/test-results .github-artifacts/failure/tests/
+          fi
+
+      - name: Upload prepare failure artifacts
+        if: failure()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: full-tests-preview-prepare-failure-artifacts
+          if-no-files-found: ignore
+          compression-level: 0
+          path: .github-artifacts/failure/
+
+  playwright:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - shard: 1/8
+            shard_name: 1-of-8
+          - shard: 2/8
+            shard_name: 2-of-8
+          - shard: 3/8
+            shard_name: 3-of-8
+          - shard: 4/8
+            shard_name: 4-of-8
+          - shard: 5/8
+            shard_name: 5-of-8
+          - shard: 6/8
+            shard_name: 6-of-8
+          - shard: 7/8
+            shard_name: 7-of-8
+          - shard: 8/8
+            shard_name: 8-of-8
+
+    env:
+      VIEWER_TEST_BASE_URL: https://viewer.shapediver.com/v3/test-runs/${{ github.run_id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 11.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: npm run test-install
+
+      - name: Run Playwright shard ${{ matrix.shard }} against preview test-cdn
+        run: npx playwright test --config tests/playwright.config.ts --shard=${{ matrix.shard }}
+
+      - name: Collect shard failure artifacts
+        if: failure()
+        shell: bash
+        run: |
+          rm -rf .github-artifacts/failure
+          mkdir -p .github-artifacts/failure/tests
+
+          if [[ -d tests/playwright-report ]]; then
+            cp -R tests/playwright-report .github-artifacts/failure/tests/
+          fi
+
+          if [[ -d tests/test-results ]]; then
+            cp -R tests/test-results .github-artifacts/failure/tests/
+          fi
+
+      - name: Upload shard failure artifacts
+        if: failure()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: full-tests-preview-playwright-shard-${{ matrix.shard_name }}-failure-artifacts
+          if-no-files-found: ignore
+          compression-level: 0
+          path: .github-artifacts/failure/

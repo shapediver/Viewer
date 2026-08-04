@@ -1,7 +1,19 @@
 import {deployToS3Folder, execPromise, getDirectories} from "../utils/utils";
 
 function resolveTestPrefix(): string {
-	const target = (process.env.VIEWER_TEST_ENV || "production").trim().toLowerCase();
+	const previewPrefix = process.env.VIEWER_TEST_PREFIX?.trim();
+	if (previewPrefix) {
+		if (!/^v3(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)+$/.test(previewPrefix)) {
+			throw new Error(
+				"VIEWER_TEST_PREFIX must be a v3 path containing only letters, numbers, dots, underscores, and hyphens.",
+			);
+		}
+		return previewPrefix;
+	}
+
+	const target = (process.env.VIEWER_TEST_ENV || "production")
+		.trim()
+		.toLowerCase();
 	switch (target) {
 		case "development":
 			return "v3/development";
