@@ -165,6 +165,7 @@ export class GeometryLoader implements ILoader {
 		placeholder.userData.instanceHash = geometry.instanceHash;
 		placeholder.userData.instanceNode = parentNode; // strong ref for effects
 		placeholder.userData.cacheKey = geometry.id + "_" + geometry.version;
+		placeholder.userData.primitiveCacheKey = primitiveCacheKey;
 		return placeholder;
 	}
 

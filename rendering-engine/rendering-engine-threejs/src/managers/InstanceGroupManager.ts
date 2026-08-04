@@ -170,13 +170,13 @@ export class InstanceGroupManager {
 	 * Unregister a node from its instance group.
 	 * Uses swap-and-pop so the InstancedMesh never has gaps.
 	 */
-	public removeNode(node: ITreeNode): void {
+	public removeNode(node: ITreeNode): boolean {
 		const nodeId = node.id;
 		const instanceHash = this._nodeToHash.get(nodeId);
-		if (!instanceHash) return;
+		if (!instanceHash) return false;
 
 		const group = this._groups.get(instanceHash);
-		if (!group) return;
+		if (!group) return false;
 
 		// Remove from effect first if applicable
 		const effectKeys = [...(group.nodeEffects.get(nodeId) ?? [])];
@@ -195,7 +195,9 @@ export class InstanceGroupManager {
 			this.instancedRoot.remove(group.defaultMesh);
 			group.effectMeshes.forEach((m) => this.instancedRoot.remove(m));
 			this._groups.delete(instanceHash);
+			return true;
 		}
+		return false;
 	}
 
 	/**

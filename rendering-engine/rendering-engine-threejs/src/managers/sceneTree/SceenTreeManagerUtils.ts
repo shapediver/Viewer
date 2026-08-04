@@ -23,9 +23,12 @@ export const removeData = (
 			if (dataObject.userData.isInstanced) {
 				const instanceNode = dataObject.userData
 					.instanceNode as ITreeNode | undefined;
-				if (instanceNode)
-					renderingEngine.instanceGroupManager.removeNode(
-						instanceNode,
+				if (
+					instanceNode &&
+					renderingEngine.instanceGroupManager.removeNode(instanceNode)
+				)
+					renderingEngine.geometryLoader.removeFromPrimitiveCache(
+						dataObject.userData.primitiveCacheKey as string,
 					);
 				break;
 			}
