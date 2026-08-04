@@ -50,6 +50,7 @@ export class SelectiveBloomManager {
 	}
 
 	public updateSelectiveBloomEffectObjects() {
+		if (!this._selectiveBloomEffect) return;
 		this._selectiveBloomEffect.selection.clear();
 		const selectedNodes = new Set(this._selectiveBloomNodes);
 		this._instancedBloomNodes.forEach((node) => {
