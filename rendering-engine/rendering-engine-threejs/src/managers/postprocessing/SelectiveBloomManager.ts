@@ -33,6 +33,7 @@ export class SelectiveBloomManager {
 		const index = this._selectiveBloomNodes.indexOf(node);
 		if (index !== -1) this._selectiveBloomNodes.splice(index, 1);
 
+		this._removeInstancedEffects(node);
 		this.updateSelectiveBloomEffectObjects();
 		return index !== -1;
 	}
@@ -46,16 +47,52 @@ export class SelectiveBloomManager {
 		this._selectiveBloomEffect.selection.clear();
 
 		for (let i = 0; i < this._selectiveBloomNodes.length; i++) {
-			(
-				this._selectiveBloomNodes[i].convertedObject[
-					this._renderingEngine.id
-				] as THREE.Object3D
-			).traverse((o) => {
-				if (o instanceof THREE.Mesh)
+			const bloomNode = this._selectiveBloomNodes[i];
+			const object = bloomNode.convertedObject[
+				this._renderingEngine.id
+			] as THREE.Object3D | undefined;
+			if (!object) continue;
+
+			object.traverse((o) => {
+				if (o.userData.isInstanced) {
+					const instanceNode = o.userData
+						.instanceNode as ITreeNode | undefined;
+					if (!instanceNode) return;
+					const effectMesh =
+						this._renderingEngine.instanceGroupManager.addToEffect(
+							instanceNode,
+							"bloom",
+						);
+					if (effectMesh)
+						this._selectiveBloomEffect.selection.add(effectMesh);
+				} else if (o instanceof THREE.Mesh) {
 					this._selectiveBloomEffect.selection.add(o);
+				}
 			});
 		}
 	}
 
 	// #endregion Public Methods (5)
+
+	// #region Private Methods (1)
+
+	private _removeInstancedEffects(node: ITreeNode): void {
+		const object = node.convertedObject[
+			this._renderingEngine.id
+		] as THREE.Object3D | undefined;
+		if (!object) return;
+		object.traverse((o) => {
+			if (!o.userData.isInstanced) return;
+			const instanceNode = o.userData.instanceNode as
+				| ITreeNode
+				| undefined;
+			if (instanceNode)
+				this._renderingEngine.instanceGroupManager.removeFromEffect(
+					instanceNode,
+					"bloom",
+				);
+		});
+	}
+
+	// #endregion Private Methods (1)
 }

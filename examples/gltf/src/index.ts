@@ -33,6 +33,7 @@ let promise: Promise<void>;
 	viewer.groundPlaneVisibility = false;
 	viewer.gridVisibility = false;
 	viewer.environmentMap = ENVIRONMENT_MAP.NEUTRAL;
+	viewer.showStatistics = true;
 	promise = new Promise<void>((resolve) => {
 		addListener(EVENTTYPE.TASK.TASK_END, (e) => {
 			const taskEvent = e as ITaskEvent;
@@ -41,7 +42,7 @@ let promise: Promise<void>;
 	});
 	await promise;
 
-	// await ((<any>window).addGLTF(`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb`));
+	await (<any>window).addGLTF(`http://localhost:8080/sphereInstances.glb`);
 })();
 
 (<any>window).addGLTF = async (uri: string) => {
