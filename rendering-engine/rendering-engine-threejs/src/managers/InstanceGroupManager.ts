@@ -192,8 +192,7 @@ export class InstanceGroupManager {
 
 		// Dispose empty groups
 		if (group.count === 0) {
-			this.instancedRoot.remove(group.defaultMesh);
-			group.effectMeshes.forEach((m) => this.instancedRoot.remove(m));
+			this._disposeGroup(group);
 			this._groups.delete(instanceHash);
 			return true;
 		}
@@ -450,13 +449,7 @@ export class InstanceGroupManager {
 
 	/** Release group-owned scene objects and references when the renderer closes. */
 	public clear(): void {
-		this._groups.forEach((group) => {
-			this.instancedRoot.remove(group.defaultMesh);
-			group.effectMeshes.forEach((mesh) => {
-				this.instancedRoot.remove(mesh);
-				(mesh.material as THREE.Material).dispose();
-			});
-		});
+		this._groups.forEach((group) => this._disposeGroup(group));
 		this._groups.clear();
 		this._nodeToHash.clear();
 		this.instancedRoot.clear();
@@ -620,6 +613,15 @@ export class InstanceGroupManager {
 
 		const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
 		return new Float32Array(hidden.elements);
+	}
+
+	private _disposeGroup(group: InstanceGroup): void {
+		this.instancedRoot.remove(group.defaultMesh);
+		(group.defaultMesh.material as THREE.Material).dispose();
+		group.effectMeshes.forEach((mesh) => {
+			this.instancedRoot.remove(mesh);
+			(mesh.material as THREE.Material).dispose();
+		});
 	}
 
 	// #endregion Private Methods (4)
