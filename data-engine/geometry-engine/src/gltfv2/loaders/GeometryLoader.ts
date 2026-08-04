@@ -185,6 +185,7 @@ export class GeometryLoader {
 
 		const instanceContent = JSON.stringify({
 			attributes: primitive.attributes,
+			extensions: primitive.extensions,
 			indices: primitive.indices,
 			material: materialContent,
 			mode: primitive.mode,
