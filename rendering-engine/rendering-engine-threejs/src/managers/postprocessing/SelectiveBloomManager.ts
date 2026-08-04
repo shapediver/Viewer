@@ -8,6 +8,7 @@ export class SelectiveBloomManager {
 
 	private _selectiveBloomEffect!: SelectiveBloomEffect;
 	private _selectiveBloomNodes: ITreeNode[] = [];
+	private _instancedBloomNodes = new Set<ITreeNode>();
 
 	// #endregion Properties (2)
 
@@ -25,6 +26,10 @@ export class SelectiveBloomManager {
 	}
 
 	public clearSelection(): void {
+		this._instancedBloomNodes.forEach((node) =>
+			this._removeInstancedEffects(node),
+		);
+		this._instancedBloomNodes.clear();
 		this._selectiveBloomNodes = [];
 		this.updateSelectiveBloomEffectObjects();
 	}
@@ -34,6 +39,7 @@ export class SelectiveBloomManager {
 		if (index !== -1) this._selectiveBloomNodes.splice(index, 1);
 
 		this._removeInstancedEffects(node);
+		this._instancedBloomNodes.delete(node);
 		this.updateSelectiveBloomEffectObjects();
 		return index !== -1;
 	}
@@ -45,6 +51,11 @@ export class SelectiveBloomManager {
 
 	public updateSelectiveBloomEffectObjects() {
 		this._selectiveBloomEffect.selection.clear();
+		const selectedNodes = new Set(this._selectiveBloomNodes);
+		this._instancedBloomNodes.forEach((node) => {
+			if (!selectedNodes.has(node)) this._removeInstancedEffects(node);
+		});
+		this._instancedBloomNodes.clear();
 
 		for (let i = 0; i < this._selectiveBloomNodes.length; i++) {
 			const bloomNode = this._selectiveBloomNodes[i];
@@ -63,8 +74,10 @@ export class SelectiveBloomManager {
 							instanceNode,
 							"bloom",
 						);
-					if (effectMesh)
+					if (effectMesh) {
 						this._selectiveBloomEffect.selection.add(effectMesh);
+						this._instancedBloomNodes.add(instanceNode);
+					}
 				} else if (o instanceof THREE.Mesh) {
 					this._selectiveBloomEffect.selection.add(o);
 				}
