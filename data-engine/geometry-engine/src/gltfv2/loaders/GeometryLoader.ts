@@ -153,6 +153,16 @@ export class GeometryLoader {
 			primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]
 		)
 			return;
+		if (
+			primitive.material !== undefined &&
+			this._content.materials &&
+			this._content.materials[primitive.material]
+		) {
+			const material = this._content.materials[primitive.material];
+			const alpha = material.pbrMetallicRoughness?.baseColorFactor?.[3];
+			if (material.alphaMode && material.alphaMode !== "OPAQUE") return;
+			if (alpha !== undefined && alpha !== 1) return;
+		}
 
 		let materialContent = "";
 		if (
