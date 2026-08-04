@@ -384,7 +384,6 @@ export class GeometryLoader implements ILoader {
 	public updateGeometryMaterial(geometry: GeometryData): void {
 		const cacheKey = geometry.id + "_" + geometry.version;
 		const cached = this._geometryCache[cacheKey];
-		if (!cached) return;
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
@@ -395,6 +394,36 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.attributeMaterial;
 		} else {
 			incomingMaterialData = geometry.material;
+		}
+
+		if (!cached) {
+			if (!geometry.instantiable) return;
+
+			const instanceMesh =
+				this._renderingEngine.instanceGroupManager.getDefaultMesh(
+					geometry.instanceHash,
+				);
+			if (!instanceMesh) return;
+
+			const attributes = instanceMesh.geometry.attributes;
+			const material = this._renderingEngine.materialLoader.load(
+				incomingMaterialData || geometry,
+				{
+					mode: geometry.mode,
+					useVertexTangents: attributes.tangent !== undefined,
+					useVertexColors:
+						attributes.color !== undefined &&
+						this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+					useFlatShading: attributes.normal === undefined,
+					useMorphTargets: false,
+					useMorphNormals: false,
+				},
+			);
+			this._renderingEngine.instanceGroupManager.updateMaterial(
+				geometry.instanceHash,
+				material,
+			);
+			return;
 		}
 
 		const threeGeometry = cached.obj.geometry;

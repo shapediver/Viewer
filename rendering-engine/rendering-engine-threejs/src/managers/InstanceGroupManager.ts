@@ -359,6 +359,27 @@ export class InstanceGroupManager {
 		this._refreshNodeMatrix(group, node);
 	}
 
+	/** Replace the shared material used by the non-effect instances in a group. */
+	public updateMaterial(
+		instanceHash: string | undefined,
+		material: THREE.Material,
+	): void {
+		if (!instanceHash) return;
+		const group = this._groups.get(instanceHash);
+		if (!group) return;
+
+		group.defaultMesh.material = material;
+		group.defaultMesh.material.needsUpdate = true;
+	}
+
+	public getDefaultMesh(
+		instanceHash: string | undefined,
+	): THREE.InstancedMesh | undefined {
+		return instanceHash
+			? this._groups.get(instanceHash)?.defaultMesh
+			: undefined;
+	}
+
 	/** Returns all active InstancedMeshes (default + effect) for a node. */
 	public getMeshesForNode(nodeId: string): THREE.InstancedMesh[] {
 		const instanceHash = this._nodeToHash.get(nodeId);
