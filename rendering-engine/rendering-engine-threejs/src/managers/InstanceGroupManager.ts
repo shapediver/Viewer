@@ -188,7 +188,8 @@ export class InstanceGroupManager {
 		this._removeFromDefault(group, nodeId);
 		group.nodeMatrices.delete(nodeId);
 		group.nodeColors.delete(nodeId);
-		group.nodeColorIndices.delete(nodeId);
+		// Keep the source-color assignment so recreating the same tree node gets
+		// the color it had before removal. The map is released with its group.
 		group.nodeVisible.delete(nodeId);
 		this._nodeToHash.delete(nodeId);
 
