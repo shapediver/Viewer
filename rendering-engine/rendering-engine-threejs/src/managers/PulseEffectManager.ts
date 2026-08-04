@@ -6,7 +6,7 @@ import {
 	type IPulseEffectDefinition,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
-import {RenderingEngine} from "../RenderingEngine";
+import {type RenderingEngine} from "../RenderingEngine";
 
 type GeometryType =
 	| THREE.Mesh
@@ -82,6 +82,12 @@ export class PulseEffectManager {
 			object.material = current.baseMaterial;
 		current.material.dispose();
 		this._pulsedObjects.delete(object);
+	}
+
+	/** Restore an object's original material when it leaves the scene. */
+	public remove(object: GeometryType): void {
+		this.clear(object);
+		this.updateAnimation();
 	}
 
 	public dispose(): void {

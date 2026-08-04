@@ -2,7 +2,8 @@ import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	type ITreeNode,
-	type ITreeNodeData} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNodeData,
+} from "@shapediver/viewer.shared.node-tree";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
@@ -31,6 +32,7 @@ export const removeData = (
 					o instanceof THREE.LineLoop
 				) {
 					renderingEngine.scene.remove(o);
+					renderingEngine.pulseEffectManager.remove(o);
 
 					renderingEngine.geometryLoader.removeFromGeometryCache(
 						o.geometry.userData.cacheKey,
