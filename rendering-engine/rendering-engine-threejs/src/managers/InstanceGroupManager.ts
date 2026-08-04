@@ -424,6 +424,20 @@ export class InstanceGroupManager {
 		return result;
 	}
 
+	/** Release group-owned scene objects and references when the renderer closes. */
+	public clear(): void {
+		this._groups.forEach((group) => {
+			this.instancedRoot.remove(group.defaultMesh);
+			group.effectMeshes.forEach((mesh) => {
+				this.instancedRoot.remove(mesh);
+				(mesh.material as THREE.Material).dispose();
+			});
+		});
+		this._groups.clear();
+		this._nodeToHash.clear();
+		this.instancedRoot.clear();
+	}
+
 	// #endregion Public Methods (7)
 
 	// #region Private Methods (4)
