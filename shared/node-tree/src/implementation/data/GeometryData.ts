@@ -4,7 +4,9 @@ import {
 	type IGeometryData,
 	type IMaterialAbstractData,
 	type IPrimitiveData,
-	PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
+	type IPulseEffectDefinition,
+	PRIMITIVE_MODE,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec3} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
@@ -248,6 +250,7 @@ export class GeometryData
 	#boundingBox: IBox = new Box();
 	#castShadow: boolean = true;
 	#effectMaterials: {material: IMaterialAbstractData; token: string}[] = [];
+	#effectPulses: {effect: IPulseEffectDefinition; token: string}[] = [];
 	#material: IMaterialAbstractData | null = null;
 	#materialVariants: {material: IMaterialAbstractData; variant: number}[] =
 		[];
@@ -319,6 +322,13 @@ export class GeometryData
 		token: string;
 	}[] {
 		return this.#effectMaterials;
+	}
+
+	public get effectPulses(): {
+		effect: IPulseEffectDefinition;
+		token: string;
+	}[] {
+		return this.#effectPulses;
 	}
 
 	public get material(): IMaterialAbstractData | null {

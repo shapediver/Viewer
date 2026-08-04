@@ -727,6 +727,15 @@ importers:
         specifier: 3.4.4
         version: 3.4.4
 
+  examples/interaction-pulse:
+    dependencies:
+      '@shapediver/viewer':
+        specifier: workspace:*
+        version: link:../../api/default
+      '@shapediver/viewer.features.interaction':
+        specifier: workspace:*
+        version: link:../../features/interaction
+
   examples/post-processing:
     dependencies:
       '@shapediver/viewer':

@@ -2,21 +2,27 @@ import {
 	addListener,
 	type IMaterialAbstractData,
 	type IViewportApi,
-	removeListener} from "@shapediver/viewer";
+	removeListener,
+} from "@shapediver/viewer";
 import {type ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	Logger} from "@shapediver/viewer.shared.services";
+	Logger,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 
 import {type IHoverEvent} from "../../interfaces/events/IHoverEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
-import {type IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
+import {
+	type IInteractionEffect,
+	isPulseEffect,
+} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
@@ -283,6 +289,7 @@ export class HoverManager extends AbstractInteractionManager {
 			this.#groupedNodes
 				? this.#groupedNodes[this.#nodes.length - 1]
 				: undefined,
+			!this.interactionEffect || !isPulseEffect(this.interactionEffect),
 		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, {
@@ -342,6 +349,7 @@ export class HoverManager extends AbstractInteractionManager {
 			this.viewport,
 			node,
 			this.#groupedNodes[index],
+			!this.interactionEffect || !isPulseEffect(this.interactionEffect),
 		);
 
 		// Store the grouped nodes before removing from arrays for the event

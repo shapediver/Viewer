@@ -1,5 +1,6 @@
 import {mat4} from "gl-matrix";
 import {type IBox} from "../math/IBox";
+import {type IPulseEffectDefinition} from "../renderingEngine/IPulseEffectDefinition";
 import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
 import {type IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
@@ -89,6 +90,7 @@ export interface IGeometryData extends ITreeNodeData {
 	boundingBox: IBox;
 	castShadow: boolean;
 	effectMaterials: {material: IMaterialAbstractData; token: string}[];
+	effectPulses: {effect: IPulseEffectDefinition; token: string}[];
 	material: IMaterialAbstractData | null;
 	materialVariants: {material: IMaterialAbstractData; variant: number}[];
 	morphWeights: number[];

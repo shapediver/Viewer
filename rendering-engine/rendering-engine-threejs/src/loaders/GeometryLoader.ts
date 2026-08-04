@@ -2,17 +2,20 @@ import {
 	AttributeData,
 	GeometryData,
 	InstanceData,
-	MaterialGemData} from "@shapediver/viewer.shared.node-tree";
+	MaterialGemData,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
-	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError,
+} from "@shapediver/viewer.shared.services";
 import {
+	MATERIAL_SIDE,
+	PRIMITIVE_MODE,
+	RENDERER_TYPE,
 	type IAttributeData,
 	type IMaterialAbstractData,
 	type IPrimitiveData,
-	MATERIAL_SIDE,
-	PRIMITIVE_MODE,
-	RENDERER_TYPE} from "@shapediver/viewer.shared.types";
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {type ILoader} from "../interfaces/ILoader";
@@ -233,6 +236,9 @@ export class GeometryLoader implements ILoader {
 		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial)
 			? geometry.receiveShadow
 			: false;
+		this._renderingEngine.pulseEffectManager.update(geometry, [
+			threeGeometryObject,
+		]);
 
 		return threeGeometryObject;
 	}
@@ -385,6 +391,7 @@ export class GeometryLoader implements ILoader {
 			cached.obj,
 		];
 		geometryObjects.forEach((geometryObject) => {
+			this._renderingEngine.pulseEffectManager.clear(geometryObject);
 			geometryObject.material = material;
 
 			// Clear instance colors when in ATTRIBUTES mode to prevent them
@@ -395,6 +402,10 @@ export class GeometryLoader implements ILoader {
 				}
 			}
 		});
+		this._renderingEngine.pulseEffectManager.update(
+			geometry,
+			geometryObjects,
+		);
 	}
 
 	/**
@@ -412,6 +423,9 @@ export class GeometryLoader implements ILoader {
 			this._geometryObjects.set(geometry, geometryObjects);
 		}
 		geometryObjects.add(object as GeometryType);
+		this._renderingEngine.pulseEffectManager.update(geometry, [
+			object as GeometryType,
+		]);
 	}
 
 	public removeFromGeometryCache(id: string) {

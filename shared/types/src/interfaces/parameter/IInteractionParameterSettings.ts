@@ -1,6 +1,7 @@
 import {z} from "../../zod";
 import {type IMaterialStandardDataPropertiesDefinition} from "../data/material/IMaterialStandardData";
 import {type IOutlineEffectDefinition} from "../renderingEngine/IPostProcessingEffectDefinitions";
+import {type IPulseEffectDefinition} from "../renderingEngine/IPulseEffectDefinition";
 import {IDrawingParameterVisualizationSettingsJsonSchema} from "./IDrawingParametersSettings";
 
 // #region Type aliases (1)
@@ -16,6 +17,7 @@ export type InteractionEffect =
 	| string
 	| IMaterialStandardDataPropertiesDefinition
 	| IOutlineEffectDefinition
+	| IPulseEffectDefinition
 	| null;
 
 // #endregion Type aliases (1)
@@ -82,8 +84,15 @@ const optionalBoolean = z.preprocess((val) => {
 	return val;
 }, z.boolean().optional());
 
+const pulseEffectSchema = z.object({
+	type: z.literal("pulse"),
+	color: z.union([z.string(), z.array(z.number())]).optional(),
+	intensity: z.number().min(0).optional(),
+	pulseSpeed: z.number().positive().optional(),
+});
+
 const interactionEffectSchema = z
-	.union([z.string(), z.object({}).passthrough()])
+	.union([z.string(), pulseEffectSchema, z.object({}).passthrough()])
 	.nullable();
 
 const IGeneralInteractionParameterJsonSchema = z.object({

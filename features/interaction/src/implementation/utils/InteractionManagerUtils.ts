@@ -9,7 +9,8 @@ import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
 import {
 	type IInteractionEffect,
-	type IInteractionEffectUtils} from "../../interfaces/utils/IInteractionEffectUtils";
+	type IInteractionEffectUtils,
+} from "../../interfaces/utils/IInteractionEffectUtils";
 import {InteractionData} from "../InteractionData";
 
 export class InteractionManagerUtils {
@@ -125,9 +126,10 @@ export class InteractionManagerUtils {
 		viewport: IViewportApi,
 		node: ITreeNode,
 		groupedNodes?: ITreeNode[],
+		updateNodes: boolean = true,
 	): void {
-		viewport.updateNode(node);
-		if (groupedNodes) {
+		if (updateNodes) viewport.updateNode(node);
+		if (updateNodes && groupedNodes) {
 			groupedNodes.forEach((n) => viewport.updateNode(n));
 		}
 		viewport.render();

@@ -3,7 +3,8 @@ import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import * as TWEEN from "@tweenjs/tween.js";
 import {
 	type AnimationFrameCallback,
-	type IAnimationFrameEngine} from "../interfaces/IAnimationFrameEngine";
+	type IAnimationFrameEngine,
+} from "../interfaces/IAnimationFrameEngine";
 
 TWEEN.Tween.autoStartOnUpdate = true;
 
@@ -51,7 +52,6 @@ export class AnimationFrameEngine implements IAnimationFrameEngine {
 		if (!this._animationFrameCallbacks[token]) return false;
 
 		delete this._animationFrameCallbacks[token];
-		(<any>this._animationFrameCallbacks[token]) = undefined;
 
 		return true;
 	}
@@ -70,8 +70,12 @@ export class AnimationFrameEngine implements IAnimationFrameEngine {
 
 		const runningAnimation = this.#animationEngine.update(deltaTime);
 
-		for (let a in this._animationFrameCallbacks)
-			this._animationFrameCallbacks[a](time, deltaTime, runningAnimation);
+		// Callbacks may unregister themselves while running. Iterate over a
+		// snapshot so removing the final pulse (or any other callback) cannot
+		// leave an undefined entry in this frame's iteration.
+		for (const callback of Object.values(this._animationFrameCallbacks))
+			if (typeof callback === "function")
+				callback(time, deltaTime, runningAnimation);
 	}
 
 	// #endregion Private Methods (1)

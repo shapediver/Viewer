@@ -67,6 +67,7 @@ import {CameraManager} from "./managers/CameraManager";
 import {EnvironmentGeometryManager} from "./managers/EnvironmentGeometryManager";
 import {FlagManager} from "./managers/FlagManager";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
+import {PulseEffectManager} from "./managers/PulseEffectManager";
 import {RenderingManager} from "./managers/RenderingManager";
 import {SceneTracingManager} from "./managers/SceneTracingManager";
 import {createSDTFOverview} from "./managers/sceneTree/SDTFUtils";
@@ -116,6 +117,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private readonly _lightLoader: LightLoader;
 	private readonly _materialLoader: MaterialLoader;
 	private readonly _postProcessingManager: PostProcessingManager;
+	private readonly _pulseEffectManager: PulseEffectManager;
 	private readonly _renderingManager: RenderingManager;
 	private readonly _sceneTracingManager: SceneTracingManager;
 	private readonly _sceneTreeManager: SceneTreeManager;
@@ -244,6 +246,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._sceneTreeManager = new SceneTreeManager(this);
 		this._renderingManager = new RenderingManager(this);
 		this._postProcessingManager = new PostProcessingManager(this);
+		this._pulseEffectManager = new PulseEffectManager(this);
 		this._settingsManager = new SettingsManager(this, {
 			sessionSettingsMode:
 				prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST,
@@ -629,6 +632,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public get geometryLoader(): GeometryLoader {
 		return this._geometryLoader;
+	}
+
+	public get pulseEffectManager(): PulseEffectManager {
+		return this._pulseEffectManager;
 	}
 
 	public get gridColor(): Color {
@@ -1053,6 +1060,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public async close(): Promise<void> {
 		this._closed = true;
+		this._pulseEffectManager.dispose();
 		this._lightEngine.close();
 		this._cameraEngine.close();
 		this._renderer.clear(true, true, true);

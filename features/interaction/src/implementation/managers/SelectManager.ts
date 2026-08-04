@@ -1,18 +1,26 @@
-import {type IMaterialAbstractData, type IViewportApi} from "@shapediver/viewer";
+import {
+	type IMaterialAbstractData,
+	type IViewportApi,
+} from "@shapediver/viewer";
 import {type ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	Logger} from "@shapediver/viewer.shared.services";
+	Logger,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 
 import {type ISelectEvent} from "../../interfaces/events/ISelectEvent";
 import {INTERACTION_STATE} from "../../interfaces/IInteractionEngine";
 import {type IInteractionFilterOptions} from "../../interfaces/IInteractionManager";
-import {type IInteractionEffect} from "../../interfaces/utils/IInteractionEffectUtils";
+import {
+	type IInteractionEffect,
+	isPulseEffect,
+} from "../../interfaces/utils/IInteractionEffectUtils";
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
@@ -233,6 +241,7 @@ export class SelectManager extends AbstractInteractionManager {
 			this.viewport,
 			this.#node,
 			this.#groupedNodes,
+			!this.interactionEffect || !isPulseEffect(this.interactionEffect),
 		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, {
@@ -287,6 +296,7 @@ export class SelectManager extends AbstractInteractionManager {
 			this.viewport!,
 			this.#node!,
 			this.#groupedNodes,
+			!this.interactionEffect || !isPulseEffect(this.interactionEffect),
 		);
 
 		this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, {

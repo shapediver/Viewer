@@ -1,0 +1,15 @@
+{
+	"name": "@shapediver/viewer.examples.interaction-pulse",
+	"version": "3.21.0-dev.50",
+	"private": true,
+	"main": "dist/bundle.js",
+	"scripts": {
+		"check": "tsc --noEmit",
+		"build-dev": "bash ../scripts/build-dev.sh",
+		"build": "bash ../scripts/build.sh"
+	},
+	"dependencies": {
+		"@shapediver/viewer": "workspace:*",
+		"@shapediver/viewer.features.interaction": "workspace:*"
+	}
+}

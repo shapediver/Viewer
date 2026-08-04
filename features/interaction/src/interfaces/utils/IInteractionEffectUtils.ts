@@ -1,16 +1,25 @@
-import {type IOutlineEffectDefinition, type IViewportApi} from "@shapediver/viewer";
+import {
+	type IOutlineEffectDefinition,
+	type IPulseEffectDefinition,
+	type IViewportApi,
+} from "@shapediver/viewer";
 import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {type IMaterialAbstractData} from "@shapediver/viewer.shared.types";
 
 export type IInteractionEffect =
 	| IMaterialAbstractData
-	| IOutlineEffectDefinition;
+	| IOutlineEffectDefinition
+	| IPulseEffectDefinition;
 
 export const isMaterialData = (
 	effect: IInteractionEffect,
 ): effect is IMaterialAbstractData => {
 	return (effect as IMaterialAbstractData).materialOutput !== undefined;
 };
+
+export const isPulseEffect = (
+	effect: IInteractionEffect,
+): effect is IPulseEffectDefinition => effect.type === "pulse";
 export interface IInteractionEffectUtils {
 	// #region Public Methods (2)
 

@@ -10,6 +10,7 @@ import {
 	type IInteractionEffect,
 	type IInteractionEffectUtils,
 	isMaterialData,
+	isPulseEffect,
 } from "../../interfaces/utils/IInteractionEffectUtils";
 
 export class InteractionEffectUtils implements IInteractionEffectUtils {
@@ -62,6 +63,23 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 			};
 			applyEffect(node);
 			this.#materialEffectGeometries.set(token, affectedGeometries);
+		} else if (isPulseEffect(effect)) {
+			const affectedGeometries = new Set<GeometryData>();
+			const applyEffect = (node: ITreeNode) => {
+				for (const data of node.data) {
+					if (
+						!(data instanceof GeometryData) ||
+						affectedGeometries.has(data)
+					)
+						continue;
+					affectedGeometries.add(data);
+					data.effectPulses.push({effect, token});
+					this.#viewport?.updateGeometryData(data);
+				}
+				for (const child of node.children) applyEffect(child);
+			};
+			applyEffect(node);
+			this.#materialEffectGeometries.set(token, affectedGeometries);
 		} else {
 			if (!this.#viewport) return token;
 			const stringified = JSON.stringify(effect);
@@ -100,6 +118,15 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 				if (geometryData.effectMaterials[index].token !== token)
 					continue;
 				geometryData.effectMaterials.splice(index, 1);
+				removed = true;
+			}
+			for (
+				let index = geometryData.effectPulses.length - 1;
+				index >= 0;
+				index--
+			) {
+				if (geometryData.effectPulses[index].token !== token) continue;
+				geometryData.effectPulses.splice(index, 1);
 				removed = true;
 			}
 			if (removed) this.#viewport?.updateGeometryData(geometryData);
