@@ -1,328 +1,332 @@
-name: full-tests
+name: Full Tests
 
 on:
-    schedule:
-        - cron: "0 2 * * *"
-    workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 permissions:
-    contents: read
+  contents: read
 
 concurrency:
-    group: full-playwright-latest-test-cdn
-    cancel-in-progress: false
+  group: full-playwright-latest-test-cdn
+  cancel-in-progress: false
 
 jobs:
-    check-full-tests:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        outputs:
-            full_tests_done: ${{ steps.check.outputs.full_tests_done }}
+  check-full-tests:
+    name: Check full tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      full_tests_done: ${{ steps.check.outputs.full_tests_done }}
 
-        steps:
-            - name: Check full Playwright status for this commit
-              id: check
-              shell: bash
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  COUNT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/statuses" \
-                    --jq '[.[] | select(.context == "viewer/full-playwright" and .state == "success")] | length')
-
-                  if [[ "$COUNT" -gt 0 ]]; then
-                    echo "full_tests_done=true" >> "$GITHUB_OUTPUT"
-                    echo "Full Playwright suite already passed for ${GITHUB_SHA}."
-                  else
-                    echo "full_tests_done=false" >> "$GITHUB_OUTPUT"
-                    echo "Full Playwright suite has not passed for ${GITHUB_SHA}; running it now."
-                  fi
-
-    prepare:
-        needs: check-full-tests
-        if: needs.check-full-tests.outputs.full_tests_done != 'true'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            id-token: write
-        environment: production
-
+    steps:
+      - name: Check full Playwright status for this commit
+        id: check
+        shell: bash
         env:
-            VIEWER_TEST_ENV: production
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COUNT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/statuses" \
+            --jq '[.[] | select(.context == "viewer/full-playwright" and .state == "success")] | length')
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-              with:
-                  fetch-depth: 0
-                  persist-credentials: false
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "full_tests_done=true" >> "$GITHUB_OUTPUT"
+            echo "Full Playwright suite already passed for ${GITHUB_SHA}."
+          else
+            echo "full_tests_done=false" >> "$GITHUB_OUTPUT"
+            echo "Full Playwright suite has not passed for ${GITHUB_SHA}; running it now."
+          fi
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
-              with:
-                  version: 11.3.0
+  prepare:
+    name: Prepare
+    needs: check-full-tests
+    if: needs.check-full-tests.outputs.full_tests_done != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: production
 
-            - name: Setup Node.js
-              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-              with:
-                  node-version: 24.12.0
-                  cache: pnpm
-                  registry-url: https://registry.npmjs.org
+    env:
+      VIEWER_TEST_ENV: production
 
-            - name: Pin npm
-              run: npm i -g npm@11.6.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-            - name: Show tool versions
-              run: |
-                  node -v
-                  npm -v
-                  pnpm -v
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 11.3.0
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
 
-            - name: Typecheck workflow scripts
-              run: npm run check:scripts
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
 
-            - name: Generate build data
-              shell: bash
-              run: |
-                  BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-                  GITHUB_SHA="${{ github.sha }}" \
-                  GITHUB_REF_NAME="${{ github.ref_name }}" \
-                  npx ts-node -T scripts/release/generate-build-data.ts
+      - name: Show tool versions
+        run: |
+          node -v
+          npm -v
+          pnpm -v
 
-            - name: Build packages
-              run: pnpm build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: Build test assets
-              run: pnpm build-tests
+      - name: Typecheck workflow scripts
+        run: npm run check:scripts
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: us-east-1
+      - name: Generate build data
+        shell: bash
+        run: |
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          GITHUB_SHA="${{ github.sha }}" \
+          GITHUB_REF_NAME="${{ github.ref_name }}" \
+          npx ts-node -T scripts/release/generate-build-data.ts
 
-            - name: Deploy latest test-cdn for full Playwright
-              run: npm run deploy-tests
-              env:
-                  VIEWER_TEST_ENV: production
+      - name: Build packages
+        run: pnpm build
 
-            - name: Install Playwright browser
-              run: npm run test-install
+      - name: Build test assets
+        run: pnpm build-tests
 
-            - name: Smoke test latest test-cdn
-              run: npm run test:smoke-cdn
-              env:
-                  VIEWER_TEST_ENV: production
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
-            - name: Collect prepare failure artifacts
-              if: failure()
-              shell: bash
-              run: |
-                  rm -rf .github-artifacts/failure
-                  mkdir -p .github-artifacts/failure/tests
-
-                  if [[ -f lerna-debug.log ]]; then
-                    cp lerna-debug.log .github-artifacts/failure/
-                  fi
-
-                  if [[ -d tests/playwright-report ]]; then
-                    cp -R tests/playwright-report .github-artifacts/failure/tests/
-                  fi
-
-                  if [[ -d tests/test-results ]]; then
-                    cp -R tests/test-results .github-artifacts/failure/tests/
-                  fi
-
-            - name: Upload prepare failure artifacts
-              if: failure()
-              timeout-minutes: 5
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: full-tests-prepare-failure-artifacts
-                  if-no-files-found: ignore
-                  compression-level: 0
-                  path: .github-artifacts/failure/
-
-    playwright:
-        needs:
-            - check-full-tests
-            - prepare
-        if: needs.check-full-tests.outputs.full_tests_done != 'true'
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: true
-            matrix:
-                include:
-                    - shard: 1/8
-                      shard_name: 1-of-8
-                    - shard: 2/8
-                      shard_name: 2-of-8
-                    - shard: 3/8
-                      shard_name: 3-of-8
-                    - shard: 4/8
-                      shard_name: 4-of-8
-                    - shard: 5/8
-                      shard_name: 5-of-8
-                    - shard: 6/8
-                      shard_name: 6-of-8
-                    - shard: 7/8
-                      shard_name: 7-of-8
-                    - shard: 8/8
-                      shard_name: 8-of-8
-
+      - name: Deploy latest test-cdn for full Playwright
+        run: npm run deploy-tests
         env:
-            VIEWER_TEST_ENV: production
+          VIEWER_TEST_ENV: production
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-              with:
-                  fetch-depth: 0
-                  persist-credentials: false
+      - name: Install Playwright browser
+        run: npm run test-install
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
-              with:
-                  version: 11.3.0
+      - name: Smoke test latest test-cdn
+        run: npm run test:smoke-cdn
+        env:
+          VIEWER_TEST_ENV: production
 
-            - name: Setup Node.js
-              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-              with:
-                  node-version: 24.12.0
-                  cache: pnpm
-                  registry-url: https://registry.npmjs.org
+      - name: Collect prepare failure artifacts
+        if: failure()
+        shell: bash
+        run: |
+          rm -rf .github-artifacts/failure
+          mkdir -p .github-artifacts/failure/tests
 
-            - name: Pin npm
-              run: npm i -g npm@11.6.2
+          if [[ -f lerna-debug.log ]]; then
+            cp lerna-debug.log .github-artifacts/failure/
+          fi
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+          if [[ -d tests/playwright-report ]]; then
+            cp -R tests/playwright-report .github-artifacts/failure/tests/
+          fi
 
-            - name: Install Playwright browser
-              run: npm run test-install
+          if [[ -d tests/test-results ]]; then
+            cp -R tests/test-results .github-artifacts/failure/tests/
+          fi
 
-            - name: Run Playwright shard ${{ matrix.shard }} against latest test-cdn
-              run: npx playwright test --config tests/playwright.config.ts --shard=${{ matrix.shard }}
-              env:
-                  VIEWER_TEST_ENV: production
+      - name: Upload prepare failure artifacts
+        if: failure()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: full-tests-prepare-failure-artifacts
+          if-no-files-found: ignore
+          compression-level: 0
+          path: .github-artifacts/failure/
 
-            - name: Collect shard failure artifacts
-              if: failure()
-              shell: bash
-              run: |
-                  rm -rf .github-artifacts/failure
-                  mkdir -p .github-artifacts/failure/tests
+  playwright:
+    name: Playwright
+    needs:
+      - check-full-tests
+      - prepare
+    if: needs.check-full-tests.outputs.full_tests_done != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - shard: 1/8
+            shard_name: 1-of-8
+          - shard: 2/8
+            shard_name: 2-of-8
+          - shard: 3/8
+            shard_name: 3-of-8
+          - shard: 4/8
+            shard_name: 4-of-8
+          - shard: 5/8
+            shard_name: 5-of-8
+          - shard: 6/8
+            shard_name: 6-of-8
+          - shard: 7/8
+            shard_name: 7-of-8
+          - shard: 8/8
+            shard_name: 8-of-8
 
-                  if [[ -d tests/playwright-report ]]; then
-                    cp -R tests/playwright-report .github-artifacts/failure/tests/
-                  fi
+    env:
+      VIEWER_TEST_ENV: production
 
-                  if [[ -d tests/test-results ]]; then
-                    cp -R tests/test-results .github-artifacts/failure/tests/
-                  fi
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-            - name: Upload shard failure artifacts
-              if: failure()
-              timeout-minutes: 5
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: full-tests-playwright-shard-${{ matrix.shard_name }}-failure-artifacts
-                  if-no-files-found: ignore
-                  compression-level: 0
-                  path: .github-artifacts/failure/
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 11.3.0
 
-    record-full-test-status:
-        needs:
-            - check-full-tests
-            - prepare
-            - playwright
-        if: always()
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            statuses: write
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24.12.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
 
-        steps:
-            - name: Record full Playwright status
-              shell: bash
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  if [[ "${{ needs.check-full-tests.outputs.full_tests_done }}" == "true" ]]; then
-                    echo "Full Playwright suite was already recorded for ${GITHUB_SHA}."
-                    exit 0
-                  fi
+      - name: Pin npm
+        run: npm i -g npm@11.6.2
 
-                  if [[ "${{ needs.prepare.result }}" == "success" && "${{ needs.playwright.result }}" == "success" ]]; then
-                    STATE="success"
-                    DESCRIPTION="Full Playwright suite passed"
-                  else
-                    STATE="failure"
-                    DESCRIPTION="Full Playwright suite failed"
-                  fi
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-                  gh api "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-                    -f state="$STATE" \
-                    -f context="viewer/full-playwright" \
-                    -f description="$DESCRIPTION" \
-                    -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+      - name: Install Playwright browser
+        run: npm run test-install
 
-                  [[ "$STATE" == "success" ]]
+      - name: Run Playwright shard ${{ matrix.shard }} against latest test-cdn
+        run: npx playwright test --config tests/playwright.config.ts --shard=${{ matrix.shard }}
+        env:
+          VIEWER_TEST_ENV: production
 
-            - name: Notify Slack
-              if: always() && needs.check-full-tests.outputs.full_tests_done != 'true'
-              continue-on-error: true
-              shell: bash
-              env:
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                  STATUS: ${{ job.status }}
-                  WORKFLOW: ${{ github.workflow }}
-                  BRANCH: ${{ github.ref_name }}
-                  SHA: ${{ github.sha }}
-                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                  COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
-              run: |
-                  if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
-                    echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
-                    exit 0
-                  fi
+      - name: Collect shard failure artifacts
+        if: failure()
+        shell: bash
+        run: |
+          rm -rf .github-artifacts/failure
+          mkdir -p .github-artifacts/failure/tests
 
-                  case "$STATUS" in
-                    success)
-                      COLOR="#36a64f"
-                      EMOJI=":white_check_mark:"
-                      STATUS_LABEL="Succeeded"
-                      ;;
-                    failure)
-                      COLOR="#cc0000"
-                      EMOJI=":x:"
-                      STATUS_LABEL="Failed"
-                      ;;
-                    cancelled)
-                      COLOR="#808080"
-                      EMOJI=":warning:"
-                      STATUS_LABEL="Cancelled"
-                      ;;
-                    *)
-                      COLOR="#808080"
-                      EMOJI=":warning:"
-                      STATUS_LABEL="$STATUS"
-                      ;;
-                  esac
+          if [[ -d tests/playwright-report ]]; then
+            cp -R tests/playwright-report .github-artifacts/failure/tests/
+          fi
 
-                  SHORT_SHA="${SHA:0:7}"
-                  PAYLOAD="$(jq -cn \
-                    --arg color "$COLOR" \
-                    --arg emoji "$EMOJI" \
-                    --arg statusLabel "$STATUS_LABEL" \
-                    --arg workflow "$WORKFLOW" \
-                    --arg branch "$BRANCH" \
-                    --arg commitUrl "$COMMIT_URL" \
-                    --arg shortSha "$SHORT_SHA" \
-                    --arg runUrl "$RUN_URL" \
-                    '{attachments:[{color:$color,blocks:[{type:"section",text:{type:"mrkdwn",text:($emoji + " *Full tests finished*")}},{type:"section",fields:[{type:"mrkdwn",text:("*Status:*\n" + $statusLabel)},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl}]}]}]}')"
+          if [[ -d tests/test-results ]]; then
+            cp -R tests/test-results .github-artifacts/failure/tests/
+          fi
 
-                  curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."
+      - name: Upload shard failure artifacts
+        if: failure()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: full-tests-playwright-shard-${{ matrix.shard_name }}-failure-artifacts
+          if-no-files-found: ignore
+          compression-level: 0
+          path: .github-artifacts/failure/
+
+  record-full-test-status:
+    name: Record full test status
+    needs:
+      - check-full-tests
+      - prepare
+      - playwright
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+
+    steps:
+      - name: Record full Playwright status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${{ needs.check-full-tests.outputs.full_tests_done }}" == "true" ]]; then
+            echo "Full Playwright suite was already recorded for ${GITHUB_SHA}."
+            exit 0
+          fi
+
+          if [[ "${{ needs.prepare.result }}" == "success" && "${{ needs.playwright.result }}" == "success" ]]; then
+            STATE="success"
+            DESCRIPTION="Full Playwright suite passed"
+          else
+            STATE="failure"
+            DESCRIPTION="Full Playwright suite failed"
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -f state="$STATE" \
+            -f context="viewer/full-playwright" \
+            -f description="$DESCRIPTION" \
+            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          [[ "$STATE" == "success" ]]
+
+      - name: Notify Slack
+        if: always() && needs.check-full-tests.outputs.full_tests_done != 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: ${{ job.status }}
+          WORKFLOW: ${{ github.workflow }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+        run: |
+          if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+            echo "SLACK_WEBHOOK_URL not configured; skipping Slack notification."
+            exit 0
+          fi
+
+          case "$STATUS" in
+            success)
+              COLOR="#36a64f"
+              EMOJI=":white_check_mark:"
+              STATUS_LABEL="Succeeded"
+              ;;
+            failure)
+              COLOR="#cc0000"
+              EMOJI=":x:"
+              STATUS_LABEL="Failed"
+              ;;
+            cancelled)
+              COLOR="#808080"
+              EMOJI=":warning:"
+              STATUS_LABEL="Cancelled"
+              ;;
+            *)
+              COLOR="#808080"
+              EMOJI=":warning:"
+              STATUS_LABEL="$STATUS"
+              ;;
+          esac
+
+          SHORT_SHA="${SHA:0:7}"
+          PAYLOAD="$(jq -cn \
+            --arg color "$COLOR" \
+            --arg emoji "$EMOJI" \
+            --arg statusLabel "$STATUS_LABEL" \
+            --arg workflow "$WORKFLOW" \
+            --arg branch "$BRANCH" \
+            --arg commitUrl "$COMMIT_URL" \
+            --arg shortSha "$SHORT_SHA" \
+            --arg runUrl "$RUN_URL" \
+            '{attachments:[{color:$color,blocks:[{type:"section",text:{type:"mrkdwn",text:($emoji + " *Full tests finished*")}},{type:"section",fields:[{type:"mrkdwn",text:("*Status:*\n" + $statusLabel)},{type:"mrkdwn",text:("*Workflow:*\n" + $workflow)},{type:"mrkdwn",text:("*Branch:*\n`" + $branch + "`")},{type:"mrkdwn",text:("*Commit:*\n<" + $commitUrl + "|`" + $shortSha + "`>")} ]},{type:"actions",elements:[{type:"button",text:{type:"plain_text",text:"View Run"},url:$runUrl}]}]}]}')"
+
+          curl -sS --max-time 15 -X POST -H "Content-type: application/json" --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null || echo "Slack notification failed."

@@ -1,4 +1,4 @@
-name: Full tests preview
+name: Full Tests Preview
 
 on:
   workflow_dispatch:
@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   prepare:
+    name: Prepare
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -109,10 +110,11 @@ jobs:
           path: .github-artifacts/failure/
 
   playwright:
+    name: Playwright
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - shard: 1/8
