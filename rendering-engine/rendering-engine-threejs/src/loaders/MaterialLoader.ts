@@ -340,8 +340,10 @@ export class MaterialLoader implements ILoader {
 
 		if (mode === ENVIRONMENT_MAP_PBR_MODE.LEGACY) {
 			materialWithDefines.defines[ENVIRONMENT_MAP_PBR_MODE.LEGACY] = "";
+			materialWithDefines.defines["SDV_LEGACY_DFG_APPROX"] = "";
 		} else {
 			delete materialWithDefines.defines[ENVIRONMENT_MAP_PBR_MODE.LEGACY];
+			delete materialWithDefines.defines["SDV_LEGACY_DFG_APPROX"];
 		}
 
 		material.needsUpdate = true;
@@ -2345,6 +2347,138 @@ export const adaptShaders = () => {
 			THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
 				"reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );",
 				legacyEnvironmentMapPbrMix,
+			);
+	}
+
+	// In legacy PBR mode, restore the analytical DFG approximation from three.js r162
+	// instead of the DFG lookup texture introduced in r181.
+	if (
+		!THREE.ShaderChunk.lights_physical_pars_fragment.includes(
+			"SDV_LEGACY_DFG_APPROX",
+		)
+	) {
+		// Restore the DFGApprox function that was removed in r181
+		const dfgApproxFunction = `
+			#ifdef SDV_LEGACY_DFG_APPROX
+			vec2 DFGApprox( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
+				float dotNV = saturate( dot( normal, viewDir ) );
+				const vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );
+				const vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );
+				vec4 r = roughness * c0 + c1;
+				float a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
+				vec2 fab = vec2( - 1.04, 1.04 ) * a004 + r.zw;
+				return fab;
+			}
+			#endif`;
+
+		// Inject DFGApprox function right before EnvironmentBRDF
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"vec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {",
+				dfgApproxFunction +
+					"\n\nvec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {",
+			);
+
+		// Replace the dfgLUT lookup in EnvironmentBRDF with a legacy/modern branch
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"\tvec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;\n\treturn specularColor * fab.x + specularF90 * fab.y;",
+				`\t#ifdef SDV_LEGACY_DFG_APPROX
+				vec2 fab = DFGApprox( normal, viewDir, roughness );
+			#else
+				vec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;
+			#endif
+				return specularColor * fab.x + specularF90 * fab.y;`,
+			);
+
+		// Replace the dfgLUT lookup in computeMultiscattering with a legacy/modern branch
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tvec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;\n\t#ifdef USE_IRIDESCENCE",
+				`\tfloat dotNV = saturate( dot( normal, viewDir ) );
+			#ifdef SDV_LEGACY_DFG_APPROX
+				vec2 fab = DFGApprox( normal, viewDir, roughness );
+			#else
+				vec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;
+			#endif
+			#ifdef USE_IRIDESCENCE`,
+			);
+
+		// In legacy mode, skip the multi-scattering energy compensation for direct lighting
+		// that was added in r181. In r162, RE_Direct_Physical just used BRDF_GGX without compensation.
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"reflectedLight.directSpecular += irradiance * BRDF_GGX_Multiscatter( directLight.direction, geometryViewDir, geometryNormal, material );",
+				`#ifdef SDV_LEGACY_DFG_APPROX
+				reflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material );
+			#else
+				reflectedLight.directSpecular += irradiance * BRDF_GGX_Multiscatter( directLight.direction, geometryViewDir, geometryNormal, material );
+			#endif`,
+			);
+
+		// In legacy mode, replace RE_IndirectSpecular_Physical with the r162 single-call approach.
+		// r184 splits into dielectric/metallic paths and mixes by metalness, which produces brighter results.
+		const legacyIndirectSpecular = `void RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 irradiance, const in vec3 clearcoatRadiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {
+	#ifdef USE_CLEARCOAT
+		clearcoatSpecularIndirect += clearcoatRadiance * EnvironmentBRDF( geometryClearcoatNormal, geometryViewDir, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
+	#endif
+	#ifdef USE_SHEEN
+		#ifdef SDV_LEGACY_DFG_APPROX
+			sheenSpecularIndirect += irradiance * material.sheenColor * IBLSheenBRDF( geometryNormal, geometryViewDir, material.sheenRoughness );
+		#else
+			sheenSpecularIndirect += irradiance * material.sheenColor * IBLSheenBRDF( geometryNormal, geometryViewDir, material.sheenRoughness ) * RECIPROCAL_PI;
+		#endif
+ 	#endif
+	#ifdef SDV_LEGACY_DFG_APPROX
+		vec3 singleScattering = vec3( 0.0 );
+		vec3 multiScattering = vec3( 0.0 );
+		vec3 cosineWeightedIrradiance = irradiance * RECIPROCAL_PI;
+		#ifdef USE_IRIDESCENCE
+			computeMultiscatteringIridescence( geometryNormal, geometryViewDir, material.specularColorBlended, material.specularF90, material.iridescence, material.iridescenceFresnelDielectric, material.roughness, singleScattering, multiScattering );
+		#else
+			computeMultiscattering( geometryNormal, geometryViewDir, material.specularColorBlended, material.specularF90, material.roughness, singleScattering, multiScattering );
+		#endif
+		vec3 totalScattering = singleScattering + multiScattering;
+		vec3 diffuse = material.diffuseContribution * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );
+		reflectedLight.indirectSpecular += radiance * singleScattering;
+		reflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;
+		reflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;
+	#else
+		vec3 singleScatteringDielectric = vec3( 0.0 );
+		vec3 multiScatteringDielectric = vec3( 0.0 );
+		vec3 singleScatteringMetallic = vec3( 0.0 );
+		vec3 multiScatteringMetallic = vec3( 0.0 );
+		#ifdef USE_IRIDESCENCE
+			computeMultiscatteringIridescence( geometryNormal, geometryViewDir, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnelDielectric, material.roughness, singleScatteringDielectric, multiScatteringDielectric );
+			computeMultiscatteringIridescence( geometryNormal, geometryViewDir, material.diffuseColor, material.specularF90, material.iridescence, material.iridescenceFresnelMetallic, material.roughness, singleScatteringMetallic, multiScatteringMetallic );
+		#else
+			computeMultiscattering( geometryNormal, geometryViewDir, material.specularColor, material.specularF90, material.roughness, singleScatteringDielectric, multiScatteringDielectric );
+			computeMultiscattering( geometryNormal, geometryViewDir, material.diffuseColor, material.specularF90, material.roughness, singleScatteringMetallic, multiScatteringMetallic );
+		#endif
+		vec3 singleScattering = mix( singleScatteringDielectric, singleScatteringMetallic, material.metalness );
+		vec3 multiScattering = mix( multiScatteringDielectric, multiScatteringMetallic, material.metalness );
+		vec3 totalScatteringDielectric = singleScatteringDielectric + multiScatteringDielectric;
+		vec3 diffuse = material.diffuseContribution * ( 1.0 - totalScatteringDielectric );
+		vec3 cosineWeightedIrradiance = irradiance * RECIPROCAL_PI;
+		vec3 indirectSpecular = radiance * singleScattering;
+		indirectSpecular += multiScattering * cosineWeightedIrradiance;
+		vec3 indirectDiffuse = diffuse * cosineWeightedIrradiance;
+		#ifdef USE_SHEEN
+			float sheenAlbedo = IBLSheenBRDF( geometryNormal, geometryViewDir, material.sheenRoughness );
+			float sheenEnergyComp = 1.0 - max3( material.sheenColor ) * sheenAlbedo;
+			indirectSpecular *= sheenEnergyComp;
+			indirectDiffuse *= sheenEnergyComp;
+		#endif
+		reflectedLight.indirectSpecular += indirectSpecular;
+		reflectedLight.indirectDiffuse += indirectDiffuse;
+	#endif
+}`;
+
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			replaceShaderFunction(
+				THREE.ShaderChunk.lights_physical_pars_fragment,
+				"void RE_IndirectSpecular_Physical",
+				legacyIndirectSpecular,
 			);
 	}
 
