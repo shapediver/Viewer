@@ -330,7 +330,6 @@ export class GeometryData
 	public set instantiable(value: boolean) {
 		this.#instantiable = value;
 	}
-	}
 
 	public get material(): IMaterialAbstractData | null {
 		return this.#material;

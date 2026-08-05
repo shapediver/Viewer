@@ -59,7 +59,6 @@ import {quat, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
-import {InstanceGroupManager} from "./managers/InstanceGroupManager";
 import {HTMLElementAnchorLoader} from "./loaders/HTMLElementAnchorLoader";
 import {LightLoader} from "./loaders/LightLoader";
 import {adaptShaders, MaterialLoader} from "./loaders/MaterialLoader";
@@ -67,6 +66,7 @@ import {ARManager} from "./managers/ARManager";
 import {CameraManager} from "./managers/CameraManager";
 import {EnvironmentGeometryManager} from "./managers/EnvironmentGeometryManager";
 import {FlagManager} from "./managers/FlagManager";
+import {InstanceGroupManager} from "./managers/InstanceGroupManager";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {PulseEffectManager} from "./managers/PulseEffectManager";
 import {RenderingManager} from "./managers/RenderingManager";
@@ -644,7 +644,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public get instanceGroupManager(): InstanceGroupManager {
 		return this._instanceGroupManager;
 	}
-	}
 
 	public get gridColor(): Color {
 		return this._environmentGeometryManager.grid.color;
@@ -1066,8 +1065,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._settingsManager.assignSettingsEngine(settingsEngine);
 	}
 
-	public async close(): Promise<void> {
-		this._closed = true;
 	public async close(): Promise<void> {
 		this._closed = true;
 		this._pulseEffectManager.dispose();
