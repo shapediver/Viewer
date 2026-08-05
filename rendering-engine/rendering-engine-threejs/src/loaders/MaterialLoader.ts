@@ -2480,6 +2480,58 @@ export const adaptShaders = () => {
 				"void RE_IndirectSpecular_Physical",
 				legacyIndirectSpecular,
 			);
+
+		// In legacy mode, use the r162 IBLSheenBRDF formula (piecewise curve-fit
+		// with PI normalization). r184 changed to a different curve-fit without it.
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			replaceShaderFunction(
+				THREE.ShaderChunk.lights_physical_pars_fragment,
+				"float IBLSheenBRDF",
+				`float IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
+	float dotNV = saturate( dot( normal, viewDir ) );
+	#ifdef SDV_LEGACY_DFG_APPROX
+		float r2 = roughness * roughness;
+		float a = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;
+		float b = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;
+		float DG = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );
+		return saturate( DG * RECIPROCAL_PI );
+	#else
+		float r2 = roughness * roughness;
+		float rInv = 1.0 / ( roughness + 0.1 );
+		float a = -1.9362 + 1.0678 * roughness + 0.4573 * r2 - 0.8469 * rInv;
+		float b = -0.6014 + 0.5538 * roughness - 0.4670 * r2 - 0.1255 * rInv;
+		float DG = exp( a * dotNV + b );
+		return saturate( DG );
+	#endif
+}`,
+			);
+
+		// In legacy mode, skip sheen energy compensation in RE_Direct_Physical
+		// that was added in r181. r162 had no sheen energy comp for direct lights.
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"\tfloat sheenAlbedoV = IBLSheenBRDF( geometryNormal, geometryViewDir, material.sheenRoughness );",
+				"#ifndef SDV_LEGACY_DFG_APPROX\n\t\tfloat sheenAlbedoV = IBLSheenBRDF( geometryNormal, geometryViewDir, material.sheenRoughness );",
+			);
+		// In legacy mode, restore the r162 sheen assembly in meshphysical_frag.
+		// r162 multiplied outgoingLight by sheenEnergyComp before adding sheen,
+		// r184 moved energy comp into RE_Direct/RE_Indirect and removed it here.
+		THREE.ShaderChunk.meshphysical_frag =
+			THREE.ShaderChunk.meshphysical_frag.replace(
+				"outgoingLight = outgoingLight + sheenSpecularDirect + sheenSpecularIndirect;",
+				`#ifdef SDV_LEGACY_DFG_APPROX
+				float sheenEnergyComp = 1.0 - 0.157 * max3( material.sheenColor );
+				outgoingLight = outgoingLight * sheenEnergyComp + sheenSpecularDirect + sheenSpecularIndirect;
+			#else
+				outgoingLight = outgoingLight + sheenSpecularDirect + sheenSpecularIndirect;
+			#endif`,
+			);
+
+		THREE.ShaderChunk.lights_physical_pars_fragment =
+			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+				"\t\tirradiance *= sheenEnergyComp;",
+				"\t\tirradiance *= sheenEnergyComp;\n\t\t#endif",
+			);
 	}
 
 	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
