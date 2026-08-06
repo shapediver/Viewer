@@ -12,7 +12,11 @@
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
-import {type ITree, type ITreeNode, Tree} from "@shapediver/viewer.shared.node-tree";
+import {
+	type ITree,
+	type ITreeNode,
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	EventEngine,
@@ -23,12 +27,14 @@ import {
 	ShapeDiverViewerCustomizationError,
 	ShapeDiverViewerError,
 	ShapeDiverViewerSessionError,
-	StateEngine} from "@shapediver/viewer.shared.services";
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IInteractionParameterSettings,
 	type ISessionErrorEvent,
 	type ITaskEvent,
-	validateInteractionParameterSettings} from "@shapediver/viewer.shared.types";
+	validateInteractionParameterSettings,
+} from "@shapediver/viewer.shared.types";
 
 import {type IParameter} from "../../interfaces/dto/IParameter";
 import {DraggingParameter} from "../dto/interaction/DraggingParameter";
@@ -389,17 +395,15 @@ export class UtilsManager {
 			};
 		} else {
 			// case where the image is a URL
-			const response = await new UtilsApi(
+			const blob = await new UtilsApi(
 				this._sessionEngineCore.sdkConfig,
-			).downloadImage(this._sessionEngineCore.sessionId!, imageString, {
-				responseType: "arraybuffer",
-			});
+			).downloadImage(this._sessionEngineCore.sessionId!, imageString);
 
-			const arrayBuffer = response.data as unknown as ArrayBuffer;
+			const arrayBuffer = await blob.arrayBuffer();
 			return {
 				imageData: {
-					format: response.headers["content-type"] as string,
-					size: arrayBuffer.byteLength,
+					format: blob.type,
+					size: blob.size,
 				},
 				arrayBuffer,
 			};

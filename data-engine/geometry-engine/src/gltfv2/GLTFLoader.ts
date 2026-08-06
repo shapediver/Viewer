@@ -2,19 +2,22 @@ import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	type ICamera,
 	OrthographicCamera,
-	PerspectiveCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
+	PerspectiveCamera,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
 	DirectionalLight,
 	type ILight,
 	PointLight,
-	SpotLight} from "@shapediver/viewer.rendering-engine.light-engine";
+	SpotLight,
+} from "@shapediver/viewer.rendering-engine.light-engine";
 import {
 	AnimationData,
 	CustomData,
 	InstanceData,
 	type ITreeNode,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -23,12 +26,14 @@ import {
 	Logger,
 	PerformanceEvaluator,
 	ShapeDiverViewerDataProcessingError,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type Color,
 	type IAnimationTrack,
 	type ITaskEvent,
-	TASK_TYPE} from "@shapediver/viewer.shared.types";
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 
 import {AccessorLoader} from "./loaders/AccessorLoader";
@@ -150,9 +155,10 @@ export class GLTFLoader {
 		this.validateVersionAndExtensions();
 
 		// Lazy load DRACO module and parallelize independent loaders
-		const {default: DRACO} = (await import(
-			"./draco/draco_decoder.js"
-		)) as unknown as {default: new () => Promise<unknown>};
+		const {default: DRACO} =
+			(await import("./draco/draco_decoder.js")) as unknown as {
+				default: new () => Promise<unknown>;
+			};
 		const dracoModulePromise = new DRACO();
 
 		this._bufferLoader = new BufferLoader(
@@ -249,7 +255,7 @@ export class GLTFLoader {
 		this._performanceEvaluator.startSection("gltfProcessing." + url);
 
 		this._performanceEvaluator.startSection("loadGltf." + url);
-		const axiosResponse = (await this._httpClient.get(url!, {
+		const response = (await this._httpClient.get(url!, {
 			responseType: "arraybuffer",
 		})) as HttpResponse<ArrayBuffer>;
 		this._performanceEvaluator.endSection("loadGltf." + url);
@@ -257,20 +263,18 @@ export class GLTFLoader {
 		let gltfContent, gltfBinary, gltfBaseUrl, gltfHeader;
 
 		const magic = new TextDecoder().decode(
-			new Uint8Array(axiosResponse.data, 0, 4),
+			new Uint8Array(response.data, 0, 4),
 		);
 		const isBinary =
 			magic === "glTF" ||
-			(axiosResponse.headers["content-type"] &&
-				(axiosResponse.headers["content-type"] ===
-					"model/gltf-binary" ||
-					axiosResponse.headers["content-type"] ===
+			(response.headers["content-type"] &&
+				(response.headers["content-type"] === "model/gltf-binary" ||
+					response.headers["content-type"] ===
 						"application/octet-stream" ||
-					axiosResponse.headers["content-type"] ===
-						"model/gltf.binary"));
+					response.headers["content-type"] === "model/gltf.binary"));
 
 		if (isBinary) {
-			gltfBinary = axiosResponse.data;
+			gltfBinary = response.data;
 			// create header data
 			const headerDataView = new DataView(
 				gltfBinary,
@@ -306,9 +310,7 @@ export class GLTFLoader {
 				gltfHeader.length,
 			);
 		} else {
-			gltfContent = JSON.parse(
-				new TextDecoder().decode(axiosResponse.data),
-			);
+			gltfContent = JSON.parse(new TextDecoder().decode(response.data));
 
 			const removeLastDirectoryPartOf = (the_url: string): string => {
 				const dir_char = the_url.includes("/") ? "/" : "\\";

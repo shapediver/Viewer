@@ -11,7 +11,8 @@ import {type ITreeNode, TreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
-	ShapeDiverViewerSessionError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerSessionError,
+} from "@shapediver/viewer.shared.services";
 
 import {SessionEngineCore} from "../SessionEngineCore";
 
@@ -155,7 +156,7 @@ export class ModelStateManager {
 							),
 						)
 						.then((arSceneResponseDto) => {
-							arSceneId = arSceneResponseDto.data.gltf?.sceneId;
+							arSceneId = arSceneResponseDto.gltf?.sceneId;
 						}),
 				);
 			}
@@ -164,16 +165,14 @@ export class ModelStateManager {
 			await Promise.all(promises);
 
 			// create the model state
-			const response = (
-				await new ModelStateApi(
-					this._sessionEngineCore.sdkConfig,
-				).createModelState(this._sessionEngineCore.sessionId!, {
-					parameters: parameterSet,
-					data: data,
-					image: imageData,
-					arSceneId: arSceneId,
-				})
-			).data;
+			const response = await new ModelStateApi(
+				this._sessionEngineCore.sdkConfig,
+			).createModelState(this._sessionEngineCore.sessionId!, {
+				parameters: parameterSet,
+				data: data,
+				image: imageData,
+				arSceneId: arSceneId,
+			});
 
 			if (imageData && imageArrayBuffer)
 				await new UtilsApi(
@@ -215,11 +214,9 @@ export class ModelStateManager {
 			// get the model state if it is not already a response
 			let response: ResGetModelState;
 			if (typeof modelState === "string") {
-				response = (
-					await new ModelStateApi(
-						this._sessionEngineCore.sdkConfig,
-					).getModelState(modelState)
-				).data;
+				response = await new ModelStateApi(
+					this._sessionEngineCore.sdkConfig,
+				).getModelState(modelState);
 			} else {
 				response = modelState;
 			}
@@ -256,11 +253,9 @@ export class ModelStateManager {
 					"Session.getModelState: No model state id available.",
 				);
 
-			const response: ResGetModelState = (
-				await new ModelStateApi(
-					this._sessionEngineCore.sdkConfig,
-				).getModelState(id)
-			).data;
+			const response: ResGetModelState = await new ModelStateApi(
+				this._sessionEngineCore.sdkConfig,
+			).getModelState(id);
 			return response;
 		} catch (e) {
 			throw await this._httpClient.convertError(e);

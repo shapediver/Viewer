@@ -11,11 +11,13 @@ import {
 	EVENTTYPE,
 	Logger,
 	StateEngine,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type ITaskEvent,
 	type ITaskEventDescription,
-	TASK_TYPE} from "@shapediver/viewer.shared.types";
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 
 import {type IOutput} from "../../interfaces/dto/IOutput";
 import {type ISessionTreeNode} from "../../interfaces/ISessionTreeNode";
@@ -161,14 +163,12 @@ export class OutputManager {
 			}
 
 			// get the cached outputs
-			const responseDto: ResGetCachedOutputs = (
-				await new OutputApi(
-					this._sessionEngineCore.sdkConfig,
-				).getCachedOutputs(
-					this._sessionEngineCore.sessionId!,
-					outputMapping,
-				)
-			).data;
+			const responseDto: ResGetCachedOutputs = await new OutputApi(
+				this._sessionEngineCore.sdkConfig,
+			).getCachedOutputs(
+				this._sessionEngineCore.sessionId!,
+				outputMapping,
+			);
 
 			// create atomic output api objects for them
 			const outputs: {
@@ -271,14 +271,12 @@ export class OutputManager {
 			for (const output in o) outputMapping[output] = o[output].version;
 
 			try {
-				const responseDto = (
-					await new OutputApi(
-						this._sessionEngineCore.sdkConfig,
-					).getCachedOutputs(
-						this._sessionEngineCore.sessionId!,
-						outputMapping,
-					)
-				).data;
+				const responseDto = await new OutputApi(
+					this._sessionEngineCore.sdkConfig,
+				).getCachedOutputs(
+					this._sessionEngineCore.sessionId!,
+					outputMapping,
+				);
 				if (cancelRequest()) return new SessionTreeNode();
 				this._sessionEngineCore.updateResponseDto(responseDto);
 				return await this.loadOutputs(cancelRequest, taskEventInfo);
@@ -365,14 +363,12 @@ export class OutputManager {
 				outputMapping[output] = outputs[output].version;
 
 			try {
-				const responseDto = (
-					await new OutputApi(
-						this._sessionEngineCore.sdkConfig,
-					).getCachedOutputs(
-						this._sessionEngineCore.sessionId!,
-						outputMapping,
-					)
-				).data;
+				const responseDto = await new OutputApi(
+					this._sessionEngineCore.sdkConfig,
+				).getCachedOutputs(
+					this._sessionEngineCore.sessionId!,
+					outputMapping,
+				);
 				if (cancelRequest()) return new SessionTreeNode();
 				this._sessionEngineCore.updateResponseDto(responseDto);
 				return await this.loadOutputsParallel(

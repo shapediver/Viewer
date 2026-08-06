@@ -4,7 +4,8 @@ import {
 	type HttpResponse,
 	Logger,
 	PerformanceEvaluator,
-	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError,
+} from "@shapediver/viewer.shared.services";
 
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
@@ -78,7 +79,7 @@ export class GeometryEngine {
 					);
 
 					this._performanceEvaluator.startSection("loadGltf." + url);
-					const axiosResponse = (await this._httpClient
+					const response = (await this._httpClient
 						.get(url!, {
 							responseType: "arraybuffer",
 						})
@@ -87,15 +88,15 @@ export class GeometryEngine {
 						| undefined;
 					this._performanceEvaluator.endSection("loadGltf." + url);
 
-					if (!axiosResponse) return;
+					if (!response) return;
 
 					const magic = new TextDecoder().decode(
-						new Uint8Array(axiosResponse.data, 0, 4),
+						new Uint8Array(response.data, 0, 4),
 					);
 					const isBinary = magic === "glTF";
 
 					if (isBinary) {
-						gltfBinary = axiosResponse.data;
+						gltfBinary = response.data;
 						// create header data
 						const headerDataView = new DataView(
 							gltfBinary,
@@ -151,7 +152,7 @@ export class GeometryEngine {
 						}
 					} else {
 						gltfContent = JSON.parse(
-							new TextDecoder().decode(axiosResponse.data),
+							new TextDecoder().decode(response.data),
 						);
 
 						if (

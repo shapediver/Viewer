@@ -1,4 +1,3 @@
-import axios from "axios";
 import * as dotenv from "dotenv";
 import {execPromise} from "../utils/utils";
 
@@ -11,19 +10,17 @@ const slackToken = process.env.SLACKBOT_OAUTH_TOKEN;
 
 const sendSlackMessage = async (text: string) => {
 	const url = "https://slack.com/api/chat.postMessage";
-	const res = await axios.post(
-		url,
-		{
+	await fetch(url, {
+		method: "POST",
+		headers: {
+			authorization: `Bearer ${slackToken}`,
+			"Content-type": "application/json; charset=utf-8",
+		},
+		body: JSON.stringify({
 			channel: "#dev-viewer-3",
 			text,
-		},
-		{
-			headers: {
-				authorization: `Bearer ${slackToken}`,
-				"Content-type": "application/json; charset=utf-8",
-			},
-		},
-	);
+		}),
+	});
 };
 
 const processError = async (e: unknown) => {
@@ -38,7 +35,9 @@ const processError = async (e: unknown) => {
 		sendSlackMessage(`Starting build before testing (${viewerTestEnv})...`);
 		console.log(await execPromise("npm run build"));
 		console.log(await execPromise("npm run build-tests"));
-		sendSlackMessage(`Starting deployment of test pages (${viewerTestEnv})...`);
+		sendSlackMessage(
+			`Starting deployment of test pages (${viewerTestEnv})...`,
+		);
 		console.log(await execPromise("npm run deploy-tests"));
 		const res = await execPromise("npm run test");
 		console.log(res);

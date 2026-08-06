@@ -4,13 +4,13 @@ import {
 	ResponseError,
 	SdGeometryError as ShapeDiverBackendError,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
-import axios, {AxiosRequestConfig} from "axios";
 import {Converter} from "../converter/Converter";
 import {Logger} from "../logger/Logger";
 import {
 	ShapeDiverGeometryBackendError,
 	ShapeDiverGeometryBackendRequestError,
-	ShapeDiverGeometryBackendResponseError} from "../logger/ShapeDiverBackendErrors";
+	ShapeDiverGeometryBackendResponseError,
+} from "../logger/ShapeDiverBackendErrors";
 import {btoaCustom} from "../utilities/base64";
 import {type HttpResponse} from "./HttpResponse";
 
@@ -151,9 +151,58 @@ export class HttpClient {
 	 * @param textureConversion
 	 * @returns
 	 */
+	/**
+	 * Convert a fetch Response to an HttpResponse.
+	 *
+	 * @param response The fetch Response
+	 * @param responseType The desired response type
+	 * @returns The HttpResponse
+	 */
+	private async fetchResponseToHttpResponse(
+		response: Response,
+		responseType?: string,
+	): Promise<HttpResponse<unknown>> {
+		const headers: Record<string, string> = {};
+		response.headers.forEach((value, key) => {
+			headers[key] = value;
+		});
+
+		let data: unknown;
+		if (responseType === "text") {
+			data = await response.text();
+		} else {
+			data = await response.arrayBuffer();
+		}
+
+		return {
+			data,
+			headers,
+		};
+	}
+
+	/**
+	 * Perform a fetch request and convert the response to an HttpResponse.
+	 *
+	 * @param href The URL to fetch
+	 * @param responseType The desired response type
+	 * @returns The HttpResponse
+	 */
+	private async fetchUrl(
+		href: string,
+		responseType?: string,
+	): Promise<HttpResponse<unknown>> {
+		const response = await fetch(href, {method: "GET"});
+		if (!response.ok) {
+			throw new Error(
+				`HTTP error ${response.status}: ${response.statusText}`,
+			);
+		}
+		return this.fetchResponseToHttpResponse(response, responseType);
+	}
+
 	public async get(
 		href: string,
-		config: AxiosRequestConfig = {responseType: "arraybuffer"},
+		config?: {responseType?: string},
 		textureLoading: boolean = false,
 	): Promise<HttpResponse<unknown>> {
 		const dataKey = this.hrefToDataKey(href);
@@ -205,12 +254,13 @@ export class HttpClient {
 							})
 							.catch(() => {
 								// if this fails (e.g., external URLs not belonging to this session), fall back to direct download
-								const axiosPromise = axios(
-									href,
-									Object.assign({method: "get"}, config),
-								);
-								axiosPromise.catch((e) => reject(e));
-								resolve(axiosPromise);
+								this.fetchUrl(href, config?.responseType)
+									.then((result) =>
+										resolve(
+											result as HttpResponse<ArrayBuffer>,
+										),
+									)
+									.catch((e) => reject(e));
 							});
 					},
 				).catch(async (e) => {
@@ -219,10 +269,7 @@ export class HttpClient {
 			} else {
 				// we can load blobs and data urls directly
 				// or load it directly if we don't have a session
-				loadingPromise = axios(
-					href,
-					Object.assign({method: "get"}, config),
-				)
+				loadingPromise = this.fetchUrl(href, config?.responseType)
 					.then(async (result) => {
 						return result;
 					})
@@ -233,9 +280,9 @@ export class HttpClient {
 		} else {
 			if (!sessionLoading) {
 				// if there is no session to load from, we use the fallback option
-				loadingPromise = axios(
+				loadingPromise = this.fetchUrl(
 					href,
-					Object.assign({method: "get"}, config),
+					config?.responseType,
 				).catch(async (e) => {
 					throw await this.convertError(e);
 				});
@@ -255,12 +302,13 @@ export class HttpClient {
 							})
 							.catch(() => {
 								// if this fails, we just load it directly
-								const axiosPromise = axios(
-									href,
-									Object.assign({method: "get"}, config),
-								);
-								axiosPromise.catch((e) => reject(e));
-								resolve(axiosPromise);
+								this.fetchUrl(href, config?.responseType)
+									.then((result) =>
+										resolve(
+											result as HttpResponse<ArrayBuffer>,
+										),
+									)
+									.catch((e) => reject(e));
 							});
 					},
 				).catch(async (e) => {

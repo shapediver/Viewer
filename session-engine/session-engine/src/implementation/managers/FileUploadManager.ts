@@ -55,15 +55,16 @@ export class FileUploadManager {
 	): Promise<ResFileInfo> {
 		this._sessionEngineCore.utilsManager.checkAvailability();
 		try {
-			const response = await new FileApi(
+			const rawResponse = await new FileApi(
 				this._sessionEngineCore.sdkConfig,
-			).getFileMetadata(
-				this._sessionEngineCore.sessionId!,
-				parameterId,
-				fileId,
+			).getFileMetadataRaw({
+				sessionId: this._sessionEngineCore.sessionId!,
+				paramId: parameterId,
+				fileId: fileId,
+			});
+			const {size, filename} = extractFileInfo(
+				Object.fromEntries(rawResponse.raw.headers.entries()),
 			);
-
-			const {size, filename} = extractFileInfo(response.headers);
 			return {
 				parameterId: parameterId,
 				id: fileId,
@@ -123,18 +124,15 @@ export class FileUploadManager {
 	): Promise<string> {
 		this._sessionEngineCore.utilsManager.checkAvailability("file-upload");
 		try {
-			const result = (
-				await new FileApi(this._sessionEngineCore.sdkConfig).uploadFile(
-					this._sessionEngineCore.sessionId!,
-					{
-						[parameterId]: {
-							size: data.size,
-							format: type,
-							filename: data.name === "" ? undefined : data.name,
-						},
-					},
-				)
-			).data;
+			const result = await new FileApi(
+				this._sessionEngineCore.sdkConfig,
+			).uploadFile(this._sessionEngineCore.sessionId!, {
+				[parameterId]: {
+					size: data.size,
+					format: type,
+					filename: data.name === "" ? undefined : data.name,
+				},
+			});
 
 			if (
 				result &&
@@ -242,15 +240,15 @@ export class FileUploadManager {
 	): Promise<ResBase> {
 		this._sessionEngineCore.utilsManager.checkAvailability("gltf-upload");
 		try {
-			const responseDto = (
-				await new GltfApi(this._sessionEngineCore.sdkConfig).uploadGltf(
-					this._sessionEngineCore.sessionId!,
-					new File([blob], "model.gltf", {
-						type: "model/gltf-binary",
-					}),
-					conversion,
-				)
-			).data;
+			const responseDto = await new GltfApi(
+				this._sessionEngineCore.sdkConfig,
+			).uploadGltf(
+				this._sessionEngineCore.sessionId!,
+				new File([blob], "model.gltf", {
+					type: "model/gltf-binary",
+				}),
+				conversion,
+			);
 			if (!responseDto || !responseDto.gltf || !responseDto.gltf.href)
 				throw new ShapeDiverViewerSessionError(
 					"Session.uploadGLTF: Upload reply has not the required format.",
@@ -276,18 +274,18 @@ export class FileUploadManager {
 		this._sessionEngineCore.utilsManager.checkAvailability("file-upload");
 
 		try {
-			const responseDto = (
-				await new SdtfApi(this._sessionEngineCore.sdkConfig).uploadSdtf(
-					this._sessionEngineCore.sessionId!,
-					arrayBuffers.map((arrayBuffer) => {
-						return {
-							namespace: "pub",
-							content_length: arrayBuffer.byteLength,
-							content_type: ReqSdtfType.MODEL_SDTF,
-						};
-					}),
-				)
-			).data;
+			const responseDto = await new SdtfApi(
+				this._sessionEngineCore.sdkConfig,
+			).uploadSdtf(
+				this._sessionEngineCore.sessionId!,
+				arrayBuffers.map((arrayBuffer) => {
+					return {
+						namespace: "pub",
+						content_length: arrayBuffer.byteLength,
+						content_type: ReqSdtfType.MODEL_SDTF,
+					};
+				}),
+			);
 			if (
 				!responseDto ||
 				!responseDto.asset ||

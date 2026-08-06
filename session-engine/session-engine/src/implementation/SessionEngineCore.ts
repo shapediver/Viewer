@@ -14,7 +14,8 @@ import {
 	PerformanceEvaluator,
 	ShapeDiverViewerSessionError,
 	SystemInfo,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 
 import {type ISessionEngineCreationDefinition} from "../interfaces/ISessionEngine";
 import {CustomizationManager} from "./managers/CustomizationManager";
@@ -113,9 +114,7 @@ export class SessionEngineCore {
 			this._sdkConfig = new Configuration({
 				basePath: this._modelViewUrl,
 				accessToken: this._jwtToken,
-				baseOptions: {
-					headers: this._headers,
-				},
+				headers: this._headers,
 			});
 		} catch (e) {
 			this._utilsManager.handleError(e).then((convertedError) => {
@@ -325,25 +324,25 @@ export class SessionEngineCore {
 				).slice(1);
 
 			if (this._ticket) {
-				this._responseDto = (
-					await new SessionApi(this._sdkConfig).createSessionByTicket(
-						this._ticket,
-						this._modelStateManager.modelStateId,
-						this._parameterManager.ignoreUnknownParams,
-						this._modelStateManager.modelStateValidationMode,
-						parameterSet,
-					)
-				).data;
+				this._responseDto = await new SessionApi(
+					this._sdkConfig,
+				).createSessionByTicket(
+					this._ticket,
+					this._modelStateManager.modelStateId,
+					this._parameterManager.ignoreUnknownParams,
+					this._modelStateManager.modelStateValidationMode,
+					parameterSet,
+				);
 			} else if (this._guid) {
-				this._responseDto = (
-					await new SessionApi(this._sdkConfig).createSessionByModel(
-						this._guid,
-						this._modelStateManager.modelStateId,
-						this._parameterManager.ignoreUnknownParams,
-						this._modelStateManager.modelStateValidationMode,
-						parameterSet,
-					)
-				).data;
+				this._responseDto = await new SessionApi(
+					this._sdkConfig,
+				).createSessionByModel(
+					this._guid,
+					this._modelStateManager.modelStateId,
+					this._parameterManager.ignoreUnknownParams,
+					this._modelStateManager.modelStateValidationMode,
+					parameterSet,
+				);
 			} else {
 				// we should never get here
 				throw new ShapeDiverViewerSessionError(
@@ -362,30 +361,25 @@ export class SessionEngineCore {
 
 			this._httpClient.addDataLoading(this._sessionId!, {
 				getAsset: async (url: string) => {
-					const response = await new UtilsApi(
+					const [responsePromise] = new UtilsApi(
 						this._sdkConfig,
-					).downloadAsset(url, {
-						responseType: "arraybuffer",
-					})[0];
-					return [
-						response.data as unknown as ArrayBuffer,
-						response.headers["content-type"] as string,
-					];
+					).downloadAsset(url);
+					const response = await responsePromise;
+					const arrayBuffer = await response.arrayBuffer();
+					const contentType =
+						response.headers.get("content-type") || "";
+					return [arrayBuffer, contentType];
 				},
 				downloadTexture: async (
 					url: string,
 				): Promise<[ArrayBuffer, string]> => {
 					try {
-						const response = await new UtilsApi(
+						const blob = await new UtilsApi(
 							this._sdkConfig,
-						).downloadImage(this._sessionId!, url, {
-							responseType: "arraybuffer",
-						});
+						).downloadImage(this._sessionId!, url);
 
-						return [
-							response.data as unknown as ArrayBuffer,
-							response.headers["content-type"] as string,
-						];
+						const arrayBuffer = await blob.arrayBuffer();
+						return [arrayBuffer, blob.type];
 					} catch (e) {
 						throw await this._utilsManager.handleError(e);
 					}
@@ -424,12 +418,14 @@ export class SessionEngineCore {
 
 		this._jwtToken = value;
 		try {
-			this._sdkConfig.accessToken = value;
-			const responseDto = (
-				await new SessionApi(this._sdkConfig).getSessionDefaults(
-					this._sessionId!,
-				)
-			).data;
+			this._sdkConfig = new Configuration({
+				basePath: this._modelViewUrl,
+				accessToken: value,
+				headers: this._headers,
+			});
+			const responseDto = await new SessionApi(
+				this._sdkConfig,
+			).getSessionDefaults(this._sessionId!);
 			if (this._responseDto)
 				this._responseDto.actions = responseDto.actions;
 		} catch (e) {
