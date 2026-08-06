@@ -571,23 +571,60 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 		this.nodes.forEach((node, i) => {
 			const localTransformationMatrix = localTransformationMatrices[i];
-			const matrix = localTransformationMatrix
-				? mat4.clone(localTransformationMatrix)
-				: this.getMatrix(
-						this.previousTransformationToolsMatrix[i],
-						this.instanceTransform[i],
-					);
 
 			eventData.nodes.push(node);
+
 			if (localTransformationMatrix) {
-				eventData.transformations.push(
-					mat4.multiply(
-						mat4.create(),
-						matrix,
-						this.initialTransform[i],
-					),
+				// Compute the event transformation using the same formula
+				// as the old path, derived from the placeholder matrix.
+				const eventMatrix = this.getMatrix(
+					this.previousTransformationToolsMatrix[i],
+					this.instanceTransform[i],
 				);
+
+				if (this.singleNode) {
+					mat4.multiply(
+						eventMatrix,
+						mat4.invert(mat4.create(), this.instanceTransform[i])!,
+						eventMatrix,
+					);
+					eventData.transformations.push(mat4.clone(eventMatrix));
+				} else {
+					const eventDataMatrix = mat4.clone(eventMatrix);
+					mat4.multiply(
+						eventDataMatrix,
+						eventDataMatrix,
+						this.initialTransform[i],
+					);
+					mat4.multiply(
+						eventDataMatrix,
+						mat4.invert(mat4.create(), this.instanceTransform[i])!,
+						eventDataMatrix,
+					);
+					eventData.transformations.push(eventDataMatrix);
+				}
+
+				// Use the localTransformationMatrix as the new matrixId value
+				// (this is what gets stored in node.transformations).
+				const matrix = mat4.clone(localTransformationMatrix);
+
+				const transformation = node.transformations.find(
+					(t) => t.id === this.#matrixId,
+				);
+				eventData.localTransformations.push(mat4.clone(matrix));
+				if (transformation) {
+					transformation.matrix = matrix;
+				} else {
+					node.transformations.push({
+						id: this.#matrixId,
+						matrix,
+					});
+				}
 			} else if (this.singleNode) {
+				const matrix = this.getMatrix(
+					this.previousTransformationToolsMatrix[i],
+					this.instanceTransform[i],
+				);
 				mat4.multiply(
 					matrix,
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
@@ -599,7 +636,24 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					matrix,
 					mat4.invert(mat4.create(), this.initialTransform[i])!,
 				);
+
+				const transformation = node.transformations.find(
+					(t) => t.id === this.#matrixId,
+				);
+				eventData.localTransformations.push(mat4.clone(matrix));
+				if (transformation) {
+					transformation.matrix = matrix;
+				} else {
+					node.transformations.push({
+						id: this.#matrixId,
+						matrix,
+					});
+				}
 			} else {
+				const matrix = this.getMatrix(
+					this.previousTransformationToolsMatrix[i],
+					this.instanceTransform[i],
+				);
 				const eventDataMatrix = mat4.clone(matrix);
 				mat4.multiply(
 					eventDataMatrix,
@@ -618,20 +672,21 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
+
+				const transformation = node.transformations.find(
+					(t) => t.id === this.#matrixId,
+				);
+				eventData.localTransformations.push(mat4.clone(matrix));
+				if (transformation) {
+					transformation.matrix = matrix;
+				} else {
+					node.transformations.push({
+						id: this.#matrixId,
+						matrix,
+					});
+				}
 			}
 
-			const transformation = node.transformations.find(
-				(t) => t.id === this.#matrixId,
-			);
-			eventData.localTransformations.push(mat4.clone(matrix));
-			if (transformation) {
-				transformation.matrix = matrix;
-			} else {
-				node.transformations.push({
-					id: this.#matrixId,
-					matrix,
-				});
-			}
 			node.updateVersion();
 		});
 
