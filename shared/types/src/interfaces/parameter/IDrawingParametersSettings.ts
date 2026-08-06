@@ -17,6 +17,10 @@ export interface IDrawingParameterSettings {
 	 * Controls are used to manipulate the points of the drawing tool in specific ways, such as moving a point along an edge or within a plane defined by other points.
 	 */
 	controls?: IControlSettings[];
+	/**
+	 * UI presentation settings for the drawing tool parameter.
+	 * These settings control how the parameter is displayed in the UI and do NOT affect runtime behavior.
+	 */
 	general?: {
 		/** A prompt that can be defined which is displayed instead of the default prompt. */
 		prompt?: {
@@ -96,6 +100,27 @@ export interface IDrawingParameterSettings {
 		 * @default true
 		 */
 		enableSelection?: boolean;
+
+		/**
+		 * If the drawing tool is started automatically when no points are defined.
+		 *
+		 * @default true
+		 */
+		autoStart?: boolean;
+
+		/**
+		 * If the drawing tool is updated automatically when the drawing is changed.
+		 *
+		 * @default false
+		 */
+		autoUpdate?: boolean;
+
+		/**
+		 * If the drawing tool is closed when the drawing is updated.
+		 *
+		 * @default false
+		 */
+		closeOnUpdate?: boolean;
 	};
 	geometry?: {
 		/**
@@ -107,6 +132,15 @@ export interface IDrawingParameterSettings {
 		 * @default 'lines'
 		 */
 		mode: "points" | "lines";
+
+		/**
+		 * The points that are used when starting the drawing tool.
+		 * The points are defined as an array of arrays, where each array contains the x, y and z coordinates of the point.
+		 *
+		 * @default []
+		 * @example [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 0]]
+		 */
+		points?: number[][];
 
 		/**
 		 * The minimum amount of points, if undefined, the geometry is not restricted.
@@ -123,6 +157,16 @@ export interface IDrawingParameterSettings {
 		 * @default undefined
 		 */
 		maxPoints?: number;
+
+		/**
+		 * If the number of points is strictly checked during the drawing process.
+		 * If this setting is set to true, once the minimum or maximum amount of points is reached, the user cannot add or remove points that would violate the restriction.
+		 * If this setting is set to false, the user can add or remove points even if the minimum or maximum amount of points is exceeded temporarily.
+		 * Once the user tries to update or finish the drawing tool, the amount of points is checked in either case.
+		 *
+		 * @default true
+		 */
+		strictMinMaxPoints?: boolean;
 
 		/**
 		 * If the mode is set to 'lines', if it is a closed line or not.
@@ -151,6 +195,12 @@ export interface IDrawingParameterSettings {
 		 * Processing order follows the array declaration order.
 		 */
 		weightedAdjacency?: {
+			/**
+			 * Whether the weights are applied in the DT's plane local space (U/V/N axes)
+			 * or directly to world-space delta XYZ components.
+			 * Default is "world".
+			 */
+			space?: "local" | "world";
 			to: number;
 			weights: [number, number, number];
 		}[][];
@@ -353,6 +403,10 @@ export const IDrawingParameterJsonSchema = z.object({
 	geometry: z
 		.object({
 			mode: z.enum(["points", "lines"]),
+			points: z
+				.array(z.tuple([z.number(), z.number(), z.number()]))
+				.nullable()
+				.optional(),
 			minPoints: z.number().nullable().optional(),
 			maxPoints: z.number().nullable().optional(),
 			strictMinMaxPoints: optionalBoolean,
@@ -362,6 +416,10 @@ export const IDrawingParameterJsonSchema = z.object({
 				.array(
 					z.array(
 						z.object({
+							space: z
+								.enum(["local", "world"])
+								.nullable()
+								.optional(),
 							to: z.number(),
 							weights: z.tuple([
 								z.number(),
@@ -458,6 +516,9 @@ export const IDrawingParameterJsonSchema = z.object({
 			enableInsertion: optionalBoolean,
 			enableDeletion: optionalBoolean,
 			enableSelection: optionalBoolean,
+			autoStart: optionalBoolean,
+			autoUpdate: optionalBoolean,
+			closeOnUpdate: optionalBoolean,
 		})
 		.nullable()
 		.optional(),

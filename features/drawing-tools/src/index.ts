@@ -2,7 +2,8 @@ import {
 	type IMapData,
 	type ITreeNode,
 	type IViewportApi,
-	MaterialEngine} from "@shapediver/viewer";
+	MaterialEngine,
+} from "@shapediver/viewer";
 import {
 	AngularRestrictionApi,
 	type AngularRestrictionProperties,
@@ -31,10 +32,12 @@ import {
 	type RestrictionMetaData,
 	type RestrictionProperties,
 	type RestrictionPropertiesBase,
-	type SnapRestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type SnapRestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {type RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
 import {type IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
+import {drawingParameterToRuntimeSettings} from "./business/implementation/DrawingParameterSettingsConverter";
 import {type IControl} from "./business/interfaces/controls/IControl";
 import {type IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
 import {type DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
@@ -43,19 +46,24 @@ import {
 	type AdjacencyEntry,
 	type Callbacks,
 	type PointsData,
-	type SettingsOptional} from "./business/interfaces/IDrawingToolsManager";
+	type SettingsOptional,
+} from "./business/interfaces/IDrawingToolsManager";
 
-export {AngularRestrictionApi,
+export {
+	AngularRestrictionApi,
 	AxisRestrictionApi,
 	CameraPlaneRestrictionApi,
+	drawingParameterToRuntimeSettings,
 	DrawingToolsApi,
 	GeometryRestrictionApi,
 	GridRestrictionApi,
 	LineRestrictionApi,
 	PlaneRestrictionApi,
 	PointRestrictionApi,
-	RESTRICTION_TYPE};
-export type {AdjacencyEntry,
+	RESTRICTION_TYPE,
+};
+export type {
+	AdjacencyEntry,
 	AngularRestrictionProperties,
 	AxisRestrictionProperties,
 	Callbacks,
@@ -83,7 +91,8 @@ export type {AdjacencyEntry,
 	RestrictionProperties,
 	RestrictionPropertiesBase,
 	SettingsOptional as Settings,
-	SnapRestrictionProperties};
+	SnapRestrictionProperties,
+};
 
 const defaultTextures: {[key: string]: Promise<IMapData> | IMapData} = {};
 

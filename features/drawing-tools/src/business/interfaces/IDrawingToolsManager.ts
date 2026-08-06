@@ -1,9 +1,12 @@
 import {
 	type IRestriction,
-	type IVisualizationSettings,
 	type RayTraceResult,
-	type RestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
-import {type IMapData} from "@shapediver/viewer.shared.types";
+	type RestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {
+	type IMapData,
+	type IVisualizationSettings,
+} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
