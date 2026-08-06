@@ -11,7 +11,7 @@ import {type ISpotLightApi} from "./types/ISpotLightApi";
 /**
  * The api for a light scene.
  * A light scene is a collection of lights. Therefore multiple light scene can be used to switch between different lighting environments.
- * It can be created by calling the {@link createLightScene} method.
+ * It can be created by calling the `createLightScene` method.
  */
 export interface ILightSceneApi {
 	// #region Properties (4)
@@ -21,7 +21,7 @@ export interface ILightSceneApi {
 	 */
 	readonly id: string;
 	/**
-	 * The node in which the lights are stored in the [scene tree]{@link ITree}.
+	 * The node in which the lights are stored in the [scene tree](https://viewer.shapediver.com/v3/latest/api/interfaces/ITree.html).
 	 */
 	readonly node: ITreeNode;
 

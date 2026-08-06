@@ -3,7 +3,7 @@ import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for a point light.
- * A point light can be created by calling the {@link addPointLight} method.
+ * A point light can be created by calling the `addPointLight` method.
  */
 export interface IPointLightApi extends ILightApi {
 	// #region Properties (3)

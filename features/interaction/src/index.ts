@@ -9,7 +9,8 @@ import {
 	type IPerspectiveCameraApi,
 	type IPointLightApi,
 	type ISpotLightApi,
-	type IViewportApi} from "@shapediver/viewer";
+	type IViewportApi,
+} from "@shapediver/viewer";
 import {
 	AngularRestrictionApi,
 	type AngularRestrictionProperties,
@@ -37,19 +38,27 @@ import {
 	type RestrictionMetaData,
 	type RestrictionProperties,
 	type RestrictionPropertiesBase,
-	type SnapRestrictionProperties} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+	type SnapRestrictionProperties,
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IRay,
-	type RestrictionDefinition} from "@shapediver/viewer.shared.types";
+	type RestrictionDefinition,
+} from "@shapediver/viewer.shared.types";
 import {AbstractInteractionManager} from "./implementation/AbstractInteractionManager";
 import {CameraPlaneConstraint} from "./implementation/dragConstraints/CameraPlaneConstraint";
 import {LineConstraint} from "./implementation/dragConstraints/LineConstraint";
 import {PlaneConstraint} from "./implementation/dragConstraints/PlaneConstraint";
 import {PointConstraint} from "./implementation/dragConstraints/PointConstraint";
-import {InteractionData} from "./implementation/InteractionData";
-import {InteractionEngine} from "./implementation/InteractionEngine";
+import {
+	type IDragAnchor,
+	InteractionData,
+} from "./implementation/InteractionData";
+import {
+	type IInteractionEngineProperties,
+	InteractionEngine,
+} from "./implementation/InteractionEngine";
 import {DragManager} from "./implementation/managers/DragManager";
 import {HoverManager} from "./implementation/managers/HoverManager";
 import {MultiSelectManager} from "./implementation/managers/MultiSelectManager";
@@ -69,7 +78,8 @@ import {
 	isOnBlacklist,
 	matchNodesWithPatterns,
 	type NodeNameFilterPattern,
-	type OutputNodeNameFilterPatterns} from "./implementation/utils/PatternUtils";
+	type OutputNodeNameFilterPatterns,
+} from "./implementation/utils/PatternUtils";
 import {type InteractionEventResponseMapping} from "./interfaces/events/EventResponseMapping";
 import {type IDragEvent} from "./interfaces/events/IDragEvent";
 import {type IHoverEvent} from "./interfaces/events/IHoverEvent";
@@ -77,18 +87,24 @@ import {type IMultiSelectEvent} from "./interfaces/events/IMultiSelectEvent";
 import {type ISelectEvent} from "./interfaces/events/ISelectEvent";
 import {
 	type IInteractionData,
-	type IInteractionTypes} from "./interfaces/IInteractionData";
+	type IInteractionTypes,
+} from "./interfaces/IInteractionData";
 import {
 	type IInteractionEngine,
-	INTERACTION_STATE} from "./interfaces/IInteractionEngine";
+	INTERACTION_STATE,
+} from "./interfaces/IInteractionEngine";
 import {
 	type IInteractionFilterOptions,
-	type IInteractionManager} from "./interfaces/IInteractionManager";
+	type IInteractionManager,
+} from "./interfaces/IInteractionManager";
+import {type IDragConstraint} from "./interfaces/utils/IDragConstraint";
 import {
 	type IInteractionEffect,
-	type IInteractionEffectUtils} from "./interfaces/utils/IInteractionEffectUtils";
+	type IInteractionEffectUtils,
+} from "./interfaces/utils/IInteractionEffectUtils";
 
-export {AbstractInteractionManager,
+export {
+	AbstractInteractionManager,
 	addInteractionData,
 	AngularRestrictionApi,
 	AxisRestrictionApi,
@@ -121,8 +137,10 @@ export {AbstractInteractionManager,
 	PointRestrictionApi,
 	RESTRICTION_TYPE,
 	SelectManager,
-	SelectOnUpManager};
-export type {AngularRestrictionProperties,
+	SelectOnUpManager,
+};
+export type {
+	AngularRestrictionProperties,
 	AxisRestrictionProperties,
 	CameraPlaneRestrictionProperties,
 	DraggingRestrictionMetaData,
@@ -132,6 +150,8 @@ export type {AngularRestrictionProperties,
 	IAmbientLightApi,
 	ICameraApi,
 	IDirectionalLightApi,
+	IDragAnchor,
+	IDragConstraint,
 	IDragEvent,
 	IHemisphereLightApi,
 	IHoverEvent,
@@ -139,6 +159,7 @@ export type {AngularRestrictionProperties,
 	IInteractionEffect,
 	IInteractionEffectUtils,
 	IInteractionEngine,
+	IInteractionEngineProperties,
 	IInteractionFilterOptions,
 	IInteractionManager,
 	IInteractionTypes,
@@ -168,4 +189,5 @@ export type {AngularRestrictionProperties,
 	RestrictionMetaData,
 	RestrictionProperties,
 	RestrictionPropertiesBase,
-	SnapRestrictionProperties};
+	SnapRestrictionProperties,
+};

@@ -5,7 +5,8 @@ import {
 	type ITreeNode,
 	SessionApiData,
 	SessionData,
-	SessionOutputData} from "@shapediver/viewer";
+	SessionOutputData,
+} from "@shapediver/viewer";
 
 import {mat4, vec3} from "gl-matrix";
 
@@ -588,7 +589,7 @@ export const gatherNodesForPattern = (
 /**
  * Get the nodes within the session API by their names.
  *
- * @param sessionApi The session API.
+ * @param sessionApis The session APIs.
  * @param names The names of the nodes.
  * @returns
  */

@@ -42,7 +42,7 @@ export enum EVENTTYPE_CAMERA {
 /**
  * Event types for all drawing tools events
  * The drawing tools events are used to notify about drawing tools changes, like cancel, finish, update, inserted, removed, drag start, move and end.
- * The events that are sent with the drawing tools events are of type {@link IDrawingToolsEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ * The events that are sent with the drawing tools events are of type `IDrawingToolsEvent`. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
  */
 export enum EVENTTYPE_DRAWING_TOOLS {
 	/**
@@ -110,7 +110,7 @@ export enum EVENTTYPE_DRAWING_TOOLS {
 /**
  * Event types for all transformation tools events
  * The transformation tools events are used to notify about transformation tools changes, like matrix changes.
- * The events that are sent with the transformation tools events are of type {@link ITransformationToolsEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ * The events that are sent with the transformation tools events are of type `ITransformationToolsEvent`. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
  */
 export enum EVENTTYPE_TRANSFORMATION_TOOLS {
 	/**
@@ -122,7 +122,7 @@ export enum EVENTTYPE_TRANSFORMATION_TOOLS {
 /**
  * Event types for all interaction events
  * The interaction events are used to notify about interaction changes, like drag start, move and end, hover on and off, select on and off.
- * The events that are sent with the interaction events are of type {@link IInteractionEvent}. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
+ * The events that are sent with the interaction events are of type `IDragEvent`, `IHoverEvent`, `ISelectEvent` or `IMultiSelectEvent`. The {@link EventResponseMapping} can used to map the event type to the corresponding event interface.
  */
 export enum EVENTTYPE_INTERACTION {
 	/**

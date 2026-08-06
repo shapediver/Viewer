@@ -17,7 +17,7 @@ export class OutputApiData
 	/**
 	 * Creates a OutputApi data node.
 	 *
-	 * @param _data the data as key- value pairs
+	 * @param api the output API
 	 * @param id the id
 	 */
 	constructor(api: IOutputApi, id?: string, version?: string) {

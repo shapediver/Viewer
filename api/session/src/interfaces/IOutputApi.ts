@@ -6,7 +6,7 @@ import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
  * The api for an output of a corresponding [session]{@link ISessionApi}.
  *
  * Outputs represent the channels through which data is output from the model
- * represented by a session. They are computed as part of customizations (see {@link customize}).
+ * represented by a session. They are computed as part of customizations (see `customize`).
  *
  * Outputs contain static properties which do not
  * depend on parameter values, these are:
@@ -31,7 +31,7 @@ import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
  *
  * An output's content can be updated manually by calling the {@link updateOutputContent} method.
  * Using the {@link freeze} property the output's content can be frozen, which means subsequent
- * {@link customize} calls will not update the output.
+ * `customize` calls will not update the output.
  */
 export interface IOutputApi extends ResOutput {
 	// #region Properties (4)
@@ -79,7 +79,7 @@ export interface IOutputApi extends ResOutput {
 	 * @param preventUpdate Option to not update the output immediately (default: false). Use this to update
 	 *                      the content of several outputs at the same time, then call {@link ISessionApi.updateOutputs}.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	updateOutputContent(
 		content: ResOutputContent[],

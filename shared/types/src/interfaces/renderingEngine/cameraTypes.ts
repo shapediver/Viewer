@@ -16,7 +16,7 @@ export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
 	CUSTOM = "custom",
 }
 
-type CameraProperties = {
+export type CameraProperties = {
 	readonly type: CAMERA_TYPE;
 	autoAdjust: boolean;
 	autoRotationSpeed: number;

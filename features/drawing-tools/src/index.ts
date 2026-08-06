@@ -38,14 +38,21 @@ import {type RestrictionDefinition} from "@shapediver/viewer.shared.types";
 import {DrawingToolsApi} from "./api/implementation/DrawingToolsApi";
 import {type IDrawingToolsApi} from "./api/interfaces/IDrawingToolsApi";
 import {drawingParameterToRuntimeSettings} from "./business/implementation/DrawingParameterSettingsConverter";
-import {type IControl} from "./business/interfaces/controls/IControl";
+import {
+	type ApplyConstraintsFn,
+	type GetPositionFn,
+	type IControl,
+	type MoveTemporaryFn,
+} from "./business/interfaces/controls/IControl";
 import {type IEdgeControl} from "./business/interfaces/controls/IEdgeControl";
 import {type DrawingToolsEventResponseMapping} from "./business/interfaces/events/EventResponseMapping";
 import {type IDrawingToolsEvent} from "./business/interfaces/events/IDrawingToolsEvent";
 import {
 	type AdjacencyEntry,
 	type Callbacks,
+	type DefaultTextures,
 	type PointsData,
+	type Settings,
 	type SettingsOptional,
 } from "./business/interfaces/IDrawingToolsManager";
 
@@ -65,13 +72,17 @@ export {
 export type {
 	AdjacencyEntry,
 	AngularRestrictionProperties,
+	ApplyConstraintsFn,
 	AxisRestrictionProperties,
 	Callbacks,
 	CameraPlaneRestrictionProperties,
+	DefaultTextures,
 	DraggingRestrictionMetaData,
 	DrawingRestrictionMetaData,
 	DrawingToolsEventResponseMapping,
+	Settings as FullSettings,
 	GeometryRestrictionProperties,
+	GetPositionFn,
 	GridRestrictionProperties,
 	IControl,
 	IDrawingToolsApi,
@@ -82,6 +93,7 @@ export type {
 	ISnapRestriction,
 	ISnapRestrictionApi,
 	LineRestrictionProperties,
+	MoveTemporaryFn,
 	PlaneRestrictionProperties,
 	PointRestrictionProperties,
 	PointsData,

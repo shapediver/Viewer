@@ -1,6 +1,7 @@
 import {
 	CAMERA_TYPE,
-	type ICameraOptions} from "@shapediver/viewer.rendering-engine.camera-engine";
+	type ICameraOptions,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {type IBox} from "@shapediver/viewer.shared.math";
 import {vec2, vec3} from "gl-matrix";
 
@@ -27,8 +28,8 @@ export interface ICameraApi {
 
 	/**
 	 * Option to automatically adjust the camera to the size of the scene whenever a call to
-	 * {@link ISessionApi.customize} replaced {@link ISessionApi.node}.
-	 * This does not happen in case {@link ISessionApi.automaticSceneUpdate} is set to false.
+	 * `ISessionApi.customize` replaced `ISessionApi.node`.
+	 * This does not happen in case `ISessionApi.automaticSceneUpdate` is set to false.
 	 */
 	autoAdjust: boolean;
 	/**

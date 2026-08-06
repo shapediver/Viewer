@@ -1,18 +1,21 @@
 import {showConsoleMessage} from "@shapediver/viewer.api.general";
 import {
 	CreationControlCenterViewport,
-	type ICreationControlCenterViewport} from "@shapediver/viewer.creation-control-center.viewport";
+	type ICreationControlCenterViewport,
+} from "@shapediver/viewer.creation-control-center.viewport";
 import {RenderingEngine as RenderingEngineThreeJs} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	InputValidator,
 	Logger,
 	SESSION_SETTINGS_MODE,
-	ShapeDiverViewerValidationError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerValidationError,
+} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
 	SPINNER_POSITIONING,
 	type ViewportCreationDefinition,
-	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
+	VISIBILITY_MODE,
+} from "@shapediver/viewer.shared.types";
 import {ViewportApi} from "./implementation/ViewportApi";
 import {type IViewportApi} from "./interfaces/IViewportApi";
 
@@ -41,8 +44,8 @@ const updateViewports = (renderingEngines: {
  * viewport object from {@link viewports}. In case no identifier is provided, a unique one will be generated.
  *
  * By default a new viewport displays the complete scene tree. Viewports can be excluded from
- * displaying geometry for specific sessions by using the {@link excludeViewports} property of
- * {@link ISessionApi}.
+ * displaying geometry for specific sessions by using the `excludeViewports` property of
+ * `ISessionApi`.
  *
  * @param properties.visibility The visibility of the viewport.
  * @param properties.canvas The canvas that the viewport should use. A canvas element will be created if none is provided.

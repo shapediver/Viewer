@@ -6,7 +6,7 @@ import {type IParameterApi} from "./IParameterApi";
  * File parameters accept {@link https://developer.mozilla.org/en-US/docs/Web/API/File|File} or
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Blob|Blob} objects. The data
  * gets uploaded to the Geometry Backend prior to sending a _customization_ request.
- * This prior upload assigns a unique id to the data, which can be read from {@link IFileParameter.value}
+ * This prior upload assigns a unique id to the data, which can be read from `IFileParameter.value`
  * once the upload completed. The unique id can be used to run further customizations
  * using the same data, avoiding a further upload.
  *
@@ -23,7 +23,7 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
 	 *
 	 * @param fileId - The id of the file to get the filename for.
 	 * @returns The filename of the file with the given id, or the filename of the current value if no id is given. If the filename is not available, `undefined` is returned.
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	getFilename(fileId?: string): Promise<string | undefined>;
 	/**
@@ -33,7 +33,7 @@ export interface IFileParameterApi extends IParameterApi<File | Blob | string> {
 	 *
 	 * @param v - Optionally, the data (File, Blob, or string id) to upload. If not provided, the current {@link value} is used.
 	 * @returns The id of the uploaded file, or the current value if no upload was necessary.
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	upload(v?: File | Blob | string): Promise<string>;
 

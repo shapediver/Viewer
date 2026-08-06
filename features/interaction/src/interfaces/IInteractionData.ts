@@ -20,7 +20,7 @@ import {vec3} from "gl-matrix";
  *   In that case, the anchors are positioned accoriding to the drag transformation and then transformed with the rotation that has been provided.
  *   The transformed result is used to measure the distance to the ray, and the closest distanced anchor of the {@link dragAnchors} is chosen to compute the tranformation matrix that is applied to the node.
  *
- * The calculations that are mentioned above happen in close proximity with the {@link IDragConstraint}s.
+ * The calculations that are mentioned above happen in close proximity with the `IDragConstraint`s.
  * As this is not the easiest of topics, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1). There we explain the process to set this up with many examples.
  */
 export interface IInteractionData extends ITreeNodeData {

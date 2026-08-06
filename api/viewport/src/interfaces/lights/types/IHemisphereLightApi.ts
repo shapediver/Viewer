@@ -3,7 +3,7 @@ import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for an hemisphere light.
- * An hemisphere light can be created by calling the {@link addHemisphereLight} method.
+ * An hemisphere light can be created by calling the `addHemisphereLight` method.
  */
 export interface IHemisphereLightApi extends ILightApi {
 	// #region Properties (1)

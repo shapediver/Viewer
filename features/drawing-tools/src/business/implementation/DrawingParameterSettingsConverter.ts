@@ -49,10 +49,7 @@ export const drawingParameterToRuntimeSettings = (
 			constraints: geometry?.constraints,
 		},
 		keyBindings: paramSettings.keyBindings,
-		restrictions: applySnapDefaults(
-			resolvedRestrictions,
-			options,
-		),
+		restrictions: applySnapDefaults(resolvedRestrictions, options),
 		visualization: paramSettings.visualization,
 	};
 };
@@ -71,7 +68,10 @@ const applySnapDefaults = (
 		const r = restrictions[key];
 		if (!r || !("nodes" in r)) continue; // only geometry restrictions have nodes
 
-		if (options.snapToVertices !== undefined && r.snapToVertices === undefined)
+		if (
+			options.snapToVertices !== undefined &&
+			r.snapToVertices === undefined
+		)
 			r.snapToVertices = options.snapToVertices;
 		if (options.snapToEdges !== undefined && r.snapToEdges === undefined)
 			r.snapToEdges = options.snapToEdges;

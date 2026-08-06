@@ -5,7 +5,7 @@ import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the select event.
- * These events are sent for select specific events ({@link EVENTTYPE_INTERACTION}).
+ * These events are sent for select specific events (`EVENTTYPE_INTERACTION`).
  */
 export interface ISelectEvent extends IViewportEvent {
 	// #region Properties (6)

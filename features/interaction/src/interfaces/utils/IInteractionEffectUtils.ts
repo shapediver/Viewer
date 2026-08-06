@@ -31,7 +31,7 @@ export interface IInteractionEffectUtils {
 	 * The returned token can be used to removed the effect.
 	 *
 	 * @param node
-	 * @param material
+	 * @param effect
 	 * @returns
 	 */
 	applyInteractionEffect(node: ITreeNode, effect: IInteractionEffect): string;

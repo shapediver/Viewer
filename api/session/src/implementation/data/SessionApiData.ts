@@ -17,7 +17,7 @@ export class SessionApiData
 	/**
 	 * Creates a SessionApi data node.
 	 *
-	 * @param _data the data as key- value pairs
+	 * @param api the session API
 	 * @param id the id
 	 */
 	constructor(api: ISessionApi, id?: string, version?: string) {

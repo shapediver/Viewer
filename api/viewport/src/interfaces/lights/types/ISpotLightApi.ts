@@ -3,7 +3,7 @@ import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for a spot light.
- * A spot light can be created by calling the {@link addSpotLight} method.
+ * A spot light can be created by calling the `addSpotLight` method.
  */
 export interface ISpotLightApi extends ILightApi {
 	// #region Properties (6)

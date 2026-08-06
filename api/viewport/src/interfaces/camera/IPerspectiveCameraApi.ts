@@ -2,7 +2,7 @@ import {type ICameraApi} from "./ICameraApi";
 
 /**
  * The api for a perspective camera.
- * A perspective camera can be created by calling the {@link createPerspectiveCamera} method.
+ * A perspective camera can be created by calling the `createPerspectiveCamera` method.
  * A camera has a multitude of properties and methods that can be used to adjust the behavior.
  */
 export interface IPerspectiveCameraApi extends ICameraApi {

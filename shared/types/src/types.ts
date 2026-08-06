@@ -7,7 +7,8 @@ import {
 	BUSY_MODE_DISPLAY,
 	FLAG_TYPE,
 	SPINNER_POSITIONING,
-	VISIBILITY_MODE} from "./interfaces/renderingEngine/enums";
+	VISIBILITY_MODE,
+} from "./interfaces/renderingEngine/enums";
 
 export type Color = string | number | number[] | vec3 | vec4;
 
@@ -122,11 +123,11 @@ export type SessionCreationDefinition = {
 	allowOutputLoading?: boolean;
 	/** Option to allow relaxed validation of parameter identifiers. When set to `true`, unrecognized parameters will be ignored rather than causing an error.  (default: false) */
 	ignoreUnknownParams?: boolean;
-	/** Option to load the outputs, or not load them until the first call of {@link ISession.customize}. (default: true) */
+	/** Option to load the outputs, or not load them until the first call of `ISessionApi.customize`. (default: true) */
 	loadOutputs?: boolean;
 	/** Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) */
 	loadSdtf?: boolean;
-	/** Option to exclude some viewports from the start. Can be accessed via {@link ISession.excludeViewports}. */
+	/** Option to exclude some viewports from the start. Can be accessed via `ISessionApi.excludeViewports`. */
 	excludeViewports?: string[];
 	/** The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified. */
 	initialParameterValues?: {[key: string]: string};
@@ -172,15 +173,15 @@ export type ViewportCreationDefinition = {
 		 */
 		spinnerPositioning?: SPINNER_POSITIONING;
 	};
-	/** The id of the session of which the settings should be used. Only works when {@link sessionSettingsMode} is set to {@link SESSION_SETTINGS_MODE.SESSION}. */
+	/** The id of the session of which the settings should be used. Only works when `sessionSettingsMode` is set to `SESSION_SETTINGS_MODE.SESSION`. */
 	sessionSettingsId?: string;
 	/** The mode in which settings should be applied. (default: SESSION_SETTINGS_MODE.FIRST) */
 	sessionSettingsMode?: SESSION_SETTINGS_MODE;
 	/** The initial visibility of the viewport. (default: VISIBILITY_MODE.SESSION) */
 	visibility?: VISIBILITY_MODE;
 	/**
-	 * The ids of the sessions that should be displayed in the viewport. This only is considered if the {@link visibility} is set to {@link VISIBILITY_MODE.SESSIONS}.
-	 * It's recommended that with this workflow, the {@link sessionSettingsMode} is set to {@link SESSION_SETTINGS_MODE.SESSION} and a {@link sessionSettingsId} is provided.
+	 * The ids of the sessions that should be displayed in the viewport. This only is considered if the `visibility` is set to `VISIBILITY_MODE.SESSIONS`.
+	 * It's recommended that with this workflow, the `sessionSettingsMode` is set to `SESSION_SETTINGS_MODE.SESSION` and a `sessionSettingsId` is provided.
 	 */
 	visibilitySessionIds?: string[];
 	/**

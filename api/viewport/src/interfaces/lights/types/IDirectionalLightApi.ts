@@ -3,7 +3,7 @@ import {type ILightApi} from "../ILightApi";
 
 /**
  * The api for a directional light.
- * A directional light can be created by calling the {@link addDirectionalLight} method.
+ * A directional light can be created by calling the `addDirectionalLight` method.
  */
 export interface IDirectionalLightApi extends ILightApi {
 	// #region Properties (4)

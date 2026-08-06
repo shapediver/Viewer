@@ -11,5 +11,8 @@ module.exports = {
 	excludeExternals: false,
 	externalSymbolLinkMappings,
 	excludePrivate: true,
+	validation: {
+		notExported: true,
+	},
 	sort: ["required-first", "kind", "alphabetical"],
 };

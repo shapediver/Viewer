@@ -232,6 +232,7 @@ import {
 } from "./interfaces/parameter/IRectangleTransformParameterSettings";
 import {
 	CAMERA_TYPE,
+	type CameraProperties,
 	type ICameraOptions,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
 	type OrthographicCameraProperties,
@@ -327,6 +328,7 @@ export {
 	VISIBILITY_MODE,
 };
 export type {
+	CameraProperties,
 	Color,
 	DraggingParameterValue,
 	DrawingParameterValue,

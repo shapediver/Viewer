@@ -232,8 +232,8 @@ export interface ISessionApi {
 	 * Update all or some settings of the current session and the viewports based on the Geometry Backend
 	 * response object of another model.
 	 *
-	 * @see {@link IViewportApi.sessionSettingsMode}
-	 * @see {@link IViewportApi.sessionSettingsId}
+	 * @see IViewportApi.sessionSettingsMode
+	 * @see IViewportApi.sessionSettingsId
 	 *
 	 * @param response the ResBase of the model whose settings shall be applied
 	 * @param sections specify true for those parts of the settings that should be applied
@@ -280,7 +280,7 @@ export interface ISessionApi {
 	 * This removes the {@link node} from the scene tree and closes the session
 	 * with the Geometry Backend.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	close(): Promise<void>;
 	/**
@@ -290,7 +290,7 @@ export interface ISessionApi {
 	 *
 	 * @param convertForAR Option to convert the scene for AR. In this case some specific use cases are target to ensure the best AR performance. (default: false)
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	convertToGlTF(convertForAR?: boolean): Promise<Blob>;
 	/**
@@ -355,7 +355,7 @@ export interface ISessionApi {
 	 * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
 	 * @param waitForViewportUpdate If waitForViewportUpdate is set to true, the promise will only resolve when the geometry was processed by the viewport(s) and is visible in the scene. (Default: false)
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	customize(
 		parameterValues?: {[key: string]: unknown},
@@ -378,7 +378,7 @@ export interface ISessionApi {
 	 *
 	 * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	customizeParallel(parameterValues: {
 		[key: string]: unknown;
@@ -397,7 +397,7 @@ export interface ISessionApi {
 	 *
 	 * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	customizeResult(parameterValues: {
 		[key: string]: unknown;
@@ -408,7 +408,7 @@ export interface ISessionApi {
 	 *
 	 * @param modelState The model state to use. This can be a model state id or a ResBase.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	customizeWithModelState(modelState: string | ResBase): Promise<ITreeNode>;
 	/**
@@ -490,7 +490,7 @@ export interface ISessionApi {
 	 * @see {@link goBack}
 	 * @see {@link goForward}
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	goBack(): Promise<ITreeNode>;
 	/**
@@ -503,7 +503,7 @@ export interface ISessionApi {
 	 * @see {@link goBack}
 	 * @see {@link goForward}
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	goForward(): Promise<ITreeNode>;
 	/**
@@ -514,7 +514,7 @@ export interface ISessionApi {
 	 *
 	 * @param outputs The set of outputs. Map from output id to output version.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	loadCachedOutputs(outputs: {
 		[key: string]: string;
@@ -528,9 +528,9 @@ export interface ISessionApi {
 	 * @param body.outputs The ids of the outputs to request.
 	 * @param body.max_wait_time Maximum amount of milliseconds to wait for completion of export request before responding.
 	 * @param loadOutputs If loadOutputs is set to true, if result of the export request contains outputs, they will be loaded into the session. (Default: false)
-	 * @param maxWaitTime Maximum amount of milliseconds to wait for completion of the complete request.
+	 * @param maxWaitMsec Maximum amount of milliseconds to wait for completion of the complete request.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	requestExports(
 		body: ReqExport,
@@ -542,7 +542,7 @@ export interface ISessionApi {
 	 *
 	 * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	resetParameterValues(force?: boolean): Promise<ITreeNode>;
 	/**
@@ -550,7 +550,7 @@ export interface ISessionApi {
 	 *
 	 * @param sections specify false for those parts of the settings that should not be applied
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	resetSettings(sections?: ISettingsSections): Promise<void>;
 	/**
@@ -559,7 +559,7 @@ export interface ISessionApi {
 	 * This call will throw an exception if the ticket and JWT do not grant the required permission to
 	 * save parameter default values for the model.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	saveDefaultParameterValues(): Promise<boolean>;
 	/**
@@ -572,7 +572,7 @@ export interface ISessionApi {
 	 *
 	 * @param viewportId The optional viewport id.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	saveSettings(viewportId?: string): Promise<boolean>;
 	/**
@@ -580,7 +580,7 @@ export interface ISessionApi {
 	 *
 	 * This call will throw an exception if the ticket and JWT do not grant the required permissions for the model.
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	saveUiProperties(): Promise<boolean>;
 	/**
@@ -599,7 +599,7 @@ export interface ISessionApi {
 	 *
 	 * @param waitForViewportUpdate If waitForViewportUpdate is set to true, the promise will only resolve when the geometry was processed by the viewport(s) and is visible in the scene. (Default: false)
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws {@link ShapeDiverViewerError}
 	 */
 	updateOutputs(waitForViewportUpdate?: boolean): Promise<ITreeNode>;
 	/**
@@ -607,7 +607,7 @@ export interface ISessionApi {
      * If a file parameter is not specified in the values, the current value will be used. 
      * The ids of the uploaded files are returned in a map from parameter id to file id.
      * 
-     * Note: The currently set file parameters will be uploaded automatically by {@link customize}, {@link customizeParallel}, {@link requestExports}, and {@link requestExport}.
+     * Note: The currently set file parameters will be uploaded automatically by {@link customize}, {@link customizeParallel}, {@link requestExports}, and `requestExport`.
 
     * @param values The set of file parameters to upload. If a parameter is not a file parameter, the current value will be used.
      */

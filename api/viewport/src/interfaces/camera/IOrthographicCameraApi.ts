@@ -3,7 +3,7 @@ import {type ICameraApi} from "./ICameraApi";
 
 /**
  * The api for an orthographic camera.
- * An orthographic camera can be created by calling the {@link createOrthographicCamera} method.
+ * An orthographic camera can be created by calling the `createOrthographicCamera` method.
  * A camera has a multitude of properties and methods that can be used to adjust the behavior.
  */
 export interface IOrthographicCameraApi extends ICameraApi {

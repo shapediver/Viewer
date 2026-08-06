@@ -5,7 +5,7 @@ import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the multi select event.
- * These events are sent for multi select specific events ({@link EVENTTYPE_INTERACTION}).
+ * These events are sent for multi select specific events (`EVENTTYPE_INTERACTION`).
  */
 export interface IMultiSelectEvent extends IViewportEvent {
 	// #region Properties (7)

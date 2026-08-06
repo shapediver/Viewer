@@ -23,7 +23,7 @@ The ShapeDiver Viewer consists of simple components that you can use in your own
 
 ### createSession
 
-The [session](./interfaces/ISessionApi.html) is the component that connects to the ShapeDiver servers. This component is used to change [parameters](./interfaces/IParameterApi.html), to create [exports](./interfaces/IExportApi.html) and to manage the [outputs](./interfaces/IOutputApi.html). For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/sessions).
+The {@link ISessionApi | session} is the component that connects to the ShapeDiver servers. This component is used to change {@link IParameterApi | parameters}, to create {@link IExportApi | exports} and to manage the {@link IOutputApi | outputs}. For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/sessions).
 
 ```typescript
 import {createSession} from "@shapediver/viewer.session";
@@ -35,4 +35,4 @@ const session = await createSession({
 });
 ```
 
-Once a session is created, the initial outputs are already loaded (unless specified otherwise in the [method options](./modules.html#createSession)).
+Once a session is created, the initial outputs are already loaded (unless specified otherwise in the {@link createSession | method options}).

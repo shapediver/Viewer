@@ -212,6 +212,7 @@ import {
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	BUSY_MODE_DISPLAY,
+	type CameraProperties,
 	type Color,
 	type DraggingParameterValue,
 	type DrawingParameterValue,
@@ -586,6 +587,7 @@ export {
 };
 
 export type {
+	CameraProperties,
 	Color,
 	DraggingParameterValue,
 	DrawingParameterValue,

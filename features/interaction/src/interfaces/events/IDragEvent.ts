@@ -7,7 +7,7 @@ import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the drag event.
- * These events are sent for drag specific events ({@link EVENTTYPE_INTERACTION}).
+ * These events are sent for drag specific events (`EVENTTYPE_INTERACTION`).
  */
 export interface IDragEvent extends IViewportEvent {
 	// #region Properties (9)

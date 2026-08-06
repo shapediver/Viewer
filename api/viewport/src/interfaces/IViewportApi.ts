@@ -40,15 +40,15 @@ import {type ILightSceneApi} from "./lights/ILightSceneApi";
 /**
  * The api for viewports.
  *
- * Viewports are created by calling the {@link createViewport} method.
+ * Viewports are created by calling the `createViewport` method.
  *
  * Each viewport has corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
  *
  * Additionally, there are various other settings to adjust the behavior and rendering of the viewport.
  *
  * By default a new viewport displays the complete scene tree. Viewports can be excluded from
- * displaying geometry for specific sessions by using the {@link excludeViewports} property of
- * {@link ISessionApi}.
+ * displaying geometry for specific sessions by using the `excludeViewports` property of
+ * `ISessionApi`.
  */
 export interface IViewportApi {
 	// #region Properties (60)
@@ -208,7 +208,7 @@ export interface IViewportApi {
 	enableAR: boolean;
 	/**
 	 * The environment map used by the viewport.
-	 * You can either use the HDR maps at {@link ENVIRONMENT_MAP} or the LDR legacy maps at {@link ENVIRONMENT_MAP_CUBE}.
+	 * You can either use the HDR maps at `ENVIRONMENT_MAP` or the LDR legacy maps at `ENVIRONMENT_MAP_CUBE`.
 	 * Additionally, you can specify your own maps. For HDR maps, provide a link to a .hdr file, for LDR provide the folder where the six cube map images are located.
 	 */
 	environmentMap: string | string[];
@@ -323,7 +323,7 @@ export interface IViewportApi {
 	/**
 	 * Option to show / hide the viewport.
 	 * This will disable rendering, and hide the canvas behind the logo.
-	 * Using this setting especially makes sense with {@link VISIBILITY_MODE.MANUAL} where you can decide at what point you first want to show the scene.
+	 * Using this setting especially makes sense with `VISIBILITY_MODE.MANUAL` where you can decide at what point you first want to show the scene.
 	 */
 	show: boolean;
 	/**
@@ -407,7 +407,7 @@ export interface IViewportApi {
 	 * @param settings
 	 * @param sections
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws `ShapeDiverViewerError`
 	 */
 	applyViewportSettings(
 		settings: ISettings,
@@ -465,12 +465,12 @@ export interface IViewportApi {
 	/**
 	 * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.
 	 *
-	 * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+	 * The ground plane and grid will not be included, as well as additionally added data that was added to the scene other than through a `GeometryData` property.
 	 *
 	 * @param node Optional node to provide to transform into a glTF. (default: scene tree)
 	 * @param convertForAR Option to convert the scene for AR. In this case some specific use cases are target to ensure the best AR performance. (default: false)
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws `ShapeDiverViewerError`
 	 */
 	convertToGlTF(node?: ITreeNode, convertForAR?: boolean): Promise<Blob>;
 	/**
@@ -484,7 +484,7 @@ export interface IViewportApi {
 	 * @param qrCode Option to receive a QR Code instead of a link (default: true)
 	 * @param fallbackUrl Optional fallback url if the link was opened by an unsupported device or an error occurred. If none was provided, the user will be redirected to shapediver.com/app
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws `ShapeDiverViewerError`
 	 */
 	createArSessionLink(
 		node?: ITreeNode,
@@ -496,7 +496,8 @@ export interface IViewportApi {
 	 * An id can be provided. If not, a unique id will be created.
 	 * If the standard option is chosen, the default lights will be added from the start.
 	 *
-	 * @param properties.id The id of the light scene.
+	 * @param properties The properties for the light scene.
+	 * @param properties.name The name of the light scene.
 	 * @param properties.standard The option to add the standard lights.
 	 */
 	createLightScene(properties?: {
@@ -734,9 +735,8 @@ export interface IViewportApi {
 	 * Internally, the scene will first be converted into a glTF. This glTF will be uploaded to our backend to be able to start AR.
 	 *
 	 * @param node Optional node to display in AR. (default: scene tree)
-	 * @param androidOptions
 	 *
-	 * @throws {@type ShapeDiverViewerError}
+	 * @throws `ShapeDiverViewerError`
 	 */
 	viewInAR(node?: ITreeNode): Promise<void>;
 	/**

@@ -5,7 +5,7 @@ import {type IInteractionManager} from "../IInteractionManager";
 
 /**
  * Definition of the hover event.
- * These events are sent for hover specific events ({@link EVENTTYPE_INTERACTION}).
+ * These events are sent for hover specific events (`EVENTTYPE_INTERACTION`).
  */
 export interface IHoverEvent extends IViewportEvent {
 	// #region Properties (6)
