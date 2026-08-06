@@ -112,9 +112,9 @@ let drawingTools: IDrawingToolsApi | undefined;
  * independent and must be closed individually when no longer needed.
  *
  * @param viewport The viewport to which the DrawingTools should be attached.
- * @param callback The callback function that is called when the drawing is finished.
- * @param properties The customization properties for the DrawingTools.
- * @param customDefaultTextures An object containing custom default textures. The keys should correspond to the texture names used in the properties, and the values should be either a Promise that resolves to an IMapData or an IMapData object.
+ * @param callbacks The callback functions for drawing events.
+ * @param settings The customization settings for the DrawingTools.
+ * @param customDefaultTextures An object containing custom default textures. The keys should correspond to the texture names used in the settings, and the values should be either a Promise that resolves to an IMapData or an IMapData object.
  * @returns The DrawingTools instance.
  */
 export const createDrawingTools = (

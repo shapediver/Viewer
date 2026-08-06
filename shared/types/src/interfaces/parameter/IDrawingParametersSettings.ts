@@ -38,11 +38,11 @@ export interface IDrawingParameterSettings {
 			showPointLabels?: boolean;
 			/** If true, the pointer position is shown. (default: true) */
 			showPointerPosition?: boolean;
-			/** If true, the snapping to vertices is enabled, if there is a geometry restriction. (default: true) */
+			/** If true, the snapping to vertices is enabled for geometry restrictions. (default: true) */
 			snapToVertices?: boolean;
-			/** If true, the snapping to edges is enabled, if there is a geometry restriction. (default: true) */
+			/** If true, the snapping to edges is enabled for geometry restrictions. (default: true) */
 			snapToEdges?: boolean;
-			/** If true, the snapping to faces is enabled, if there is a geometry restriction. (default: true) */
+			/** If true, the snapping to faces is enabled for geometry restrictions. (default: true) */
 			snapToFaces?: boolean;
 		};
 		/** Which buttons are available for the interaction parameter. */

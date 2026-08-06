@@ -17,11 +17,12 @@ import {type SettingsOptional} from "../interfaces/IDrawingToolsManager";
  */
 export const drawingParameterToRuntimeSettings = (
 	paramSettings: IDrawingParameterSettings,
-	resolvedRestrictions: {[key: string]: RestrictionProperties},
+	resolvedRestrictions?: Partial<{[key: string]: RestrictionProperties}>,
 	initialPoints?: number[][],
 ): SettingsOptional => {
 	const behavior = paramSettings.behavior;
 	const geometry = paramSettings.geometry;
+	const options = paramSettings.general?.options;
 
 	return {
 		controls: paramSettings.controls as SettingsOptional["controls"],
@@ -48,7 +49,35 @@ export const drawingParameterToRuntimeSettings = (
 			constraints: geometry?.constraints,
 		},
 		keyBindings: paramSettings.keyBindings,
-		restrictions: resolvedRestrictions,
+		restrictions: applySnapDefaults(
+			resolvedRestrictions,
+			options,
+		),
 		visualization: paramSettings.visualization,
 	};
+};
+
+/**
+ * Applies global snap defaults from general.options to geometry restrictions
+ * that don't already have per-restriction values set.
+ */
+const applySnapDefaults = (
+	restrictions: Partial<{[key: string]: RestrictionProperties}> | undefined,
+	options: NonNullable<IDrawingParameterSettings["general"]>["options"],
+): Partial<{[key: string]: RestrictionProperties}> | undefined => {
+	if (!restrictions || !options) return restrictions;
+
+	for (const key of Object.keys(restrictions)) {
+		const r = restrictions[key];
+		if (!r || !("nodes" in r)) continue; // only geometry restrictions have nodes
+
+		if (options.snapToVertices !== undefined && r.snapToVertices === undefined)
+			r.snapToVertices = options.snapToVertices;
+		if (options.snapToEdges !== undefined && r.snapToEdges === undefined)
+			r.snapToEdges = options.snapToEdges;
+		if (options.snapToFaces !== undefined && r.snapToFaces === undefined)
+			r.snapToFaces = options.snapToFaces;
+	}
+
+	return restrictions;
 };

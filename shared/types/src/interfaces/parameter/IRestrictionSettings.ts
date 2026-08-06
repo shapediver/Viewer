@@ -20,8 +20,7 @@ export type Rotation = {
 
 // #region Interfaces (6)
 
-export interface ICameraPlaneRestrictionDefinition
-	extends IRestrictionDefinition {
+export interface ICameraPlaneRestrictionDefinition extends IRestrictionDefinition {
 	// #region Properties (1)
 
 	type: "camera_plane";
@@ -38,6 +37,12 @@ export interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
 	wireframe?: boolean;
 	/** The color of the wireframe. */
 	wireframeColor?: string;
+	/** If the restriction should snap to vertices. (default: true) */
+	snapToVertices?: boolean;
+	/** If the restriction should snap to edges. (default: true) */
+	snapToEdges?: boolean;
+	/** If the restriction should snap to faces. (default: true) */
+	snapToFaces?: boolean;
 	type: "geometry";
 
 	// #endregion Properties (2)
