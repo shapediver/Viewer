@@ -477,6 +477,12 @@ export class EnvironmentMapLoader implements ILoader {
 		);
 		this._envMap = map;
 		this.notify(eventId);
+		// Trigger a render to ensure the newly assigned environment map is drawn.
+		// The beauty render countdown may have already expired by the time the map
+		// resolves (especially with Fetch, which adds async microtask hops compared
+		// to Axios), so without this the viewport would not update until the next
+		// camera movement or scene change.
+		this._renderingEngine.renderingManager.render();
 	}
 
 	private assignTextureEncoding() {
