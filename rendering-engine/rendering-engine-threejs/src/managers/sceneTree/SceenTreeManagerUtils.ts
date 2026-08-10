@@ -161,20 +161,28 @@ export const assignBoundingBox = (
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
 		let bb: IBox = new Box();
-		const clone = convertedObjectData.clone();
+		if (convertedObjectData.userData.isInstanced) {
+			// GPU instances are represented in the scene tree by an empty placeholder;
+			// derive their bounds from the source geometry instead of that placeholder.
+			bb = geometry.boundingBox
+				.clone()
+				.applyMatrix(node.worldMatrix);
+		} else {
+			const clone = convertedObjectData.clone();
 
-		clone.matrix.identity();
-		clone.matrixWorld.identity();
-		clone.position.set(0, 0, 0);
-		clone.scale.set(1, 1, 1);
-		clone.quaternion.set(0, 0, 0, 1);
-		clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
+			clone.matrix.identity();
+			clone.matrixWorld.identity();
+			clone.position.set(0, 0, 0);
+			clone.scale.set(1, 1, 1);
+			clone.quaternion.set(0, 0, 0, 1);
+			clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
 
-		const threeBox = new THREE.Box3().setFromObject(clone, true);
-		bb = new Box(
-			vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
-			vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
-		);
+			const threeBox = new THREE.Box3().setFromObject(clone, true);
+			bb = new Box(
+				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
+				vec3.fromValues(threeBox.max.x, threeBox.max.y, threeBox.max.z),
+			);
+		}
 
 		// adjust the general BB
 		node.boundingBox.union(bb);
