@@ -270,6 +270,23 @@ export class GeometryLoader implements ILoader {
 			cachedGeometry.counter++;
 			threeGeometryObject = cachedGeometry.obj;
 			threeGeometryObject.material = material;
+
+			// Conventional InstancedMeshes are still used for explicit InstanceData.
+			// Attribute rendering must not multiply its material by their stale colors.
+			if (threeGeometryObject instanceof THREE.InstancedMesh) {
+				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+					threeGeometryObject.instanceColor = null;
+				} else if (instanceData && !threeGeometryObject.instanceColor) {
+					for (let i = 0; i < instanceData.instanceColors.length; i++)
+						threeGeometryObject.setColorAt(
+							i,
+							this._renderingEngine.createThreeJsColor(
+								instanceData.instanceColors[i],
+							),
+						);
+					threeGeometryObject.instanceColor!.needsUpdate = true;
+				}
+			}
 		} else {
 			threeGeometryObject = this.createMesh(
 				parentNode,
