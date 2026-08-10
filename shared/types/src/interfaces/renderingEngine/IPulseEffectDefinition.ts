@@ -7,7 +7,7 @@ export interface IPulseEffectDefinition {
 	color?: Color;
 	/**
 	 * Maximum additive emissive intensity. For transparent materials, this also
-	 * controls the interpolation from the base opacity toward fully opaque.
+	 * controls an eased interpolation from the base opacity toward fully opaque.
 	 * Defaults to 0.3.
 	 */
 	intensity?: number;

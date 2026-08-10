@@ -148,11 +148,10 @@ export class PulseEffectManager {
 				1,
 			);
 			if (pulse.baseOpacity !== undefined)
-				pulse.material.opacity = THREE.MathUtils.lerp(
-					pulse.baseOpacity,
-					1,
-					THREE.MathUtils.clamp(intensity, 0, 1),
-				);
+				pulse.material.opacity =
+					1 -
+					(1 - pulse.baseOpacity) *
+						(1 - THREE.MathUtils.clamp(intensity, 0, 1)) ** 2;
 		}
 	}
 }
