@@ -25,6 +25,7 @@ export class PulseEffectManager {
 		{
 			baseEmissive: THREE.Color;
 			baseEmissiveIntensity: number;
+			baseOpacity?: number;
 			baseMaterial: THREE.Material;
 			color: THREE.Color;
 			colorDefinition?: Color;
@@ -32,6 +33,7 @@ export class PulseEffectManager {
 			material: THREE.Material & {
 				emissive: THREE.Color;
 				emissiveIntensity: number;
+				opacity?: number;
 			};
 		}
 	>();
@@ -63,6 +65,10 @@ export class PulseEffectManager {
 			this._pulsedObjects.set(object, {
 				baseEmissive: material.emissive.clone(),
 				baseEmissiveIntensity: material.emissiveIntensity,
+				baseOpacity:
+					material.transparent && "opacity" in material
+						? material.opacity
+						: undefined,
 				baseMaterial: source,
 				color: this._renderingEngine.createThreeJsColor(
 					effect.color ?? "#00ff78",
@@ -141,6 +147,12 @@ export class PulseEffectManager {
 				pulse.baseEmissiveIntensity,
 				1,
 			);
+			if (pulse.baseOpacity !== undefined)
+				pulse.material.opacity = THREE.MathUtils.lerp(
+					pulse.baseOpacity,
+					1,
+					THREE.MathUtils.clamp(intensity, 0, 1),
+				);
 		}
 	}
 }
