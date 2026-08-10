@@ -17,22 +17,22 @@ type GeometryType =
 
 /** Applies and animates material pulse effects for rendered geometry objects. */
 export class PulseEffectManager {
+	private static readonly _colorSimilarityThreshold = 0.01;
 	private readonly _animationFrameEngine = AnimationFrameEngine.instance;
 	private _animationFrameToken?: string;
 	private _continuousRenderingToken?: string;
 	private readonly _pulsedObjects = new Map<
 		GeometryType,
 		{
-			baseEmissive: THREE.Color;
-			baseEmissiveIntensity: number;
+			blendColor: THREE.Color;
+			baseColor: THREE.Color;
 			baseOpacity?: number;
 			baseMaterial: THREE.Material;
-			color: THREE.Color;
+			effectColor: THREE.Color;
 			colorDefinition?: Color;
 			effect: IPulseEffectDefinition;
 			material: THREE.Material & {
-				emissive: THREE.Color;
-				emissiveIntensity: number;
+				color: THREE.Color;
 				opacity?: number;
 			};
 		}
@@ -50,31 +50,28 @@ export class PulseEffectManager {
 			this.clear(object);
 			if (!effect || object instanceof THREE.InstancedMesh) continue;
 			const source = object.material;
-			if (
-				Array.isArray(source) ||
-				!("emissive" in source) ||
-				!("emissiveIntensity" in source)
-			)
-				continue;
+			if (Array.isArray(source) || !("color" in source)) continue;
 
 			const material = source.clone() as THREE.Material & {
-				emissive: THREE.Color;
-				emissiveIntensity: number;
+				color: THREE.Color;
+				opacity?: number;
 			};
 			object.material = material;
+			const baseColor = material.color.clone();
+			const effectColor = this._renderingEngine.createThreeJsColor(
+				effect.color ?? "#00ff78",
+			);
 			this._pulsedObjects.set(object, {
-				baseEmissive: material.emissive.clone(),
-				baseEmissiveIntensity: material.emissiveIntensity,
+				baseColor,
 				baseOpacity:
 					material.transparent && "opacity" in material
 						? material.opacity
 						: undefined,
 				baseMaterial: source,
-				color: this._renderingEngine.createThreeJsColor(
-					effect.color ?? "#00ff78",
-				),
+				blendColor: this.getBlendColor(baseColor, effectColor),
 				colorDefinition: effect.color,
 				effect,
+				effectColor,
 				material,
 			});
 		}
@@ -133,19 +130,19 @@ export class PulseEffectManager {
 			const intensity =
 				(pulse.effect.intensity ?? 0.3) * ((Math.sin(phase) + 1) / 2);
 			if (pulse.colorDefinition !== pulse.effect.color) {
-				pulse.color = this._renderingEngine.createThreeJsColor(
+				pulse.effectColor = this._renderingEngine.createThreeJsColor(
 					pulse.effect.color ?? "#00ff78",
+				);
+				pulse.blendColor = this.getBlendColor(
+					pulse.baseColor,
+					pulse.effectColor,
 				);
 				pulse.colorDefinition = pulse.effect.color;
 			}
-			pulse.material.emissive.setRGB(
-				Math.min(1, pulse.baseEmissive.r + pulse.color.r * intensity),
-				Math.min(1, pulse.baseEmissive.g + pulse.color.g * intensity),
-				Math.min(1, pulse.baseEmissive.b + pulse.color.b * intensity),
-			);
-			pulse.material.emissiveIntensity = Math.max(
-				pulse.baseEmissiveIntensity,
-				1,
+			pulse.material.color.lerpColors(
+				pulse.baseColor,
+				pulse.blendColor,
+				THREE.MathUtils.clamp(intensity, 0, 1),
 			);
 			if (pulse.baseOpacity !== undefined)
 				pulse.material.opacity =
@@ -153,5 +150,28 @@ export class PulseEffectManager {
 					(1 - pulse.baseOpacity) *
 						(1 - THREE.MathUtils.clamp(intensity, 0, 1)) ** 2;
 		}
+	}
+
+	private getBlendColor(
+		baseColor: THREE.Color,
+		effectColor: THREE.Color,
+	): THREE.Color {
+		const redDelta = baseColor.r - effectColor.r;
+		const greenDelta = baseColor.g - effectColor.g;
+		const blueDelta = baseColor.b - effectColor.b;
+		if (
+			redDelta * redDelta +
+				greenDelta * greenDelta +
+				blueDelta * blueDelta >
+			PulseEffectManager._colorSimilarityThreshold
+		)
+			return effectColor;
+
+		const inverseColor = new THREE.Color(
+			1 - baseColor.r,
+			1 - baseColor.g,
+			1 - baseColor.b,
+		);
+		return baseColor.clone().lerp(inverseColor, 0.4);
 	}
 }
