@@ -96,6 +96,18 @@ export class SceneTreeManager implements IManager {
 		isVisibleInHierarchy: boolean = true,
 	): void {
 		let dataChild: THREE.Object3D | undefined;
+		if (this._newRendererType) {
+			const staleObjects = convertedObject.children.filter(
+				(child) =>
+					child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
+					child.userData.SDid === treeNodeData.id &&
+					child.userData.SDversion === treeNodeData.version,
+			);
+			staleObjects.forEach((child) => {
+				removeData(this._renderingEngine, child);
+				convertedObject.remove(child);
+			});
+		}
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 			if (treeNodeData instanceof GeometryData) {
