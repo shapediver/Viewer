@@ -124,11 +124,12 @@ export class InstanceGroupManager {
 			colorIndex = group.nextColorIndex++;
 			group.nodeColorIndices.set(nodeId, colorIndex);
 		}
-		const colorRaw = geometry.instanceColors[colorIndex] ?? [1, 1, 1, 1];
+		const colorRaw = geometry.instanceColors[colorIndex] ?? [255, 255, 255, 255];
+		const color = this._renderingEngine.createThreeJsColor(colorRaw);
 		const rgb: [number, number, number] = [
-			Array.isArray(colorRaw) ? (colorRaw[0] as number) : 1,
-			Array.isArray(colorRaw) ? (colorRaw[1] as number) : 1,
-			Array.isArray(colorRaw) ? (colorRaw[2] as number) : 1,
+			color.r,
+			color.g,
+			color.b,
 		];
 
 		const matrix = new Float32Array(node.worldMatrix);
