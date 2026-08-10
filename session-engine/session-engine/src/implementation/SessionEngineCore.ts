@@ -374,12 +374,15 @@ export class SessionEngineCore {
 					url: string,
 				): Promise<[ArrayBuffer, string]> => {
 					try {
-						const blob = await new UtilsApi(
-							this._sdkConfig,
-						).downloadImage(this._sessionId!, url);
-
-						const arrayBuffer = await blob.arrayBuffer();
-						return [arrayBuffer, blob.type];
+						const {data: arrayBuffer, contentType} =
+							await new UtilsApi(this._sdkConfig).downloadImage(
+								this._sessionId!,
+								url,
+								{
+									responseType: "arraybuffer",
+								},
+							);
+						return [arrayBuffer, contentType];
 					} catch (e) {
 						throw await this._utilsManager.handleError(e);
 					}

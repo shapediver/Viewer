@@ -249,12 +249,10 @@ export class UtilsManager {
 		// Process the error
 		const e = await processError(err);
 		// emit event
-		this._eventEngine.emitEvent(EVENTTYPE_SESSION.SESSION_ERROR, <
-			ISessionErrorEvent
-		>{
+		this._eventEngine.emitEvent(EVENTTYPE_SESSION.SESSION_ERROR, {
 			sessionId: this._sessionEngineCore.sessionId!,
 			error: e,
-		});
+		} as ISessionErrorEvent);
 
 		if (e instanceof ResponseError) {
 			if (e.type === ResErrorType.SESSION_GONE_ERROR) {
@@ -395,15 +393,16 @@ export class UtilsManager {
 			};
 		} else {
 			// case where the image is a URL
-			const blob = await new UtilsApi(
+			const {data: arrayBuffer, contentType} = await new UtilsApi(
 				this._sessionEngineCore.sdkConfig,
-			).downloadImage(this._sessionEngineCore.sessionId!, imageString);
+			).downloadImage(this._sessionEngineCore.sessionId!, imageString, {
+				responseType: "arraybuffer",
+			});
 
-			const arrayBuffer = await blob.arrayBuffer();
 			return {
 				imageData: {
-					format: blob.type,
-					size: blob.size,
+					size: arrayBuffer.byteLength,
+					format: contentType,
 				},
 				arrayBuffer,
 			};

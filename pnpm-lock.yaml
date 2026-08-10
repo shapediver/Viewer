@@ -100,8 +100,8 @@ importers:
   api/default:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -178,8 +178,8 @@ importers:
   api/session:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -211,8 +211,8 @@ importers:
   api/viewport:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.api.general':
         specifier: workspace:*
         version: link:../general
@@ -286,8 +286,8 @@ importers:
   creation-control-center/session:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.session-engine.session-engine':
         specifier: workspace:*
         version: link:../../session-engine/session-engine
@@ -331,8 +331,8 @@ importers:
   data-engine/data-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
@@ -370,8 +370,8 @@ importers:
   data-engine/geometry-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
@@ -427,8 +427,8 @@ importers:
   data-engine/html-element-anchor-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -451,8 +451,8 @@ importers:
   data-engine/material-database-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
@@ -478,8 +478,8 @@ importers:
   data-engine/material-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -499,8 +499,8 @@ importers:
   data-engine/sdtf-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -541,8 +541,8 @@ importers:
   data-engine/tag3d-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
@@ -1228,8 +1228,8 @@ importers:
   session-engine/session-engine:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../../data-engine/shared-types
@@ -1269,8 +1269,8 @@ importers:
   shared/global-access-objects:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.data-engine.shared-types':
         specifier: workspace:*
         version: link:../../data-engine/shared-types
@@ -1293,8 +1293,8 @@ importers:
   shared/node-tree:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -1320,8 +1320,8 @@ importers:
         specifier: 4.2.0
         version: 4.2.0
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/viewer.settings':
         specifier: 1.3.2
         version: 1.3.2
@@ -1350,8 +1350,8 @@ importers:
   shared/types:
     dependencies:
       '@shapediver/sdk.geometry-api-sdk-v2':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.2.0
+        version: 4.2.0
       '@shapediver/sdk.sdtf-primitives':
         specifier: 1.7.3
         version: 1.7.3
@@ -2173,8 +2173,8 @@ packages:
       proxy-agent:
         optional: true
 
-  '@shapediver/sdk.geometry-api-sdk-v2@4.0.0':
-    resolution: {integrity: sha512-f8+nYUdjNUG9Hqzf+aLjuiEaeSA0g7Zx6qSoIql3D17aHmi/CM7zTFEx5rS9lhjdL0cO8+oJepziKhfoYp0+Ug==}
+  '@shapediver/sdk.geometry-api-sdk-v2@4.2.0':
+    resolution: {integrity: sha512-5mCMg8U9ZhwZeX6/aXJEHPvJMKSofdx5U55spnFUOSZVJaNzaxe0dFqlqmwLG38foJYfVyd2oRGv5JapV8hBBw==}
 
   '@shapediver/sdk.sdtf-core@1.7.3':
     resolution: {integrity: sha512-DhMZVbLw8ZNV5SWKofgZEENxTLnOjrr2VWlAYrqFBlfzFbkGUu/UWMoCaxmwhp2RNBLHmGFGvFr4H0ZOxAkclg==}
@@ -6423,7 +6423,7 @@ snapshots:
       modern-tar: 0.7.6
       yargs: 17.7.2
 
-  '@shapediver/sdk.geometry-api-sdk-v2@4.0.0': {}
+  '@shapediver/sdk.geometry-api-sdk-v2@4.2.0': {}
 
   '@shapediver/sdk.sdtf-core@1.7.3': {}
 
