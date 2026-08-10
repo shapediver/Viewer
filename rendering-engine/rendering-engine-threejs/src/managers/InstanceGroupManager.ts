@@ -41,7 +41,10 @@ export class InstanceGroupManager {
 	// #region Properties (3)
 
 	private readonly _groups = new Map<string, InstanceGroup>();
-	private readonly _nodeToHash = new Map<string, string>(); // nodeId → instanceHash
+	// A tree node may contain more than one primitive. Keep those registrations
+	// separate: using only node.id makes every primitive after the first look like
+	// a reload and drops it from its instanced batch.
+	private readonly _nodeToHash = new Map<string, string>(); // node+geometry → instanceHash
 
 	readonly instancedRoot: THREE.Group = new THREE.Group();
 
@@ -107,11 +110,11 @@ export class InstanceGroupManager {
 			this.instancedRoot.add(instancedMesh);
 		}
 
-		const nodeId = node.id;
+		const nodeId = this._getNodeKey(node, geometry.id);
 
 		// If already registered, just refresh matrix (re-load scenario)
 		if (this._nodeToHash.has(nodeId)) {
-			this._refreshNodeMatrix(group, node);
+			this._refreshNodeMatrix(group, node, nodeId);
 			return group.defaultMesh;
 		}
 
@@ -173,8 +176,9 @@ export class InstanceGroupManager {
 	 * Unregister a node from its instance group.
 	 * Uses swap-and-pop so the InstancedMesh never has gaps.
 	 */
-	public removeNode(node: ITreeNode): boolean {
-		const nodeId = node.id;
+	public removeNode(node: ITreeNode, nodeKey?: string): boolean {
+		const nodeId = nodeKey ?? this._getNodeKeys(node.id)[0];
+		if (!nodeId) return false;
 		const instanceHash = this._nodeToHash.get(nodeId);
 		if (!instanceHash) return false;
 
@@ -269,38 +273,37 @@ export class InstanceGroupManager {
 
 	/** Returns true if the node participates in any instance group. */
 	public isInstanced(nodeId: string): boolean {
-		return this._nodeToHash.has(nodeId);
+		return this._getNodeKeys(nodeId).length > 0;
 	}
 
 	/** Refresh the transform of an already registered instance. */
 	public updateNode(node: ITreeNode): void {
-		const instanceHash = this._nodeToHash.get(node.id);
-		if (!instanceHash) return;
-
-		const group = this._groups.get(instanceHash);
-		if (!group) return;
-
-		this._refreshNodeMatrix(group, node);
+		for (const nodeId of this._getNodeKeys(node.id)) {
+			const instanceHash = this._nodeToHash.get(nodeId);
+			const group = instanceHash ? this._groups.get(instanceHash) : undefined;
+			if (group) this._refreshNodeMatrix(group, node, nodeId);
+		}
 	}
 
 	/** Set effective visibility for one registered instance. */
 	public setNodeVisible(nodeId: string, visible: boolean): void {
-		const instanceHash = this._nodeToHash.get(nodeId);
-		if (!instanceHash) return;
-		const group = this._groups.get(instanceHash);
-		if (!group) return;
+		for (const key of this._getNodeKeys(nodeId)) {
+			const instanceHash = this._nodeToHash.get(key);
+			const group = instanceHash ? this._groups.get(instanceHash) : undefined;
+			if (!group) continue;
 
-		group.nodeVisible.set(nodeId, visible);
-		const matrix = this._getVisibleMatrix(group, nodeId);
-		const matrix4 = new THREE.Matrix4().fromArray(matrix);
-		const defaultIndex = group.nodeToIndex.get(nodeId);
-		if (defaultIndex !== undefined)
-			group.defaultMesh.setMatrixAt(defaultIndex, matrix4);
+			group.nodeVisible.set(key, visible);
+			const matrix = this._getVisibleMatrix(group, key);
+			const matrix4 = new THREE.Matrix4().fromArray(matrix);
+			const defaultIndex = group.nodeToIndex.get(key);
+			if (defaultIndex !== undefined)
+				group.defaultMesh.setMatrixAt(defaultIndex, matrix4);
 
-		const effectMesh = this._getEffectMesh(group, nodeId);
-		if (effectMesh) this._setMeshMatrix(effectMesh, nodeId, matrix4);
+			const effectMesh = this._getEffectMesh(group, key);
+			if (effectMesh) this._setMeshMatrix(effectMesh, key, matrix4);
 
-		group.defaultMesh.instanceMatrix.needsUpdate = true;
+			group.defaultMesh.instanceMatrix.needsUpdate = true;
+		}
 	}
 
 	/** Replace the shared material used by the non-effect instances in a group. */
@@ -361,6 +364,17 @@ export class InstanceGroupManager {
 	// #endregion Public Methods (7)
 
 	// #region Private Methods (4)
+
+	private _getNodeKey(node: ITreeNode, geometryId: string): string {
+		return `${node.id}:${geometryId}`;
+	}
+
+	private _getNodeKeys(treeNodeId: string): string[] {
+		const prefix = `${treeNodeId}:`;
+		return [...this._nodeToHash.keys()].filter((key) =>
+			key.startsWith(prefix),
+		);
+	}
 
 	private _removeFromDefault(group: InstanceGroup, nodeId: string): void {
 		const index = group.nodeToIndex.get(nodeId);
@@ -444,8 +458,11 @@ export class InstanceGroupManager {
 			group.defaultMesh.instanceColor.needsUpdate = true;
 	}
 
-	private _refreshNodeMatrix(group: InstanceGroup, node: ITreeNode): void {
-		const nodeId = node.id;
+	private _refreshNodeMatrix(
+		group: InstanceGroup,
+		node: ITreeNode,
+		nodeId: string,
+	): void {
 		const matrix = new Float32Array(node.worldMatrix);
 		group.nodeMatrices.set(nodeId, matrix);
 
