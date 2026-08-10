@@ -224,11 +224,16 @@ export class GeometryLoader {
 			);
 		}
 
-		geometryData.instanceColors.push(
+		// The source geometry can be shared, but every primitive occurrence needs
+		// its own scene-data identity. Otherwise the renderer cannot distinguish
+		// two matching primitives attached to the same glTF node.
+		const instance = geometryData.clone() as GeometryData;
+		instance.material = material;
+		instance.instanceColors = [
 			material && material.color ? material.color : [1, 1, 1, 1],
-		);
-		this._loaded[cacheKey] = geometryData;
-		return geometryData;
+		];
+		this._loaded[cacheKey] = instance;
+		return instance;
 	}
 
 	private loadPrimitive(

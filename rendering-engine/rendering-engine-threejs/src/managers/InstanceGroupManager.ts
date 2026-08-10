@@ -127,7 +127,7 @@ export class InstanceGroupManager {
 			colorIndex = group.nextColorIndex++;
 			group.nodeColorIndices.set(nodeId, colorIndex);
 		}
-		const colorRaw = geometry.instanceColors[colorIndex] ?? [255, 255, 255, 255];
+		const colorRaw = geometry.instanceColors[0] ?? [255, 255, 255, 255];
 		const color = this._renderingEngine.createThreeJsColor(colorRaw);
 		const rgb: [number, number, number] = [
 			color.r,
