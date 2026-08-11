@@ -8,6 +8,7 @@ export class SelectiveBloomManager {
 
 	private _selectiveBloomEffect!: SelectiveBloomEffect;
 	private _selectiveBloomNodes: ITreeNode[] = [];
+	private _instancedBloomNodes = new Set<ITreeNode>();
 
 	// #endregion Properties (2)
 
@@ -25,6 +26,10 @@ export class SelectiveBloomManager {
 	}
 
 	public clearSelection(): void {
+		this._instancedBloomNodes.forEach((node) =>
+			this._removeInstancedEffects(node),
+		);
+		this._instancedBloomNodes.clear();
 		this._selectiveBloomNodes = [];
 		this.updateSelectiveBloomEffectObjects();
 	}
@@ -33,6 +38,8 @@ export class SelectiveBloomManager {
 		const index = this._selectiveBloomNodes.indexOf(node);
 		if (index !== -1) this._selectiveBloomNodes.splice(index, 1);
 
+		this._removeInstancedEffects(node);
+		this._instancedBloomNodes.delete(node);
 		this.updateSelectiveBloomEffectObjects();
 		return index !== -1;
 	}
@@ -43,19 +50,64 @@ export class SelectiveBloomManager {
 	}
 
 	public updateSelectiveBloomEffectObjects() {
+		if (!this._selectiveBloomEffect) return;
 		this._selectiveBloomEffect.selection.clear();
+		const selectedNodes = new Set(this._selectiveBloomNodes);
+		this._instancedBloomNodes.forEach((node) => {
+			if (!selectedNodes.has(node)) this._removeInstancedEffects(node);
+		});
+		this._instancedBloomNodes.clear();
 
 		for (let i = 0; i < this._selectiveBloomNodes.length; i++) {
-			(
-				this._selectiveBloomNodes[i].convertedObject[
-					this._renderingEngine.id
-				] as THREE.Object3D
-			).traverse((o) => {
-				if (o instanceof THREE.Mesh)
+			const bloomNode = this._selectiveBloomNodes[i];
+			const object = bloomNode.convertedObject[
+				this._renderingEngine.id
+			] as THREE.Object3D | undefined;
+			if (!object) continue;
+
+			object.traverse((o) => {
+				if (o.userData.isInstanced) {
+					const instanceNode = o.userData
+						.instanceNode as ITreeNode | undefined;
+					if (!instanceNode) return;
+					const effectMesh =
+						this._renderingEngine.instanceGroupManager.addToEffect(
+							instanceNode,
+							"bloom",
+						);
+					if (effectMesh) {
+						this._selectiveBloomEffect.selection.add(effectMesh);
+						this._instancedBloomNodes.add(instanceNode);
+					}
+				} else if (o instanceof THREE.Mesh) {
 					this._selectiveBloomEffect.selection.add(o);
+				}
 			});
 		}
+		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
 	// #endregion Public Methods (5)
+
+	// #region Private Methods (1)
+
+	private _removeInstancedEffects(node: ITreeNode): void {
+		const object = node.convertedObject[
+			this._renderingEngine.id
+		] as THREE.Object3D | undefined;
+		if (!object) return;
+		object.traverse((o) => {
+			if (!o.userData.isInstanced) return;
+			const instanceNode = o.userData.instanceNode as
+				| ITreeNode
+				| undefined;
+			if (instanceNode)
+				this._renderingEngine.instanceGroupManager.removeFromEffect(
+					instanceNode,
+					"bloom",
+				);
+		});
+	}
+
+	// #endregion Private Methods (1)
 }

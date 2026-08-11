@@ -2,6 +2,7 @@ import {mat4} from "gl-matrix";
 import {type IBox} from "../math/IBox";
 import {type IPulseEffectDefinition} from "../renderingEngine/IPulseEffectDefinition";
 import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
+import {type Color} from "../..";
 import {type IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
 export enum PRIMITIVE_MODE {
@@ -89,6 +90,9 @@ export interface IGeometryData extends ITreeNodeData {
 	attributeMaterial: IMaterialAbstractData | null;
 	boundingBox: IBox;
 	castShadow: boolean;
+	instantiable: boolean;
+	instanceHash?: string;
+	instanceColors: Color[];
 	effectMaterials: {material: IMaterialAbstractData; token: string}[];
 	effectPulses: {effect: IPulseEffectDefinition; token: string}[];
 	material: IMaterialAbstractData | null;

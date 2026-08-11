@@ -1,5 +1,6 @@
 import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
+	HashCreator,
 	HttpClient,
 	type HttpResponse,
 	Logger,
@@ -15,6 +16,7 @@ export class GeometryEngine {
 	// #region Properties (7)
 
 	private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
+	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _httpClient: HttpClient = HttpClient.instance;
 	private readonly _loadingQueue: Promise<ITreeNode>[] = [];
 	private readonly _logger: Logger = Logger.instance;
@@ -67,6 +69,8 @@ export class GeometryEngine {
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
 		const url = content.href!;
+		const urlHash = this._hashCreator.createMurmurHash(url);
+
 		// eslint-disable-next-line no-async-promise-executor
 		const loadingPromise = new Promise<ITreeNode>(
 			async (resolve, reject) => {
@@ -209,6 +213,7 @@ export class GeometryEngine {
 						gltfHeader,
 						gltfBaseUrl,
 						taskEventId,
+						urlHash,
 					);
 				}
 				promise.catch((e) => {

@@ -20,6 +20,9 @@ export class IntersectionEngine implements IIntersectionEngine {
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
 
+	// Reused per-call to skip already-raycasted InstancedMeshes
+	private _processedInstancedMeshes = new Set<THREE.InstancedMesh>();
+
 	private static _instance: IntersectionEngine;
 
 	private _intersectNodes: {
@@ -72,6 +75,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 				filterCriteria || [],
 			);
 		} else {
+			this._processedInstancedMeshes.clear();
 			let intersections: IRayTracingIntersection[] = [];
 			this._intersectNodes.forEach((i) => {
 				const currentIntersections = this.intersectNode(
@@ -252,6 +256,67 @@ export class IntersectionEngine implements IIntersectionEngine {
 			ray.origin[2],
 		);
 
+		// For instanced geometry: use geometry.convertedObject (the default
+		// InstancedMesh) to find every batch in its group, then map instanceId back
+		// to the correct node. Instances with post-processing effects live in a
+		// separate batch from the default mesh.
+		const instantiableGeometry = Object.values(geometryData).find(
+			(g) => g.instantiable,
+		);
+		if (instantiableGeometry) {
+			const instancedMesh = instantiableGeometry.convertedObject[
+				viewportId
+			] as THREE.InstancedMesh | undefined;
+			if (!instancedMesh) return;
+
+			const instanceHash = instancedMesh.userData.instanceHash as
+				| string
+				| undefined;
+			const groupMeshes = instancedMesh.parent?.children.filter(
+				(child): child is THREE.InstancedMesh =>
+					child instanceof THREE.InstancedMesh &&
+					child.userData.instanceHash === instanceHash,
+			) ?? [instancedMesh];
+
+			let intersections = groupMeshes.flatMap((mesh) => {
+				if (this._processedInstancedMeshes.has(mesh)) return [];
+				this._processedInstancedMeshes.add(mesh);
+				const instanceNodes = mesh.userData.instanceNodes as
+					| (ITreeNode | undefined)[]
+					| undefined;
+				return this._raycaster.intersectObject(mesh, false).map((i) => {
+					const hitNode =
+						i.instanceId !== undefined && instanceNodes
+							? (instanceNodes[i.instanceId] ?? node)
+							: node;
+					return {
+						distance: i.distance,
+						point: [i.point.x, i.point.y, i.point.z] as [
+							number,
+							number,
+							number,
+						],
+						node: hitNode,
+						geometryData: instantiableGeometry,
+						type: "RayTracingIntersection" as const,
+					} as IRayTracingIntersection;
+				});
+			});
+			if (intersections.length === 0) return;
+
+			if (filterCriteria) {
+				intersections = intersections.filter((i) => {
+					for (let j = 0; j < filterCriteria.length; j++)
+						if (filterCriteria[j](i.node, i.geometryData))
+							return true;
+					return false;
+				});
+			}
+			intersections.sort((a, b) => a.distance - b.distance);
+			return intersections;
+		}
+
+		// Standard (non-instanced) path
 		const threeJsObject = node.convertedObject[
 			viewportId!
 		] as THREE.Object3D;

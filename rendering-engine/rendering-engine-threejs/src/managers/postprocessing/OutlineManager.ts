@@ -10,6 +10,7 @@ export class OutlineManager {
 	private _outlineNodes: ITreeNode[] = [];
 	private _separateObjects: boolean = false;
 	private _perNodeEffects: Map<ITreeNode, OutlineEffect> = new Map();
+	private _instancedOutlineNodes = new Set<ITreeNode>();
 	private _onEffectsChanged?: () => void;
 
 	// #endregion Properties (5)
@@ -32,6 +33,10 @@ export class OutlineManager {
 	}
 
 	public clearSelection(): void {
+		this._instancedOutlineNodes.forEach((node) =>
+			this._removeInstancedEffects(node),
+		);
+		this._instancedOutlineNodes.clear();
 		this._outlineNodes = [];
 		if (this._separateObjects) {
 			this._perNodeEffects.clear();
@@ -50,6 +55,10 @@ export class OutlineManager {
 		separateObjects: boolean,
 		onEffectsChanged: () => void,
 	): void {
+		this._instancedOutlineNodes.forEach((node) =>
+			this._removeInstancedEffects(node),
+		);
+		this._instancedOutlineNodes.clear();
 		this._separateObjects = separateObjects;
 		this._onEffectsChanged = onEffectsChanged;
 		this._perNodeEffects.clear();
@@ -59,6 +68,8 @@ export class OutlineManager {
 		const index = this._outlineNodes.indexOf(node);
 		if (index !== -1) {
 			this._outlineNodes.splice(index, 1);
+			this._removeInstancedEffects(node);
+			this._instancedOutlineNodes.delete(node);
 			if (this._separateObjects) {
 				this._perNodeEffects.delete(node);
 				this._onEffectsChanged?.();
@@ -86,6 +97,12 @@ export class OutlineManager {
 	}
 
 	public updateOutlineEffectObjects() {
+		const selectedNodes = new Set(this._outlineNodes);
+		this._instancedOutlineNodes.forEach((node) => {
+			if (!selectedNodes.has(node)) this._removeInstancedEffects(node);
+		});
+		this._instancedOutlineNodes.clear();
+
 		if (this._separateObjects) {
 			for (const [node, effect] of this._perNodeEffects) {
 				effect.selection.clear();
@@ -94,7 +111,21 @@ export class OutlineManager {
 				] as THREE.Object3D | undefined;
 				if (!object) continue;
 				object.traverse((o) => {
-					if (o instanceof THREE.Mesh) effect.selection.add(o);
+					if (o.userData.isInstanced) {
+						const instanceNode = o.userData.instanceNode as
+							| ITreeNode
+							| undefined;
+						if (!instanceNode) return;
+						const effectMesh =
+							this._renderingEngine.instanceGroupManager.addToEffect(
+								instanceNode,
+								this._getEffectKey(instanceNode),
+							);
+						if (effectMesh) {
+							effect.selection.add(effectMesh);
+							this._instancedOutlineNodes.add(instanceNode);
+						}
+					} else if (o instanceof THREE.Mesh) effect.selection.add(o);
 				});
 			}
 		} else {
@@ -103,22 +134,68 @@ export class OutlineManager {
 
 			const objects: THREE.Object3D[] = [];
 			for (let i = 0; i < this._outlineNodes.length; i++) {
-				const object = this._outlineNodes[i].convertedObject[
+				const outlineNode = this._outlineNodes[i];
+				const object = outlineNode.convertedObject[
 					this._renderingEngine.id
 				] as THREE.Object3D | undefined;
 				if (!object) continue;
 
 				object.traverse((o) => {
-					if (o instanceof THREE.Mesh) objects.push(o);
+					if (o.userData.isInstanced) {
+						// Instanced placeholder: move instance to an effect InstancedMesh
+						const instanceNode = o.userData.instanceNode as
+							| ITreeNode
+							| undefined;
+						if (!instanceNode) return;
+						const effectMesh =
+							this._renderingEngine.instanceGroupManager.addToEffect(
+								instanceNode,
+								this._getEffectKey(instanceNode),
+							);
+						if (effectMesh) {
+							this._instancedOutlineNodes.add(instanceNode);
+							if (!objects.includes(effectMesh))
+								objects.push(effectMesh);
+						}
+					} else if (o instanceof THREE.Mesh) {
+						objects.push(o);
+					}
 				});
 			}
 			this._outlineEffect.selection.set(objects);
 		}
+		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
 	public selectedNodes(): ITreeNode[] {
 		return this._outlineNodes;
 	}
 
-	// #endregion Public Methods (8)
+	// #endregion Public Methods (5)
+
+	// #region Private Methods (1)
+
+	private _removeInstancedEffects(node: ITreeNode): void {
+		const object = node.convertedObject[this._renderingEngine.id] as
+			| THREE.Object3D
+			| undefined;
+		if (!object) return;
+		object.traverse((o) => {
+			if (!o.userData.isInstanced) return;
+			const instanceNode = o.userData.instanceNode as
+				| ITreeNode
+				| undefined;
+			if (instanceNode)
+				this._renderingEngine.instanceGroupManager.removeFromEffect(
+					instanceNode,
+					this._getEffectKey(instanceNode),
+				);
+		});
+	}
+
+	private _getEffectKey(node: ITreeNode): string {
+		return this._separateObjects ? `outline:${node.id}` : "outline";
+	}
+
+	// #endregion Private Methods (1)
 }

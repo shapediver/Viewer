@@ -1,14 +1,16 @@
 import {
-	type IGLTF_v2,
-	type IGLTF_v2_Primitive} from "@shapediver/viewer.data-engine.shared-types";
+	IGLTF_v2,
+	IGLTF_v2_Primitive,
+} from "@shapediver/viewer.data-engine.shared-types";
+import {Logger} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
 	MapData,
 	MaterialVariantsData,
-	PrimitiveData} from "@shapediver/viewer.shared.node-tree";
-import {Logger} from "@shapediver/viewer.shared.services";
-import {type IMapData, type IMaterialAbstractData} from "@shapediver/viewer.shared.types";
+	PrimitiveData,
+} from "@shapediver/viewer.shared.node-tree";
+import {IAttributeData, IMapData, IMaterialAbstractData} from "@shapediver/viewer.shared.types";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
 import {BufferViewLoader} from "./BufferViewLoader";
@@ -37,6 +39,7 @@ export class GeometryLoader {
 		private readonly _bufferViewLoader: BufferViewLoader,
 		private readonly _materialLoader: MaterialLoader,
 		private readonly _dracoModule: any,
+		private readonly _urlHash?: number,
 	) {}
 
 	// #endregion Constructors (1)
@@ -88,7 +91,7 @@ export class GeometryLoader {
 	 * @returns
 	 */
 	private cleanMaterial(
-		attributes: {[key: string]: AttributeData},
+		attributes: {[key: string]: IAttributeData},
 		material: IMaterialAbstractData | null,
 	): IMaterialAbstractData | null {
 		if (!material) return null;
@@ -137,6 +140,10 @@ export class GeometryLoader {
 		weights: number[] = [],
 	): GeometryData | undefined {
 		const primitive = primitives[index];
+
+		let material = null;
+		if (primitive.material || primitive.material === 0)
+			material = this._materialLoader.getMaterial(primitive.material);
 
 		// Check cache first - important for scenes with many instances of same mesh
 		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
@@ -335,10 +342,6 @@ export class GeometryLoader {
 				}
 			}
 		}
-
-		let material = null;
-		if (primitive.material || primitive.material === 0)
-			material = this._materialLoader.getMaterial(primitive.material);
 
 		// if there are no attributes, return a primitive node without geometry data
 		if (Object.values(attributes).length === 0) {

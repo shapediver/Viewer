@@ -107,6 +107,7 @@ export class PostProcessingManager implements IManager {
 		[key: string]: OutlineManager;
 	} = {};
 	private _renderPass?: RenderPass;
+	private _refreshingInstancedEffectSelections = false;
 	private _sceneExtents = 0;
 	private _selectiveBloomManagers: {
 		[key: string]: SelectiveBloomManager;
@@ -210,6 +211,26 @@ export class PostProcessingManager implements IManager {
 		[key: string]: SelectiveBloomManager;
 	} {
 		return this._selectiveBloomManagers;
+	}
+
+	/**
+	 * Rebuild selections after instances move between effect-combination meshes.
+	 * A mesh can be shared by several effects, so every selection must observe the
+	 * same current mesh after any one effect changes.
+	 */
+	public refreshInstancedEffectSelections(): void {
+		if (this._refreshingInstancedEffectSelections) return;
+		this._refreshingInstancedEffectSelections = true;
+		try {
+			Object.values(this._outlineManagers).forEach((manager) =>
+				manager.updateOutlineEffectObjects(),
+			);
+			Object.values(this._selectiveBloomManagers).forEach((manager) =>
+				manager.updateSelectiveBloomEffectObjects(),
+			);
+		} finally {
+			this._refreshingInstancedEffectSelections = false;
+		}
 	}
 
 	public get ssaaSampleLevel(): number {

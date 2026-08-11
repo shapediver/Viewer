@@ -2,6 +2,7 @@ import {
 	AttributeData,
 	GeometryData,
 	InstanceData,
+	type ITreeNode,
 	MaterialGemData,
 } from "@shapediver/viewer.shared.node-tree";
 import {
@@ -89,10 +90,102 @@ export class GeometryLoader implements ILoader {
 	 * @param geometry the geometry data
 	 * @returns the geometry object
 	 */
+	/**
+	 * Create an instanced-geometry placeholder for a node.
+	 * Registers the node with InstanceGroupManager and returns a lightweight
+	 * THREE.Object3D placeholder that lives in the SDObject hierarchy so the
+	 * normal data-lifecycle (cleanup, bounding-box, …) keeps working.
+	 */
+	public loadInstanced(
+		parentNode: ITreeNode,
+		geometry: GeometryData,
+	): THREE.Object3D {
+		// Resolve material for the instanced batch
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
+
+		// We need the primitive geometry (BufferGeometry) – load / retrieve it
+		const primitiveCacheKey =
+			geometry.primitive.id + "_" + geometry.primitive.version;
+		let bufferGeometry: THREE.BufferGeometry;
+		const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
+		if (!cachedPrimitive) {
+			bufferGeometry = this.loadPrimitive(geometry.primitive);
+		} else {
+			// Instanced meshes share the geometry – no clone needed
+			bufferGeometry = cachedPrimitive.threeGeometry;
+		}
+
+		const materialSettings = {
+			mode: geometry.mode,
+			useVertexTangents:
+				bufferGeometry.attributes.tangent !== undefined,
+			useVertexColors:
+				bufferGeometry.attributes.color !== undefined &&
+				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+			useFlatShading:
+				bufferGeometry.attributes.normal === undefined,
+			useMorphTargets: false,
+			useMorphNormals: false,
+		};
+		const material = this.createInstancedMaterial(
+			this._renderingEngine.materialLoader.load(
+				incomingMaterialData || geometry,
+				materialSettings,
+			),
+		);
+		material.needsUpdate = false;
+
+		// Delegate to InstanceGroupManager
+		const instancedMesh =
+			this._renderingEngine.instanceGroupManager.addNode(
+				parentNode,
+				geometry,
+				bufferGeometry,
+				material,
+			);
+
+		// Store the InstancedMesh in geometry.convertedObject so IntersectionEngine
+		// and effects can reach it via geometryData.convertedObject[viewportId].
+		geometry.convertedObject[this._renderingEngine.id] = instancedMesh;
+
+		// Return a lightweight placeholder that lives in the SDObject children.
+		// It carries enough userData for the cleanup path and effect managers.
+		const placeholder = new THREE.Object3D();
+		placeholder.matrixAutoUpdate = false;
+		placeholder.userData.isInstanced = true;
+		placeholder.userData.instanceHash = geometry.instanceHash;
+		placeholder.userData.instanceNode = parentNode; // strong ref for effects
+		placeholder.userData.instanceNodeKey = `${parentNode.id}:${geometry.id}`;
+		placeholder.userData.cacheKey = geometry.id + "_" + geometry.version;
+		placeholder.userData.primitiveCacheKey = primitiveCacheKey;
+		return placeholder;
+	}
+
 	public load(
+		parentNode: ITreeNode,
 		geometry: GeometryData,
 		instanceData?: InstanceData,
 	): GeometryType {
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
+
 		// Cache key to avoid repeated string concatenation
 		const primitiveCacheKey =
 			geometry.primitive.id + "_" + geometry.primitive.version;
@@ -108,17 +201,6 @@ export class GeometryLoader implements ILoader {
 				return clone;
 			}
 		})();
-
-		let incomingMaterialData: IMaterialAbstractData | null;
-		if (geometry.effectMaterials.length > 0) {
-			incomingMaterialData =
-				geometry.effectMaterials[geometry.effectMaterials.length - 1]
-					.material;
-		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			incomingMaterialData = geometry.attributeMaterial;
-		} else {
-			incomingMaterialData = geometry.material;
-		}
 
 		const attributes = threeGeometry.attributes;
 		const morphAttributes = threeGeometry.morphAttributes;
@@ -183,39 +265,32 @@ export class GeometryLoader implements ILoader {
 		material.needsUpdate = false;
 
 		let threeGeometryObject: GeometryType;
-		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
-			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			threeGeometryObject =
-				this._geometryCache[geometry.id + "_" + geometry.version].obj;
-
+		const cachedGeometry =
+			this._geometryCache[geometry.id + "_" + geometry.version];
+		if (cachedGeometry) {
+			cachedGeometry.counter++;
+			threeGeometryObject = cachedGeometry.obj;
 			threeGeometryObject.material = material;
 
-			// Clear instance colors when in ATTRIBUTES mode to prevent them
-			// from multiplying with the attribute material color
+			// Conventional InstancedMeshes are still used for explicit InstanceData.
+			// Attribute rendering must not multiply its material by their stale colors.
 			if (threeGeometryObject instanceof THREE.InstancedMesh) {
 				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 					threeGeometryObject.instanceColor = null;
 				} else if (instanceData && !threeGeometryObject.instanceColor) {
-					for (
-						let i = 0;
-						i < instanceData.instanceColors.length;
-						i++
-					) {
+					for (let i = 0; i < instanceData.instanceColors.length; i++)
 						threeGeometryObject.setColorAt(
 							i,
 							this._renderingEngine.createThreeJsColor(
 								instanceData.instanceColors[i],
 							),
 						);
-					}
-					// setColorAt creates instanceColor; re-read after mutation
-					(
-						threeGeometryObject as THREE.InstancedMesh
-					).instanceColor!.needsUpdate = true;
+					threeGeometryObject.instanceColor!.needsUpdate = true;
 				}
 			}
 		} else {
 			threeGeometryObject = this.createMesh(
+				parentNode,
 				geometry,
 				threeGeometry,
 				material,
@@ -352,7 +427,6 @@ export class GeometryLoader implements ILoader {
 	public updateGeometryMaterial(geometry: GeometryData): void {
 		const cacheKey = geometry.id + "_" + geometry.version;
 		const cached = this._geometryCache[cacheKey];
-		if (!cached) return;
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
@@ -363,6 +437,38 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.attributeMaterial;
 		} else {
 			incomingMaterialData = geometry.material;
+		}
+
+		if (!cached) {
+			if (!geometry.instantiable) return;
+
+			const instanceMesh =
+				this._renderingEngine.instanceGroupManager.getDefaultMesh(
+					geometry.instanceHash,
+				);
+			if (!instanceMesh) return;
+
+			const attributes = instanceMesh.geometry.attributes;
+			const material = this.createInstancedMaterial(
+				this._renderingEngine.materialLoader.load(
+					incomingMaterialData || geometry,
+					{
+						mode: geometry.mode,
+						useVertexTangents: attributes.tangent !== undefined,
+						useVertexColors:
+							attributes.color !== undefined &&
+							this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+						useFlatShading: attributes.normal === undefined,
+						useMorphTargets: false,
+						useMorphNormals: false,
+					},
+				),
+			);
+			this._renderingEngine.instanceGroupManager.updateMaterial(
+				geometry.instanceHash,
+				material,
+			);
+			return;
 		}
 
 		const threeGeometry = cached.obj.geometry;
@@ -393,9 +499,6 @@ export class GeometryLoader implements ILoader {
 		geometryObjects.forEach((geometryObject) => {
 			this._renderingEngine.pulseEffectManager.clear(geometryObject);
 			geometryObject.material = material;
-
-			// Clear instance colors when in ATTRIBUTES mode to prevent them
-			// from multiplying with the attribute material color.
 			if (geometryObject instanceof THREE.InstancedMesh) {
 				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 					geometryObject.instanceColor = null;
@@ -408,11 +511,6 @@ export class GeometryLoader implements ILoader {
 		);
 	}
 
-	/**
-	 * Associate a tree's geometry data with the exact rendered object created for
-	 * it. Geometry cache entries can be reused by multiple tree nodes, but their
-	 * interaction materials are instance-specific.
-	 */
 	public registerGeometryObject(
 		geometry: GeometryData,
 		object: THREE.Object3D,
@@ -428,21 +526,31 @@ export class GeometryLoader implements ILoader {
 		]);
 	}
 
-	public removeFromGeometryCache(id: string) {
-		if (this._geometryCache[id]) {
-			if (this._geometryCache[id].counter === 1) {
-				this.removeFromPrimitiveCache(
-					this._geometryCache[id].primitiveCacheId,
-				);
+	private createInstancedMaterial(material: THREE.Material): THREE.Material {
+		const instanceMaterial = material.clone();
+		if (
+			"color" in instanceMaterial &&
+			instanceMaterial.color instanceof THREE.Color
+		)
+			instanceMaterial.color.setRGB(1, 1, 1);
+		return instanceMaterial;
+	}
 
-				this._geometryCache[id].clones.forEach((c) => {
+	public removeFromGeometryCache(id: string) {
+		const cachedGeometry = this._geometryCache[id];
+		if (cachedGeometry) {
+			if (cachedGeometry.counter === 1) {
+				this.removeFromPrimitiveCache(
+					cachedGeometry.primitiveCacheId,
+				);
+				cachedGeometry.clones.forEach(() => {
 					this.removeFromPrimitiveCache(
-						this._geometryCache[id].primitiveCacheId,
+						cachedGeometry.primitiveCacheId,
 					);
 				});
 				delete this._geometryCache[id];
 			} else {
-				this._geometryCache[id].counter--;
+				cachedGeometry.counter--;
 			}
 		}
 	}
@@ -699,6 +807,7 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
+		_parentNode: ITreeNode,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
@@ -893,8 +1002,8 @@ export class GeometryLoader implements ILoader {
 				bufferAttribute.array,
 				bufferAttribute.itemSize,
 				attributeId === "COLOR_0" ||
-					attributeId === "COLOR0" ||
-					attributeId === "COLOR"
+				attributeId === "COLOR0" ||
+				attributeId === "COLOR"
 					? true
 					: bufferAttribute.normalized,
 			);
@@ -950,7 +1059,7 @@ export class GeometryLoader implements ILoader {
 		return buffer;
 	}
 
-	private removeFromPrimitiveCache(id: string) {
+	public removeFromPrimitiveCache(id: string) {
 		if (this._primitiveCache[id]) {
 			if (this._primitiveCache[id].counter === 1) {
 				this._primitiveCache[id].threeGeometry.dispose();

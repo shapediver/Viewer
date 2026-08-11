@@ -96,6 +96,18 @@ export class SceneTreeManager implements IManager {
 		isVisibleInHierarchy: boolean = true,
 	): void {
 		let dataChild: THREE.Object3D | undefined;
+		if (this._newRendererType) {
+			const staleObjects = convertedObject.children.filter(
+				(child) =>
+					child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
+					child.userData.SDid === treeNodeData.id &&
+					child.userData.SDversion === treeNodeData.version,
+			);
+			staleObjects.forEach((child) => {
+				removeData(this._renderingEngine, child);
+				convertedObject.remove(child);
+			});
+		}
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 			if (treeNodeData instanceof GeometryData) {
@@ -124,21 +136,35 @@ export class SceneTreeManager implements IManager {
 							(d) => d instanceof InstanceData,
 						) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
-						dataChild = this._renderingEngine.geometryLoader.load(
-							<GeometryData>treeNodeData,
-							instanceTransformationData,
-						);
+						const geometryData = treeNodeData as GeometryData;
 
-						// Three.js Object3Ds can only have one parent. If the
-						// same GeometryData is referenced by multiple tree nodes,
-						// the cache returns the same mesh each time. Adding it to
-						// a second node silently removes it from the first. Clone
-						// only when this would happen (different existing parent).
-						if (
-							dataChild.parent !== null &&
-							dataChild.parent !== convertedObject
-						) {
-							dataChild = dataChild.clone() as typeof dataChild;
+						if (geometryData.instantiable && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES) {
+							// GPU-instanced geometry: delegate to InstanceGroupManager.
+							// Returns a lightweight placeholder that tracks this node.
+							dataChild =
+								this._renderingEngine.geometryLoader.loadInstanced(
+									treeNode,
+									geometryData,
+								);
+						} else {
+							dataChild =
+								this._renderingEngine.geometryLoader.load(
+									treeNode,
+									geometryData,
+									instanceTransformationData,
+								);
+
+							// Three.js Object3Ds can only have one parent. If the
+							// same GeometryData is referenced by multiple tree nodes,
+							// the cache returns the same mesh each time. Adding it to
+							// a second node silently removes it from the first. Clone
+							// only when this would happen (different existing parent).
+							if (
+								dataChild.parent !== null &&
+								dataChild.parent !== convertedObject
+							) {
+								dataChild = dataChild.clone() as typeof dataChild;
+							}
 						}
 						this._renderingEngine.geometryLoader.registerGeometryObject(
 							treeNodeData as GeometryData,
@@ -343,6 +369,11 @@ export class SceneTreeManager implements IManager {
 
 		convertedObject.visible = isVisible;
 		convertedObject.applyTransformation(treeNode.nodeMatrix);
+		this._renderingEngine.instanceGroupManager.updateNode(treeNode);
+		this._renderingEngine.instanceGroupManager.setNodeVisible(
+			treeNode.id,
+			isVisibleInHierarchy,
+		);
 	}
 
 	public updateSceneTree(rootTreeNode: ITreeNode): void {
@@ -388,6 +419,11 @@ export class SceneTreeManager implements IManager {
 					this._renderingEngine.id,
 				);
 			this._scene.add(this._mainConvertedObject);
+			// Ensure the instanced-mesh root container is in the scene.
+			if (!this._scene.getObjectByName("instancedRoot"))
+				this._scene.add(
+					this._renderingEngine.instanceGroupManager.instancedRoot,
+				);
 		}
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
