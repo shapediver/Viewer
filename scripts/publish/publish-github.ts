@@ -22,6 +22,8 @@
 
 import {execSync} from "child_process";
 
+const GITHUB_PACKAGES_REGISTRY = "https://npm.pkg.github.com";
+
 interface PublishArgs {
 	tag: string;
 	silent: boolean;
@@ -47,7 +49,19 @@ function parseArgs(): PublishArgs {
 
 function run(cmd: string): string {
 	try {
-		return execSync(cmd, {encoding: "utf8", stdio: "pipe"}).trim();
+		return execSync(cmd, {
+			encoding: "utf8",
+			stdio: "pipe",
+			env: {
+				...process.env,
+				npm_config_registry: GITHUB_PACKAGES_REGISTRY,
+				"npm_config_@shapediver:registry": GITHUB_PACKAGES_REGISTRY,
+				// npm 11.18+ automatically enables provenance in GitHub Actions
+				// when an OIDC token is available. GitHub Packages does not need npm
+				// provenance, and attempting it can fail in Sigstore's transparency log.
+				npm_config_provenance: "false",
+			},
+		}).trim();
 	} catch (e: any) {
 		throw new Error(`Command failed: ${cmd}\n${e.stderr || e.message}`);
 	}
@@ -92,11 +106,11 @@ function main() {
 	}
 
 	// Set registry to GitHub Packages without mutating tracked project files
-	run("pnpm config set @shapediver:registry https://npm.pkg.github.com --location=user");
+	run(`pnpm config set @shapediver:registry ${GITHUB_PACKAGES_REGISTRY} --location=user`);
 
 	// Publish
 	const output = run(
-		`npx lerna publish from-package --yes --no-private --dist-tag ${tag}`,
+		`npx lerna publish from-package --yes --no-private --dist-tag ${tag} --registry ${GITHUB_PACKAGES_REGISTRY}`,
 	);
 
 	if (!silent) console.log(output);
