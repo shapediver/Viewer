@@ -129,6 +129,7 @@ export class GLTFLoader {
 		baseUri?: string,
 		taskEventId?: string,
 		urlHash?: number,
+		sessionId?: string,
 	): Promise<ITreeNode> {
 		this._eventId = taskEventId || this._uuidGenerator.create();
 		this._urlHash = urlHash;
@@ -168,7 +169,25 @@ export class GLTFLoader {
 			this._body,
 			this._baseUri,
 		);
-		const bufferLoadPromise = this._bufferLoader.load();
+		const imageBufferViewIds = new Set(
+			this._content.images
+				?.map((image) => image.bufferView)
+				.filter((bufferView): bufferView is number =>
+					Number.isInteger(bufferView),
+				),
+		);
+		const textureOnlyBufferIds = new Set<number>();
+		for (const bufferViewId of imageBufferViewIds) {
+			const bufferId = this._content.bufferViews?.[bufferViewId]?.buffer;
+			if (bufferId !== undefined) textureOnlyBufferIds.add(bufferId);
+		}
+		const bufferViews = this._content.bufferViews || [];
+		for (let i = 0; i < bufferViews.length; i++) {
+			if (imageBufferViewIds.has(i)) continue;
+			const bufferId = bufferViews[i]?.buffer;
+			if (bufferId !== undefined) textureOnlyBufferIds.delete(bufferId);
+		}
+		const bufferLoadPromise = this._bufferLoader.load(textureOnlyBufferIds);
 
 		// Wait for buffers, then parallelize texture and material loading
 		await bufferLoadPromise;
@@ -176,7 +195,7 @@ export class GLTFLoader {
 			this._content,
 			this._bufferLoader,
 		);
-		this._bufferViewLoader.load();
+		this._bufferViewLoader.load(imageBufferViewIds);
 		this._accessorLoader = new AccessorLoader(
 			this._content,
 			this._bufferViewLoader,
@@ -188,6 +207,7 @@ export class GLTFLoader {
 			this._content,
 			this._bufferViewLoader,
 			this._baseUri,
+			sessionId,
 		);
 		const [dracoModule] = await Promise.all([
 			dracoModulePromise,

@@ -223,6 +223,7 @@ export class OutputLoader {
 										outputInfo[outputID].version +
 										"_" +
 										i,
+									this._outputManager.sessionId,
 								),
 							);
 						promisesNodes.push(

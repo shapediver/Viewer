@@ -53,6 +53,7 @@ export class DataEngine {
 		>,
 		jwtToken?: string,
 		taskEventId?: string,
+		sessionId?: string,
 	): Promise<ITreeNode> {
 		if (!content || (content && !content.format))
 			throw new ShapeDiverViewerDataProcessingError(
@@ -64,7 +65,11 @@ export class DataEngine {
 		let node: ITreeNode;
 
 		if (content.format === "glb" || content.format === "gltf") {
-			node = await this._geometryEngine.loadContent(content, taskEventId);
+			node = await this._geometryEngine.loadContent(
+				content,
+				taskEventId,
+				sessionId,
+			);
 		} else if (content.format === "material") {
 			this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, {
 				type: TASK_TYPE.MATERIAL_CONTENT_LOADING,
