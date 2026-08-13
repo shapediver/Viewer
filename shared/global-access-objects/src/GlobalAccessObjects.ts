@@ -20,6 +20,7 @@ export class GlobalAccessObjects {
 		>,
 		jwtToken?: string,
 		taskEventId?: string,
+		sessionId?: string,
 	) => Promise<ITreeNode>;
 
 	// #endregion Properties (3)
@@ -74,6 +75,7 @@ export class GlobalAccessObjects {
 					>,
 					jwtToken?: string,
 					taskEventId?: string,
+					sessionId?: string,
 			  ) => Promise<ITreeNode>)
 			| undefined,
 	) {

@@ -789,19 +789,19 @@ export class MaterialLoader {
 			texCoord?: number;
 		},
 	): IMapData | undefined {
-		if (!this._content.textures) throw new Error("Textures not available.");
+		if (!this._content.textures) {
+			this._textureLoader.getTexture(textureId);
+			return;
+		}
+		const loadedTexture = this._textureLoader.getTexture(textureId);
+		if (!loadedTexture) return;
 		const texture = this._content.textures[textureId];
-		if (!this._content.images) throw new Error("Images not available.");
 		const sampler =
 			this._content.samplers &&
 			texture.sampler &&
 			this._content.samplers[texture.sampler]
 				? this._content.samplers[texture.sampler]
 				: {};
-		const loadedTexture = this._textureLoader.getTexture(textureId);
-
-		if (!loadedTexture) return;
-
 		return new MapData(loadedTexture.image, {
 			blob: loadedTexture.blob,
 			wrapS: sampler.wrapS as TEXTURE_WRAPPING,

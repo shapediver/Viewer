@@ -34,27 +34,34 @@ export class BufferViewLoader {
 		return this._loaded[bufferViewId];
 	}
 
-	public load(): void {
+	public load(skipErrorsForBufferViews: Set<number> = new Set()): void {
 		if (!this._content.bufferViews) return;
 		for (let i = 0; i < this._content.bufferViews.length; i++) {
-			const bufferViewId = i;
-			if (!this._content.bufferViews[bufferViewId])
-				throw new Error(
-					"BufferViewLoader.load: BufferView not available.",
+			try {
+				const bufferViewId = i;
+				if (!this._content.bufferViews[bufferViewId])
+					throw new Error(
+						"BufferViewLoader.load: BufferView not available.",
+					);
+				const bufferView = this._content.bufferViews[bufferViewId];
+
+				const byteLength = bufferView.byteLength || 0;
+				const byteOffset = bufferView.byteOffset || 0;
+
+				if (bufferView.buffer === undefined)
+					throw new Error(
+						"BufferViewLoader.load: BufferView has no buffer defined.",
+					);
+				const buffer = this._bufferLoader.getBuffer(bufferView.buffer!);
+				const result = buffer.slice(
+					byteOffset,
+					byteOffset + byteLength,
 				);
-			const bufferView = this._content.bufferViews[bufferViewId];
 
-			const byteLength = bufferView.byteLength || 0;
-			const byteOffset = bufferView.byteOffset || 0;
-
-			if (bufferView.buffer === undefined)
-				throw new Error(
-					"BufferViewLoader.load: BufferView has no buffer defined.",
-				);
-			const buffer = this._bufferLoader.getBuffer(bufferView.buffer!);
-			const result = buffer.slice(byteOffset, byteOffset + byteLength);
-
-			this._loaded[bufferViewId] = result;
+				this._loaded[bufferViewId] = result;
+			} catch (e) {
+				if (!skipErrorsForBufferViews.has(i)) throw e;
+			}
 		}
 	}
 

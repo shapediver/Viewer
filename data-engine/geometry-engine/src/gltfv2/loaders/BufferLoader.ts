@@ -2,7 +2,8 @@ import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	atobCustom,
 	HttpClient,
-	type HttpResponse} from "@shapediver/viewer.shared.services";
+	type HttpResponse,
+} from "@shapediver/viewer.shared.services";
 
 export class BufferLoader {
 	// #region Properties (2)
@@ -38,7 +39,9 @@ export class BufferLoader {
 		return this._loaded[bufferId];
 	}
 
-	public async load(): Promise<void> {
+	public async load(
+		skipErrorsForBuffers: Set<number> = new Set(),
+	): Promise<void> {
 		if (!this._content.buffers) return;
 
 		const promises: Promise<void>[] = [];
@@ -48,6 +51,7 @@ export class BufferLoader {
 			const buffer = this._content.buffers[bufferId];
 
 			if (buffer.type && buffer.type !== "arraybuffer") {
+				if (skipErrorsForBuffers.has(bufferId)) continue;
 				throw new Error(
 					`BufferLoader.load: ${buffer.type} is not supported.`,
 				);
@@ -55,34 +59,48 @@ export class BufferLoader {
 
 			// If present, GLB container is required to be the first buffer.
 			if (buffer.uri === undefined && bufferId === 0) {
-				if (!this._body)
+				if (!this._body) {
+					if (skipErrorsForBuffers.has(bufferId)) continue;
 					throw new Error("BufferLoader.load: Buffer not available.");
+				}
 				this._loaded[bufferId] = this._body;
 				return;
+			}
+			if (buffer.uri === undefined) {
+				if (skipErrorsForBuffers.has(bufferId)) continue;
+				throw new Error("BufferLoader.load: Buffer not available.");
 			}
 
 			const dataUriRegexResult = buffer.uri!.match(this._dataUriRegex);
 
 			// Safari can not handle Data URIs through XMLHttpRequest so process manually
 			if (dataUriRegexResult) {
-				const isBase64 = !!dataUriRegexResult[2];
-				let data = dataUriRegexResult[3];
-				data = decodeURIComponent(data);
-				if (isBase64) data = atobCustom(data);
+				try {
+					const isBase64 = !!dataUriRegexResult[2];
+					let data = dataUriRegexResult[3];
+					data = decodeURIComponent(data);
+					if (isBase64) data = atobCustom(data);
 
-				const view = new Uint8Array(data.length);
-				for (let i = 0; i < data.length; i++) {
-					view[i] = data.charCodeAt(i);
+					const view = new Uint8Array(data.length);
+					for (let i = 0; i < data.length; i++) {
+						view[i] = data.charCodeAt(i);
+					}
+					this._loaded[bufferId] = view.buffer;
+				} catch (e) {
+					if (!skipErrorsForBuffers.has(bufferId)) throw e;
 				}
-				this._loaded[bufferId] = view.buffer;
 			} else {
-				const httpResultPromise = (
+				let httpResultPromise = (
 					this._httpClient.get(this._baseUri + "/" + buffer.uri!, {
 						responseType: "arraybuffer",
 					}) as Promise<HttpResponse<ArrayBuffer>>
 				).then((response) => {
 					this._loaded[bufferId] = response.data;
 				});
+				if (skipErrorsForBuffers.has(bufferId))
+					httpResultPromise = httpResultPromise.catch(
+						() => undefined,
+					);
 				promises.push(httpResultPromise);
 			}
 		}
