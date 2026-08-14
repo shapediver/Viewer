@@ -11,6 +11,7 @@ interface InstanceGroup {
 	// Default mesh slot tracking
 	nodeToIndex: Map<string, number>; // nodeId → slot index in defaultMesh
 	indexToNode: Map<number, ITreeNode>; // slot index → node
+	indexToKey: Map<number, string>; // slot index → nodeId (node+geometry key)
 	count: number; // active instance count in defaultMesh
 
 	// Per-node data for reconstruction after swap
@@ -97,6 +98,7 @@ export class InstanceGroupManager {
 				effectMeshes: new Map(),
 				nodeToIndex: new Map(),
 				indexToNode: new Map(),
+				indexToKey: new Map(),
 				count: 0,
 				nodeMatrices: new Map(),
 				nodeColors: new Map(),
@@ -159,6 +161,7 @@ export class InstanceGroupManager {
 
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
+		group.indexToKey.set(idx, nodeId);
 		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
 			idx
 		] = node;
@@ -383,8 +386,9 @@ export class InstanceGroupManager {
 		const lastIdx = group.count - 1;
 		if (index !== lastIdx) {
 			const lastNode = group.indexToNode.get(lastIdx)!;
-			const lastMatrix = this._getVisibleMatrix(group, lastNode.id);
-			const lastColor = group.nodeColors.get(lastNode.id)!;
+			const lastKey = group.indexToKey.get(lastIdx)!;
+			const lastMatrix = this._getVisibleMatrix(group, lastKey);
+			const lastColor = group.nodeColors.get(lastKey)!;
 
 			const tempMatrix = new THREE.Matrix4();
 			tempMatrix.fromArray(lastMatrix);
@@ -400,8 +404,9 @@ export class InstanceGroupManager {
 					),
 				);
 
-			group.nodeToIndex.set(lastNode.id, index);
+			group.nodeToIndex.set(lastKey, index);
 			group.indexToNode.set(index, lastNode);
+			group.indexToKey.set(index, lastKey);
 			(
 				group.defaultMesh.userData.instanceNodes as (
 					| ITreeNode
@@ -414,6 +419,7 @@ export class InstanceGroupManager {
 		group.defaultMesh.count = group.count;
 		group.nodeToIndex.delete(nodeId);
 		group.indexToNode.delete(lastIdx);
+		group.indexToKey.delete(lastIdx);
 		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
 			lastIdx
 		] = undefined;
@@ -447,6 +453,7 @@ export class InstanceGroupManager {
 
 		group.nodeToIndex.set(nodeId, newIdx);
 		group.indexToNode.set(newIdx, node);
+		group.indexToKey.set(newIdx, nodeId);
 		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
 			newIdx
 		] = node;
