@@ -134,6 +134,42 @@ export class GeometryLoader {
 		return assignedMaterial;
 	}
 
+	private createAccessorContentHash(accessorId: number | undefined): string | undefined {
+		if (accessorId === undefined) return;
+
+		const accessor = this._accessorLoader.getAccessor(accessorId);
+		if (!accessor) return;
+
+		return JSON.stringify({
+			array: this.createTypedArrayHash(accessor.array),
+			byteOffset: accessor.byteOffset,
+			byteStride: accessor.byteStride,
+			count: accessor.count,
+			elementBytes: accessor.elementBytes,
+			itemBytes: accessor.itemBytes,
+			itemSize: accessor.itemSize,
+			normalized: accessor.normalized,
+			sparse: accessor.sparse,
+			sparseIndices: accessor.sparseIndices
+				? this.createTypedArrayHash(accessor.sparseIndices)
+				: undefined,
+			sparseValues: accessor.sparseValues
+				? this.createTypedArrayHash(accessor.sparseValues)
+				: undefined,
+		});
+	}
+
+	private createTypedArrayHash(array: IAttributeData["array"]): string {
+		const bytes = new Uint8Array(
+			array.buffer,
+			array.byteOffset,
+			array.byteLength,
+		);
+		let hash = 2166136261;
+		for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619);
+		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
+	}
+
 	private canPrimitiveBeInstanced(primitive: IGLTF_v2_Primitive): {
 		instanceHash: string;
 		instance?: GeometryData;
@@ -183,10 +219,20 @@ export class GeometryLoader {
 			materialContent = JSON.stringify(materialWithoutBaseColorFactor);
 		}
 
+		const attributes = Object.fromEntries(
+			Object.keys(primitive.attributes)
+				.sort()
+				.map((name) => [
+					name,
+					this.createAccessorContentHash(primitive.attributes[name]),
+				]),
+		);
+		if (Object.values(attributes).some((hash) => hash === undefined)) return;
+
 		const instanceContent = JSON.stringify({
-			attributes: primitive.attributes,
+			attributes,
 			extensions: primitive.extensions,
-			indices: primitive.indices,
+			indices: this.createAccessorContentHash(primitive.indices),
 			material: materialContent,
 			mode: primitive.mode,
 		});
