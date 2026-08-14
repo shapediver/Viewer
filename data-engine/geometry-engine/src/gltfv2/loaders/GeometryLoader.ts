@@ -184,9 +184,15 @@ export class GeometryLoader {
 		// A mesh definition may be attached to several glTF nodes. The current
 		// instance root is detached from that hierarchy, so those placements must
 		// remain regular meshes until their transforms can be synchronized.
+		const meshNodes =
+			this._content.nodes?.filter((node) => node.mesh === meshId) ?? [];
+		if (meshNodes.length !== 1) return;
+		// EXT_mesh_gpu_instancing replicates the mesh via per-node instance
+		// matrices. The batching path only applies the node transform, so it
+		// would collapse those replicas into a single copy.
 		if (
-			this._content.nodes?.filter((node) => node.mesh === meshId).length !==
-			1
+			meshNodes[0].extensions &&
+			meshNodes[0].extensions[GLTF_EXTENSIONS.EXT_MESH_GPU_INSTANCING]
 		)
 			return;
 		if (primitive.targets && primitive.targets.length > 0) return;
