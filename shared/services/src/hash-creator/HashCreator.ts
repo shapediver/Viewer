@@ -33,13 +33,13 @@ export class HashCreator {
 	 */
 	private mixIn(hash: number, value: number): number {
 		let k1 = value;
-		k1 *= this._c1;
-		k1 = (k1 << 15) | (k1 >> 17); // RotL 15
-		k1 *= this._c2;
+		k1 = Math.imul(k1, this._c1);
+		k1 = (k1 << 15) | (k1 >>> 17); // RotL 15
+		k1 = Math.imul(k1, this._c2);
 
 		hash ^= k1;
-		hash = (hash << 13) | (hash >> 19); // RotL 13
-		hash = hash * 5 + this._c3;
+		hash = (hash << 13) | (hash >>> 19); // RotL 13
+		hash = (Math.imul(hash, 5) + this._c3) | 0;
 
 		return hash;
 	}
@@ -59,12 +59,12 @@ export class HashCreator {
 	 * @returns A finalized hash where every input bit has had the opportunity to influence every output bit.
 	 */
 	private finalize(h: number): number {
-		h ^= h >> 16;
-		h *= this._c4;
-		h ^= h >> 13;
-		h *= this._c5;
-		h ^= h >> 16;
-		return h;
+		h ^= h >>> 16;
+		h = Math.imul(h, this._c4);
+		h ^= h >>> 13;
+		h = Math.imul(h, this._c5);
+		h ^= h >>> 16;
+		return h >>> 0;
 	}
 
 	/**
