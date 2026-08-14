@@ -10,7 +10,7 @@ interface InstanceGroup {
 
 	// Default mesh slot tracking
 	nodeToIndex: Map<string, number>; // nodeId → slot index in defaultMesh
-	indexToNode: Map<number, {key: string; node: ITreeNode}>; // slot index → instance
+	indexToNode: Map<number, ITreeNode>; // slot index → node
 	count: number; // active instance count in defaultMesh
 
 	// Per-node data for reconstruction after swap
@@ -158,7 +158,7 @@ export class InstanceGroupManager {
 		}
 
 		group.nodeToIndex.set(nodeId, idx);
-		group.indexToNode.set(idx, {key: nodeId, node});
+		group.indexToNode.set(idx, node);
 		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
 			idx
 		] = node;
@@ -382,9 +382,9 @@ export class InstanceGroupManager {
 
 		const lastIdx = group.count - 1;
 		if (index !== lastIdx) {
-			const lastInstance = group.indexToNode.get(lastIdx)!;
-			const lastMatrix = this._getVisibleMatrix(group, lastInstance.key);
-			const lastColor = group.nodeColors.get(lastInstance.key)!;
+			const lastNode = group.indexToNode.get(lastIdx)!;
+			const lastMatrix = this._getVisibleMatrix(group, lastNode.id);
+			const lastColor = group.nodeColors.get(lastNode.id)!;
 
 			const tempMatrix = new THREE.Matrix4();
 			tempMatrix.fromArray(lastMatrix);
@@ -400,14 +400,14 @@ export class InstanceGroupManager {
 					),
 				);
 
-			group.nodeToIndex.set(lastInstance.key, index);
-			group.indexToNode.set(index, lastInstance);
+			group.nodeToIndex.set(lastNode.id, index);
+			group.indexToNode.set(index, lastNode);
 			(
 				group.defaultMesh.userData.instanceNodes as (
 					| ITreeNode
 					| undefined
 				)[]
-			)[index] = lastInstance.node;
+			)[index] = lastNode;
 		}
 
 		group.count--;
@@ -446,7 +446,7 @@ export class InstanceGroupManager {
 			);
 
 		group.nodeToIndex.set(nodeId, newIdx);
-		group.indexToNode.set(newIdx, {key: nodeId, node});
+		group.indexToNode.set(newIdx, node);
 		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
 			newIdx
 		] = node;

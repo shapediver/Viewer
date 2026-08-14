@@ -2,7 +2,7 @@ import {
 	IGLTF_v2,
 	IGLTF_v2_Primitive,
 } from "@shapediver/viewer.data-engine.shared-types";
-import {Logger} from "@shapediver/viewer.shared.services";
+import {HashCreator, Logger} from "@shapediver/viewer.shared.services";
 import {
 	AttributeData,
 	GeometryData,
@@ -19,6 +19,7 @@ import {MaterialLoader} from "./MaterialLoader";
 export class GeometryLoader {
 	// #region Properties (1)
 
+	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _logger: Logger = Logger.instance;
 	private readonly _attributeNameCache = new Map<string, string>();
 	private readonly _digitRegex = /\d/;
@@ -133,6 +134,107 @@ export class GeometryLoader {
 		return assignedMaterial;
 	}
 
+	private canPrimitiveBeInstanced(primitive: IGLTF_v2_Primitive): {
+		instanceHash: string;
+		instance?: GeometryData;
+	} | undefined {
+		// InstancedMesh is currently only safe for static triangle primitives.
+		// Morph targets, skinning, and material variants require per-node state
+		// that the instance-group renderer does not provide yet.
+		if ((primitive.mode ?? 4) !== 4) return;
+		if (primitive.targets && primitive.targets.length > 0) return;
+		if (
+			primitive.attributes.JOINTS_0 !== undefined ||
+			primitive.attributes.WEIGHTS_0 !== undefined
+		)
+			return;
+		if (
+			primitive.extensions &&
+			primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]
+		)
+			return;
+		if (
+			primitive.material !== undefined &&
+			this._content.materials &&
+			this._content.materials[primitive.material]
+		) {
+			const material = this._content.materials[primitive.material];
+			const alpha = material.pbrMetallicRoughness?.baseColorFactor?.[3];
+			if (material.alphaMode && material.alphaMode !== "OPAQUE") return;
+			if (alpha !== undefined && alpha !== 1) return;
+		}
+
+		let materialContent = "";
+		if (
+			primitive.material !== undefined &&
+			this._content.materials &&
+			this._content.materials[primitive.material]
+		) {
+			const materialWithoutBaseColorFactor = {
+				...this._content.materials[primitive.material],
+			};
+			if (materialWithoutBaseColorFactor.pbrMetallicRoughness) {
+				materialWithoutBaseColorFactor.pbrMetallicRoughness = {
+					...materialWithoutBaseColorFactor.pbrMetallicRoughness,
+					// ignore base color factor for instance hashing
+					baseColorFactor: undefined,
+				};
+			}
+			materialContent = JSON.stringify(materialWithoutBaseColorFactor);
+		}
+
+		const instanceContent = JSON.stringify({
+			attributes: primitive.attributes,
+			extensions: primitive.extensions,
+			indices: primitive.indices,
+			material: materialContent,
+			mode: primitive.mode,
+		});
+
+		const geometryHash =
+			this._hashCreator.createMurmurHash(instanceContent);
+		const instanceHash = this._urlHash !== undefined
+			? this._urlHash + "_" + geometryHash
+			: geometryHash + "";
+
+		// Check whether a previous primitive has the same geometry and material.
+		let instance: GeometryData | undefined;
+		for (const key in this._loaded) {
+			if (this._loaded[key].instanceHash === instanceHash) {
+				instance = this._loaded[key];
+				break;
+			}
+		}
+
+		return {instanceHash, instance};
+	}
+
+	private addInstance(
+		geometryData: GeometryData,
+		cacheKey: string,
+		material: IMaterialAbstractData | null,
+	): GeometryData {
+		if (geometryData.instantiable === false) {
+			geometryData.instantiable = true;
+			geometryData.instanceColors.push(
+				geometryData.material && geometryData.material.color
+					? geometryData.material.color
+					: [1, 1, 1, 1],
+			);
+		}
+
+		// The source geometry can be shared, but every primitive occurrence needs
+		// its own scene-data identity. Otherwise the renderer cannot distinguish
+		// matching primitives attached to the same glTF node.
+		const instance = geometryData.clone() as GeometryData;
+		instance.material = material;
+		instance.instanceColors = [
+			material && material.color ? material.color : [1, 1, 1, 1],
+		];
+		this._loaded[cacheKey] = instance;
+		return instance;
+	}
+
 	private loadPrimitive(
 		meshId: number,
 		primitives: IGLTF_v2_Primitive[],
@@ -140,6 +242,7 @@ export class GeometryLoader {
 		weights: number[] = [],
 	): GeometryData | undefined {
 		const primitive = primitives[index];
+		const instancing = this.canPrimitiveBeInstanced(primitive);
 
 		let material = null;
 		if (primitive.material || primitive.material === 0)
@@ -148,8 +251,17 @@ export class GeometryLoader {
 		// Check cache first - important for scenes with many instances of same mesh
 		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
 		if (this._loaded[cacheKey]) {
+			if (instancing)
+				return this.addInstance(
+					this._loaded[cacheKey],
+					cacheKey,
+					material,
+				);
 			return this._loaded[cacheKey];
 		}
+
+		if (instancing?.instance)
+			return this.addInstance(instancing.instance, cacheKey, material);
 
 		const attributes: {
 			[key: string]: AttributeData;
@@ -383,6 +495,7 @@ export class GeometryLoader {
 		}
 
 		geometryData.morphWeights = weights;
+		geometryData.instanceHash = instancing?.instanceHash;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
 
 		return geometryData;
