@@ -170,7 +170,10 @@ export class GeometryLoader {
 		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
-	private canPrimitiveBeInstanced(primitive: IGLTF_v2_Primitive): {
+	private canPrimitiveBeInstanced(
+		meshId: number,
+		primitive: IGLTF_v2_Primitive,
+	): {
 		instanceHash: string;
 		instance?: GeometryData;
 	} | undefined {
@@ -178,6 +181,14 @@ export class GeometryLoader {
 		// Morph targets, skinning, and material variants require per-node state
 		// that the instance-group renderer does not provide yet.
 		if ((primitive.mode ?? 4) !== 4) return;
+		// A mesh definition may be attached to several glTF nodes. The current
+		// instance root is detached from that hierarchy, so those placements must
+		// remain regular meshes until their transforms can be synchronized.
+		if (
+			this._content.nodes?.filter((node) => node.mesh === meshId).length !==
+			1
+		)
+			return;
 		if (primitive.targets && primitive.targets.length > 0) return;
 		if (
 			primitive.attributes.JOINTS_0 !== undefined ||
@@ -288,7 +299,7 @@ export class GeometryLoader {
 		weights: number[] = [],
 	): GeometryData | undefined {
 		const primitive = primitives[index];
-		const instancing = this.canPrimitiveBeInstanced(primitive);
+		const instancing = this.canPrimitiveBeInstanced(meshId, primitive);
 
 		let material = null;
 		if (primitive.material || primitive.material === 0)
