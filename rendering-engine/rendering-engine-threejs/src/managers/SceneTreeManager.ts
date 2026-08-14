@@ -129,12 +129,16 @@ export class SceneTreeManager implements IManager {
 		switch (true) {
 			case treeNodeData instanceof GeometryData:
 				{
-					// We search for the instance matrices data in the parent of our current node
-					// We are currently at the primitive level and the instance matrices are stored at the mesh level
+					// The instance matrices (EXT_mesh_gpu_instancing) live on the
+					// same node as the geometry since the gltf tree was flattened.
+					// Older producers still store them on the mesh-level parent.
 					const instanceTransformationData: InstanceData | undefined =
-						treeNode.parent?.data.find(
+						(treeNode.data.find(
 							(d) => d instanceof InstanceData,
-						) as InstanceData | undefined;
+						) ??
+							treeNode.parent?.data.find(
+								(d) => d instanceof InstanceData,
+							)) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
 						const geometryData = treeNodeData as GeometryData;
 
