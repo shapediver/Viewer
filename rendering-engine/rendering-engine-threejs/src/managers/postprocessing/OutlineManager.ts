@@ -116,13 +116,15 @@ export class OutlineManager {
 							| ITreeNode
 							| undefined;
 						if (!instanceNode) return;
-						const effectMesh =
+						const effectMeshes =
 							this._renderingEngine.instanceGroupManager.addToEffect(
 								instanceNode,
 								this._getEffectKey(instanceNode),
 							);
-						if (effectMesh) {
-							effect.selection.add(effectMesh);
+						if (effectMeshes.length > 0) {
+							effectMeshes.forEach((effectMesh) =>
+								effect.selection.add(effectMesh),
+							);
 							this._instancedOutlineNodes.add(instanceNode);
 						}
 					} else if (o instanceof THREE.Mesh) effect.selection.add(o);
@@ -147,15 +149,17 @@ export class OutlineManager {
 							| ITreeNode
 							| undefined;
 						if (!instanceNode) return;
-						const effectMesh =
+						const effectMeshes =
 							this._renderingEngine.instanceGroupManager.addToEffect(
 								instanceNode,
 								this._getEffectKey(instanceNode),
 							);
-						if (effectMesh) {
+						if (effectMeshes.length > 0) {
 							this._instancedOutlineNodes.add(instanceNode);
-							if (!objects.includes(effectMesh))
-								objects.push(effectMesh);
+							for (const effectMesh of effectMeshes) {
+								if (!objects.includes(effectMesh))
+									objects.push(effectMesh);
+							}
 						}
 					} else if (o instanceof THREE.Mesh) {
 						objects.push(o);

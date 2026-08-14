@@ -70,13 +70,15 @@ export class SelectiveBloomManager {
 					const instanceNode = o.userData
 						.instanceNode as ITreeNode | undefined;
 					if (!instanceNode) return;
-					const effectMesh =
+					const effectMeshes =
 						this._renderingEngine.instanceGroupManager.addToEffect(
 							instanceNode,
 							"bloom",
 						);
-					if (effectMesh) {
-						this._selectiveBloomEffect.selection.add(effectMesh);
+					if (effectMeshes.length > 0) {
+						effectMeshes.forEach((effectMesh) =>
+							this._selectiveBloomEffect.selection.add(effectMesh),
+						);
 						this._instancedBloomNodes.add(instanceNode);
 					}
 				} else if (o instanceof THREE.Mesh) {
