@@ -19,6 +19,7 @@ import {MaterialLoader} from "./MaterialLoader";
 export class GeometryLoader {
 	// #region Properties (1)
 
+	private readonly _accessorReferenceCount = new Map<number, number>();
 	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _logger: Logger = Logger.instance;
 	private readonly _attributeNameCache = new Map<string, string>();
@@ -41,7 +42,22 @@ export class GeometryLoader {
 		private readonly _materialLoader: MaterialLoader,
 		private readonly _dracoModule: any,
 		private readonly _urlHash?: number,
-	) {}
+	) {
+		for (const mesh of this._content.meshes ?? []) {
+			for (const primitive of mesh.primitives ?? []) {
+				for (const accessorId of [
+					...Object.values(primitive.attributes),
+					primitive.indices,
+				]) {
+					if (accessorId === undefined) continue;
+					this._accessorReferenceCount.set(
+						accessorId,
+						(this._accessorReferenceCount.get(accessorId) ?? 0) + 1,
+					);
+				}
+			}
+		}
+	}
 
 	// #endregion Constructors (1)
 
@@ -170,6 +186,17 @@ export class GeometryLoader {
 		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
+	private usesUniqueAccessorReferences(primitive: IGLTF_v2_Primitive): boolean {
+		const accessorIds = [
+			...Object.values(primitive.attributes),
+			primitive.indices,
+		].filter((accessorId): accessorId is number => accessorId !== undefined);
+
+		return accessorIds.every(
+			(accessorId) => this._accessorReferenceCount.get(accessorId) === 1,
+		);
+	}
+
 	private canPrimitiveBeInstanced(
 		meshId: number,
 		primitive: IGLTF_v2_Primitive,
@@ -189,6 +216,9 @@ export class GeometryLoader {
 			1
 		)
 			return;
+		// Content-based instancing is only safe for independently defined
+		// primitives. Reused accessors are still rendered through the normal path.
+		if (!this.usesUniqueAccessorReferences(primitive)) return;
 		if (primitive.targets && primitive.targets.length > 0) return;
 		if (
 			primitive.attributes.JOINTS_0 !== undefined ||
