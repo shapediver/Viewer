@@ -1,5 +1,6 @@
 import {
 	IGLTF_v2,
+	IGLTF_v2_Node,
 	IGLTF_v2_Primitive,
 } from "@shapediver/viewer.data-engine.shared-types";
 import {HashCreator, Logger} from "@shapediver/viewer.shared.services";
@@ -22,6 +23,14 @@ export class GeometryLoader {
 	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _logger: Logger = Logger.instance;
 	private readonly _attributeNameCache = new Map<string, string>();
+	// Accessor bytes are hashed once per accessor; primitives sharing accessors
+	// reuse the result instead of re-reading the same buffers.
+	private readonly _accessorContentHashCache = new Map<
+		number,
+		string | undefined
+	>();
+	private readonly _meshNodeReferences = new Map<number, IGLTF_v2_Node[]>();
+	private readonly _loadedByInstanceHash = new Map<string, GeometryData>();
 	private readonly _digitRegex = /\d/;
 	private _dracoDecoder: any = null;
 
@@ -41,7 +50,17 @@ export class GeometryLoader {
 		private readonly _materialLoader: MaterialLoader,
 		private readonly _dracoModule: any,
 		private readonly _urlHash?: number,
-	) {}
+	) {
+		for (const node of this._content.nodes ?? []) {
+			if (node.mesh === undefined) continue;
+			let nodes = this._meshNodeReferences.get(node.mesh);
+			if (!nodes) {
+				nodes = [];
+				this._meshNodeReferences.set(node.mesh, nodes);
+			}
+			nodes.push(node);
+		}
+	}
 
 	// #endregion Constructors (1)
 
@@ -136,7 +155,17 @@ export class GeometryLoader {
 
 	private createAccessorContentHash(accessorId: number | undefined): string | undefined {
 		if (accessorId === undefined) return;
+		if (this._accessorContentHashCache.has(accessorId))
+			return this._accessorContentHashCache.get(accessorId);
 
+		const hash = this.computeAccessorContentHash(accessorId);
+		this._accessorContentHashCache.set(accessorId, hash);
+		return hash;
+	}
+
+	private computeAccessorContentHash(
+		accessorId: number,
+	): string | undefined {
 		const accessor = this._accessorLoader.getAccessor(accessorId);
 		if (!accessor) return;
 
@@ -166,7 +195,8 @@ export class GeometryLoader {
 			array.byteLength,
 		);
 		let hash = 2166136261;
-		for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619);
+		for (let i = 0; i < bytes.length; i++)
+			hash = Math.imul(hash ^ bytes[i], 16777619);
 		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
@@ -184,8 +214,7 @@ export class GeometryLoader {
 		// A mesh definition may be attached to several glTF nodes. The current
 		// instance root is detached from that hierarchy, so those placements must
 		// remain regular meshes until their transforms can be synchronized.
-		const meshNodes =
-			this._content.nodes?.filter((node) => node.mesh === meshId) ?? [];
+		const meshNodes = this._meshNodeReferences.get(meshId) ?? [];
 		if (meshNodes.length !== 1) return;
 		// EXT_mesh_gpu_instancing replicates the mesh via per-node instance
 		// matrices. The batching path only applies the node transform, so it
@@ -261,13 +290,7 @@ export class GeometryLoader {
 			: geometryHash + "";
 
 		// Check whether a previous primitive has the same geometry and material.
-		let instance: GeometryData | undefined;
-		for (const key in this._loaded) {
-			if (this._loaded[key].instanceHash === instanceHash) {
-				instance = this._loaded[key];
-				break;
-			}
-		}
+		const instance = this._loadedByInstanceHash.get(instanceHash);
 
 		return {instanceHash, instance};
 	}
@@ -560,6 +583,14 @@ export class GeometryLoader {
 		geometryData.morphWeights = weights;
 		geometryData.instanceHash = instancing?.instanceHash;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
+		if (
+			geometryData.instanceHash !== undefined &&
+			!this._loadedByInstanceHash.has(geometryData.instanceHash)
+		)
+			this._loadedByInstanceHash.set(
+				geometryData.instanceHash,
+				geometryData,
+			);
 
 		return geometryData;
 	}
