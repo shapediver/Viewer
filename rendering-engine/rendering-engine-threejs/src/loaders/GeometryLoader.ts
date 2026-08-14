@@ -265,8 +265,15 @@ export class GeometryLoader implements ILoader {
 		material.needsUpdate = false;
 
 		let threeGeometryObject: GeometryType;
-		const cachedGeometry =
-			this._geometryCache[geometry.id + "_" + geometry.version];
+		// One geometry can be shared by several nodes that each carry their own
+		// InstanceData (EXT_mesh_gpu_instancing). Those must not share a cached
+		// InstancedMesh, so the instance set is part of the cache identity.
+		const geometryCacheKey =
+			geometry.id +
+			"_" +
+			geometry.version +
+			(instanceData ? "_" + instanceData.id : "");
+		const cachedGeometry = this._geometryCache[geometryCacheKey];
 		if (cachedGeometry) {
 			cachedGeometry.counter++;
 			threeGeometryObject = cachedGeometry.obj;
@@ -296,9 +303,8 @@ export class GeometryLoader implements ILoader {
 				material,
 				instanceData,
 			);
-			threeGeometryObject.userData.cacheKey =
-				geometry.id + "_" + geometry.version;
-			this._geometryCache[geometry.id + "_" + geometry.version] = {
+			threeGeometryObject.userData.cacheKey = geometryCacheKey;
+			this._geometryCache[geometryCacheKey] = {
 				obj: threeGeometryObject,
 				counter: 1,
 				clones: [],
@@ -425,8 +431,13 @@ export class GeometryLoader implements ILoader {
 	}
 
 	public updateGeometryMaterial(geometry: GeometryData): void {
+		// Instanced-data meshes carry an InstanceData suffix in their cache key.
 		const cacheKey = geometry.id + "_" + geometry.version;
-		const cached = this._geometryCache[cacheKey];
+		const cached =
+			this._geometryCache[cacheKey] ??
+			Object.entries(this._geometryCache).find(([key]) =>
+				key.startsWith(cacheKey + "_"),
+			)?.[1];
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
