@@ -54,8 +54,6 @@ export interface IDrawingParameterSettings {
 		activeMode?: "default" | "activeOnStart" | "alwaysActive";
 		/** The presentation of the drawing tool. (default: 'toolbar') */
 		presentation?: "widget" | "toolbar";
-		/** If the parameter should be automatically cleared after computation. (default: false) */
-		autoClear?: boolean;
 	};
 	behavior?: {
 		/**
@@ -508,7 +506,6 @@ export const IDrawingParameterJsonSchema = z.object({
 				.enum(["default", "activeOnStart", "alwaysActive"])
 				.optional(),
 			presentation: z.enum(["widget", "toolbar"]).optional(),
-			autoClear: optionalBoolean,
 		})
 		.nullable()
 		.optional(),
