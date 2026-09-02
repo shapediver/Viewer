@@ -626,6 +626,36 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
+	/**
+	 * @internal
+	 * Debug hook for tests and support: GPU-instancing state of this viewport.
+	 * Not part of the public API and subject to change without notice.
+	 */
+	public get gpuInstancing(): {
+		enabled: boolean;
+		stats: {
+			groupCount: number;
+			instanceCount: number;
+			effectMeshCount: number;
+			drawCallCount: number;
+		};
+	} {
+		const manager = this.#renderingEngine.instanceGroupManager;
+		const viewport = this;
+		return {
+			get enabled() {
+				return manager.enabled;
+			},
+			set enabled(value: boolean) {
+				manager.enabled = value;
+				viewport.update("gpuInstancing");
+			},
+			get stats() {
+				return manager.stats;
+			},
+		};
+	}
+
 	public get gridColor(): Color {
 		return this.#renderingEngine.gridColor;
 	}
