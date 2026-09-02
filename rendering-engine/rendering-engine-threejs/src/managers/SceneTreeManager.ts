@@ -3,7 +3,8 @@ import * as THREE from "three";
 import {AbstractCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
-	DirectionalLight} from "@shapediver/viewer.rendering-engine.light-engine";
+	DirectionalLight,
+} from "@shapediver/viewer.rendering-engine.light-engine";
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
@@ -13,17 +14,22 @@ import {
 	type ITree,
 	type ITreeNode,
 	type ITreeNodeData,
-	Tree} from "@shapediver/viewer.shared.node-tree";
-import {type ISDTFOverview, RENDERER_TYPE} from "@shapediver/viewer.shared.types";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
+import {
+	type ISDTFOverview,
+	RENDERER_TYPE,
+} from "@shapediver/viewer.shared.types";
 
 import {
 	EventEngine,
 	EVENTTYPE,
 	PerformanceEvaluator,
-	StateEngine} from "@shapediver/viewer.shared.services";
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 
-import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";
+import {SD_DATA_TYPE, SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
 import {assignBoundingBox, removeData} from "./sceneTree/SceenTreeManagerUtils";
@@ -133,16 +139,27 @@ export class SceneTreeManager implements IManager {
 					// same node as the geometry since the gltf tree was flattened.
 					// Older producers still store them on the mesh-level parent.
 					const instanceTransformationData: InstanceData | undefined =
-						(treeNode.data.find(
-							(d) => d instanceof InstanceData,
-						) ??
+						(treeNode.data.find((d) => d instanceof InstanceData) ??
 							treeNode.parent?.data.find(
 								(d) => d instanceof InstanceData,
 							)) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
 						const geometryData = treeNodeData as GeometryData;
 
-						if (geometryData.instantiable && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES) {
+						// In attribute-visualization mode instancing works with
+						// per-instance flat colors, but transparency needs
+						// per-object sorting: occurrences with a non-opaque
+						// attribute material use the regular path.
+						const attributeOpaque =
+							this._renderingEngine.type !==
+								RENDERER_TYPE.ATTRIBUTES ||
+							(geometryData.attributeMaterial?.opacity ?? 1) >= 1;
+						if (
+							geometryData.instantiable &&
+							this._renderingEngine.instanceGroupManager
+								.enabled &&
+							attributeOpaque
+						) {
 							// GPU-instanced geometry: delegate to InstanceGroupManager.
 							// Returns a lightweight placeholder that tracks this node.
 							dataChild =
@@ -167,7 +184,18 @@ export class SceneTreeManager implements IManager {
 								dataChild.parent !== null &&
 								dataChild.parent !== convertedObject
 							) {
-								dataChild = dataChild.clone() as typeof dataChild;
+								dataChild =
+									dataChild.clone() as typeof dataChild;
+							}
+
+							// Baked-transform occurrences share the source
+							// geometry; place the mesh via the offset matrix.
+							if (geometryData.instanceOffsetMatrix) {
+								dataChild.matrixAutoUpdate = false;
+								dataChild.matrix.fromArray(
+									geometryData.instanceOffsetMatrix,
+								);
+								dataChild.matrixWorldNeedsUpdate = true;
 							}
 						}
 						this._renderingEngine.geometryLoader.registerGeometryObject(

@@ -1,6 +1,7 @@
 import {GeometryData, ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {RENDERER_TYPE} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
+import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
 
 interface InstanceGroup {
@@ -17,14 +18,24 @@ interface InstanceGroup {
 	// Per-node data for reconstruction after swap
 	nodeMatrices: Map<string, Float32Array>; // nodeId → flat column-major mat4
 	nodeColors: Map<string, [number, number, number]>; // nodeId → RGB
-	nodeColorIndices: Map<string, number>; // nodeId → source color index
 	nodeVisible: Map<string, boolean>; // nodeId → effective visibility
-	nextColorIndex: number;
+	nodeRefs: Map<string, ITreeNode>; // nodeId → tree node
+	// Offset of a baked-transform occurrence relative to the shared geometry;
+	// the rendered instance matrix is worldMatrix * offset.
+	nodeOffsets: Map<string, THREE.Matrix4>; // nodeId → offset
 
 	// Effects each node participates in.
 	nodeEffects: Map<string, Set<string>>; // nodeId → effect keys
 	nodeEffectMeshKeys: Map<string, string>; // nodeId → effectMeshes key
+	// Per-occurrence material overrides (interaction highlights). An override
+	// moves the instance into its own effect batch instead of re-materialing
+	// the whole group.
+	materialOverrides: Map<string, THREE.Material>; // nodeId → material
 }
+
+// Effect-key prefix for per-occurrence material overrides. The suffix is the
+// geometry id, so each overridden occurrence gets its own batch.
+const MATERIAL_OVERRIDE_PREFIX = "material-override:";
 
 /**
  * Manages GPU-instanced meshes and their per-instance operations.
@@ -46,6 +57,18 @@ export class InstanceGroupManager {
 	// separate: using only node.id makes every primitive after the first look like
 	// a reload and drops it from its instanced batch.
 	private readonly _nodeToHash = new Map<string, string>(); // node+geometry → instanceHash
+	// Scene-tree updates look registrations up per tree node. Without this index
+	// every visibility or transform change scans all registered keys.
+	private readonly _nodeKeysByTreeNode = new Map<string, Set<string>>(); // treeNodeId → nodeIds
+	// Material overrides address registrations by their GeometryData id.
+	private readonly _nodeKeysByGeometry = new Map<string, Set<string>>(); // geometryId → nodeIds
+	private readonly _geometryIdByNodeKey = new Map<string, string>(); // nodeId → geometryId
+
+	/**
+	 * Escape hatch: when false, SceneTreeManager renders instantiable geometry
+	 * through the regular per-mesh path instead of batching it here.
+	 */
+	public enabled = true;
 
 	readonly instancedRoot: THREE.Group = new THREE.Group();
 
@@ -71,7 +94,7 @@ export class InstanceGroupManager {
 		node: ITreeNode,
 		geometry: GeometryData,
 		bufferGeometry: THREE.BufferGeometry,
-		material: THREE.Material,
+		material: THREE.Material | undefined,
 	): THREE.InstancedMesh {
 		const instanceHash = geometry.instanceHash!;
 		let group = this._groups.get(instanceHash);
@@ -80,12 +103,16 @@ export class InstanceGroupManager {
 			const initialCapacity = Math.max(geometry.instanceColors.length, 4);
 			const instancedMesh = new THREE.InstancedMesh(
 				bufferGeometry,
-				material,
+				material!,
 				initialCapacity,
 			);
 			instancedMesh.count = 0;
 			instancedMesh.frustumCulled = false;
 			instancedMesh.matrixAutoUpdate = false;
+			instancedMesh.castShadow = geometry.castShadow;
+			instancedMesh.receiveShadow = !(material instanceof GemMaterial)
+				? geometry.receiveShadow
+				: false;
 			instancedMesh.userData.instanceHash = instanceHash;
 			instancedMesh.userData.instanceNodes = [] as (
 				| ITreeNode
@@ -102,11 +129,12 @@ export class InstanceGroupManager {
 				count: 0,
 				nodeMatrices: new Map(),
 				nodeColors: new Map(),
-				nodeColorIndices: new Map(),
 				nodeVisible: new Map(),
-				nextColorIndex: 0,
+				nodeRefs: new Map(),
+				nodeOffsets: new Map(),
 				nodeEffects: new Map(),
 				nodeEffectMeshKeys: new Map(),
+				materialOverrides: new Map(),
 			};
 			this._groups.set(instanceHash, group);
 			this.instancedRoot.add(instancedMesh);
@@ -114,30 +142,38 @@ export class InstanceGroupManager {
 
 		const nodeId = this._getNodeKey(node, geometry.id);
 
-		// If already registered, just refresh matrix (re-load scenario)
+		// If already registered, refresh matrix and color (re-load scenario;
+		// in attribute mode a re-load carries a new attribute color)
 		if (this._nodeToHash.has(nodeId)) {
 			this._refreshNodeMatrix(group, node, nodeId);
+			this._setNodeColor(group, nodeId, this._computeNodeColor(geometry));
 			return group.defaultMesh;
 		}
 
 		this._nodeToHash.set(nodeId, instanceHash);
-
-		// Keep the source color index independent from active mesh slots. Slots
-		// change when instances move to effects or are removed.
-		let colorIndex = group.nodeColorIndices.get(nodeId);
-		if (colorIndex === undefined) {
-			colorIndex = group.nextColorIndex++;
-			group.nodeColorIndices.set(nodeId, colorIndex);
+		let treeNodeKeys = this._nodeKeysByTreeNode.get(node.id);
+		if (!treeNodeKeys) {
+			treeNodeKeys = new Set();
+			this._nodeKeysByTreeNode.set(node.id, treeNodeKeys);
 		}
-		const colorRaw = geometry.instanceColors[0] ?? [255, 255, 255, 255];
-		const color = this._renderingEngine.createThreeJsColor(colorRaw);
-		const rgb: [number, number, number] = [
-			color.r,
-			color.g,
-			color.b,
-		];
+		treeNodeKeys.add(nodeId);
+		let geometryKeys = this._nodeKeysByGeometry.get(geometry.id);
+		if (!geometryKeys) {
+			geometryKeys = new Set();
+			this._nodeKeysByGeometry.set(geometry.id, geometryKeys);
+		}
+		geometryKeys.add(nodeId);
+		this._geometryIdByNodeKey.set(nodeId, geometry.id);
+		group.nodeRefs.set(nodeId, node);
+		if (geometry.instanceOffsetMatrix)
+			group.nodeOffsets.set(
+				nodeId,
+				new THREE.Matrix4().fromArray(geometry.instanceOffsetMatrix),
+			);
 
-		const matrix = new Float32Array(node.worldMatrix);
+		const rgb = this._computeNodeColor(geometry);
+
+		const matrix = this._composeInstanceMatrix(group, node, nodeId);
 		group.nodeMatrices.set(nodeId, matrix);
 		group.nodeColors.set(nodeId, rgb);
 		group.nodeVisible.set(nodeId, true);
@@ -152,12 +188,10 @@ export class InstanceGroupManager {
 		tempMatrix.fromArray(matrix);
 		group.defaultMesh.setMatrixAt(idx, tempMatrix);
 
-		if (this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES) {
-			group.defaultMesh.setColorAt(
-				idx,
-				new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]),
-			);
-		}
+		group.defaultMesh.setColorAt(
+			idx,
+			new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]),
+		);
 
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
@@ -196,10 +230,27 @@ export class InstanceGroupManager {
 		this._removeFromDefault(group, nodeId);
 		group.nodeMatrices.delete(nodeId);
 		group.nodeColors.delete(nodeId);
-		// Keep the source-color assignment so recreating the same tree node gets
-		// the color it had before removal. The map is released with its group.
 		group.nodeVisible.delete(nodeId);
+		group.nodeRefs.delete(nodeId);
+		group.nodeOffsets.delete(nodeId);
+		group.materialOverrides.delete(nodeId);
 		this._nodeToHash.delete(nodeId);
+		const treeNodeKeys = this._nodeKeysByTreeNode.get(node.id);
+		if (treeNodeKeys) {
+			treeNodeKeys.delete(nodeId);
+			if (treeNodeKeys.size === 0)
+				this._nodeKeysByTreeNode.delete(node.id);
+		}
+		const geometryId = this._geometryIdByNodeKey.get(nodeId);
+		if (geometryId !== undefined) {
+			this._geometryIdByNodeKey.delete(nodeId);
+			const geometryKeys = this._nodeKeysByGeometry.get(geometryId);
+			if (geometryKeys) {
+				geometryKeys.delete(nodeId);
+				if (geometryKeys.size === 0)
+					this._nodeKeysByGeometry.delete(geometryId);
+			}
+		}
 
 		// Dispose empty groups
 		if (group.nodeMatrices.size === 0) {
@@ -280,7 +331,9 @@ export class InstanceGroupManager {
 	public updateNode(node: ITreeNode): void {
 		for (const nodeId of this._getNodeKeys(node.id)) {
 			const instanceHash = this._nodeToHash.get(nodeId);
-			const group = instanceHash ? this._groups.get(instanceHash) : undefined;
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
 			if (group) this._refreshNodeMatrix(group, node, nodeId);
 		}
 	}
@@ -289,7 +342,9 @@ export class InstanceGroupManager {
 	public setNodeVisible(nodeId: string, visible: boolean): void {
 		for (const key of this._getNodeKeys(nodeId)) {
 			const instanceHash = this._nodeToHash.get(key);
-			const group = instanceHash ? this._groups.get(instanceHash) : undefined;
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
 			if (!group) continue;
 
 			group.nodeVisible.set(key, visible);
@@ -319,10 +374,83 @@ export class InstanceGroupManager {
 		group.defaultMesh.material = material;
 		group.defaultMesh.material.needsUpdate = true;
 		group.effectMeshes.forEach((mesh) => {
+			// Meshes holding material overrides keep their own material.
+			if (mesh.userData.hasMaterialOverride) return;
 			(mesh.material as THREE.Material).dispose();
 			mesh.material = material.clone();
 			(mesh.material as THREE.Material).needsUpdate = true;
 		});
+	}
+
+	/**
+	 * Apply a per-occurrence material override (e.g. an interaction highlight)
+	 * to the instances registered for the given GeometryData. The instances
+	 * move into their own effect batch carrying the override material, so the
+	 * rest of the group keeps its shared material.
+	 */
+	public setMaterialOverride(
+		geometryId: string,
+		material: THREE.Material,
+	): void {
+		const effectKey = MATERIAL_OVERRIDE_PREFIX + geometryId;
+		for (const nodeId of this._nodeKeysByGeometry.get(geometryId) ?? []) {
+			const instanceHash = this._nodeToHash.get(nodeId);
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
+			const node = group?.nodeRefs.get(nodeId);
+			if (!group || !node) continue;
+
+			group.materialOverrides.set(nodeId, material);
+			const effects = group.nodeEffects.get(nodeId) ?? new Set<string>();
+			if (!effects.has(effectKey)) {
+				effects.add(effectKey);
+				group.nodeEffects.set(nodeId, effects);
+				this._moveToEffectMesh(group, node, nodeId, effects);
+			} else {
+				// Override replaced while active: swap the batch material.
+				const effectMesh = this._getEffectMesh(group, nodeId);
+				if (effectMesh && effectMesh.material !== material) {
+					(effectMesh.material as THREE.Material).dispose();
+					effectMesh.material = material;
+					(effectMesh.material as THREE.Material).needsUpdate = true;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Refresh the per-instance color of every registration of a GeometryData
+	 * (used by attribute visualization, where each occurrence carries its own
+	 * flat attribute color).
+	 */
+	public updateNodeColor(geometry: GeometryData): void {
+		const rgb = this._computeNodeColor(geometry);
+		for (const nodeId of this._nodeKeysByGeometry.get(geometry.id) ?? []) {
+			const instanceHash = this._nodeToHash.get(nodeId);
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
+			if (group) this._setNodeColor(group, nodeId, rgb);
+		}
+	}
+
+	/** Remove a per-occurrence material override set via setMaterialOverride. */
+	public clearMaterialOverride(geometryId: string): void {
+		const effectKey = MATERIAL_OVERRIDE_PREFIX + geometryId;
+		for (const nodeId of this._nodeKeysByGeometry.get(geometryId) ?? []) {
+			const instanceHash = this._nodeToHash.get(nodeId);
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
+			const node = group?.nodeRefs.get(nodeId);
+			if (!group || !node) continue;
+			if (!group.materialOverrides.has(nodeId)) continue;
+
+			group.materialOverrides.delete(nodeId);
+			// The override material itself is disposed when its batch empties.
+			this._removeKeyFromEffect(group, node, nodeId, effectKey);
+		}
 	}
 
 	public getDefaultMesh(
@@ -373,7 +501,33 @@ export class InstanceGroupManager {
 		this._groups.forEach((group) => this._disposeGroup(group));
 		this._groups.clear();
 		this._nodeToHash.clear();
+		this._nodeKeysByTreeNode.clear();
+		this._nodeKeysByGeometry.clear();
+		this._geometryIdByNodeKey.clear();
 		this.instancedRoot.clear();
+	}
+
+	/** Snapshot of the current batching state, for debugging and support. */
+	public get stats(): {
+		groupCount: number;
+		instanceCount: number;
+		effectMeshCount: number;
+		drawCallCount: number;
+	} {
+		let instanceCount = 0;
+		let effectMeshCount = 0;
+		let drawCallCount = 0;
+		this._groups.forEach((group) => {
+			instanceCount += group.nodeMatrices.size;
+			effectMeshCount += group.effectMeshes.size;
+			drawCallCount += 1 + group.effectMeshes.size;
+		});
+		return {
+			groupCount: this._groups.size,
+			instanceCount,
+			effectMeshCount,
+			drawCallCount,
+		};
 	}
 
 	// #endregion Public Methods (7)
@@ -385,10 +539,64 @@ export class InstanceGroupManager {
 	}
 
 	private _getNodeKeys(treeNodeId: string): string[] {
-		const prefix = `${treeNodeId}:`;
-		return [...this._nodeToHash.keys()].filter((key) =>
-			key.startsWith(prefix),
-		);
+		const keys = this._nodeKeysByTreeNode.get(treeNodeId);
+		return keys ? [...keys] : [];
+	}
+
+	/**
+	 * The instance color: the source color of the occurrence, or — in
+	 * attribute-visualization mode — the current attribute color (the batch
+	 * material is white, so the instance color carries the visualization).
+	 */
+	private _computeNodeColor(
+		geometry: GeometryData,
+	): [number, number, number] {
+		const colorRaw =
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? (geometry.attributeMaterial?.color ?? [255, 255, 255, 255])
+				: (geometry.instanceColors[0] ?? [255, 255, 255, 255]);
+		const color = this._renderingEngine.createThreeJsColor(colorRaw);
+		return [color.r, color.g, color.b];
+	}
+
+	private _setNodeColor(
+		group: InstanceGroup,
+		nodeId: string,
+		rgb: [number, number, number],
+	): void {
+		const previous = group.nodeColors.get(nodeId);
+		if (
+			previous &&
+			previous[0] === rgb[0] &&
+			previous[1] === rgb[1] &&
+			previous[2] === rgb[2]
+		)
+			return;
+		group.nodeColors.set(nodeId, rgb);
+
+		const color = new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]);
+		const idx = group.nodeToIndex.get(nodeId);
+		if (idx !== undefined && group.defaultMesh.instanceColor) {
+			group.defaultMesh.setColorAt(idx, color);
+			group.defaultMesh.instanceColor.needsUpdate = true;
+		}
+
+		const effectMesh = this._getEffectMesh(group, nodeId);
+		if (
+			effectMesh &&
+			effectMesh.instanceColor &&
+			!effectMesh.userData.hasMaterialOverride
+		) {
+			const keys = effectMesh.userData.instanceKeys as (
+				| string
+				| undefined
+			)[];
+			const effectIdx = keys.indexOf(nodeId);
+			if (effectIdx !== -1) {
+				effectMesh.setColorAt(effectIdx, color);
+				effectMesh.instanceColor.needsUpdate = true;
+			}
+		}
 	}
 
 	private _removeFromDefault(group: InstanceGroup, nodeId: string): void {
@@ -477,12 +685,26 @@ export class InstanceGroupManager {
 			group.defaultMesh.instanceColor.needsUpdate = true;
 	}
 
+	/** worldMatrix, composed with the baked-transform offset when present. */
+	private _composeInstanceMatrix(
+		group: InstanceGroup,
+		node: ITreeNode,
+		nodeId: string,
+	): Float32Array {
+		const offset = group.nodeOffsets.get(nodeId);
+		if (!offset) return new Float32Array(node.worldMatrix);
+		const composed = new THREE.Matrix4()
+			.fromArray(node.worldMatrix)
+			.multiply(offset);
+		return new Float32Array(composed.elements);
+	}
+
 	private _refreshNodeMatrix(
 		group: InstanceGroup,
 		node: ITreeNode,
 		nodeId: string,
 	): void {
-		const matrix = new Float32Array(node.worldMatrix);
+		const matrix = this._composeInstanceMatrix(group, node, nodeId);
 		group.nodeMatrices.set(nodeId, matrix);
 
 		const idx = group.nodeToIndex.get(nodeId);
@@ -530,7 +752,11 @@ export class InstanceGroupManager {
 			this._removeFromEffectMesh(group, nodeId);
 		else this._removeFromDefault(group, nodeId);
 
-		const effectMesh = this._getOrCreateEffectMesh(group, effects);
+		const effectMesh = this._getOrCreateEffectMesh(
+			group,
+			effects,
+			group.materialOverrides.get(nodeId),
+		);
 		const effectIdx = effectMesh.count;
 		if (effectIdx >= effectMesh.instanceMatrix.count)
 			this._growMeshBuffers(effectMesh);
@@ -542,7 +768,12 @@ export class InstanceGroupManager {
 		const color = group.nodeColors.get(nodeId)!;
 		// Mirror the default mesh: setColorAt creates the instanceColor
 		// attribute on first use, so a fresh effect mesh keeps its colors.
-		if (group.defaultMesh.instanceColor)
+		// Override batches skip this — instance colors would tint the
+		// override (highlight) material.
+		if (
+			group.defaultMesh.instanceColor &&
+			!effectMesh.userData.hasMaterialOverride
+		)
 			effectMesh.setColorAt(
 				effectIdx,
 				new THREE.Color().setRGB(color[0], color[1], color[2]),
@@ -613,6 +844,7 @@ export class InstanceGroupManager {
 	private _getOrCreateEffectMesh(
 		group: InstanceGroup,
 		effects: Set<string>,
+		overrideMaterial?: THREE.Material,
 	): THREE.InstancedMesh {
 		const meshKey = this._getEffectMeshKey(effects);
 		let effectMesh = group.effectMeshes.get(meshKey);
@@ -620,12 +852,17 @@ export class InstanceGroupManager {
 
 		effectMesh = new THREE.InstancedMesh(
 			group.defaultMesh.geometry,
-			(group.defaultMesh.material as THREE.Material).clone(),
+			overrideMaterial ??
+				(group.defaultMesh.material as THREE.Material).clone(),
 			8,
 		);
+		effectMesh.userData.hasMaterialOverride =
+			overrideMaterial !== undefined;
 		effectMesh.count = 0;
 		effectMesh.frustumCulled = false;
 		effectMesh.matrixAutoUpdate = false;
+		effectMesh.castShadow = group.defaultMesh.castShadow;
+		effectMesh.receiveShadow = group.defaultMesh.receiveShadow;
 		effectMesh.userData.instanceHash = group.instanceHash;
 		effectMesh.userData.effectKeys = [...effects].sort();
 		effectMesh.userData.instanceNodes = [] as (ITreeNode | undefined)[];

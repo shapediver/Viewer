@@ -2,8 +2,8 @@ import {
 	AttributeData,
 	GeometryData,
 	InstanceData,
-	type ITreeNode,
 	MaterialGemData,
+	type ITreeNode,
 } from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
@@ -100,17 +100,12 @@ export class GeometryLoader implements ILoader {
 		parentNode: ITreeNode,
 		geometry: GeometryData,
 	): THREE.Object3D {
-		// Resolve material for the instanced batch
-		let incomingMaterialData: IMaterialAbstractData | null;
-		if (geometry.effectMaterials.length > 0) {
-			incomingMaterialData =
-				geometry.effectMaterials[geometry.effectMaterials.length - 1]
-					.material;
-		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			incomingMaterialData = geometry.attributeMaterial;
-		} else {
-			incomingMaterialData = geometry.material;
-		}
+		// Base material for the batch. Effect materials (interaction
+		// highlights) are per occurrence and applied as overrides below.
+		const incomingMaterialData: IMaterialAbstractData | null =
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? geometry.attributeMaterial
+				: geometry.material;
 
 		// We need the primitive geometry (BufferGeometry) – load / retrieve it
 		const primitiveCacheKey =
@@ -126,23 +121,35 @@ export class GeometryLoader implements ILoader {
 
 		const materialSettings = {
 			mode: geometry.mode,
-			useVertexTangents:
-				bufferGeometry.attributes.tangent !== undefined,
+			useVertexTangents: bufferGeometry.attributes.tangent !== undefined,
 			useVertexColors:
 				bufferGeometry.attributes.color !== undefined &&
 				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-			useFlatShading:
-				bufferGeometry.attributes.normal === undefined,
+			useFlatShading: bufferGeometry.attributes.normal === undefined,
 			useMorphTargets: false,
 			useMorphNormals: false,
 		};
-		const material = this.createInstancedMaterial(
-			this._renderingEngine.materialLoader.load(
+		// Only build the shared batch material when the group does not exist
+		// yet — an unused clone would leak on every re-conversion.
+		// The base color moves into the per-instance color, so the batch
+		// material is whitened — but only when actual material data supplied
+		// that color. The fallback default material keeps its own color, and
+		// the instance colors stay at neutral white.
+		const existingMesh =
+			this._renderingEngine.instanceGroupManager.getDefaultMesh(
+				geometry.instanceHash,
+			);
+		let material: THREE.Material | undefined;
+		if (!existingMesh) {
+			const loadedMaterial = this._renderingEngine.materialLoader.load(
 				incomingMaterialData || geometry,
 				materialSettings,
-			),
-		);
-		material.needsUpdate = false;
+			);
+			material = incomingMaterialData
+				? this.createInstancedMaterial(loadedMaterial)
+				: loadedMaterial.clone();
+			material.needsUpdate = false;
+		}
 
 		// Delegate to InstanceGroupManager
 		const instancedMesh =
@@ -152,6 +159,26 @@ export class GeometryLoader implements ILoader {
 				bufferGeometry,
 				material,
 			);
+
+		// Apply/remove the per-occurrence interaction material.
+		if (geometry.effectMaterials.length > 0) {
+			const effectMaterial = this._renderingEngine.materialLoader
+				.load(
+					geometry.effectMaterials[
+						geometry.effectMaterials.length - 1
+					].material,
+					materialSettings,
+				)
+				.clone();
+			this._renderingEngine.instanceGroupManager.setMaterialOverride(
+				geometry.id,
+				effectMaterial,
+			);
+		} else {
+			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+				geometry.id,
+			);
+		}
 
 		// Store the InstancedMesh in geometry.convertedObject so IntersectionEngine
 		// and effects can reach it via geometryData.convertedObject[viewportId].
@@ -460,21 +487,60 @@ export class GeometryLoader implements ILoader {
 			if (!instanceMesh) return;
 
 			const attributes = instanceMesh.geometry.attributes;
-			const material = this.createInstancedMaterial(
-				this._renderingEngine.materialLoader.load(
-					incomingMaterialData || geometry,
-					{
-						mode: geometry.mode,
-						useVertexTangents: attributes.tangent !== undefined,
-						useVertexColors:
-							attributes.color !== undefined &&
-							this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
-						useFlatShading: attributes.normal === undefined,
-						useMorphTargets: false,
-						useMorphNormals: false,
-					},
-				),
+			const instancedMaterialSettings = {
+				mode: geometry.mode,
+				useVertexTangents: attributes.tangent !== undefined,
+				useVertexColors:
+					attributes.color !== undefined &&
+					this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+				useFlatShading: attributes.normal === undefined,
+				useMorphTargets: false,
+				useMorphNormals: false,
+			};
+
+			// Effect materials (interaction highlights) are per occurrence:
+			// only this geometry's instances move into an override batch, the
+			// rest of the group keeps its shared material. The same applies to
+			// a non-opaque attribute material, which needs its own transparent
+			// batch instead of poisoning the group's shared material.
+			if (
+				geometry.effectMaterials.length > 0 ||
+				(this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
+					(incomingMaterialData?.opacity ?? 1) < 1)
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(
+						incomingMaterialData || geometry,
+						instancedMaterialSettings,
+					)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+				return;
+			}
+			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+				geometry.id,
 			);
+
+			// Attribute visualization carries per-occurrence flat colors via
+			// the per-instance color attribute; refresh only this occurrence.
+			if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
+				);
+			}
+
+			const loadedMaterial = this._renderingEngine.materialLoader.load(
+				incomingMaterialData || geometry,
+				instancedMaterialSettings,
+			);
+			// Whiten only when material data supplied the per-instance color;
+			// the fallback default material keeps its own color.
+			const material = incomingMaterialData
+				? this.createInstancedMaterial(loadedMaterial)
+				: loadedMaterial.clone();
 			this._renderingEngine.instanceGroupManager.updateMaterial(
 				geometry.instanceHash,
 				material,
@@ -551,9 +617,7 @@ export class GeometryLoader implements ILoader {
 		const cachedGeometry = this._geometryCache[id];
 		if (cachedGeometry) {
 			if (cachedGeometry.counter === 1) {
-				this.removeFromPrimitiveCache(
-					cachedGeometry.primitiveCacheId,
-				);
+				this.removeFromPrimitiveCache(cachedGeometry.primitiveCacheId);
 				cachedGeometry.clones.forEach(() => {
 					this.removeFromPrimitiveCache(
 						cachedGeometry.primitiveCacheId,
@@ -1013,8 +1077,8 @@ export class GeometryLoader implements ILoader {
 				bufferAttribute.array,
 				bufferAttribute.itemSize,
 				attributeId === "COLOR_0" ||
-				attributeId === "COLOR0" ||
-				attributeId === "COLOR"
+					attributeId === "COLOR0" ||
+					attributeId === "COLOR"
 					? true
 					: bufferAttribute.normalized,
 			);

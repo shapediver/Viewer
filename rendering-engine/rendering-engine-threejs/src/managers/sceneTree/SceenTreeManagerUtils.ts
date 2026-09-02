@@ -4,7 +4,7 @@ import {
 	type ITreeNode,
 	type ITreeNodeData,
 } from "@shapediver/viewer.shared.node-tree";
-import {vec3} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
@@ -21,13 +21,16 @@ export const removeData = (
 		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
 			// Instanced-geometry placeholder: delegate removal to InstanceGroupManager
 			if (dataObject.userData.isInstanced) {
-				const instanceNode = dataObject.userData
-					.instanceNode as ITreeNode | undefined;
+				const instanceNode = dataObject.userData.instanceNode as
+					| ITreeNode
+					| undefined;
 				if (
 					instanceNode &&
 					renderingEngine.instanceGroupManager.removeNode(
 						instanceNode,
-						dataObject.userData.instanceNodeKey as string | undefined,
+						dataObject.userData.instanceNodeKey as
+							| string
+							| undefined,
 					)
 				)
 					renderingEngine.geometryLoader.removeFromPrimitiveCache(
@@ -164,12 +167,32 @@ export const assignBoundingBox = (
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
 		let bb: IBox = new Box();
+		// Baked-transform occurrences share the source geometry and position
+		// it via an offset: their bounds use worldMatrix * offset.
+		let boundsMatrix: mat4 = node.worldMatrix;
+		if (geometry.instanceOffsetMatrix)
+			boundsMatrix = mat4.multiply(
+				mat4.create(),
+				node.worldMatrix,
+				geometry.instanceOffsetMatrix as unknown as mat4,
+			);
 		if (convertedObjectData.userData.isInstanced) {
-			// GPU instances are represented in the scene tree by an empty placeholder;
-			// derive their bounds from the source geometry instead of that placeholder.
-			bb = geometry.boundingBox
-				.clone()
-				.applyMatrix(node.worldMatrix);
+			// GPU instances are represented in the scene tree by an empty
+			// placeholder; derive their bounds from the source geometry. Use
+			// per-vertex bounds to match the precise bounds of the regular
+			// path (an AABB of the transformed AABB would be looser).
+			const position = geometry.primitive.attributes["POSITION"];
+			if (position) {
+				bb = new Box();
+				bb.setFromAttributeArray(
+					position.array,
+					position.byteStride,
+					position.itemBytes,
+					boundsMatrix,
+				);
+			} else {
+				bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
+			}
 		} else {
 			const clone = convertedObjectData.clone();
 
@@ -178,7 +201,7 @@ export const assignBoundingBox = (
 			clone.position.set(0, 0, 0);
 			clone.scale.set(1, 1, 1);
 			clone.quaternion.set(0, 0, 0, 1);
-			clone.applyMatrix4(new THREE.Matrix4().fromArray(node.worldMatrix));
+			clone.applyMatrix4(new THREE.Matrix4().fromArray(boundsMatrix));
 
 			const threeBox = new THREE.Box3().setFromObject(clone, true);
 			bb = new Box(
