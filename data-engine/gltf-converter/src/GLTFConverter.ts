@@ -644,13 +644,13 @@ export class GLTFConverter {
 
 	private isARSupportedImageMimeType(mimeType?: string): boolean {
 		switch (this.normalizeImageMimeType(mimeType)) {
-		case "image/jpeg":
-		case "image/png":
-		case "image/bmp":
-		case "image/gif":
-			return true;
-		default:
-			return false;
+			case "image/jpeg":
+			case "image/png":
+			case "image/bmp":
+			case "image/gif":
+				return true;
+			default:
+				return false;
 		}
 	}
 
@@ -684,9 +684,7 @@ export class GLTFConverter {
 						try {
 							if (!blob) {
 								reject(
-									new Error(
-										"Canvas toBlob returned null.",
-									),
+									new Error("Canvas toBlob returned null."),
 								);
 								return;
 							}
@@ -731,7 +729,10 @@ export class GLTFConverter {
 		if (data.blob) {
 			const mimeType =
 				this.normalizeImageMimeType(data.blob.type) ?? data.blob.type;
-			if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+			if (
+				!this._convertForAR ||
+				this.isARSupportedImageMimeType(mimeType)
+			) {
 				imageDef.mimeType = mimeType;
 				this.pushBlobImagePromise(imageDef, data.blob);
 			} else {
@@ -744,18 +745,30 @@ export class GLTFConverter {
 				const byteString = atobCustom(data.image.src.split(",")[1]);
 				const mimeType =
 					this.normalizeImageMimeType(
-						data.image.src.split(",")[0].split(":")[1].split(";")[0],
+						data.image.src
+							.split(",")[0]
+							.split(":")[1]
+							.split(";")[0],
 					) ?? "image/png";
 				const ab = new ArrayBuffer(byteString.length);
 				const ia = new Uint8Array(ab);
 				for (let i = 0; i < byteString.length; i++)
 					ia[i] = byteString.charCodeAt(i);
-				if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+				if (
+					!this._convertForAR ||
+					this.isARSupportedImageMimeType(mimeType)
+				) {
 					imageDef.mimeType = mimeType;
 					const blob = new Blob([ab], {type: mimeType});
 					this.pushBlobImagePromise(imageDef, blob);
 				} else {
-					ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+					ctx.drawImage(
+						data.image,
+						0,
+						0,
+						canvas.width,
+						canvas.height,
+					);
 					this.pushCanvasImagePromise(imageDef, canvas, "image/png");
 				}
 			} else {
@@ -1031,8 +1044,20 @@ export class GLTFConverter {
 	private convertCombinedMesh(geometryDataList: IGeometryData[]): number {
 		if (!this._content.meshes) this._content.meshes = [];
 
+		// Key by primitive + material identity, not GeometryData identity:
+		// GPU-instancing occurrences are clones that share primitive and
+		// material, and their exported meshes are identical.
 		const cacheKey = geometryDataList
-			.map((d) => d.id + "_" + d.version)
+			.map(
+				(d) =>
+					d.primitive.id +
+					"_" +
+					d.primitive.version +
+					"_" +
+					(d.material
+						? d.material.id + "_" + d.material.version
+						: "null"),
+			)
 			.join("|");
 
 		if (this._meshCache[cacheKey] !== undefined)
@@ -1094,21 +1119,49 @@ export class GLTFConverter {
 				this._animations.push(<AnimationData>node.data[i]);
 		}
 
+		// Baked-transform occurrences share the source primitive and position
+		// it via an offset matrix; bake that offset into the exported node.
+		const offsetMatrices = geometryDataList
+			.map((g) => g.instanceOffsetMatrix)
+			.filter((m): m is number[] => m !== undefined);
+		if (offsetMatrices.length > 0) {
+			const first = offsetMatrices[0];
+			const allEqual =
+				offsetMatrices.length === geometryDataList.length &&
+				offsetMatrices.every((m) => m.every((v, i) => v === first[i]));
+			if (allEqual) {
+				const base = nodeDef.matrix
+					? mat4.clone(nodeDef.matrix as unknown as mat4)
+					: mat4.create();
+				const combined = mat4.multiply(
+					mat4.create(),
+					base,
+					first as unknown as mat4,
+				);
+				nodeDef.matrix = Array.from(combined);
+			} else {
+				Logger.instance.warn(
+					`GLTFConverter.convertNode: Node ${node.displayName ?? node.name} mixes geometry with different instance offsets; exported positions may be wrong.`,
+				);
+			}
+		}
+
 		if (geometryDataList.length > 0) {
 			let instanceMatrices: mat4[] | undefined;
-			// as this is a node that contains a mesh
-			// we check the parent node for instance matrices
-			if (node.parent) {
-				const instanceMatricesData = node.parent.data.find(
-					(d) => d instanceof InstanceData,
-				) as InstanceData;
-				if (
-					instanceMatricesData &&
-					instanceMatricesData.instanceMatrices &&
-					instanceMatricesData.instanceMatrices.length > 0
-				) {
-					instanceMatrices = instanceMatricesData.instanceMatrices;
-				}
+			// The gltf loader stores instance matrices (EXT_mesh_gpu_instancing)
+			// on the same node as the geometry since the gltf tree was
+			// flattened. Older producers stored them on the mesh-level parent.
+			const instanceMatricesData = (node.data.find(
+				(d) => d instanceof InstanceData,
+			) ?? node.parent?.data.find((d) => d instanceof InstanceData)) as
+				| InstanceData
+				| undefined;
+			if (
+				instanceMatricesData &&
+				instanceMatricesData.instanceMatrices &&
+				instanceMatricesData.instanceMatrices.length > 0
+			) {
+				instanceMatrices = instanceMatricesData.instanceMatrices;
 			}
 
 			// Filter for AR mode
