@@ -234,6 +234,7 @@ export class GeometryData
 	#effectPulses: {effect: IPulseEffectDefinition; token: string}[] = [];
 	#instanceColors: Color[] = [];
 	#instanceHash?: string;
+	#instanceOffsetMatrix?: number[];
 	#instantiable: boolean = false;
 	#material: IMaterialAbstractData | null = null;
 	#materialVariants: {material: IMaterialAbstractData; variant: number}[] =
@@ -323,6 +324,14 @@ export class GeometryData
 		this.#instanceHash = value;
 	}
 
+	public get instanceOffsetMatrix(): number[] | undefined {
+		return this.#instanceOffsetMatrix;
+	}
+
+	public set instanceOffsetMatrix(value: number[] | undefined) {
+		this.#instanceOffsetMatrix = value;
+	}
+
 	public get instantiable(): boolean {
 		return this.#instantiable;
 	}
@@ -401,6 +410,7 @@ export class GeometryData
 		);
 		geometryData.instantiable = this.#instantiable;
 		geometryData.instanceHash = this.#instanceHash;
+		geometryData.instanceOffsetMatrix = this.#instanceOffsetMatrix;
 		geometryData.instanceColors = this.#instanceColors;
 		return geometryData;
 	}

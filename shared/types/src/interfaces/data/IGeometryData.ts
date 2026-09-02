@@ -1,8 +1,8 @@
 import {mat4} from "gl-matrix";
+import {type Color} from "../..";
 import {type IBox} from "../math/IBox";
 import {type IPulseEffectDefinition} from "../renderingEngine/IPulseEffectDefinition";
 import {type ITreeNodeData} from "../tree-node/ITreeNodeData";
-import {type Color} from "../..";
 import {type IMaterialAbstractData} from "./material/IMaterialAbstractData";
 
 export enum PRIMITIVE_MODE {
@@ -92,6 +92,13 @@ export interface IGeometryData extends ITreeNodeData {
 	castShadow: boolean;
 	instantiable: boolean;
 	instanceHash?: string;
+	/**
+	 * Column-major 4x4 matrix positioning this occurrence relative to the
+	 * shared instance geometry. Set when the occurrence was detected as a
+	 * baked-transform copy of another primitive: this geometry then shares
+	 * the source primitive, and rendering applies worldMatrix * offset.
+	 */
+	instanceOffsetMatrix?: number[];
 	instanceColors: Color[];
 	effectMaterials: {material: IMaterialAbstractData; token: string}[];
 	effectPulses: {effect: IPulseEffectDefinition; token: string}[];
