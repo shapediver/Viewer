@@ -71,6 +71,10 @@ export class OutputManager {
 		return this._sessionEngineCore.loadSdtf;
 	}
 
+	public get sessionId(): string | undefined {
+		return this._sessionEngineCore.sessionId;
+	}
+
 	public get outputs(): {[key: string]: IOutput} {
 		return this._outputs;
 	}

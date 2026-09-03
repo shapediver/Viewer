@@ -57,6 +57,7 @@ export class GeometryEngine {
 	public async loadContent(
 		content: ResOutputContent,
 		taskEventId: string,
+		sessionId?: string,
 	): Promise<ITreeNode> {
 		if (!content || (content && !content.href))
 			throw new ShapeDiverViewerDataProcessingError(
@@ -209,6 +210,7 @@ export class GeometryEngine {
 						gltfHeader,
 						gltfBaseUrl,
 						taskEventId,
+						sessionId,
 					);
 				}
 				promise.catch((e) => {
