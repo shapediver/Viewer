@@ -3,6 +3,7 @@ import {
 	ResOutputChunk as ResOutputChunkBackend,
 	ResOutputContent as ResOutputContentBackend,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	type IAnchor,
 	type IMaterialContentData,
@@ -10,8 +11,8 @@ import {
 	type IMaterialContentDataV2,
 	type IMaterialContentDataV3,
 	type ITag2D,
-	type ITag3D} from "@shapediver/viewer.data-engine.shared-types";
-import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type ITag3D,
+} from "@shapediver/viewer.shared.types";
 
 // #region Interfaces (3)
 

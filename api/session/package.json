@@ -51,7 +51,6 @@
 		"@shapediver/viewer.api.general": "workspace:*",
 		"@shapediver/viewer.creation-control-center.session": "workspace:*",
 		"@shapediver/viewer.data-engine.gltf-converter": "workspace:*",
-		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
 		"@shapediver/viewer.session-engine.session-engine": "workspace:*",
 		"@shapediver/viewer.shared.math": "workspace:*",
 		"@shapediver/viewer.shared.node-tree": "workspace:*",

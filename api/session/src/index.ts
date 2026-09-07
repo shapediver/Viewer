@@ -16,28 +16,23 @@ import {
 	type IGeneralOptions,
 	removeListener,
 	sceneTree,
-	version} from "@shapediver/viewer.api.general";
-import {
-	type IMaterialContentDataV1,
-	type IMaterialContentDataV2,
-	type IMaterialContentDataV3,
-	type ITag2D,
-	type ITag3D,
-	type ITexture,
-	TAG3D_JUSTIFICATION} from "@shapediver/viewer.data-engine.shared-types";
+	version,
+} from "@shapediver/viewer.api.general";
 import {
 	type ISessionData,
 	type ISessionOutputData,
 	SessionData,
 	SessionOutputData,
 	type ResOutputChunk as ShapeDiverResponseOutputChunk,
-	type ResOutputContent as ShapeDiverResponseOutputContent} from "@shapediver/viewer.session-engine.session-engine";
+	type ResOutputContent as ShapeDiverResponseOutputContent,
+} from "@shapediver/viewer.session-engine.session-engine";
 import {
 	Box,
 	type IBox,
 	type IGeometry,
 	type ISphere,
-	Sphere} from "@shapediver/viewer.shared.math";
+	Sphere,
+} from "@shapediver/viewer.shared.math";
 import {
 	AnimationData,
 	AttributeData,
@@ -71,7 +66,8 @@ import {
 	SDTFItemData,
 	SDTFOverviewData,
 	Tree,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	defaultSettings,
@@ -133,11 +129,13 @@ import {
 	ShapeDiverViewerViewportError,
 	ShapeDiverViewerWebGLError,
 	stringify,
-	SystemInfo} from "@shapediver/viewer.shared.services";
+	SystemInfo,
+} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
 	type DraggingParameterValue,
 	type DrawingParameterValue,
+	ENVIRONMENT_MAP_PBR_MODE,
 	type EventResponseMapping,
 	FLAG_TYPE,
 	type GumballTransformParameterValue,
@@ -173,6 +171,9 @@ import {
 	type IMaterialBasicLineData,
 	type IMaterialBasicLineDataProperties,
 	type IMaterialBasicLineDataPropertiesDefinition,
+	type IMaterialContentDataV1,
+	type IMaterialContentDataV2,
+	type IMaterialContentDataV3,
 	type IMaterialGemData,
 	type IMaterialGemDataProperties,
 	type IMaterialGemDataPropertiesDefinition,
@@ -223,11 +224,13 @@ import {
 	type ISessionEvent,
 	type ISessionSettingsSections,
 	type ISettingsSections,
+	type ITag2D,
+	type ITag3D,
 	type ITaskEvent,
 	type ITaskEventDescription,
+	type ITexture,
 	type IViewportEvent,
 	type IViewportSettingsSections,
-	ENVIRONMENT_MAP_PBR_MODE,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
@@ -242,6 +245,7 @@ import {
 	type SelectionParameterValue,
 	type SessionCreationDefinition,
 	SPINNER_POSITIONING,
+	TAG3D_JUSTIFICATION,
 	TASK_CATEGORY,
 	TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
 	TASK_TYPE,
@@ -257,7 +261,8 @@ import {
 	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings,
 	type ViewportCreationDefinition,
-	VISIBILITY_MODE} from "@shapediver/viewer.shared.types";
+	VISIBILITY_MODE,
+} from "@shapediver/viewer.shared.types";
 import {OutputApiData} from "./implementation/data/OutputApiData";
 import {SessionApiData} from "./implementation/data/SessionApiData";
 import {isExportApi} from "./implementation/ExportApi";
@@ -285,7 +290,8 @@ import {type IRectangleTransformParameterApi} from "./interfaces/parameter/IRect
 import {type ISelectionParameterApi} from "./interfaces/parameter/ISelectionParameterApi";
 import {createSession, sessions} from "./main";
 
-export {addListener,
+export {
+	addListener,
 	AnimationData,
 	AttributeData,
 	Box,
@@ -295,6 +301,7 @@ export {addListener,
 	createSession,
 	CustomData,
 	defaultSettings,
+	ENVIRONMENT_MAP_PBR_MODE,
 	EVENTTYPE,
 	EVENTTYPE_CAMERA,
 	EVENTTYPE_DRAWING_TOOLS,
@@ -358,7 +365,6 @@ export {addListener,
 	isViewerWebGLError,
 	LOGGING_LEVEL,
 	MapData,
-	ENVIRONMENT_MAP_PBR_MODE,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
 	MATERIAL_SIDE,
@@ -443,8 +449,10 @@ export {addListener,
 	validateRectangleTransformParameterSettings,
 	validateSelectionParameterSettings,
 	version,
-	VISIBILITY_MODE};
-export type {DraggingParameterValue,
+	VISIBILITY_MODE,
+};
+export type {
+	DraggingParameterValue,
 	DrawingParameterValue,
 	EventResponseMapping,
 	GumballTransformParameterValue,
@@ -473,6 +481,7 @@ export type {DraggingParameterValue,
 	IHTMLElementAnchorData,
 	IHTMLElementAnchorUpdateProperties,
 	IInstanceData,
+	IInteractionParameterApi,
 	IInteractionParameterProps,
 	IInteractionParameterSettings,
 	IMapData,
@@ -519,7 +528,6 @@ export type {DraggingParameterValue,
 	IOutputApi,
 	IOutputApiData,
 	IOutputEvent,
-	IInteractionParameterApi,
 	IParameterApi,
 	IParameterEvent,
 	IPrimitiveData,
@@ -562,4 +570,5 @@ export type {DraggingParameterValue,
 	ShapeDiverResponseOutputChunk,
 	ShapeDiverResponseOutputContent,
 	TaskCategoryTypes,
-	ViewportCreationDefinition};
+	ViewportCreationDefinition,
+};

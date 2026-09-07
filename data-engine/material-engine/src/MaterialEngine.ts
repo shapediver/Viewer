@@ -3,13 +3,6 @@ import {
 	ResOutputContent,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
 import {
-	type IMaterialContentData,
-	type IMaterialContentDataV1,
-	type IMaterialContentDataV2,
-	type IMaterialContentDataV3,
-	type IPresetMaterialDefinition,
-	type ITexture} from "@shapediver/viewer.data-engine.shared-types";
-import {
 	type ITreeNode,
 	MapData,
 	MaterialGemData,
@@ -18,14 +11,24 @@ import {
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	HttpClient,
 	type HttpResponse,
 	Logger,
 	ShapeDiverGeometryBackendResponseError,
-	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError,
+} from "@shapediver/viewer.shared.services";
+import {
+	type IMaterialContentData,
+	type IMaterialContentDataV1,
+	type IMaterialContentDataV2,
+	type IMaterialContentDataV3,
+	type IPresetMaterialDefinition,
+	type ITexture,
+} from "@shapediver/viewer.shared.types";
 /* eslint-disable no-prototype-builtins */
 import {
 	type IMapDataPropertiesDefinition,
@@ -47,7 +50,8 @@ import {
 	MATERIAL_SIDE,
 	MATERIAL_TYPE,
 	TEXTURE_FILTERING,
-	TEXTURE_WRAPPING} from "@shapediver/viewer.shared.types";
+	TEXTURE_WRAPPING,
+} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec4} from "gl-matrix";
 

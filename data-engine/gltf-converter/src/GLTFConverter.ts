@@ -1,18 +1,3 @@
-import {
-	ACCESSORCOMPONENTSIZE_V2,
-	type IGLTF_v2,
-	type IGLTF_v2_Accessor,
-	type IGLTF_v2_Animation,
-	type IGLTF_v2_BufferView,
-	type IGLTF_v2_Image,
-	type IGLTF_v2_Material,
-	type IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-	type IGLTF_v2_Mesh,
-	type IGLTF_v2_Node,
-	type IGLTF_v2_Primitive,
-	type IGLTF_v2_Scene,
-	type IGLTF_v2_Texture,
-} from "@shapediver/viewer.data-engine.shared-types";
 import {build_data} from "@shapediver/viewer.shared.build-data";
 import {GlobalAccessObjects} from "@shapediver/viewer.shared.global-access-objects";
 import {
@@ -36,9 +21,22 @@ import {
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
 import {
+	ACCESSORCOMPONENTSIZE_V2,
 	type IAnimationData,
 	type IAttributeData,
 	type IGeometryData,
+	type IGLTF_v2,
+	type IGLTF_v2_Accessor,
+	type IGLTF_v2_Animation,
+	type IGLTF_v2_BufferView,
+	type IGLTF_v2_Image,
+	type IGLTF_v2_Material,
+	type IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+	type IGLTF_v2_Mesh,
+	type IGLTF_v2_Node,
+	type IGLTF_v2_Primitive,
+	type IGLTF_v2_Scene,
+	type IGLTF_v2_Texture,
 	type IMapData,
 	type IMaterialAbstractData,
 	type IPrimitiveData,
@@ -644,13 +642,13 @@ export class GLTFConverter {
 
 	private isARSupportedImageMimeType(mimeType?: string): boolean {
 		switch (this.normalizeImageMimeType(mimeType)) {
-		case "image/jpeg":
-		case "image/png":
-		case "image/bmp":
-		case "image/gif":
-			return true;
-		default:
-			return false;
+			case "image/jpeg":
+			case "image/png":
+			case "image/bmp":
+			case "image/gif":
+				return true;
+			default:
+				return false;
 		}
 	}
 
@@ -684,9 +682,7 @@ export class GLTFConverter {
 						try {
 							if (!blob) {
 								reject(
-									new Error(
-										"Canvas toBlob returned null.",
-									),
+									new Error("Canvas toBlob returned null."),
 								);
 								return;
 							}
@@ -731,7 +727,10 @@ export class GLTFConverter {
 		if (data.blob) {
 			const mimeType =
 				this.normalizeImageMimeType(data.blob.type) ?? data.blob.type;
-			if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+			if (
+				!this._convertForAR ||
+				this.isARSupportedImageMimeType(mimeType)
+			) {
 				imageDef.mimeType = mimeType;
 				this.pushBlobImagePromise(imageDef, data.blob);
 			} else {
@@ -744,18 +743,30 @@ export class GLTFConverter {
 				const byteString = atobCustom(data.image.src.split(",")[1]);
 				const mimeType =
 					this.normalizeImageMimeType(
-						data.image.src.split(",")[0].split(":")[1].split(";")[0],
+						data.image.src
+							.split(",")[0]
+							.split(":")[1]
+							.split(";")[0],
 					) ?? "image/png";
 				const ab = new ArrayBuffer(byteString.length);
 				const ia = new Uint8Array(ab);
 				for (let i = 0; i < byteString.length; i++)
 					ia[i] = byteString.charCodeAt(i);
-				if (!this._convertForAR || this.isARSupportedImageMimeType(mimeType)) {
+				if (
+					!this._convertForAR ||
+					this.isARSupportedImageMimeType(mimeType)
+				) {
 					imageDef.mimeType = mimeType;
 					const blob = new Blob([ab], {type: mimeType});
 					this.pushBlobImagePromise(imageDef, blob);
 				} else {
-					ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+					ctx.drawImage(
+						data.image,
+						0,
+						0,
+						canvas.width,
+						canvas.height,
+					);
 					this.pushCanvasImagePromise(imageDef, canvas, "image/png");
 				}
 			} else {

@@ -1,4 +1,4 @@
-import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
+import {type IGLTF_v2} from "@shapediver/viewer.shared.types";
 
 import {BufferLoader} from "./BufferLoader";
 

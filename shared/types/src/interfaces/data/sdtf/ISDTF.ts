@@ -1,4 +1,4 @@
-import {SDTF_TYPEHINT} from "@shapediver/viewer.shared.types";
+import {SdtfTypeHintName} from "@shapediver/sdk.sdtf-v1";
 
 export interface ISDTF_Accessor {
 	// #region Properties (2)
@@ -70,7 +70,7 @@ export interface ISDTF_Node {
 export interface ISDTF_TypeHint {
 	// #region Properties (1)
 
-	name: SDTF_TYPEHINT | string;
+	name: SdtfTypeHintName | string;
 
 	// #endregion Properties (1)
 }

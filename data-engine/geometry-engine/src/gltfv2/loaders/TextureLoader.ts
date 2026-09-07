@@ -1,5 +1,4 @@
 import {ResErrorType, ResponseError} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	EventEngine,
 	EVENTTYPE_SESSION,
@@ -8,6 +7,7 @@ import {
 	Logger,
 	ShapeDiverGeometryBackendResponseError,
 } from "@shapediver/viewer.shared.services";
+import {type IGLTF_v2} from "@shapediver/viewer.shared.types";
 
 import {SDImageBitmap} from "@shapediver/viewer.shared.types/dist/types";
 import {BufferViewLoader} from "./BufferViewLoader";

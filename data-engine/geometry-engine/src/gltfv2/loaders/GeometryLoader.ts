@@ -1,14 +1,17 @@
 import {
-	type IGLTF_v2,
-	type IGLTF_v2_Primitive} from "@shapediver/viewer.data-engine.shared-types";
-import {
 	AttributeData,
 	GeometryData,
 	MapData,
 	MaterialVariantsData,
-	PrimitiveData} from "@shapediver/viewer.shared.node-tree";
+	PrimitiveData,
+} from "@shapediver/viewer.shared.node-tree";
 import {Logger} from "@shapediver/viewer.shared.services";
-import {type IMapData, type IMaterialAbstractData} from "@shapediver/viewer.shared.types";
+import {
+	type IGLTF_v2,
+	type IGLTF_v2_Primitive,
+	type IMapData,
+	type IMaterialAbstractData,
+} from "@shapediver/viewer.shared.types";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
 import {BufferViewLoader} from "./BufferViewLoader";

@@ -120,9 +120,6 @@ importers:
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../../data-engine/material-engine
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.rendering-engine.camera-engine':
         specifier: workspace:*
         version: link:../../rendering-engine/camera-engine
@@ -189,9 +186,6 @@ importers:
       '@shapediver/viewer.data-engine.gltf-converter':
         specifier: workspace:*
         version: link:../../data-engine/gltf-converter
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.session-engine.session-engine':
         specifier: workspace:*
         version: link:../../session-engine/session-engine
@@ -231,9 +225,6 @@ importers:
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../../data-engine/material-engine
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.rendering-engine.animation-engine':
         specifier: workspace:*
         version: link:../../rendering-engine/animation-engine
@@ -375,9 +366,6 @@ importers:
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.rendering-engine.camera-engine':
         specifier: workspace:*
         version: link:../../rendering-engine/camera-engine
@@ -402,9 +390,6 @@ importers:
 
   data-engine/gltf-converter:
     dependencies:
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
@@ -429,9 +414,6 @@ importers:
       '@shapediver/sdk.geometry-api-sdk-v2':
         specifier: 4.2.2
         version: 4.2.2
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.math':
         specifier: workspace:*
         version: link:../../shared/math
@@ -456,9 +438,6 @@ importers:
       '@shapediver/viewer.data-engine.material-engine':
         specifier: workspace:*
         version: link:../material-engine
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.global-access-objects':
         specifier: workspace:*
         version: link:../../shared/global-access-objects
@@ -480,9 +459,6 @@ importers:
       '@shapediver/sdk.geometry-api-sdk-v2':
         specifier: 4.2.2
         version: 4.2.2
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.node-tree':
         specifier: workspace:*
         version: link:../../shared/node-tree
@@ -507,27 +483,12 @@ importers:
       '@shapediver/sdk.sdtf-v1':
         specifier: 1.8.0
         version: 1.8.0
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
       '@shapediver/viewer.shared.node-tree':
         specifier: workspace:*
         version: link:../../shared/node-tree
-      '@shapediver/viewer.shared.services':
-        specifier: workspace:*
-        version: link:../../shared/services
-      '@shapediver/viewer.shared.types':
-        specifier: workspace:*
-        version: link:../../shared/types
-      gl-matrix:
-        specifier: 3.4.4
-        version: 3.4.4
-
-  data-engine/shared-types:
-    dependencies:
       '@shapediver/viewer.shared.services':
         specifier: workspace:*
         version: link:../../shared/services
@@ -546,9 +507,6 @@ importers:
       '@shapediver/viewer.data-engine.geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@shapediver/viewer.shared.global-access-objects':
         specifier: workspace:*
         version: link:../../shared/global-access-objects
@@ -1161,9 +1119,6 @@ importers:
       '@shapediver/viewer.data-engine.gltf-converter':
         specifier: workspace:*
         version: link:../../data-engine/gltf-converter
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.data-engine.tag3d-engine':
         specifier: workspace:*
         version: link:../../data-engine/tag3d-engine
@@ -1230,9 +1185,6 @@ importers:
       '@shapediver/sdk.geometry-api-sdk-v2':
         specifier: 4.2.2
         version: 4.2.2
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.settings':
         specifier: 1.3.2
         version: 1.3.2
@@ -1271,9 +1223,6 @@ importers:
       '@shapediver/sdk.geometry-api-sdk-v2':
         specifier: 4.2.2
         version: 4.2.2
-      '@shapediver/viewer.data-engine.shared-types':
-        specifier: workspace:*
-        version: link:../../data-engine/shared-types
       '@shapediver/viewer.shared.node-tree':
         specifier: workspace:*
         version: link:../node-tree

@@ -38,7 +38,6 @@
 	},
 	"dependencies": {
 		"@shapediver/viewer.data-engine.gltf-converter": "workspace:*",
-		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
 		"@shapediver/viewer.data-engine.tag3d-engine": "workspace:*",
 		"@shapediver/viewer.rendering-engine.animation-engine": "workspace:*",
 		"@shapediver/viewer.rendering-engine.animation-frame-engine": "workspace:*",
