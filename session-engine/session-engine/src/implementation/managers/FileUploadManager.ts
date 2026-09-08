@@ -271,7 +271,7 @@ export class FileUploadManager {
 		arrayBuffers: ArrayBuffer[],
 		retry = false,
 	): Promise<ResAssetDefinition[]> {
-		this._sessionEngineCore.utilsManager.checkAvailability("file-upload");
+		this._sessionEngineCore.utilsManager.checkAvailability("sdtf-upload");
 
 		try {
 			const responseDto = await new SdtfApi(
