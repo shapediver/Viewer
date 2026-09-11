@@ -1,0 +1,17 @@
+---
+description: Keep and extend .cursor/rules when you learn durable repo facts
+alwaysApply: true
+---
+
+# Extend Cursor rules
+
+`.cursor/rules/` is the standing memory for this repo. Chat is not.
+
+When you learn something that the next agent will need (workflow, build/test pitfalls, load semantics, package boundaries, “do not do X”), **write it down**:
+
+- **Update** the matching rule in `.cursor/rules/` if the topic already exists.
+- **Create** a new `.mdc` there if it is a distinct concern (one topic per file, keep it short and actionable).
+- Prefer `alwaysApply: true` for repo-wide usage; use `globs` when it only matters for certain paths.
+- Do not dump a one-off bugfix into a rule. Do record the reusable constraint that would have prevented the bug.
+
+Do this in the same session you learned it. Do not wait for the user to ask.
