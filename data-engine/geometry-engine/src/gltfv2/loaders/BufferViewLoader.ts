@@ -2,11 +2,17 @@ import {type IGLTF_v2} from "@shapediver/viewer.shared.types";
 
 import {BufferLoader} from "./BufferLoader";
 
+export interface ILoadedBufferView {
+	buffer: ArrayBuffer;
+	byteOffset: number;
+	byteLength: number;
+}
+
 export class BufferViewLoader {
 	// #region Properties (1)
 
 	private _loaded: {
-		[key: string]: ArrayBuffer;
+		[key: string]: ILoadedBufferView;
 	} = {};
 
 	// #endregion Properties (1)
@@ -22,7 +28,7 @@ export class BufferViewLoader {
 
 	// #region Public Methods (2)
 
-	public getBufferView(bufferViewId: number): ArrayBuffer {
+	public getBufferView(bufferViewId: number): ILoadedBufferView {
 		if (!this._content.bufferViews)
 			throw new Error(
 				"BufferViewLoader.load: BufferViews not available.",
@@ -53,12 +59,15 @@ export class BufferViewLoader {
 						"BufferViewLoader.load: BufferView has no buffer defined.",
 					);
 				const buffer = this._bufferLoader.getBuffer(bufferView.buffer!);
-				const result = buffer.slice(
-					byteOffset,
-					byteOffset + byteLength,
-				);
 
-				this._loaded[bufferViewId] = result;
+				this._loaded[bufferViewId] = {
+					buffer,
+					byteOffset,
+					byteLength: Math.min(
+						byteLength,
+						Math.max(0, buffer.byteLength - byteOffset),
+					),
+				};
 			} catch (e) {
 				if (!skipErrorsForBufferViews.has(i)) throw e;
 			}

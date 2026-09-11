@@ -99,12 +99,11 @@ export class TextureLoader {
 					const bufferView = this._bufferViewLoader.getBufferView(
 						image.bufferView,
 					);
-					const dataView = new DataView(bufferView);
-					const array: Array<number> = [];
-					for (let i = 0; i < dataView.byteLength; i += 1)
-						array[i] = dataView.getUint8(i);
-
-					const uint8Array = new Uint8Array(array);
+					const uint8Array = new Uint8Array(
+						bufferView.buffer,
+						bufferView.byteOffset,
+						bufferView.byteLength,
+					);
 					const blob = new Blob([uint8Array], {
 						type: image.mimeType,
 					});
