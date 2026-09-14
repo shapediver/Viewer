@@ -530,21 +530,29 @@ export class GeometryLoader implements ILoader {
 				this._renderingEngine.instanceGroupManager.updateNodeColor(
 					geometry,
 				);
+				return;
 			}
 
-			const loadedMaterial = this._renderingEngine.materialLoader.load(
-				incomingMaterialData || geometry,
-				instancedMaterialSettings,
-			);
-			// Whiten only when material data supplied the per-instance color;
-			// the fallback default material keeps its own color.
-			const material = incomingMaterialData
-				? this.createInstancedMaterial(loadedMaterial)
-				: loadedMaterial.clone();
-			this._renderingEngine.instanceGroupManager.updateMaterial(
-				geometry.instanceHash,
-				material,
-			);
+			// A base-material change on one occurrence must not re-material
+			// the whole group. Occurrences that still use the shared material
+			// data rejoin the default batch; a different material gets its
+			// own override batch.
+			const sharedMaterialId =
+				this._renderingEngine.instanceGroupManager.getSharedMaterialId(
+					geometry.instanceHash,
+				);
+			if (
+				incomingMaterialData &&
+				incomingMaterialData.id !== sharedMaterialId
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(incomingMaterialData, instancedMaterialSettings)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+			}
 			return;
 		}
 

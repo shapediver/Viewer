@@ -31,6 +31,7 @@ interface InstanceGroup {
 	// moves the instance into its own effect batch instead of re-materialing
 	// the whole group.
 	materialOverrides: Map<string, THREE.Material>; // nodeId → material
+	sharedMaterialId?: string;
 }
 
 // Effect-key prefix for per-occurrence material overrides. The suffix is the
@@ -139,6 +140,7 @@ export class InstanceGroupManager {
 				nodeEffects: new Map(),
 				nodeEffectMeshKeys: new Map(),
 				materialOverrides: new Map(),
+				sharedMaterialId: geometry.material?.id,
 			};
 			this._groups.set(instanceHash, group);
 			this.instancedRoot.add(instancedMesh);
@@ -475,6 +477,14 @@ export class InstanceGroupManager {
 	): THREE.InstancedMesh | undefined {
 		return instanceHash
 			? this._groups.get(instanceHash)?.defaultMesh
+			: undefined;
+	}
+
+	public getSharedMaterialId(
+		instanceHash: string | undefined,
+	): string | undefined {
+		return instanceHash
+			? this._groups.get(instanceHash)?.sharedMaterialId
 			: undefined;
 	}
 
