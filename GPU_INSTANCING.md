@@ -27,8 +27,7 @@ Detection happens in
 (`canPrimitiveBeInstanced`). A primitive participates in a GPU instance group only
 if **all** of the following hold:
 
-1. GPU instancing is enabled (`viewport.gpuInstancing.enabled = true` before
-   the glTF is parsed).
+1. GPU instancing is enabled (`viewport.gpuInstancing.enabled = true`).
 2. It comes from a glTF/GLB load (other content formats never batch).
 3. **At least two occurrences of the same geometry** are loaded from the same
    asset URL. An occurrence counts when either
