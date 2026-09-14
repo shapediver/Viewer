@@ -65,10 +65,12 @@ export class InstanceGroupManager {
 	private readonly _geometryIdByNodeKey = new Map<string, string>(); // nodeId → geometryId
 
 	/**
-	 * Escape hatch: when false, SceneTreeManager renders instantiable geometry
-	 * through the regular per-mesh path instead of batching it here.
+	 * When false, SceneTreeManager renders instantiable geometry through the
+	 * regular per-mesh path instead of batching it here. Off by default so
+	 * scenes that never opt in pay no instancing overhead; turn on together
+	 * with GeometryEngine.gpuInstancing before loading content.
 	 */
-	public enabled = true;
+	public enabled = false;
 
 	readonly instancedRoot: THREE.Group = new THREE.Group();
 
@@ -347,17 +349,25 @@ export class InstanceGroupManager {
 				: undefined;
 			if (!group) continue;
 
+			const wasVisible = group.nodeVisible.get(key) !== false;
+			if (wasVisible === visible) continue;
 			group.nodeVisible.set(key, visible);
-			const matrix = this._getVisibleMatrix(group, key);
-			const matrix4 = new THREE.Matrix4().fromArray(matrix);
-			const defaultIndex = group.nodeToIndex.get(key);
-			if (defaultIndex !== undefined)
-				group.defaultMesh.setMatrixAt(defaultIndex, matrix4);
 
-			const effectMesh = this._getEffectMesh(group, key);
-			if (effectMesh) this._setMeshMatrix(effectMesh, key, matrix4);
+			const node = group.nodeRefs.get(key);
+			if (!node) continue;
 
-			group.defaultMesh.instanceMatrix.needsUpdate = true;
+			if (!visible) {
+				if (group.nodeToIndex.has(key))
+					this._removeFromDefault(group, key);
+				else if (group.nodeEffectMeshKeys.has(key))
+					this._removeFromEffectMesh(group, key);
+				continue;
+			}
+
+			const effects = group.nodeEffects.get(key);
+			if (effects && effects.size > 0)
+				this._moveToEffectMesh(group, node, key, effects);
+			else this._addBackToDefault(group, key, node);
 		}
 	}
 
