@@ -177,24 +177,7 @@ export const assignBoundingBox = (
 			);
 
 		let bb: IBox;
-		if (convertedObjectData.userData.isInstanced) {
-			// GPU instances are represented in the scene tree by an empty
-			// placeholder; derive their bounds from the source geometry. Use
-			// per-vertex bounds to match the precise bounds of the regular
-			// path (an AABB of the transformed AABB would be looser).
-			const position = geometry.primitive.attributes["POSITION"];
-			if (position) {
-				bb = new Box();
-				bb.setFromAttributeArray(
-					position.array,
-					position.byteStride,
-					position.itemBytes,
-					boundsMatrix,
-				);
-			} else {
-				bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
-			}
-		} else if (!geometry.boundingBox.isEmpty()) {
+		if (!geometry.boundingBox.isEmpty()) {
 			bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
 		} else {
 			const clone = convertedObjectData.clone();
