@@ -459,7 +459,9 @@ export class SceneTreeManager implements IManager {
 		}
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
 		this.updateNode(rootTreeNode, this._mainConvertedObject);
+		this._renderingEngine.instanceGroupManager.endBoundsUpdate();
 		this._boundingBox =
 			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 

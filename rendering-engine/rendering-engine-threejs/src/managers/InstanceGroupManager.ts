@@ -53,6 +53,8 @@ export class InstanceGroupManager {
 	// #region Properties (3)
 
 	private readonly _groups = new Map<string, InstanceGroup>();
+	private _boundsDirty = false;
+	private _suspendBoundsCommit = false;
 	// A tree node may contain more than one primitive. Keep those registrations
 	// separate: using only node.id makes every primitive after the first look like
 	// a reload and drops it from its instanced batch.
@@ -109,7 +111,7 @@ export class InstanceGroupManager {
 				initialCapacity,
 			);
 			instancedMesh.count = 0;
-			instancedMesh.frustumCulled = false;
+			instancedMesh.frustumCulled = true;
 			instancedMesh.matrixAutoUpdate = false;
 			instancedMesh.castShadow = geometry.castShadow;
 			instancedMesh.receiveShadow = !(material instanceof GemMaterial)
@@ -208,6 +210,7 @@ export class InstanceGroupManager {
 		if (group.defaultMesh.instanceColor)
 			group.defaultMesh.instanceColor.needsUpdate = true;
 
+		this._boundsDirty = true;
 		return group.defaultMesh;
 	}
 
@@ -258,8 +261,10 @@ export class InstanceGroupManager {
 		if (group.nodeMatrices.size === 0) {
 			this._disposeGroup(group);
 			this._groups.delete(instanceHash);
+			this._boundsDirty = true;
 			return true;
 		}
+		this._boundsDirty = true;
 		return false;
 	}
 
@@ -338,6 +343,7 @@ export class InstanceGroupManager {
 				: undefined;
 			if (group) this._refreshNodeMatrix(group, node, nodeId);
 		}
+		this.commitBounds();
 	}
 
 	/** Set effective visibility for one registered instance. */
@@ -369,6 +375,7 @@ export class InstanceGroupManager {
 				this._moveToEffectMesh(group, node, key, effects);
 			else this._addBackToDefault(group, key, node);
 		}
+		this.commitBounds();
 	}
 
 	/** Replace the shared material used by the non-effect instances in a group. */
@@ -515,6 +522,29 @@ export class InstanceGroupManager {
 		this._nodeKeysByGeometry.clear();
 		this._geometryIdByNodeKey.clear();
 		this.instancedRoot.clear();
+		this._boundsDirty = false;
+	}
+
+	/**
+	 * Recompute InstancedMesh bounding spheres after instance matrices change.
+	 * Call once at the end of a scene conversion, not per instance.
+	 */
+	public beginBoundsUpdate(): void {
+		this._suspendBoundsCommit = true;
+	}
+
+	public endBoundsUpdate(): void {
+		this._suspendBoundsCommit = false;
+		this.commitBounds();
+	}
+
+	public commitBounds(): void {
+		if (this._suspendBoundsCommit || !this._boundsDirty) return;
+		this._boundsDirty = false;
+		this._groups.forEach((group) => {
+			this._updateMeshBounds(group.defaultMesh);
+			group.effectMeshes.forEach((mesh) => this._updateMeshBounds(mesh));
+		});
 	}
 
 	/** Snapshot of the current batching state, for debugging and support. */
@@ -657,6 +687,7 @@ export class InstanceGroupManager {
 		group.defaultMesh.instanceMatrix.needsUpdate = true;
 		if (group.defaultMesh.instanceColor)
 			group.defaultMesh.instanceColor.needsUpdate = true;
+		this._boundsDirty = true;
 	}
 
 	private _addBackToDefault(
@@ -693,6 +724,7 @@ export class InstanceGroupManager {
 		group.defaultMesh.instanceMatrix.needsUpdate = true;
 		if (group.defaultMesh.instanceColor)
 			group.defaultMesh.instanceColor.needsUpdate = true;
+		this._boundsDirty = true;
 	}
 
 	/** worldMatrix, composed with the baked-transform offset when present. */
@@ -731,6 +763,7 @@ export class InstanceGroupManager {
 			tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
 			this._setMeshMatrix(effectMesh, nodeId, tempMatrix);
 		}
+		this._boundsDirty = true;
 	}
 
 	private _removeKeyFromEffect(
@@ -800,6 +833,7 @@ export class InstanceGroupManager {
 		if (effectMesh.instanceColor)
 			effectMesh.instanceColor.needsUpdate = true;
 		group.nodeEffectMeshKeys.set(nodeId, this._getEffectMeshKey(effects));
+		this._boundsDirty = true;
 	}
 
 	private _removeFromEffectMesh(group: InstanceGroup, nodeId: string): void {
@@ -849,6 +883,7 @@ export class InstanceGroupManager {
 			(effectMesh.material as THREE.Material).dispose();
 			group.effectMeshes.delete(meshKey);
 		}
+		this._boundsDirty = true;
 	}
 
 	private _getOrCreateEffectMesh(
@@ -869,7 +904,7 @@ export class InstanceGroupManager {
 		effectMesh.userData.hasMaterialOverride =
 			overrideMaterial !== undefined;
 		effectMesh.count = 0;
-		effectMesh.frustumCulled = false;
+		effectMesh.frustumCulled = true;
 		effectMesh.matrixAutoUpdate = false;
 		effectMesh.castShadow = group.defaultMesh.castShadow;
 		effectMesh.receiveShadow = group.defaultMesh.receiveShadow;
@@ -939,6 +974,14 @@ export class InstanceGroupManager {
 
 		const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
 		return new Float32Array(hidden.elements);
+	}
+
+	private _updateMeshBounds(mesh: THREE.InstancedMesh): void {
+		if (mesh.count === 0) return;
+		if (!mesh.geometry.boundingSphere)
+			mesh.geometry.computeBoundingSphere();
+		mesh.computeBoundingSphere();
+		mesh.computeBoundingBox();
 	}
 
 	private _disposeGroup(group: InstanceGroup): void {
