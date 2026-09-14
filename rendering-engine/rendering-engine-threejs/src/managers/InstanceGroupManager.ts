@@ -389,14 +389,19 @@ export class InstanceGroupManager {
 		const group = this._groups.get(instanceHash);
 		if (!group) return;
 
-		(group.defaultMesh.material as THREE.Material).dispose();
+		this._disposeMaterial(group.defaultMesh.material as THREE.Material);
 		group.defaultMesh.material = material;
+		this._trackMaterial(material, `gpu-instance/${instanceHash}`);
 		group.defaultMesh.material.needsUpdate = true;
 		group.effectMeshes.forEach((mesh) => {
 			// Meshes holding material overrides keep their own material.
 			if (mesh.userData.hasMaterialOverride) return;
-			(mesh.material as THREE.Material).dispose();
+			this._disposeMaterial(mesh.material as THREE.Material);
 			mesh.material = material.clone();
+			this._trackMaterial(
+				mesh.material as THREE.Material,
+				`gpu-instance/${instanceHash}/${[...mesh.userData.effectKeys].join("|")}`,
+			);
 			(mesh.material as THREE.Material).needsUpdate = true;
 		});
 	}
@@ -430,8 +435,14 @@ export class InstanceGroupManager {
 				// Override replaced while active: swap the batch material.
 				const effectMesh = this._getEffectMesh(group, nodeId);
 				if (effectMesh && effectMesh.material !== material) {
-					(effectMesh.material as THREE.Material).dispose();
+					this._disposeMaterial(
+						effectMesh.material as THREE.Material,
+					);
 					effectMesh.material = material;
+					this._trackMaterial(
+						material,
+						`gpu-instance/${group.instanceHash}/${MATERIAL_OVERRIDE_PREFIX}${geometryId}`,
+					);
 					(effectMesh.material as THREE.Material).needsUpdate = true;
 				}
 			}
@@ -890,7 +901,7 @@ export class InstanceGroupManager {
 
 		if (effectMesh.count === 0) {
 			this.instancedRoot.remove(effectMesh);
-			(effectMesh.material as THREE.Material).dispose();
+			this._disposeMaterial(effectMesh.material as THREE.Material);
 			group.effectMeshes.delete(meshKey);
 		}
 		this._boundsDirty = true;
@@ -924,6 +935,10 @@ export class InstanceGroupManager {
 		effectMesh.userData.instanceKeys = [] as (string | undefined)[];
 		group.effectMeshes.set(meshKey, effectMesh);
 		this.instancedRoot.add(effectMesh);
+		this._renderingEngine.materialLoader.trackMaterial(
+			`gpu-instance/${group.instanceHash}/${meshKey}`,
+			effectMesh.material as THREE.Material,
+		);
 		return effectMesh;
 	}
 
@@ -996,11 +1011,24 @@ export class InstanceGroupManager {
 
 	private _disposeGroup(group: InstanceGroup): void {
 		this.instancedRoot.remove(group.defaultMesh);
-		(group.defaultMesh.material as THREE.Material).dispose();
+		this._disposeMaterial(group.defaultMesh.material as THREE.Material);
 		group.effectMeshes.forEach((mesh) => {
 			this.instancedRoot.remove(mesh);
-			(mesh.material as THREE.Material).dispose();
+			this._disposeMaterial(mesh.material as THREE.Material);
 		});
+	}
+
+	private _trackMaterial(material: THREE.Material, cacheKey: string): void {
+		this._renderingEngine.materialLoader.trackMaterial(cacheKey, material);
+	}
+
+	private _disposeMaterial(material: THREE.Material): void {
+		const cacheKey = material.userData.cacheKey as string | undefined;
+		if (cacheKey)
+			this._renderingEngine.materialLoader.removeFromMaterialCache(
+				cacheKey,
+			);
+		else material.dispose();
 	}
 
 	// #endregion Private Methods (4)

@@ -149,6 +149,12 @@ export class GeometryLoader implements ILoader {
 				? this.createInstancedMaterial(loadedMaterial)
 				: loadedMaterial.clone();
 			material.needsUpdate = false;
+			this._renderingEngine.materialLoader.trackMaterial(
+				"gpu-instance/" + geometry.instanceHash,
+				material,
+				incomingMaterialData,
+				materialSettings,
+			);
 		}
 
 		// Delegate to InstanceGroupManager
