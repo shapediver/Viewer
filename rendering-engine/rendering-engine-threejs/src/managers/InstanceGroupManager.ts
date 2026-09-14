@@ -32,6 +32,10 @@ interface InstanceGroup {
 	// the whole group.
 	materialOverrides: Map<string, THREE.Material>; // nodeId → material
 	sharedMaterialId?: string;
+	// Material id each occurrence was registered with. Color-only glTF
+	// variants keep distinct ids (the tint lives in instanceColor); a later
+	// assignment of a different material id is a real per-occurrence override.
+	nodeSourceMaterialIds: Map<string, string | undefined>;
 	// One primitive-cache retain per group; released in _disposeGroup.
 	primitiveCacheKey: string;
 }
@@ -143,6 +147,7 @@ export class InstanceGroupManager {
 				nodeEffectMeshKeys: new Map(),
 				materialOverrides: new Map(),
 				sharedMaterialId: geometry.material?.id,
+				nodeSourceMaterialIds: new Map(),
 				primitiveCacheKey:
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
@@ -174,6 +179,12 @@ export class InstanceGroupManager {
 		}
 		geometryKeys.add(nodeId);
 		this._geometryIdByNodeKey.set(nodeId, geometry.id);
+		group.nodeSourceMaterialIds.set(
+			nodeId,
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? (geometry.attributeMaterial?.id ?? geometry.material?.id)
+				: geometry.material?.id,
+		);
 		group.nodeRefs.set(nodeId, node);
 		if (geometry.instanceOffsetMatrix)
 			group.nodeOffsets.set(
@@ -252,6 +263,7 @@ export class InstanceGroupManager {
 		group.nodeRefs.delete(nodeId);
 		group.nodeOffsets.delete(nodeId);
 		group.materialOverrides.delete(nodeId);
+		group.nodeSourceMaterialIds.delete(nodeId);
 		this._nodeToHash.delete(nodeId);
 		const treeNodeKeys = this._nodeKeysByTreeNode.get(node.id);
 		if (treeNodeKeys) {
@@ -458,6 +470,7 @@ export class InstanceGroupManager {
 				}
 			}
 		}
+		this.commitBounds();
 	}
 
 	/**
@@ -492,6 +505,7 @@ export class InstanceGroupManager {
 			// The override material itself is disposed when its batch empties.
 			this._removeKeyFromEffect(group, node, nodeId, effectKey);
 		}
+		this.commitBounds();
 	}
 
 	public getDefaultMesh(
@@ -508,6 +522,27 @@ export class InstanceGroupManager {
 		return instanceHash
 			? this._groups.get(instanceHash)?.sharedMaterialId
 			: undefined;
+	}
+
+	/**
+	 * True when this geometry's current material is not the one the occurrence
+	 * was registered with. Color variants of a batched primitive have unique
+	 * material ids by design and must not create override batches.
+	 */
+	public hasOccurrenceMaterialChanged(
+		geometryId: string,
+		materialId: string | undefined,
+	): boolean {
+		for (const nodeId of this._nodeKeysByGeometry.get(geometryId) ?? []) {
+			const instanceHash = this._nodeToHash.get(nodeId);
+			const group = instanceHash
+				? this._groups.get(instanceHash)
+				: undefined;
+			if (!group) continue;
+			if (group.nodeSourceMaterialIds.get(nodeId) !== materialId)
+				return true;
+		}
+		return false;
 	}
 
 	/** Return the effect meshes currently containing this tree node's instances. */

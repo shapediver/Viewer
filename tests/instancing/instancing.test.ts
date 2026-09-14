@@ -187,7 +187,8 @@ test.describe("GPU instancing", () => {
 	test("interaction material highlights only one instance", async ({
 		workerPage,
 	}) => {
-		await workerPage.evaluate(async () => {
+		await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
 			const SDV = (<any>window).SDV;
 			const node = (<any>window).findNode("box_node_4");
 			const geometryData = node.data.find(
@@ -199,7 +200,7 @@ test.describe("GPU instancing", () => {
 			});
 			(<any>window).viewer.updateGeometryData(geometryData);
 			await (<any>window).rerender();
-		});
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
 
 		await expect(workerPage).toHaveScreenshot(
 			name + "/duplicated-boxes-highlight.png",

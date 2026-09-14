@@ -161,6 +161,14 @@ export class SceneTreeManager implements IManager {
 						// placeholders and moving InstancedMeshes out of instancedRoot.
 						if (existingGeometry && !this._newRendererType) {
 							dataChild = existingGeometry;
+							if (
+								geometryData.instantiable &&
+								this._renderingEngine.instanceGroupManager
+									.enabled
+							)
+								this._renderingEngine.geometryLoader.updateGeometryMaterial(
+									geometryData,
+								);
 						} else {
 							// In attribute-visualization mode instancing works with
 							// per-instance flat colors, but transparency needs

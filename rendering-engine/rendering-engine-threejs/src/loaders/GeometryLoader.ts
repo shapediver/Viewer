@@ -188,14 +188,18 @@ export class GeometryLoader implements ILoader {
 				effectMaterial,
 			);
 		} else {
-			const sharedMaterialId =
-				this._renderingEngine.instanceGroupManager.getSharedMaterialId(
-					geometry.instanceHash,
-				);
+			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+				geometry.id,
+			);
+			// Color-only variants keep unique material ids; instanceColor
+			// already carries the tint. Override only when this occurrence's
+			// material was replaced after it joined the batch.
 			if (
 				incomingMaterialData &&
-				sharedMaterialId !== undefined &&
-				incomingMaterialData.id !== sharedMaterialId
+				this._renderingEngine.instanceGroupManager.hasOccurrenceMaterialChanged(
+					geometry.id,
+					incomingMaterialData.id,
+				)
 			) {
 				const overrideMaterial = this._renderingEngine.materialLoader
 					.load(incomingMaterialData, materialSettings)
@@ -203,10 +207,6 @@ export class GeometryLoader implements ILoader {
 				this._renderingEngine.instanceGroupManager.setMaterialOverride(
 					geometry.id,
 					overrideMaterial,
-				);
-			} else {
-				this._renderingEngine.instanceGroupManager.clearMaterialOverride(
-					geometry.id,
 				);
 			}
 		}
@@ -565,16 +565,15 @@ export class GeometryLoader implements ILoader {
 			}
 
 			// A base-material change on one occurrence must not re-material
-			// the whole group. Occurrences that still use the shared material
-			// data rejoin the default batch; a different material gets its
-			// own override batch.
-			const sharedMaterialId =
-				this._renderingEngine.instanceGroupManager.getSharedMaterialId(
-					geometry.instanceHash,
-				);
+			// the whole group. Color variants keep their original material ids
+			// and stay in the default batch; a later assignment of a different
+			// material gets its own override batch.
 			if (
 				incomingMaterialData &&
-				incomingMaterialData.id !== sharedMaterialId
+				this._renderingEngine.instanceGroupManager.hasOccurrenceMaterialChanged(
+					geometry.id,
+					incomingMaterialData.id,
+				)
 			) {
 				const overrideMaterial = this._renderingEngine.materialLoader
 					.load(incomingMaterialData, instancedMaterialSettings)
@@ -582,6 +581,10 @@ export class GeometryLoader implements ILoader {
 				this._renderingEngine.instanceGroupManager.setMaterialOverride(
 					geometry.id,
 					overrideMaterial,
+				);
+			} else {
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
 				);
 			}
 			return;

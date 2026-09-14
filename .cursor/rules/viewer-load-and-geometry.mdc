@@ -29,5 +29,6 @@ alwaysApply: true
 - Enable with `viewport.gpuInstancing.enabled = true`. Detection is reference-counted across viewports; enabling also scans already-loaded opaque triangle geometry and reconverts the current scene. Disabling drops instance groups and reconverts to regular meshes. Baked-transform recovery still runs only at glTF parse time.
 - `EXT_mesh_gpu_instancing` is unchanged and does not go through this path.
 - Instance world bounds use the same local AABB × (`worldMatrix` × offset) as regular meshes. Do not vertex-walk placeholders.
+- Color-only variants of a batched primitive keep distinct `material.id`s; the tint lives in `instanceColor`. Do **not** treat that id mismatch as a per-occurrence material override (`effectMeshCount`). Overrides are for interaction highlights and for a material assigned after the occurrence joined the batch.
 
 If you learn more load, glTF, or scene-graph constraints, update this file or add a new rule under `.cursor/rules/`.
