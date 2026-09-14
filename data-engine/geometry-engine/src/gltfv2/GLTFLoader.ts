@@ -130,6 +130,7 @@ export class GLTFLoader {
 		taskEventId?: string,
 		urlHash?: number,
 		sessionId?: string,
+		gpuInstancingEnabled?: boolean,
 	): Promise<ITreeNode> {
 		this._eventId = taskEventId || this._uuidGenerator.create();
 		this._urlHash = urlHash;
@@ -226,6 +227,7 @@ export class GLTFLoader {
 			this._materialLoader,
 			dracoModule,
 			this._urlHash,
+			gpuInstancingEnabled === true,
 		);
 
 		const eventProgressInit: ITaskEvent = {

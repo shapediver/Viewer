@@ -54,6 +54,8 @@ const test = base.extend<{}, {workerPage: Page}>({
 						backgroundColor: "rgb(3, 5, 49)",
 					},
 				});
+				// Detection and batching are opt-in; enable before any glTF load.
+				viewer.gpuInstancing.enabled = true;
 				viewer.beautyRenderDelay = 100;
 				viewer.beautyRenderBlendingDuration = 100;
 				viewer.shadows = false;
