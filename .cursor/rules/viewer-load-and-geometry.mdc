@@ -23,4 +23,11 @@ alwaysApply: true
 - Do **not** `clone()` every object and `Box3.setFromObject(clone, true)` per node; that vertex-walked ~6k lines in ~8 s.
 - The viewer does **not** merge line primitives. Each exported line is its own node / `THREE.LineSegments` / draw call. First-frame upload of thousands of them dominates remaining load time; batch in Grasshopper or a dedicated merge pass, not ad-hoc clones.
 
+## GPU instancing is opt-in
+
+- Default is **off**. Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.
+- Enable with `viewport.gpuInstancing.enabled = true`. Detection is reference-counted across viewports; enabling also scans already-loaded opaque triangle geometry. Baked-transform recovery still runs only at glTF parse time.
+- `EXT_mesh_gpu_instancing` is unchanged and does not go through this path.
+- Instance world bounds use the same local AABB × (`worldMatrix` × offset) as regular meshes. Do not vertex-walk placeholders.
+
 If you learn more load, glTF, or scene-graph constraints, update this file or add a new rule under `.cursor/rules/`.
