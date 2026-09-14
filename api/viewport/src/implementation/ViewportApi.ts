@@ -4,6 +4,7 @@ import {
 	CreationControlCenterViewport,
 	type ICreationControlCenterViewport,
 } from "@shapediver/viewer.creation-control-center.viewport";
+import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {GLTFConverter} from "@shapediver/viewer.data-engine.gltf-converter";
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
 import {
@@ -628,8 +629,10 @@ export class ViewportApi implements IViewportApi {
 
 	/**
 	 * @internal
-	 * Debug hook for tests and support: GPU-instancing state of this viewport.
-	 * Not part of the public API and subject to change without notice.
+	 * Opt-in GPU-instancing for this viewport. Off by default. Turning it on
+	 * retains load-time detection for this page (reference-counted across
+	 * viewports) and scans already-loaded geometry so a later conversion can
+	 * batch it. Not part of the public API and subject to change without notice.
 	 */
 	public get gpuInstancing(): {
 		enabled: boolean;
@@ -647,6 +650,13 @@ export class ViewportApi implements IViewportApi {
 				return manager.enabled;
 			},
 			set enabled(value: boolean) {
+				if (value === manager.enabled) return;
+				if (value) {
+					GeometryEngine.instance.retainGpuInstancing();
+					GeometryEngine.instance.applyGpuInstancing(sceneTree.root);
+				} else {
+					GeometryEngine.instance.releaseGpuInstancing();
+				}
 				manager.enabled = value;
 				viewport.update("gpuInstancing");
 			},
@@ -1276,6 +1286,8 @@ export class ViewportApi implements IViewportApi {
 	}
 
 	public async close(): Promise<void> {
+		if (this.#renderingEngine.instanceGroupManager.enabled)
+			GeometryEngine.instance.releaseGpuInstancing();
 		return await this.#creationControlCenterViewport.closeViewportEngine(
 			this.id,
 		);
