@@ -22,15 +22,6 @@ import {DataEngine} from "@shapediver/viewer.data-engine.data-engine";
 import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {MaterialEngine} from "@shapediver/viewer.data-engine.material-engine";
 import {
-	type IMaterialContentDataV1,
-	type IMaterialContentDataV2,
-	type IMaterialContentDataV3,
-	type ITag2D,
-	type ITag3D,
-	type ITexture,
-	TAG3D_JUSTIFICATION,
-} from "@shapediver/viewer.data-engine.shared-types";
-import {
 	CAMERA_TYPE,
 	type ICameraOptions,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
@@ -266,6 +257,9 @@ import {
 	type IMaterialBasicLineData,
 	type IMaterialBasicLineDataProperties,
 	type IMaterialBasicLineDataPropertiesDefinition,
+	type IMaterialContentDataV1,
+	type IMaterialContentDataV2,
+	type IMaterialContentDataV3,
 	type IMaterialGemData,
 	type IMaterialGemDataProperties,
 	type IMaterialGemDataPropertiesDefinition,
@@ -327,8 +321,11 @@ import {
 	type ISessionEvent,
 	type ISessionSettingsSections,
 	type ISettingsSections,
+	type ITag2D,
+	type ITag3D,
 	type ITaskEvent,
 	type ITaskEventDescription,
+	type ITexture,
 	type ITiltShiftEffectDefinition,
 	type IViewportEvent,
 	type IViewportSettingsSections,
@@ -354,6 +351,7 @@ import {
 	SdtfPrimitiveTypeGuard,
 	type SelectionParameterValue,
 	type SessionCreationDefinition,
+	TAG3D_JUSTIFICATION,
 	TASK_CATEGORY,
 	TASK_CATEGORY_SESSION_CUSTOMIZATION_CATEGORY,
 	TASK_TYPE,

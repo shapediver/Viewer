@@ -54,7 +54,6 @@
 		"@shapediver/viewer.data-engine.geometry-engine": "workspace:*",
 		"@shapediver/viewer.data-engine.gltf-converter": "workspace:*",
 		"@shapediver/viewer.data-engine.material-engine": "workspace:*",
-		"@shapediver/viewer.data-engine.shared-types": "workspace:*",
 		"@shapediver/viewer.rendering-engine.animation-engine": "workspace:*",
 		"@shapediver/viewer.rendering-engine.camera-engine": "workspace:*",
 		"@shapediver/viewer.rendering-engine.light-engine": "workspace:*",

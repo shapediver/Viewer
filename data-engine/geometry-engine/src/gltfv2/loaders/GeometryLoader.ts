@@ -1,9 +1,4 @@
 import {
-	IGLTF_v2,
-	IGLTF_v2_Node,
-	IGLTF_v2_Primitive,
-} from "@shapediver/viewer.data-engine.shared-types";
-import {
 	AttributeData,
 	GeometryData,
 	MapData,
@@ -12,9 +7,12 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import {HashCreator, Logger} from "@shapediver/viewer.shared.services";
 import {
-	IAttributeData,
-	IMapData,
-	IMaterialAbstractData,
+	type IAttributeData,
+	type IGLTF_v2,
+	type IGLTF_v2_Node,
+	type IGLTF_v2_Primitive,
+	type IMapData,
+	type IMaterialAbstractData,
 } from "@shapediver/viewer.shared.types";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
@@ -841,7 +839,7 @@ export class GeometryLoader {
 				primitive.extensions[
 					GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION
 				];
-			const arrayBuffer = this._bufferViewLoader.getBufferView(
+			const dracoBufferView = this._bufferViewLoader.getBufferView(
 				dracoDef.bufferView!,
 			);
 
@@ -850,7 +848,11 @@ export class GeometryLoader {
 				this._dracoDecoder = new this._dracoModule.Decoder();
 			}
 			const decoder = this._dracoDecoder;
-			const array = new Int8Array(arrayBuffer);
+			const array = new Int8Array(
+				dracoBufferView.buffer,
+				dracoBufferView.byteOffset,
+				dracoBufferView.byteLength,
+			);
 			const geometryType = decoder.GetEncodedGeometryType(array);
 
 			let dracoGeometry;

@@ -1,9 +1,9 @@
-import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	atobCustom,
 	HttpClient,
 	type HttpResponse,
 } from "@shapediver/viewer.shared.services";
+import {type IGLTF_v2} from "@shapediver/viewer.shared.types";
 
 export class BufferLoader {
 	// #region Properties (2)

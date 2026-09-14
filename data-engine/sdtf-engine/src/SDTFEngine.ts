@@ -14,10 +14,12 @@ import {
 	SDTFAttributesData,
 	SDTFItemData,
 	SDTFOverviewData,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
-	ShapeDiverViewerDataProcessingError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDataProcessingError,
+} from "@shapediver/viewer.shared.services";
 import {type ISDTFOverview} from "@shapediver/viewer.shared.types";
 
 export class SDTFEngine {
@@ -158,10 +160,12 @@ export class SDTFEngine {
 	 * Load the attributes into a SDTFAttributesData data item.
 	 *
 	 * @param attributes
+	 * @param includeInOverview Whether these item attributes are visualizable.
 	 * @returns
 	 */
 	private async loadAttributes(
 		attributes: ISdtfReadableAttributes,
+		includeInOverview: boolean = false,
 	): Promise<SDTFAttributesData> {
 		const data = new SDTFAttributesData();
 		const keys = Object.keys(attributes.entries);
@@ -200,8 +204,10 @@ export class SDTFEngine {
 				primitiveContents[i],
 			);
 
-			// Update overview inline to avoid a second pass
-			this.updateOverview(key, typeHint, primitiveContents[i]);
+			// The visualization overview historically contains item attributes only.
+			// Node and chunk attributes commonly contain descriptive metadata.
+			if (includeInOverview)
+				this.updateOverview(key, typeHint, primitiveContents[i]);
 		}
 
 		// Non-primitive attributes stay lazy
@@ -270,7 +276,7 @@ export class SDTFEngine {
 		// if there are attributes, add them to the item
 		let attributes;
 		if (item.attributes !== undefined)
-			attributes = await this.loadAttributes(item.attributes);
+			attributes = await this.loadAttributes(item.attributes, true);
 
 		// create the typehint
 		const typeHint =

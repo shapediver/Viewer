@@ -1,0 +1,33 @@
+---
+description: How to run, rebuild, and test this Viewer monorepo locally
+alwaysApply: true
+---
+
+# Local development
+
+This is a pnpm + Lerna TypeScript monorepo. Packages publish from `dist/` (`main` points at `dist/index.js`). Examples and other packages consume **built output**, not `src/`.
+
+## Run the viewer locally
+
+- Use `examples/simple`: `npm run build-dev` (webpack-dev-server on `http://localhost:8080/`).
+- Pass a ShapeDiver model with query params:
+
+```
+http://localhost:8080/?ticket=<ticket>&modelViewUrl=<gateway-url>
+```
+
+- The example page exposes `window.SDV` after `bundle.js` loads.
+
+## Rebuild after source changes
+
+- After editing a workspace package, run `npm run build` **in that package** (for example `rendering-engine/rendering-engine-threejs`). The simple example’s webpack watches `dist/` and will rebundle.
+- Do **not** run root `npm run build` for a one-package change; it builds ~29 packages and is slow.
+- Root `npm run build` is for a full monorepo compile before publish or a broad check.
+
+## Tests
+
+- Root `npm test` runs Playwright against the **hosted** viewer (`https://viewer.shapediver.com/v3/latest/` by default), not local `src/` or `dist/`.
+- Do not use that suite to verify uncommitted local code. Drive `localhost:8080` (or `test-cdn`) instead.
+- Staging CDN: `VIEWER_TEST_ENV=staging`. Tests load `test-cdn/index.html`, which exposes `SDV` without auto-creating a session.
+
+If you learn more about how to run or test this repo, update this file or add a new rule under `.cursor/rules/`.

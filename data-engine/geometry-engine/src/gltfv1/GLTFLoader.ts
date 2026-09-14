@@ -1,16 +1,12 @@
 /* eslint-disable no-prototype-builtins */
 import {
-	ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
-	ACCESSORTYPE_V1 as ACCESSORTYPE,
-	type IGLTF_v1,
-	type IGLTF_v1_Material} from "@shapediver/viewer.data-engine.shared-types";
-import {
 	AttributeData,
 	GeometryData,
 	type ITreeNode,
 	MaterialStandardData,
 	PrimitiveData,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -19,12 +15,18 @@ import {
 	Logger,
 	PerformanceEvaluator,
 	ShapeDiverViewerDataProcessingError,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
+	ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
+	ACCESSORTYPE_V1 as ACCESSORTYPE,
+	type IGLTF_v1,
+	type IGLTF_v1_Material,
 	type ITaskEvent,
 	MATERIAL_SIDE,
 	PRIMITIVE_MODE,
-	TASK_TYPE} from "@shapediver/viewer.shared.types";
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 
 import {SDGTFLoader} from "./SDGTFLoader";

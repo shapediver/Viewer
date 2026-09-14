@@ -1,9 +1,10 @@
+import {AttributeData} from "@shapediver/viewer.shared.node-tree";
+import {Logger} from "@shapediver/viewer.shared.services";
 import {
 	ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
 	ACCESSORTYPE_V2 as ACCESSORTYPE,
-	type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
-import {AttributeData} from "@shapediver/viewer.shared.node-tree";
-import {Logger} from "@shapediver/viewer.shared.services";
+	type IGLTF_v2,
+} from "@shapediver/viewer.shared.types";
 
 import {BufferViewLoader} from "./BufferViewLoader";
 
@@ -61,9 +62,10 @@ export class AccessorLoader {
 				continue;
 			}
 
-			const arrayBuffer = this._bufferViewLoader.getBufferView(
+			const bufferView = this._bufferViewLoader.getBufferView(
 				accessor.bufferView!,
 			);
+			const arrayBuffer = bufferView.buffer;
 
 			const itemSize =
 				ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
@@ -79,6 +81,7 @@ export class AccessorLoader {
 			const elementBytes = ArrayType.BYTES_PER_ELEMENT;
 			const itemBytes = elementBytes * itemSize;
 			const byteOffset = accessor.byteOffset || 0;
+			const viewByteOffset = bufferView.byteOffset;
 			const byteStride =
 				accessor.bufferView !== undefined
 					? this._content.bufferViews
@@ -112,7 +115,7 @@ export class AccessorLoader {
 				const ibSlice = Math.floor(byteOffset / byteStride);
 				array = new ArrayType(
 					arrayBuffer,
-					ibSlice * byteStride,
+					viewByteOffset + ibSlice * byteStride,
 					(accessor.count * byteStride) / elementBytes,
 				);
 			} else {
@@ -121,7 +124,7 @@ export class AccessorLoader {
 				} else {
 					array = new ArrayType(
 						arrayBuffer,
-						byteOffset,
+						viewByteOffset + byteOffset,
 						accessor.count * itemSize,
 					);
 				}
@@ -155,18 +158,20 @@ export class AccessorLoader {
 				)
 					throw new Error("Sparse Mesh not properly defined.");
 
+				const sparseIndexView = this._bufferViewLoader.getBufferView(
+					accessor.sparse.indices.bufferView!,
+				);
+				const sparseValueView = this._bufferViewLoader.getBufferView(
+					accessor.sparse.values.bufferView!,
+				);
 				const sparseIndices = new IndicesArrayType(
-					this._bufferViewLoader.getBufferView(
-						accessor.sparse.indices.bufferView!,
-					),
-					byteOffsetIndices,
+					sparseIndexView.buffer,
+					sparseIndexView.byteOffset + byteOffsetIndices,
 					accessor.sparse.count * itemSizeIndices,
 				);
 				const sparseValues = new ArrayType(
-					this._bufferViewLoader.getBufferView(
-						accessor.sparse.values.bufferView!,
-					),
-					byteOffsetValues,
+					sparseValueView.buffer,
+					sparseValueView.byteOffset + byteOffsetValues,
 					accessor.sparse.count * itemSize,
 				);
 

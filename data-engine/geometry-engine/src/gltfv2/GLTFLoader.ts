@@ -1,4 +1,3 @@
-import {type IGLTF_v2} from "@shapediver/viewer.data-engine.shared-types";
 import {
 	type ICamera,
 	OrthographicCamera,
@@ -31,6 +30,7 @@ import {
 import {
 	type Color,
 	type IAnimationTrack,
+	type IGLTF_v2,
 	type ITaskEvent,
 	TASK_TYPE,
 } from "@shapediver/viewer.shared.types";

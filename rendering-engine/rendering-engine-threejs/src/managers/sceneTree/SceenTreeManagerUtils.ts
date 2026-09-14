@@ -166,7 +166,6 @@ export const assignBoundingBox = (
 	// assign the bb
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
-		let bb: IBox = new Box();
 		// Baked-transform occurrences share the source geometry and position
 		// it via an offset: their bounds use worldMatrix * offset.
 		let boundsMatrix: mat4 = node.worldMatrix;
@@ -176,6 +175,8 @@ export const assignBoundingBox = (
 				node.worldMatrix,
 				geometry.instanceOffsetMatrix as unknown as mat4,
 			);
+
+		let bb: IBox;
 		if (convertedObjectData.userData.isInstanced) {
 			// GPU instances are represented in the scene tree by an empty
 			// placeholder; derive their bounds from the source geometry. Use
@@ -193,16 +194,16 @@ export const assignBoundingBox = (
 			} else {
 				bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
 			}
+		} else if (!geometry.boundingBox.isEmpty()) {
+			bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
 		} else {
 			const clone = convertedObjectData.clone();
-
 			clone.matrix.identity();
 			clone.matrixWorld.identity();
 			clone.position.set(0, 0, 0);
 			clone.scale.set(1, 1, 1);
 			clone.quaternion.set(0, 0, 0, 1);
 			clone.applyMatrix4(new THREE.Matrix4().fromArray(boundsMatrix));
-
 			const threeBox = new THREE.Box3().setFromObject(clone, true);
 			bb = new Box(
 				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),
