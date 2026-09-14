@@ -7,6 +7,8 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import {HashCreator, Logger} from "@shapediver/viewer.shared.services";
 import {
+	ACCESSORCOMPONENTSIZE_V2,
+	ACCESSORTYPE_V2,
 	type IAttributeData,
 	type IGLTF_v2,
 	type IGLTF_v2_Node,
@@ -25,7 +27,6 @@ import {MaterialLoader} from "./MaterialLoader";
  * signature are verified against it vertex by vertex.
  */
 interface BakedRepresentative {
-	instanceContent: string;
 	positions: Float32Array;
 	normals?: Float32Array;
 	centroid: [number, number, number];
@@ -34,6 +35,18 @@ interface BakedRepresentative {
 	/** Vertex with the largest component perpendicular to the first axis. */
 	frameIndexB: number;
 	maxDist: number;
+}
+
+/**
+ * A previously loaded primitive that might later prove to be an instance
+ * source. Byte hashing and baked-transform recovery run only when another
+ * primitive shares this cheap fingerprint.
+ */
+interface PendingInstancing {
+	primitive: IGLTF_v2_Primitive;
+	geometryData: GeometryData;
+	contentHash?: string;
+	bakedRep?: BakedRepresentative;
 }
 
 export class GeometryLoader {
@@ -52,11 +65,9 @@ export class GeometryLoader {
 	// Keyed by the full instance-content description (not its hash), so that
 	// adopting a previous primitive as an instance source is an exact match.
 	private readonly _loadedByInstanceContent = new Map<string, GeometryData>();
-	private readonly _positionInvariantsCache = new Map<
-		number,
-		string | undefined
-	>();
-	private readonly _bakedBuckets = new Map<string, BakedRepresentative[]>();
+	// Cheap fingerprints (counts/types, no bytes). Collision lists defer the
+	// byte-hash / baked-transform walk until a second primitive looks similar.
+	private readonly _pendingByCheapKey = new Map<string, PendingInstancing[]>();
 	private readonly _digitRegex = /\d/;
 	private _dracoDecoder: any = null;
 
@@ -76,7 +87,9 @@ export class GeometryLoader {
 		private readonly _materialLoader: MaterialLoader,
 		private readonly _dracoModule: any,
 		private readonly _urlHash?: number,
+		private readonly _gpuInstancingEnabled: boolean = false,
 	) {
+		if (!this._gpuInstancingEnabled) return;
 		for (const node of this._content.nodes ?? []) {
 			if (node.mesh === undefined) continue;
 			let nodes = this._meshNodeReferences.get(node.mesh);
@@ -221,8 +234,16 @@ export class GeometryLoader {
 			array.byteLength,
 		);
 		let hash = 2166136261;
-		for (let i = 0; i < bytes.length; i++)
-			hash = Math.imul(hash ^ bytes[i], 16777619);
+		const view = new DataView(
+			bytes.buffer,
+			bytes.byteOffset,
+			bytes.byteLength,
+		);
+		const len = bytes.length;
+		let i = 0;
+		for (; i + 4 <= len; i += 4)
+			hash = Math.imul(hash ^ view.getUint32(i, true), 16777619);
+		for (; i < len; i++) hash = Math.imul(hash ^ bytes[i], 16777619);
 		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
@@ -235,9 +256,132 @@ export class GeometryLoader {
 	}
 
 	/**
-	 * The accessor's array if it is usable for baked-transform extraction:
-	 * densely packed float32 without sparse substitution or normalization.
+	 * glTF JSON identity of an accessor: same buffer range means the same
+	 * bytes without walking them. Undefined for Draco placeholders.
 	 */
+	private createAccessorIdentity(
+		accessorId: number | undefined,
+	): string | undefined {
+		if (accessorId === undefined) return "";
+		const accessor = this._content.accessors?.[accessorId];
+		if (!accessor || accessor.bufferView === undefined) return;
+		const bufferView = this._content.bufferViews?.[accessor.bufferView];
+		return JSON.stringify({
+			buffer: bufferView?.buffer,
+			bufferView: accessor.bufferView,
+			byteOffset: accessor.byteOffset ?? 0,
+			byteStride: bufferView?.byteStride,
+			componentType: accessor.componentType,
+			count: accessor.count,
+			normalized: accessor.normalized ?? false,
+			sparse: accessor.sparse,
+			type: accessor.type,
+		});
+	}
+
+	/**
+	 * Count/type fingerprint that does not read accessor bytes. Two primitives
+	 * that could be copies (byte-identical or baked rigid) share this key.
+	 */
+	private createAccessorFingerprint(
+		accessorId: number | undefined,
+	): string | undefined {
+		if (accessorId === undefined) return "";
+		const accessor = this._content.accessors?.[accessorId];
+		if (!accessor || accessor.bufferView === undefined) return;
+		const itemSize =
+			ACCESSORTYPE_V2[<keyof typeof ACCESSORTYPE_V2>accessor.type];
+		const elementBytes =
+			ACCESSORCOMPONENTSIZE_V2[
+				<keyof typeof ACCESSORCOMPONENTSIZE_V2>accessor.componentType
+			];
+		return `${accessor.componentType}:${accessor.type}:${accessor.count}:${accessor.count * itemSize * elementBytes}`;
+	}
+
+	private createExactInstanceKey(
+		primitive: IGLTF_v2_Primitive,
+		materialContent: string,
+	): string | undefined {
+		const attributes: {[key: string]: string} = {};
+		const names = Object.keys(primitive.attributes).sort();
+		for (const name of names) {
+			const identity = this.createAccessorIdentity(
+				primitive.attributes[name],
+			);
+			if (identity === undefined) return;
+			attributes[name] = identity;
+		}
+		const indices = this.createAccessorIdentity(primitive.indices);
+		if (indices === undefined) return;
+		return JSON.stringify({
+			attributes,
+			extensions: primitive.extensions,
+			indices,
+			material: materialContent,
+			mode: primitive.mode,
+		});
+	}
+
+	private createCheapFingerprint(
+		primitive: IGLTF_v2_Primitive,
+		materialContent: string,
+	): string | undefined {
+		const attributes: {[key: string]: string} = {};
+		const names = Object.keys(primitive.attributes).sort();
+		for (const name of names) {
+			const fingerprint = this.createAccessorFingerprint(
+				primitive.attributes[name],
+			);
+			if (fingerprint === undefined) return;
+			attributes[name] = fingerprint;
+		}
+		const indices = this.createAccessorFingerprint(primitive.indices);
+		if (indices === undefined) return;
+		return JSON.stringify({
+			attributes,
+			extensions: primitive.extensions,
+			indices,
+			material: materialContent,
+			mode: primitive.mode,
+		});
+	}
+
+	private getPrimitiveContentHash(
+		primitive: IGLTF_v2_Primitive,
+	): string | undefined {
+		const attributes = Object.fromEntries(
+			Object.keys(primitive.attributes)
+				.sort()
+				.map((name) => [
+					name,
+					this.createAccessorContentHash(primitive.attributes[name]),
+				]),
+		);
+		if (Object.values(attributes).some((hash) => hash === undefined))
+			return;
+		return JSON.stringify({
+			attributes,
+			extensions: primitive.extensions,
+			indices: this.createAccessorContentHash(primitive.indices),
+			mode: primitive.mode,
+		});
+	}
+
+	private assignInstanceHash(
+		geometryData: GeometryData,
+		contentKey: string,
+	): void {
+		if (geometryData.instanceHash) return;
+		const geometryHash =
+			this._hashCreator.createMurmurHash(contentKey) +
+			"_" +
+			this.createStringContentHash(contentKey);
+		geometryData.instanceHash =
+			this._urlHash !== undefined
+				? this._urlHash + "_" + geometryHash
+				: geometryHash;
+	}
+
 	private getExtractableArray(
 		accessorId: number | undefined,
 		itemSize: number,
@@ -259,49 +403,6 @@ export class GeometryLoader {
 		return accessor.array;
 	}
 
-	private createPositionInvariants(
-		accessorId: number | undefined,
-	): string | undefined {
-		if (accessorId === undefined) return;
-		if (this._positionInvariantsCache.has(accessorId))
-			return this._positionInvariantsCache.get(accessorId);
-		const invariants = this.computePositionInvariants(accessorId);
-		this._positionInvariantsCache.set(accessorId, invariants);
-		return invariants;
-	}
-
-	private computePositionInvariants(accessorId: number): string | undefined {
-		const positions = this.getExtractableArray(accessorId, 3);
-		if (!positions || positions.length < 9) return;
-
-		const centroid = this.computeCentroid(positions);
-		const count = positions.length / 3;
-		let sum = 0;
-		let sumSq = 0;
-		let max = 0;
-		for (let i = 0; i < positions.length; i += 3) {
-			const dx = positions[i] - centroid[0];
-			const dy = positions[i + 1] - centroid[1];
-			const dz = positions[i + 2] - centroid[2];
-			const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-			sum += d;
-			sumSq += d * d;
-			if (d > max) max = d;
-		}
-		if (max <= 0) return;
-
-		// Quantized coarsely so that float noise from baking cannot split
-		// buckets; a boundary split only costs a missed batching opportunity.
-		const mean = sum / count;
-		const rms = Math.sqrt(sumSq / count);
-		return JSON.stringify({
-			count,
-			max: Number(max.toPrecision(4)),
-			meanRatio: Math.round((mean / max) * 1000),
-			rmsRatio: Math.round((rms / max) * 1000),
-		});
-	}
-
 	private computeCentroid(positions: Float32Array): [number, number, number] {
 		let x = 0;
 		let y = 0;
@@ -316,24 +417,26 @@ export class GeometryLoader {
 	}
 
 	/**
-	 * Register a fully parsed primitive as a potential shared-geometry source
-	 * for later baked-transform copies.
+	 * Build a baked-transform frame for a pending primitive. Cached on the
+	 * pending entry so a cheap-key collision pays this walk at most once.
 	 */
-	private registerBakedRepresentative(
-		bakedSignature: string,
-		instanceContent: string,
-		primitive: IGLTF_v2_Primitive,
-	): void {
+	private getBakedRepresentative(
+		pending: PendingInstancing,
+	): BakedRepresentative | undefined {
+		if (pending.bakedRep) return pending.bakedRep;
+		if (pending.primitive.attributes.TANGENT !== undefined) return;
+
 		const positions = this.getExtractableArray(
-			primitive.attributes.POSITION,
+			pending.primitive.attributes.POSITION,
 			3,
 		);
 		if (!positions) return;
 		const normals = this.getExtractableArray(
-			primitive.attributes.NORMAL,
+			pending.primitive.attributes.NORMAL,
 			3,
 		);
-		if (primitive.attributes.NORMAL !== undefined && !normals) return;
+		if (pending.primitive.attributes.NORMAL !== undefined && !normals)
+			return;
 
 		const centroid = this.computeCentroid(positions);
 		let frameIndexA = -1;
@@ -373,36 +476,30 @@ export class GeometryLoader {
 				frameIndexB = i / 3;
 			}
 		}
-		// Collinear geometry has no stable frame.
 		if (frameIndexB < 0 || Math.sqrt(maxRejectionSq) < maxDist * 1e-5)
 			return;
 
-		let bucket = this._bakedBuckets.get(bakedSignature);
-		if (!bucket) {
-			bucket = [];
-			this._bakedBuckets.set(bakedSignature, bucket);
-		}
-		bucket.push({
-			instanceContent,
+		pending.bakedRep = {
 			positions,
 			normals,
 			centroid,
 			frameIndexA,
 			frameIndexB,
 			maxDist,
-		});
+		};
+		return pending.bakedRep;
 	}
 
 	/**
-	 * Try to explain this primitive as a rigid transform of an earlier one
-	 * with the same transform-invariant signature.
+	 * Try to explain this primitive as a rigid transform of a pending one.
 	 */
 	private tryExtractBakedInstance(
 		primitive: IGLTF_v2_Primitive,
-		bakedSignature: string,
-	): {instanceContent: string; offsetMatrix: number[]} | undefined {
-		const bucket = this._bakedBuckets.get(bakedSignature);
-		if (!bucket || bucket.length === 0) return;
+		pending: PendingInstancing,
+	): number[] | undefined {
+		if (primitive.attributes.TANGENT !== undefined) return;
+		const representative = this.getBakedRepresentative(pending);
+		if (!representative) return;
 
 		const positions = this.getExtractableArray(
 			primitive.attributes.POSITION,
@@ -414,28 +511,16 @@ export class GeometryLoader {
 			3,
 		);
 		if (primitive.attributes.NORMAL !== undefined && !normals) return;
+		if (representative.positions.length !== positions.length) return;
+		if ((representative.normals === undefined) !== (normals === undefined))
+			return;
 
-		const centroid = this.computeCentroid(positions);
-		for (const representative of bucket) {
-			if (representative.positions.length !== positions.length) continue;
-			if (
-				(representative.normals === undefined) !==
-				(normals === undefined)
-			)
-				continue;
-			const offsetMatrix = this.deriveRigidTransform(
-				representative,
-				positions,
-				normals,
-				centroid,
-			);
-			if (offsetMatrix)
-				return {
-					instanceContent: representative.instanceContent,
-					offsetMatrix,
-				};
-		}
-		return;
+		return this.deriveRigidTransform(
+			representative,
+			positions,
+			normals,
+			this.computeCentroid(positions),
+		);
 	}
 
 	/**
@@ -602,12 +687,12 @@ export class GeometryLoader {
 		primitive: IGLTF_v2_Primitive,
 	):
 		| {
-				instanceHash: string;
-				instanceContent: string;
+				cheapKey?: string;
+				exactKey?: string;
 				instance?: GeometryData;
-				bakedSignature?: string;
 		  }
 		| undefined {
+		if (!this._gpuInstancingEnabled) return;
 		// InstancedMesh is currently only safe for static triangle primitives.
 		// Morph targets, skinning, and material variants require per-node state
 		// that the instance-group renderer does not provide yet.
@@ -671,67 +756,19 @@ export class GeometryLoader {
 			materialContent = JSON.stringify(materialWithoutBaseColorFactor);
 		}
 
-		const attributes = Object.fromEntries(
-			Object.keys(primitive.attributes)
-				.sort()
-				.map((name) => [
-					name,
-					this.createAccessorContentHash(primitive.attributes[name]),
-				]),
+		const exactKey = this.createExactInstanceKey(
+			primitive,
+			materialContent,
 		);
-		if (Object.values(attributes).some((hash) => hash === undefined))
-			return;
+		const cheapKey = this.createCheapFingerprint(
+			primitive,
+			materialContent,
+		);
+		const instance = exactKey
+			? this._loadedByInstanceContent.get(exactKey)
+			: undefined;
 
-		const instanceContent = JSON.stringify({
-			attributes,
-			extensions: primitive.extensions,
-			indices: this.createAccessorContentHash(primitive.indices),
-			material: materialContent,
-			mode: primitive.mode,
-		});
-
-		// Two independent 32-bit hashes: render batches are grouped by this key,
-		// so a collision would silently draw the wrong geometry. A single 32-bit
-		// hash gets risky for scenes with many unique primitives.
-		const geometryHash =
-			this._hashCreator.createMurmurHash(instanceContent) +
-			"_" +
-			this.createStringContentHash(instanceContent);
-		const instanceHash =
-			this._urlHash !== undefined
-				? this._urlHash + "_" + geometryHash
-				: geometryHash;
-
-		// Check whether a previous primitive has the same geometry and material.
-		const instance = this._loadedByInstanceContent.get(instanceContent);
-
-		// Signature that is invariant under rigid transforms baked into the
-		// vertex data: everything but the POSITION/NORMAL bytes, plus geometric
-		// invariants of the positions. Primitives sharing it are candidates for
-		// baked-transform instance extraction.
-		let bakedSignature: string | undefined;
-		if (primitive.attributes.TANGENT === undefined) {
-			const positionInvariants = this.createPositionInvariants(
-				primitive.attributes.POSITION,
-			);
-			if (positionInvariants !== undefined) {
-				const invariantAttributes: {[key: string]: string | undefined} =
-					{...attributes};
-				delete invariantAttributes.POSITION;
-				delete invariantAttributes.NORMAL;
-				bakedSignature = JSON.stringify({
-					attributes: invariantAttributes,
-					extensions: primitive.extensions,
-					hasNormals: primitive.attributes.NORMAL !== undefined,
-					indices: this.createAccessorContentHash(primitive.indices),
-					material: materialContent,
-					mode: primitive.mode,
-					positionInvariants,
-				});
-			}
-		}
-
-		return {instanceHash, instanceContent, instance, bakedSignature};
+		return {cheapKey, exactKey, instance};
 	}
 
 	private addInstance(
@@ -739,7 +776,9 @@ export class GeometryLoader {
 		cacheKey: string,
 		material: IMaterialAbstractData | null,
 		offsetMatrix?: number[],
+		contentKey?: string,
 	): GeometryData {
+		if (contentKey) this.assignInstanceHash(geometryData, contentKey);
 		if (geometryData.instantiable === false) {
 			geometryData.instantiable = true;
 			// White in the 0-255 scale the color converter expects for arrays.
@@ -770,7 +809,9 @@ export class GeometryLoader {
 		weights: number[] = [],
 	): GeometryData | undefined {
 		const primitive = primitives[index];
-		const instancing = this.canPrimitiveBeInstanced(meshId, primitive);
+		const instancing = this._gpuInstancingEnabled
+			? this.canPrimitiveBeInstanced(meshId, primitive)
+			: undefined;
 
 		let material = null;
 		if (primitive.material || primitive.material === 0)
@@ -784,43 +825,64 @@ export class GeometryLoader {
 					this._loaded[cacheKey],
 					cacheKey,
 					material,
+					undefined,
+					instancing.exactKey ?? cacheKey,
 				);
 			return this._loaded[cacheKey];
 		}
 
 		if (instancing?.instance)
-			return this.addInstance(instancing.instance, cacheKey, material);
-
-		// A primitive with a matching transform-invariant signature may be a
-		// baked-transform copy of an earlier primitive: verify vertex by
-		// vertex and, on success, share the earlier geometry plus an offset.
-		if (instancing?.bakedSignature) {
-			const extracted = this.tryExtractBakedInstance(
-				primitive,
-				instancing.bakedSignature,
+			return this.addInstance(
+				instancing.instance,
+				cacheKey,
+				material,
+				undefined,
+				instancing.exactKey,
 			);
-			const source = extracted
-				? this._loadedByInstanceContent.get(extracted.instanceContent)
-				: undefined;
-			if (extracted && source) {
-				const instance = this.addInstance(
-					source,
-					cacheKey,
-					material,
-					extracted.offsetMatrix,
-				);
-				// Byte-identical copies of THIS primitive found later reuse
-				// the same source and offset.
-				if (
-					!this._loadedByInstanceContent.has(
-						instancing.instanceContent,
-					)
-				)
-					this._loadedByInstanceContent.set(
-						instancing.instanceContent,
-						instance,
+
+		if (instancing?.cheapKey) {
+			const pending = this._pendingByCheapKey.get(instancing.cheapKey);
+			if (pending && pending.length > 0) {
+				const contentHash = this.getPrimitiveContentHash(primitive);
+				if (contentHash) {
+					for (const entry of pending) {
+						if (entry.contentHash === undefined)
+							entry.contentHash = this.getPrimitiveContentHash(
+								entry.primitive,
+							);
+						if (entry.contentHash === contentHash)
+							return this.addInstance(
+								entry.geometryData,
+								cacheKey,
+								material,
+								undefined,
+								contentHash,
+							);
+					}
+				}
+				for (const entry of pending) {
+					const offsetMatrix = this.tryExtractBakedInstance(
+						primitive,
+						entry,
 					);
-				return instance;
+					if (!offsetMatrix) continue;
+					const instance = this.addInstance(
+						entry.geometryData,
+						cacheKey,
+						material,
+						offsetMatrix,
+						instancing.exactKey ?? instancing.cheapKey,
+					);
+					if (
+						instancing.exactKey &&
+						!this._loadedByInstanceContent.has(instancing.exactKey)
+					)
+						this._loadedByInstanceContent.set(
+							instancing.exactKey,
+							instance,
+						);
+					return instance;
+				}
 			}
 		}
 
@@ -1060,24 +1122,19 @@ export class GeometryLoader {
 		}
 
 		geometryData.morphWeights = weights;
-		geometryData.instanceHash = instancing?.instanceHash;
 		this._loaded["mesh_" + meshId + "_primitive_" + index] = geometryData;
-		if (
-			instancing !== undefined &&
-			!this._loadedByInstanceContent.has(instancing.instanceContent)
-		) {
+		if (instancing?.exactKey)
 			this._loadedByInstanceContent.set(
-				instancing.instanceContent,
+				instancing.exactKey,
 				geometryData,
 			);
-			// This primitive is canonical for its content; it can also act as
-			// the shared-geometry source for baked-transform copies.
-			if (instancing.bakedSignature)
-				this.registerBakedRepresentative(
-					instancing.bakedSignature,
-					instancing.instanceContent,
-					primitive,
-				);
+		if (instancing?.cheapKey) {
+			let pending = this._pendingByCheapKey.get(instancing.cheapKey);
+			if (!pending) {
+				pending = [];
+				this._pendingByCheapKey.set(instancing.cheapKey, pending);
+			}
+			pending.push({primitive, geometryData});
 		}
 
 		return geometryData;
