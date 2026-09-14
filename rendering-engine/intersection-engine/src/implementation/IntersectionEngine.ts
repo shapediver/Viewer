@@ -263,12 +263,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		const instantiableGeometry = Object.values(geometryData).find(
 			(g) => g.instantiable,
 		);
-		if (instantiableGeometry) {
-			const instancedMesh = instantiableGeometry.convertedObject[
-				viewportId
-			] as THREE.InstancedMesh | undefined;
-			if (!instancedMesh) return;
-
+		const instancedMesh = instantiableGeometry?.convertedObject[
+			viewportId
+		] as THREE.Object3D | undefined;
+		if (instancedMesh instanceof THREE.InstancedMesh) {
 			const instanceHash = instancedMesh.userData.instanceHash as
 				| string
 				| undefined;
@@ -284,22 +282,44 @@ export class IntersectionEngine implements IIntersectionEngine {
 				const instanceNodes = mesh.userData.instanceNodes as
 					| (ITreeNode | undefined)[]
 					| undefined;
-				return this._raycaster.intersectObject(mesh, false).map((i) => {
+				return this._raycaster.intersectObject(mesh, false).flatMap((i) => {
 					const hitNode =
 						i.instanceId !== undefined && instanceNodes
 							? (instanceNodes[i.instanceId] ?? node)
 							: node;
-					return {
-						distance: i.distance,
-						point: [i.point.x, i.point.y, i.point.z] as [
-							number,
-							number,
-							number,
-						],
-						node: hitNode,
-						geometryData: instantiableGeometry,
-						type: "RayTracingIntersection" as const,
-					} as IRayTracingIntersection;
+					if (hitNode.intersectionTest === false) return [];
+					if (
+						viewportId &&
+						hitNode.excludeViewports?.includes(viewportId)
+					)
+						return [];
+					if (
+						viewportId &&
+						hitNode.restrictViewports?.length &&
+						!hitNode.restrictViewports.includes(viewportId)
+					)
+						return [];
+
+					const hitGeometry =
+						(hitNode.data.find(
+							(d) =>
+								d instanceof GeometryData &&
+								d.instanceHash === instanceHash,
+						) as GeometryData | undefined) ?? instantiableGeometry;
+
+					return [
+						{
+							distance: i.distance,
+							point: [i.point.x, i.point.y, i.point.z] as [
+								number,
+								number,
+								number,
+							],
+							node: hitNode,
+							geometryData: hitGeometry,
+							type: "RayTracingIntersection" as const,
+						} as IRayTracingIntersection,
+					];
 				});
 			});
 			if (intersections.length === 0) return;

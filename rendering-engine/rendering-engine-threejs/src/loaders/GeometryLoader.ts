@@ -107,16 +107,27 @@ export class GeometryLoader implements ILoader {
 				? geometry.attributeMaterial
 				: geometry.material;
 
-		// We need the primitive geometry (BufferGeometry) – load / retrieve it
+		const existingMesh =
+			this._renderingEngine.instanceGroupManager.getDefaultMesh(
+				geometry.instanceHash,
+			);
+
 		const primitiveCacheKey =
 			geometry.primitive.id + "_" + geometry.primitive.version;
 		let bufferGeometry: THREE.BufferGeometry;
-		const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
-		if (!cachedPrimitive) {
-			bufferGeometry = this.loadPrimitive(geometry.primitive);
+		if (existingMesh) {
+			bufferGeometry = existingMesh.geometry;
 		} else {
-			// Instanced meshes share the geometry – no clone needed
-			bufferGeometry = cachedPrimitive.threeGeometry;
+			const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
+			if (!cachedPrimitive) {
+				bufferGeometry = this.loadPrimitive(geometry.primitive);
+			} else {
+				// Instanced meshes share the geometry – no clone needed.
+				// The new group holds one primitive-cache retain until it is
+				// disposed.
+				bufferGeometry = cachedPrimitive.threeGeometry;
+				cachedPrimitive.counter++;
+			}
 		}
 
 		const materialSettings = {
@@ -135,10 +146,6 @@ export class GeometryLoader implements ILoader {
 		// material is whitened — but only when actual material data supplied
 		// that color. The fallback default material keeps its own color, and
 		// the instance colors stay at neutral white.
-		const existingMesh =
-			this._renderingEngine.instanceGroupManager.getDefaultMesh(
-				geometry.instanceHash,
-			);
 		let material: THREE.Material | undefined;
 		if (!existingMesh) {
 			const loadedMaterial = this._renderingEngine.materialLoader.load(
@@ -181,9 +188,27 @@ export class GeometryLoader implements ILoader {
 				effectMaterial,
 			);
 		} else {
-			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
-				geometry.id,
-			);
+			const sharedMaterialId =
+				this._renderingEngine.instanceGroupManager.getSharedMaterialId(
+					geometry.instanceHash,
+				);
+			if (
+				incomingMaterialData &&
+				sharedMaterialId !== undefined &&
+				incomingMaterialData.id !== sharedMaterialId
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(incomingMaterialData, materialSettings)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+			} else {
+				this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+					geometry.id,
+				);
+			}
 		}
 
 		// Store the InstancedMesh in geometry.convertedObject so IntersectionEngine

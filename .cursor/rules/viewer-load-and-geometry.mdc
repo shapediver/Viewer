@@ -26,7 +26,7 @@ alwaysApply: true
 ## GPU instancing is opt-in
 
 - Default is **off**. Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.
-- Enable with `viewport.gpuInstancing.enabled = true`. Detection is reference-counted across viewports; enabling also scans already-loaded opaque triangle geometry. Baked-transform recovery still runs only at glTF parse time.
+- Enable with `viewport.gpuInstancing.enabled = true`. Detection is reference-counted across viewports; enabling also scans already-loaded opaque triangle geometry and reconverts the current scene. Disabling drops instance groups and reconverts to regular meshes. Baked-transform recovery still runs only at glTF parse time.
 - `EXT_mesh_gpu_instancing` is unchanged and does not go through this path.
 - Instance world bounds use the same local AABB × (`worldMatrix` × offset) as regular meshes. Do not vertex-walk placeholders.
 

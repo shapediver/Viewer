@@ -32,6 +32,8 @@ interface InstanceGroup {
 	// the whole group.
 	materialOverrides: Map<string, THREE.Material>; // nodeId → material
 	sharedMaterialId?: string;
+	// One primitive-cache retain per group; released in _disposeGroup.
+	primitiveCacheKey: string;
 }
 
 // Effect-key prefix for per-occurrence material overrides. The suffix is the
@@ -141,6 +143,8 @@ export class InstanceGroupManager {
 				nodeEffectMeshKeys: new Map(),
 				materialOverrides: new Map(),
 				sharedMaterialId: geometry.material?.id,
+				primitiveCacheKey:
+					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
 			this._groups.set(instanceHash, group);
 			this.instancedRoot.add(instancedMesh);
@@ -198,6 +202,13 @@ export class InstanceGroupManager {
 			idx,
 			new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]),
 		);
+
+		if (geometry.castShadow) group.defaultMesh.castShadow = true;
+		if (
+			geometry.receiveShadow &&
+			!(group.defaultMesh.material instanceof GemMaterial)
+		)
+			group.defaultMesh.receiveShadow = true;
 
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
@@ -581,7 +592,10 @@ export class InstanceGroupManager {
 		this._groups.forEach((group) => {
 			instanceCount += group.nodeMatrices.size;
 			effectMeshCount += group.effectMeshes.size;
-			drawCallCount += 1 + group.effectMeshes.size;
+			if (group.defaultMesh.count > 0) drawCallCount++;
+			group.effectMeshes.forEach((mesh) => {
+				if (mesh.count > 0) drawCallCount++;
+			});
 		});
 		return {
 			groupCount: this._groups.size,
@@ -901,6 +915,7 @@ export class InstanceGroupManager {
 
 		if (effectMesh.count === 0) {
 			this.instancedRoot.remove(effectMesh);
+			effectMesh.dispose();
 			this._disposeMaterial(effectMesh.material as THREE.Material);
 			group.effectMeshes.delete(meshKey);
 		}
@@ -970,20 +985,24 @@ export class InstanceGroupManager {
 		const currentCapacity = mesh.instanceMatrix.count;
 		const newCapacity = Math.max(currentCapacity * 2, 8);
 
+		const oldMatrix = mesh.instanceMatrix;
 		const newMatrixArray = new Float32Array(newCapacity * 16);
-		newMatrixArray.set(mesh.instanceMatrix.array as Float32Array);
+		newMatrixArray.set(oldMatrix.array as Float32Array);
 		mesh.instanceMatrix = new THREE.InstancedBufferAttribute(
 			newMatrixArray,
 			16,
 		);
+		oldMatrix.dispose();
 
 		if (mesh.instanceColor) {
+			const oldColor = mesh.instanceColor;
 			const newColorArray = new Float32Array(newCapacity * 3);
-			newColorArray.set(mesh.instanceColor.array as Float32Array);
+			newColorArray.set(oldColor.array as Float32Array);
 			mesh.instanceColor = new THREE.InstancedBufferAttribute(
 				newColorArray,
 				3,
 			);
+			oldColor.dispose();
 		}
 
 		// Grow the instanceNodes array too
@@ -1011,11 +1030,16 @@ export class InstanceGroupManager {
 
 	private _disposeGroup(group: InstanceGroup): void {
 		this.instancedRoot.remove(group.defaultMesh);
+		group.defaultMesh.dispose();
 		this._disposeMaterial(group.defaultMesh.material as THREE.Material);
 		group.effectMeshes.forEach((mesh) => {
 			this.instancedRoot.remove(mesh);
+			mesh.dispose();
 			this._disposeMaterial(mesh.material as THREE.Material);
 		});
+		this._renderingEngine.geometryLoader.removeFromPrimitiveCache(
+			group.primitiveCacheKey,
+		);
 	}
 
 	private _trackMaterial(material: THREE.Material, cacheKey: string): void {

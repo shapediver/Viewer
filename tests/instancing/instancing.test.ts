@@ -284,4 +284,35 @@ test.describe("GPU instancing", () => {
 			(<any>window).viewer.gpuInstancing.enabled = true;
 		});
 	});
+
+	test("enabling instancing after load converts already-loaded meshes", async ({
+		workerPage,
+	}) => {
+		await workerPage.evaluate(async (uri: string) => {
+			(<any>window).viewer.gpuInstancing.enabled = false;
+			await (<any>window).addGLTF(uri);
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		let stats = await workerPage.evaluate(
+			() => (<any>window).viewer.gpuInstancing.stats,
+		);
+		expect(stats.groupCount).toBe(0);
+
+		// Turn on instancing after the scene has already rendered.
+		await workerPage.evaluate(async () => {
+			(<any>window).viewer.gpuInstancing.enabled = true;
+			await (<any>window).rerender();
+		});
+
+		stats = await workerPage.evaluate(
+			() => (<any>window).viewer.gpuInstancing.stats,
+		);
+		expect(stats.groupCount).toBe(1);
+		expect(stats.instanceCount).toBe(9);
+
+		await expect(workerPage).toHaveScreenshot(
+			name + "/duplicated-boxes.png",
+			{animations: "allow"},
+		);
+	});
 });

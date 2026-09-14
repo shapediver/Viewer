@@ -50,6 +50,7 @@ export class SceneTreeManager implements IManager {
 		new THREE.PerspectiveCamera();
 	private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 	private _lastRootVersion: string = "";
+	private _lastInstancingEnabled: boolean = false;
 	private _mainConvertedObject!: SDObject;
 	private _newRendererType: boolean = false;
 	private _suspendSceneUpdates: boolean = false;
@@ -145,68 +146,85 @@ export class SceneTreeManager implements IManager {
 							)) as InstanceData | undefined;
 					if (filter.transformationOnly === false) {
 						const geometryData = treeNodeData as GeometryData;
-
-						// In attribute-visualization mode instancing works with
-						// per-instance flat colors, but transparency needs
-						// per-object sorting: occurrences with a non-opaque
-						// attribute material use the regular path.
-						const attributeOpaque =
-							this._renderingEngine.type !==
-								RENDERER_TYPE.ATTRIBUTES ||
-							(geometryData.attributeMaterial?.opacity ?? 1) >= 1;
-						if (
-							geometryData.instantiable &&
-							this._renderingEngine.instanceGroupManager
-								.enabled &&
-							attributeOpaque
-						) {
-							// GPU-instanced geometry: delegate to InstanceGroupManager.
-							// Returns a lightweight placeholder that tracks this node.
-							dataChild =
-								this._renderingEngine.geometryLoader.loadInstanced(
-									treeNode,
-									geometryData,
-								);
-						} else {
-							dataChild =
-								this._renderingEngine.geometryLoader.load(
-									treeNode,
-									geometryData,
-									instanceTransformationData,
-								);
-
-							// Three.js Object3Ds can only have one parent. If the
-							// same GeometryData is referenced by multiple tree nodes,
-							// the cache returns the same mesh each time. Adding it to
-							// a second node silently removes it from the first. Clone
-							// only when this would happen (different existing parent).
-							if (
-								dataChild.parent !== null &&
-								dataChild.parent !== convertedObject
-							) {
-								dataChild =
-									dataChild.clone() as typeof dataChild;
-							}
-
-							// Baked-transform occurrences share the source
-							// geometry; place the mesh via the offset matrix.
-							if (geometryData.instanceOffsetMatrix) {
-								dataChild.matrixAutoUpdate = false;
-								dataChild.matrix.fromArray(
-									geometryData.instanceOffsetMatrix,
-								);
-								dataChild.matrixWorldNeedsUpdate = true;
-							}
-						}
-						this._renderingEngine.geometryLoader.registerGeometryObject(
-							treeNodeData as GeometryData,
-							dataChild,
+						const existingGeometry = convertedObject.children.find(
+							(child) =>
+								child.userData.SDtype ===
+									SD_DATA_TYPE.GEOMETRY &&
+								child.userData.SDid === treeNodeData.id &&
+								child.userData.SDversion ===
+									treeNodeData.version,
 						);
 
-						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
-						dataChild.userData.SDid = treeNodeData.id;
-						dataChild.userData.SDversion = treeNodeData.version;
-						convertedObject.add(dataChild);
+						// Geometry children are Object3D placeholders/meshes, not
+						// SDObjects, so the convertedChildrenMap miss would otherwise
+						// recreate them on every scene update — leaking instanced
+						// placeholders and moving InstancedMeshes out of instancedRoot.
+						if (existingGeometry && !this._newRendererType) {
+							dataChild = existingGeometry;
+						} else {
+							// In attribute-visualization mode instancing works with
+							// per-instance flat colors, but transparency needs
+							// per-object sorting: occurrences with a non-opaque
+							// attribute material use the regular path.
+							const attributeOpaque =
+								this._renderingEngine.type !==
+									RENDERER_TYPE.ATTRIBUTES ||
+								(geometryData.attributeMaterial?.opacity ?? 1) >=
+									1;
+							if (
+								geometryData.instantiable &&
+								this._renderingEngine.instanceGroupManager
+									.enabled &&
+								attributeOpaque
+							) {
+								// GPU-instanced geometry: delegate to InstanceGroupManager.
+								// Returns a lightweight placeholder that tracks this node.
+								dataChild =
+									this._renderingEngine.geometryLoader.loadInstanced(
+										treeNode,
+										geometryData,
+									);
+							} else {
+								dataChild =
+									this._renderingEngine.geometryLoader.load(
+										treeNode,
+										geometryData,
+										instanceTransformationData,
+									);
+
+								// Three.js Object3Ds can only have one parent. If the
+								// same GeometryData is referenced by multiple tree nodes,
+								// the cache returns the same mesh each time. Adding it to
+								// a second node silently removes it from the first. Clone
+								// only when this would happen (different existing parent).
+								if (
+									dataChild.parent !== null &&
+									dataChild.parent !== convertedObject
+								) {
+									dataChild =
+										dataChild.clone() as typeof dataChild;
+								}
+
+								// Baked-transform occurrences share the source
+								// geometry; place the mesh via the offset matrix.
+								if (geometryData.instanceOffsetMatrix) {
+									dataChild.matrixAutoUpdate = false;
+									dataChild.matrix.fromArray(
+										geometryData.instanceOffsetMatrix,
+									);
+									dataChild.matrixWorldNeedsUpdate = true;
+								}
+							}
+							this._renderingEngine.geometryLoader.registerGeometryObject(
+								treeNodeData as GeometryData,
+								dataChild,
+							);
+
+							dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
+							dataChild.userData.SDid = treeNodeData.id;
+							dataChild.userData.SDversion = treeNodeData.version;
+							convertedObject.add(dataChild);
+						}
 					}
 				}
 				break;
@@ -409,10 +427,15 @@ export class SceneTreeManager implements IManager {
 	}
 
 	public updateSceneTree(rootTreeNode: ITreeNode): void {
+		const instancingChanged =
+			this._renderingEngine.instanceGroupManager.enabled !==
+			this._lastInstancingEnabled;
+
 		// check if we currently have the same root version
 		if (
 			this._tree.root.version === this._lastRootVersion &&
-			this._renderingEngine.type === this._lastRendererType
+			this._renderingEngine.type === this._lastRendererType &&
+			!instancingChanged
 		)
 			return;
 
@@ -421,10 +444,19 @@ export class SceneTreeManager implements IManager {
 
 		this._lastRootVersion = this._tree.root.version;
 		this._newRendererType =
-			this._renderingEngine.type !== this._lastRendererType;
+			this._renderingEngine.type !== this._lastRendererType ||
+			instancingChanged;
 		this._lastRendererType = this._renderingEngine.type;
+		this._lastInstancingEnabled =
+			this._renderingEngine.instanceGroupManager.enabled;
 
 		if (this._renderingEngine.closed) return;
+
+		if (
+			instancingChanged &&
+			!this._renderingEngine.instanceGroupManager.enabled
+		)
+			this._renderingEngine.instanceGroupManager.clear();
 
 		this._performanceEvaluator.startSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
@@ -451,12 +483,13 @@ export class SceneTreeManager implements IManager {
 					this._renderingEngine.id,
 				);
 			this._scene.add(this._mainConvertedObject);
-			// Ensure the instanced-mesh root container is in the scene.
-			if (!this._scene.getObjectByName("instancedRoot"))
-				this._scene.add(
-					this._renderingEngine.instanceGroupManager.instancedRoot,
-				);
 		}
+
+		// Ensure the instanced-mesh root container is in the scene.
+		if (!this._scene.getObjectByName("instancedRoot"))
+			this._scene.add(
+				this._renderingEngine.instanceGroupManager.instancedRoot,
+			);
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();

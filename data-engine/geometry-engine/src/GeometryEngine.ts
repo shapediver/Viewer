@@ -283,7 +283,8 @@ export class GeometryEngine {
 		for (const geometry of geometries) {
 			if (!this.canMarkInstantiable(geometry)) continue;
 			if (geometry.instantiable && geometry.instanceHash) continue;
-			const primitiveKey = geometry.primitive.id;
+			const materialKey = geometry.material?.id ?? "default_mat";
+			const primitiveKey = `${geometry.primitive.id}_${materialKey}`;
 			let group = byPrimitive.get(primitiveKey);
 			if (!group) {
 				group = [];
@@ -294,7 +295,11 @@ export class GeometryEngine {
 
 		for (const group of byPrimitive.values()) {
 			if (group.length >= 2) {
-				this.markGroupInstantiable(group, group[0].primitive.id);
+				const materialKey = group[0].material?.id ?? "default_mat";
+				this.markGroupInstantiable(
+					group,
+					`${group[0].primitive.id}_${materialKey}`,
+				);
 				continue;
 			}
 			const geometry = group[0];
@@ -322,11 +327,14 @@ export class GeometryEngine {
 				contentGroup.push(geometry);
 			}
 			for (const contentGroup of byContent.values()) {
-				if (contentGroup.length >= 2)
+				if (contentGroup.length >= 2) {
+					const materialKey =
+						contentGroup[0].material?.id ?? "default_mat";
 					this.markGroupInstantiable(
 						contentGroup,
-						contentGroup[0].primitive.id,
+						`${contentGroup[0].primitive.id}_${materialKey}`,
 					);
+				}
 			}
 		}
 	}
@@ -347,7 +355,13 @@ export class GeometryEngine {
 
 	private canMarkInstantiable(geometry: GeometryData): boolean {
 		if (geometry.mode !== PRIMITIVE_MODE.TRIANGLES) return false;
-		const position = geometry.primitive.attributes["POSITION"];
+		if (geometry.morphWeights && geometry.morphWeights.length > 0)
+			return false;
+		if (geometry.materialVariants && geometry.materialVariants.length > 0)
+			return false;
+		const attributes = geometry.primitive.attributes;
+		if (attributes["JOINTS_0"] || attributes["WEIGHTS_0"]) return false;
+		const position = attributes["POSITION"];
 		if (position?.morphAttributeData?.length) return false;
 		if ((geometry.material?.opacity ?? 1) < 1) return false;
 		return true;
@@ -386,10 +400,12 @@ export class GeometryEngine {
 			return `${name}:${attribute.count}:${attribute.itemSize}:${attribute.array.length}`;
 		});
 		const indices = geometry.primitive.indices;
+		const materialKey = geometry.material?.id ?? "default_mat";
 		return JSON.stringify({
 			indices: indices
 				? `${indices.count}:${indices.array.length}`
 				: "",
+			material: materialKey,
 			parts,
 		});
 	}
@@ -406,6 +422,8 @@ export class GeometryEngine {
 			parts.push(
 				"indices:" + this.hashTypedArray(geometry.primitive.indices.array),
 			);
+		const materialKey = geometry.material?.id ?? "default_mat";
+		parts.push("material:" + materialKey);
 		return parts.join("|");
 	}
 
