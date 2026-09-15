@@ -9,7 +9,11 @@ import {
 } from "@shapediver/viewer.shared.services";
 
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
-import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
+import {
+	type IMaterialAbstractData,
+	type IMaterialStandardData,
+	PRIMITIVE_MODE,
+} from "@shapediver/viewer.shared.types";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
 import {GLTFLoader as GLTF_v2Loader} from "./gltfv2/GLTFLoader";
 
@@ -283,8 +287,10 @@ export class GeometryEngine {
 		for (const geometry of geometries) {
 			if (!this.canMarkInstantiable(geometry)) continue;
 			if (geometry.instantiable && geometry.instanceHash) continue;
-			const materialKey = geometry.material?.id ?? "default_mat";
-			const primitiveKey = `${geometry.primitive.id}_${materialKey}`;
+			// Match parse-time hashing: color-only material variants still
+			// batch (the tint lives in instanceColor). Splitting on
+			// material.id would leave duplicated/shared boxes unbatched.
+			const primitiveKey = `${geometry.primitive.id}_${this.createMaterialFingerprint(geometry.material)}`;
 			let group = byPrimitive.get(primitiveKey);
 			if (!group) {
 				group = [];
@@ -295,10 +301,9 @@ export class GeometryEngine {
 
 		for (const group of byPrimitive.values()) {
 			if (group.length >= 2) {
-				const materialKey = group[0].material?.id ?? "default_mat";
 				this.markGroupInstantiable(
 					group,
-					`${group[0].primitive.id}_${materialKey}`,
+					`${group[0].primitive.id}_${this.createMaterialFingerprint(group[0].material)}`,
 				);
 				continue;
 			}
@@ -328,11 +333,9 @@ export class GeometryEngine {
 			}
 			for (const contentGroup of byContent.values()) {
 				if (contentGroup.length >= 2) {
-					const materialKey =
-						contentGroup[0].material?.id ?? "default_mat";
 					this.markGroupInstantiable(
 						contentGroup,
-						`${contentGroup[0].primitive.id}_${materialKey}`,
+						`${contentGroup[0].primitive.id}_${this.createMaterialFingerprint(contentGroup[0].material)}`,
 					);
 				}
 			}
@@ -400,12 +403,11 @@ export class GeometryEngine {
 			return `${name}:${attribute.count}:${attribute.itemSize}:${attribute.array.length}`;
 		});
 		const indices = geometry.primitive.indices;
-		const materialKey = geometry.material?.id ?? "default_mat";
 		return JSON.stringify({
 			indices: indices
 				? `${indices.count}:${indices.array.length}`
 				: "",
-			material: materialKey,
+			material: this.createMaterialFingerprint(geometry.material),
 			parts,
 		});
 	}
@@ -422,9 +424,43 @@ export class GeometryEngine {
 			parts.push(
 				"indices:" + this.hashTypedArray(geometry.primitive.indices.array),
 			);
-		const materialKey = geometry.material?.id ?? "default_mat";
-		parts.push("material:" + materialKey);
+		parts.push("material:" + this.createMaterialFingerprint(geometry.material));
 		return parts.join("|");
+	}
+
+	/**
+	 * Identity of a material for instance grouping, excluding id, name, and
+	 * color — the same rule as parse-time hashing of baseColorFactor.
+	 */
+	private createMaterialFingerprint(
+		material: IMaterialAbstractData | null,
+	): string {
+		if (!material) return "none";
+		const mapId = (map: {id: string} | undefined) => map?.id ?? "";
+		const standard = material as IMaterialStandardData;
+		return JSON.stringify({
+			alphaCutoff: material.alphaCutoff,
+			alphaMode: material.alphaMode,
+			aoMap: mapId(material.aoMap),
+			aoMapIntensity: material.aoMapIntensity,
+			bumpMap: mapId(material.bumpMap),
+			bumpScale: material.bumpScale,
+			depthTest: material.depthTest,
+			depthWrite: material.depthWrite,
+			emissiveMap: mapId(material.emissiveMap),
+			map: mapId(material.map),
+			metalness: standard.metalness,
+			metalnessMap: mapId(standard.metalnessMap),
+			metalnessRoughnessMap: mapId(standard.metalnessRoughnessMap),
+			normalMap: mapId(material.normalMap),
+			normalScale: material.normalScale,
+			opacity: material.opacity,
+			roughness: standard.roughness,
+			roughnessMap: mapId(standard.roughnessMap),
+			shading: material.shading,
+			side: material.side,
+			type: material.constructor.name,
+		});
 	}
 
 	private hashTypedArray(array: ArrayBufferView & {length: number}): string {

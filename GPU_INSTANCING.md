@@ -9,8 +9,9 @@ glTF/GLB is parsed, and applied when the scene is rendered.
 ordinary loads are unchanged. Unique meshes are matched with accessor identity
 and a count/type fingerprint; byte hashing and baked-transform walks run only
 when a second primitive looks similar. Enabling scans already-loaded opaque
-triangle geometry (shared primitives and byte-identical copies; baked
-transforms are recovered only while parsing).
+triangle geometry with the same matching rules (shared primitives and
+byte-identical copies, material excluding color). Baked transforms are
+recovered only while parsing.
 
 ```js
 viewport.gpuInstancing.enabled = true;
