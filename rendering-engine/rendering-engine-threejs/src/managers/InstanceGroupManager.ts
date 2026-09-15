@@ -129,6 +129,10 @@ export class InstanceGroupManager {
 				| ITreeNode
 				| undefined
 			)[];
+			instancedMesh.userData.instanceKeys = [] as (
+				| string
+				| undefined
+			)[];
 
 			group = {
 				instanceHash,
@@ -224,9 +228,7 @@ export class InstanceGroupManager {
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
 		group.indexToKey.set(idx, nodeId);
-		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
-			idx
-		] = node;
+		this._writeInstanceSlot(group.defaultMesh, idx, node, nodeId);
 		group.count++;
 		group.defaultMesh.count = group.count;
 
@@ -642,10 +644,34 @@ export class InstanceGroupManager {
 
 	// #endregion Public Methods (7)
 
-	// #region Private Methods (4)
+	// #region Private Methods (22)
 
 	private _getNodeKey(node: ITreeNode, geometryId: string): string {
 		return `${node.id}:${geometryId}`;
+	}
+
+	private _writeInstanceSlot(
+		mesh: THREE.InstancedMesh,
+		index: number,
+		node: ITreeNode,
+		nodeId: string,
+	): void {
+		if (!mesh.userData.instanceNodes) mesh.userData.instanceNodes = [];
+		if (!mesh.userData.instanceKeys) mesh.userData.instanceKeys = [];
+		(mesh.userData.instanceNodes as (ITreeNode | undefined)[])[index] =
+			node;
+		(mesh.userData.instanceKeys as (string | undefined)[])[index] = nodeId;
+	}
+
+	private _clearInstanceSlot(mesh: THREE.InstancedMesh, index: number): void {
+		const instanceNodes = mesh.userData.instanceNodes as
+			| (ITreeNode | undefined)[]
+			| undefined;
+		const instanceKeys = mesh.userData.instanceKeys as
+			| (string | undefined)[]
+			| undefined;
+		if (instanceNodes) instanceNodes[index] = undefined;
+		if (instanceKeys) instanceKeys[index] = undefined;
 	}
 
 	private _getNodeKeys(treeNodeId: string): string[] {
@@ -737,12 +763,12 @@ export class InstanceGroupManager {
 			group.nodeToIndex.set(lastKey, index);
 			group.indexToNode.set(index, lastNode);
 			group.indexToKey.set(index, lastKey);
-			(
-				group.defaultMesh.userData.instanceNodes as (
-					| ITreeNode
-					| undefined
-				)[]
-			)[index] = lastNode;
+			this._writeInstanceSlot(
+				group.defaultMesh,
+				index,
+				lastNode,
+				lastKey,
+			);
 		}
 
 		group.count--;
@@ -750,9 +776,7 @@ export class InstanceGroupManager {
 		group.nodeToIndex.delete(nodeId);
 		group.indexToNode.delete(lastIdx);
 		group.indexToKey.delete(lastIdx);
-		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
-			lastIdx
-		] = undefined;
+		this._clearInstanceSlot(group.defaultMesh, lastIdx);
 
 		group.defaultMesh.instanceMatrix.needsUpdate = true;
 		if (group.defaultMesh.instanceColor)
@@ -785,9 +809,7 @@ export class InstanceGroupManager {
 		group.nodeToIndex.set(nodeId, newIdx);
 		group.indexToNode.set(newIdx, node);
 		group.indexToKey.set(newIdx, nodeId);
-		(group.defaultMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
-			newIdx
-		] = node;
+		this._writeInstanceSlot(group.defaultMesh, newIdx, node, nodeId);
 		group.count++;
 		group.defaultMesh.count = group.count;
 
@@ -893,12 +915,7 @@ export class InstanceGroupManager {
 			);
 
 		effectMesh.count++;
-		(effectMesh.userData.instanceNodes as (ITreeNode | undefined)[])[
-			effectIdx
-		] = node;
-		(effectMesh.userData.instanceKeys as (string | undefined)[])[
-			effectIdx
-		] = nodeId;
+		this._writeInstanceSlot(effectMesh, effectIdx, node, nodeId);
 		effectMesh.instanceMatrix.needsUpdate = true;
 		if (effectMesh.instanceColor)
 			effectMesh.instanceColor.needsUpdate = true;
@@ -936,13 +953,16 @@ export class InstanceGroupManager {
 					effectIdx,
 					new THREE.Color().setRGB(color[0], color[1], color[2]),
 				);
-			instanceNodes[effectIdx] = lastNode;
-			instanceKeys[effectIdx] = lastKey;
+			this._writeInstanceSlot(
+				effectMesh,
+				effectIdx,
+				lastNode,
+				lastKey,
+			);
 		}
 
 		effectMesh.count--;
-		instanceNodes[lastEffectIdx] = undefined;
-		instanceKeys[lastEffectIdx] = undefined;
+		this._clearInstanceSlot(effectMesh, lastEffectIdx);
 		effectMesh.instanceMatrix.needsUpdate = true;
 		if (effectMesh.instanceColor)
 			effectMesh.instanceColor.needsUpdate = true;
@@ -1090,5 +1110,5 @@ export class InstanceGroupManager {
 		else material.dispose();
 	}
 
-	// #endregion Private Methods (4)
+	// #endregion Private Methods (22)
 }

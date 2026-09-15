@@ -316,4 +316,61 @@ test.describe("GPU instancing", () => {
 			{animations: "allow"},
 		);
 	});
+
+	test("toggling instancing rebinds an active outline selection", async ({
+		workerPage,
+	}) => {
+		const selectionState = await workerPage.evaluate(async (uri: string) => {
+			const SDV = (<any>window).SDV;
+			const viewer = (<any>window).viewer;
+			viewer.gpuInstancing.enabled = true;
+			await (<any>window).addGLTF(uri);
+
+			const token = viewer.postProcessing.addEffect({
+				properties: {
+					edgeStrength: 10,
+					visibleEdgeColor: "#ff0000",
+					hiddenEdgeColor: "#22090a",
+				},
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.OUTLINE,
+			});
+			const node = (<any>window).findNode("box_node_4");
+			viewer.postProcessing.outlineEffects[token].addSelection(node);
+			await (<any>window).rerender();
+
+			const describeSelection = () => {
+				const effect = viewer.postProcessing.getEffect(token);
+				const objects = [...effect.selection];
+				return {
+					count: objects.length,
+					inScene: objects.every(
+						(object: {parent: unknown}) => object.parent !== null,
+					),
+					instanced: objects.some(
+						(object: {isInstancedMesh?: boolean}) =>
+							object.isInstancedMesh === true,
+					),
+				};
+			};
+
+			const afterEnable = describeSelection();
+			viewer.gpuInstancing.enabled = false;
+			await (<any>window).rerender();
+			const afterDisable = describeSelection();
+			viewer.gpuInstancing.enabled = true;
+			await (<any>window).rerender();
+			const afterReenable = describeSelection();
+			return {afterEnable, afterDisable, afterReenable};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(selectionState.afterEnable.count).toBeGreaterThan(0);
+		expect(selectionState.afterEnable.inScene).toBe(true);
+		expect(selectionState.afterEnable.instanced).toBe(true);
+		expect(selectionState.afterDisable.count).toBeGreaterThan(0);
+		expect(selectionState.afterDisable.inScene).toBe(true);
+		expect(selectionState.afterDisable.instanced).toBe(false);
+		expect(selectionState.afterReenable.count).toBeGreaterThan(0);
+		expect(selectionState.afterReenable.inScene).toBe(true);
+		expect(selectionState.afterReenable.instanced).toBe(true);
+	});
 });

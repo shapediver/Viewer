@@ -351,7 +351,7 @@ export class GLTFConverter {
 
 	// #endregion Public Methods (1)
 
-	// #region Private Methods (17)
+	// #region Private Methods (20)
 
 	private convertAccessor(data: IAttributeData): number {
 		if (!this._content.accessors) this._content.accessors = [];
@@ -1076,6 +1076,91 @@ export class GLTFConverter {
 		return this._meshCache[cacheKey];
 	}
 
+	/**
+	 * Bake instanceOffsetMatrix into the exported node. Near-identical
+	 * offsets (within epsilon) share this node; mixed offsets become children
+	 * so each primitive keeps its baked transform. Returns geometries that
+	 * remain on this node (no offset, or a single shared offset).
+	 */
+	private applyBakedInstanceOffsets(
+		node: ITreeNode,
+		nodeDef: IGLTF_v2_Node,
+		geometryDataList: GeometryData[],
+	): GeometryData[] {
+		const groups: {offset?: number[]; geometries: GeometryData[]}[] = [];
+		for (const geometry of geometryDataList) {
+			const offset = geometry.instanceOffsetMatrix;
+			const existing = groups.find((group) =>
+				this.instanceOffsetsEqual(group.offset, offset),
+			);
+			if (existing) existing.geometries.push(geometry);
+			else groups.push({offset, geometries: [geometry]});
+		}
+
+		const offsetGroups = groups.filter((group) => group.offset);
+		if (offsetGroups.length === 0) return geometryDataList;
+
+		if (
+			offsetGroups.length === 1 &&
+			offsetGroups[0].geometries.length === geometryDataList.length
+		) {
+			this.multiplyNodeMatrix(nodeDef, offsetGroups[0].offset!);
+			return geometryDataList;
+		}
+
+		for (const group of offsetGroups) {
+			const childGeometries = this._convertForAR
+				? group.geometries.filter(
+						(g) =>
+							g.mode !== PRIMITIVE_MODE.POINTS &&
+							g.mode !== PRIMITIVE_MODE.LINES &&
+							g.mode !== PRIMITIVE_MODE.LINE_LOOP &&
+							g.mode !== PRIMITIVE_MODE.LINE_STRIP,
+					)
+				: group.geometries;
+			if (childGeometries.length === 0) continue;
+			const childDef: IGLTF_v2_Node = {
+				name: this._convertForAR
+					? this._uuidGenerator.create()
+					: `${node.displayName ?? node.name}_instance_offset`,
+				matrix: [...group.offset!],
+				mesh: this.convertCombinedMesh(childGeometries),
+			};
+			if (!this._content.nodes) this._content.nodes = [];
+			const children = nodeDef.children ?? [];
+			nodeDef.children = children;
+			this._content.nodes.push(childDef);
+			children.push(this._content.nodes.length - 1);
+		}
+
+		return groups.find((group) => !group.offset)?.geometries ?? [];
+	}
+
+	private instanceOffsetsEqual(
+		a: number[] | undefined,
+		b: number[] | undefined,
+		epsilon = 1e-5,
+	): boolean {
+		if (a === b) return true;
+		if (!a || !b || a.length !== b.length) return false;
+		for (let i = 0; i < a.length; i++) {
+			if (Math.abs(a[i] - b[i]) > epsilon) return false;
+		}
+		return true;
+	}
+
+	private multiplyNodeMatrix(nodeDef: IGLTF_v2_Node, offset: number[]): void {
+		const base = nodeDef.matrix
+			? mat4.clone(nodeDef.matrix as unknown as mat4)
+			: mat4.create();
+		const combined = mat4.multiply(
+			mat4.create(),
+			base,
+			offset as unknown as mat4,
+		);
+		nodeDef.matrix = Array.from(combined);
+	}
+
 	private async convertNode(node: ITreeNode): Promise<number> {
 		if (!this._content.nodes) this._content.nodes = [];
 		const nodeDef: IGLTF_v2_Node = {
@@ -1118,33 +1203,15 @@ export class GLTFConverter {
 		}
 
 		// Baked-transform occurrences share the source primitive and position
-		// it via an offset matrix; bake that offset into the exported node.
-		const offsetMatrices = geometryDataList
-			.map((g) => g.instanceOffsetMatrix)
-			.filter((m): m is number[] => m !== undefined);
-		if (offsetMatrices.length > 0) {
-			const first = offsetMatrices[0];
-			const allEqual =
-				offsetMatrices.length === geometryDataList.length &&
-				offsetMatrices.every((m) => m.every((v, i) => v === first[i]));
-			if (allEqual) {
-				const base = nodeDef.matrix
-					? mat4.clone(nodeDef.matrix as unknown as mat4)
-					: mat4.create();
-				const combined = mat4.multiply(
-					mat4.create(),
-					base,
-					first as unknown as mat4,
-				);
-				nodeDef.matrix = Array.from(combined);
-			} else {
-				Logger.instance.warn(
-					`GLTFConverter.convertNode: Node ${node.displayName ?? node.name} mixes geometry with different instance offsets; exported positions may be wrong.`,
-				);
-			}
-		}
+		// it via an offset matrix. Shared offsets bake into this node; mixed
+		// offsets become child nodes so each primitive keeps its transform.
+		const nodeGeometries = this.applyBakedInstanceOffsets(
+			node,
+			nodeDef,
+			geometryDataList,
+		);
 
-		if (geometryDataList.length > 0) {
+		if (nodeGeometries.length > 0) {
 			let instanceMatrices: mat4[] | undefined;
 			// The gltf loader stores instance matrices (EXT_mesh_gpu_instancing)
 			// on the same node as the geometry since the gltf tree was
@@ -1164,14 +1231,14 @@ export class GLTFConverter {
 
 			// Filter for AR mode
 			const validGeometries = this._convertForAR
-				? geometryDataList.filter(
+				? nodeGeometries.filter(
 						(g) =>
 							g.mode !== PRIMITIVE_MODE.POINTS &&
 							g.mode !== PRIMITIVE_MODE.LINES &&
 							g.mode !== PRIMITIVE_MODE.LINE_LOOP &&
 							g.mode !== PRIMITIVE_MODE.LINE_STRIP,
 					)
-				: geometryDataList;
+				: nodeGeometries;
 
 			if (validGeometries.length > 0) {
 				const meshIndex = this.convertCombinedMesh(validGeometries);
@@ -1226,7 +1293,8 @@ export class GLTFConverter {
 			}
 		}
 
-		if (node.children.length > 0) nodeDef.children = [];
+		if (node.children.length > 0 && !nodeDef.children)
+			nodeDef.children = [];
 		for (let i = 0; i < node.children.length; i++) {
 			if (node.children[i].visible === true) {
 				if (this._viewport) {
@@ -1614,7 +1682,7 @@ export class GLTFConverter {
 		return array.buffer;
 	}
 
-	// #endregion Private Methods (17)
+	// #endregion Private Methods (20)
 }
 
 // #endregion Classes (1)

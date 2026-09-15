@@ -604,6 +604,12 @@ export class SceneTreeManager implements IManager {
 			this._hiddenCamera,
 		);
 
+		// Instancing (and renderer-type) toggles dispose and recreate meshes.
+		// Rebind outline/bloom selections onto the new objects so they do not
+		// keep referencing disposed InstancedMeshes or regular meshes.
+		if (this._newRendererType)
+			this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
+
 		this._performanceEvaluator.endSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
 		);

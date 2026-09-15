@@ -94,11 +94,13 @@ baked-transform occurrences) and color as one instance slot; a lightweight
 placeholder object represents it in the regular scene-object hierarchy so
 cleanup, bounding boxes and effects keep working.
 
-- **Picking**: the intersection engine raycasts the batches and maps
-  `instanceId` back to the owning tree node.
 - **Post-processing effects** (outline, selective bloom): instances are
   partitioned into per-effect-combination meshes, so effects apply per instance
-  without rendering anything twice.
+  without rendering anything twice. Toggling instancing rebuilds scene objects
+  and rebinds active outline/bloom selections onto the new meshes.
+- **Picking**: the intersection engine raycasts the batches and maps
+  `instanceId` to the owning tree node and that slot's `GeometryData` (the
+  slot key is `node.id:geometry.id`).
 - **Visibility**: hidden instances are removed from the InstancedMesh count
   (swap-and-pop) and restored when shown.
 - **Frustum culling**: each batch recomputes its bounding sphere from instance
@@ -129,6 +131,9 @@ is already loaded.
 - Baked-transform recovery only handles rigid transforms (no scaling or
   mirroring) on packed float32 data without tangents, and only while parsing
   a glTF (not when scanning an already-loaded tree).
+- Exporting a node whose primitives have mixed baked offsets writes one child
+  node per distinct offset (near-identical matrices, epsilon 1e-5, still share
+  a node).
 - Non-opaque attribute materials fall back to the regular path / per-occurrence
   batches.
 

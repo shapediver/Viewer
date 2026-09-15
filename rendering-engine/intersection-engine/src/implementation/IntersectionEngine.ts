@@ -180,7 +180,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	// #endregion Public Methods (2)
 
-	// #region Private Methods (2)
+	// #region Private Methods (3)
 
 	/**
 	 * Gather all nodes that contain geometry data.
@@ -301,11 +301,13 @@ export class IntersectionEngine implements IIntersectionEngine {
 						return [];
 
 					const hitGeometry =
-						(hitNode.data.find(
-							(d) =>
-								d instanceof GeometryData &&
-								d.instanceHash === instanceHash,
-						) as GeometryData | undefined) ?? instantiableGeometry;
+						this.resolveInstancedGeometry(
+							hitNode,
+							mesh,
+							i.instanceId,
+							instanceHash,
+							instantiableGeometry,
+						);
 
 					return [
 						{
@@ -372,5 +374,41 @@ export class IntersectionEngine implements IIntersectionEngine {
 		}
 	}
 
-	// #endregion Private Methods (2)
+	/**
+	 * Map an InstancedMesh hit to the GeometryData for that slot. The slot key
+	 * is `${node.id}:${geometry.id}`; falling back to the first matching hash
+	 * would pick the wrong primitive when one node has several identical ones.
+	 */
+	private resolveInstancedGeometry(
+		hitNode: ITreeNode,
+		mesh: THREE.InstancedMesh,
+		instanceId: number | undefined,
+		instanceHash: string | undefined,
+		fallback: GeometryData | undefined,
+	): GeometryData | undefined {
+		const instanceKeys = mesh.userData.instanceKeys as
+			| (string | undefined)[]
+			| undefined;
+		const nodeKey =
+			instanceId !== undefined ? instanceKeys?.[instanceId] : undefined;
+		const prefix = hitNode.id + ":";
+		const geometryId = nodeKey?.startsWith(prefix)
+			? nodeKey.slice(prefix.length)
+			: undefined;
+		if (geometryId) {
+			const byId = hitNode.data.find(
+				(d) => d instanceof GeometryData && d.id === geometryId,
+			) as GeometryData | undefined;
+			if (byId) return byId;
+		}
+		return (
+			(hitNode.data.find(
+				(d) =>
+					d instanceof GeometryData &&
+					d.instanceHash === instanceHash,
+			) as GeometryData | undefined) ?? fallback
+		);
+	}
+
+	// #endregion Private Methods (3)
 }
