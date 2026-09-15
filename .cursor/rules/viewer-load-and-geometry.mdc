@@ -31,7 +31,7 @@ alwaysApply: true
 - Instance world bounds use the same local AABB × (`worldMatrix` × offset) as regular meshes. Do not vertex-walk placeholders.
 - Color-only variants of a batched primitive keep distinct `material.id`s; the tint lives in `instanceColor`. Do **not** treat that id mismatch as a per-occurrence material override (`effectMeshCount`). Overrides are for interaction highlights and for a material assigned after the occurrence joined the batch.
 - Toggling instancing disposes and recreates meshes. Refresh outline/bloom selections after that conversion so they do not keep disposed objects.
-- Exporting baked instances: near-identical `instanceOffsetMatrix` values (epsilon) share the node transform; mixed offsets become child nodes. Do not require element-for-element `===` or leave mixed offsets on one node.
+- Exporting baked instances: near-identical `instanceOffsetMatrix` values (epsilon) share a transform. Fold that offset into the parent node only when the node has **no children**; if it has descendants (or mixed offsets), put the geometry on a synthetic child so the original children do not inherit the offset.
 - Instanced picking stores `${node.id}:${geometry.id}` on each slot (`instanceKeys`). Do not resolve a hit as “first GeometryData with this instanceHash” when one node has several identical primitives.
 
 If you learn more load, glTF, or scene-graph constraints, update this file or add a new rule under `.cursor/rules/`.

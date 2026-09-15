@@ -133,7 +133,9 @@ is already loaded.
   a glTF (not when scanning an already-loaded tree).
 - Exporting a node whose primitives have mixed baked offsets writes one child
   node per distinct offset (near-identical matrices, epsilon 1e-5, still share
-  a node).
+  a transform). A single shared offset folds into the parent only when that
+  node has no children; otherwise the geometry is a synthetic child so
+  descendants are not offset.
 - Non-opaque attribute materials fall back to the regular path / per-occurrence
   batches.
 

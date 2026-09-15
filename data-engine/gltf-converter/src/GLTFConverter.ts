@@ -1077,10 +1077,12 @@ export class GLTFConverter {
 	}
 
 	/**
-	 * Bake instanceOffsetMatrix into the exported node. Near-identical
-	 * offsets (within epsilon) share this node; mixed offsets become children
-	 * so each primitive keeps its baked transform. Returns geometries that
-	 * remain on this node (no offset, or a single shared offset).
+	 * Bake instanceOffsetMatrix into the exported node. Runtime applies that
+	 * offset only to the geometry, not to descendants. A single shared offset
+	 * can fold into this node only when it has no children; otherwise (and for
+	 * mixed offsets) the geometry goes on a synthetic child. Returns geometries
+	 * that remain on this node (no offset, or a single shared offset with no
+	 * children).
 	 */
 	private applyBakedInstanceOffsets(
 		node: ITreeNode,
@@ -1102,7 +1104,8 @@ export class GLTFConverter {
 
 		if (
 			offsetGroups.length === 1 &&
-			offsetGroups[0].geometries.length === geometryDataList.length
+			offsetGroups[0].geometries.length === geometryDataList.length &&
+			node.children.length === 0
 		) {
 			this.multiplyNodeMatrix(nodeDef, offsetGroups[0].offset!);
 			return geometryDataList;
@@ -1203,8 +1206,9 @@ export class GLTFConverter {
 		}
 
 		// Baked-transform occurrences share the source primitive and position
-		// it via an offset matrix. Shared offsets bake into this node; mixed
-		// offsets become child nodes so each primitive keeps its transform.
+		// it via an offset matrix. A shared offset bakes into this node only
+		// when it has no children; otherwise (and for mixed offsets) geometry
+		// is placed on synthetic children so descendants keep their transforms.
 		const nodeGeometries = this.applyBakedInstanceOffsets(
 			node,
 			nodeDef,
