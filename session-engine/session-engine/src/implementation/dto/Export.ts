@@ -11,7 +11,8 @@ import {
 	EVENTTYPE,
 	InputValidator,
 	Logger,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
 
 import {type IExport} from "../../interfaces/dto/IExport";
@@ -167,6 +168,12 @@ export class Export implements IExport {
 				id: eventId,
 				progress: 0,
 				status: "Requesting export",
+				data: {
+					sessionId: this.#sessionEngineCore.id,
+					exportId: this.#id,
+					name: this.#name,
+					displayname: this.#displayname,
+				},
 			};
 			this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
@@ -192,6 +199,12 @@ export class Export implements IExport {
 				id: eventId,
 				progress: 1,
 				status: "Returning export",
+				data: {
+					sessionId: this.#sessionEngineCore.id,
+					exportId: this.#id,
+					name: this.#name,
+					displayname: this.#displayname,
+				},
 			};
 			this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
@@ -202,6 +215,12 @@ export class Export implements IExport {
 				id: eventId,
 				progress: 1,
 				status: "Export request failed",
+				data: {
+					sessionId: this.#sessionEngineCore.id,
+					exportId: this.#id,
+					name: this.#name,
+					displayname: this.#displayname,
+				},
 			};
 			this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventEnd);
 
