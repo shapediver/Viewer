@@ -103,7 +103,7 @@ export class SceneTreeManager implements IManager {
 		isVisibleInHierarchy: boolean = true,
 	): void {
 		let dataChild: THREE.Object3D | undefined;
-		if (this._newRendererType) {
+		if (this._newRendererType && filter.transformationOnly === false) {
 			const staleObjects = convertedObject.children.filter(
 				(child) =>
 					child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
