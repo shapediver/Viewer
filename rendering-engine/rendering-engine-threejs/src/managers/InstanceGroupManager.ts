@@ -74,12 +74,10 @@ export class InstanceGroupManager {
 	private readonly _geometryIdByNodeKey = new Map<string, string>(); // nodeId → geometryId
 
 	/**
-	 * When false, SceneTreeManager renders instantiable geometry through the
-	 * regular per-mesh path instead of batching it here. Off by default so
-	 * scenes that never opt in pay no instancing overhead; turn on together
-	 * with GeometryEngine.gpuInstancing before loading content.
+	 * SceneTreeManager batches instantiable geometry here by default. Set to
+	 * false to use the regular per-mesh rendering path for this viewport.
 	 */
-	public enabled = false;
+	public enabled = true;
 
 	readonly instancedRoot: THREE.Group = new THREE.Group();
 

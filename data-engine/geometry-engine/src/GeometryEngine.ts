@@ -18,7 +18,7 @@ import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
 import {GLTFLoader as GLTF_v2Loader} from "./gltfv2/GLTFLoader";
 
 export class GeometryEngine {
-	// #region Properties (7)
+	// #region Properties (6)
 
 	private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
 	private readonly _hashCreator: HashCreator = HashCreator.instance;
@@ -29,11 +29,10 @@ export class GeometryEngine {
 
 	private static _instance: GeometryEngine;
 
-	private _gpuInstancing = false;
-	private _gpuInstancingUsers = 0;
+	private _gpuInstancing = true;
 	private _loadingQueueLength = Infinity;
 
-	// #endregion Properties (7)
+	// #endregion Properties (6)
 
 	// #region Public Static Accessors (1)
 
@@ -47,9 +46,8 @@ export class GeometryEngine {
 
 	/**
 	 * When true, glTF parsing looks for repeated triangle primitives and marks
-	 * them instantiable. Off by default. Retain/release so multiple viewports
-	 * can opt in independently; already-loaded trees can be scanned with
-	 * {@link applyGpuInstancing}.
+	 * them instantiable. On by default and independent of viewport rendering;
+	 * already-loaded trees can be scanned with {@link applyGpuInstancing}.
 	 */
 	public get gpuInstancing(): boolean {
 		return this._gpuInstancing;
@@ -57,17 +55,6 @@ export class GeometryEngine {
 
 	public set gpuInstancing(value: boolean) {
 		this._gpuInstancing = value;
-		this._gpuInstancingUsers = value ? Math.max(this._gpuInstancingUsers, 1) : 0;
-	}
-
-	public retainGpuInstancing(): void {
-		this._gpuInstancingUsers++;
-		this._gpuInstancing = true;
-	}
-
-	public releaseGpuInstancing(): void {
-		this._gpuInstancingUsers = Math.max(0, this._gpuInstancingUsers - 1);
-		this._gpuInstancing = this._gpuInstancingUsers > 0;
 	}
 
 	public get parallelGlTFProcessing(): number {

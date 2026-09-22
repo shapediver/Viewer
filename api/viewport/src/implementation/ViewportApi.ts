@@ -629,10 +629,9 @@ export class ViewportApi implements IViewportApi {
 
 	/**
 	 * @internal
-	 * Opt-in GPU-instancing for this viewport. Off by default. Turning it on
-	 * retains load-time detection for this page (reference-counted across
-	 * viewports) and scans already-loaded geometry so a later conversion can
-	 * batch it. Not part of the public API and subject to change without notice.
+	 * GPU instancing for this viewport. On by default. Turning it back on scans
+	 * already-loaded geometry so a later conversion can batch it. Not part of
+	 * the public API and subject to change without notice.
 	 */
 	public get gpuInstancing(): {
 		enabled: boolean;
@@ -651,12 +650,8 @@ export class ViewportApi implements IViewportApi {
 			},
 			set enabled(value: boolean) {
 				if (value === manager.enabled) return;
-				if (value) {
-					GeometryEngine.instance.retainGpuInstancing();
+				if (value)
 					GeometryEngine.instance.applyGpuInstancing(sceneTree.root);
-				} else {
-					GeometryEngine.instance.releaseGpuInstancing();
-				}
 				manager.enabled = value;
 				viewport.update("gpuInstancing");
 			},
@@ -1286,8 +1281,6 @@ export class ViewportApi implements IViewportApi {
 	}
 
 	public async close(): Promise<void> {
-		if (this.#renderingEngine.instanceGroupManager.enabled)
-			GeometryEngine.instance.releaseGpuInstancing();
 		return await this.#creationControlCenterViewport.closeViewportEngine(
 			this.id,
 		);

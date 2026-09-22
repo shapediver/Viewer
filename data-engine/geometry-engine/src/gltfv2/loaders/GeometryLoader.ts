@@ -46,7 +46,13 @@ interface PendingInstancing {
 	primitive: IGLTF_v2_Primitive;
 	geometryData: GeometryData;
 	contentHash?: string;
+	staticContentHash?: string;
 	bakedRep?: BakedRepresentative;
+}
+
+interface PositionBounds {
+	min: [number, number, number];
+	max: [number, number, number];
 }
 
 export class GeometryLoader {
@@ -67,7 +73,10 @@ export class GeometryLoader {
 	private readonly _loadedByInstanceContent = new Map<string, GeometryData>();
 	// Cheap fingerprints (counts/types, no bytes). Collision lists defer the
 	// byte-hash / baked-transform walk until a second primitive looks similar.
-	private readonly _pendingByCheapKey = new Map<string, PendingInstancing[]>();
+	private readonly _pendingByCheapKey = new Map<
+		string,
+		PendingInstancing[]
+	>();
 	private readonly _digitRegex = /\d/;
 	private _dracoDecoder: any = null;
 
@@ -295,7 +304,20 @@ export class GeometryLoader {
 			ACCESSORCOMPONENTSIZE_V2[
 				<keyof typeof ACCESSORCOMPONENTSIZE_V2>accessor.componentType
 			];
-		return `${accessor.componentType}:${accessor.type}:${accessor.count}:${accessor.count * itemSize * elementBytes}`;
+		return JSON.stringify({
+			byteLength: accessor.count * itemSize * elementBytes,
+			componentType: accessor.componentType,
+			count: accessor.count,
+			normalized: accessor.normalized ?? false,
+			sparse: accessor.sparse
+				? {
+						count: accessor.sparse.count,
+						indexComponentType:
+							accessor.sparse.indices.componentType,
+					}
+				: undefined,
+			type: accessor.type,
+		});
 	}
 
 	private createExactInstanceKey(
@@ -367,6 +389,54 @@ export class GeometryLoader {
 		});
 	}
 
+	/**
+	 * Content that must remain byte-identical when POSITION/NORMAL are related
+	 * by a baked rigid transform. Checking it first prevents geometry with
+	 * different topology, UVs, colors, or other vertex data from being merged.
+	 */
+	private getPrimitiveStaticContentHash(
+		primitive: IGLTF_v2_Primitive,
+	): string | undefined {
+		const attributes = Object.fromEntries(
+			Object.keys(primitive.attributes)
+				.filter((name) => name !== "POSITION" && name !== "NORMAL")
+				.sort()
+				.map((name) => [
+					name,
+					this.createAccessorContentHash(primitive.attributes[name]),
+				]),
+		);
+		if (Object.values(attributes).some((hash) => hash === undefined))
+			return;
+		const indices = this.createAccessorContentHash(primitive.indices);
+		if (primitive.indices !== undefined && indices === undefined) return;
+		return JSON.stringify({attributes, indices});
+	}
+
+	private getPositionBounds(
+		primitive: IGLTF_v2_Primitive,
+	): PositionBounds | undefined {
+		const accessorId = primitive.attributes.POSITION;
+		if (accessorId === undefined) return;
+		const accessor = this._content.accessors?.[accessorId];
+		if (
+			!accessor ||
+			accessor.min?.length !== 3 ||
+			accessor.max?.length !== 3
+		)
+			return;
+		if (
+			![...accessor.min, ...accessor.max].every((value) =>
+				Number.isFinite(value),
+			)
+		)
+			return;
+		return {
+			min: [accessor.min[0], accessor.min[1], accessor.min[2]],
+			max: [accessor.max[0], accessor.max[1], accessor.max[2]],
+		};
+	}
+
 	private assignInstanceHash(
 		geometryData: GeometryData,
 		contentKey: string,
@@ -414,6 +484,167 @@ export class GeometryLoader {
 		}
 		const count = positions.length / 3;
 		return [x / count, y / count, z / count];
+	}
+
+	/**
+	 * Constant-size, transform-invariant rejection test. The rigid extraction
+	 * path requires corresponding vertex order, so distances between a few
+	 * corresponding vertex pairs must agree. A match is only a candidate; all
+	 * vertices are still verified before batching.
+	 */
+	private couldBeRigidCopy(
+		primitive: IGLTF_v2_Primitive,
+		pending: PendingInstancing,
+	): boolean {
+		const source = this.getExtractableArray(
+			pending.primitive.attributes.POSITION,
+			3,
+		);
+		const target = this.getExtractableArray(
+			primitive.attributes.POSITION,
+			3,
+		);
+		// Preserve the existing content-hash fallback for unsupported layouts.
+		if (!source || !target) return true;
+		if (source.length !== target.length) return false;
+		const vertexCount = source.length / 3;
+		if (vertexCount < 2) return true;
+
+		const pairs = [
+			[0, vertexCount - 1],
+			[0, Math.floor(vertexCount / 2)],
+			[Math.floor(vertexCount / 4), Math.floor((vertexCount * 3) / 4)],
+		];
+		for (const [a, b] of pairs) {
+			if (a === b) continue;
+			const ai = a * 3;
+			const bi = b * 3;
+			const sourceDx = source[ai] - source[bi];
+			const sourceDy = source[ai + 1] - source[bi + 1];
+			const sourceDz = source[ai + 2] - source[bi + 2];
+			const targetDx = target[ai] - target[bi];
+			const targetDy = target[ai + 1] - target[bi + 1];
+			const targetDz = target[ai + 2] - target[bi + 2];
+			const sourceDistanceSq =
+				sourceDx * sourceDx + sourceDy * sourceDy + sourceDz * sourceDz;
+			const targetDistanceSq =
+				targetDx * targetDx + targetDy * targetDy + targetDz * targetDz;
+			const tolerance =
+				Math.max(1, sourceDistanceSq, targetDistanceSq) * 5e-4;
+			if (Math.abs(sourceDistanceSq - targetDistanceSq) > tolerance)
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Fast path for the common case where otherwise identical geometry has only
+	 * a translation baked into POSITION. Accessor bounds select the candidate;
+	 * every position and normal is still verified before it is accepted.
+	 */
+	private tryExtractBakedTranslation(
+		primitive: IGLTF_v2_Primitive,
+		pending: PendingInstancing,
+	): number[] | undefined {
+		const sourceBounds = this.getPositionBounds(pending.primitive);
+		const targetBounds = this.getPositionBounds(primitive);
+		if (!sourceBounds || !targetBounds) return;
+
+		const sourceExtent = sourceBounds.max.map(
+			(value, index) => value - sourceBounds.min[index],
+		);
+		const targetExtent = targetBounds.max.map(
+			(value, index) => value - targetBounds.min[index],
+		);
+		const scale = Math.max(1, ...sourceExtent, ...targetExtent);
+		const tolerance = scale * 1e-5 + 1e-7;
+		for (let i = 0; i < 3; i++)
+			if (Math.abs(sourceExtent[i] - targetExtent[i]) > tolerance) return;
+
+		const translation: [number, number, number] = [
+			targetBounds.min[0] - sourceBounds.min[0],
+			targetBounds.min[1] - sourceBounds.min[1],
+			targetBounds.min[2] - sourceBounds.min[2],
+		];
+		// Prefer the byte-identical path for zero-translation candidates.
+		if (
+			Math.abs(translation[0]) <= tolerance &&
+			Math.abs(translation[1]) <= tolerance &&
+			Math.abs(translation[2]) <= tolerance
+		)
+			return;
+
+		const sourcePositions = this.getExtractableArray(
+			pending.primitive.attributes.POSITION,
+			3,
+		);
+		const targetPositions = this.getExtractableArray(
+			primitive.attributes.POSITION,
+			3,
+		);
+		if (
+			!sourcePositions ||
+			!targetPositions ||
+			sourcePositions.length !== targetPositions.length
+		)
+			return;
+
+		const toleranceSq = tolerance * tolerance;
+		for (let i = 0; i < targetPositions.length; i += 3) {
+			const dx = sourcePositions[i] + translation[0] - targetPositions[i];
+			const dy =
+				sourcePositions[i + 1] +
+				translation[1] -
+				targetPositions[i + 1];
+			const dz =
+				sourcePositions[i + 2] +
+				translation[2] -
+				targetPositions[i + 2];
+			if (dx * dx + dy * dy + dz * dz > toleranceSq) return;
+		}
+
+		const sourceNormals = this.getExtractableArray(
+			pending.primitive.attributes.NORMAL,
+			3,
+		);
+		const targetNormals = this.getExtractableArray(
+			primitive.attributes.NORMAL,
+			3,
+		);
+		if (pending.primitive.attributes.NORMAL !== undefined && !sourceNormals)
+			return;
+		if (primitive.attributes.NORMAL !== undefined && !targetNormals) return;
+		if ((sourceNormals === undefined) !== (targetNormals === undefined))
+			return;
+		if (sourceNormals && targetNormals) {
+			if (sourceNormals.length !== targetNormals.length) return;
+			const normalToleranceSq = 25e-6;
+			for (let i = 0; i < targetNormals.length; i += 3) {
+				const dx = sourceNormals[i] - targetNormals[i];
+				const dy = sourceNormals[i + 1] - targetNormals[i + 1];
+				const dz = sourceNormals[i + 2] - targetNormals[i + 2];
+				if (dx * dx + dy * dy + dz * dz > normalToleranceSq) return;
+			}
+		}
+
+		return [
+			1,
+			0,
+			0,
+			0,
+			0,
+			1,
+			0,
+			0,
+			0,
+			0,
+			1,
+			0,
+			translation[0],
+			translation[1],
+			translation[2],
+			1,
+		];
 	}
 
 	/**
@@ -843,9 +1074,55 @@ export class GeometryLoader {
 		if (instancing?.cheapKey) {
 			const pending = this._pendingByCheapKey.get(instancing.cheapKey);
 			if (pending && pending.length > 0) {
-				const contentHash = this.getPrimitiveContentHash(primitive);
+				const plausible = pending.filter((entry) =>
+					this.couldBeRigidCopy(primitive, entry),
+				);
+				const staticContentHash =
+					plausible.length > 0
+						? this.getPrimitiveStaticContentHash(primitive)
+						: undefined;
+				const compatible = plausible.filter((entry) => {
+					if (staticContentHash === undefined) return true;
+					if (entry.staticContentHash === undefined)
+						entry.staticContentHash =
+							this.getPrimitiveStaticContentHash(entry.primitive);
+					return entry.staticContentHash === staticContentHash;
+				});
+
+				if (staticContentHash !== undefined) {
+					for (const entry of compatible) {
+						const offsetMatrix = this.tryExtractBakedTranslation(
+							primitive,
+							entry,
+						);
+						if (!offsetMatrix) continue;
+						const instance = this.addInstance(
+							entry.geometryData,
+							cacheKey,
+							material,
+							offsetMatrix,
+							instancing.exactKey ?? instancing.cheapKey,
+						);
+						if (
+							instancing.exactKey &&
+							!this._loadedByInstanceContent.has(
+								instancing.exactKey,
+							)
+						)
+							this._loadedByInstanceContent.set(
+								instancing.exactKey,
+								instance,
+							);
+						return instance;
+					}
+				}
+
+				const contentHash =
+					compatible.length > 0
+						? this.getPrimitiveContentHash(primitive)
+						: undefined;
 				if (contentHash) {
-					for (const entry of pending) {
+					for (const entry of compatible) {
 						if (entry.contentHash === undefined)
 							entry.contentHash = this.getPrimitiveContentHash(
 								entry.primitive,
@@ -860,7 +1137,7 @@ export class GeometryLoader {
 							);
 					}
 				}
-				for (const entry of pending) {
+				for (const entry of compatible) {
 					const offsetMatrix = this.tryExtractBakedInstance(
 						primitive,
 						entry,
