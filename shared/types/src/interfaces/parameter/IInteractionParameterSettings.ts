@@ -50,6 +50,25 @@ export interface IInteractionParameterProps {
 	};
 	/** The mode to determine when the parameter is active. (default: 'default') */
 	activeMode?: "default" | "activeOnStart" | "alwaysActive";
+	/**
+	 * If true, a customization is requested after handles stop changing.
+	 * Waits {@link automaticSceneUpdateTimeout} after the last committed change.
+	 *
+	 * This is not session-level `ISessionApi.automaticSceneUpdate`, which
+	 * controls whether the session scene tree node is replaced after customize.
+	 *
+	 * Used by gumball, rectangle transform, and dragging. Selection ignores it.
+	 *
+	 * @default false
+	 */
+	automaticSceneUpdate?: boolean;
+	/**
+	 * Idle timeout in milliseconds before {@link automaticSceneUpdate} requests
+	 * a customization. Reset on each committed handle move.
+	 *
+	 * @default 1000
+	 */
+	automaticSceneUpdateTimeout?: number;
 	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */
 	occludeBySceneGeometry?: boolean;
 	/** The presentation of the interaction parameter. (default: 'toolbar') */
@@ -113,6 +132,8 @@ const IGeneralInteractionParameterJsonSchema = z.object({
 		.nullable()
 		.optional(),
 	activeMode: z.enum(["default", "activeOnStart", "alwaysActive"]).optional(),
+	automaticSceneUpdate: optionalBoolean,
+	automaticSceneUpdateTimeout: z.number().nonnegative().optional(),
 	occludeBySceneGeometry: optionalBoolean,
 	presentation: z.enum(["widget", "toolbar"]).optional(),
 });

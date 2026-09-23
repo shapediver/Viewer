@@ -36,13 +36,14 @@ export class RectangleTransformPointsMapping {
 		this.dtToConceptual = [0, 2, 4, 6];
 		this.conceptualToDT = [0, -1, 1, -1, 2, -1, 3, -1];
 
+		const interactive = config.interactive ?? true;
 		// Disabled corners are shown visually as locked (non-interactive) handles.
 		this.lockedCornerConceptualIndices = (
 			[
-				{ci: 0, show: config.corners?.bottomLeft ?? true},
-				{ci: 2, show: config.corners?.bottomRight ?? true},
-				{ci: 4, show: config.corners?.topRight ?? true},
-				{ci: 6, show: config.corners?.topLeft ?? true},
+				{ci: 0, show: interactive && (config.corners?.bottomLeft ?? true)},
+				{ci: 2, show: interactive && (config.corners?.bottomRight ?? true)},
+				{ci: 4, show: interactive && (config.corners?.topRight ?? true)},
+				{ci: 6, show: interactive && (config.corners?.topLeft ?? true)},
 			] as const
 		)
 			.filter(({show}) => !show)
@@ -96,4 +97,9 @@ export type PointVisibilityConfig = {
 		left?: boolean; // M7: left edge
 		right?: boolean; // M3: right edge
 	};
+	/**
+	 * If false, points are shown as disabled (locked) and cannot be dragged.
+	 * Default true.
+	 */
+	interactive?: boolean;
 };

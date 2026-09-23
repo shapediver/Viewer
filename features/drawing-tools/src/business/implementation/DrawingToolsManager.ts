@@ -35,6 +35,7 @@ import {
 	type Settings,
 	type SettingsOptional,
 } from "../interfaces/IDrawingToolsManager";
+import {resolveDrawingAutomaticSceneUpdate} from "./DrawingParameterSettingsConverter";
 import {GeometryManager} from "./managers/geometry/GeometryManager";
 import {GeometryState} from "./managers/geometry/GeometryState";
 import {HistoryManager} from "./managers/HistoryManager";
@@ -65,6 +66,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	#eventListenerToken?: string;
 	#paused: boolean = false;
 	#uuid = this.#uuidGenerator.create();
+	#automaticSceneUpdateTimeoutId?: ReturnType<typeof setTimeout>;
 
 	// Scratch vec3s reused across hot-path calls to avoid per-frame allocation.
 	#scratchVec3_constraintMin: vec3 = vec3.create();
@@ -117,7 +119,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		// special case, the scene is still empty, so we create a grid by default and show the scene
 		if (sceneTree.root.boundingBox.isEmpty()) this.#viewport.show = true;
 
-		// add listener for geometry changes, if autoUpdate is enabled the drawing tool will update automatically
+		// If automaticSceneUpdate is enabled, call update() after the idle timeout.
 		this.#eventListenerToken = this.#eventEngine.addListener(
 			EVENTTYPE_DRAWING_TOOLS.GEOMETRY_CHANGED,
 			(e: IEvent) => {
@@ -131,7 +133,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					event.recordHistory !== false
 				) {
 					if (
-						this.#settings.general.autoUpdate &&
+						this.#settings.general.automaticSceneUpdate &&
 						(this.#interactionManager.insertionInteractionHandler
 							.insertionActive === false ||
 							SystemInfo.instance.isMobile === true) &&
@@ -139,7 +141,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 							this.#settings.geometry.close ===
 								this.#geometryManager.geometryState.closeLoop)
 					) {
-						this.update();
+						this.scheduleAutomaticSceneUpdate();
 					}
 				}
 			},
@@ -504,6 +506,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public close(): void {
 		if (this.#closed) return;
+		this.clearAutomaticSceneUpdateTimeout();
 		if (this.#eventListenerToken) {
 			this.#eventEngine.removeListener(this.#eventListenerToken);
 			this.#eventListenerToken = undefined;
@@ -520,6 +523,21 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#sceneParent.removeChild(this.#parentNode);
 		sceneTree.root.updateVersion(false, false);
 		this.#closed = true;
+	}
+
+	private clearAutomaticSceneUpdateTimeout(): void {
+		if (this.#automaticSceneUpdateTimeoutId === undefined) return;
+		clearTimeout(this.#automaticSceneUpdateTimeoutId);
+		this.#automaticSceneUpdateTimeoutId = undefined;
+	}
+
+	private scheduleAutomaticSceneUpdate(): void {
+		this.clearAutomaticSceneUpdateTimeout();
+		this.#automaticSceneUpdateTimeoutId = setTimeout(() => {
+			this.#automaticSceneUpdateTimeoutId = undefined;
+			if (this.#closed) return;
+			this.update();
+		}, this.#settings.general.automaticSceneUpdateTimeout);
 	}
 
 	public getPointsData(): PointsData {
@@ -739,6 +757,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		metaData: (RayTraceResult | undefined)[];
 	} | void {
 		if (this.#closed) return;
+		this.clearAutomaticSceneUpdateTimeout();
 
 		const pointsCount = this.geometryState.getPointCount();
 		if (
@@ -878,6 +897,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			general: {
 				autoStart: true,
 				autoUpdate: false,
+				automaticSceneUpdate: false,
+				automaticSceneUpdateTimeout: 1000,
 				closeOnUpdate: false,
 				displayUnit: "",
 				enableTranslation: true,
@@ -1030,15 +1051,15 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		}
 
 		if (!isUndefinedOrNull(settingsOptional.general)) {
+			const {enabled: automaticSceneUpdate, timeout: automaticSceneUpdateTimeout} =
+				resolveDrawingAutomaticSceneUpdate(settingsOptional.general);
 			settings.general = {
 				autoStart: isUndefinedOrNull(settingsOptional.general.autoStart)
 					? true
 					: settingsOptional.general.autoStart,
-				autoUpdate: isUndefinedOrNull(
-					settingsOptional.general.autoUpdate,
-				)
-					? false
-					: settingsOptional.general.autoUpdate,
+				autoUpdate: automaticSceneUpdate,
+				automaticSceneUpdate,
+				automaticSceneUpdateTimeout,
 				closeOnUpdate: isUndefinedOrNull(
 					settingsOptional.general.closeOnUpdate,
 				)
