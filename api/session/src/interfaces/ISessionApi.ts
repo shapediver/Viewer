@@ -114,6 +114,9 @@ export interface ISessionApi {
 	 * In case this is set to false, the session's scene tree {@link node} will not be automatically replaced
 	 * by the node returned from {@link customize}. This can be used to plug the result of {@link customize}
 	 * into other parts of the scene tree.
+	 *
+	 * This is not the interaction/drawing parameter setting of the same name, which
+	 * requests a customization after idle handle or point edits.
 	 */
 	automaticSceneUpdate: boolean;
 	/**

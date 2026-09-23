@@ -111,9 +111,31 @@ export interface IDrawingParameterSettings {
 		/**
 		 * If the drawing tool is updated automatically when the drawing is changed.
 		 *
+		 * @deprecated Use {@link automaticSceneUpdate}. If this is set and
+		 * {@link automaticSceneUpdate} is not, idle `update()` still runs with
+		 * default {@link automaticSceneUpdateTimeout} 0.
+		 *
 		 * @default false
 		 */
 		autoUpdate?: boolean;
+
+		/**
+		 * If true, the drawing tool calls `update()` after points stop changing.
+		 * Waits {@link automaticSceneUpdateTimeout} after the last committed
+		 * geometry change. Distinct from session-level
+		 * `ISessionApi.automaticSceneUpdate`.
+		 *
+		 * @default false
+		 */
+		automaticSceneUpdate?: boolean;
+		/**
+		 * Idle timeout in milliseconds before {@link automaticSceneUpdate}
+		 * calls `update()`. Reset on each committed geometry change.
+		 *
+		 * Defaults to 1000 when {@link automaticSceneUpdate} is set, and to 0
+		 * when only the deprecated {@link autoUpdate} is set.
+		 */
+		automaticSceneUpdateTimeout?: number;
 
 		/**
 		 * If the drawing tool is closed when the drawing is updated.
@@ -518,6 +540,8 @@ export const IDrawingParameterJsonSchema = z.object({
 			enableSelection: optionalBoolean,
 			autoStart: optionalBoolean,
 			autoUpdate: optionalBoolean,
+			automaticSceneUpdate: optionalBoolean,
+			automaticSceneUpdateTimeout: z.number().nonnegative().optional(),
 			closeOnUpdate: optionalBoolean,
 		})
 		.nullable()
