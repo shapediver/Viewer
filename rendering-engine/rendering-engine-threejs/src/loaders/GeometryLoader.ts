@@ -110,6 +110,7 @@ export class GeometryLoader implements ILoader {
 		const existingMesh =
 			this._renderingEngine.instanceGroupManager.getDefaultMesh(
 				geometry.instanceHash,
+				geometry,
 			);
 
 		const primitiveCacheKey =
@@ -155,9 +156,13 @@ export class GeometryLoader implements ILoader {
 			material = incomingMaterialData
 				? this.createInstancedMaterial(loadedMaterial)
 				: loadedMaterial.clone();
+			material.userData.sourceMaterialUuid = loadedMaterial.uuid;
 			material.needsUpdate = false;
 			this._renderingEngine.materialLoader.trackMaterial(
-				"gpu-instance/" + geometry.instanceHash,
+				"gpu-instance/" +
+					this._renderingEngine.instanceGroupManager.getGroupKey(
+						geometry,
+					),
 				material,
 				incomingMaterialData,
 				materialSettings,
@@ -221,7 +226,10 @@ export class GeometryLoader implements ILoader {
 		placeholder.matrixAutoUpdate = false;
 		placeholder.userData.isInstanced = true;
 		placeholder.userData.instanceHash = geometry.instanceHash;
+		placeholder.userData.instanceGroupKey =
+			this._renderingEngine.instanceGroupManager.getGroupKey(geometry);
 		placeholder.userData.instanceNode = parentNode; // strong ref for effects
+		placeholder.userData.instanceGeometry = geometry;
 		placeholder.userData.instanceNodeKey = `${parentNode.id}:${geometry.id}`;
 		placeholder.userData.cacheKey = geometry.id + "_" + geometry.version;
 		placeholder.userData.primitiveCacheKey = primitiveCacheKey;
@@ -549,6 +557,7 @@ export class GeometryLoader implements ILoader {
 					geometry.id,
 					overrideMaterial,
 				);
+				this.updateInstancedPulse(geometry);
 				return;
 			}
 			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
@@ -561,6 +570,44 @@ export class GeometryLoader implements ILoader {
 				this._renderingEngine.instanceGroupManager.updateNodeColor(
 					geometry,
 				);
+				this.updateInstancedPulse(geometry);
+				return;
+			}
+
+			// Material data can change without changing its id (for example after
+			// changing material override settings). Refresh the shared white batch
+			// material when this occurrence owns the group's source material.
+			if (
+				incomingMaterialData &&
+				incomingMaterialData.id ===
+					this._renderingEngine.instanceGroupManager.getSharedMaterialId(
+						geometry.instanceHash,
+					)
+			) {
+				const sourceMaterial =
+					this._renderingEngine.materialLoader.load(
+						incomingMaterialData,
+						instancedMaterialSettings,
+					);
+				if (
+					this._renderingEngine.instanceGroupManager.hasSharedMaterialSourceChanged(
+						geometry.instanceHash,
+						sourceMaterial.uuid,
+					)
+				) {
+					const sharedMaterial =
+						this.createInstancedMaterial(sourceMaterial);
+					sharedMaterial.userData.sourceMaterialUuid =
+						sourceMaterial.uuid;
+					this._renderingEngine.instanceGroupManager.updateMaterial(
+						geometry.instanceHash,
+						sharedMaterial,
+					);
+				}
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
+				);
+				this.updateInstancedPulse(geometry);
 				return;
 			}
 
@@ -587,6 +634,7 @@ export class GeometryLoader implements ILoader {
 					geometry,
 				);
 			}
+			this.updateInstancedPulse(geometry);
 			return;
 		}
 
@@ -643,6 +691,13 @@ export class GeometryLoader implements ILoader {
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);
+	}
+
+	private updateInstancedPulse(geometry: GeometryData): void {
+		this._renderingEngine.pulseEffectManager.update(
+			geometry,
+			this._geometryObjects.get(geometry) ?? [],
+		);
 	}
 
 	private createInstancedMaterial(material: THREE.Material): THREE.Material {

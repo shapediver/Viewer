@@ -5,6 +5,7 @@ import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
 
 interface InstanceGroup {
+	groupKey: string;
 	instanceHash: string;
 	defaultMesh: THREE.InstancedMesh;
 	effectMeshes: Map<string, THREE.InstancedMesh>; // sorted effect-key combination → mesh
@@ -20,6 +21,7 @@ interface InstanceGroup {
 	nodeColors: Map<string, [number, number, number]>; // nodeId → RGB
 	nodeVisible: Map<string, boolean>; // nodeId → effective visibility
 	nodeRefs: Map<string, ITreeNode>; // nodeId → tree node
+	nodeGeometries: Map<string, GeometryData>; // nodeId → source data
 	// Offset of a baked-transform occurrence relative to the shared geometry;
 	// the rendered instance matrix is worldMatrix * offset.
 	nodeOffsets: Map<string, THREE.Matrix4>; // nodeId → offset
@@ -32,6 +34,7 @@ interface InstanceGroup {
 	// the whole group.
 	materialOverrides: Map<string, THREE.Material>; // nodeId → material
 	sharedMaterialId?: string;
+	sharedMaterialSourceUuid?: string;
 	// Material id each occurrence was registered with. Color-only glTF
 	// variants keep distinct ids (the tint lives in instanceColor); a later
 	// assignment of a different material id is a real per-occurrence override.
@@ -106,7 +109,8 @@ export class InstanceGroupManager {
 		material: THREE.Material | undefined,
 	): THREE.InstancedMesh {
 		const instanceHash = geometry.instanceHash!;
-		let group = this._groups.get(instanceHash);
+		const groupKey = this._getGroupKey(geometry);
+		let group = this._groups.get(groupKey);
 
 		if (!group) {
 			const initialCapacity = Math.max(geometry.instanceColors.length, 4);
@@ -122,17 +126,16 @@ export class InstanceGroupManager {
 			instancedMesh.receiveShadow = !(material instanceof GemMaterial)
 				? geometry.receiveShadow
 				: false;
+			instancedMesh.renderOrder = geometry.renderOrder;
 			instancedMesh.userData.instanceHash = instanceHash;
 			instancedMesh.userData.instanceNodes = [] as (
 				| ITreeNode
 				| undefined
 			)[];
-			instancedMesh.userData.instanceKeys = [] as (
-				| string
-				| undefined
-			)[];
+			instancedMesh.userData.instanceKeys = [] as (string | undefined)[];
 
 			group = {
+				groupKey,
 				instanceHash,
 				defaultMesh: instancedMesh,
 				effectMeshes: new Map(),
@@ -144,16 +147,19 @@ export class InstanceGroupManager {
 				nodeColors: new Map(),
 				nodeVisible: new Map(),
 				nodeRefs: new Map(),
+				nodeGeometries: new Map(),
 				nodeOffsets: new Map(),
 				nodeEffects: new Map(),
 				nodeEffectMeshKeys: new Map(),
 				materialOverrides: new Map(),
 				sharedMaterialId: geometry.material?.id,
+				sharedMaterialSourceUuid: material?.userData
+					.sourceMaterialUuid as string | undefined,
 				nodeSourceMaterialIds: new Map(),
 				primitiveCacheKey:
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
-			this._groups.set(instanceHash, group);
+			this._groups.set(groupKey, group);
 			this.instancedRoot.add(instancedMesh);
 		}
 
@@ -167,7 +173,7 @@ export class InstanceGroupManager {
 			return group.defaultMesh;
 		}
 
-		this._nodeToHash.set(nodeId, instanceHash);
+		this._nodeToHash.set(nodeId, groupKey);
 		let treeNodeKeys = this._nodeKeysByTreeNode.get(node.id);
 		if (!treeNodeKeys) {
 			treeNodeKeys = new Set();
@@ -188,6 +194,7 @@ export class InstanceGroupManager {
 				: geometry.material?.id,
 		);
 		group.nodeRefs.set(nodeId, node);
+		group.nodeGeometries.set(nodeId, geometry);
 		if (geometry.instanceOffsetMatrix)
 			group.nodeOffsets.set(
 				nodeId,
@@ -215,13 +222,6 @@ export class InstanceGroupManager {
 			idx,
 			new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]),
 		);
-
-		if (geometry.castShadow) group.defaultMesh.castShadow = true;
-		if (
-			geometry.receiveShadow &&
-			!(group.defaultMesh.material instanceof GemMaterial)
-		)
-			group.defaultMesh.receiveShadow = true;
 
 		group.nodeToIndex.set(nodeId, idx);
 		group.indexToNode.set(idx, node);
@@ -261,6 +261,7 @@ export class InstanceGroupManager {
 		group.nodeColors.delete(nodeId);
 		group.nodeVisible.delete(nodeId);
 		group.nodeRefs.delete(nodeId);
+		group.nodeGeometries.delete(nodeId);
 		group.nodeOffsets.delete(nodeId);
 		group.materialOverrides.delete(nodeId);
 		group.nodeSourceMaterialIds.delete(nodeId);
@@ -409,23 +410,32 @@ export class InstanceGroupManager {
 		material: THREE.Material,
 	): void {
 		if (!instanceHash) return;
-		const group = this._groups.get(instanceHash);
-		if (!group) return;
-
-		this._disposeMaterial(group.defaultMesh.material as THREE.Material);
-		group.defaultMesh.material = material;
-		this._trackMaterial(material, `gpu-instance/${instanceHash}`);
-		group.defaultMesh.material.needsUpdate = true;
-		group.effectMeshes.forEach((mesh) => {
-			// Meshes holding material overrides keep their own material.
-			if (mesh.userData.hasMaterialOverride) return;
-			this._disposeMaterial(mesh.material as THREE.Material);
-			mesh.material = material.clone();
+		const groups = [...this._groups.values()].filter(
+			(group) => group.instanceHash === instanceHash,
+		);
+		groups.forEach((group, index) => {
+			const groupMaterial = index === 0 ? material : material.clone();
+			group.sharedMaterialSourceUuid = material.userData
+				.sourceMaterialUuid as string | undefined;
+			this._disposeMaterial(group.defaultMesh.material as THREE.Material);
+			group.defaultMesh.material = groupMaterial;
 			this._trackMaterial(
-				mesh.material as THREE.Material,
-				`gpu-instance/${instanceHash}/${[...mesh.userData.effectKeys].join("|")}`,
+				groupMaterial,
+				`gpu-instance/${group.groupKey}`,
 			);
-			(mesh.material as THREE.Material).needsUpdate = true;
+			group.defaultMesh.material.needsUpdate = true;
+			group.effectMeshes.forEach((mesh) => {
+				if (mesh.userData.hasMaterialOverride) return;
+				this._disposeMaterial(mesh.material as THREE.Material);
+				mesh.material = groupMaterial.clone();
+				this._trackMaterial(
+					mesh.material as THREE.Material,
+					`gpu-instance/${group.groupKey}/${[
+						...mesh.userData.effectKeys,
+					].join("|")}`,
+				);
+				(mesh.material as THREE.Material).needsUpdate = true;
+			});
 		});
 	}
 
@@ -464,7 +474,7 @@ export class InstanceGroupManager {
 					effectMesh.material = material;
 					this._trackMaterial(
 						material,
-						`gpu-instance/${group.instanceHash}/${MATERIAL_OVERRIDE_PREFIX}${geometryId}`,
+						`gpu-instance/${group.groupKey}/${MATERIAL_OVERRIDE_PREFIX}${geometryId}`,
 					);
 					(effectMesh.material as THREE.Material).needsUpdate = true;
 				}
@@ -489,6 +499,43 @@ export class InstanceGroupManager {
 		}
 	}
 
+	public hasGeometry(geometryId: string): boolean {
+		return (this._nodeKeysByGeometry.get(geometryId)?.size ?? 0) > 0;
+	}
+
+	public getGeometryColor(geometryId: string): THREE.Color | undefined {
+		for (const nodeId of this._nodeKeysByGeometry.get(geometryId) ?? []) {
+			const groupKey = this._nodeToHash.get(nodeId);
+			const rgb = groupKey
+				? this._groups.get(groupKey)?.nodeColors.get(nodeId)
+				: undefined;
+			if (rgb) return new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]);
+		}
+		return;
+	}
+
+	public setGeometryColor(geometryId: string, color: THREE.Color): void {
+		const rgb: [number, number, number] = [color.r, color.g, color.b];
+		for (const nodeId of this._nodeKeysByGeometry.get(geometryId) ?? []) {
+			const groupKey = this._nodeToHash.get(nodeId);
+			const group = groupKey ? this._groups.get(groupKey) : undefined;
+			if (group) this._setNodeColor(group, nodeId, rgb);
+		}
+	}
+
+	/** Recompute instance colors after global color correction changes. */
+	public refreshColors(): void {
+		this._groups.forEach((group) =>
+			group.nodeGeometries.forEach((geometry, nodeId) =>
+				this._setNodeColor(
+					group,
+					nodeId,
+					this._computeNodeColor(geometry),
+				),
+			),
+		);
+	}
+
 	/** Remove a per-occurrence material override set via setMaterialOverride. */
 	public clearMaterialOverride(geometryId: string): void {
 		const effectKey = MATERIAL_OVERRIDE_PREFIX + geometryId;
@@ -510,18 +557,35 @@ export class InstanceGroupManager {
 
 	public getDefaultMesh(
 		instanceHash: string | undefined,
+		geometry?: GeometryData,
 	): THREE.InstancedMesh | undefined {
-		return instanceHash
-			? this._groups.get(instanceHash)?.defaultMesh
-			: undefined;
+		if (!instanceHash) return;
+		if (geometry)
+			return this._groups.get(this._getGroupKey(geometry))?.defaultMesh;
+		return [...this._groups.values()].find(
+			(group) => group.instanceHash === instanceHash,
+		)?.defaultMesh;
 	}
 
 	public getSharedMaterialId(
 		instanceHash: string | undefined,
 	): string | undefined {
-		return instanceHash
-			? this._groups.get(instanceHash)?.sharedMaterialId
-			: undefined;
+		if (!instanceHash) return;
+		return [...this._groups.values()].find(
+			(group) => group.instanceHash === instanceHash,
+		)?.sharedMaterialId;
+	}
+
+	public hasSharedMaterialSourceChanged(
+		instanceHash: string | undefined,
+		sourceMaterialUuid: string,
+	): boolean {
+		if (!instanceHash) return false;
+		return [...this._groups.values()].some(
+			(group) =>
+				group.instanceHash === instanceHash &&
+				group.sharedMaterialSourceUuid !== sourceMaterialUuid,
+		);
 	}
 
 	/**
@@ -675,6 +739,19 @@ export class InstanceGroupManager {
 	private _getNodeKeys(treeNodeId: string): string[] {
 		const keys = this._nodeKeysByTreeNode.get(treeNodeId);
 		return keys ? [...keys] : [];
+	}
+
+	public getGroupKey(geometry: GeometryData): string {
+		return this._getGroupKey(geometry);
+	}
+
+	private _getGroupKey(geometry: GeometryData): string {
+		return [
+			geometry.instanceHash,
+			geometry.renderOrder,
+			geometry.castShadow ? 1 : 0,
+			geometry.receiveShadow ? 1 : 0,
+		].join("|");
 	}
 
 	/**
@@ -951,12 +1028,7 @@ export class InstanceGroupManager {
 					effectIdx,
 					new THREE.Color().setRGB(color[0], color[1], color[2]),
 				);
-			this._writeInstanceSlot(
-				effectMesh,
-				effectIdx,
-				lastNode,
-				lastKey,
-			);
+			this._writeInstanceSlot(effectMesh, effectIdx, lastNode, lastKey);
 		}
 
 		effectMesh.count--;
@@ -997,6 +1069,7 @@ export class InstanceGroupManager {
 		effectMesh.matrixAutoUpdate = false;
 		effectMesh.castShadow = group.defaultMesh.castShadow;
 		effectMesh.receiveShadow = group.defaultMesh.receiveShadow;
+		effectMesh.renderOrder = group.defaultMesh.renderOrder;
 		effectMesh.userData.instanceHash = group.instanceHash;
 		effectMesh.userData.effectKeys = [...effects].sort();
 		effectMesh.userData.instanceNodes = [] as (ITreeNode | undefined)[];
@@ -1004,7 +1077,7 @@ export class InstanceGroupManager {
 		group.effectMeshes.set(meshKey, effectMesh);
 		this.instancedRoot.add(effectMesh);
 		this._renderingEngine.materialLoader.trackMaterial(
-			`gpu-instance/${group.instanceHash}/${meshKey}`,
+			`gpu-instance/${group.groupKey}/${meshKey}`,
 			effectMesh.material as THREE.Material,
 		);
 		return effectMesh;

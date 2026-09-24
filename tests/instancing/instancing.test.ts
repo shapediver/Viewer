@@ -54,7 +54,7 @@ const test = base.extend<{}, {workerPage: Page}>({
 						backgroundColor: "rgb(3, 5, 49)",
 					},
 				});
-				// Detection and batching are opt-in; enable before any glTF load.
+				// Keep this explicit so the fixture is independent of caller overrides.
 				viewer.gpuInstancing.enabled = true;
 				viewer.beautyRenderDelay = 100;
 				viewer.beautyRenderBlendingDuration = 100;
@@ -320,48 +320,52 @@ test.describe("GPU instancing", () => {
 	test("toggling instancing rebinds an active outline selection", async ({
 		workerPage,
 	}) => {
-		const selectionState = await workerPage.evaluate(async (uri: string) => {
-			const SDV = (<any>window).SDV;
-			const viewer = (<any>window).viewer;
-			viewer.gpuInstancing.enabled = true;
-			await (<any>window).addGLTF(uri);
+		const selectionState = await workerPage.evaluate(
+			async (uri: string) => {
+				const SDV = (<any>window).SDV;
+				const viewer = (<any>window).viewer;
+				viewer.gpuInstancing.enabled = true;
+				await (<any>window).addGLTF(uri);
 
-			const token = viewer.postProcessing.addEffect({
-				properties: {
-					edgeStrength: 10,
-					visibleEdgeColor: "#ff0000",
-					hiddenEdgeColor: "#22090a",
-				},
-				type: SDV.POST_PROCESSING_EFFECT_TYPE.OUTLINE,
-			});
-			const node = (<any>window).findNode("box_node_4");
-			viewer.postProcessing.outlineEffects[token].addSelection(node);
-			await (<any>window).rerender();
+				const token = viewer.postProcessing.addEffect({
+					properties: {
+						edgeStrength: 10,
+						visibleEdgeColor: "#ff0000",
+						hiddenEdgeColor: "#22090a",
+					},
+					type: SDV.POST_PROCESSING_EFFECT_TYPE.OUTLINE,
+				});
+				const node = (<any>window).findNode("box_node_4");
+				viewer.postProcessing.outlineEffects[token].addSelection(node);
+				await (<any>window).rerender();
 
-			const describeSelection = () => {
-				const effect = viewer.postProcessing.getEffect(token);
-				const objects = [...effect.selection];
-				return {
-					count: objects.length,
-					inScene: objects.every(
-						(object: {parent: unknown}) => object.parent !== null,
-					),
-					instanced: objects.some(
-						(object: {isInstancedMesh?: boolean}) =>
-							object.isInstancedMesh === true,
-					),
+				const describeSelection = () => {
+					const effect = viewer.postProcessing.getEffect(token);
+					const objects = [...effect.selection];
+					return {
+						count: objects.length,
+						inScene: objects.every(
+							(object: {parent: unknown}) =>
+								object.parent !== null,
+						),
+						instanced: objects.some(
+							(object: {isInstancedMesh?: boolean}) =>
+								object.isInstancedMesh === true,
+						),
+					};
 				};
-			};
 
-			const afterEnable = describeSelection();
-			viewer.gpuInstancing.enabled = false;
-			await (<any>window).rerender();
-			const afterDisable = describeSelection();
-			viewer.gpuInstancing.enabled = true;
-			await (<any>window).rerender();
-			const afterReenable = describeSelection();
-			return {afterEnable, afterDisable, afterReenable};
-		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+				const afterEnable = describeSelection();
+				viewer.gpuInstancing.enabled = false;
+				await (<any>window).rerender();
+				const afterDisable = describeSelection();
+				viewer.gpuInstancing.enabled = true;
+				await (<any>window).rerender();
+				const afterReenable = describeSelection();
+				return {afterEnable, afterDisable, afterReenable};
+			},
+			`${ASSET_HOST}/duplicated-boxes.glb`,
+		);
 
 		expect(selectionState.afterEnable.count).toBeGreaterThan(0);
 		expect(selectionState.afterEnable.inScene).toBe(true);
@@ -372,5 +376,207 @@ test.describe("GPU instancing", () => {
 		expect(selectionState.afterReenable.count).toBeGreaterThan(0);
 		expect(selectionState.afterReenable.inScene).toBe(true);
 		expect(selectionState.afterReenable.instanced).toBe(true);
+	});
+
+	test("pointer move followed by selection hits an instanced descendant", async ({
+		workerPage,
+	}) => {
+		const pageErrors: string[] = [];
+		workerPage.on("pageerror", (error) => pageErrors.push(error.message));
+		const target = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const SDV = (<any>window).SDV;
+			const SDVInteractions = (<any>window).SDVInteractions;
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const owner = node.parent;
+			owner.addData(new SDVInteractions.InteractionData({select: true}));
+
+			const interactionEngine = new SDVInteractions.InteractionEngine(
+				viewer,
+			);
+			const selectManager = new SDVInteractions.SelectManager(undefined, {
+				type: "pulse",
+				color: "#ff00ff",
+				intensity: 0.8,
+				pulseSpeed: 2,
+			});
+			interactionEngine.addInteractionManager(selectManager);
+
+			(<any>window).selectedOwner = new Promise<string>((resolve) => {
+				SDV.addListener(
+					SDV.EVENTTYPE.INTERACTION.SELECT_ON,
+					(event: any) => resolve(event.node.name),
+				);
+			});
+
+			const box = node.boundingBoxViewport[viewer.id];
+			const point = [
+				(box.min[0] + box.max[0]) / 2,
+				(box.min[1] + box.max[1]) / 2,
+				(box.min[2] + box.max[2]) / 2,
+			];
+			const projected = viewer.convert3Dto2D(point).client;
+			return {x: projected[0], y: projected[1], ownerName: owner.name};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		// AppBuilder performs a hover raycast before the click. The old shared
+		// processed-mesh set made the following down/up raycasts skip the batch.
+		await workerPage.mouse.move(target.x, target.y);
+		await workerPage.mouse.click(target.x, target.y);
+		const selectedOwner = await workerPage.evaluate(() =>
+			Promise.race([
+				(<any>window).selectedOwner,
+				new Promise((_, reject) =>
+					setTimeout(
+						() => reject(new Error("selection timeout")),
+						2000,
+					),
+				),
+			]),
+		);
+		expect(selectedOwner).toBe(target.ownerName);
+
+		const pulseState = await workerPage.evaluate(async () => {
+			const node = (<any>window).findNode("box_node_4");
+			const geometry = node.data.find(
+				(data: any) => data.instanceHash !== undefined,
+			);
+			const mesh = geometry.convertedObject[(<any>window).viewer.id];
+			const key = `${node.id}:${geometry.id}`;
+			const index = mesh.userData.instanceKeys.indexOf(key);
+			const read = () => [
+				mesh.instanceColor.getX(index),
+				mesh.instanceColor.getY(index),
+				mesh.instanceColor.getZ(index),
+			];
+			const first = read();
+			let second = first;
+			let changed = false;
+			for (let sample = 0; sample < 20 && !changed; sample++) {
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				second = read();
+				changed = first.some(
+					(value: number, index: number) =>
+						Math.abs(value - second[index]) > 0.0001,
+				);
+			}
+			return {
+				index,
+				effectCount: geometry.effectPulses.length,
+				changed,
+			};
+		});
+		expect(pulseState.index).toBeGreaterThanOrEqual(0);
+		expect(pulseState.effectCount).toBe(1);
+		expect(pulseState.changed).toBe(true);
+		expect(pageErrors).toEqual([]);
+	});
+
+	test("mirrored occurrences switch safely between regular and instanced rendering", async ({
+		workerPage,
+	}) => {
+		const counts = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const before = viewer.gpuInstancing.stats.instanceCount;
+			const matrix = (<any>window).GL_MATRIX.mat4.fromScaling(
+				(<any>window).GL_MATRIX.mat4.create(),
+				[-1, 1, 1],
+			);
+			node.addTransformation({id: "test-mirror", matrix});
+			viewer.updateNodeTransformation(node);
+			const mirrored = viewer.gpuInstancing.stats.instanceCount;
+			node.removeTransformation(node.getTransformation("test-mirror"));
+			viewer.updateNodeTransformation(node);
+			const restored = viewer.gpuInstancing.stats.instanceCount;
+			return {before, mirrored, restored};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(counts.before).toBe(9);
+		expect(counts.mirrored).toBe(8);
+		expect(counts.restored).toBe(9);
+	});
+
+	test("render-order and shadow variants use separate batches", async ({
+		workerPage,
+	}) => {
+		const state = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const geometry = node.data.find(
+				(data: any) => data.instanceHash !== undefined,
+			);
+			geometry.renderOrder = 7;
+			geometry.castShadow = false;
+			geometry.receiveShadow = false;
+			viewer.updateNode(node);
+			const mesh = geometry.convertedObject[viewer.id];
+			return {
+				groupCount: viewer.gpuInstancing.stats.groupCount,
+				renderOrder: mesh.renderOrder,
+				castShadow: mesh.castShadow,
+				receiveShadow: mesh.receiveShadow,
+			};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(state).toEqual({
+			groupCount: 2,
+			renderOrder: 7,
+			castShadow: false,
+			receiveShadow: false,
+		});
+	});
+
+	test("multiple outline and bloom effects keep stable instanced selections", async ({
+		workerPage,
+	}) => {
+		const selections = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const SDV = (<any>window).SDV;
+			const viewer = (<any>window).viewer;
+			const firstNode = (<any>window).findNode("box_node_3");
+			const secondNode = (<any>window).findNode("box_node_4");
+			const outlineA = viewer.postProcessing.addEffect({
+				properties: {},
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.OUTLINE,
+			});
+			const outlineB = viewer.postProcessing.addEffect({
+				properties: {},
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.OUTLINE,
+			});
+			const bloom = viewer.postProcessing.addEffect({
+				properties: {},
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM,
+			});
+			viewer.postProcessing.outlineEffects[outlineA].addSelection(
+				firstNode,
+			);
+			viewer.postProcessing.outlineEffects[outlineB].addSelection(
+				secondNode,
+			);
+			viewer.postProcessing.selectiveBloomEffects[bloom].addSelection(
+				secondNode,
+			);
+			await (<any>window).rerender();
+
+			return [outlineA, outlineB, bloom].map((token) => {
+				const effect = viewer.postProcessing.getEffect(token);
+				const objects = [...effect.selection];
+				return {
+					count: objects.length,
+					inScene: objects.every(
+						(object: any) => object.parent !== null,
+					),
+				};
+			});
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		for (const selection of selections) {
+			expect(selection.count).toBeGreaterThan(0);
+			expect(selection.inScene).toBe(true);
+		}
 	});
 });

@@ -14,7 +14,10 @@ export class SelectiveBloomManager {
 
 	// #region Constructors (1)
 
-	constructor(private readonly _renderingEngine: RenderingEngine) {}
+	constructor(
+		private readonly _renderingEngine: RenderingEngine,
+		private readonly _effectToken: string,
+	) {}
 
 	// #endregion Constructors (1)
 
@@ -67,17 +70,20 @@ export class SelectiveBloomManager {
 
 			object.traverse((o) => {
 				if (o.userData.isInstanced) {
-					const instanceNode = o.userData
-						.instanceNode as ITreeNode | undefined;
+					const instanceNode = o.userData.instanceNode as
+						| ITreeNode
+						| undefined;
 					if (!instanceNode) return;
 					const effectMeshes =
 						this._renderingEngine.instanceGroupManager.addToEffect(
 							instanceNode,
-							"bloom",
+							`bloom:${this._effectToken}`,
 						);
 					if (effectMeshes.length > 0) {
 						effectMeshes.forEach((effectMesh) =>
-							this._selectiveBloomEffect.selection.add(effectMesh),
+							this._selectiveBloomEffect.selection.add(
+								effectMesh,
+							),
 						);
 						this._instancedBloomNodes.add(instanceNode);
 					}
@@ -94,9 +100,9 @@ export class SelectiveBloomManager {
 	// #region Private Methods (1)
 
 	private _removeInstancedEffects(node: ITreeNode): void {
-		const object = node.convertedObject[
-			this._renderingEngine.id
-		] as THREE.Object3D | undefined;
+		const object = node.convertedObject[this._renderingEngine.id] as
+			| THREE.Object3D
+			| undefined;
 		if (!object) return;
 		object.traverse((o) => {
 			if (!o.userData.isInstanced) return;
@@ -106,7 +112,7 @@ export class SelectiveBloomManager {
 			if (instanceNode)
 				this._renderingEngine.instanceGroupManager.removeFromEffect(
 					instanceNode,
-					"bloom",
+					`bloom:${this._effectToken}`,
 				);
 		});
 	}

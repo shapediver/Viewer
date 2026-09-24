@@ -136,6 +136,7 @@ export class SceneTreeManager implements IManager {
 		switch (true) {
 			case treeNodeData instanceof GeometryData:
 				{
+					const geometryData = treeNodeData as GeometryData;
 					// The instance matrices (EXT_mesh_gpu_instancing) live on the
 					// same node as the geometry since the gltf tree was flattened.
 					// Older producers still store them on the mesh-level parent.
@@ -144,22 +145,46 @@ export class SceneTreeManager implements IManager {
 							treeNode.parent?.data.find(
 								(d) => d instanceof InstanceData,
 							)) as InstanceData | undefined;
-					if (filter.transformationOnly === false) {
-						const geometryData = treeNodeData as GeometryData;
-						const existingGeometry = convertedObject.children.find(
-							(child) =>
-								child.userData.SDtype ===
-									SD_DATA_TYPE.GEOMETRY &&
-								child.userData.SDid === treeNodeData.id &&
-								child.userData.SDversion ===
-									treeNodeData.version,
-						);
+					const existingGeometry = convertedObject.children.find(
+						(child) =>
+							child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
+							child.userData.SDid === treeNodeData.id &&
+							child.userData.SDversion === treeNodeData.version,
+					);
+					const shouldInstance = this.shouldUseGpuInstancing(
+						geometryData,
+						treeNode,
+					);
+					const instanceModeChanged =
+						!!existingGeometry &&
+						!!existingGeometry.userData.isInstanced !==
+							shouldInstance;
+					const instanceGroupChanged =
+						!!existingGeometry?.userData.isInstanced &&
+						existingGeometry.userData.instanceGroupKey !==
+							this._renderingEngine.instanceGroupManager.getGroupKey(
+								geometryData,
+							);
+					const instancingChanged =
+						instanceModeChanged || instanceGroupChanged;
+					if (instancingChanged && existingGeometry) {
+						removeData(this._renderingEngine, existingGeometry);
+						convertedObject.remove(existingGeometry);
+					}
 
+					if (
+						filter.transformationOnly === false ||
+						instancingChanged
+					) {
 						// Geometry children are Object3D placeholders/meshes, not
 						// SDObjects, so the convertedChildrenMap miss would otherwise
 						// recreate them on every scene update — leaking instanced
 						// placeholders and moving InstancedMeshes out of instancedRoot.
-						if (existingGeometry && !this._newRendererType) {
+						if (
+							existingGeometry &&
+							!instancingChanged &&
+							!this._newRendererType
+						) {
 							dataChild = existingGeometry;
 							if (
 								geometryData.instantiable &&
@@ -174,17 +199,7 @@ export class SceneTreeManager implements IManager {
 							// per-instance flat colors, but transparency needs
 							// per-object sorting: occurrences with a non-opaque
 							// attribute material use the regular path.
-							const attributeOpaque =
-								this._renderingEngine.type !==
-									RENDERER_TYPE.ATTRIBUTES ||
-								(geometryData.attributeMaterial?.opacity ?? 1) >=
-									1;
-							if (
-								geometryData.instantiable &&
-								this._renderingEngine.instanceGroupManager
-									.enabled &&
-								attributeOpaque
-							) {
+							if (shouldInstance) {
 								// GPU-instanced geometry: delegate to InstanceGroupManager.
 								// Returns a lightweight placeholder that tracks this node.
 								dataChild =
@@ -458,7 +473,10 @@ export class SceneTreeManager implements IManager {
 		this._lastInstancingEnabled =
 			this._renderingEngine.instanceGroupManager.enabled;
 
-		if (this._renderingEngine.closed) return;
+		if (this._renderingEngine.closed) {
+			this._newRendererType = false;
+			return;
+		}
 
 		if (
 			instancingChanged &&
@@ -609,6 +627,7 @@ export class SceneTreeManager implements IManager {
 		// keep referencing disposed InstancedMeshes or regular meshes.
 		if (this._newRendererType)
 			this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
+		this._newRendererType = false;
 
 		this._performanceEvaluator.endSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
@@ -652,6 +671,30 @@ export class SceneTreeManager implements IManager {
 			});
 			convertedObject.remove(cTR);
 		});
+	}
+
+	private shouldUseGpuInstancing(
+		geometry: GeometryData,
+		node: ITreeNode,
+	): boolean {
+		if (
+			!geometry.instantiable ||
+			!this._renderingEngine.instanceGroupManager.enabled
+		)
+			return false;
+		if (
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
+			(geometry.attributeMaterial?.opacity ?? 1) < 1
+		)
+			return false;
+
+		const matrix = new THREE.Matrix4().fromArray(node.worldMatrix);
+		if (geometry.instanceOffsetMatrix)
+			matrix.multiply(
+				new THREE.Matrix4().fromArray(geometry.instanceOffsetMatrix),
+			);
+		// THREE.InstancedMesh does not support negatively scaled matrices.
+		return matrix.determinant() >= 0;
 	}
 
 	/**

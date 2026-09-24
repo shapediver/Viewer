@@ -21,6 +21,8 @@ export const removeData = (
 		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
 			// Instanced-geometry placeholder: delegate removal to InstanceGroupManager
 			if (dataObject.userData.isInstanced) {
+				const instanceGeometry = dataObject.userData
+					.instanceGeometry as GeometryData | undefined;
 				const instanceNode = dataObject.userData.instanceNode as
 					| ITreeNode
 					| undefined;
@@ -30,6 +32,15 @@ export const removeData = (
 						dataObject.userData.instanceNodeKey as
 							| string
 							| undefined,
+					);
+				if (
+					instanceGeometry &&
+					!renderingEngine.instanceGroupManager.hasGeometry(
+						instanceGeometry.id,
+					)
+				)
+					renderingEngine.pulseEffectManager.removeGeometry(
+						instanceGeometry,
 					);
 				break;
 			}

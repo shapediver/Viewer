@@ -2,13 +2,15 @@ import {
 	GeometryData,
 	type ITree,
 	type ITreeNode,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
 import {SelectionBox} from "./SelectionBox";
@@ -19,9 +21,6 @@ export class IntersectionEngine implements IIntersectionEngine {
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
-
-	// Reused per-call to skip already-raycasted InstancedMeshes
-	private _processedInstancedMeshes = new Set<THREE.InstancedMesh>();
 
 	private static _instance: IntersectionEngine;
 
@@ -75,7 +74,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 				filterCriteria || [],
 			);
 		} else {
-			this._processedInstancedMeshes.clear();
+			const instancedIntersectionCache = new Map<
+				THREE.InstancedMesh,
+				THREE.Intersection[]
+			>();
 			let intersections: IRayTracingIntersection[] = [];
 			this._intersectNodes.forEach((i) => {
 				const currentIntersections = this.intersectNode(
@@ -85,6 +87,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 					viewportId,
 					filterCriteria,
 					options?.rayCasterParams,
+					instancedIntersectionCache,
 				);
 				if (currentIntersections)
 					intersections = intersections.concat(currentIntersections);
@@ -141,6 +144,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		filterCriteria?: IIntersectionFilter[],
 		rayCasterParams?: THREE.RaycasterParameters,
+		instancedIntersectionCache: Map<
+			THREE.InstancedMesh,
+			THREE.Intersection[]
+		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (node.visible === false) return;
 
@@ -165,6 +172,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 						viewportId,
 						rayCasterParams,
 						filterCriteria,
+						instancedIntersectionCache,
 					);
 			}
 		} else {
@@ -174,6 +182,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 				geometryData,
 				viewportId,
 				rayCasterParams,
+				undefined,
+				instancedIntersectionCache,
 			);
 		}
 	}
@@ -242,6 +252,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		rayCasterParams?: THREE.RaycasterParameters,
 		filterCriteria?: IIntersectionFilter[],
+		instancedIntersectionCache: Map<
+			THREE.InstancedMesh,
+			THREE.Intersection[]
+		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (rayCasterParams) this._raycaster.params = rayCasterParams;
 
@@ -256,87 +270,93 @@ export class IntersectionEngine implements IIntersectionEngine {
 			ray.origin[2],
 		);
 
-		// For instanced geometry: use geometry.convertedObject (the default
-		// InstancedMesh) to find every batch in its group, then map instanceId back
-		// to the correct node. Instances with post-processing effects live in a
-		// separate batch from the default mesh.
-		const instantiableGeometry = Object.values(geometryData).find(
-			(g) => g.instantiable,
-		);
-		const instancedMesh = instantiableGeometry?.convertedObject[
-			viewportId
-		] as THREE.Object3D | undefined;
-		if (instancedMesh instanceof THREE.InstancedMesh) {
-			const instanceHash = instancedMesh.userData.instanceHash as
+		const geometryValues = Object.values(geometryData);
+		const instancedMeshes = new Set<THREE.InstancedMesh>();
+		geometryValues.forEach((geometry) => {
+			const convertedObject = geometry.convertedObject[viewportId];
+			if (!(convertedObject instanceof THREE.InstancedMesh)) return;
+
+			const instanceHash = convertedObject.userData.instanceHash as
 				| string
 				| undefined;
-			const groupMeshes = instancedMesh.parent?.children.filter(
+			const groupMeshes = convertedObject.parent?.children.filter(
 				(child): child is THREE.InstancedMesh =>
 					child instanceof THREE.InstancedMesh &&
 					child.userData.instanceHash === instanceHash,
-			) ?? [instancedMesh];
+			) ?? [convertedObject];
+			groupMeshes.forEach((mesh) => instancedMeshes.add(mesh));
+		});
 
-			let intersections = groupMeshes.flatMap((mesh) => {
-				if (this._processedInstancedMeshes.has(mesh)) return [];
-				this._processedInstancedMeshes.add(mesh);
-				const instanceNodes = mesh.userData.instanceNodes as
-					| (ITreeNode | undefined)[]
-					| undefined;
-				return this._raycaster.intersectObject(mesh, false).flatMap((i) => {
-					const hitNode =
-						i.instanceId !== undefined && instanceNodes
-							? (instanceNodes[i.instanceId] ?? node)
-							: node;
-					if (hitNode.intersectionTest === false) return [];
-					if (
-						viewportId &&
-						hitNode.excludeViewports?.includes(viewportId)
-					)
-						return [];
-					if (
-						viewportId &&
-						hitNode.restrictViewports?.length &&
-						!hitNode.restrictViewports.includes(viewportId)
-					)
-						return [];
+		let intersections: IRayTracingIntersection[] = [];
+		instancedMeshes.forEach((mesh) => {
+			let meshIntersections = instancedIntersectionCache.get(mesh);
+			if (!meshIntersections) {
+				meshIntersections = this._raycaster.intersectObject(
+					mesh,
+					false,
+				);
+				instancedIntersectionCache.set(mesh, meshIntersections);
+			}
 
-					const hitGeometry =
-						this.resolveInstancedGeometry(
-							hitNode,
-							mesh,
-							i.instanceId,
-							instanceHash,
-							instantiableGeometry,
-						);
+			const instanceHash = mesh.userData.instanceHash as
+				| string
+				| undefined;
+			const instanceNodes = mesh.userData.instanceNodes as
+				| (ITreeNode | undefined)[]
+				| undefined;
+			meshIntersections.forEach((intersection) => {
+				const hitNode =
+					intersection.instanceId !== undefined && instanceNodes
+						? instanceNodes[intersection.instanceId]
+						: undefined;
+				if (!hitNode || !this.isNodeWithinOwner(hitNode, node)) return;
+				if (
+					hitNode.intersectionTest === false ||
+					hitNode.visible === false
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.excludeViewports?.includes(viewportId)
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.restrictViewports?.length &&
+					!hitNode.restrictViewports.includes(viewportId)
+				)
+					return;
 
-					return [
-						{
-							distance: i.distance,
-							point: [i.point.x, i.point.y, i.point.z] as [
-								number,
-								number,
-								number,
-							],
-							node: hitNode,
-							geometryData: hitGeometry,
-							type: "RayTracingIntersection" as const,
-						} as IRayTracingIntersection,
-					];
+				const hitGeometry = this.resolveInstancedGeometry(
+					hitNode,
+					mesh,
+					intersection.instanceId,
+					instanceHash,
+					geometryValues.find(
+						(geometry) =>
+							(
+								geometry as GeometryData & {
+									instanceHash?: string;
+								}
+							).instanceHash === instanceHash,
+					),
+				);
+				if (!hitGeometry || !geometryValues.includes(hitGeometry))
+					return;
+
+				intersections.push({
+					distance: intersection.distance,
+					point: [
+						intersection.point.x,
+						intersection.point.y,
+						intersection.point.z,
+					],
+					node,
+					geometryData: hitGeometry,
+					type: "RayTracingIntersection",
 				});
 			});
-			if (intersections.length === 0) return;
-
-			if (filterCriteria) {
-				intersections = intersections.filter((i) => {
-					for (let j = 0; j < filterCriteria.length; j++)
-						if (filterCriteria[j](i.node, i.geometryData))
-							return true;
-					return false;
-				});
-			}
-			intersections.sort((a, b) => a.distance - b.distance);
-			return intersections;
-		}
+		});
 
 		// Standard (non-instanced) path
 		const threeJsObject = node.convertedObject[
@@ -345,33 +365,41 @@ export class IntersectionEngine implements IIntersectionEngine {
 		if (threeJsObject) {
 			const intersectionThree =
 				this._raycaster.intersectObject(threeJsObject);
-			if (intersectionThree.length === 0) return;
-
-			let intersections = intersectionThree.map((i) => {
-				const intersectionDefinition: IRayTracingIntersection = {
-					distance: i.distance,
-					point: [i.point.x, i.point.y, i.point.z],
-					node: node,
-					geometryData:
-						geometryData[
-							`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`
-						],
-					type: "RayTracingIntersection",
-				};
-				return intersectionDefinition;
-			});
-
-			if (filterCriteria) {
-				intersections = intersections.filter((i) => {
-					for (let j = 0; j < filterCriteria.length; j++)
-						if (filterCriteria[j](i.node, i.geometryData))
-							return true;
-					return false;
-				});
-			}
-			intersections.sort((a, b) => a.distance - b.distance);
-			return intersections;
+			intersections = intersections.concat(
+				intersectionThree.map((i) => {
+					const intersectionDefinition: IRayTracingIntersection = {
+						distance: i.distance,
+						point: [i.point.x, i.point.y, i.point.z],
+						node: node,
+						geometryData:
+							geometryData[
+								`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`
+							],
+						type: "RayTracingIntersection",
+					};
+					return intersectionDefinition;
+				}),
+			);
 		}
+
+		if (filterCriteria) {
+			intersections = intersections.filter((intersection) =>
+				filterCriteria.some((filter) =>
+					filter(node, intersection.geometryData),
+				),
+			);
+		}
+		intersections.sort((a, b) => a.distance - b.distance);
+		return intersections.length > 0 ? intersections : undefined;
+	}
+
+	private isNodeWithinOwner(node: ITreeNode, owner: ITreeNode): boolean {
+		let currentNode: ITreeNode | undefined = node;
+		while (currentNode) {
+			if (currentNode === owner) return true;
+			currentNode = currentNode.parent;
+		}
+		return false;
 	}
 
 	/**
@@ -405,7 +433,11 @@ export class IntersectionEngine implements IIntersectionEngine {
 			(hitNode.data.find(
 				(d) =>
 					d instanceof GeometryData &&
-					d.instanceHash === instanceHash,
+					(
+						d as GeometryData & {
+							instanceHash?: string;
+						}
+					).instanceHash === instanceHash,
 			) as GeometryData | undefined) ?? fallback
 		);
 	}

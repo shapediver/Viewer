@@ -331,6 +331,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._automaticColorAdjustment = value;
 		this._colorCache.forEach((c) => c.colorCorrection(value));
 		this._materialLoader.assignColorCorrection(value);
+		this._instanceGroupManager.refreshColors();
+		this._pulseEffectManager.refreshInstanceBaseColors();
 	}
 
 	public get automaticResizing(): boolean {

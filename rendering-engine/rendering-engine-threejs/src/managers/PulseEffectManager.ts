@@ -37,6 +37,16 @@ export class PulseEffectManager {
 			};
 		}
 	>();
+	private readonly _pulsedInstances = new Map<
+		GeometryData,
+		{
+			blendColor: THREE.Color;
+			baseColor: THREE.Color;
+			effectColor: THREE.Color;
+			colorDefinition?: Color;
+			effect: IPulseEffectDefinition;
+		}
+	>();
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {}
 
@@ -46,9 +56,41 @@ export class PulseEffectManager {
 	): void {
 		const effect =
 			geometry.effectPulses[geometry.effectPulses.length - 1]?.effect;
+		this.clearGeometry(geometry);
+		if (
+			this._renderingEngine.instanceGroupManager.hasGeometry(geometry.id)
+		) {
+			const baseColor =
+				this._renderingEngine.instanceGroupManager.getGeometryColor(
+					geometry.id,
+				);
+			if (effect && baseColor) {
+				const effectColor = this._renderingEngine.createThreeJsColor(
+					effect.color ?? "#00ff78",
+				);
+				this._pulsedInstances.set(geometry, {
+					baseColor,
+					blendColor: this.getBlendColor(baseColor, effectColor),
+					colorDefinition: effect.color,
+					effect,
+					effectColor,
+				});
+			}
+			this.updateAnimation();
+			return;
+		}
 		for (const object of objects) {
 			this.clear(object);
-			if (!effect || object instanceof THREE.InstancedMesh) continue;
+			if (
+				!effect ||
+				object instanceof THREE.InstancedMesh ||
+				!(
+					object instanceof THREE.Mesh ||
+					object instanceof THREE.Line ||
+					object instanceof THREE.Points
+				)
+			)
+				continue;
 			const source = object.material;
 			if (Array.isArray(source) || !("color" in source)) continue;
 
@@ -93,13 +135,44 @@ export class PulseEffectManager {
 		this.updateAnimation();
 	}
 
-	public dispose(): void {
-		for (const object of this._pulsedObjects.keys()) this.clear(object);
+	public removeGeometry(geometry: GeometryData): void {
+		this.clearGeometry(geometry);
 		this.updateAnimation();
 	}
 
+	/** Keep active pulses anchored to colors changed by a global renderer setting. */
+	public refreshInstanceBaseColors(): void {
+		for (const [geometry, pulse] of this._pulsedInstances) {
+			const baseColor =
+				this._renderingEngine.instanceGroupManager.getGeometryColor(
+					geometry.id,
+				);
+			if (!baseColor) continue;
+			pulse.baseColor.copy(baseColor);
+			pulse.blendColor = this.getBlendColor(
+				pulse.baseColor,
+				pulse.effectColor,
+			);
+		}
+	}
+
+	public dispose(): void {
+		for (const object of this._pulsedObjects.keys()) this.clear(object);
+		for (const geometry of this._pulsedInstances.keys())
+			this.clearGeometry(geometry);
+		this.updateAnimation();
+	}
+
+	private clearGeometry(geometry: GeometryData): void {
+		if (!this._pulsedInstances.delete(geometry)) return;
+		this._renderingEngine.instanceGroupManager.updateNodeColor(geometry);
+	}
+
 	private updateAnimation(): void {
-		if (this._pulsedObjects.size === 0) {
+		if (
+			this._pulsedObjects.size === 0 &&
+			this._pulsedInstances.size === 0
+		) {
 			if (this._animationFrameToken)
 				this._animationFrameEngine.removeAnimationFrameCallback(
 					this._animationFrameToken,
@@ -149,6 +222,31 @@ export class PulseEffectManager {
 					1 -
 					(1 - pulse.baseOpacity) *
 						(1 - THREE.MathUtils.clamp(intensity, 0, 1)) ** 2;
+		}
+
+		for (const [geometry, pulse] of this._pulsedInstances) {
+			const phase =
+				(time / 1000) * (pulse.effect.pulseSpeed ?? 1.4) * Math.PI * 2;
+			const intensity =
+				(pulse.effect.intensity ?? 0.3) * ((Math.sin(phase) + 1) / 2);
+			if (pulse.colorDefinition !== pulse.effect.color) {
+				pulse.effectColor = this._renderingEngine.createThreeJsColor(
+					pulse.effect.color ?? "#00ff78",
+				);
+				pulse.blendColor = this.getBlendColor(
+					pulse.baseColor,
+					pulse.effectColor,
+				);
+				pulse.colorDefinition = pulse.effect.color;
+			}
+			this._renderingEngine.instanceGroupManager.setGeometryColor(
+				geometry.id,
+				new THREE.Color().lerpColors(
+					pulse.baseColor,
+					pulse.blendColor,
+					THREE.MathUtils.clamp(intensity, 0, 1),
+				),
+			);
 		}
 	}
 

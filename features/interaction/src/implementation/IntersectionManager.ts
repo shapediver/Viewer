@@ -4,18 +4,21 @@ import {
 	type IIntersectionEngine,
 	IntersectionEngine,
 	RaycasterParameters,
-	SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
+	SelectionBox,
+} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
 	GeometryData,
 	type ITree,
 	type ITreeNode,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 
 import {InteractionData} from "./InteractionData";
 
@@ -147,6 +150,10 @@ export class IntersectionManager implements IIntersectionEngine {
 		rayCasterParams?: RaycasterParameters,
 	): IRayTracingIntersection[] {
 		let intersections: IRayTracingIntersection[] = [];
+		const instancedIntersectionCache = new Map<
+			THREE.InstancedMesh,
+			THREE.Intersection[]
+		>();
 
 		// intersect all nodes
 		this._intersectNodes.forEach((i) => {
@@ -157,6 +164,7 @@ export class IntersectionManager implements IIntersectionEngine {
 				viewportId,
 				filterCriteria,
 				rayCasterParams,
+				instancedIntersectionCache,
 			);
 			if (currentIntersection)
 				intersections = intersections.concat(currentIntersection);

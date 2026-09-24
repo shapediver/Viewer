@@ -17,7 +17,10 @@ export class OutlineManager {
 
 	// #region Constructors (1)
 
-	constructor(private readonly _renderingEngine: RenderingEngine) {}
+	constructor(
+		private readonly _renderingEngine: RenderingEngine,
+		private readonly _effectToken: string,
+	) {}
 
 	// #endregion Constructors (1)
 
@@ -198,7 +201,9 @@ export class OutlineManager {
 	}
 
 	private _getEffectKey(node: ITreeNode): string {
-		return this._separateObjects ? `outline:${node.id}` : "outline";
+		return this._separateObjects
+			? `outline:${this._effectToken}:${node.id}`
+			: `outline:${this._effectToken}`;
 	}
 
 	// #endregion Private Methods (1)
