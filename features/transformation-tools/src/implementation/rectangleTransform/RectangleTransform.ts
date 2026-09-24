@@ -158,6 +158,8 @@ export class RectangleTransform
 			EVENTTYPE_DRAWING_TOOLS.DRAG_END,
 			(e) => this.dispatchDrag(e as IDrawingToolsEvent, true),
 		);
+
+		this.viewport.render();
 	}
 
 	public get settings(): RectangleTransformSettingsOptional | undefined {

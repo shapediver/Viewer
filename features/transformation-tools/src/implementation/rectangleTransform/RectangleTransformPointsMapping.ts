@@ -40,9 +40,18 @@ export class RectangleTransformPointsMapping {
 		// Disabled corners are shown visually as locked (non-interactive) handles.
 		this.lockedCornerConceptualIndices = (
 			[
-				{ci: 0, show: interactive && (config.corners?.bottomLeft ?? true)},
-				{ci: 2, show: interactive && (config.corners?.bottomRight ?? true)},
-				{ci: 4, show: interactive && (config.corners?.topRight ?? true)},
+				{
+					ci: 0,
+					show: interactive && (config.corners?.bottomLeft ?? true),
+				},
+				{
+					ci: 2,
+					show: interactive && (config.corners?.bottomRight ?? true),
+				},
+				{
+					ci: 4,
+					show: interactive && (config.corners?.topRight ?? true),
+				},
 				{ci: 6, show: interactive && (config.corners?.topLeft ?? true)},
 			] as const
 		)
@@ -53,11 +62,33 @@ export class RectangleTransformPointsMapping {
 		);
 
 		// Build midpoint EdgeControls — one per enabled midpoint.
+		// When interactive is false (enableScaling off), omit them entirely:
+		// they are scaling handles, not locked points.
 		this.edgeControls = [
-			{mi: 1, c1: 0, c2: 2, show: config.edgeControls?.bottom ?? true},
-			{mi: 3, c1: 2, c2: 4, show: config.edgeControls?.right ?? true},
-			{mi: 5, c1: 4, c2: 6, show: config.edgeControls?.top ?? true},
-			{mi: 7, c1: 6, c2: 0, show: config.edgeControls?.left ?? true},
+			{
+				mi: 1,
+				c1: 0,
+				c2: 2,
+				show: interactive && (config.edgeControls?.bottom ?? true),
+			},
+			{
+				mi: 3,
+				c1: 2,
+				c2: 4,
+				show: interactive && (config.edgeControls?.right ?? true),
+			},
+			{
+				mi: 5,
+				c1: 4,
+				c2: 6,
+				show: interactive && (config.edgeControls?.top ?? true),
+			},
+			{
+				mi: 7,
+				c1: 6,
+				c2: 0,
+				show: interactive && (config.edgeControls?.left ?? true),
+			},
 		]
 			.filter(({show}) => show)
 			.map(({mi, c1, c2}) => ({
