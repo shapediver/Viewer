@@ -122,6 +122,7 @@ export class GumballTransform
 				: settings?.enableTranslationAxes?.xz;
 
 		this.setup();
+		this.viewport.render();
 	}
 
 	public get enableRotation(): boolean {
