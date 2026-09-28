@@ -186,10 +186,16 @@ export class SceneTreeManager implements IManager {
 							!this._newRendererType
 						) {
 							dataChild = existingGeometry;
+							// Instancing and attribute visualization keep color on a
+							// separate material or instance attribute. Beauty-mode color
+							// edits already mutate the existing material; replacing it
+							// here drops the environment map and flattens the shading.
 							if (
-								geometryData.instantiable &&
-								this._renderingEngine.instanceGroupManager
-									.enabled
+								(geometryData.instantiable &&
+									this._renderingEngine.instanceGroupManager
+										.enabled) ||
+								this._renderingEngine.type ===
+									RENDERER_TYPE.ATTRIBUTES
 							)
 								this._renderingEngine.geometryLoader.updateGeometryMaterial(
 									geometryData,
