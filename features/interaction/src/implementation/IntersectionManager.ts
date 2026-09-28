@@ -19,6 +19,35 @@ import {
 
 import {InteractionData} from "./InteractionData";
 
+const LINE_OR_POINT_TYPES = new Set([
+	"Line",
+	"LineLoop",
+	"LineSegments",
+	"Line2",
+	"Points",
+]);
+
+function isInvisibleLineOrPoint(
+	hit: IIntersectionDefinition,
+	opacityThreshold: number,
+): boolean {
+	const primitive = (
+		hit as IRayTracingIntersection & {
+			occludePrimitive?: {
+				objectType: string;
+				materialOpacity?: number | number[];
+			};
+		}
+	).occludePrimitive;
+	if (!primitive || !LINE_OR_POINT_TYPES.has(primitive.objectType))
+		return false;
+	const opacity = primitive.materialOpacity;
+	if (opacity === undefined) return false;
+	if (Array.isArray(opacity))
+		return opacity.every((value) => value <= opacityThreshold);
+	return opacity <= opacityThreshold;
+}
+
 export class IntersectionManager implements IIntersectionEngine {
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _intersectionEngine: IntersectionEngine =
@@ -76,8 +105,8 @@ export class IntersectionManager implements IIntersectionEngine {
 	 * ray, regardless of whether it has InteractionData. Used to occlude
 	 * interactive intersections that are behind solid non-interactive geometry.
 	 *
-	 * Geometry whose material opacity is at or below `opacityThreshold` is
-	 * skipped. Missing material data is treated as fully opaque.
+	 * Lines and points whose material opacity is at or below `opacityThreshold`
+	 * are skipped. Meshes, and lines or points above that opacity, still occlude.
 	 */
 	public closestSceneGeometryDistance(
 		ray: IRay,
@@ -95,8 +124,7 @@ export class IntersectionManager implements IIntersectionEngine {
 		);
 		for (const hit of hits) {
 			if (hit.type !== "RayTracingIntersection") continue;
-			const opacity = hit.geometryData?.material?.opacity ?? 1;
-			if (opacity <= opacityThreshold) continue;
+			if (isInvisibleLineOrPoint(hit, opacityThreshold)) continue;
 			return (hit as IRayTracingIntersection).distance;
 		}
 		return Infinity;

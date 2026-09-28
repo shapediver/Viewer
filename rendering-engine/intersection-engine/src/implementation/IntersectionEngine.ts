@@ -261,15 +261,30 @@ export class IntersectionEngine implements IIntersectionEngine {
 			if (intersectionThree.length === 0) return;
 
 			let intersections = intersectionThree.map((i) => {
-				const intersectionDefinition: IRayTracingIntersection = {
+				const parent = i.object.parent as {
+					SDid?: string;
+					SDversion?: string;
+				} | null;
+				const material = (i.object as THREE.Mesh).material;
+				const materialOpacity = Array.isArray(material)
+					? material.map((entry) => entry.opacity)
+					: material?.opacity;
+				const intersectionDefinition: IRayTracingIntersection & {
+					occludePrimitive?: {
+						objectType: string;
+						materialOpacity?: number | number[];
+					};
+				} = {
 					distance: i.distance,
 					point: [i.point.x, i.point.y, i.point.z],
 					node: node,
 					geometryData:
-						geometryData[
-							`${(i.object.parent as any).SDid}_${(i.object.parent as any).SDversion}`
-						],
+						geometryData[`${parent?.SDid}_${parent?.SDversion}`],
 					type: "RayTracingIntersection",
+					occludePrimitive: {
+						objectType: i.object.type,
+						materialOpacity,
+					},
 				};
 				return intersectionDefinition;
 			});
