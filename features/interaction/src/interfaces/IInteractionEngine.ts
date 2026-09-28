@@ -28,10 +28,8 @@ export interface IInteractionEngine extends IDomEventListener {
 	closed: boolean;
 
 	/**
-	 * The opacity threshold that used to for intersection. (Default: 0)
-	 * If the object is equal or below the threshold, it is not intersected anymore.
-	 *
-	 * Example: If the value is set to 0.25, all objects that have an opacity of 0.25 or lower and not intersectable.
+	 * Opacity at or below which scene geometry does not occlude interactions
+	 * when occludeBySceneGeometry is enabled. (Default: 0.01)
 	 */
 	intersectionOpacity: number;
 

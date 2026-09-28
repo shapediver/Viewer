@@ -25,7 +25,8 @@ import {MultiSelectManager} from "./managers/MultiSelectManager";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export interface IInteractionEngineProperties {
 	/**
-	 * The opacity from which the intersection is considered. (default: 0)
+	 * Opacity at or below which scene geometry does not occlude interactions
+	 * when occludeBySceneGeometry is enabled. (default: 0.01)
 	 */
 	intersectionOpacity: number;
 
@@ -60,7 +61,7 @@ export class InteractionEngine implements IInteractionEngine {
 	#boxSelectionActive: boolean = false;
 	#cameraFreezeFlag?: string;
 	#closed: boolean = false;
-	#intersectionOpacity: number = 0;
+	#intersectionOpacity: number = 0.01;
 	#lineIntersectionPercentage: number = 0.025;
 	#pointIntersectionPercentage: number = 0.025;
 	#sceneBoundingBoxChangeToken: string = "";
@@ -275,6 +276,7 @@ export class InteractionEngine implements IInteractionEngine {
 					ray,
 					this.#viewport.id,
 					this.#rayCasterParams,
+					this.#intersectionOpacity,
 				)
 			: Infinity;
 		const EPSILON = 1e-4;
@@ -335,6 +337,7 @@ export class InteractionEngine implements IInteractionEngine {
 					ray,
 					this.#viewport.id,
 					this.#rayCasterParams,
+					this.#intersectionOpacity,
 				)
 			: Infinity;
 		const EPSILON_END = 1e-4;
@@ -404,6 +407,7 @@ export class InteractionEngine implements IInteractionEngine {
 					ray,
 					this.#viewport.id,
 					this.#rayCasterParams,
+					this.#intersectionOpacity,
 				)
 			: Infinity;
 		const EPSILON_MOVE = 1e-4;
