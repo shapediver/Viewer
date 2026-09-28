@@ -550,6 +550,8 @@ export interface IViewportApi {
 	 * @param quality The quality of the screenshot, default is 1.
 	 * @param resolution The resolution of the screenshot, default is the current canvas size.
 	 * @param camera The camera that should be used for the screenshot, default is the current camera.
+	 * If `initialAutoAdjust` is true on that camera, `zoomTo` runs with duration 0 before the capture and the previous pose is restored afterwards.
+	 * An explicit `initialAutoAdjust: false` skips that fit. When the property is omitted, the camera's own `initialAutoAdjust` is used.
 	 * @param includeHtml Include HTML elements rendered inside the viewport, such as HTML anchors and text tags. Default is true. Pass false to disable.
 	 */
 	getScreenshotAdvanced(

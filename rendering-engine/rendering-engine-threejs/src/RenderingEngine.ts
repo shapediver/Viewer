@@ -1253,6 +1253,27 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			}
 		}
 
+		// Fit before capture when the shot camera has initialAutoAdjust, or when
+		// the screenshot camera explicitly sets it. false skips the fit. Duration
+		// 0 matches the first-load zoom. The pose is restored so the live camera
+		// does not stay fitted.
+		const shotCamera = this._cameraEngine.camera;
+		const initialAutoAdjust =
+			camera !== undefined && "initialAutoAdjust" in camera
+				? camera.initialAutoAdjust
+				: shotCamera?.initialAutoAdjust;
+		let screenshotCameraPose:
+			| {camera: ICamera; position: vec3; target: vec3}
+			| undefined;
+		if (initialAutoAdjust && shotCamera) {
+			screenshotCameraPose = {
+				camera: shotCamera,
+				position: vec3.clone(shotCamera.position),
+				target: vec3.clone(shotCamera.target),
+			};
+			await shotCamera.zoomTo(undefined, {duration: 0});
+		}
+
 		this.renderingManager.render();
 		await new Promise<void>((resolve) => {
 			const token = this._eventEngine.addListener(
@@ -1279,6 +1300,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.maximumRenderingSize = JSON.parse(
 				originalMaximumRenderingSize,
 			);
+		}
+
+		if (screenshotCameraPose) {
+			screenshotCameraPose.camera.position =
+				screenshotCameraPose.position;
+			screenshotCameraPose.camera.target = screenshotCameraPose.target;
 		}
 
 		if (camera) {
