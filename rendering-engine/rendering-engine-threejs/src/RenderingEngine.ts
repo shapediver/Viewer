@@ -1284,6 +1284,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				},
 			);
 		});
+		// Anchors are shown on the frame after the mesh beauty render.
+		if (includeHtml)
+			await new Promise<void>((resolve) => {
+				requestAnimationFrame(() => resolve());
+			});
 		const screenshot = includeHtml
 			? await this._renderingManager.getScreenshotWithHtml(
 					type,
