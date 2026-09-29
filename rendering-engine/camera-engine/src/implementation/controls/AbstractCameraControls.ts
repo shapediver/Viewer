@@ -448,6 +448,22 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		options: ICameraOptions,
 	): Promise<boolean> {
 		if (options && options.duration === 0) {
+			// an immediate set has to discard all pending movements, otherwise
+			// they are applied on top of the new pose in the next update
+			this._cameraInterpolationManager.stop();
+			this._cameraLogic.resetDamping();
+			this._manualInteraction = false;
+			this._manualInteractionTransformations = {
+				position: [],
+				target: [],
+				sceneRotation: [],
+			};
+			this._nonmanualInteraction = false;
+			this._nonmanualInteractionTransformations = {
+				position: [],
+				target: [],
+				sceneRotation: [],
+			};
 			this._position = path[path.length - 1].position;
 			this._target = path[path.length - 1].target;
 			return new Promise<boolean>((resolve) => resolve(true));

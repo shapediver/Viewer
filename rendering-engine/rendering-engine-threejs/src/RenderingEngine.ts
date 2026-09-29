@@ -1178,7 +1178,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// if the camera properties are changed, we need to restore them afterwards
 		let originalCameraProperties:
 			| {
-					id: string;
+					camera: ICamera;
 					properties: {
 						[f: string]: any;
 					};
@@ -1209,18 +1209,25 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// change the camera if requested
 		if (camera) {
 			if (camera.name) {
-				if (this._cameraEngine.camera?.name === camera.name) {
-					// nothing to do, already assigned
-				} else if (this._cameraEngine.cameras[camera.name]) {
-					const specifiedCamera =
-						this._cameraEngine.cameras[camera.name];
+				// the provided name can either be the name or the id of a camera
+				const specifiedCamera =
+					this._cameraEngine.cameras[camera.name] ||
+					Object.values(this._cameraEngine.cameras).find(
+						(c) => c.name === camera.name,
+					);
 
+				if (
+					this._cameraEngine.camera?.name === camera.name ||
+					this._cameraEngine.camera?.id === camera.name
+				) {
+					// nothing to do, already assigned
+				} else if (specifiedCamera) {
 					originalCameraId = this._cameraEngine.camera?.id;
 					this._cameraEngine.assignCamera(specifiedCamera.id);
 				}
 
 				originalCameraProperties = {
-					id: this._cameraEngine.camera!.id,
+					camera: this._cameraEngine.camera!,
 					properties: {},
 				};
 				Object.keys(camera).forEach((key) => {
@@ -1271,6 +1278,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				position: vec3.clone(shotCamera.position),
 				target: vec3.clone(shotCamera.target),
 			};
+			// the camera might not have been rendered with the current size yet
+			// so we provide the aspect ratio that is used for the screenshot
+			const size = resolution || {
+				width: this.canvas.parentElement!.clientWidth,
+				height: this.canvas.parentElement!.clientHeight,
+			};
+			if ("aspect" in shotCamera && size.width > 0 && size.height > 0)
+				(shotCamera as ICamera & {aspect?: number}).aspect =
+					size.width / size.height;
 			await shotCamera.zoomTo(undefined, {duration: 0});
 		}
 
@@ -1314,25 +1330,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		}
 
 		if (camera) {
-			if (originalCameraId) {
-				this._cameraEngine.assignCamera(originalCameraId);
+			// restore the properties on the camera that was used for the screenshot
+			// before switching back, as that camera might not be the original one
+			if (originalCameraProperties) {
+				Object.keys(originalCameraProperties.properties).forEach(
+					(key) => {
+						setCameraProperty(
+							originalCameraProperties!.camera,
+							key,
+							originalCameraProperties!.properties[key],
+						);
+					},
+				);
 			}
 
-			if (originalCameraProperties) {
-				if (
-					this._cameraEngine.camera?.id ===
-					originalCameraProperties.id
-				) {
-					Object.keys(originalCameraProperties.properties).forEach(
-						(key) => {
-							setCameraProperty(
-								this._cameraEngine.camera!,
-								key,
-								originalCameraProperties!.properties[key],
-							);
-						},
-					);
-				}
+			if (originalCameraId) {
+				this._cameraEngine.assignCamera(originalCameraId);
 			}
 
 			if (newCamera) {

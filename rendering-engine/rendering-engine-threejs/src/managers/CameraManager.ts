@@ -2,7 +2,8 @@ import {
 	AbstractCamera,
 	CAMERA_TYPE,
 	OrthographicCamera,
-	PerspectiveCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
+	PerspectiveCamera,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
@@ -348,6 +349,12 @@ export class CameraManager implements IManager {
 	public updateCamera(time: number, aspect: number): boolean {
 		if (this._renderingEngine.cameraEngine.camera?.type === "perspective")
 			(<PerspectiveCamera>(
+				this._renderingEngine.cameraEngine.camera
+			)).aspect = aspect;
+		else if (
+			this._renderingEngine.cameraEngine.camera?.type === "orthographic"
+		)
+			(<OrthographicCamera>(
 				this._renderingEngine.cameraEngine.camera
 			)).aspect = aspect;
 		return (<AbstractCamera>(

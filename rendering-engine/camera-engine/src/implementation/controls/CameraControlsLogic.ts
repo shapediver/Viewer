@@ -277,6 +277,12 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		this._rotateStart = vec2.create();
 	}
 
+	public resetDamping() {
+		this._damping.rotation.duration = 0;
+		this._damping.zoom.duration = 0;
+		this._damping.pan.duration = 0;
+	}
+
 	public restrict(
 		position: vec3,
 		target: vec3,

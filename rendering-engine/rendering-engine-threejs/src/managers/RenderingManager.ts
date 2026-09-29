@@ -711,19 +711,22 @@ export class RenderingManager implements IManager {
 		);
 
 		const canvasRect = canvas.getBoundingClientRect();
-		const width = Math.max(1, Math.ceil(canvasRect.width));
-		const height = Math.max(1, Math.ceil(canvasRect.height));
-		const pixelRatio = window.devicePixelRatio || 1;
+		// the output has the size of the rendered image, which can differ from the
+		// displayed size (device pixel ratio, maximum rendering size)
 		const outputCanvas = document.createElement("canvas");
-		outputCanvas.width = Math.max(1, Math.round(width * pixelRatio));
-		outputCanvas.height = Math.max(1, Math.round(height * pixelRatio));
+		outputCanvas.width = Math.max(1, canvas.width);
+		outputCanvas.height = Math.max(1, canvas.height);
 
 		const context = outputCanvas.getContext("2d");
 		if (!context) return this.getScreenshot(type, encoderOptions);
 
 		const image = await this.loadImage(canvasDataUrl);
-		context.scale(pixelRatio, pixelRatio);
-		context.drawImage(image, 0, 0, width, height);
+		context.drawImage(image, 0, 0, outputCanvas.width, outputCanvas.height);
+		// the HTML elements are positioned in the displayed size
+		context.scale(
+			outputCanvas.width / Math.max(1, canvasRect.width),
+			outputCanvas.height / Math.max(1, canvasRect.height),
+		);
 		this.drawTextAnchorsToCanvas(context, canvasRect, anchorContainer);
 
 		return outputCanvas.toDataURL(type, encoderOptions);
