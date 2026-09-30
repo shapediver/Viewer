@@ -351,12 +351,6 @@ export class CameraManager implements IManager {
 			(<PerspectiveCamera>(
 				this._renderingEngine.cameraEngine.camera
 			)).aspect = aspect;
-		else if (
-			this._renderingEngine.cameraEngine.camera?.type === "orthographic"
-		)
-			(<OrthographicCamera>(
-				this._renderingEngine.cameraEngine.camera
-			)).aspect = aspect;
 		return (<AbstractCamera>(
 			this._renderingEngine.cameraEngine.camera
 		))!.update(time);

@@ -19,8 +19,9 @@ export type Adjustments = {
 // #region Interfaces (1)
 
 export interface ICameraControls {
-	// #region Properties (29)
+	// #region Properties (30)
 
+	readonly animating: boolean;
 	readonly cameraControlsEventDistribution: ICameraControlsEventDistribution;
 	readonly canvas?: HTMLCanvasElement;
 
@@ -63,7 +64,7 @@ export interface ICameraControls {
 	zoomRestriction: {minDistance: number; maxDistance: number};
 	zoomSpeed: number;
 
-	// #endregion Properties (29)
+	// #endregion Properties (30)
 
 	// #region Public Methods (16)
 

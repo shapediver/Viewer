@@ -4,7 +4,8 @@ import {
 	type ITree,
 	type ITreeNode,
 	Tree,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -13,11 +14,13 @@ import {
 	SettingsEngine,
 	ShapeDiverViewerCameraError,
 	StateEngine,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	CAMERA_TYPE,
 	type ISceneEvent,
-	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
@@ -76,7 +79,10 @@ export class CameraEngine implements ICameraEngine {
 					if (!this._boundingBox.isEmpty() && this.camera) {
 						// check if the at least a part of the bounding box is visible
 						// if not zoom to the bounding box
+						// (not while a camera animation is running, an immediate
+						// zoomTo would cancel it and snap the camera)
 						if (
+							!this.camera.controls.animating &&
 							!this.camera.boundingSphereVisible(
 								this._boundingBox.boundingSphere,
 							)
@@ -289,7 +295,10 @@ export class CameraEngine implements ICameraEngine {
 						);
 						if (this._boundingBox.isEmpty() || !this.camera) return;
 
+						// not while a camera animation is running, an immediate
+						// zoomTo would cancel it and snap the camera
 						if (
+							!this.camera.controls.animating &&
 							!this.camera.boundingSphereVisible(
 								this._boundingBox.boundingSphere,
 							)

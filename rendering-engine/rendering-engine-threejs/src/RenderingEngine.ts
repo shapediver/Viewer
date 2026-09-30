@@ -1270,23 +1270,33 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				? camera.initialAutoAdjust
 				: shotCamera?.initialAutoAdjust;
 		let screenshotCameraPose:
-			| {camera: ICamera; position: vec3; target: vec3}
+			| {
+					camera: ICamera & {aspect?: number};
+					position: vec3;
+					target: vec3;
+					aspect?: number;
+			  }
 			| undefined;
 		if (initialAutoAdjust && shotCamera) {
+			const shotCameraWithAspect = shotCamera as ICamera & {
+				aspect?: number;
+			};
 			screenshotCameraPose = {
-				camera: shotCamera,
+				camera: shotCameraWithAspect,
 				position: vec3.clone(shotCamera.position),
 				target: vec3.clone(shotCamera.target),
+				aspect: shotCameraWithAspect.aspect,
 			};
 			// the camera might not have been rendered with the current size yet
 			// so we provide the aspect ratio that is used for the screenshot
+			// (only for the fit, it is restored afterwards so that the regular
+			// zoomTo behaviour of the camera is not affected)
 			const size = resolution || {
 				width: this.canvas.parentElement!.clientWidth,
 				height: this.canvas.parentElement!.clientHeight,
 			};
 			if ("aspect" in shotCamera && size.width > 0 && size.height > 0)
-				(shotCamera as ICamera & {aspect?: number}).aspect =
-					size.width / size.height;
+				shotCameraWithAspect.aspect = size.width / size.height;
 			await shotCamera.zoomTo(undefined, {duration: 0});
 		}
 
@@ -1324,6 +1334,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		}
 
 		if (screenshotCameraPose) {
+			if ("aspect" in screenshotCameraPose.camera)
+				screenshotCameraPose.camera.aspect =
+					screenshotCameraPose.aspect;
 			screenshotCameraPose.camera.position =
 				screenshotCameraPose.position;
 			screenshotCameraPose.camera.target = screenshotCameraPose.target;

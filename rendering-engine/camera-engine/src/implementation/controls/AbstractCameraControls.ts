@@ -3,7 +3,8 @@ import {
 	Converter,
 	EventEngine,
 	EVENTTYPE,
-	SettingsEngine} from "@shapediver/viewer.shared.services";
+	SettingsEngine,
+} from "@shapediver/viewer.shared.services";
 import {type ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
 import {type ICamera} from "../../interfaces/camera/ICamera";
@@ -144,7 +145,14 @@ export abstract class AbstractCameraControls implements ICameraControls {
 
 	// #endregion Constructors (1)
 
-	// #region Public Getters And Setters (59)
+	// #region Public Getters And Setters (60)
+
+	/**
+	 * True while a camera animation (animate / set / zoomTo with a duration) is in progress.
+	 */
+	public get animating(): boolean {
+		return this._cameraInterpolationManager.active();
+	}
 
 	public get autoRotationSpeed(): number {
 		return this._autoRotationSpeed;
@@ -448,22 +456,10 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		options: ICameraOptions,
 	): Promise<boolean> {
 		if (options && options.duration === 0) {
-			// an immediate set has to discard all pending movements, otherwise
-			// they are applied on top of the new pose in the next update
+			// an immediate set has to stop a running animation and damping,
+			// otherwise they are applied on top of the new pose in the next update
 			this._cameraInterpolationManager.stop();
 			this._cameraLogic.resetDamping();
-			this._manualInteraction = false;
-			this._manualInteractionTransformations = {
-				position: [],
-				target: [],
-				sceneRotation: [],
-			};
-			this._nonmanualInteraction = false;
-			this._nonmanualInteractionTransformations = {
-				position: [],
-				target: [],
-				sceneRotation: [],
-			};
 			this._position = path[path.length - 1].position;
 			this._target = path[path.length - 1].target;
 			return new Promise<boolean>((resolve) => resolve(true));
