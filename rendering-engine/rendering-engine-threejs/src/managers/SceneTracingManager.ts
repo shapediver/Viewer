@@ -102,9 +102,12 @@ export class SceneTracingManager implements IManager {
 		pos[0] = pos[0] * (width / 2) + width / 2;
 		pos[1] = -(pos[1] * (height / 2)) + height / 2;
 
-		// take care of correction by device pixel ratio
-		pos[0] = pos[0] / devicePixelRatio;
-		pos[1] = pos[1] / devicePixelRatio;
+		// Convert drawing-buffer pixels to renderer pixels. The renderer pixel
+		// ratio can intentionally differ from the device pixel ratio, for example
+		// while taking a screenshot at an explicitly requested resolution.
+		const pixelRatio = this._renderingEngine.renderer.getPixelRatio();
+		pos[0] = pos[0] / pixelRatio;
+		pos[1] = pos[1] / pixelRatio;
 
 		// epsilon is added as a distance spacer as users tend to put the anchors of html elements directly at the vertices
 		// with this we prevent flickering
