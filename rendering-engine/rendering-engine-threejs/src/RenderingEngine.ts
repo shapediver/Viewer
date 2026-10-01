@@ -55,7 +55,7 @@ import {
 	type ViewportCreationDefinition,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
-import {quat, vec3} from "gl-matrix";
+import {quat, vec2, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
@@ -1146,6 +1146,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.maximumRenderingSize,
 		);
 		let originalBeautyRenderDelay = this.beautyRenderDelay;
+		const originalPixelRatioOverride =
+			this._renderingManager.pixelRatioOverride;
 
 		this.beautyRenderDelay = 0; // avoid waiting for beauty render
 
@@ -1166,6 +1168,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// change the resolution if requested
 		if (resolution) {
 			this.automaticResizing = false;
+			// An explicitly requested screenshot resolution describes output
+			// pixels, not CSS pixels. Ignore the device pixel ratio temporarily.
+			this._renderingManager.pixelRatioOverride = 1;
 			this.maximumRenderingSize = {
 				width: resolution.width,
 				height: resolution.height,
@@ -1274,10 +1279,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 					camera: ICamera & {aspect?: number};
 					position: vec3;
 					target: vec3;
+					sceneRotation: vec2;
 					aspect?: number;
+					controlsEnabled: boolean;
 			  }
 			| undefined;
 		if (initialAutoAdjust && shotCamera) {
+			// Mouse/touch events and damping can leave transformations queued
+			// until the next animation frame. Commit them before taking the live
+			// pose snapshot, then freeze the controls so they cannot override the
+			// zero-duration fit while the screenshot is rendered.
+			const settledPose = shotCamera.controls.commitPendingUpdates();
+			shotCamera.position = settledPose.position;
+			shotCamera.target = settledPose.target;
+			shotCamera.sceneRotation = settledPose.sceneRotation;
 			const shotCameraWithAspect = shotCamera as ICamera & {
 				aspect?: number;
 			};
@@ -1285,8 +1300,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				camera: shotCameraWithAspect,
 				position: vec3.clone(shotCamera.position),
 				target: vec3.clone(shotCamera.target),
+				sceneRotation: vec2.clone(shotCamera.sceneRotation),
 				aspect: shotCameraWithAspect.aspect,
+				controlsEnabled: shotCamera.controls.enabled,
 			};
+			shotCamera.controls.enabled = false;
 			// the camera might not have been rendered with the current size yet
 			// so we provide the aspect ratio that is used for the screenshot
 			// (only for the fit, it is restored afterwards so that the regular
@@ -1327,6 +1345,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 		if (resolution) {
 			// restore original settings
+			this._renderingManager.pixelRatioOverride =
+				originalPixelRatioOverride;
 			this.automaticResizing = originalAutomaticResizing;
 			this.maximumRenderingSize = JSON.parse(
 				originalMaximumRenderingSize,
@@ -1340,6 +1360,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			screenshotCameraPose.camera.position =
 				screenshotCameraPose.position;
 			screenshotCameraPose.camera.target = screenshotCameraPose.target;
+			screenshotCameraPose.camera.sceneRotation =
+				screenshotCameraPose.sceneRotation;
+			screenshotCameraPose.camera.controls.enabled =
+				screenshotCameraPose.controlsEnabled;
 		}
 
 		if (camera) {

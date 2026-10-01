@@ -66,7 +66,7 @@ export interface ICameraControls {
 
 	// #endregion Properties (30)
 
-	// #region Public Methods (16)
+	// #region Public Methods (17)
 
 	animate(
 		path: {position: vec3; target: vec3}[],
@@ -91,6 +91,11 @@ export interface ICameraControls {
 	): void;
 	applyUpMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;
 	assignViewer(viewportId: string, canvas: HTMLCanvasElement): void;
+	commitPendingUpdates(): {
+		position: vec3;
+		target: vec3;
+		sceneRotation: vec2;
+	};
 	getPositionWithManualUpdates(): vec3;
 	getPositionWithUpdates(): vec3;
 	getTargetWithManualUpdates(): vec3;
@@ -100,7 +105,7 @@ export interface ICameraControls {
 	reset(): void;
 	update(time: number): {position: vec3; target: vec3; sceneRotation: vec2};
 
-	// #endregion Public Methods (16)
+	// #endregion Public Methods (17)
 }
 
 // #endregion Interfaces (1)

@@ -449,7 +449,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 
 	// #endregion Public Getters And Setters (59)
 
-	// #region Public Methods (16)
+	// #region Public Methods (17)
 
 	public animate(
 		path: {position: vec3; target: vec3}[],
@@ -657,6 +657,50 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		this._viewportId = viewportId;
 	}
 
+	/**
+	 * Applies queued camera-control transformations to the base pose and stops
+	 * any remaining movement. This is used when a deterministic pose is needed
+	 * before the next animation-frame update.
+	 */
+	public commitPendingUpdates(): {
+		position: vec3;
+		target: vec3;
+		sceneRotation: vec2;
+	} {
+		const {position, target, sceneRotation} = this._cameraLogic.restrict(
+			this.getPosition(),
+			this.getTarget(),
+			this.getSceneRotation(),
+		);
+
+		this._cameraInterpolationManager.stop();
+		this._cameraLogic.reset();
+
+		this._position = vec3.clone(position);
+		this._target = vec3.clone(target);
+		this._sceneRotation = sceneRotation
+			? vec2.clone(sceneRotation)
+			: vec2.create();
+		this._manualInteraction = false;
+		this._manualInteractionTransformations = {
+			position: [],
+			target: [],
+			sceneRotation: [],
+		};
+		this._nonmanualInteraction = false;
+		this._nonmanualInteractionTransformations = {
+			position: [],
+			target: [],
+			sceneRotation: [],
+		};
+
+		return {
+			position: vec3.clone(this._position),
+			target: vec3.clone(this._target),
+			sceneRotation: vec2.clone(this._sceneRotation),
+		};
+	}
+
 	public getPositionWithManualUpdates(): vec3 {
 		let position = vec3.clone(this._position);
 		if (this._manualInteraction) {
@@ -816,7 +860,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		return cameraDefinition;
 	}
 
-	// #endregion Public Methods (16)
+	// #endregion Public Methods (17)
 
 	// #region Private Methods (3)
 

@@ -3,7 +3,8 @@ import {AnimationFrameEngine} from "@shapediver/viewer.rendering-engine.animatio
 import {
 	CAMERA_TYPE,
 	PerspectiveCamera,
-	PerspectiveCameraControls} from "@shapediver/viewer.rendering-engine.camera-engine";
+	PerspectiveCameraControls,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {type ITree, Tree} from "@shapediver/viewer.shared.node-tree";
 import {
@@ -13,13 +14,15 @@ import {
 	EVENTTYPE_VIEWPORT,
 	Logger,
 	StateEngine,
-	SystemInfo} from "@shapediver/viewer.shared.services";
+	SystemInfo,
+} from "@shapediver/viewer.shared.services";
 import {
 	BUSY_MODE_DISPLAY,
 	type ICameraEvent,
 	type IViewportEvent,
 	RENDERER_TYPE,
-	SPINNER_POSITIONING} from "@shapediver/viewer.shared.types";
+	SPINNER_POSITIONING,
+} from "@shapediver/viewer.shared.types";
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {RenderingEngine} from "../RenderingEngine";
@@ -27,7 +30,7 @@ import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
 export class RenderingManager implements IManager {
-	// #region Properties (30)
+	// #region Properties (31)
 
 	private readonly _animationEngine: AnimationEngine =
 		AnimationEngine.instance;
@@ -67,6 +70,7 @@ export class RenderingManager implements IManager {
 	private _maxTextureUnits: number = 0;
 	private _minimalRendering: boolean = false;
 	private _noWebGL: boolean = false;
+	private _pixelRatioOverride?: number;
 	private _runningAnimation: boolean = false;
 	private _sizeChanged: boolean = false;
 	private _softShadowRenderingActive: boolean = false;
@@ -79,7 +83,7 @@ export class RenderingManager implements IManager {
 	private _width: number = 0;
 	private _updateShadowMapInNextRender: boolean = false;
 
-	// #endregion Properties (30)
+	// #endregion Properties (31)
 
 	// #region Constructors (1)
 
@@ -87,7 +91,7 @@ export class RenderingManager implements IManager {
 
 	// #endregion Constructors (1)
 
-	// #region Public Getters And Setters (6)
+	// #region Public Getters And Setters (7)
 
 	public get continuousRendering(): boolean {
 		return this._continuousRendering;
@@ -109,11 +113,19 @@ export class RenderingManager implements IManager {
 		return this._minimalRendering;
 	}
 
+	public get pixelRatioOverride(): number | undefined {
+		return this._pixelRatioOverride;
+	}
+
+	public set pixelRatioOverride(value: number | undefined) {
+		this._pixelRatioOverride = value;
+	}
+
 	public get usingSwiftShader(): boolean {
 		return this._usingSwiftShader;
 	}
 
-	// #endregion Public Getters And Setters (6)
+	// #endregion Public Getters And Setters (7)
 
 	// #region Public Methods (10)
 
@@ -288,7 +300,8 @@ export class RenderingManager implements IManager {
 				1.0,
 			);
 
-			this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
+			this._renderingEngine.renderer.shadowMap.type =
+				THREE.BasicShadowMap;
 			this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 			this._renderingEngine.materialLoader.updateMaterials();
 
@@ -436,10 +449,16 @@ export class RenderingManager implements IManager {
 			);
 
 		// get the current size
-		const {width, height, adjustedWidth, adjustedHeight} =
-			this.calculateSize();
+		const {
+			width,
+			height,
+			adjustedWidth,
+			adjustedHeight,
+			pixelRatioChanged,
+		} = this.calculateSize();
 		const aspect = width / height;
 		this._sizeChanged =
+			pixelRatioChanged ||
 			this._lastSize.adjustedHeight !== adjustedHeight ||
 			this._lastSize.adjustedWidth !== adjustedWidth ||
 			this._lastSize.height !== height ||
@@ -507,6 +526,7 @@ export class RenderingManager implements IManager {
 		this._renderingEngine.renderer.getSize(currentSize);
 		// Performance: Direct property comparison instead of Vector2.equals()
 		if (
+			pixelRatioChanged ||
 			currentSize.width !== adjustedWidth ||
 			currentSize.height !== adjustedHeight
 		) {
@@ -829,16 +849,15 @@ export class RenderingManager implements IManager {
 	private calculateSize(): {
 		adjustedWidth: number;
 		adjustedHeight: number;
+		pixelRatioChanged: boolean;
 		width: number;
 		height: number;
 	} {
-		if (
-			this._renderingEngine.renderer.getPixelRatio() !==
-			window.devicePixelRatio
-		) {
-			this._renderingEngine.renderer.setPixelRatio(
-				window.devicePixelRatio,
-			);
+		const pixelRatio = this.pixelRatioOverride ?? window.devicePixelRatio;
+		const pixelRatioChanged =
+			this._renderingEngine.renderer.getPixelRatio() !== pixelRatio;
+		if (pixelRatioChanged) {
+			this._renderingEngine.renderer.setPixelRatio(pixelRatio);
 		}
 
 		let width = this._width,
@@ -879,6 +898,7 @@ export class RenderingManager implements IManager {
 			adjustedWidth,
 			height,
 			adjustedHeight,
+			pixelRatioChanged,
 		};
 	}
 
@@ -1033,7 +1053,8 @@ export class RenderingManager implements IManager {
 		if (
 			environmentMap !== "null" &&
 			environmentMap !== "none" &&
-			this._renderingEngine.environmentMapLoader.environmentMap === null &&
+			this._renderingEngine.environmentMapLoader.environmentMap ===
+				null &&
 			environmentMapLoaded &&
 			environmentMapLoaded.resolved === false
 		) {
