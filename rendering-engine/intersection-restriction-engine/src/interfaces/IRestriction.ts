@@ -22,6 +22,12 @@ export interface DraggingRestrictionMetaData extends RestrictionMetaData {
 	dragAnchors?: IDragAnchor[];
 	dragOrigin: vec3;
 	node: ITreeNode;
+	/**
+	 * Scene nodes that must not hide a snap. Includes the dragged node and any
+	 * object the drag is moving. A hideable snap behind that object's own face
+	 * stays available.
+	 */
+	occlusionExcludedNodes?: ITreeNode[];
 	type: "dragging";
 }
 

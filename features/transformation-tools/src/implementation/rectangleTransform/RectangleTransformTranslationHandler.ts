@@ -7,6 +7,7 @@ import {
 	InteractionData,
 	InteractionEngine} from "@shapediver/viewer.features.interaction";
 import {
+	type PlaneRestrictionProperties,
 	type RestrictionProperties,
 	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
@@ -57,6 +58,7 @@ export class RectangleTransformTranslationHandler
 		parentNode: ITreeNode,
 		planeToWS: mat4,
 		getLocalPoints: () => vec3[],
+		occlusionExcludedNodes: ITreeNode[],
 		isInteractionBlocked: () => boolean = () => false,
 		onTranslationStart: () => void = () => {},
 		onMove: (runningTrans: vec3) => void,
@@ -75,6 +77,7 @@ export class RectangleTransformTranslationHandler
 		this.#interactionEngine = new InteractionEngine(viewport);
 		this.#hoverManager = new HoverManager();
 		this.#dragManager = new DragManager();
+		this.#dragManager.setOcclusionExcludedNodes(occlusionExcludedNodes);
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
 
@@ -102,9 +105,7 @@ export class RectangleTransformTranslationHandler
 				const ev = e as IDragEvent;
 				if (ev.manager !== this.#dragManager) return;
 				// Guard: do not start translation while a DT drag (scaling/rotation) is active.
-				if (this.#isInteractionBlocked()) {
-					return;
-				}
+				if (this.#isInteractionBlocked()) return;
 				// Cancel any active DT hover/drag (e.g. a hovered edge control) so
 				// that only translation runs for this gesture.
 				this.#onTranslationStart();
@@ -227,7 +228,7 @@ export class RectangleTransformTranslationHandler
 	/** Build a plane restriction from the parentNode's current world matrix. */
 	private currentPlaneRestriction(
 		localPoints: vec3[],
-	): RestrictionProperties {
+	): PlaneRestrictionProperties {
 		const M = this.#parentNode.worldMatrix;
 		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
 		const cy = (localPoints[0][1] + localPoints[4][1]) / 2;
@@ -250,6 +251,9 @@ export class RectangleTransformTranslationHandler
 			vector_u,
 			vector_v,
 			createHelperObjects: false,
+			// Below every authored snap. Equal priority keeps the closest hit,
+			// and this face-on plane is always closer in an orthographic view.
+			priority: Number.NEGATIVE_INFINITY,
 		};
 	}
 

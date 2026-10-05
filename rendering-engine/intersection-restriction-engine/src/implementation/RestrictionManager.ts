@@ -274,7 +274,13 @@ export class RestrictionManager implements IRestrictionManager {
 		while (remainingRestrictionResults.length > 0) {
 			const candidateRestrictionResult =
 				this.selectRestrictionResult(remainingRestrictionResults);
-			if (!this.isRestrictionResultOccluded(candidateRestrictionResult, ray)) {
+			if (
+				!this.isRestrictionResultOccluded(
+					candidateRestrictionResult,
+					ray,
+					metaData,
+				)
+			) {
 				restrictionResult = candidateRestrictionResult;
 				break;
 			}
@@ -410,8 +416,16 @@ export class RestrictionManager implements IRestrictionManager {
 	private isRestrictionResultOccluded(
 		restrictionResult: RestrictionResult,
 		ray: IRay,
+		metaData?:
+			| DrawingRestrictionMetaData
+			| DraggingRestrictionMetaData
+			| TransformationToolsRestrictionMetaData,
 	): boolean {
 		if (!restrictionResult.restriction.hideable) return false;
+
+		const excludedNodes = isDraggingRestriction(metaData)
+			? metaData.occlusionExcludedNodes
+			: undefined;
 
 		// create a filter to check if the node is hidden or is not fully opaque
 		const filter: IIntersectionFilter = (
@@ -423,6 +437,11 @@ export class RestrictionManager implements IRestrictionManager {
 				geometryData &&
 				geometryData.material &&
 				geometryData.material.opacity < 1.0
+			)
+				return false;
+			if (
+				excludedNodes &&
+				this.isNodeExcludedFromOcclusion(node, excludedNodes)
 			)
 				return false;
 			return true;
@@ -464,6 +483,24 @@ export class RestrictionManager implements IRestrictionManager {
 			geometryRestrictionIntersectionData.geometryData.version ===
 				sceneRayTrace[0].data!.version
 		);
+	}
+
+	/**
+	 * The dragged object and its children are not occluders. Their own face
+	 * would otherwise hide snaps that sit just behind that face.
+	 */
+	private isNodeExcludedFromOcclusion(
+		node: ITreeNode,
+		excluded: readonly ITreeNode[],
+	): boolean {
+		for (const root of excluded) {
+			let current: ITreeNode | undefined = node;
+			while (current) {
+				if (current === root) return true;
+				current = current.parent;
+			}
+		}
+		return false;
 	}
 
 	private onDown(event: PointerEvent, ray: IRay): void {

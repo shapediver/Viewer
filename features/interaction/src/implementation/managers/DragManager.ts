@@ -4,6 +4,7 @@ import {
 	type IMaterialAbstractData,
 	type IViewportApi} from "@shapediver/viewer";
 import {
+	type DraggingRestrictionMetaData,
 	type LineRestrictionProperties,
 	type PlaneRestrictionProperties,
 	type PointRestrictionProperties,
@@ -63,6 +64,7 @@ export class DragManager extends AbstractInteractionManager {
 	#groupedNodes?: ITreeNode[];
 	#interactionEffectToken?: string;
 	#intersection: IRayTracingIntersection | null = null;
+	#occlusionExcludedNodes: ITreeNode[] = [];
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
 		viewport: IViewportApi;
@@ -173,6 +175,14 @@ export class DragManager extends AbstractInteractionManager {
 	 * @param properties
 	 * @returns
 	 */
+	/**
+	 * Scene nodes the drag is moving, in addition to the interaction node.
+	 * Hideable snaps ignore these nodes so the object's own face cannot hide them.
+	 */
+	public setOcclusionExcludedNodes(nodes: ITreeNode[]): void {
+		this.#occlusionExcludedNodes = nodes;
+	}
+
 	public addRestriction(
 		properties: RestrictionProperties,
 	): string | undefined {
@@ -249,13 +259,10 @@ export class DragManager extends AbstractInteractionManager {
 		this.#restrictionManager!.showRestrictionVisualization = false;
 		if (!this.#draggedNode) return;
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -300,13 +307,10 @@ export class DragManager extends AbstractInteractionManager {
 		if (!this.#draggedNode) return;
 		this.#restrictionManager!.showRestrictionVisualization = true;
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -387,13 +391,10 @@ export class DragManager extends AbstractInteractionManager {
 
 		// if we have everything we need (the ray) than we try one last time to calculate the transformation
 		if (ray) {
-			transformationResult = this.#restrictionManager!.rayTrace(ray, {
-				type: "dragging",
-				dragAnchors: this.#draggedNode.dragAnchors,
-				dragOrigin: this.#draggedNode.dragOrigin,
-				node: this.#draggedNode.node,
-				startPoint: this.#draggedNode.dragOrigin,
-			});
+			transformationResult = this.#restrictionManager!.rayTrace(
+				ray,
+				this.draggingRestrictionMetaData(),
+			);
 			transformationMatrix = mat4.multiply(
 				mat4.create(),
 				mat4.multiply(
@@ -531,13 +532,10 @@ export class DragManager extends AbstractInteractionManager {
 			intersection: this.#intersection!,
 		};
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -667,6 +665,22 @@ export class DragManager extends AbstractInteractionManager {
 						intersection.point,
 						invertedPreviousDragMatrix,
 					),
+		};
+	}
+
+	private draggingRestrictionMetaData(): DraggingRestrictionMetaData {
+		const dragged = this.#draggedNode!;
+		return {
+			type: "dragging",
+			dragAnchors: dragged.dragAnchors,
+			dragOrigin: dragged.dragOrigin,
+			node: dragged.node,
+			startPoint: dragged.dragOrigin,
+			occlusionExcludedNodes: [
+				dragged.node,
+				...(this.#groupedNodes ?? []),
+				...this.#occlusionExcludedNodes,
+			],
 		};
 	}
 

@@ -644,6 +644,7 @@ export class RectangleTransform
 				this.#dtParentNode,
 				this.#M_planeToWS,
 				() => this.#localPoints,
+				this.nodes,
 				// Blocked when either DT has active hover/drag, OR a DT drag is still
 				// flagged (covers the gap before isInteractionActive updates)
 				() =>
