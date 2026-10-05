@@ -1,0 +1,13 @@
+---
+description: Geometry restriction grids and placement picking
+alwaysApply: true
+---
+
+# Geometry restriction grids
+
+Placement on a mesh uses drawing-tool geometry restrictions. A missing cursor means `RestrictionManager.rayTrace` returned nothing.
+
+- `gridSize` is the snap spacing in world units. `radius` is the pick radius. A square cell is only fully covered when the point/line threshold is at least `gridSize / sqrt(2)`. Ignoring `gridSize` leaves gaps between points.
+- Point clouds report every point inside that radius. Choose the one closest to the ray, and only among hits near the front of that run. The first hit along the ray is often a neighbor, and on a fine grid that neighbor is rejected as hidden.
+- Hideable restrictions are dropped when the scene hits an opaque surface closer than the snap. Compare with a small slack, and also accept a snap point that lies within the pick radius of the visible hit. The closest point on the ray can sit behind the surface even when the grid point is on it.
+- `radius: 0` without `gridSize` must stay a zero threshold. Boundary restrictions use that to avoid picking nearby points.

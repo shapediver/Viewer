@@ -43,6 +43,16 @@ export interface IGeometryRestrictionDefinition extends IRestrictionDefinition {
 	snapToEdges?: boolean;
 	/** If the restriction should snap to faces. (default: true) */
 	snapToFaces?: boolean;
+	/**
+	 * World-space pick radius for points and lines.
+	 * Also the vertex and edge snap radius when snapping on a mesh.
+	 */
+	radius?: number;
+	/**
+	 * Spacing of a snap grid, in world units.
+	 * Point and line picking covers at least one cell of this size.
+	 */
+	gridSize?: number;
 	type: "geometry";
 
 	// #endregion Properties (2)
