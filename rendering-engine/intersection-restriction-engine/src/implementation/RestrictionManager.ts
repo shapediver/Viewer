@@ -481,8 +481,9 @@ export class RestrictionManager implements IRestrictionManager {
 		// behind the surface even when the snap point itself is on that
 		// surface, which is exactly the cell center of a coarse grid. Accept
 		// the hit when the snap point is still within the pick radius of the
-		// visible surface point. A point on the back of the solid is farther
-		// away than that radius and stays hidden.
+		// visible surface point. The radius is measured across the surface.
+		// A second surface behind this one, such as the boundary mesh 0.05
+		// behind the lines, stays hidden even when that gap is inside the radius.
 		const target = restrictionResult.targetPoint;
 		if (
 			restrictionResult.restriction instanceof GeometryRestriction &&
@@ -500,7 +501,15 @@ export class RestrictionManager implements IRestrictionManager {
 					ray.origin[1] + ray.direction[1] * scale - target[1],
 					ray.origin[2] + ray.direction[2] * scale - target[2],
 				);
-				if (separation <= restrictionResult.restriction.pointPickRadius)
+				const alongRay =
+					((target[0] - ray.origin[0]) * ray.direction[0] +
+						(target[1] - ray.origin[1]) * ray.direction[1] +
+						(target[2] - ray.origin[2]) * ray.direction[2]) /
+					directionLength;
+				if (
+					alongRay <= sceneDistance + occlusionSlack &&
+					separation <= restrictionResult.restriction.pointPickRadius
+				)
 					return false;
 			}
 		}

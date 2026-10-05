@@ -8,3 +8,4 @@ alwaysApply: true
 - `hideable` snaps are dropped when a fully opaque scene hit is closer along the same ray. The invisible rectangle pick mesh does not count; its opacity is 0.
 - A face-on orthographic ray hits the dragged object's own face before snap lines that sit just behind that face. Perspective rays often meet the line first, so the same model snaps in one camera and not the other.
 - The occlusion test must skip the dragged node, its grouped nodes, and the nodes the transform tool is moving (`occlusionExcludedNodes`). Do not treat that object's own mesh as an occluder.
+- The geometry pick radius is a distance across the hit surface. It must not keep a snap that sits farther along the ray than the occluding surface. A parallel surface a fraction of that radius behind the visible hit is still hidden.
