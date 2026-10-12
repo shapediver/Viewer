@@ -1282,17 +1282,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 					sceneRotation: vec2;
 					aspect?: number;
 					controlsEnabled: boolean;
+					resumeAnimation: () => void;
 			  }
 			| undefined;
 		if (initialAutoAdjust && shotCamera) {
-			// Mouse/touch events and damping can leave transformations queued
-			// until the next animation frame. Commit them before taking the live
-			// pose snapshot, then freeze the controls so they cannot override the
-			// zero-duration fit while the screenshot is rendered.
-			const settledPose = shotCamera.controls.commitPendingUpdates();
-			shotCamera.position = settledPose.position;
-			shotCamera.target = settledPose.target;
-			shotCamera.sceneRotation = settledPose.sceneRotation;
+			// Pause an active transition while the temporary screenshot pose is
+			// in use without consuming queued camera input.
+			const resumeAnimation = shotCamera.controls.pauseAnimation();
 			const shotCameraWithAspect = shotCamera as ICamera & {
 				aspect?: number;
 			};
@@ -1303,19 +1299,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				sceneRotation: vec2.clone(shotCamera.sceneRotation),
 				aspect: shotCameraWithAspect.aspect,
 				controlsEnabled: shotCamera.controls.enabled,
+				resumeAnimation,
 			};
 			shotCamera.controls.enabled = false;
-			// the camera might not have been rendered with the current size yet
-			// so we provide the aspect ratio that is used for the screenshot
-			// (only for the fit, it is restored afterwards so that the regular
-			// zoomTo behaviour of the camera is not affected)
+			// Use the screenshot aspect for the fit, then restore it afterwards.
 			const size = resolution || {
 				width: this.canvas.parentElement!.clientWidth,
 				height: this.canvas.parentElement!.clientHeight,
 			};
 			if ("aspect" in shotCamera && size.width > 0 && size.height > 0)
 				shotCameraWithAspect.aspect = size.width / size.height;
-			await shotCamera.zoomTo(undefined, {duration: 0});
+			const fittedPose = shotCamera.calculateZoomTo();
+			shotCamera.position = fittedPose.position;
+			shotCamera.target = fittedPose.target;
 		}
 
 		this.renderingManager.render();
@@ -1364,11 +1360,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				screenshotCameraPose.sceneRotation;
 			screenshotCameraPose.camera.controls.enabled =
 				screenshotCameraPose.controlsEnabled;
+			screenshotCameraPose.resumeAnimation();
 		}
 
 		if (camera) {
-			// restore the properties on the camera that was used for the screenshot
-			// before switching back, as that camera might not be the original one
+			// Restore the camera used for the screenshot before switching back.
 			if (originalCameraProperties) {
 				Object.keys(originalCameraProperties.properties).forEach(
 					(key) => {

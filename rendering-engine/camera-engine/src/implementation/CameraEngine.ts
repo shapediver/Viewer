@@ -79,10 +79,7 @@ export class CameraEngine implements ICameraEngine {
 					if (!this._boundingBox.isEmpty() && this.camera) {
 						// check if the at least a part of the bounding box is visible
 						// if not zoom to the bounding box
-						// (not while a camera animation is running, an immediate
-						// zoomTo would cancel it and snap the camera)
 						if (
-							!this.camera.controls.animating &&
 							!this.camera.boundingSphereVisible(
 								this._boundingBox.boundingSphere,
 							)
@@ -295,10 +292,7 @@ export class CameraEngine implements ICameraEngine {
 						);
 						if (this._boundingBox.isEmpty() || !this.camera) return;
 
-						// not while a camera animation is running, an immediate
-						// zoomTo would cancel it and snap the camera
 						if (
-							!this.camera.controls.animating &&
 							!this.camera.boundingSphereVisible(
 								this._boundingBox.boundingSphere,
 							)

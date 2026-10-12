@@ -1,12 +1,11 @@
 import {vec2, vec3} from "gl-matrix";
 
 export interface ICameraControlsLogic {
-	// #region Public Methods (8)
+	// #region Public Methods (7)
 
 	isWithinRestrictions(position: vec3, target: vec3): boolean;
 	pan(x: number, y: number, active: boolean, touch: boolean): void;
 	reset(): void;
-	resetDamping(): void;
 	restrict(
 		p: vec3,
 		t: vec3,
@@ -16,5 +15,5 @@ export interface ICameraControlsLogic {
 	update(time: number, manualInteraction: boolean): void;
 	zoom(x: number, y: number, active: boolean, touch: boolean): void;
 
-	// #endregion Public Methods (8)
+	// #endregion Public Methods (7)
 }

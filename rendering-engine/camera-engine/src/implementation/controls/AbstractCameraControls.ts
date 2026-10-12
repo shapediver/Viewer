@@ -145,14 +145,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 
 	// #endregion Constructors (1)
 
-	// #region Public Getters And Setters (60)
-
-	/**
-	 * True while a camera animation (animate / set / zoomTo with a duration) is in progress.
-	 */
-	public get animating(): boolean {
-		return this._cameraInterpolationManager.active();
-	}
+	// #region Public Getters And Setters (59)
 
 	public get autoRotationSpeed(): number {
 		return this._autoRotationSpeed;
@@ -456,10 +449,6 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		options: ICameraOptions,
 	): Promise<boolean> {
 		if (options && options.duration === 0) {
-			// an immediate set has to stop a running animation and damping,
-			// otherwise they are applied on top of the new pose in the next update
-			this._cameraInterpolationManager.stop();
-			this._cameraLogic.resetDamping();
 			this._position = path[path.length - 1].position;
 			this._target = path[path.length - 1].target;
 			return new Promise<boolean>((resolve) => resolve(true));
@@ -657,47 +646,10 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		this._viewportId = viewportId;
 	}
 
-	/**
-	 * Applies queued camera-control transformations to the base pose and stops
-	 * any remaining movement. This is used when a deterministic pose is needed
-	 * before the next animation-frame update.
-	 */
-	public commitPendingUpdates(): {
-		position: vec3;
-		target: vec3;
-		sceneRotation: vec2;
-	} {
-		const {position, target, sceneRotation} = this._cameraLogic.restrict(
-			this.getPosition(),
-			this.getTarget(),
-			this.getSceneRotation(),
-		);
-
-		this._cameraInterpolationManager.stop();
-		this._cameraLogic.reset();
-
-		this._position = vec3.clone(position);
-		this._target = vec3.clone(target);
-		this._sceneRotation = sceneRotation
-			? vec2.clone(sceneRotation)
-			: vec2.create();
-		this._manualInteraction = false;
-		this._manualInteractionTransformations = {
-			position: [],
-			target: [],
-			sceneRotation: [],
-		};
-		this._nonmanualInteraction = false;
-		this._nonmanualInteractionTransformations = {
-			position: [],
-			target: [],
-			sceneRotation: [],
-		};
-
-		return {
-			position: vec3.clone(this._position),
-			target: vec3.clone(this._target),
-			sceneRotation: vec2.clone(this._sceneRotation),
+	public pauseAnimation(): () => void {
+		const animationPaused = this._cameraInterpolationManager.pause();
+		return () => {
+			if (animationPaused) this._cameraInterpolationManager.resume();
 		};
 	}
 

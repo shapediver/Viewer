@@ -19,9 +19,8 @@ export type Adjustments = {
 // #region Interfaces (1)
 
 export interface ICameraControls {
-	// #region Properties (30)
+	// #region Properties (29)
 
-	readonly animating: boolean;
 	readonly cameraControlsEventDistribution: ICameraControlsEventDistribution;
 	readonly canvas?: HTMLCanvasElement;
 
@@ -64,7 +63,7 @@ export interface ICameraControls {
 	zoomRestriction: {minDistance: number; maxDistance: number};
 	zoomSpeed: number;
 
-	// #endregion Properties (30)
+	// #endregion Properties (29)
 
 	// #region Public Methods (17)
 
@@ -91,17 +90,13 @@ export interface ICameraControls {
 	): void;
 	applyUpMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;
 	assignViewer(viewportId: string, canvas: HTMLCanvasElement): void;
-	commitPendingUpdates(): {
-		position: vec3;
-		target: vec3;
-		sceneRotation: vec2;
-	};
 	getPositionWithManualUpdates(): vec3;
 	getPositionWithUpdates(): vec3;
 	getTargetWithManualUpdates(): vec3;
 	getTargetWithUpdates(): vec3;
 	isMoving(): boolean;
 	isWithinRestrictions(position: vec3, target: vec3): boolean;
+	pauseAnimation(): () => void;
 	reset(): void;
 	update(time: number): {position: vec3; target: vec3; sceneRotation: vec2};
 
