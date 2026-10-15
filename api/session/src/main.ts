@@ -46,6 +46,7 @@ const updateSessions = (sessionEngines: {[key: string]: SessionEngine}) => {
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
  * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISessionApi.customize}. (default: true)
  * @param properties.loadSdtf Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
+ * @param properties.directTextureDownload Fetch texture URLs directly in the browser. Texture URLs that are not ShapeDiver assets are downloaded through the Geometry Backend unless this is set. The texture host must allow cross-origin reads. (default: false)
  * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISessionApi.excludeViewports}.
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @param properties.allowOutputLoading Option to allow the outputs to be loaded, or to prevent them from being loaded. (default: true)
@@ -115,6 +116,12 @@ export const createSession = async (
 	inputValidator.validateAndError(
 		"createSession",
 		properties.loadSdtf,
+		"boolean",
+		false,
+	);
+	inputValidator.validateAndError(
+		"createSession",
+		properties.directTextureDownload,
 		"boolean",
 		false,
 	);

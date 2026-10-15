@@ -212,6 +212,14 @@ export interface ISessionApi {
 	 */
 	loadSdtf: boolean;
 	/**
+	 * Fetch texture URLs directly in the browser. (default: false)
+	 *
+	 * ShapeDiver texture assets are fetched from their URL.
+	 * Other texture URLs are downloaded through the Geometry Backend, which reads them for the viewer.
+	 * Set this to true to request those URLs from the browser. The host must allow cross-origin reads from the viewer.
+	 */
+	directTextureDownload: boolean;
+	/**
 	 * Optional callback which can be specified for refreshing the JWT.
 	 * This will be called by the session once the JWT expires.
 	 * The callback is required to provide a fresh JWT.
