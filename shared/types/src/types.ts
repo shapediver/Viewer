@@ -127,6 +127,14 @@ export type SessionCreationDefinition = {
 	loadOutputs?: boolean;
 	/** Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false) */
 	loadSdtf?: boolean;
+	/**
+	 * Fetch texture URLs directly in the browser. (default: false)
+	 *
+	 * ShapeDiver texture assets are fetched from their URL.
+	 * Other texture URLs are downloaded through the Geometry Backend, which reads them for the viewer.
+	 * Set this to true to request those URLs from the browser. The host must allow cross-origin reads from the viewer.
+	 */
+	directTextureDownload?: boolean;
 	/** Option to exclude some viewports from the start. Can be accessed via `ISessionApi.excludeViewports`. */
 	excludeViewports?: string[];
 	/** The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified. */

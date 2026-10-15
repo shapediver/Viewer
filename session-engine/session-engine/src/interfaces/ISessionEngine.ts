@@ -33,6 +33,7 @@ export interface ISessionEngine {
 	guid?: string;
 	id: string;
 	initialized: boolean;
+	directTextureDownload: boolean;
 	loadSdtf: boolean;
 	modelState?: ResModelState;
 	modelViewUrl: string;
@@ -121,6 +122,7 @@ export type ISessionEngineCreationDefinition = {
 	allowOutputLoading: boolean;
 	buildDate: string;
 	buildVersion: string;
+	directTextureDownload?: boolean;
 	excludeViewports?: string[];
 	guid?: string;
 	id: string;
