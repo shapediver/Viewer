@@ -288,6 +288,8 @@ export class CameraControlsEventDistribution
 			zoom: false,
 			pan: false,
 		};
+		this._primaryPointerEvent = undefined;
+		this._secondaryPointerEvent = undefined;
 	}
 
 	// #endregion Public Methods (16)

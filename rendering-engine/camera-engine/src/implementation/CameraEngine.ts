@@ -315,6 +315,12 @@ export class CameraEngine implements ICameraEngine {
 		const camera = this.cameras[id];
 		if (!camera) return false;
 
+		// A selection handler can assign another camera during pointerdown.
+		// End the outgoing camera's gesture here, or it resumes on the next
+		// pointer move after this camera is assigned again.
+		if (this._camera && this._camera.id !== camera.id)
+			this._camera.controls.cameraControlsEventDistribution.reset();
+
 		for (const c in this.cameras) this.cameras[c].active = false;
 
 		this._camera = camera;
