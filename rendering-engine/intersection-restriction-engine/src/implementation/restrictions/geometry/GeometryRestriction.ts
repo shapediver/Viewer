@@ -81,8 +81,18 @@ export interface GeometryRestrictionProperties extends RestrictionPropertiesBase
 	/**
 	 * The radius in which the restriction should snap. (default: undefined)
 	 * Overrides the snapToVerticesRadius and snapToEdgesRadius if defined.
+	 *
+	 * For a point or line grid this is also the world-space pick radius.
 	 */
 	radius?: number;
+	/**
+	 * Spacing of a snap grid, in world units.
+	 *
+	 * When set, point and line picking covers a whole cell. A radius smaller
+	 * than half the cell diagonal otherwise leaves gaps where the cursor
+	 * cannot place a point.
+	 */
+	gridSize?: number;
 }
 
 /**
@@ -121,6 +131,7 @@ export class GeometryRestriction
 	#lineIntersectionPercentage: number = 0.025;
 	#nodes: ITreeNode[] = [];
 	#pointIntersectionPercentage: number = 0.025;
+	#gridSize: number = 0;
 	#radius?: number;
 	#sceneBoundingSphereRadius: number = 0;
 	#settings: IVisualizationSettings;
@@ -171,7 +182,8 @@ export class GeometryRestriction
 		this.#snapToFaces = properties.snapToFaces ?? true;
 		this.#snapToVerticesRadius = properties.snapToVerticesRadius;
 		this.#snapToEdgesRadius = properties.snapToEdgesRadius;
-		this.#radius = properties.radius;
+		this.#radius = finiteNumber(properties.radius);
+		this.#gridSize = finiteNumber(properties.gridSize) ?? 0;
 
 		this.#sceneBoundingSphereRadius =
 			sceneTree.root.boundingBox.boundingSphere.radius;
@@ -279,9 +291,9 @@ export class GeometryRestriction
 		// sort
 		this.#scratchIntersections.sort((a, b) => a.distance - b.distance);
 
-		// return first intersection
-		if (this.#scratchIntersections.length > 0) {
-			const object = this.#scratchIntersections[0].object as THREE.Mesh;
+		const intersection = this.leadingIntersection();
+		if (intersection) {
+			const object = intersection.object as THREE.Mesh;
 
 			let geometryRestrictionIntersectionData:
 				| GeometryRestrictionIntersectionData
@@ -320,36 +332,36 @@ export class GeometryRestriction
 
 			if (
 				object instanceof THREE.Points &&
-				this.#scratchIntersections[0].index !== undefined
+				intersection.index !== undefined
 			) {
 				if (!this.#snapToVertices) return;
 				const vertex = this.#scratchVector3A;
 				vertex.fromBufferAttribute(
 					positionAttribute,
-					this.#scratchIntersections[0].index,
+					intersection.index,
 				);
 				object.localToWorld(vertex);
 
 				return this.constructRestrictionResult(
 					vec3.fromValues(vertex.x, vertex.y, vertex.z),
-					this.#scratchIntersections[0].distance,
-					this.#scratchIntersections[0].pointOnLine,
+					intersection.distance,
+					intersection.pointOnLine,
 					geometryRestrictionIntersectionData,
 				);
 			}
 
-			const intersectionPoint = this.#scratchIntersections[0].point;
+			const intersectionPoint = intersection.point;
 			const intersectionPointVec3 = vec3.fromValues(
 				intersectionPoint.x,
 				intersectionPoint.y,
 				intersectionPoint.z,
 			);
 
-			if (!this.#scratchIntersections[0].face)
+			if (!intersection.face)
 				return this.constructRestrictionResult(
 					intersectionPointVec3,
-					this.#scratchIntersections[0].distance,
-					this.#scratchIntersections[0].pointOnLine,
+					intersection.distance,
+					intersection.pointOnLine,
 					geometryRestrictionIntersectionData,
 				);
 
@@ -357,7 +369,7 @@ export class GeometryRestriction
 				const vertexA = this.#scratchVector3A;
 				vertexA.fromBufferAttribute(
 					positionAttribute,
-					this.#scratchIntersections[0].face!.a,
+					intersection.face!.a,
 				);
 				object.localToWorld(vertexA);
 				const vertexAVec3 = vec3.fromValues(
@@ -369,7 +381,7 @@ export class GeometryRestriction
 				const vertexB = this.#scratchVector3B;
 				vertexB.fromBufferAttribute(
 					positionAttribute,
-					this.#scratchIntersections[0].face!.b,
+					intersection.face!.b,
 				);
 				object.localToWorld(vertexB);
 				const vertexBVec3 = vec3.fromValues(
@@ -381,7 +393,7 @@ export class GeometryRestriction
 				const vertexC = this.#scratchVector3C;
 				vertexC.fromBufferAttribute(
 					positionAttribute,
-					this.#scratchIntersections[0].face!.c,
+					intersection.face!.c,
 				);
 				object.localToWorld(vertexC);
 				const vertexCVec3 = vec3.fromValues(
@@ -415,8 +427,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexAVec3,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -426,8 +438,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexBVec3,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -437,8 +449,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							vertexCVec3,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					}
@@ -493,8 +505,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeAB,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -505,8 +517,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeBC,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					} else if (
@@ -517,8 +529,8 @@ export class GeometryRestriction
 					) {
 						return this.constructRestrictionResult(
 							closestPointOnEdgeCA,
-							this.#scratchIntersections[0].distance,
-							this.#scratchIntersections[0].pointOnLine,
+							intersection.distance,
+							intersection.pointOnLine,
 							geometryRestrictionIntersectionData,
 						);
 					}
@@ -533,7 +545,7 @@ export class GeometryRestriction
 						intersectionPoint.y,
 						intersectionPoint.z,
 					),
-					this.#scratchIntersections[0].distance,
+					intersection.distance,
 					undefined,
 					geometryRestrictionIntersectionData,
 				);
@@ -657,15 +669,91 @@ export class GeometryRestriction
 	// #region Private Methods (1)
 
 	private updateIntersectionThresholds(): void {
-		this.#rayCasterParams.Points.threshold =
-			this.#radius ??
+		const threshold =
+			this.pickThreshold() ??
 			this.#sceneBoundingSphereRadius * this.#pointIntersectionPercentage;
-		this.#rayCasterParams.Line.threshold =
-			this.#radius ??
+		const lineThreshold =
+			this.pickThreshold() ??
 			this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
-		this.#rayCasterParams.Line2!.threshold =
-			this.#radius ??
-			this.#sceneBoundingSphereRadius * this.#lineIntersectionPercentage;
+		this.#rayCasterParams.Points.threshold = threshold;
+		this.#rayCasterParams.Line.threshold = lineThreshold;
+		this.#rayCasterParams.Line2!.threshold = lineThreshold;
+	}
+
+	/**
+	 * World-space radius used to pick points and lines.
+	 *
+	 * An explicit radius wins when it already covers the grid. Otherwise the
+	 * radius grows to half a cell diagonal so every cursor position on the
+	 * grid resolves to a snap point.
+	 */
+	private pickThreshold(): number | undefined {
+		const radius = this.#radius;
+		const gridCoverage =
+			this.#gridSize > 0 ? this.#gridSize * Math.SQRT1_2 * 1.01 : 0;
+		if (gridCoverage > 0) return Math.max(radius ?? 0, gridCoverage);
+		return radius;
+	}
+
+	/**
+	 * World-space radius used to pick points and lines.
+	 * Mesh faces ignore this and use the exact ray.
+	 */
+	public get pointPickRadius(): number {
+		return this.#rayCasterParams.Points.threshold;
+	}
+
+	/**
+	 * The hit to place against.
+	 *
+	 * Mesh hits stay in along-ray order. A leading run of point or line hits
+	 * is re-ranked by distance to the ray, so a fine grid snaps to the
+	 * element under the cursor instead of a neighbor closer to the camera.
+	 */
+	private leadingIntersection(): THREE.Intersection | undefined {
+		const hits = this.#scratchIntersections;
+		if (hits.length === 0) return undefined;
+		const first = hits[0];
+		if (!this.isGridHit(first)) return first;
+
+		// Stay on the near surface. A later hit can sit closer to the ray
+		// because it is on the back of the solid, and choosing it makes the
+		// whole placement fail the occlusion test.
+		const depthBand = Math.max(this.pointPickRadius, 1e-3);
+		const maxDistance = first.distance + depthBand;
+
+		let best = first;
+		let bestOffset = this.offsetFromRay(first);
+		for (let i = 1; i < hits.length; i++) {
+			const candidate = hits[i];
+			if (!this.isGridHit(candidate)) break;
+			if (candidate.distance > maxDistance) break;
+			const offset = this.offsetFromRay(candidate);
+			if (
+				offset < bestOffset ||
+				(offset === bestOffset && candidate.distance < best.distance)
+			) {
+				best = candidate;
+				bestOffset = offset;
+			}
+		}
+		return best;
+	}
+
+	private isGridHit(hit: THREE.Intersection): boolean {
+		return (
+			hit.object instanceof THREE.Points ||
+			hit.object instanceof THREE.Line
+		);
+	}
+
+	private offsetFromRay(hit: THREE.Intersection): number {
+		// Point hits report the foot on the ray as `point`, so the ray
+		// distance has to come from distanceToRay. Line hits report the
+		// point on the segment.
+		if (hit.object instanceof THREE.Points)
+			return hit.distanceToRay ?? Number.POSITIVE_INFINITY;
+		return this.#raycaster.ray.distanceToPoint(hit.point);
 	}
 
 	private constructRestrictionResult(
@@ -737,6 +825,15 @@ export class GeometryRestriction
 	}
 
 	// #endregion Private Methods (1)
+}
+
+function finiteNumber(value: unknown): number | undefined {
+	if (typeof value === "number" && Number.isFinite(value)) return value;
+	if (typeof value === "string" && value.trim() !== "") {
+		const parsed = Number(value);
+		if (Number.isFinite(parsed)) return parsed;
+	}
+	return undefined;
 }
 
 // #endregion Classes (1)

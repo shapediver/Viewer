@@ -19,6 +19,35 @@ import {
 
 import {InteractionData} from "./InteractionData";
 
+const LINE_OR_POINT_TYPES = new Set([
+	"Line",
+	"LineLoop",
+	"LineSegments",
+	"Line2",
+	"Points",
+]);
+
+function isInvisibleLineOrPoint(
+	hit: IIntersectionDefinition,
+	opacityThreshold: number,
+): boolean {
+	const primitive = (
+		hit as IRayTracingIntersection & {
+			occludePrimitive?: {
+				objectType: string;
+				materialOpacity?: number | number[];
+			};
+		}
+	).occludePrimitive;
+	if (!primitive || !LINE_OR_POINT_TYPES.has(primitive.objectType))
+		return false;
+	const opacity = primitive.materialOpacity;
+	if (opacity === undefined) return false;
+	if (Array.isArray(opacity))
+		return opacity.every((value) => value <= opacityThreshold);
+	return opacity <= opacityThreshold;
+}
+
 export class IntersectionManager implements IIntersectionEngine {
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _intersectionEngine: IntersectionEngine =
@@ -75,11 +104,15 @@ export class IntersectionManager implements IIntersectionEngine {
 	 * Returns the distance to the closest piece of scene geometry hit by the
 	 * ray, regardless of whether it has InteractionData. Used to occlude
 	 * interactive intersections that are behind solid non-interactive geometry.
+	 *
+	 * Lines and points whose material opacity is at or below `opacityThreshold`
+	 * are skipped. Meshes, and lines or points above that opacity, still occlude.
 	 */
 	public closestSceneGeometryDistance(
 		ray: IRay,
 		viewportId: string,
 		rayCasterParams?: RaycasterParameters,
+		opacityThreshold: number = 0.01,
 	): number {
 		const hits = this._intersectionEngine.intersect(
 			ray,
@@ -89,8 +122,12 @@ export class IntersectionManager implements IIntersectionEngine {
 				rayCasterParams,
 			},
 		);
-		if (hits.length === 0) return Infinity;
-		return (hits[0] as IRayTracingIntersection).distance;
+		for (const hit of hits) {
+			if (hit.type !== "RayTracingIntersection") continue;
+			if (isInvisibleLineOrPoint(hit, opacityThreshold)) continue;
+			return (hit as IRayTracingIntersection).distance;
+		}
+		return Infinity;
 	}
 
 	private gatherGeometryData(node: ITreeNode): {[key: string]: GeometryData} {

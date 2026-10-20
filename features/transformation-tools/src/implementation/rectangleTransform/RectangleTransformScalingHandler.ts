@@ -34,6 +34,7 @@ export class RectangleTransformScalingHandler
 		this.#pointsMapping = new RectangleTransformPointsMapping(
 			visibilityConfig,
 		);
+		const interactive = visibilityConfig.interactive ?? true;
 
 		const vis = scalingConfig?.visualization;
 
@@ -131,6 +132,7 @@ export class RectangleTransformScalingHandler
 					enableInsertion: false,
 					enableDeletion: false,
 					enableSelection: false,
+					enableTranslation: interactive,
 				},
 				geometry: {
 					mode: "lines",

@@ -2,6 +2,44 @@ import {type RestrictionProperties} from "@shapediver/viewer.rendering-engine.in
 import {type IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
 import {type SettingsOptional} from "../interfaces/IDrawingToolsManager";
 
+export const DEFAULT_AUTOMATIC_SCENE_UPDATE_TIMEOUT = 1000;
+export const LEGACY_AUTO_UPDATE_TIMEOUT = 0;
+
+type DrawingAutomaticSceneUpdateInput = {
+	autoUpdate?: boolean | null;
+	automaticSceneUpdate?: boolean | null;
+	automaticSceneUpdateTimeout?: number | null;
+};
+
+const isSet = (value: unknown): boolean =>
+	value !== undefined && value !== null;
+
+/**
+ * Resolve drawing idle-update flags.
+ *
+ * `automaticSceneUpdate` wins when present. Deprecated `autoUpdate` is still
+ * honored otherwise. Timeout defaults to 1000 when `automaticSceneUpdate` is
+ * set, and to 0 when only `autoUpdate` is set.
+ */
+export const resolveDrawingAutomaticSceneUpdate = (
+	input?: DrawingAutomaticSceneUpdateInput | null,
+): {enabled: boolean; timeout: number} => {
+	const hasAutomaticSceneUpdate = isSet(input?.automaticSceneUpdate);
+	const hasAutoUpdate = isSet(input?.autoUpdate);
+	const enabled = hasAutomaticSceneUpdate
+		? Boolean(input!.automaticSceneUpdate)
+		: Boolean(input?.autoUpdate);
+	const timeoutDefault = hasAutomaticSceneUpdate
+		? DEFAULT_AUTOMATIC_SCENE_UPDATE_TIMEOUT
+		: hasAutoUpdate
+			? LEGACY_AUTO_UPDATE_TIMEOUT
+			: DEFAULT_AUTOMATIC_SCENE_UPDATE_TIMEOUT;
+	const timeout = isSet(input?.automaticSceneUpdateTimeout)
+		? Number(input!.automaticSceneUpdateTimeout)
+		: timeoutDefault;
+	return {enabled, timeout};
+};
+
 /**
  * Converts platform-level drawing parameter settings ({@link IDrawingParameterSettings})
  * to the runtime settings format ({@link SettingsOptional}) consumed by the drawing tools engine.
@@ -23,12 +61,16 @@ export const drawingParameterToRuntimeSettings = (
 	const behavior = paramSettings.behavior;
 	const geometry = paramSettings.geometry;
 	const options = paramSettings.general?.options;
+	const {enabled: automaticSceneUpdate, timeout: automaticSceneUpdateTimeout} =
+		resolveDrawingAutomaticSceneUpdate(behavior);
 
 	return {
 		controls: paramSettings.controls as SettingsOptional["controls"],
 		general: {
 			autoStart: behavior?.autoStart ?? true,
-			autoUpdate: behavior?.autoUpdate ?? false,
+			autoUpdate: automaticSceneUpdate,
+			automaticSceneUpdate,
+			automaticSceneUpdateTimeout,
 			closeOnUpdate: behavior?.closeOnUpdate ?? false,
 			displayUnit: behavior?.displayUnit ?? "",
 			enableTranslation: behavior?.enableTranslation ?? true,

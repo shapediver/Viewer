@@ -158,6 +158,8 @@ export class RectangleTransform
 			EVENTTYPE_DRAWING_TOOLS.DRAG_END,
 			(e) => this.dispatchDrag(e as IDrawingToolsEvent, true),
 		);
+
+		this.viewport.render();
 	}
 
 	public get settings(): RectangleTransformSettingsOptional | undefined {
@@ -558,27 +560,36 @@ export class RectangleTransform
 		this.#initialLocalPoints = initPoints.map((p) => vec3.clone(p));
 		this.#localPoints = initPoints.map((p) => vec3.clone(p));
 
-		if (this.settings?.enableScaling ?? true) {
-			this.#scalingHandler = new RectangleTransformScalingHandler(
-				this.viewport,
-				this.#dtParentNode,
-				this.#localPoints,
-				{
-					corners: this.settings?.corners,
-					edgeControls: this.settings?.edgeControls,
-				},
-				this.settings?.scaling,
-			);
+		const scalingEnabled = this.settings?.enableScaling ?? true;
+		const disabledCorners = {
+			topLeft: false,
+			topRight: false,
+			bottomLeft: false,
+			bottomRight: false,
+		};
+		this.#scalingHandler = new RectangleTransformScalingHandler(
+			this.viewport,
+			this.#dtParentNode,
+			this.#localPoints,
+			{
+				corners: scalingEnabled
+					? this.settings?.corners
+					: disabledCorners,
+				edgeControls: this.settings?.edgeControls,
+				interactive: scalingEnabled,
+			},
+			this.settings?.scaling,
+		);
 
-			this.#scalingHandler.recompute(this.#localPoints, false);
+		this.#scalingHandler.recompute(this.#localPoints, false);
 
-			// Read back the positions actually stored in the DT after applyConstraints
-			// may have clamped the initial points (e.g. size min/max restrictions).
-			// Without this sync #localPoints would still hold the unconstrained values
-			// and calculateTransformationMatrix would not update the object.
-			this.#localPoints =
-				this.#scalingHandler.readbackConstrainedPoints();
+		// Read back the positions actually stored in the DT after applyConstraints
+		// may have clamped the initial points (e.g. size min/max restrictions).
+		// Without this sync #localPoints would still hold the unconstrained values
+		// and calculateTransformationMatrix would not update the object.
+		this.#localPoints = this.#scalingHandler.readbackConstrainedPoints();
 
+		if (scalingEnabled) {
 			// Commit the constrained state so that the object reflects the DT
 			// geometry from creation and min/max/step restrictions are active.
 			this.calculateTransformationMatrix(this.#localPoints, true);
@@ -633,6 +644,7 @@ export class RectangleTransform
 				this.#dtParentNode,
 				this.#M_planeToWS,
 				() => this.#localPoints,
+				this.nodes,
 				// Blocked when either DT has active hover/drag, OR a DT drag is still
 				// flagged (covers the gap before isInteractionActive updates)
 				() =>

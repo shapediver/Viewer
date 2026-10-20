@@ -78,7 +78,7 @@ const createStatusLog = () => {
 	const customizationProperties: Settings = {
 		// ── General (NEW: enableTranslation / enableInsertion / enableDeletion / enableSelection) ──
 		general: {
-			autoUpdate: true,
+			automaticSceneUpdate: true,
 			displayUnit: "m",
 			// NEW: individually toggle user capabilities
 			enableTranslation: true,

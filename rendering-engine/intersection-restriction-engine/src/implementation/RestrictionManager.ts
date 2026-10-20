@@ -5,36 +5,43 @@ import {
 	type IGeometryData,
 	type IIntersectionFilter,
 	type IRay,
-	type IVisualizationSettings} from "@shapediver/viewer.shared.types";
+	type IVisualizationSettings,
+} from "@shapediver/viewer.shared.types";
 import {
 	type DraggingRestrictionMetaData,
 	type DrawingRestrictionMetaData,
 	type IRestriction,
 	isDraggingRestriction,
 	type RayTraceResult,
+	RESTRICTION_TYPE,
 	type RestrictionProperties,
 	type RestrictionResult,
-	RESTRICTION_TYPE,
-	type TransformationToolsRestrictionMetaData} from "../interfaces/IRestriction";
+	type TransformationToolsRestrictionMetaData,
+} from "../interfaces/IRestriction";
 import {type IRestrictionManager} from "../interfaces/IRestrictionManager";
 import {EventManager} from "./EventManager";
 import {GeometryMathManager} from "./GeometryMathManager";
 import {
 	CameraPlaneRestriction,
-	type CameraPlaneRestrictionProperties} from "./restrictions/camera_plane/CameraPlaneRestriction";
+	type CameraPlaneRestrictionProperties,
+} from "./restrictions/camera_plane/CameraPlaneRestriction";
 import {
 	GeometryRestriction,
 	type GeometryRestrictionIntersectionData,
-	type GeometryRestrictionProperties} from "./restrictions/geometry/GeometryRestriction";
+	type GeometryRestrictionProperties,
+} from "./restrictions/geometry/GeometryRestriction";
 import {
 	LineRestriction,
-	type LineRestrictionProperties} from "./restrictions/line/LineRestriction";
+	type LineRestrictionProperties,
+} from "./restrictions/line/LineRestriction";
 import {
 	PlaneRestriction,
-	type PlaneRestrictionProperties} from "./restrictions/plane/PlaneRestriction";
+	type PlaneRestrictionProperties,
+} from "./restrictions/plane/PlaneRestriction";
 import {
 	PointRestriction,
-	type PointRestrictionProperties} from "./restrictions/point/PointRestriction";
+	type PointRestrictionProperties,
+} from "./restrictions/point/PointRestriction";
 import {calculateDragMatrix} from "./restrictions/RestrictionsHelper";
 
 export class RestrictionManager implements IRestrictionManager {
@@ -272,9 +279,16 @@ export class RestrictionManager implements IRestrictionManager {
 		const remainingRestrictionResults = [...restrictionResults];
 		let restrictionResult: RestrictionResult | undefined;
 		while (remainingRestrictionResults.length > 0) {
-			const candidateRestrictionResult =
-				this.selectRestrictionResult(remainingRestrictionResults);
-			if (!this.isRestrictionResultOccluded(candidateRestrictionResult, ray)) {
+			const candidateRestrictionResult = this.selectRestrictionResult(
+				remainingRestrictionResults,
+			);
+			if (
+				!this.isRestrictionResultOccluded(
+					candidateRestrictionResult,
+					ray,
+					metaData,
+				)
+			) {
 				restrictionResult = candidateRestrictionResult;
 				break;
 			}
@@ -410,8 +424,16 @@ export class RestrictionManager implements IRestrictionManager {
 	private isRestrictionResultOccluded(
 		restrictionResult: RestrictionResult,
 		ray: IRay,
+		metaData?:
+			| DrawingRestrictionMetaData
+			| DraggingRestrictionMetaData
+			| TransformationToolsRestrictionMetaData,
 	): boolean {
 		if (!restrictionResult.restriction.hideable) return false;
+
+		const excludedNodes = isDraggingRestriction(metaData)
+			? metaData.occlusionExcludedNodes
+			: undefined;
 
 		// create a filter to check if the node is hidden or is not fully opaque
 		const filter: IIntersectionFilter = (
@@ -423,6 +445,11 @@ export class RestrictionManager implements IRestrictionManager {
 				geometryData &&
 				geometryData.material &&
 				geometryData.material.opacity < 1.0
+			)
+				return false;
+			if (
+				excludedNodes &&
+				this.isNodeExcludedFromOcclusion(node, excludedNodes)
 			)
 				return false;
 			return true;
@@ -437,13 +464,55 @@ export class RestrictionManager implements IRestrictionManager {
 
 		if (sceneRayTrace.length === 0) return false;
 
-		const squaredDistanceSceneRayTrace =
-			sceneRayTrace[0].distance * sceneRayTrace[0].distance;
+		const sceneDistance = sceneRayTrace[0].distance;
+		const restrictionDistance = Math.sqrt(
+			restrictionResult.distanceOriginToClosestIntersectionPointSquared,
+		);
+		// Restriction grids are built on the visible surface. Treat a hit that
+		// is only slightly farther than the scene as the same surface, so
+		// float error does not punch holes in placement.
+		const occlusionSlack = Math.min(
+			0.25,
+			Math.max(1e-4, sceneDistance * 1e-4),
+		);
+		if (sceneDistance + occlusionSlack >= restrictionDistance) return false;
+
+		// A grid snap is not on the ray. Its closest point on the ray can sit
+		// behind the surface even when the snap point itself is on that
+		// surface, which is exactly the cell center of a coarse grid. Accept
+		// the hit when the snap point is still within the pick radius of the
+		// visible surface point. The radius is measured across the surface.
+		// A second surface behind this one, such as the boundary mesh 0.05
+		// behind the lines, stays hidden even when that gap is inside the radius.
+		const target = restrictionResult.targetPoint;
 		if (
-			squaredDistanceSceneRayTrace >=
-			restrictionResult.distanceOriginToClosestIntersectionPointSquared
-		)
-			return false;
+			restrictionResult.restriction instanceof GeometryRestriction &&
+			restrictionResult.restriction.pointPickRadius > 0
+		) {
+			const directionLength = Math.hypot(
+				ray.direction[0],
+				ray.direction[1],
+				ray.direction[2],
+			);
+			if (directionLength > 0) {
+				const scale = sceneDistance / directionLength;
+				const separation = Math.hypot(
+					ray.origin[0] + ray.direction[0] * scale - target[0],
+					ray.origin[1] + ray.direction[1] * scale - target[1],
+					ray.origin[2] + ray.direction[2] * scale - target[2],
+				);
+				const alongRay =
+					((target[0] - ray.origin[0]) * ray.direction[0] +
+						(target[1] - ray.origin[1]) * ray.direction[1] +
+						(target[2] - ray.origin[2]) * ray.direction[2]) /
+					directionLength;
+				if (
+					alongRay <= sceneDistance + occlusionSlack &&
+					separation <= restrictionResult.restriction.pointPickRadius
+				)
+					return false;
+			}
+		}
 
 		// the second check is to make sure that the geometry data of the geometry restriction and the scene ray trace is available
 		if (
@@ -464,6 +533,24 @@ export class RestrictionManager implements IRestrictionManager {
 			geometryRestrictionIntersectionData.geometryData.version ===
 				sceneRayTrace[0].data!.version
 		);
+	}
+
+	/**
+	 * The dragged object and its children are not occluders. Their own face
+	 * would otherwise hide snaps that sit just behind that face.
+	 */
+	private isNodeExcludedFromOcclusion(
+		node: ITreeNode,
+		excluded: readonly ITreeNode[],
+	): boolean {
+		for (const root of excluded) {
+			let current: ITreeNode | undefined = node;
+			while (current) {
+				if (current === root) return true;
+				current = current.parent;
+			}
+		}
+		return false;
 	}
 
 	private onDown(event: PointerEvent, ray: IRay): void {

@@ -3,7 +3,8 @@ import {
 	Converter,
 	EventEngine,
 	EVENTTYPE,
-	SettingsEngine} from "@shapediver/viewer.shared.services";
+	SettingsEngine,
+} from "@shapediver/viewer.shared.services";
 import {type ICameraOptions} from "@shapediver/viewer.shared.types";
 import {mat4, vec2, vec3} from "gl-matrix";
 import {type ICamera} from "../../interfaces/camera/ICamera";
@@ -441,7 +442,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 
 	// #endregion Public Getters And Setters (59)
 
-	// #region Public Methods (16)
+	// #region Public Methods (17)
 
 	public animate(
 		path: {position: vec3; target: vec3}[],
@@ -645,6 +646,13 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		this._viewportId = viewportId;
 	}
 
+	public pauseAnimation(): () => void {
+		const animationPaused = this._cameraInterpolationManager.pause();
+		return () => {
+			if (animationPaused) this._cameraInterpolationManager.resume();
+		};
+	}
+
 	public getPositionWithManualUpdates(): vec3 {
 		let position = vec3.clone(this._position);
 		if (this._manualInteraction) {
@@ -804,7 +812,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		return cameraDefinition;
 	}
 
-	// #endregion Public Methods (16)
+	// #endregion Public Methods (17)
 
 	// #region Private Methods (3)
 

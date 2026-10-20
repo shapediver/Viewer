@@ -392,6 +392,21 @@ export class SessionApi implements ISessionApi {
 		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
 	}
 
+	public get directTextureDownload(): boolean {
+		return this.#sessionEngine.directTextureDownload;
+	}
+
+	public set directTextureDownload(value: boolean) {
+		const scope = "directTextureDownload";
+		this.#inputValidator.validateAndError(
+			`SessionApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#sessionEngine.directTextureDownload = value;
+		this.#logger.debug(`SessionApi.${scope}: ${scope} was set to ${value}`);
+	}
+
 	public get customizeOnParameterChange(): boolean {
 		return this.#sessionEngine.customizeOnParameterChange;
 	}

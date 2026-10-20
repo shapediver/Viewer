@@ -162,7 +162,7 @@ export class GeometryLoader {
 				primitive.extensions[
 					GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION
 				];
-			const arrayBuffer = this._bufferViewLoader.getBufferView(
+			const dracoBufferView = this._bufferViewLoader.getBufferView(
 				dracoDef.bufferView!,
 			);
 
@@ -171,7 +171,11 @@ export class GeometryLoader {
 				this._dracoDecoder = new this._dracoModule.Decoder();
 			}
 			const decoder = this._dracoDecoder;
-			const array = new Int8Array(arrayBuffer);
+			const array = new Int8Array(
+				dracoBufferView.buffer,
+				dracoBufferView.byteOffset,
+				dracoBufferView.byteLength,
+			);
 			const geometryType = decoder.GetEncodedGeometryType(array);
 
 			let dracoGeometry;

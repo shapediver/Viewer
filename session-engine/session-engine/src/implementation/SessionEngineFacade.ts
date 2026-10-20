@@ -78,6 +78,14 @@ export class SessionEngineFacade implements ISessionEngine {
 		this._customizationManager.customizeOnParameterChange = value;
 	}
 
+	public get directTextureDownload(): boolean {
+		return this._sessionEngineCore.directTextureDownload;
+	}
+
+	public set directTextureDownload(value: boolean) {
+		this._sessionEngineCore.directTextureDownload = value;
+	}
+
 	public get excludeViewports(): string[] {
 		return this._sessionEngineCore.excludeViewports;
 	}

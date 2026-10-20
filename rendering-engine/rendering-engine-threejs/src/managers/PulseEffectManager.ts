@@ -48,7 +48,7 @@ export class PulseEffectManager {
 			geometry.effectPulses[geometry.effectPulses.length - 1]?.effect;
 		for (const object of objects) {
 			this.clear(object);
-			if (!effect || object instanceof THREE.InstancedMesh) continue;
+			if (!effect) continue;
 			const source = object.material;
 			if (Array.isArray(source) || !("color" in source)) continue;
 

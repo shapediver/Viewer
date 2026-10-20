@@ -347,11 +347,12 @@ export class MobileStrategy implements IStrategy {
 						},
 					);
 
-					// When autoUpdate is false the GEOMETRY_CHANGED listener is
-					// gated and will not call update(), so we mirror desktop
-					// behavior and call it directly.
+					// When automaticSceneUpdate is false the GEOMETRY_CHANGED
+					// listener is gated and will not call update(), so we
+					// mirror desktop behavior and call it directly.
 					if (
-						!this.#drawingToolsManager.settings.general.autoUpdate
+						!this.#drawingToolsManager.settings.general
+							.automaticSceneUpdate
 					) {
 						this.#drawingToolsManager.update();
 					}
@@ -380,8 +381,8 @@ export class MobileStrategy implements IStrategy {
 				// If the maximum number of points has been reached, call
 				// update() directly, mirroring desktop behavior. We only
 				// skip the direct call when the GEOMETRY_CHANGED listener
-				// would already fire update() (autoUpdate on AND the close
-				// state condition passes), to avoid calling it twice.
+				// would already fire update() (automaticSceneUpdate on AND
+				// the close state condition passes), to avoid calling it twice.
 				const dtSettings = this.#drawingToolsManager.settings;
 				const dtGeometryState = this.#drawingToolsManager.geometryState;
 				const reachedMax =
@@ -390,7 +391,7 @@ export class MobileStrategy implements IStrategy {
 						dtSettings.geometry.maxPoints;
 				if (reachedMax) {
 					const listenerWillFire =
-						dtSettings.general.autoUpdate &&
+						dtSettings.general.automaticSceneUpdate &&
 						(dtSettings.geometry.autoClose ||
 							dtSettings.geometry.close ===
 								dtGeometryState.closeLoop);

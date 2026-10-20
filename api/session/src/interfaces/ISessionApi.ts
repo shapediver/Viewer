@@ -114,6 +114,9 @@ export interface ISessionApi {
 	 * In case this is set to false, the session's scene tree {@link node} will not be automatically replaced
 	 * by the node returned from {@link customize}. This can be used to plug the result of {@link customize}
 	 * into other parts of the scene tree.
+	 *
+	 * This is not the interaction/drawing parameter setting of the same name, which
+	 * requests a customization after idle handle or point edits.
 	 */
 	automaticSceneUpdate: boolean;
 	/**
@@ -208,6 +211,14 @@ export interface ISessionApi {
 	 * Option to load the SDTF data. The data is not loaded by default as it can be quite large. (default: false)
 	 */
 	loadSdtf: boolean;
+	/**
+	 * Fetch texture URLs directly in the browser. (default: false)
+	 *
+	 * ShapeDiver texture assets are fetched from their URL.
+	 * Other texture URLs are downloaded through the Geometry Backend, which reads them for the viewer.
+	 * Set this to true to request those URLs from the browser. The host must allow cross-origin reads from the viewer.
+	 */
+	directTextureDownload: boolean;
 	/**
 	 * Optional callback which can be specified for refreshing the JWT.
 	 * This will be called by the session once the JWT expires.

@@ -55,7 +55,7 @@ import {
 	type ViewportCreationDefinition,
 	VISIBILITY_MODE,
 } from "@shapediver/viewer.shared.types";
-import {quat, vec3} from "gl-matrix";
+import {quat, vec2, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
 import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
@@ -1146,6 +1146,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.maximumRenderingSize,
 		);
 		let originalBeautyRenderDelay = this.beautyRenderDelay;
+		const originalPixelRatioOverride =
+			this._renderingManager.pixelRatioOverride;
 
 		this.beautyRenderDelay = 0; // avoid waiting for beauty render
 
@@ -1166,6 +1168,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// change the resolution if requested
 		if (resolution) {
 			this.automaticResizing = false;
+			// An explicitly requested screenshot resolution describes output
+			// pixels, not CSS pixels. Ignore the device pixel ratio temporarily.
+			this._renderingManager.pixelRatioOverride = 1;
 			this.maximumRenderingSize = {
 				width: resolution.width,
 				height: resolution.height,
@@ -1178,7 +1183,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// if the camera properties are changed, we need to restore them afterwards
 		let originalCameraProperties:
 			| {
-					id: string;
+					camera: ICamera;
 					properties: {
 						[f: string]: any;
 					};
@@ -1209,18 +1214,25 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		// change the camera if requested
 		if (camera) {
 			if (camera.name) {
-				if (this._cameraEngine.camera?.name === camera.name) {
-					// nothing to do, already assigned
-				} else if (this._cameraEngine.cameras[camera.name]) {
-					const specifiedCamera =
-						this._cameraEngine.cameras[camera.name];
+				// the provided name can either be the name or the id of a camera
+				const specifiedCamera =
+					this._cameraEngine.cameras[camera.name] ||
+					Object.values(this._cameraEngine.cameras).find(
+						(c) => c.name === camera.name,
+					);
 
+				if (
+					this._cameraEngine.camera?.name === camera.name ||
+					this._cameraEngine.camera?.id === camera.name
+				) {
+					// nothing to do, already assigned
+				} else if (specifiedCamera) {
 					originalCameraId = this._cameraEngine.camera?.id;
 					this._cameraEngine.assignCamera(specifiedCamera.id);
 				}
 
 				originalCameraProperties = {
-					id: this._cameraEngine.camera!.id,
+					camera: this._cameraEngine.camera!,
 					properties: {},
 				};
 				Object.keys(camera).forEach((key) => {
@@ -1253,6 +1265,55 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			}
 		}
 
+		// Fit before capture when the shot camera has initialAutoAdjust, or when
+		// the screenshot camera explicitly sets it. false skips the fit. Duration
+		// 0 matches the first-load zoom. The pose is restored so the live camera
+		// does not stay fitted.
+		const shotCamera = this._cameraEngine.camera;
+		const initialAutoAdjust =
+			camera !== undefined && "initialAutoAdjust" in camera
+				? camera.initialAutoAdjust
+				: shotCamera?.initialAutoAdjust;
+		let screenshotCameraPose:
+			| {
+					camera: ICamera & {aspect?: number};
+					position: vec3;
+					target: vec3;
+					sceneRotation: vec2;
+					aspect?: number;
+					controlsEnabled: boolean;
+					resumeAnimation: () => void;
+			  }
+			| undefined;
+		if (initialAutoAdjust && shotCamera) {
+			// Pause an active transition while the temporary screenshot pose is
+			// in use without consuming queued camera input.
+			const resumeAnimation = shotCamera.controls.pauseAnimation();
+			const shotCameraWithAspect = shotCamera as ICamera & {
+				aspect?: number;
+			};
+			screenshotCameraPose = {
+				camera: shotCameraWithAspect,
+				position: vec3.clone(shotCamera.position),
+				target: vec3.clone(shotCamera.target),
+				sceneRotation: vec2.clone(shotCamera.sceneRotation),
+				aspect: shotCameraWithAspect.aspect,
+				controlsEnabled: shotCamera.controls.enabled,
+				resumeAnimation,
+			};
+			shotCamera.controls.enabled = false;
+			// Use the screenshot aspect for the fit, then restore it afterwards.
+			const size = resolution || {
+				width: this.canvas.parentElement!.clientWidth,
+				height: this.canvas.parentElement!.clientHeight,
+			};
+			if ("aspect" in shotCamera && size.width > 0 && size.height > 0)
+				shotCameraWithAspect.aspect = size.width / size.height;
+			const fittedPose = shotCamera.calculateZoomTo();
+			shotCamera.position = fittedPose.position;
+			shotCamera.target = fittedPose.target;
+		}
+
 		this.renderingManager.render();
 		await new Promise<void>((resolve) => {
 			const token = this._eventEngine.addListener(
@@ -1263,6 +1324,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 				},
 			);
 		});
+		// Anchors are shown on the frame after the mesh beauty render.
+		if (includeHtml)
+			await new Promise<void>((resolve) => {
+				requestAnimationFrame(() => resolve());
+			});
 		const screenshot = includeHtml
 			? await this._renderingManager.getScreenshotWithHtml(
 					type,
@@ -1275,32 +1341,44 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 		if (resolution) {
 			// restore original settings
+			this._renderingManager.pixelRatioOverride =
+				originalPixelRatioOverride;
 			this.automaticResizing = originalAutomaticResizing;
 			this.maximumRenderingSize = JSON.parse(
 				originalMaximumRenderingSize,
 			);
 		}
 
+		if (screenshotCameraPose) {
+			if ("aspect" in screenshotCameraPose.camera)
+				screenshotCameraPose.camera.aspect =
+					screenshotCameraPose.aspect;
+			screenshotCameraPose.camera.position =
+				screenshotCameraPose.position;
+			screenshotCameraPose.camera.target = screenshotCameraPose.target;
+			screenshotCameraPose.camera.sceneRotation =
+				screenshotCameraPose.sceneRotation;
+			screenshotCameraPose.camera.controls.enabled =
+				screenshotCameraPose.controlsEnabled;
+			screenshotCameraPose.resumeAnimation();
+		}
+
 		if (camera) {
-			if (originalCameraId) {
-				this._cameraEngine.assignCamera(originalCameraId);
+			// Restore the camera used for the screenshot before switching back.
+			if (originalCameraProperties) {
+				Object.keys(originalCameraProperties.properties).forEach(
+					(key) => {
+						setCameraProperty(
+							originalCameraProperties!.camera,
+							key,
+							originalCameraProperties!.properties[key],
+						);
+					},
+				);
 			}
 
-			if (originalCameraProperties) {
-				if (
-					this._cameraEngine.camera?.id ===
-					originalCameraProperties.id
-				) {
-					Object.keys(originalCameraProperties.properties).forEach(
-						(key) => {
-							setCameraProperty(
-								this._cameraEngine.camera!,
-								key,
-								originalCameraProperties!.properties[key],
-							);
-						},
-					);
-				}
+			if (originalCameraId) {
+				this._cameraEngine.assignCamera(originalCameraId);
 			}
 
 			if (newCamera) {
