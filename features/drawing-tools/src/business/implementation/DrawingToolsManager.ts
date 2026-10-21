@@ -567,7 +567,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				return;
 			}
 			// the geometry may have changed since scheduling: update() would
-			// throw outside the point range or with an open loop
+			// throw outside the point range or with an open loop (the loop
+			// check of update() applies to more than two points only)
 			const geometry = this.#settings.geometry;
 			const geometryState = this.#geometryManager.geometryState;
 			if (!geometryState.checkNumberOfPoints()) return;
@@ -576,7 +577,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				!(
 					geometry.autoClose ||
 					geometry.close === geometryState.closeLoop
-				)
+				) &&
+				geometryState.getPointCount() > 2
 			)
 				return;
 			this.update();
