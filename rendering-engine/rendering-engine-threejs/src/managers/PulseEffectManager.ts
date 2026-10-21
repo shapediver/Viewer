@@ -52,10 +52,23 @@ export class PulseEffectManager {
 			const source = object.material;
 			if (Array.isArray(source) || !("color" in source)) continue;
 
-			const material = source.clone() as THREE.Material & {
+			// Material.clone() deep-copies userData through JSON. The material
+			// loader stores the compiled shader (with its texture uniforms) in
+			// userData.shader, so a plain clone would serialize every texture
+			// image to a data URL. Clone without userData and restore it.
+			const userData = source.userData;
+			source.userData = {};
+			let material: THREE.Material & {
 				color: THREE.Color;
 				opacity?: number;
 			};
+			try {
+				material = source.clone() as typeof material;
+			} finally {
+				source.userData = userData;
+			}
+			material.userData = {...userData};
+			delete material.userData.shader;
 			object.material = material;
 			const baseColor = material.color.clone();
 			const effectColor = this._renderingEngine.createThreeJsColor(
