@@ -50,6 +50,7 @@ export class RectangleTransformTranslationHandler
 	#node!: ITreeNode;
 	#previousNode: ITreeNode | undefined;
 	#planeRestrictionToken: string | undefined;
+	#removePointerDownClaim: (() => void) | undefined;
 	#restrictions: RestrictionProperties[] | undefined;
 
 	constructor(
@@ -78,6 +79,11 @@ export class RectangleTransformTranslationHandler
 		this.#hoverManager = new HoverManager();
 		this.#dragManager = new DragManager();
 		this.#dragManager.setOcclusionExcludedNodes(occlusionExcludedNodes);
+		// The plane lies at the base of the object, which is usually in front
+		// of it: only the plane itself is intersected, so the object (a
+		// selectable node of another manager) does not block hover and drag.
+		this.#hoverManager.restrictedNodesOnly = true;
+		this.#dragManager.restrictedNodesOnly = true;
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
 
@@ -96,6 +102,18 @@ export class RectangleTransformTranslationHandler
 
 		// Create the invisible draggable plane mesh covering the bounding rectangle
 		this.createPlaneNode(getLocalPoints());
+
+		// The plane lies on the object: a press on it would also reach the
+		// selection managers of the object behind it (and deselect it, which
+		// closes the tool). While the plane is hovered or dragged, the pointer
+		// is claimed for this handler's own engine.
+		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
+			viewport.id,
+			() =>
+				this.#isDragging ||
+				(this.#isHovering && !this.#isInteractionBlocked()),
+			this.#interactionEngine,
+		);
 
 		// Snapshot local points at drag start so all DRAG_MOVE deltas are
 		// computed relative to the committed state at the beginning of the drag
@@ -195,6 +213,8 @@ export class RectangleTransformTranslationHandler
 	}
 
 	public close(): void {
+		this.#removePointerDownClaim?.();
+		this.#removePointerDownClaim = undefined;
 		this.#eventEngine.removeListener(this.#dragStartToken);
 		this.#eventEngine.removeListener(this.#dragMoveToken);
 		this.#eventEngine.removeListener(this.#dragEndToken);
@@ -232,10 +252,23 @@ export class RectangleTransformTranslationHandler
 		const M = this.#parentNode.worldMatrix;
 		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
 		const cy = (localPoints[0][1] + localPoints[4][1]) / 2;
-		const origin = vec3.fromValues(
-			M[0] * cx + M[4] * cy + M[12],
-			M[1] * cx + M[5] * cy + M[13],
-			M[2] * cx + M[6] * cy + M[14],
+		// The drag starts at the intersection with the plane mesh, which is
+		// offset along the normal; the restriction plane must share that
+		// offset, otherwise a tilted camera yields a translation without
+		// pointer movement.
+		const normalWS = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[8], M[9], M[10]),
+		);
+		const origin = vec3.scaleAndAdd(
+			vec3.create(),
+			vec3.fromValues(
+				M[0] * cx + M[4] * cy + M[12],
+				M[1] * cx + M[5] * cy + M[13],
+				M[2] * cx + M[6] * cy + M[14],
+			),
+			normalWS,
+			PLANE_Z_OFFSET,
 		);
 		const vector_u = vec3.normalize(
 			vec3.create(),
@@ -338,7 +371,13 @@ export class RectangleTransformTranslationHandler
 
 		const node = new TreeNode("RectangleTransformTranslationPlane");
 		node.addData(geometryData);
-		const interactionData = new InteractionData({drag: true, hover: true});
+		// Only the handler's own managers may hover or drag the plane. Other
+		// managers would apply their effects to its zero-opacity material.
+		const interactionData = new InteractionData(
+			{drag: true, hover: true},
+			undefined,
+			[this.#hoverManager.id, this.#dragManager.id],
+		);
 
 		if (this.#restrictions && this.#restrictions.length > 0) {
 			// use the plane centroid in world space

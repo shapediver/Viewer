@@ -65,6 +65,7 @@ export class DragManager extends AbstractInteractionManager {
 	#interactionEffectToken?: string;
 	#intersection: IRayTracingIntersection | null = null;
 	#occlusionExcludedNodes: ITreeNode[] = [];
+	#restrictedNodesOnly: boolean = false;
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
 		viewport: IViewportApi;
@@ -85,6 +86,25 @@ export class DragManager extends AbstractInteractionManager {
 
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
+	}
+
+	/**
+	 * When true, only nodes whose interaction data is restricted to this
+	 * manager are intersected: a draggable node of another manager in front
+	 * does not block the drag (e.g. a drag plane behind the selected object).
+	 */
+	public get restrictedNodesOnly(): boolean {
+		return this.#restrictedNodesOnly;
+	}
+
+	public set restrictedNodesOnly(value: boolean) {
+		this.#restrictedNodesOnly = value;
+		this.#filter = InteractionManagerUtils.createInteractionFilter(
+			"drag",
+			this.id,
+			[INTERACTION_STATE.DOWN],
+			value,
+		);
 	}
 
 	public add(viewport: IViewportApi): void {

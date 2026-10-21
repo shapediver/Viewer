@@ -45,6 +45,7 @@ export class HoverManager extends AbstractInteractionManager {
 	#interactionEffectTokens: (string | undefined)[] = [];
 	#intersections: IIntersectionDefinition[] = [];
 	#nodes: ITreeNode[] = [];
+	#restrictedNodesOnly: boolean = false;
 
 	constructor(
 		id?: string,
@@ -68,6 +69,25 @@ export class HoverManager extends AbstractInteractionManager {
 
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
+	}
+
+	/**
+	 * When true, only nodes whose interaction data is restricted to this
+	 * manager are intersected: a hoverable node of another manager in front
+	 * does not block the hover (e.g. a drag plane behind the selected object).
+	 */
+	public get restrictedNodesOnly(): boolean {
+		return this.#restrictedNodesOnly;
+	}
+
+	public set restrictedNodesOnly(value: boolean) {
+		this.#restrictedNodesOnly = value;
+		this.#filter = InteractionManagerUtils.createInteractionFilter(
+			"hover",
+			this.id,
+			[INTERACTION_STATE.MOVE, INTERACTION_STATE.END],
+			value,
+		);
 	}
 
 	public add(viewport: IViewportApi): void {

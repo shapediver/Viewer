@@ -5,7 +5,10 @@ import {
 	sceneTree,
 	TreeNode,
 } from "@shapediver/viewer";
-import {type IRay} from "@shapediver/viewer.features.interaction";
+import {
+	InteractionEngine,
+	type IRay,
+} from "@shapediver/viewer.features.interaction";
 import {
 	EventManager,
 	GeometryMathManager,
@@ -63,6 +66,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	#closed: boolean = false;
 	#continuousRenderingFlag?: string;
+	#removePointerDownClaim?: () => void;
 	#eventListenerToken?: string;
 	#paused: boolean = false;
 	#uuid = this.#uuidGenerator.create();
@@ -115,6 +119,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#continuousRenderingFlag = this.#viewport.addFlag(
 			FLAG_TYPE.CONTINUOUS_RENDERING,
 		);
+		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
+			this.#viewport.id,
+			(event) => this.#claimsPointerDown(event),
+		);
 
 		// special case, the scene is still empty, so we create a grid by default and show the scene
 		if (sceneTree.root.boundingBox.isEmpty()) this.#viewport.show = true;
@@ -132,16 +140,22 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					event.metaData !== undefined &&
 					event.recordHistory !== false
 				) {
+					// Points committed during an insertion schedule as well: the
+					// timer defers the update until the insertion ended.
 					if (
 						this.#settings.general.automaticSceneUpdate &&
-						(this.#interactionManager.insertionInteractionHandler
-							.insertionActive === false ||
-							SystemInfo.instance.isMobile === true) &&
 						(this.#settings.geometry.autoClose ||
 							this.#settings.geometry.close ===
 								this.#geometryManager.geometryState.closeLoop)
 					) {
-						this.scheduleAutomaticSceneUpdate();
+						// outside the min/max range update() would throw (and
+						// emit the MINIMUM_POINTS / MAXIMUM_POINTS event), the
+						// pending update is dropped instead
+						if (
+							this.#geometryManager.geometryState.checkNumberOfPoints()
+						)
+							this.scheduleAutomaticSceneUpdate();
+						else this.clearAutomaticSceneUpdateTimeout();
 					}
 				}
 			},
@@ -506,6 +520,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public close(): void {
 		if (this.#closed) return;
+		this.#removePointerDownClaim?.();
+		this.#removePointerDownClaim = undefined;
 		this.clearAutomaticSceneUpdateTimeout();
 		if (this.#eventListenerToken) {
 			this.#eventEngine.removeListener(this.#eventListenerToken);
@@ -536,6 +552,33 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#automaticSceneUpdateTimeoutId = setTimeout(() => {
 			this.#automaticSceneUpdateTimeoutId = undefined;
 			if (this.#closed) return;
+			// an insertion in progress (desktop, the temporary point follows the
+			// pointer) or a paused tool defers the update; the deferred update
+			// sends the committed geometry once the insertion ended (also when
+			// it was cancelled or paused by leaving the canvas, which emits no
+			// committed change)
+			if (
+				this.#paused ||
+				(this.#interactionManager.insertionInteractionHandler
+					.insertionActive === true &&
+					SystemInfo.instance.isMobile !== true)
+			) {
+				this.scheduleAutomaticSceneUpdate();
+				return;
+			}
+			// the geometry may have changed since scheduling: update() would
+			// throw outside the point range or with an open loop
+			const geometry = this.#settings.geometry;
+			const geometryState = this.#geometryManager.geometryState;
+			if (!geometryState.checkNumberOfPoints()) return;
+			if (
+				geometry.mode === "lines" &&
+				!(
+					geometry.autoClose ||
+					geometry.close === geometryState.closeLoop
+				)
+			)
+				return;
 			this.update();
 		}, this.#settings.general.automaticSceneUpdateTimeout);
 	}
@@ -588,6 +631,39 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#interactionManager.onDown(
 			event,
 			this.transformRayToLocalSpace(ray),
+		);
+	}
+
+	/**
+	 * True when this tool would pick a point or control under the pointer.
+	 * Uses the same screen-space test as the drag, so a sprite drawn over a
+	 * closer mesh still owns the click.
+	 */
+	#claimsPointerDown(event: PointerEvent): boolean {
+		if (this.#closed || this.#paused) return false;
+		if (
+			this.#interactionManager.interactionManagerHelper.dragging ||
+			this.#interactionManager.controlsManager?.isDraggingControl
+		)
+			return true;
+		const ray = this.#viewport.pointerEventToRay(event);
+		this.#geometryMathManager.localToWorldMatrix =
+			this.#sceneParent.worldMatrix;
+		const localRay = this.transformRayToLocalSpace(ray);
+		const {enableTranslation, enableSelection} = this.#settings.general;
+		if (enableTranslation || enableSelection) {
+			const distances = this.#geometryMathManager.checkPointDistances(
+				localRay,
+				this.positionArray,
+			);
+			const disabled = this.#settings.geometry.disabledPoints;
+			if (distances?.some((entry) => !disabled?.includes(entry.index)))
+				return true;
+		}
+		return (
+			this.#interactionManager.controlsManager?.closestControlDistance(
+				localRay,
+			) !== undefined
 		);
 	}
 
@@ -898,7 +974,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				autoStart: true,
 				autoUpdate: false,
 				automaticSceneUpdate: false,
-				automaticSceneUpdateTimeout: 1000,
+				automaticSceneUpdateTimeout: 500,
 				closeOnUpdate: false,
 				displayUnit: "",
 				enableTranslation: true,
@@ -1051,8 +1127,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		}
 
 		if (!isUndefinedOrNull(settingsOptional.general)) {
-			const {enabled: automaticSceneUpdate, timeout: automaticSceneUpdateTimeout} =
-				resolveDrawingAutomaticSceneUpdate(settingsOptional.general);
+			const {
+				enabled: automaticSceneUpdate,
+				timeout: automaticSceneUpdateTimeout,
+			} = resolveDrawingAutomaticSceneUpdate(settingsOptional.general);
 			settings.general = {
 				autoStart: isUndefinedOrNull(settingsOptional.general.autoStart)
 					? true

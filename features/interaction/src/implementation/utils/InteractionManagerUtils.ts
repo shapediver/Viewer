@@ -48,18 +48,23 @@ export class InteractionManagerUtils {
 
 	/**
 	 * Common filter implementation
+	 *
+	 * @param restrictedNodesOnly Only intersect nodes whose interaction data is
+	 * restricted to the manager (by default every node with interaction data of
+	 * the type is intersected, so that the closest interactive node wins).
 	 */
 	public static createInteractionFilter(
 		interactionType: keyof IInteractionTypes,
 		managerId: string,
 		targetStates: INTERACTION_STATE[],
+		restrictedNodesOnly: boolean = false,
 	): IInteractionFilterOptions {
 		return (interactionState: INTERACTION_STATE): IIntersectionFilter => {
 			if (targetStates.includes(interactionState)) {
 				return (node: ITreeNode) => {
 					return !!this.getInteractionData(
 						node,
-						false,
+						restrictedNodesOnly,
 						managerId,
 						interactionType,
 					);

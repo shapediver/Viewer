@@ -87,7 +87,7 @@ Here you can define general settings of the drawing tool.
 | autoStart                    | If the drawing tool is started automatically when no points are defined. |
 | autoUpdate                   | **Deprecated.** Use `automaticSceneUpdate`. If set and `automaticSceneUpdate` is not, idle `update()` uses timeout 0. |
 | automaticSceneUpdate         | If `update()` is called after points stop changing (not session `ISessionApi.automaticSceneUpdate`). |
-| automaticSceneUpdateTimeout  | Idle timeout in milliseconds before `automaticSceneUpdate` calls `update()`. Default 1000 when `automaticSceneUpdate` is set, 0 when only `autoUpdate` is set. |
+| automaticSceneUpdateTimeout  | Idle timeout in milliseconds before `automaticSceneUpdate` calls `update()`. Default 500 when `automaticSceneUpdate` is set, 0 when only `autoUpdate` is set. |
 | closeOnUpdate                | If the drawing tool is closed when the drawing is updated. |
 | displayUnit   | The unit that will be displayed in the distance and point labels.         |
 
