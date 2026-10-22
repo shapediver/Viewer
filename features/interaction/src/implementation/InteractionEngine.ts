@@ -58,9 +58,25 @@ export class InteractionEngine implements IInteractionEngine {
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
+	/**
+	 * Drawing-tool points and controls are screen-space sprites (`depthTest:
+	 * false`). The mesh behind a sprite is often the closer ray hit, so
+	 * selection would toggle that mesh off on the same click that should drag
+	 * the handle. A claim that returns true consumes pointerdown for this
+	 * viewport's interaction managers; the drawing tool still receives it.
+	 */
+	static readonly #pointerDownClaims = new Map<
+		string,
+		Set<{
+			claim: (event: PointerEvent) => boolean;
+			owner?: InteractionEngine;
+		}>
+	>();
+
 	#boxSelectionActive: boolean = false;
 	#cameraFreezeFlag?: string;
 	#closed: boolean = false;
+	#pointerDownClaimed: boolean = false;
 	#intersectionOpacity: number = 0.01;
 	#lineIntersectionPercentage: number = 0.025;
 	#pointIntersectionPercentage: number = 0.025;
@@ -188,8 +204,40 @@ export class InteractionEngine implements IInteractionEngine {
 		if (this.#closed) return;
 	}
 
+	/**
+	 * Register a pointer claim for one viewport. While `claim` returns true,
+	 * interaction managers on that viewport do not see the pointerdown, and
+	 * see no intersections on pointermove (so nothing behind is hovered).
+	 * Drawing tools use this so a handle in front of a mesh wins the pointer.
+	 * A claim made for an `owner` engine does not apply to that engine: its
+	 * own managers keep seeing the pointer (e.g. the drag plane of the
+	 * rectangle transform wins over the selection of the object behind it).
+	 */
+	public static addPointerDownClaim(
+		viewportId: string,
+		claim: (event: PointerEvent) => boolean,
+		owner?: InteractionEngine,
+	): () => void {
+		let claims = InteractionEngine.#pointerDownClaims.get(viewportId);
+		if (!claims) {
+			claims = new Set();
+			InteractionEngine.#pointerDownClaims.set(viewportId, claims);
+		}
+		const entry = {claim, owner};
+		claims.add(entry);
+		return () => {
+			claims.delete(entry);
+			if (claims.size === 0)
+				InteractionEngine.#pointerDownClaims.delete(viewportId);
+		};
+	}
+
 	public onPointerDown(event: PointerEvent): void {
 		if (this.#closed) return;
+		// a claimed pointerdown consumes the whole gesture: managers selecting
+		// on pointerup must not see its end either
+		this.#pointerDownClaimed = this.isPointerClaimed(event);
+		if (this.#pointerDownClaimed) return;
 		const ray = this.#viewport.pointerEventToRay(event);
 		this.onDown(event, ray);
 	}
@@ -201,19 +249,44 @@ export class InteractionEngine implements IInteractionEngine {
 	public onPointerMove(event: PointerEvent): void {
 		if (this.#closed) return;
 		const ray = this.#viewport.pointerEventToRay(event);
+		if (this.isPointerClaimed(event)) {
+			for (const m in this.#managers)
+				this.#managers[m].onMove(event, ray, []);
+			return;
+		}
 		this.onMove(event, ray);
 	}
 
 	public onPointerOut(event: PointerEvent): void {
 		if (this.#closed) return;
+		if (this.#pointerDownClaimed) {
+			this.#pointerDownClaimed = false;
+			return;
+		}
 		const ray = this.#viewport.pointerEventToRay(event);
 		this.onEnd(event, ray, INTERACTION_STATE.OUT);
 	}
 
 	public onPointerUp(event: PointerEvent): void {
 		if (this.#closed) return;
+		if (this.#pointerDownClaimed) {
+			this.#pointerDownClaimed = false;
+			return;
+		}
 		const ray = this.#viewport.pointerEventToRay(event);
 		this.onEnd(event, ray, INTERACTION_STATE.UP);
+	}
+
+	private isPointerClaimed(event: PointerEvent): boolean {
+		const claims = InteractionEngine.#pointerDownClaims.get(
+			this.#viewport.id,
+		);
+		if (!claims) return false;
+		for (const {claim, owner} of claims) {
+			if (owner === this) continue;
+			if (claim(event)) return true;
+		}
+		return false;
 	}
 
 	public removeInteractionManager(token: string): boolean {
