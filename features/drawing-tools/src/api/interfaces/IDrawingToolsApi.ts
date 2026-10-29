@@ -13,9 +13,16 @@ export interface IDrawingToolsApi {
 	 */
 	readonly closed: boolean;
 	/**
-	 * Check if the drawing tool is paused.
+	 * Check if the drawing tool is paused: by {@link pause}, or while the
+	 * viewport is busy if {@link pauseWhileBusy} is set.
 	 */
 	readonly paused: boolean;
+	/**
+	 * Pause the drawing tool while the viewport is busy (busy mode, e.g. a
+	 * session computes), like {@link pause}; it continues when the busy mode
+	 * ends (unless paused by {@link pause}). (default: false)
+	 */
+	pauseWhileBusy: boolean;
 	/**
 	 * The points data of the drawing tool.
 	 */
@@ -71,11 +78,13 @@ export interface IDrawingToolsApi {
 	canUndo(): boolean;
 	/**
 	 * Pause the drawing tool, suspending all user interactions while keeping the
-	 * current state. Call {@link continue} to resume.
+	 * current state (a point drag in progress is cancelled). Call
+	 * {@link continue} to resume. See also {@link pauseWhileBusy}.
 	 */
 	pause(): void;
 	/**
-	 * Resume the drawing tool after it has been paused.
+	 * Resume the drawing tool after it has been paused by {@link pause} (it
+	 * stays paused while the viewport is busy if {@link pauseWhileBusy} is set).
 	 */
 	continue(): void;
 	/**

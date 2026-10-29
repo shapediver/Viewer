@@ -108,6 +108,13 @@ export class HoverManager extends AbstractInteractionManager {
 		while (this.#nodes.length > 0) this.deactivateNode(this.#nodes[0]);
 	}
 
+	/**
+	 * Unhover all nodes (see {@link IInteractionManager.cancelInteraction}).
+	 */
+	public cancelInteraction(): void {
+		this.deselectAll();
+	}
+
 	public onDown(
 		event: PointerEvent,
 		ray: IRay,

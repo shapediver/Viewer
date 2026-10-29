@@ -20,6 +20,7 @@ import {
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
+	EVENTTYPE,
 	EVENTTYPE_DRAWING_TOOLS,
 	type IEvent,
 	ShapeDiverViewerDrawingToolsError,
@@ -68,7 +69,12 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	#continuousRenderingFlag?: string;
 	#removePointerDownClaim?: () => void;
 	#eventListenerToken?: string;
+	// the effective pause: paused by pause(), or while busy (pauseWhileBusy)
 	#paused: boolean = false;
+	#pausedManually: boolean = false;
+	#pauseWhileBusy: boolean = false;
+	#busy: boolean = false;
+	readonly #busyModeTokens: string[] = [];
 	#uuid = this.#uuidGenerator.create();
 	#automaticSceneUpdateTimeoutId?: ReturnType<typeof setTimeout>;
 
@@ -160,6 +166,19 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				}
 			},
 		);
+
+		// follow the busy mode of the viewport (see pauseWhileBusy)
+		this.#busy = this.#viewport.isBusy;
+		this.#busyModeTokens.push(
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_ON,
+				(e) => this.onBusyModeChange(e, true),
+			),
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_OFF,
+				(e) => this.onBusyModeChange(e, false),
+			),
+		);
 	}
 
 	// #endregion Constructors (1)
@@ -176,6 +195,15 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public get paused(): boolean {
 		return this.#paused;
+	}
+
+	public get pauseWhileBusy(): boolean {
+		return this.#pauseWhileBusy;
+	}
+
+	public set pauseWhileBusy(value: boolean) {
+		this.#pauseWhileBusy = value;
+		this.updatePauseState();
 	}
 
 	public get defaultTextures(): DefaultTextures {
@@ -492,14 +520,52 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public pause(): void {
-		if (this.#closed || this.#paused) return;
-		this.#interactionManager.onOut();
-		this.#paused = true;
+		if (this.#closed) return;
+		this.#pausedManually = true;
+		this.updatePauseState();
 	}
 
 	public continue(): void {
 		if (this.#closed) return;
-		this.#paused = false;
+		this.#pausedManually = false;
+		this.updatePauseState();
+	}
+
+	/** Follow the busy mode of the viewport (see {@link pauseWhileBusy}). */
+	private onBusyModeChange(event: IEvent, busy: boolean): void {
+		if ((event as {viewportId?: string}).viewportId !== this.#viewport.id)
+			return;
+		// evaluated after the current call stack: a busy mode starting within
+		// the end of an interaction (e.g. a listener computing a session) does
+		// not cancel it in the middle of it
+		queueMicrotask(() => {
+			this.#busy = busy;
+			this.updatePauseState();
+		});
+	}
+
+	/**
+	 * Evaluate the effective pause (see {@link pause} and {@link pauseWhileBusy}).
+	 * On the start of a pause an interaction in progress is cancelled.
+	 */
+	private updatePauseState(): void {
+		if (this.#closed) return;
+		const paused =
+			this.#pausedManually || (this.#pauseWhileBusy && this.#busy);
+		if (paused === this.#paused) return;
+		if (paused) {
+			this.#interactionManager.onOut();
+			// set again by the next pointer move after the pause (kept on
+			// mobile, like on a pointer out)
+			if (
+				this.#continuousRenderingFlag &&
+				SystemInfo.instance.isMobile === false
+			) {
+				this.#viewport.removeFlag(this.#continuousRenderingFlag);
+				this.#continuousRenderingFlag = undefined;
+			}
+		}
+		this.#paused = paused;
 	}
 
 	public cancel(): void {
@@ -522,6 +588,9 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		if (this.#closed) return;
 		this.#removePointerDownClaim?.();
 		this.#removePointerDownClaim = undefined;
+		this.#busyModeTokens.forEach((token) =>
+			this.#eventEngine.removeListener(token),
+		);
 		this.clearAutomaticSceneUpdateTimeout();
 		if (this.#eventListenerToken) {
 			this.#eventEngine.removeListener(this.#eventListenerToken);
@@ -697,7 +766,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
-		if (this.closed || this.#paused) return;
+		// a key released while paused is released (only the state is updated)
+		if (this.closed) return;
 		this.#keysPressed[event.key] = false;
 	}
 

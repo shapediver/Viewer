@@ -28,6 +28,7 @@ export interface IDrawingToolsManager {
 	readonly restrictions: {[key: string]: IRestriction};
 	readonly uuid: string;
 
+	pauseWhileBusy: boolean;
 	showDistanceLabels: boolean;
 	showPointLabels: boolean;
 	showPointerPosition: boolean;

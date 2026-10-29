@@ -53,6 +53,8 @@ export class DragManager extends AbstractInteractionManager {
 		worldMatrix: mat4;
 		worldMatrixInverse: mat4;
 		previousDragMatrix: mat4;
+		// the drag matrices of the grouped nodes before the drag
+		previousGroupDragMatrices: mat4[];
 		dragAnchors: IDragAnchor[];
 		dragOrigin: vec3;
 	};
@@ -390,11 +392,52 @@ export class DragManager extends AbstractInteractionManager {
 	}
 
 	/**
+	 * Cancel the drag in progress (see {@link IInteractionManager.cancelInteraction}):
+	 * the dragged nodes return to their placement before the drag. DRAG_END is
+	 * emitted with `cancelled` set and that placement.
+	 */
+	public cancelInteraction(): void {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
+			return;
+		if (!this.#draggedNode) return;
+
+		const {node, previousDragMatrix, previousGroupDragMatrices} =
+			this.#draggedNode;
+		this.applyTransformation(node, mat4.clone(previousDragMatrix));
+		this.viewport.updateNodeTransformation(node);
+		this.#groupedNodes?.forEach((n, i) => {
+			this.applyTransformation(
+				n,
+				mat4.clone(previousGroupDragMatrices[i] ?? mat4.create()),
+			);
+			this.viewport!.updateNodeTransformation(n);
+		});
+
+		this.endDrag(undefined, undefined, true);
+	}
+
+	/**
 	 * Remove the node as the currently used drag node.
 	 *
 	 * @returns
 	 */
 	public removeNode(event?: PointerEvent, ray?: IRay) {
+		this.endDrag(event, ray, false);
+	}
+
+	/**
+	 * End the drag in progress, see {@link removeNode} and {@link cancelInteraction}.
+	 */
+	private endDrag(
+		event: PointerEvent | undefined,
+		ray: IRay | undefined,
+		cancelled: boolean,
+	) {
 		if (
 			!InteractionManagerUtils.validateViewport(
 				this.viewport,
@@ -455,6 +498,7 @@ export class DragManager extends AbstractInteractionManager {
 			dragAnchor: transformationResult?.dragAnchor,
 			manager: this,
 			groupedNodes: this.#groupedNodes,
+			cancelled: cancelled || undefined,
 		} as IDragEvent);
 		this.#setupOptions = null;
 
@@ -643,8 +687,13 @@ export class DragManager extends AbstractInteractionManager {
 		);
 		if (!invertedPreviousDragMatrix)
 			invertedPreviousDragMatrix = mat4.create();
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.removeTransformation(n));
+		// (the group contains the dragged node too, its transformation was
+		// removed above)
+		const previousGroupDragMatrices = (this.#groupedNodes ?? []).map((n) =>
+			n === node
+				? mat4.clone(previousDragMatrix)
+				: this.removeTransformation(n),
+		);
 
 		// store the initial world matrix and its inverse
 		const worldMatrix = node.worldMatrix;
@@ -673,6 +722,7 @@ export class DragManager extends AbstractInteractionManager {
 			worldMatrix,
 			worldMatrixInverse,
 			previousDragMatrix,
+			previousGroupDragMatrices,
 			dragAnchors: data?.dragAnchors || [],
 			dragOrigin: data?.dragOrigin
 				? vec3.transformMat4(

@@ -170,6 +170,14 @@ export class GumballTransform
 		return "gumball";
 	}
 
+	protected pauseLogic(): void {
+		// cancel a drag in progress, the camera freeze of the drag is removed
+		// by the "dragging-changed" event
+		this.#gumballTransformControls.cancel();
+		this.#moving = false;
+		if (this.#pivotDragging) this.deactivatePivotDragging();
+	}
+
 	public closeLogic(): void {
 		this.parentObject.remove(this.#gumballTransformControls);
 		this.parentObject.remove(this.#transformationToolsPlaceholder);

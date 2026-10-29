@@ -110,8 +110,9 @@ export class RectangleTransformTranslationHandler
 		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
 			viewport.id,
 			() =>
-				this.#isDragging ||
-				(this.#isHovering && !this.#isInteractionBlocked()),
+				!this.#interactionEngine.paused &&
+				(this.#isDragging ||
+					(this.#isHovering && !this.#isInteractionBlocked())),
 			this.#interactionEngine,
 		);
 
@@ -210,6 +211,29 @@ export class RectangleTransformTranslationHandler
 				? "move"
 				: "";
 		this.#viewport.canvas.style.cursor = newCursor;
+	}
+
+	/**
+	 * Pause the translation: a drag in progress is cancelled (the rectangle
+	 * returns to the committed translation), the plane is unhovered.
+	 */
+	public pause(): void {
+		// cancelled right away (the rectangle transform pauses after the call
+		// stack already): the cancelled DRAG_END returns to the committed
+		// translation, also if the engine continues before its own cancel
+		this.#dragManager.cancelInteraction();
+		this.#hoverManager.cancelInteraction();
+		this.#interactionEngine.pause();
+		this.#isDragging = false;
+		this.#isHovering = false;
+		this.#viewport.canvas.style.cursor = "";
+	}
+
+	/**
+	 * Resume the translation after {@link pause}.
+	 */
+	public continue(): void {
+		this.#interactionEngine.continue();
 	}
 
 	public close(): void {
@@ -413,6 +437,12 @@ export class RectangleTransformTranslationHandler
 		// rotation hover), we must still commit the accumulated delta so the
 		// committedTranslation stays in sync with the visual state.
 		if (!this.#isDragging) return;
+		// A cancelled drag (see pause) returns to the committed translation.
+		if (ev.cancelled) {
+			this.#onMove(vec3.clone(this.#committedTranslation));
+			this.#viewport.updateNodeTransformation(this.#parentNode);
+			return;
+		}
 		if (this.#isInteractionBlocked() && !commit) {
 			return;
 		}
