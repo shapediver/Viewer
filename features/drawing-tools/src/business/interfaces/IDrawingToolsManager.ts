@@ -28,6 +28,7 @@ export interface IDrawingToolsManager {
 	readonly restrictions: {[key: string]: IRestriction};
 	readonly uuid: string;
 
+	pauseWhileBusy: boolean;
 	showDistanceLabels: boolean;
 	showPointLabels: boolean;
 	showPointerPosition: boolean;
@@ -175,7 +176,7 @@ export type Settings = {
 		 * Idle timeout in milliseconds before {@link Settings.general.automaticSceneUpdate}
 		 * calls `update()`. Reset on each committed geometry change.
 		 *
-		 * Defaults to 1000 when {@link Settings.general.automaticSceneUpdate} is
+		 * Defaults to 500 when {@link Settings.general.automaticSceneUpdate} is
 		 * set, and to 0 when only the deprecated {@link Settings.general.autoUpdate}
 		 * is set.
 		 */

@@ -65,6 +65,9 @@ export class RectangleTransform
 	#isDTDragging: boolean = false;
 	#initialLocalPoints: vec3[] = [];
 	#localPoints: vec3[] = [];
+	// The local points at the start of a DT drag (scaling/rotation), restored
+	// when the drag is cancelled (see pauseLogic).
+	#localPointsAtDTDragStart: vec3[] | undefined;
 	#rotationHandler: RectangleTransformRotationHandler | undefined;
 	#scalingHandler: RectangleTransformScalingHandler | undefined;
 	#translationHandler: RectangleTransformTranslationHandler | undefined;
@@ -188,8 +191,47 @@ export class RectangleTransform
 		sceneTree.root.updateVersion(false, false);
 	}
 
+	protected pauseLogic(): void {
+		// Cancel a gesture in progress: the rectangle returns to its last
+		// committed state. The temporary state is replaced without reporting a
+		// matrix change (the committed state is the reported one).
+		// (only a gesture which was not committed, e.g. by a pointer out, has
+		// a temporary transformation)
+		const rotationStart = this.#rotationHandler?.cancelGesture();
+		if (this.#hasPendingTemporaryTransform) {
+			if (rotationStart) this.#localPoints = rotationStart;
+			else if (this.#isDTDragging && this.#localPointsAtDTDragStart)
+				this.#localPoints = this.#localPointsAtDTDragStart;
+		}
+		this.#localPointsAtDTDragStart = undefined;
+		this.#isDTDragging = false;
+		// the drawing tools reset a point drag in progress, the translation
+		// returns to the committed translation
+		this.#scalingHandler?.drawingTools.pause();
+		this.#rotationHandler?.drawingTools.pause();
+		this.#translationHandler?.pause();
+		if (!this.#hasPendingTemporaryTransform) return;
+		this.applyAccumulatedTransform(this.committedTranslation, false);
+		for (const handler of this.#handlers)
+			handler?.recompute(this.#localPoints, false);
+		this.#dtParentNode.updateVersion();
+		this.calculateTransformationMatrix(this.#localPoints, false);
+		this.#hasPendingTemporaryTransform = false;
+	}
+
+	protected continueLogic(): void {
+		this.#scalingHandler?.drawingTools.continue();
+		this.#rotationHandler?.drawingTools.continue();
+		this.#translationHandler?.continue();
+	}
+
 	protected onPointerOutLogic(_event: PointerEvent): void {
 		this.#rotationHandler?.clearDragState();
+		// the drawing tools end a drag on a pointer out without a DRAG_END:
+		// the gesture ends (it is committed below if it changed anything), a
+		// pause must not restore its start
+		this.#isDTDragging = false;
+		this.#localPointsAtDTDragStart = undefined;
 
 		if (!this.#hasPendingTemporaryTransform) return;
 
@@ -315,6 +357,11 @@ export class RectangleTransform
 		if (this.#translationHandler?.isDragging) {
 			return;
 		}
+		if (!this.#isDTDragging && !commit)
+			this.#localPointsAtDTDragStart = this.#localPoints.map((p) =>
+				vec3.clone(p),
+			);
+		if (commit) this.#localPointsAtDTDragStart = undefined;
 		if (ev.drawingToolsId === this.#rotationHandler?.drawingTools.uuid) {
 			this.#isDTDragging = !commit;
 			this.#rotationHandler.processDrag(ev, this.#localPoints, commit);

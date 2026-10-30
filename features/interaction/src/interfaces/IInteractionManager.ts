@@ -138,7 +138,18 @@ export interface IInteractionManager {
 	 */
 	remove(): void;
 
-	// #endregion Public Methods (5)
+	/**
+	 * Optional: called when the interaction engine is paused (see
+	 * `IInteractionEngine.pause`), and when the pointer of a gesture
+	 * interrupted by a pause leaves the canvas (also after the pause ended,
+	 * instead of the end of that gesture). Cancel an interaction in progress,
+	 * e.g. a drag returns its nodes to their placement before the drag and a
+	 * hovered node is unhovered. Results of finished interactions (e.g.
+	 * selected nodes) are kept.
+	 */
+	cancelInteraction?(): void;
+
+	// #endregion Public Methods (6)
 }
 
 // #endregion Interfaces (1)

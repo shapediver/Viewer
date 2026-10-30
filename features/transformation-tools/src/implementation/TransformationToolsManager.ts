@@ -12,10 +12,11 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
+	EVENTTYPE,
 	EVENTTYPE_TRANSFORMATION_TOOLS,
 	UuidGenerator,
 } from "@shapediver/viewer.shared.services";
-import {FLAG_TYPE} from "@shapediver/viewer.shared.types";
+import {FLAG_TYPE, type IViewportEvent} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
@@ -40,6 +41,14 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	#cameraFreezeFlag?: string;
 	#canvasEventListenerToken: string;
 	#closed: boolean = false;
+	// the effective pause: paused by pause(), or while busy (pauseWhileBusy)
+	#paused: boolean = false;
+	#pausedManually: boolean = false;
+	// pauseLogic ran for the current pause (it runs after the call stack)
+	#pauseApplied: boolean = false;
+	#pauseWhileBusy: boolean = false;
+	#busy: boolean = false;
+	readonly #busyModeTokens: string[] = [];
 	#continuousRenderingFlag?: string;
 	#continuousShadowMapUpdateFlag?: string;
 	#initialOffset: vec3 = vec3.create();
@@ -86,6 +95,22 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 		// we don't allow to change the reuseTransformation for now
 		this.#reuseTransformation = settings?.reuseTransformation ?? true;
+
+		// follow the busy mode of the viewport (see pauseWhileBusy)
+		this.#pauseWhileBusy = settings?.pauseWhileBusy ?? false;
+		this.#busy = this.#viewport.isBusy;
+		this.#busyModeTokens.push(
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_ON,
+				(e) => this.onBusyModeChange(e as IViewportEvent, true),
+			),
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_OFF,
+				(e) => this.onBusyModeChange(e as IViewportEvent, false),
+			),
+		);
+		// the implementation is set up once its constructor ran
+		queueMicrotask(() => this.updatePauseState());
 	}
 
 	public get closed(): boolean {
@@ -94,6 +119,19 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 	public get id(): string {
 		return this.#id;
+	}
+
+	public get paused(): boolean {
+		return this.#paused;
+	}
+
+	public get pauseWhileBusy(): boolean {
+		return this.#pauseWhileBusy;
+	}
+
+	public set pauseWhileBusy(value: boolean) {
+		this.#pauseWhileBusy = value;
+		this.updatePauseState();
 	}
 
 	public get settings(): SettingsOptional | undefined {
@@ -164,6 +202,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 	public close(): void {
 		this.#closed = true;
+		this.#busyModeTokens.forEach((token) =>
+			this.#eventEngine.removeListener(token),
+		);
 		this.closeLogic();
 
 		this.#viewport.removeCanvasEventListener(
@@ -175,6 +216,57 @@ export abstract class TransformationToolsManager implements ITransformationTools
 			this.#viewport.removeFlag(this.#continuousShadowMapUpdateFlag);
 		if (this.#cameraFreezeFlag)
 			this.#viewport.removeFlag(this.#cameraFreezeFlag);
+	}
+
+	public pause(): void {
+		if (this.#closed) return;
+		this.#pausedManually = true;
+		this.updatePauseState();
+	}
+
+	public continue(): void {
+		if (this.#closed) return;
+		this.#pausedManually = false;
+		this.updatePauseState();
+	}
+
+	/** Follow the busy mode of the viewport (see {@link pauseWhileBusy}). */
+	private onBusyModeChange(event: IViewportEvent, busy: boolean): void {
+		if (event.viewportId !== this.#viewport.id) return;
+		this.#busy = busy;
+		this.updatePauseState();
+	}
+
+	/**
+	 * Evaluate the effective pause (see {@link pause} and {@link pauseWhileBusy}).
+	 * The events are ignored right away, a transformation in progress is
+	 * cancelled after the current call stack: a pause from within the end of
+	 * a transformation (e.g. a listener of its matrix change computing a
+	 * session) must not cancel the transformation which is being ended.
+	 */
+	private updatePauseState(): void {
+		if (this.#closed) return;
+		const paused =
+			this.#pausedManually || (this.#pauseWhileBusy && this.#busy);
+		if (paused === this.#paused) return;
+		this.#paused = paused;
+		if (!paused) {
+			// only a pause which was applied is ended
+			if (!this.#pauseApplied) return;
+			this.#pauseApplied = false;
+			this.continueLogic();
+			return;
+		}
+		queueMicrotask(() => {
+			if (this.#closed || !this.#paused || this.#pauseApplied) return;
+			this.#pauseApplied = true;
+			this.pauseLogic();
+			this.toggleCameraFreeze(false);
+			this.#viewport.removeRestrictedCanvasListenerToken(
+				this.#canvasEventListenerToken,
+			);
+			this.#viewport.render();
+		});
 	}
 
 	public keyPressed(key: string | string[]): boolean {
@@ -191,7 +283,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 		if (!pointerInCanvas) return;
 		this.#keysPressed[event.key] = true;
 
@@ -208,19 +300,19 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	public onMouseWheel(event: WheelEvent): void {}
 
 	public onPointerDown(event: PointerEvent): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 
 		this.onPointerDownLogic(event);
 	}
 
 	public onPointerEnd(event: PointerEvent): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 
 		this.onPointerEndLogic(event);
 	}
 
 	public onPointerMove(event: PointerEvent): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 
 		if (!this.#continuousRenderingFlag)
 			this.#continuousRenderingFlag = this.#viewport.addFlag(
@@ -251,12 +343,23 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	public onPointerUp(event: PointerEvent): void {
-		if (this.closed) return;
+		if (this.closed || this.#paused) return;
 
 		this.onPointerUpLogic(event);
 	}
 
 	protected abstract closeLogic(): void;
+
+	/**
+	 * Called by {@link pause}: cancel a transformation in progress, the nodes
+	 * return to their placement before it.
+	 */
+	protected pauseLogic(): void {}
+
+	/**
+	 * Called by {@link continue}.
+	 */
+	protected continueLogic(): void {}
 
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(

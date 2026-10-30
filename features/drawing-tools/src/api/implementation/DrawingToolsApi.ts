@@ -109,6 +109,14 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		return this.#drawingToolsManager.paused;
 	}
 
+	public get pauseWhileBusy(): boolean {
+		return this.#drawingToolsManager.pauseWhileBusy;
+	}
+
+	public set pauseWhileBusy(value: boolean) {
+		this.#drawingToolsManager.pauseWhileBusy = value;
+	}
+
 	public get pointsData(): PointsData {
 		return this.#drawingToolsManager.getPointsData();
 	}
